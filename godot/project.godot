@@ -1,0 +1,20 @@
+; Engine configuration file.
+; Godot 4.4 — FORJA, DualSense as Sony and Steam document it.
+config_version=5
+
+[application]
+config/name="FORJA"
+config/description="4-player local DualSense tech demo. USB 0x02 only."
+config/version="0.2.0"
+run/main_scene="res://scenes/main.tscn"
+config/features=PackedStringArray("4.4", "Forward Plus")
+
+[display]
+window/size/viewport_width=1280
+window/size/viewport_height=720
+window/stretch/mode="canvas_items"
+window/stretch/aspect="expand"
+
+[rendering]
+renderer/rendering_method="forward_plus"
+environment/defaults/default_clear_color=Color(0.07, 0.06, 0.05, 1)
