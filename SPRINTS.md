@@ -1,8 +1,8 @@
 # FORJA — sprints (plano, não execução)
 
-**Repo:** [AndreBFarias/forja](https://github.com/AndreBFarias/forja) · privado · `main` @ `07248b2` (13/09/2026)
-**O que está no GitHub hoje:** empacotador C USB `0x02` + Godot 4.4 (Hub / Galeria / Impacto / Viga / Prova) + `./run-local.sh`.
-**O que NÃO está no GitHub:** o preview web (eleição de modo, packer alinhado ao mapa USB do specs.html, WebHID, audio 4.0).
+**Repo:** [AndreBFarias/forja](https://github.com/AndreBFarias/forja) · privado · `main` @ `07248b2` (13/09/2026)\
+**O que está no GitHub hoje:** empacotador C USB `0x02` + Godot 4.4 (Hub / Galeria / Impacto / Viga / Prova) + `./run-local.sh`.\
+**O que NÃO está no GitHub:** o preview web (eleição de modo, packer alinhado ao mapa USB do specs.html, WebHID, audio 4.0).\
 **Contrato:** o jogo fala Sony/Steam no cabo. Não fala Hefesto. Sem relatório `0x31`.
 
 Este arquivo é backlog. Não começa trabalho sozinho.
