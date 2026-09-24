@@ -1,0 +1,63 @@
+#!/usr/bin/env bash
+# A prova do jogo, sem janela: o Godot --headless abre a cena inteira e lê a
+# HUD. Com o nome que a Sony dá ao alto-falante na lista de som, o jogo acha o
+# alto-falante; sem ele, a HUD tem de dizer que não achou (a mordida).
+#
+# O servidor de som é de mentira (pactl e pw-cat numa pasta temporária, na
+# frente do PATH) e a mesa é um sysfs vazio (FORJA_SYSFS): nem o forja-send
+# nem o forja-speak acham pad para escrever. Com o `bwrap` instalado, o jogo
+# roda num /dev novo, sem hidraw nem input: o Godot abre os joypads que achar
+# mesmo sem janela, e numa prova ele não tem de achar nenhum.
+#
+# Uso: bash tests/prova_do_jogo.sh        (GODOT=<binário> para outro Godot)
+set -u
+RAIZ="$(cd "$(dirname "$0")/.." && pwd)"
+GODOT="${GODOT:-$RAIZ/tools/Godot_v4.4.1-stable_linux.x86_64}"
+[ -x "$GODOT" ] || { echo "sem Godot: rode ./run-local.sh uma vez, ou GODOT=<binário>"; exit 2; }
+TMP="$(mktemp -d /tmp/forja-prova-do-jogo-XXXXXX)"
+trap 'rm -rf "$TMP"' EXIT
+mkdir -p "$TMP/bin" "$TMP/sys-vazio"
+cat > "$TMP/bin/pactl" <<'PACTL'
+#!/usr/bin/env bash
+[ "$*" = "list sinks" ] && cat "$SERVIDOR_DE_MENTIRA"
+exit 0
+PACTL
+printf '#!/usr/bin/env bash\ncat > /dev/null\nexit 0\n' > "$TMP/bin/pw-cat"
+chmod +x "$TMP/bin/pactl" "$TMP/bin/pw-cat"
+export PATH="$TMP/bin:$PATH"
+export FORJA_SYSFS="$TMP/sys-vazio"
+[ "$(command -v pactl)" = "$TMP/bin/pactl" ] || { echo "GUARDA: pactl não é o de mentira"; exit 1; }
+
+cat > "$TMP/forma-a" <<'SINKS'
+Sink #40
+	Name: alsa_output.pci-0000_0a_00.1.hdmi-stereo
+	Description: HDA NVidia Digital Stereo (HDMI)
+	Sample Specification: s32le 2ch 48000Hz
+Sink #593
+	Name: no_do_radio_000001
+	Description: Alto-falante do Controle 1 (DualSense Wireless Controller)
+	Sample Specification: s16le 2ch 48000Hz
+SINKS
+sed 's/ (DualSense Wireless Controller)$//' "$TMP/forma-a" > "$TMP/antes"
+
+CAIXA=()
+if command -v bwrap > /dev/null; then
+  CAIXA=(bwrap --dev-bind / / --dev /dev --tmpfs /run/udev --tmpfs /sys/class/input
+         --tmpfs /sys/class/hidraw)
+fi
+
+"${CAIXA[@]}" "$GODOT" --headless --path "$RAIZ/godot" --import --quit > "$TMP/import.log" 2>&1
+
+FALHAS=0
+rodar() {
+  SERVIDOR_DE_MENTIRA="$TMP/$1" ESPERADO="$2" \
+    "${CAIXA[@]}" "$GODOT" --headless --path "$RAIZ/godot" --script res://testes/prova_do_jogo.gd \
+    > "$TMP/$1.log" 2>&1
+  local rc=$?
+  grep -E "HUD do som|FAIL|SCRIPT ERROR" "$TMP/$1.log"
+  [ "$rc" -eq 0 ] || { echo "FAIL a prova com o servidor «$1» (rc=$rc)"; FALHAS=$((FALHAS + 1)); }
+}
+rodar forma-a "alto-falante: Alto-falante do Controle 1 (DualSense Wireless Controller)"
+rodar antes "nenhum alto-falante de controle na lista (2 dispositivos)"
+[ "$FALHAS" -eq 0 ] || exit 1
+echo "prova do jogo ok — com o nome da Sony o jogo acha o alto-falante; sem ele, a HUD diz que não achou"

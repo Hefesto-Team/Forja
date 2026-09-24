@@ -128,3 +128,13 @@ Fora de escopo deste sprint: rádio, report `0x31`, Opus, IPC Hefesto, Steam pag
 5. Sprint 5 (Steam) só com 0–3 fechados
 
 Não fazer: dump do specs.html na UI, modo BT “pra testar o Hefesto”, broadcast de rumble, `LIGHT_OUT` em loop, inventar feature que o cabo marca `cabo_aciona=não`.
+
+---
+
+## Entrou por fora da fila — 24/09/2026
+
+A Forja virou o jogo de prova do alto-falante, do microfone e do movimento (decisão de 23/09, sprint `A-FORJA-VALIDA-O-SOM-01` do Hefesto):
+
+- `forja-speak`: um SFX no alto-falante de cada DualSense, achado pelo aparelho ou pelo nome — e o tiro da Galeria sai no controle de quem atirou;
+- `forja-read` e a Viga girando com a IMU (`movimento.giroscopio.jogo`); sem IMU, a HUD diz «stick»;
+- **Voz** (`F5`): a barra do microfone padrão. O eco no alto-falante do próprio pad, do Sprint 4, **não** entrou.

@@ -5,7 +5,7 @@ MESA = src/forja_mesa.c
 SOM = src/forja_alto_falante.c
 MOVIMENTO = src/forja_movimento.c
 
-.PHONY: all test send speak read clean run
+.PHONY: all test test-jogo send speak read clean run
 
 all: test send speak read
 
@@ -21,6 +21,10 @@ bin/forja-selftest: src/forja_selftest.c $(SRC) include/forja_dualsense.h
 bin/forja-selftest-som: src/forja_selftest_som.c $(MESA) $(SOM) $(MOVIMENTO) include/forja_mesa.h include/forja_alto_falante.h include/forja_movimento.h include/forja_dualsense.h
 	mkdir -p bin
 	$(CC) $(CFLAGS) -o $@ src/forja_selftest_som.c $(MESA) $(SOM) $(MOVIMENTO) -lm
+
+# A prova do jogo precisa do Godot (o run-local.sh o baixa em tools/).
+test-jogo: all
+	bash tests/prova_do_jogo.sh
 
 send: bin/forja-send
 

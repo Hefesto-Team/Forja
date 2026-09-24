@@ -24,6 +24,10 @@ Se o jogo chama `trigger.set {uniq}` no socket do Hefesto, o teste é circular: 
 | Touchpad | `scePadReadState` touch | analog/touch origins | `SDL_GetGamepadTouchpadFinger` |
 | Mute LED do mic | HID USB `0x02` byte mic LED | GameInput 3.5 DualSense helper | mesmo payload USB |
 | Volume do speaker | HID USB `0x02` speaker vol | **não existe na Steam Input** | mesmo payload USB |
+| Som no alto-falante | o endpoint de áudio do pad, casado pelo `ContainerId` | — | o device de áudio pelo nome |
+| Microfone | o microfone padrão do sistema | — | o device de gravação padrão |
+
+O alto-falante se acha como um jogo acha, e o `forja-speak` faz os dois: **pelo aparelho** (o mesmo USB do pad — `--player N`, o mesmo N do `forja-send`) e **pelo nome que o jogo mostra** (`--nome`; sob Proton, a descrição do nó de áudio). Nunca pelo nome de dentro do nó, nunca por MAC.
 
 Modos oficiais de gatilho (`isteamdualsense.h`, os únicos que este jogo envia):
 
@@ -51,7 +55,7 @@ Se `forja-send` encontrar um DualSense com barramento Bluetooth, ele recusa o ap
 
 > este jogo não fala o relatório 0x31. ligue o DualSense no cabo, ou um DualSense virtual USB.
 
-Sem citar Hefesto.
+Sem citar Hefesto. O `forja-read` recusa o mesmo aparelho, com a mesma frase.
 
 ## Identidade do pad
 

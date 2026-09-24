@@ -18,7 +18,11 @@ Isso compila o empacotador USB `0x02`, baixa Godot 4.4.1 se faltar, e abre o jog
 | `src/forja_dualsense.c` | empacotador compartilhado |
 | `src/forja_selftest.c` | prova: nunca emite `0x31`, isola player index no byte |
 | `src/forja_send.c` | escreve em `/dev/hidraw*` USB; **recusa Bluetooth** |
-| `godot/` | jogo Godot 4.4 — Hub, Galeria, Impacto, Viga, A Prova |
+| `src/forja_mesa.c` | a mesa: os DualSense em hidraw, na mesma ordem para os três binários |
+| `src/forja_speak.c` | um SFX no alto-falante de UM DualSense, achado pelo aparelho ou pelo nome |
+| `src/forja_read.c` | giro e acelerômetro pelo report `0x01`; **recusa Bluetooth** |
+| `tests/` | as provas de ponta a ponta, com `pactl`, `pw-cat` e sysfs de mentira |
+| `godot/` | jogo Godot 4.4 — Hub, Galeria, Impacto, Viga, A Prova, Voz |
 | `run-local.sh` | um comando para jogar no Linux |
 | `udev/` | regra para escrever hidraw sem root |
 

@@ -167,18 +167,44 @@ func _mode_name(mode: int) -> String:
 func _send_bin() -> String:
 	if _send_bin_cache != "" and FileAccess.file_exists(_send_bin_cache):
 		return _send_bin_cache
+	_send_bin_cache = bin_irmao("forja-send")
+	return _send_bin_cache
+
+
+## Where the sibling binaries live (forja-send, forja-speak, forja-read): the
+## repo's bin/ next to godot/, or next to an exported game.
+static func bin_irmao(nome: String) -> String:
 	var root := ProjectSettings.globalize_path("res://")
 	var candidates := [
-		root.path_join("../bin/forja-send").simplify_path(),
-		root.path_join("../../bin/forja-send").simplify_path(),
-		OS.get_executable_path().get_base_dir().path_join("forja-send"),
-		OS.get_executable_path().get_base_dir().path_join("../bin/forja-send"),
+		root.path_join("../bin").path_join(nome).simplify_path(),
+		root.path_join("../../bin").path_join(nome).simplify_path(),
+		OS.get_executable_path().get_base_dir().path_join(nome),
+		OS.get_executable_path().get_base_dir().path_join("../bin").path_join(nome),
 	]
 	for c in candidates:
 		if FileAccess.file_exists(c):
-			_send_bin_cache = c
 			return c
 	return ""
+
+
+## A SFX on THIS player's controller speaker, found the way a game finds it: by
+## the device (the same USB as the pad). One short process per SFX, like
+## forja-send — the engine has ONE output device, and "P3's shot sounds on
+## P3's controller" is impossible inside it. On the radio there is no audio
+## device to find, and forja-speak says so with its own rc; the game stays
+## silent instead of sounding on the neighbour.
+func tocar_sfx(hz: float, ms: int, nos_atuadores := false) -> void:
+	var bin := bin_irmao("forja-speak")
+	if bin == "":
+		return
+	var args := PackedStringArray([
+		"--player", str(player_index),
+		"--hz", str(hz),
+		"--ms", str(ms),
+	])
+	if nos_atuadores:
+		args.append("--vcm")
+	OS.create_process(bin, args)
 
 
 func flush() -> void:

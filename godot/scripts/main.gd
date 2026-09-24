@@ -27,6 +27,15 @@ var shots: Array = []
 var targets: Array = []
 var hud: Label
 var pad_hud: Label
+## Sound and motion, found the way a game finds them (A-FORJA-VALIDA-O-SOM-01):
+## the controller speaker by the name the game shows, the default microphone,
+## and the IMU from report 0x01. None of them knows any daemon.
+var alto_falante: AltoFalanteDoControle
+var microfone: MicrofoneDoControle
+var movimentos: Array[MovimentoDoControle] = []
+var som_hud: Label
+var _procura_em := 0.0
+var _giro_base := 0.0
 
 
 func _ready() -> void:
@@ -47,6 +56,24 @@ func _ready() -> void:
 		actor.setup(i, p, COLORS[i])
 		add_child(actor)
 		players.append(actor)
+	alto_falante = AltoFalanteDoControle.new()
+	alto_falante.name = "AltoFalante"
+	add_child(alto_falante)
+	microfone = MicrofoneDoControle.new()
+	microfone.name = "Microfone"
+	add_child(microfone)
+	for i in 4:
+		var m := MovimentoDoControle.new()
+		m.name = "Movimento%d" % i
+		m.player_index = i
+		add_child(m)
+		movimentos.append(m)
+	som_hud = Label.new()
+	som_hud.name = "Som"
+	som_hud.position = Vector2(24, 588)
+	som_hud.add_theme_font_size_override("font_size", 14)
+	som_hud.add_theme_color_override("font_color", Color(0.96, 0.86, 0.62))
+	$HUD.add_child(som_hud)
 	_rebind_joys()
 	reset_hub()
 	Input.joy_connection_changed.connect(_on_joy)
@@ -54,6 +81,16 @@ func _ready() -> void:
 
 func _on_joy(_device: int, _connected: bool) -> void:
 	_rebind_joys()
+	## A controller that comes or goes changes the speaker list too.
+	alto_falante.procurar_em_fundo()
+
+
+## Sensors only run in the room that uses them: an open microphone lights the
+## controller's mic LED for the whole match, and nobody knows why.
+func _parar_os_sensores() -> void:
+	microfone.desligar()
+	for m in movimentos:
+		m.desligar()
 
 
 func _rebind_joys() -> void:
@@ -140,6 +177,7 @@ func _try_kenney() -> void:
 
 
 func reset_hub() -> void:
+	_parar_os_sensores()
 	mode = "hub"
 	_clear_fx_nodes()
 	message = "Ande até um portão. Espaço / X entra."
@@ -157,6 +195,7 @@ func reset_hub() -> void:
 
 
 func start_mode(id: String) -> void:
+	_parar_os_sensores()
 	mode = id
 	time_in = 0.0
 	_clear_fx_nodes()
@@ -172,6 +211,9 @@ func start_mode(id: String) -> void:
 			"giro":
 				players[i].position = Vector3(LANES[i], 0, 0)
 				players[i].rotation.y = -PI / 2.0
+			"voz":
+				players[i].position = Vector3((i - 1.5) * 1.4, 0, 2.0)
+				players[i].rotation.y = PI
 			_:
 				players[i].position = Vector3(-4.2 if i < 2 else 4.2, 0, 3.3 if i % 2 == 0 else -3.3)
 	match id:
@@ -188,9 +230,18 @@ func start_mode(id: String) -> void:
 			thesis = "Tiro vindo da esquerda vibra só o motor esquerdo daquele DualSense."
 			_aim_cam(Vector3(0, 10, 11), Vector3(0, 0, -1))
 		"giro":
-			message = "Stick / A D — equilibra. Flick no extremo = 180."
+			message = "Gire o controle — o boneco gira junto. Sem IMU: stick / A D, flick = 180."
 			thesis = "IMU no DualSense do player. O yaw do P3 não vira o P1."
+			_giro_base = -PI / 2.0
+			for m in movimentos:
+				m.ligar()
 			_aim_cam(Vector3(0, 8, 8), Vector3(0, 0, 0))
+		"voz":
+			message = "Fale no controle — a barra sobe com a voz. O botão de mudo zera a barra."
+			thesis = "O microfone padrão do sistema, como um jogo pede. Qualquer máscara."
+			if not microfone.ligar():
+				thesis = "sem entrada de áudio: o jogo nasceu sem audio/driver/enable_input"
+			_aim_cam(Vector3(0, 9.2, 12.5), Vector3.ZERO)
 		"prova":
 			message = "2v2 · P1+P3 vs P2+P4. Lightbar cai com a vida."
 			thesis = "Se aguentou as salas, aguenta um round. Zero vazamento."
@@ -246,9 +297,15 @@ func _process(dt: float) -> void:
 		_tick_impacto(d)
 	elif mode == "giro":
 		_tick_giro(d)
+	elif mode == "voz":
+		_tick_voz(d)
 	else:
 		_tick_prova(d)
 	_tick_projectiles(d)
+	_procura_em -= d
+	if _procura_em <= 0.0:
+		_procura_em = 3.0
+		alto_falante.procurar_em_fundo()
 	_update_hud()
 
 
@@ -305,6 +362,11 @@ func _tick_giro(dt: float) -> void:
 			mx += sin(time_in * 1.3 + i) * 0.25
 		players[i].position.x = clampf(players[i].position.x + mx * 3.4 * dt, -6.2, 6.2)
 		players[i].position.z = 0.0
+		if movimentos[i].tem_imu:
+			## The controller's own yaw turns THIS player only; the stick still
+			## walks. Turning the pad 90 degrees turns the character 90.
+			players[i].rotation.y = _giro_base + deg_to_rad(movimentos[i].yaw_acumulado)
+			continue
 		if absf(mx) > 0.92:
 			players[i].rotation.y += PI
 			pads[i].set_rumble(0, 180)
@@ -313,6 +375,13 @@ func _tick_giro(dt: float) -> void:
 		elif absf(mx) > 0.55:
 			pads[i].set_rumble(int(absf(mx) * 40.0), int(absf(mx) * 90.0), 0.12)
 			pads[i].flush()
+
+
+func _tick_voz(dt: float) -> void:
+	for i in 4:
+		players[i].tick(dt, "hub", Vector2.ZERO)
+	if microfone.ligado:
+		thesis = "microfone %s %d dB" % [MicrofoneDoControle.barra(microfone.ultimo_db), int(microfone.ultimo_db)]
 
 
 func _tick_prova(dt: float) -> void:
@@ -334,6 +403,9 @@ func _fire(slot: int) -> void:
 	if a.cooldown > 0.0 or a.hp <= 0.0:
 		return
 	a.cooldown = 0.22
+	if mode == "galeria" and not a.is_bot:
+		## The shot sounds on the shooter's own controller speaker, and only there.
+		pads[slot].tocar_sfx(1300.0, 90)
 	pads[slot].set_rumble(30, 170)
 	pads[slot].set_triggers(DualSensePad.Trigger.OFF, DualSensePad.Trigger.VIBRATION)
 	pads[slot].flush()
@@ -446,10 +518,14 @@ func _update_hud() -> void:
 		if not players[i].is_bot:
 			tag = "joy %d" % p.device
 		var mark := "*" if (p.rumble_l > 8 or p.rumble_r > 8) else " "
-		lines.append("P%d %s  L=%3d R=%3d  R2=%s  hp=%d %s" % [
+		var linha := "P%d %s  L=%3d R=%3d  R2=%s  hp=%d %s" % [
 			i + 1, tag, p.rumble_l, p.rumble_r, p._mode_name(p.r2), int(players[i].hp), mark,
-		])
+		]
+		if mode == "giro":
+			linha += "  " + movimentos[i].linha_da_hud()
+		lines.append(linha)
 	pad_hud.text = "\n".join(lines)
+	som_hud.text = alto_falante.linha_da_hud()
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -474,5 +550,7 @@ func _unhandled_input(event: InputEvent) -> void:
 			start_mode("giro")
 		KEY_F4, KEY_P:
 			start_mode("prova")
+		KEY_F5:
+			start_mode("voz")
 		KEY_H:
 			reset_hub()
