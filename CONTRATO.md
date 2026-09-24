@@ -27,7 +27,7 @@ Se o jogo chama `trigger.set {uniq}` no socket do Hefesto, o teste é circular: 
 | Som no alto-falante | o endpoint de áudio do pad, casado pelo `ContainerId` | — | o device de áudio pelo nome |
 | Microfone | o microfone padrão do sistema | — | o device de gravação padrão |
 
-O alto-falante se acha como um jogo acha, e o `forja-speak` faz os dois: **pelo aparelho** (o mesmo USB do pad — `--player N`, o mesmo N do `forja-send`) e **pelo nome que o jogo mostra** (`--nome`; sob Proton, a descrição do nó de áudio). Nunca pelo nome de dentro do nó, nunca por MAC.
+O alto-falante se acha como um jogo acha, e o `forja-speak` faz os dois: **pelo aparelho** (o mesmo USB do pad — `--player N`, o mesmo N do `forja-send`) e **pelo nome que o jogo mostra** (`--nome`: sob Proton, a descrição do nó de áudio; num motor nativo, como o Godot, o nome do nó). Nos dois, só conta o nó que um jogo reconheceria como DualSense pela palavra da Sony. Nunca por MAC.
 
 Modos oficiais de gatilho (`isteamdualsense.h`, os únicos que este jogo envia):
 
