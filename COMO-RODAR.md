@@ -55,6 +55,9 @@ Os dois jeitos de um jogo achar o alto-falante: **pelo aparelho** (o port de PS5
 
 `forja-speak` sai com `rc=2` quando não acha, e `rc=4` quando o alto-falante achado não tem o canal pedido — "não achei" nunca se lê como "toquei e nada saiu". `forja-read` recusa o rádio com a mesma frase do `forja-send`.
 
+Para abrir o jogo direto numa sala (é o que a folha de teste do Hefesto faz):
+`tools/Godot_v4.4.1-stable_linux.x86_64 --path godot -- --sala=voz` (ou `galeria`, `impacto`, `viga`, `prova`).
+
 ## As provas
 
 ```bash
