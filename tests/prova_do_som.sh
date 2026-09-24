@@ -57,6 +57,10 @@ Sink #593
 	Name: no_do_radio_000002
 	Description: Alto-falante do Controle 2 (DualSense Wireless Controller)
 	Sample Specification: s16le 2ch 48000Hz
+Sink #40
+	Name: alsa_output.pci-0000_0a_00.1.hdmi-stereo
+	Description: HDA NVidia Digital Stereo (HDMI)
+	Sample Specification: s32le 2ch 48000Hz
 SINKS
 
 SPEAK="$RAIZ/bin/forja-speak"
@@ -73,7 +77,7 @@ LISTA="$("$SPEAK" --list)"
 echo "$LISTA" | grep -q $'^alto-falante 0\talsa_output.usb-Sony' || falha "--list sem a placa: $LISTA"
 echo "$LISTA" | grep -q $'\tAlto-falante do Controle 2 (DualSense Wireless Controller)\t2 canais\tpela lista$' \
   || falha "--list sem o nó do rádio pelo nome: $LISTA"
-echo "$LISTA" | grep -q '^# 2 saídas no servidor, 2 de DualSense$' || falha "--list sem a conta: $LISTA"
+echo "$LISTA" | grep -q '^# 3 saídas no servidor, 2 de DualSense$' || falha "--list sem a conta: $LISTA"
 
 # canal de cada linha do PCM: "c0 c1 c2 c3" -> quais canais têm som
 canais_com_som() { od -An -v -t d2 -w$((2 * $1)) "$TMP/pcm" | awk -v n="$1" '
@@ -99,10 +103,18 @@ grep -q -- '--channel-map=FL,FR,RL,RR' "$TMP/argv" || falha "--player sem o mapa
 grep -q -- '--target=no_do_radio_000002' "$TMP/argv" || falha "--nome mirou outro nó"
 [ "$(canais_com_som 2)" = "1" ] || falha "--nome: o tom não saiu no FR do nó de dois canais"
 
+# --nome pelo NOME do nó, que é o que um motor nativo lista (o Godot mostra o
+# Name): o MESMO nó. A folha de teste do Hefesto aponta assim, uma coluna por
+# controle — se isto cair, o botão do jogo dela diz «não achei» sobre um nó de pé.
+"$SPEAK" --nome "no_do_radio_000002" --ms 50 > /dev/null || falha "--nome pelo nome do nó rc=$?"
+grep -q -- '--target=no_do_radio_000002' "$TMP/argv" || falha "--nome pelo nome do nó mirou outro nó"
+
 # as recusas têm rc próprio, e nenhuma toca nada
 rm -f "$TMP/pcm"
 "$SPEAK" --nome "Controle 2" --vcm > /dev/null 2>&1; [ $? -eq 4 ] || falha "--vcm num nó de dois canais tem de dar rc=4"
 "$SPEAK" --nome "Controle 9" > /dev/null 2>&1; [ $? -eq 2 ] || falha "nome que não existe tem de dar rc=2"
+"$SPEAK" --nome "hdmi-stereo" > /dev/null 2>&1; [ $? -eq 2 ] \
+  || falha "apontar um nó sem a palavra da Sony tem de dar rc=2: o nome não fura a regra"
 "$SPEAK" --player 7 > /dev/null 2>&1; [ $? -eq 2 ] || falha "player fora da mesa tem de dar rc=2"
 "$SPEAK" --player "$BT" > /dev/null 2>&1; [ $? -eq 2 ] || falha "o do rádio não tem alto-falante pelo aparelho: rc=2"
 [ ! -e "$TMP/pcm" ] || falha "uma recusa tocou alguma coisa"
