@@ -58,5 +58,5 @@ offset_bottom = 710.0
 theme_override_colors/font_color = Color(0.62, 0.58, 0.5, 1)
 theme_override_font_sizes/font_size = 13
 text = "WASD anda · Espaço atira · Esc hub
-F1 Galeria  F2 Impacto  F3 Viga  F4 A Prova
+F1 Galeria  F2 Impacto  F3 Viga  F4 A Prova  F5 Voz
 3 = P3 motor L   4 = P2 motor L"

@@ -21,7 +21,10 @@ Na primeira vez baixa o Godot 4.4.1 (~60 MB) e abre o jogo. Teclado basta para a
 | `F2` | Impacto | Tiro esquerdo = motor L daquele pad |
 | `F3` | Viga | Flick 180 só naquele player |
 | `F4` | A Prova | Lightbar cai com a vida de cada um |
+| `F5` | Voz: o microfone padrão do sistema | A barra sobe com a voz; o botão de mudo zera a barra |
 | `Esc` | Hub | |
+
+Na Galeria, o tiro de quem joga sai **no alto-falante do próprio controle** (forja-speak). Na Viga, girar o controle gira o boneco (forja-read); sem IMU, a HUD diz «stick». Embaixo, a linha do som diz o alto-falante que o jogo achou — ou que não achou.
 
 Se o motor do vizinho tremer, o isolamento na frente do hidraw falhou. O jogo não percebe — a mesa é o oráculo.
 
@@ -35,6 +38,29 @@ make send
 ```
 
 `--player 2` é o terceiro DualSense USB. Se o primeiro tremer, falhou.
+
+## O alto-falante e o movimento (sem Godot)
+
+```bash
+make speak read
+./bin/forja-speak --list                        # todo alto-falante que um jogo reconheceria
+./bin/forja-speak --player 0                    # bip no alto-falante do 1º DualSense, pelo APARELHO
+./bin/forja-speak --nome "Controle 2"           # pelo NOME que o jogo mostra (a pessoa aponta)
+./bin/forja-speak --player 0 --hz 60 --vcm      # tremor nos dois atuadores, sem bip
+./bin/forja-speak --player 0 --canal 0          # a mordida: o fone, não o plástico — silêncio
+./bin/forja-read --player 0                     # giro e acelerômetro (report 0x01)
+```
+
+Os dois jeitos de um jogo achar o alto-falante: **pelo aparelho** (o port de PS5 casa o endpoint com o controle pelo USB — só no cabo) e **pelo nome** (o jogo lista as saídas e a pessoa aponta; sob Proton o nome é a descrição do nó). `--list` mostra os dois: `acha sozinho` é o que o primeiro acharia sem ninguém apontar.
+
+`forja-speak` sai com `rc=2` quando não acha, e `rc=4` quando o alto-falante achado não tem o canal pedido — "não achei" nunca se lê como "toquei e nada saiu". `forja-read` recusa o rádio com a mesma frase do `forja-send`.
+
+## As provas
+
+```bash
+make test         # o empacotador, o alto-falante e o movimento — sem som e sem aparelho
+make test-jogo    # o jogo headless: a HUD acha o alto-falante pelo nome (precisa do Godot em tools/)
+```
 
 ## Permissão hidraw
 
