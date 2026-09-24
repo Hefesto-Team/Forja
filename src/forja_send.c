@@ -2,65 +2,13 @@
  * Refuses Bluetooth (bus 0005): this game does not speak report 0x31.
  */
 #include "forja_dualsense.h"
+#include "forja_mesa.h"
 
-#include <dirent.h>
 #include <fcntl.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-
-typedef struct FoundPad {
-  char path[280];
-  int bus; /* 3 = USB, 5 = Bluetooth */
-  int pid;
-} FoundPad;
-
-static int parse_uevent(const char *hidraw, FoundPad *out) {
-  char uevent[320];
-  snprintf(uevent, sizeof(uevent), "/sys/class/hidraw/%s/device/uevent", hidraw);
-  FILE *f = fopen(uevent, "r");
-  if (!f)
-    return 0;
-  char line[256];
-  int vid = 0, pid = 0, bus = 0;
-  while (fgets(line, sizeof(line), f)) {
-    if (strncmp(line, "HID_ID=", 7) != 0)
-      continue;
-    unsigned b = 0, v = 0, p = 0;
-    if (sscanf(line + 7, "%x:%x:%x", &b, &v, &p) == 3) {
-      bus = (int)b;
-      vid = (int)v;
-      pid = (int)p;
-    }
-  }
-  fclose(f);
-  if (vid != FORJA_DS5_VID)
-    return 0;
-  if (pid != FORJA_DS5_PID && pid != FORJA_DS5_EDGE_PID)
-    return 0;
-  snprintf(out->path, sizeof(out->path), "/dev/%s", hidraw);
-  out->bus = bus;
-  out->pid = pid;
-  return 1;
-}
-
-static int list_pads(FoundPad *pads, int max) {
-  DIR *d = opendir("/sys/class/hidraw");
-  if (!d)
-    return 0;
-  int n = 0;
-  struct dirent *e;
-  while ((e = readdir(d)) && n < max) {
-    if (e->d_name[0] == '.')
-      continue;
-    FoundPad p;
-    if (parse_uevent(e->d_name, &p))
-      pads[n++] = p;
-  }
-  closedir(d);
-  return n;
-}
 
 static void usage(void) {
   fputs("uso: forja-send --player N [--left L] [--right R]\n", stderr);
@@ -128,8 +76,10 @@ int main(int argc, char **argv) {
     }
   }
 
-  FoundPad pads[8];
-  int n = list_pads(pads, 8);
+  /* The table comes from forja_mesa: forja-speak and forja-read read the SAME
+   * list, so "player N" is the same DualSense in the three of them. */
+  ForjaPad pads[8];
+  int n = forja_mesa_pads(pads, 8);
   if (list_only) {
     for (int i = 0; i < n; i++) {
       const char *bus = pads[i].bus == 3 ? "usb" : pads[i].bus == 5 ? "bluetooth" : "outro";
