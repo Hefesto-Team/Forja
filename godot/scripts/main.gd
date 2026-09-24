@@ -77,6 +77,21 @@ func _ready() -> void:
 	_rebind_joys()
 	reset_hub()
 	Input.joy_connection_changed.connect(_on_joy)
+	_abrir_na_sala_pedida()
+
+
+## `-- --sala=voz` opens the game straight in a room, the way a test sheet asks
+## for it ("open the game on the Voice room for controller 2"). Unknown rooms
+## are ignored: the hub is always a valid place to start.
+func _abrir_na_sala_pedida() -> void:
+	for arg in OS.get_cmdline_user_args():
+		if not arg.begins_with("--sala="):
+			continue
+		var sala := arg.substr(7)
+		if sala == "viga":
+			sala = "giro"
+		if sala in ["galeria", "impacto", "giro", "prova", "voz"]:
+			start_mode(sala)
 
 
 func _on_joy(_device: int, _connected: bool) -> void:
