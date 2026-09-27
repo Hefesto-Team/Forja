@@ -43,6 +43,18 @@ static unsigned ler_hex(const char *caminho) {
   return (unsigned)strtoul(linha, NULL, 16);
 }
 
+/* O realpath num buffer menor que PATH_MAX: o realpath pede um de PATH_MAX (e
+ * o _FORTIFY_SOURCE aborta quando não é), então ele devolve o dele e a cópia
+ * cabe no nosso. */
+static void caminho_real(const char *de, char *out, size_t tam) {
+  char *r = realpath(de, NULL);
+  if (r && strlen(r) < tam)
+    snprintf(out, tam, "%s", r);
+  else
+    out[0] = '\0';
+  free(r);
+}
+
 static int tem(const char *pasta, const char *arquivo) {
   char caminho[PATH_MAX + 32];
   snprintf(caminho, sizeof(caminho), "%s/%s", pasta, arquivo);
@@ -100,8 +112,7 @@ static int fatos_hidraw(const char *nome, OrigemFatos *f) {
     /* HID_UNIQ: de propósito, nenhum ramo. */
   }
   fclose(arq);
-  if (!realpath(dispositivo, f->caminho_real))
-    f->caminho_real[0] = '\0';
+  caminho_real(dispositivo, f->caminho_real, sizeof(f->caminho_real));
   if (origem_usb_de(dispositivo, f->usb_pai, sizeof(f->usb_pai)) != 0)
     f->usb_pai[0] = '\0';
   f->tem_sysfs = 1;
@@ -125,8 +136,7 @@ static int fatos_evdev(const char *nome, OrigemFatos *f) {
   f->vid = ler_hex(caminho);
   snprintf(caminho, sizeof(caminho), "%s/id/product", dispositivo);
   f->pid = ler_hex(caminho);
-  if (!realpath(dispositivo, f->caminho_real))
-    f->caminho_real[0] = '\0';
+  caminho_real(dispositivo, f->caminho_real, sizeof(f->caminho_real));
   if (origem_usb_de(dispositivo, f->usb_pai, sizeof(f->usb_pai)) != 0)
     f->usb_pai[0] = '\0';
   f->tem_sysfs = 1;

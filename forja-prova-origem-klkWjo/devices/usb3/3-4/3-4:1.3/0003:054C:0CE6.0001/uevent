@@ -1,0 +1,5 @@
+DRIVER=playstation
+HID_ID=0003:0000054C:00000CE6
+HID_NAME=Sony Interactive Entertainment DualSense Wireless Controller
+HID_PHYS=usb-0000:00:14.0-4/input3
+HID_UNIQ=a0:fa:9c:00:00:f0
