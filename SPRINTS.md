@@ -138,3 +138,49 @@ A Forja virou o jogo de prova do alto-falante, do microfone e do movimento (deci
 - `forja-speak`: um SFX no alto-falante de cada DualSense, achado pelo aparelho ou pelo nome — e o tiro da Galeria sai no controle de quem atirou;
 - `forja-read` e a Viga girando com a IMU (`movimento.giroscopio.jogo`); sem IMU, a HUD diz «stick»;
 - **Voz** (`F5`): a barra do microfone padrão. O eco no alto-falante do próprio pad, do Sprint 4, **não** entrou.
+
+---
+
+## Onde cada sprint está — 27/09/2026
+
+A Hefesto Tech Demo (SDL3, `demo/`) fechou a maior parte deste plano em salas
+novas, com o mesmo contrato e o mesmo empacotador. O jogo Godot continua como
+estava. "Feito" aponta onde; "parcial" diz o que falta; "fica" é o que não
+entrou.
+
+| sprint | item | situação |
+| --- | --- | --- |
+| 0 | o packer atual (rota `common[7]`, pré-amp, teto do mic, sem `LIGHT_OUT` em loop) | feito — `include/forja_dualsense.h`, a sombra que lembra cada bloco |
+| 0 | eleição de modo | feito, com outra forma — o salão com as portas e o aviso de cada sala (✕ quando pronto); as três piscadas de aviso na lightbar não entraram |
+| 0 | HUD de uma linha | feito — o nome da sala e o padrão de jogo no alto, os glifos no rodapé |
+| 0 | README do que o jogador sente | feito — `README.md` |
+| 1 | entrar P1–P4, LEDs 4/10/21/27, lightbar do lugar | feito — a mesa (`demo/src/cenas/lobby.c`) |
+| 1 | reconectar sem matar a rodada | feito — o lugar guarda o controle e o devolve; a sala segue sem ele e mostra "sem controle" |
+| 1 | udev em três linhas | feito — `README.md` e `COMO-RODAR.md` |
+| 1 | silêncio de verdade | feito — gatilhos Off, motores 0, a cor do lugar, ao sair de cada sala |
+| 1 | pausa pelo controle | feito — Options, com refazer, voltar ao salão, diagnóstico, livro |
+| 1 | falha visível e curta | feito — a faixa de quem ficou sem controle; o veredito diz o porquê |
+| 1 | isolamento visível | feito — provado às cegas: o Cerco (vibração) e o Canto (som) |
+| 2 | título: uma frase e dois botões | feito — Jogar / Prova de Fogo; o diagnóstico no △ |
+| 2 | cartas com arte, quatro palavras | feito — as portas do salão, com ícone e nome |
+| 2 | nome do modo e uma linha de ação | feito — o topo de cada sala e o rodapé |
+| 2 | o DualSense desenhado como estado | feito — na mesa e no diagnóstico, aceso com o que chega |
+| 2 | nada de mapa na tela | feito — o protocolo mora no diagnóstico e no livro |
+| 2 | celular | fica — a Tech Demo é para a TV e o desktop |
+| 3 | Galeria: munição, R2 Off vazia, uma arma por modo, placar | feito — A Galeria (e a munição na Prova) |
+| 3 | Impacto: tiro da esquerda no motor da esquerda, a luz com a vida | feito — O Cerco; o pulso de vida baixa está na Prova |
+| 3 | Viga: giro, sacudida, analógico sem IMU e a tela dizendo | feito — A Viga |
+| 3 | A Prova: 2v2, 90 s, tudo junto | feito — A Prova, que mede a carga e fecha com a prova final às cegas |
+| 4 | Voz: mudo, microfone, LED, o alto-falante do próprio pad | feito em parte — A Cripta (microfone, mudo, LED às cegas, o grito no alto-falante do próprio controle); a voz devolvida pelo alto-falante não entrou; o eco se mede na bancada (`experimental/`, `eco`) |
+| 4 | Toque | feito — O Molde |
+| 4 | Fone: plugou, a mistura muda; tirou, alto-falante | feito — com o fone no jack (report USB, byte 53), o som do controle vai para o fone, nas duas orelhas, e volta ao alto-falante quando sai |
+| 4 | Couro: PCM nos atuadores, sem o bit 1 do `flag0` | feito — Os Caminhos (canais 3 e 4) |
+| 4 | Carga | parcial — a bateria e o "carregando" no cartão da mesa e no diagnóstico; a rodada que acaba com a bateria não entrou |
+| 5 | GodotSteam | fica — é do jogo Godot; a Tech Demo fala SDL3 |
+| 5 | action set local-coop | fica |
+| 5 | trailer de 60 s | fica |
+| 5 | checklist de palco | feito — o roteiro de validação com quatro DualSense no `README.md` |
+
+O que entrou além do plano: o livro (o relatório por controle × feature), a
+Prova de Fogo e o gauntlet sem aparelho (`scripts/gauntlet.sh`, ADR-003), a
+bancada `experimental/`, e o CI com o binário Linux e o `.exe`.
