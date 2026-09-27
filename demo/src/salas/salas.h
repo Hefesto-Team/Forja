@@ -1,0 +1,10 @@
+/* As salas do hub (ADR-002). Cada sala é uma cena; as que ainda não existem
+ * nesta versão devolvem NULL, e a porta delas fica fechada no salão. */
+#ifndef DEMO_SALAS_H
+#define DEMO_SALAS_H
+
+#include "../app.h"
+
+const Cena *salas_cena(int sala);
+
+#endif

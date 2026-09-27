@@ -136,6 +136,78 @@ void forja_ds5_usb_report(uint8_t report[FORJA_DS5_USB_REPORT_SIZE],
   memcpy(report + 1, &fx, FORJA_DS5_FX_SIZE);
 }
 
+uint8_t forja_leds_do_jogador(int indice) {
+  static const uint8_t figuras[5] = {0x04, 0x0A, 0x15, 0x1B, 0x1F};
+  if (indice < 0)
+    return 0;
+  return figuras[indice % 5];
+}
+
+void forja_sombra_zerar(ForjaSombra *s) {
+  memset(s, 0, sizeof(*s));
+  s->gatilho_dir[0] = FORJA_HID_TRIGGER_OFF;
+  s->gatilho_esq[0] = FORJA_HID_TRIGGER_OFF;
+  s->vol_mic = 0x40;
+  s->audio = FORJA_AUDIO_BASE;
+}
+
+void forja_fx_da_sombra(ForjaDs5Effect *fx, const ForjaSombra *s, uint8_t bits1, uint8_t bits2) {
+  memset(fx, 0, sizeof(*fx));
+  fx->enable1 = (uint8_t)(bits1 & ~FORJA_BITS1_PROIBIDOS);
+  fx->enable2 = (uint8_t)(bits2 & ~FORJA_BITS2_PROIBIDOS);
+  fx->rumble_left = s->motor_esq;
+  fx->rumble_right = s->motor_dir;
+  fx->headphone_vol = s->vol_fone > 0x7F ? 0x7F : s->vol_fone;
+  fx->speaker_vol = s->vol_alto_falante;
+  fx->mic_vol = s->vol_mic > 0x40 ? 0x40 : s->vol_mic;
+  fx->audio_enable = s->audio;
+  fx->mic_led = s->led_mic;
+  fx->audio_mute = 0;
+  memcpy(fx->right_trigger, s->gatilho_dir, 11);
+  memcpy(fx->left_trigger, s->gatilho_esq, 11);
+  fx->unknown1[5] = s->audio2;
+  fx->led_flags = 0;
+  fx->player_leds = s->leds_jogador;
+  fx->led_r = s->led_r;
+  fx->led_g = s->led_g;
+  fx->led_b = s->led_b;
+}
+
+void forja_fx_gatilho(ForjaDs5Effect *fx, ForjaSombra *s, int direito, ForjaTrigger t) {
+  forja_trigger_pack(direito ? s->gatilho_dir : s->gatilho_esq, t);
+  forja_fx_da_sombra(fx, s, direito ? FORJA_FX_R2 : FORJA_FX_L2, 0);
+}
+
+void forja_fx_gatilhos(ForjaDs5Effect *fx, ForjaSombra *s, ForjaTrigger l2, ForjaTrigger r2) {
+  forja_trigger_pack(s->gatilho_esq, l2);
+  forja_trigger_pack(s->gatilho_dir, r2);
+  forja_fx_da_sombra(fx, s, FORJA_FX_R2 | FORJA_FX_L2, 0);
+}
+
+void forja_fx_led_mic(ForjaDs5Effect *fx, ForjaSombra *s, uint8_t modo) {
+  /* A faixa é 0..3 e o firmware VALIDA: o 4 já apaga (canônica §8.1). */
+  s->led_mic = modo > 3 ? 0 : modo;
+  forja_fx_da_sombra(fx, s, 0, FORJA_FX_MIC_LED);
+}
+
+void forja_fx_leds_jogador(ForjaDs5Effect *fx, ForjaSombra *s, uint8_t mascara, int instantaneo) {
+  s->leds_jogador = (uint8_t)((mascara & 0x1F) | (instantaneo ? 0x20 : 0));
+  forja_fx_da_sombra(fx, s, 0, FORJA_FX_PLAYER_LED);
+}
+
+void forja_fx_alto_falante(ForjaDs5Effect *fx, ForjaSombra *s, uint8_t volume, uint8_t rota,
+                           uint8_t preamp) {
+  s->vol_alto_falante = volume;
+  s->audio = (uint8_t)(FORJA_AUDIO_BASE | ((rota & 0x03) << 4));
+  s->audio2 = (uint8_t)(preamp & 0x07);
+  forja_fx_da_sombra(fx, s, FORJA_FX_SPEAKER_VOL | FORJA_FX_AUDIO_CONTROL, FORJA_FX_PREAMP);
+}
+
+void forja_fx_volume_mic(ForjaDs5Effect *fx, ForjaSombra *s, uint8_t volume) {
+  s->vol_mic = volume > 0x40 ? 0x40 : volume;
+  forja_fx_da_sombra(fx, s, FORJA_FX_MIC_VOL, 0);
+}
+
 void forja_sce_pad_trigger(ForjaScePadTriggerEffect *out, ForjaTrigger l2,
                            ForjaTrigger r2) {
   memset(out, 0, sizeof(*out));
