@@ -50,6 +50,11 @@ enum {
   DEF_ACEL_ESCALA = 1 << 4,
   DEF_UM_DEDO = 1 << 5,
   DEF_SEM_CLIQUE = 1 << 6,
+  DEF_MOTORES_TROCADOS = 1 << 7,
+  DEF_VIBRA_VIZINHO = 1 << 8,
+  DEF_LUZ_PARADA = 1 << 9,
+  DEF_GATILHO_MUDO = 1 << 10,
+  DEF_LEDS_ERRADOS = 1 << 11,
 };
 static const struct {
   const char *nome;
@@ -58,9 +63,12 @@ static const struct {
     {"troca-cruz-circulo", DEF_TROCA_CRUZ_CIRCULO}, {"analogico-curto", DEF_ANALOGICO_CURTO},
     {"gatilho-digital", DEF_GATILHO_DIGITAL},       {"giro-invertido", DEF_GIRO_INVERTIDO},
     {"acel-escala", DEF_ACEL_ESCALA},               {"um-dedo", DEF_UM_DEDO},
-    {"sem-clique", DEF_SEM_CLIQUE},
+    {"sem-clique", DEF_SEM_CLIQUE},                 {"motores-trocados", DEF_MOTORES_TROCADOS},
+    {"vibra-vizinho", DEF_VIBRA_VIZINHO},           {"luz-parada", DEF_LUZ_PARADA},
+    {"gatilho-mudo", DEF_GATILHO_MUDO},             {"leds-errados", DEF_LEDS_ERRADOS},
 };
 static unsigned g_defeitos;
+static unsigned g_def_agora; /* os defeitos valendo neste quadro (só dentro das salas) */
 static char g_defeitos_texto[200];
 
 bool simulador_defeitos(const char *lista, char *erro, size_t tam_erro) {
@@ -116,6 +124,16 @@ static int popcount(Uint32 m) {
 
 static bool SDLCALL cb_rumble(void *u, Uint16 baixo, Uint16 alto) {
   Sim *s = u;
+  if (g_def_agora & DEF_MOTORES_TROCADOS) {
+    Uint16 t = baixo;
+    baixo = alto;
+    alto = t;
+  }
+  if ((g_def_agora & DEF_VIBRA_VIZINHO) && g_n > 1) {
+    /* o fio trocado: a vibração deste controle chega no próximo da fila */
+    int i = (int)(s - g_sim);
+    s = &g_sim[(i + 1) % g_n];
+  }
   s->perc.forte = baixo / 65535.0f;
   s->perc.fraco = alto / 65535.0f;
   return true;
@@ -130,6 +148,8 @@ static bool SDLCALL cb_rumble_gatilhos(void *u, Uint16 e, Uint16 d) {
 
 static bool SDLCALL cb_led(void *u, Uint8 r, Uint8 g, Uint8 b) {
   Sim *s = u;
+  if (g_def_agora & DEF_LUZ_PARADA)
+    return true;
   s->perc.luz_r = r;
   s->perc.luz_g = g;
   s->perc.luz_b = b;
@@ -147,15 +167,17 @@ static bool SDLCALL cb_efeito(void *u, const void *dados, int tam) {
   s->perc.efeito_ms = SDL_GetTicks();
   if (tam >= 47) {
     /* o "firmware" do simulador obedece aos blocos cujos bits vieram ligados */
-    if (b[0] & 0x04)
+    if ((b[0] & 0x04) && !(g_def_agora & DEF_GATILHO_MUDO))
       SDL_memcpy(s->perc.gatilho_dir, b + 10, 11);
-    if (b[0] & 0x08)
+    if ((b[0] & 0x08) && !(g_def_agora & DEF_GATILHO_MUDO))
       SDL_memcpy(s->perc.gatilho_esq, b + 21, 11);
     if (b[1] & 0x01)
       s->perc.led_mic = b[8] <= 3 ? b[8] : 0;
-    if (b[1] & 0x10)
-      s->perc.leds_jogador = b[43] & 0x1F;
-    if (b[1] & 0x04) {
+    if (b[1] & 0x10) {
+      int m = b[43] & 0x1F;
+      s->perc.leds_jogador = (g_def_agora & DEF_LEDS_ERRADOS) ? m >> 1 : m;
+    }
+    if ((b[1] & 0x04) && !(g_def_agora & DEF_LUZ_PARADA)) {
       s->perc.luz_r = b[44];
       s->perc.luz_g = b[45];
       s->perc.luz_b = b[46];
@@ -473,6 +495,7 @@ bool simulador_evento(App *a, const SDL_Event *e) {
 /* ---------- a cada quadro ---------- */
 
 void simulador_atualizar(App *a, float dt) {
+  g_def_agora = a->sala_atual >= 0 ? g_defeitos : 0;
   for (int i = 0; i < g_n; i++) {
     Sim *s = &g_sim[i];
     if (!s->usado || !s->js)

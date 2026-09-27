@@ -12,6 +12,7 @@
 #include "app.h"
 
 #include "nucleo/catalogo.h"
+#include "nucleo/relogio.h"
 #include "nucleo/simulador.h"
 #include "ui/desenho.h"
 #include "ui/tema.h"
@@ -373,6 +374,10 @@ int main(int argc, char **argv) {
     return 1;
   }
 
+  a->inicio_ns = SDL_GetTicksNS();
+  relogio_iniciar(a->inicio_ns);
+  if (a->acelerado && a->simular > 0)
+    relogio_do_jogo(&a->t);
   escolher_pasta(a);
   preparar_relatorio(a);
   char caminho_reg[1200];
@@ -383,7 +388,6 @@ int main(int argc, char **argv) {
   reg_linha(&a->reg, "semente dos sorteios: %llu", a->semente);
 
   sorteio_semear(&a->sorteio, a->semente);
-  a->inicio_ns = SDL_GetTicksNS();
   char caminho_lt[1200];
   snprintf(caminho_lt, sizeof(caminho_lt), "%slinha-do-tempo-%s.jsonl", a->pasta_relatorios, a->base_arquivos);
   lt_abrir(&a->lt, a->pasta_relatorios[0] ? caminho_lt : NULL, a->inicio_ns);

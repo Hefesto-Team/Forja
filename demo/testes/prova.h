@@ -36,5 +36,6 @@ void provas_efeitos(void);
 void provas_catalogo(void);
 void provas_postura(void);
 void provas_medidas(void);
+void provas_cegas(void);
 
 #endif

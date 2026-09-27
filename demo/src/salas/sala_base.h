@@ -87,6 +87,10 @@ void sb_desenhar_topo(App *a, const SalaBase *b);
 void sb_desenhar_aviso(App *a, const SalaBase *b, const char *como_jogar);
 void sb_desenhar_fim(App *a, const SalaBase *b);
 
+/* Quando o SDL recusou a saída (o veredito ficou em MONTOU), diz por quê: o
+ * rádio nativo, que este jogo só lê, ou a origem do controle. */
+void sb_explica_recusa(App *a, int slot, Veredito *v);
+
 /* Pontos para um jogador (somam também no placar da mesa). */
 void sb_pontos(App *a, SalaBase *b, int slot, int pontos);
 

@@ -223,13 +223,14 @@ void sb_terminar(App *a, SalaBase *b, NivelEvidencia nivel) {
         continue;
       const Veredito *v = &b->vered[s][k];
       const InfoFeature *f = catalogo_feature(b->feats[k]);
-      rel_registrar(&a->rel, s + 1, b->feats[k], v->resultado, nivel, v->pedido, v->medido, v->obs, app_agora(a));
+      NivelEvidencia n = v->nivel != NIVEL_NENHUM ? v->nivel : nivel;
+      rel_registrar(&a->rel, s + 1, b->feats[k], v->resultado, n, v->pedido, v->medido, v->obs, app_agora(a));
       Evento ev;
       ev_iniciar(&ev, &a->lt, "veredito", s + 1);
       ev_str(&ev, "sala", sala->chave);
       ev_str(&ev, "feature", f->chave);
       ev_str(&ev, "resultado", CHAVE_RESULTADO[v->resultado]);
-      ev_str(&ev, "nivel", CHAVE_NIVEL[nivel]);
+      ev_str(&ev, "nivel", CHAVE_NIVEL[n]);
       ev_str(&ev, "medido", v->medido);
       ev_fim(&ev, &a->lt);
       reg_linha(&a->reg, "%s · %s: %s — %s", pads_rotulo_slot(s), f->nome, rel_resultado_rotulo(v->resultado),
@@ -257,6 +258,20 @@ void sb_marco(App *a, int slot, const char *o_que, const char *detalhe) {
   if (detalhe && detalhe[0])
     ev_str(&ev, "detalhe", detalhe);
   ev_fim(&ev, &a->lt);
+}
+
+void sb_explica_recusa(App *a, int slot, Veredito *v) {
+  Pad *p = pads_do_slot(a, slot);
+  if (!p || v->nivel != NIVEL_MONTOU)
+    return;
+  char pq[240];
+  if (a->pads.contrato_estrito && p->origem.conexao == CONEXAO_BT && origem_eh_dualsense(p->origem.tipo))
+    SDL_snprintf(pq, sizeof(pq), "no rádio, este jogo só lê: o relatório 0x31 fica de fora (CONTRATO.md) — ligue o "
+                                 "DualSense no cabo, ou um DualSense virtual USB");
+  else
+    SDL_snprintf(pq, sizeof(pq), "o controle chegou como %s (%s)", pad_origem_rotulo(p), conexao_rotulo(p->origem.conexao));
+  size_t n = SDL_strlen(v->obs);
+  SDL_snprintf(v->obs + n, sizeof(v->obs) - n, "%s%s", n ? " — " : "", pq);
 }
 
 void sb_pontos(App *a, SalaBase *b, int slot, int pontos) {

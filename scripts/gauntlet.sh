@@ -77,12 +77,23 @@ DEFEITOS=(
   "acel-escala:viga:acelerometro"
   "um-dedo:molde:touchpad_dois_dedos"
   "sem-clique:molde:touchpad_clique"
+  "motores-trocados:cerco:vibracao_forte"
+  "motores-trocados:cerco:vibracao_fraca"
+  "vibra-vizinho:cerco:vibracao_isolamento"
+  "luz-parada:cerco:lightbar"
+  "gatilho-mudo:galeria:gatilho_resistencia"
+  "gatilho-mudo:galeria:gatilho_arma"
+  "gatilho-mudo:galeria:gatilho_vibracao"
+  "leds-errados:galeria:leds_jogador"
 )
 for item in "${DEFEITOS[@]}"; do
   IFS=: read -r defeito sala feature <<<"$item"
-  diga "==> defeito $defeito na sala $sala"
-  rodar "$defeito" --simular 1 --sala "$sala" --defeito "$defeito"
-  resultado="$(vereditos "$SAIDA/$defeito.jsonl" | awk -v f="$feature" '$2 == f { r = $3 } END { print r }')"
+  diga "==> defeito $defeito na sala $sala ($feature)"
+  # o isolamento precisa de vizinho: dois controles; um defeito já rodado não roda de novo
+  if [[ ! -s "$SAIDA/$defeito.jsonl" ]]; then
+    rodar "$defeito" --simular 2 --sala "$sala" --defeito "$defeito"
+  fi
+  resultado="$(vereditos "$SAIDA/$defeito.jsonl" | awk -v f="$feature" '$1 == 1 && $2 == f { r = $3 } END { print r }')"
   if [[ "$resultado" == falhou ]]; then
     diga "    $feature: falhou, como devia"
   else

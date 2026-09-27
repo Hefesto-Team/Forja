@@ -40,6 +40,7 @@ target_include_directories(forja_ds5 PUBLIC include)
 add_library(demo_nucleo STATIC
   demo/src/nucleo/aleatorio.c
   demo/src/nucleo/catalogo.c
+  demo/src/nucleo/cegas.c
   demo/src/nucleo/mascara.c
   demo/src/nucleo/medidas.c
   demo/src/nucleo/origem.c
@@ -61,6 +62,7 @@ if(FORJA_TESTES)
   add_executable(demo-testes
     demo/testes/provas.c
     demo/testes/prova_basicos.c
+    demo/testes/prova_cegas.c
     demo/testes/prova_efeitos.c
     demo/testes/prova_medidas.c
     demo/testes/prova_origem.c
@@ -102,6 +104,7 @@ set(DEMO_FONTES
   demo/src/main.c
   demo/src/app.c
   demo/src/nucleo/registro.c
+  demo/src/nucleo/relogio.c
   demo/src/nucleo/linha_tempo.c
   demo/src/nucleo/pads.c
   demo/src/nucleo/simulador.c
@@ -127,6 +130,8 @@ set(DEMO_FONTES
   demo/src/salas/centelha.c
   demo/src/salas/viga.c
   demo/src/salas/molde.c
+  demo/src/salas/cerco.c
+  demo/src/salas/galeria.c
   demo/src/third_party.c
 )
 

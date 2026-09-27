@@ -2,6 +2,7 @@
 #include "registro.h"
 
 #include "mascara.h"
+#include "relogio.h"
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -27,7 +28,7 @@ void reg_linha(Registro *r, const char *formato, ...) {
   vsnprintf(corpo, sizeof(corpo), formato, ap);
   va_end(ap);
   mascara_mac(corpo);
-  double t = (double)(SDL_GetTicksNS() - r->inicio_ns) / 1e9;
+  double t = relogio_agora();
   char linha[440];
   int n = snprintf(linha, sizeof(linha), "[%9.3f] %s\n", t, corpo);
   if (r->arq && n > 0) {
