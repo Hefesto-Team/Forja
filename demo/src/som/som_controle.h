@@ -47,6 +47,8 @@ typedef struct SomJogador {
   SDL_AudioStream *mic;
   float mic_nivel, mic_pico; /* 0..1 */
   long mic_quadros;          /* quadros em que chegou som do microfone */
+  float *escuta;             /* experimental/: as amostras cruas, sob pedido */
+  int escuta_cap, escuta_n;
   bool mic_virtual;
   char nome_mic[160];
 } SomJogador;
@@ -92,6 +94,15 @@ long somc_mic_quadros(struct App *a, int slot);
  * "sente" em cada atuador, 0..1. */
 float somc_virtual_falante(struct App *a, int slot);
 float somc_virtual_atuador(struct App *a, int slot, int lado);
+/* experimental/: grava as próximas `segundos` de amostras do microfone do
+ * jogador (48 kHz, mono), a partir de agora — o que estava no fluxo é
+ * descartado, para a primeira amostra ser de depois deste instante. Só com
+ * microfone de verdade; devolve false sem ele. */
+bool somc_escutar(struct App *a, int slot, float segundos);
+/* As amostras gravadas até agora (NULL sem escuta). */
+const float *somc_escuta(struct App *a, int slot, int *n);
+void somc_escuta_parar(struct App *a, int slot);
+
 /* Grava no relatório o alto-falante, o microfone e a háptica de cada um. */
 void somc_relatorio(struct App *a);
 

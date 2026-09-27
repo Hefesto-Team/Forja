@@ -58,6 +58,7 @@ typedef struct Percepcao {
  *   som-vizinho         o som de um controle sai no controle seguinte
  *   haptica-trocada     os atuadores da esquerda e da direita trocados
  *   haptica-muda        nada chega aos atuadores
+ *   engasga             a cada 40 pacotes de efeito, a entrada para por 1,5 s
  *   mic-surdo           o microfone não manda nada
  *   led-mic-parado      o LED do microfone não muda mais
  *   mudo-nao-chega      o botão do microfone nunca chega
@@ -86,8 +87,10 @@ enum {
   DEFEITO_LED_MIC_PARADO = 1 << 16,
   DEFEITO_MUDO_NAO_CHEGA = 1 << 17,
   DEFEITO_HAPTICA_MUDA = 1 << 18,
+  DEFEITO_ENGASGA = 1 << 19,
 };
-/* Os defeitos valendo agora (só dentro das salas); 0 fora delas. */
+/* Os defeitos valendo agora (só dentro das salas e na bancada dos
+ * experimentos); 0 fora delas. */
 unsigned simulador_defeitos_agora(void);
 
 void simulador_iniciar(struct App *a, int n);

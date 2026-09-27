@@ -111,6 +111,10 @@ Veredito cega_haptica_veredito(const Cega *chao, const Cega *lado_esq, const Ceg
 Veredito cega_led_mic_veredito(const Cega *c, bool sdl_aceitou);
 bool cega_led_mic_decidida(const Cega *c);
 
+/* A Prova: a carga medida na partida, e a prova final às cegas (as luzinhas e
+ * a cor, perguntadas depois de noventa segundos de tudo ligado). */
+Veredito cega_tudo_junto_veredito(const MedCarga *m, const Cega *leds, const Cega *cor, bool mexeu);
+
 #ifdef __cplusplus
 }
 #endif

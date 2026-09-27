@@ -1,6 +1,10 @@
 /* As provas às cegas. Ver cegas.h. */
 #include "cegas.h"
 
+#include "texto_buf.h"
+
+#include <math.h>
+
 #include <stdio.h>
 #include <string.h>
 
@@ -429,6 +433,56 @@ Veredito cega_led_mic_veredito(const Cega *c, bool sdl_aceitou) {
     if (p) /* "3 cores certas" vira "3 respostas certas" */
       snprintf(v.medido, sizeof(v.medido), "%d resposta%s certa%s, %d errada%s, %d sem resposta", c->certos,
                c->certos == 1 ? "" : "s", c->certos == 1 ? "" : "s", c->errados, c->errados == 1 ? "" : "s", c->perdidos);
+  }
+  return v;
+}
+
+/* ---------- A Prova ---------- */
+
+Veredito cega_tudo_junto_veredito(const MedCarga *m, const Cega *leds, const Cega *cor, bool mexeu) {
+  Veredito v = vazio(NIVEL_SAIU);
+  snprintf(v.pedido, sizeof(v.pedido), "jogar a partida com tudo ligado — vibração, luz, gatilhos, LEDs, háptica e "
+                                       "sensores ao mesmo tempo — e, no fim, dizer as luzinhas e a cor do controle");
+  int hz = m->tem_giro && m->segundos > 0 ? (int)lround(m->amostras_giro / m->segundos) : 0;
+  int certos = leds->certos + cor->certos, errados = leds->errados + cor->errados;
+  char giro[96], parada[16];
+  num_pt(parada, sizeof(parada), m->maior_parada, 1);
+  if (m->tem_giro)
+    snprintf(giro, sizeof(giro), "giroscópio a %d Hz, a maior parada %s s", hz, parada);
+  else
+    snprintf(giro, sizeof(giro), "sem giroscópio");
+  snprintf(v.medido, sizeof(v.medido), "%s; %d saídas, %d recusadas; no fim: luzinhas %d de %d, cor %d de %d", giro,
+           m->saidas, m->recusadas, leds->certos, cega_total(leds), cor->certos, cega_total(cor));
+  if (!mexeu) {
+    v.nivel = NIVEL_NENHUM;
+    snprintf(v.obs, sizeof(v.obs), "não medido: o controle não jogou a partida");
+    return v;
+  }
+  if (m->saidas > 0 && m->recusadas == m->saidas) {
+    v.nivel = NIVEL_MONTOU;
+    snprintf(v.obs, sizeof(v.obs), "não medido: o SDL recusou todas as saídas deste controle");
+    return v;
+  }
+  v.nivel = certos + errados > 0 ? NIVEL_OBEDECEU : NIVEL_SAIU;
+  if (m->paradas >= 1) {
+    v.resultado = RES_FALHOU;
+    snprintf(v.obs, sizeof(v.obs), "a entrada parou no meio da carga (%d vez%s, a maior de %s s): o controle engasga com "
+                                   "tudo ligado", m->paradas, m->paradas == 1 ? "" : "es", parada);
+  } else if (m->recusadas > 0) {
+    v.resultado = RES_FALHOU;
+    snprintf(v.obs, sizeof(v.obs), "o SDL recusou %d de %d saídas no meio da partida", m->recusadas, m->saidas);
+  } else if (m->tem_giro && m->segundos >= 10 && hz < 60) {
+    v.resultado = RES_FALHOU;
+    snprintf(v.obs, sizeof(v.obs), "com tudo ligado, o giroscópio caiu para %d Hz (o mínimo é 60)", hz);
+  } else if (errados >= 2 && certos == 0) {
+    v.resultado = RES_FALHOU;
+    snprintf(v.obs, sizeof(v.obs), "com tudo ligado, as luzinhas e a cor não eram as que o jogo mandou");
+  } else if (certos >= 2 && errados == 0) {
+    v.resultado = RES_PASSOU;
+  } else if (certos + errados == 0) {
+    snprintf(v.obs, sizeof(v.obs), "não medido: a prova final ficou sem resposta");
+  } else {
+    snprintf(v.obs, sizeof(v.obs), "não medido: inconclusivo — refaça a sala com calma");
   }
   return v;
 }

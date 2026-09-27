@@ -23,6 +23,10 @@ const SonsSalas *sons_salas(void) {
   som_de_onda(&g_sons.grito, &o);
   sint_pulso(&o, 90.0f, 0.16f, 1, 0.2f);
   som_de_onda(&g_sons.tropeco, &o);
+  sint_blip(&o, 2400.0f, 0.02f);
+  som_de_onda(&g_sons.clique, &o);
+  sint_bigorna(&o, 1568.0f, 0.5f, 1.3f, 37);
+  som_de_onda(&g_sons.pronto, &o);
   for (int c = 0; c < 4; c++)
     for (int v = 0; v < SONS_PASSOS_VARIANTES; v++) {
       sint_passo(&o, c, (uint32_t)(100 + c * 10 + v));
@@ -41,6 +45,8 @@ void sons_salas_liberar(void) {
   som_liberar(&g_sons.nota_alta);
   som_liberar(&g_sons.grito);
   som_liberar(&g_sons.tropeco);
+  som_liberar(&g_sons.clique);
+  som_liberar(&g_sons.pronto);
   for (int c = 0; c < 4; c++)
     for (int v = 0; v < SONS_PASSOS_VARIANTES; v++)
       som_liberar(&g_sons.passo[c][v]);

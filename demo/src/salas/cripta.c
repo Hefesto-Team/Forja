@@ -625,7 +625,9 @@ static void desenhar(App *a) {
   if (susto_agora) {
     /* o susto: a cripta some no escuro, a máscara salta com a boca aberta e
      * treme; um clarão curto, e o vermelho que fica */
-    float k = fminf(1, g_t * 6), tremor = 14 * g_flash;
+    /* "reduzir movimento" (na pausa) tira o tremor e o clarão, e fica o susto */
+    bool calmo = a->cfg.reduzir_movimento;
+    float k = fminf(1, g_t * 6), tremor = calmo ? 0 : 14 * g_flash;
     ds_ret(r, 0, 0, TELA_L, TELA_A, (SDL_Color){6, 2, 2, 235});
     ds_vinheta(r, 1.0f);
     guardiao(r, TELA_L / 2.0f + sinf(a->t * 90) * tremor, 470 + cosf(a->t * 70) * tremor, 1.2f + 1.3f * k, 1,
@@ -646,7 +648,7 @@ static void desenhar(App *a) {
     if (!p)
       sb_sem_controle(a, f, s);
   }
-  if (susto_agora && g_t < 0.16f)
+  if (susto_agora && g_t < 0.16f && !a->cfg.reduzir_movimento) /* um clarão só, de 0,16 s */
     ds_ret(r, 0, 0, TELA_L, TELA_A, cor_alfa(COR_TEXTO, 0.85f * (1 - g_t / 0.16f)));
   else if (g_flash > 0)
     ds_ret(r, 0, 0, TELA_L, TELA_A, cor_alfa(COR_FALHA, g_flash * 0.25f));

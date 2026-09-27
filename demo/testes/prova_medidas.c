@@ -380,4 +380,22 @@ void provas_medidas(void) {
   m2.pediu_martelada = true;
   v = med_acel_veredito(&m2, true);
   espera(v.resultado == RES_FALHOU && strstr(v.obs, "martelada") != NULL, "na pedra, sem martelada: falhou");
+
+  /* ---- A Prova: a carga ---- */
+  MedCarga mc;
+  med_carga_zerar(&mc, true);
+  for (int i = 0; i < 60 * 90; i++)
+    med_carga_quadro(&mc, 4, 1.0f / 60);
+  espera(mc.paradas == 0 && mc.amostras_giro == 4L * 60 * 90, "noventa segundos sem buraco");
+  for (int i = 0; i < 90; i++) /* 1,5 s sem amostra */
+    med_carga_quadro(&mc, 0, 1.0f / 60);
+  med_carga_quadro(&mc, 4, 1.0f / 60);
+  for (int i = 0; i < 90; i++)
+    med_carga_quadro(&mc, 0, 1.0f / 60);
+  espera(mc.paradas == 2 && mc.maior_parada > 1.45f && mc.maior_parada < 1.55f, "duas paradas de 1,5 s, contadas uma vez cada");
+  MedCarga sem;
+  med_carga_zerar(&sem, false);
+  med_carga_quadro(&sem, 0, 5);
+  espera(sem.paradas == 0, "sem giroscópio não há parada");
 }
+

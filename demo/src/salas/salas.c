@@ -19,6 +19,8 @@ const Cena *salas_cena(int sala) {
     return &CENA_CAMINHOS;
   case SALA_CRIPTA:
     return &CENA_CRIPTA;
+  case SALA_PROVA:
+    return &CENA_PROVA;
   default:
     return NULL;
   }

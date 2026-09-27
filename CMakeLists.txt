@@ -53,8 +53,9 @@ add_library(demo_nucleo STATIC
   demo/src/nucleo/texto_buf.c
   demo/src/nucleo/utf8.c
   demo/src/som/sintese.c
+  experimental/src/analise.c
 )
-target_include_directories(demo_nucleo PUBLIC demo/src/nucleo demo/src/som)
+target_include_directories(demo_nucleo PUBLIC demo/src/nucleo demo/src/som experimental/src)
 target_link_libraries(demo_nucleo PUBLIC forja_ds5)
 if(NOT WIN32)
   target_link_libraries(demo_nucleo PUBLIC m)
@@ -68,6 +69,7 @@ if(FORJA_TESTES)
     demo/testes/prova_basicos.c
     demo/testes/prova_cegas.c
     demo/testes/prova_efeitos.c
+    demo/testes/prova_experimentos.c
     demo/testes/prova_medidas.c
     demo/testes/prova_origem.c
     demo/testes/prova_relatorio.c
@@ -144,6 +146,8 @@ set(DEMO_FONTES
   demo/src/salas/canto.c
   demo/src/salas/caminhos.c
   demo/src/salas/cripta.c
+  demo/src/salas/prova.c
+  experimental/src/experimentos.c
   demo/src/third_party.c
 )
 
