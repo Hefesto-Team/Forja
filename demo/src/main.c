@@ -1,6 +1,7 @@
 /* Hefesto Tech Demo — o laço principal.
  *
  *   hefesto-tech-demo [--simular N] [--robo] [--acelerado] [--defeito LISTA] [--sala CHAVE] [--gauntlet] [--diagnostico]
+ *                     [--experimento CHAVE]
  *                     [--semente N] [--relatorios PASTA] [--tela-cheia]
  *                     [--tamanho LxA] [--sem-som] [--captura ARQ.png --quadros N]
  *
@@ -10,6 +11,7 @@
  * "0"), e o controle entra só com a entrada básica. No cabo, e no DualSense
  * virtual que se declara USB, tudo funciona — pelo relatório 0x02. */
 #include "app.h"
+#include "../../experimental/src/experimentos.h"
 
 #include "nucleo/catalogo.h"
 #include "nucleo/relogio.h"
@@ -36,6 +38,7 @@ static App g_app;
 
 static void uso(void) {
   fputs("uso: hefesto-tech-demo [--simular N] [--robo] [--acelerado] [--defeito LISTA] [--sala CHAVE] [--gauntlet] [--diagnostico]\n"
+        "                         [--experimento CHAVE]\n"
         "                         [--semente N] [--relatorios PASTA] [--tela-cheia]\n"
         "                         [--tamanho LxA] [--sem-som] [--captura ARQ.png --quadros N]\n",
         stderr);
@@ -72,6 +75,15 @@ static bool argumentos(App *a, int argc, char **argv) {
         return false;
       }
       if (s[6] != '=')
+        i++;
+    } else if ((!strcmp(s, "--experimento") && prox) || !strncmp(s, "--experimento=", 14)) {
+      const char *chave = s[13] == '=' ? s + 14 : prox;
+      a->experimento = experimento_por_chave(chave);
+      if (a->experimento < 0) {
+        fprintf(stderr, "experimento desconhecido: %s (os que existem: %s)\n", chave, experimentos_chaves());
+        return false;
+      }
+      if (s[13] != '=')
         i++;
     } else if (!strcmp(s, "--")) {
       /* o separador do Godot (`-- --sala=voz`): aqui não separa nada */
@@ -325,6 +337,7 @@ int main(int argc, char **argv) {
   APP = a;
   SDL_memset(a, 0, sizeof(*a));
   a->sala_direta = -1;
+  a->experimento = -1;
   a->sala_atual = -1;
   a->cfg.legendas = true;
   a->cfg.intensidade = 1.0f;
@@ -415,7 +428,7 @@ int main(int argc, char **argv) {
 
   if (a->diagnostico_direto)
     a->cena = &CENA_DIAGNOSTICO;
-  else if (a->sala_direta >= 0 || a->modo_jogo == 1)
+  else if (a->sala_direta >= 0 || a->modo_jogo == 1 || a->experimento >= 0)
     a->cena = &CENA_LOBBY;
   else
     a->cena = &CENA_TITULO;

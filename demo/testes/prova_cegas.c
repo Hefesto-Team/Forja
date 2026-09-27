@@ -152,4 +152,50 @@ void provas_cegas(void) {
   espera(cega_leds_veredito(&c, true).resultado == RES_FALHOU, "cinco erradas: falhou");
   c = cega(3, 3, 0, -1);
   espera(cega_leds_veredito(&c, true).resultado == RES_NAO_MEDIDO, "meio a meio: inconclusivo");
+
+  /* ---- A Prova: tudo junto ---- */
+  {
+    MedCarga m;
+    med_carga_zerar(&m, true);
+    m.segundos = 90;
+    m.amostras_giro = 250L * 90;
+    m.saidas = 400;
+    Cega l1, c1;
+    cega_zerar(&l1);
+    cega_zerar(&c1);
+    cega_certo(&l1);
+    cega_certo(&c1);
+    Veredito v = cega_tudo_junto_veredito(&m, &l1, &c1, true);
+    espera(v.resultado == RES_PASSOU && v.nivel == NIVEL_OBEDECEU, "tudo ligado, nada parou, a prova final certa: passou");
+    espera(strstr(v.medido, "250 Hz") != NULL, "o medido traz a taxa do giroscópio");
+    espera(cega_tudo_junto_veredito(&m, &l1, &c1, false).resultado == RES_NAO_MEDIDO, "quem não jogou: não medido");
+    m.paradas = 3;
+    m.maior_parada = 1.5f;
+    v = cega_tudo_junto_veredito(&m, &l1, &c1, true);
+    espera(v.resultado == RES_FALHOU && strstr(v.obs, "engasga") != NULL && strstr(v.obs, "1,5 s") != NULL,
+           "a entrada parou sob carga: falhou");
+    m.paradas = 0;
+    m.recusadas = 7;
+    v = cega_tudo_junto_veredito(&m, &l1, &c1, true);
+    espera(v.resultado == RES_FALHOU && strstr(v.obs, "recusou 7 de 400") != NULL, "saídas recusadas no meio: falhou");
+    m.recusadas = 400;
+    espera(cega_tudo_junto_veredito(&m, &l1, &c1, true).resultado == RES_NAO_MEDIDO,
+           "todas recusadas (o rádio nativo): não medido");
+    m.recusadas = 0;
+    m.amostras_giro = 30L * 90;
+    v = cega_tudo_junto_veredito(&m, &l1, &c1, true);
+    espera(v.resultado == RES_FALHOU && strstr(v.obs, "30 Hz") != NULL, "o giroscópio caiu com a carga: falhou");
+    m.amostras_giro = 250L * 90;
+    Cega l0, c0;
+    cega_zerar(&l0);
+    cega_zerar(&c0);
+    cega_errado(&l0, 1);
+    cega_errado(&c0, 2);
+    v = cega_tudo_junto_veredito(&m, &l0, &c0, true);
+    espera(v.resultado == RES_FALHOU && strstr(v.obs, "luzinhas e a cor") != NULL, "as duas erradas: falhou");
+    cega_zerar(&l0);
+    cega_zerar(&c0);
+    espera(cega_tudo_junto_veredito(&m, &l0, &c0, true).resultado == RES_NAO_MEDIDO, "sem resposta: não medido");
+  }
 }
+

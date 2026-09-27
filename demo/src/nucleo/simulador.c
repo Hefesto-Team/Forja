@@ -39,6 +39,8 @@ typedef struct Sim {
   double acum_sensor;
   float fase;
   float rol, arf, gui; /* a postura do controle de mentira (rad) */
+  long efeitos;        /* pacotes de efeito que chegaram */
+  float engasgo_ate;   /* o defeito "engasga": a entrada parada até aqui (app->t) */
 } Sim;
 
 static Sim g_sim[MAX_SIM];
@@ -57,7 +59,7 @@ static const struct {
     {"sem-alto-falante", DEFEITO_SEM_ALTO_FALANTE},     {"som-vizinho", DEFEITO_SOM_VIZINHO},
     {"haptica-trocada", DEFEITO_HAPTICA_TROCADA},       {"mic-surdo", DEFEITO_MIC_SURDO},
     {"led-mic-parado", DEFEITO_LED_MIC_PARADO},         {"mudo-nao-chega", DEFEITO_MUDO_NAO_CHEGA},
-    {"haptica-muda", DEFEITO_HAPTICA_MUDA},
+    {"haptica-muda", DEFEITO_HAPTICA_MUDA},             {"engasga", DEFEITO_ENGASGA},
 };
 static unsigned g_defeitos;
 static float g_t_sim; /* o app->t do último quadro, para a voz do robô */
@@ -159,6 +161,9 @@ static bool SDLCALL cb_efeito(void *u, const void *dados, int tam) {
   SDL_memcpy(s->perc.efeito, b, (size_t)tam);
   s->perc.n_efeito = tam;
   s->perc.efeito_ms = SDL_GetTicks();
+  /* o intermediário que engasga sob carga: a cada 40 pacotes, a entrada para */
+  if (++s->efeitos % 40 == 0 && (g_def_agora & DEFEITO_ENGASGA))
+    s->engasgo_ate = g_t_sim + 1.5f;
   if (tam >= 47) {
     /* o "firmware" do simulador obedece aos blocos cujos bits vieram ligados */
     if ((b[0] & 0x04) && !(g_def_agora & DEFEITO_GATILHO_MUDO))
@@ -271,13 +276,23 @@ static Sim *sim_do_pad(App *a, int pad) {
   return NULL;
 }
 
+/* A ação nova do mesmo botão, eixo ou dedo toma o lugar da velha (vale a mais
+ * nova de qualquer jeito): o robô que reescreve os analógicos a cada quadro
+ * não enche a fila e não deixa o aperto do gatilho de fora. */
 static void agendar(Sim *s, Acao ac) {
-  for (int i = 0; i < MAX_ACOES; i++)
-    if (!s->acao[i].viva) {
-      ac.viva = true;
-      s->acao[i] = ac;
+  ac.viva = true;
+  int livre = -1;
+  for (int i = 0; i < MAX_ACOES; i++) {
+    Acao *v = &s->acao[i];
+    if (v->viva && v->tipo == ac.tipo && v->alvo == ac.alvo) {
+      *v = ac;
       return;
     }
+    if (!v->viva && livre < 0)
+      livre = i;
+  }
+  if (livre >= 0)
+    s->acao[livre] = ac;
 }
 
 void robo_apertar(App *a, int pad, SDL_GamepadButton b, float seg) {
@@ -509,7 +524,7 @@ bool simulador_evento(App *a, const SDL_Event *e) {
 /* ---------- a cada quadro ---------- */
 
 void simulador_atualizar(App *a, float dt) {
-  g_def_agora = a->sala_atual >= 0 ? g_defeitos : 0;
+  g_def_agora = a->sala_atual >= 0 || a->bancada ? g_defeitos : 0;
   g_t_sim = a->t;
   for (int i = 0; i < g_n; i++) {
     Sim *s = &g_sim[i];
@@ -576,7 +591,7 @@ void simulador_atualizar(App *a, float dt) {
      * jogo recebe o que o intermediário quebrado deixaria passar. Valem dentro
      * das salas; no menu e no salão o controle chega inteiro, para o robô
      * chegar até elas */
-    unsigned def = a->sala_atual >= 0 ? g_defeitos : 0;
+    unsigned def = a->sala_atual >= 0 || a->bancada ? g_defeitos : 0;
     if (def & DEFEITO_TROCA_CRUZ_CIRCULO) {
       bool c = botao[SDL_GAMEPAD_BUTTON_SOUTH];
       botao[SDL_GAMEPAD_BUTTON_SOUTH] = botao[SDL_GAMEPAD_BUTTON_EAST];
@@ -598,6 +613,11 @@ void simulador_atualizar(App *a, float dt) {
     }
     if (def & DEFEITO_UM_DEDO)
       dedo[1] = false;
+    if (a->t < s->engasgo_ate) {
+      /* engasgado: nada sai do controle de mentira, nem os sensores */
+      s->acum_sensor = 0;
+      continue;
+    }
     for (int b = 0; b < SDL_GAMEPAD_BUTTON_COUNT; b++) {
       int j = indice_botao(b);
       if (j >= 0)

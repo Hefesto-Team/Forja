@@ -92,6 +92,7 @@ DEFEITOS=(
   "mic-surdo:cripta:microfone"
   "mudo-nao-chega:cripta:microfone_mudo"
   "led-mic-parado:cripta:led_microfone"
+  "engasga:prova:tudo_junto"
 )
 for item in "${DEFEITOS[@]}"; do
   IFS=: read -r defeito sala feature <<<"$item"

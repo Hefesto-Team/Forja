@@ -39,5 +39,6 @@ void provas_medidas(void);
 void provas_cegas(void);
 void provas_achar_som(void);
 void provas_som(void);
+void provas_experimentos(void);
 
 #endif

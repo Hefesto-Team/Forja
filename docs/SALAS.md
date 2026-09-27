@@ -270,11 +270,40 @@ padrão de jogo, e acaba a sala.
 
 ---
 
-## A sala que vem
+## A Prova — duas equipes, tudo ligado
 
-| sala | marco | valida |
+**O padrão:** o jogo de ação do PS5 inteiro de uma vez — que é onde um
+intermediário se prova. Noventa segundos de partida com tudo ligado ao mesmo
+tempo, nos quatro controles.
+
+**Como jogar:** a Brasa (P1 e P2) contra a Maré (P3 e P4); com três, dois
+contra um e um boneco de treino; com dois, um contra um; sozinho, contra dois
+bonecos. O analógico esquerdo anda; o direito e o giroscópio miram (L2 afina a
+mira, e o gatilho resiste); R2 atira, com a parede e o clique da arma. A
+munição está nas cinco luzinhas; vazia, o gatilho solta e o clique seco sai no
+alto-falante do controle; □ recarrega. ✕ corre. O tiro que vem da esquerda
+treme o motor da esquerda; a luz é a cor da equipe, pisca vermelho no golpe e
+apaga com a vida. O passo no chão da arena (grama, cascalho, metal, água) vai
+para os atuadores. Quando o sino toca no controle, o clique do touchpad solta a
+martelada. Três golpes derrubam; quem cai volta em 2,5 s, e cada derrubada é
+um ponto da equipe.
+
+No fim, **a prova final**: o jogo acende um número de luzinhas e uma cor em
+cada controle — diferentes do que estava antes —, a tela não mostra, e cada um
+diz o que vê.
+
+| feature | PASSOU | FALHOU |
 | --- | --- | --- |
-| A Prova | 5 | tudo junto, dois contra dois |
+| Tudo junto | a entrada nunca parou (o giroscópio sem buraco de mais de 1 s, a 60 Hz ou mais), o SDL aceitou todas as saídas, e a prova final veio certa (as luzinhas e a cor) | a entrada parou no meio da carga; o SDL recusou saída no meio da partida; o giroscópio caiu abaixo de 60 Hz; ou as luzinhas e a cor, as duas, erradas |
+
+O que um jogo não mede, a Prova mede: com tudo isso junto, a entrada
+continuou chegando e as saídas continuaram sendo aceitas? Se o SDL recusa
+todas as saídas desde o começo (o rádio nativo, que este jogo só lê), o
+veredito é NÃO MEDIDO, com o porquê. O microfone fica de fora: no ar de uma
+sala, a voz de um é ouvida por todos (a Cripta mede em turnos).
+
+**Defeito que ela pega:** `engasga` (a cada 40 pacotes de efeito, a entrada do
+controle para por 1,5 s).
 
 ## Jogar sem controle
 

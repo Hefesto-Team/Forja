@@ -162,6 +162,24 @@ typedef struct MedMic {
   long quadros;      /* quadros com nível lido */
 } MedMic;
 
+/* A Prova: o controle aguentou tudo ligado ao mesmo tempo? A entrada não pode
+ * parar (o giroscópio chega sem buracos) e o SDL não pode recusar saída no meio
+ * da carga. O veredito junta isso com a prova final às cegas (cegas.h). */
+typedef struct MedCarga {
+  float segundos;      /* de partida medidos (tempo de jogo, sem a pausa) */
+  bool tem_giro;
+  long amostras_giro;  /* as que chegaram durante a partida */
+  float parado;        /* há quanto tempo não chega amostra nova */
+  float maior_parada;  /* s */
+  int paradas;         /* as que passaram de 1 s */
+  int saidas, recusadas;
+  int tiros, acertos, derrubadas;
+} MedCarga;
+
+void med_carga_zerar(MedCarga *m, bool tem_giro);
+/* Uma vez por quadro de partida: `novas` amostras de giroscópio chegaram. */
+void med_carga_quadro(MedCarga *m, long novas, float dt);
+
 void med_mic_iniciar(MedMic *m, bool tem);
 Veredito med_mic_veredito(const MedMic *m, bool controle_mexeu);
 Veredito med_mudo_veredito(const MedMic *m, bool controle_mexeu);

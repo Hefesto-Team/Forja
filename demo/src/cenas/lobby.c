@@ -4,6 +4,7 @@
  * Sprint 1 da Forja: "Join P1–P4: plugou = slot, LED jogador 4/10/21/27,
  * lightbar da cor"; "Falha visível e curta: «P3 sem controle»". */
 #include "../app.h"
+#include "../../../experimental/src/experimentos.h"
 
 #include "../nucleo/simulador.h"
 #include "../ui/controle.h"
@@ -40,6 +41,10 @@ static void comecar(App *a) {
   }
   if (a->modo_jogo == 1) {
     hub_comecar_gauntlet(a);
+    return;
+  }
+  if (a->experimento >= 0) {
+    app_trocar_cena(a, &CENA_EXPERIMENTO);
     return;
   }
   app_trocar_cena(a, &CENA_HUB);

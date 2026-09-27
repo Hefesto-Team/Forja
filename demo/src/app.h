@@ -88,6 +88,8 @@ struct App {
   bool robo;
   bool acelerado; /* só com --simular: passo fixo de 1/60 s, sem esperar o relógio */
   int sala_direta;
+  int experimento; /* experimental/: -1 nenhum */
+  bool bancada;     /* a cena do experimento está aberta (os defeitos valem nela) */
   bool diagnostico_direto;
   char captura[512];
   int captura_quadro;

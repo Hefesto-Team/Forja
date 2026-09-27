@@ -15,6 +15,8 @@ typedef struct SonsSalas {
   Som nota_alta;
   Som grito;    /* o susto da Cripta */
   Som tropeco;  /* o tropeço dos Caminhos: um lado só */
+  Som clique;   /* a arma vazia da Prova: o clique seco na mão */
+  Som pronto;   /* o especial carregado, só no controle de quem tem */
   Som passo[4][SONS_PASSOS_VARIANTES];
 } SonsSalas;
 

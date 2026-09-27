@@ -635,3 +635,27 @@ Veredito med_mudo_veredito(const MedMic *m, bool mexeu) {
   }
   return v;
 }
+
+/* ---------- A Prova: a carga ---------- */
+
+void med_carga_zerar(MedCarga *m, bool tem_giro) {
+  memset(m, 0, sizeof(*m));
+  m->tem_giro = tem_giro;
+}
+
+void med_carga_quadro(MedCarga *m, long novas, float dt) {
+  m->segundos += dt;
+  if (!m->tem_giro)
+    return;
+  if (novas > 0) {
+    m->amostras_giro += novas;
+    m->parado = 0;
+    return;
+  }
+  bool ja_contada = m->parado > 1.0f;
+  m->parado += dt;
+  if (m->parado > m->maior_parada)
+    m->maior_parada = m->parado;
+  if (!ja_contada && m->parado > 1.0f)
+    m->paradas++;
+}
