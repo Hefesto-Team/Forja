@@ -1,6 +1,6 @@
 /* Hefesto Tech Demo — o laço principal.
  *
- *   hefesto-tech-demo [--simular N] [--robo] [--sala CHAVE] [--gauntlet] [--diagnostico]
+ *   hefesto-tech-demo [--simular N] [--robo] [--acelerado] [--defeito LISTA] [--sala CHAVE] [--gauntlet] [--diagnostico]
  *                     [--semente N] [--relatorios PASTA] [--tela-cheia]
  *                     [--tamanho LxA] [--sem-som] [--captura ARQ.png --quadros N]
  *
@@ -33,7 +33,7 @@ unsigned char *stbi_write_png_to_mem(const unsigned char *pixels, int stride_byt
 static App g_app;
 
 static void uso(void) {
-  fputs("uso: hefesto-tech-demo [--simular N] [--robo] [--sala CHAVE] [--gauntlet] [--diagnostico]\n"
+  fputs("uso: hefesto-tech-demo [--simular N] [--robo] [--acelerado] [--defeito LISTA] [--sala CHAVE] [--gauntlet] [--diagnostico]\n"
         "                         [--semente N] [--relatorios PASTA] [--tela-cheia]\n"
         "                         [--tamanho LxA] [--sem-som] [--captura ARQ.png --quadros N]\n",
         stderr);
@@ -50,6 +50,15 @@ static bool argumentos(App *a, int argc, char **argv) {
       i++;
     } else if (!strcmp(s, "--robo")) {
       a->robo = true;
+    } else if (!strcmp(s, "--acelerado")) {
+      a->acelerado = true;
+    } else if (!strcmp(s, "--defeito") && prox) {
+      char erro[160];
+      if (!simulador_defeitos(prox, erro, sizeof(erro))) {
+        fprintf(stderr, "%s\n", erro);
+        return false;
+      }
+      i++;
     } else if (!strcmp(s, "--gauntlet")) {
       a->modo_jogo = 1;
     } else if ((!strcmp(s, "--sala") && prox) || !strncmp(s, "--sala=", 7)) {
@@ -158,8 +167,15 @@ static void preparar_relatorio(App *a) {
              "estrito: o jogo monta só o payload de 47 bytes e fala USB 0x02 pelo SDL; DualSense nativo "
              "no rádio entra só com a entrada básica (SDL_HINT_JOYSTICK_ENHANCED_REPORTS=0)");
   a->rel.semente = a->semente;
-  if (a->simular)
+  if (a->simular) {
     rel_nota(&a->rel, "sessão com controles SIMULADOS (--simular): nada aqui foi medido em aparelho");
+    if (simulador_defeitos_texto()[0]) {
+      char nota[240];
+      snprintf(nota, sizeof(nota), "defeitos de mentira nos controles simulados (--defeito): %s",
+               simulador_defeitos_texto());
+      rel_nota(&a->rel, nota);
+    }
+  }
 }
 
 static void capturar(App *a, const char *caminho) {
@@ -405,13 +421,22 @@ int main(int argc, char **argv) {
   /* Sem vsync de verdade (sem janela, ou um compositor que o ignora), o
    * quadro tem piso: 60 por segundo sem tela, 240 com. */
   const Uint64 QUADRO_NS = 1000000000ull / (sem_tela || !vsync ? 60 : 240);
+  /* --acelerado (só com controles simulados): o tempo do jogo anda 1/60 s por
+   * quadro, sem esperar o relógio, e só um quadro em quatro é desenhado — o
+   * gauntlet do robô termina em minutos no CI */
+  const bool acelerado = a->acelerado && a->simular > 0;
   while (a->rodando) {
-    Uint64 gasto = SDL_GetTicksNS() - antes;
-    if (gasto < QUADRO_NS)
-      SDL_DelayPrecise(QUADRO_NS - gasto);
-    Uint64 agora = SDL_GetTicksNS();
-    float dt = (float)((agora - antes) / 1e9);
-    antes = agora;
+    float dt;
+    if (acelerado) {
+      dt = 1.0f / 60.0f;
+    } else {
+      Uint64 gasto = SDL_GetTicksNS() - antes;
+      if (gasto < QUADRO_NS)
+        SDL_DelayPrecise(QUADRO_NS - gasto);
+      Uint64 agora = SDL_GetTicksNS();
+      dt = (float)((agora - antes) / 1e9);
+      antes = agora;
+    }
     if (dt > 0.1f)
       dt = 0.1f;
     a->dt = dt;
@@ -459,12 +484,15 @@ int main(int argc, char **argv) {
       }
     }
 
-    SDL_SetRenderDrawColor(a->r, 0, 0, 0, 255);
-    SDL_RenderClear(a->r);
-    a->cena->desenhar(a);
-    wg_aviso(a->r, a->aviso, a->aviso_t);
-    desenhar_transicao(a);
-    SDL_RenderPresent(a->r);
+    bool desenhar = !acelerado || a->quadro % 4 == 0 || (a->captura_quadro && a->quadro + 1 >= a->captura_quadro);
+    if (desenhar) {
+      SDL_SetRenderDrawColor(a->r, 0, 0, 0, 255);
+      SDL_RenderClear(a->r);
+      a->cena->desenhar(a);
+      wg_aviso(a->r, a->aviso, a->aviso_t);
+      desenhar_transicao(a);
+      SDL_RenderPresent(a->r);
+    }
     pads_fim_do_quadro(a);
     a->quadro++;
 

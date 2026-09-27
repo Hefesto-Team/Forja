@@ -58,6 +58,15 @@ void provas_utf8(void) {
   espera(utf8_proximo(&ruim) == 'a', "e avança um só");
   char buf[4];
   espera(utf8_escrever(0x2014, buf) == 3, "travessão tem três bytes");
+  char m[64];
+  utf8_maiusculas("O Salão da Forja — ação", m, sizeof(m));
+  espera_str(m, "O SALÃO DA FORJA — AÇÃO", "versal com acento, o travessão passa");
+  utf8_maiusculas("çéíóúâêôàü", m, sizeof(m));
+  espera_str(m, "ÇÉÍÓÚÂÊÔÀÜ", "o Latin-1 inteiro");
+  utf8_maiusculas("abcdef", m, 4);
+  espera_str(m, "ABC", "corta sem estourar");
+  utf8_maiusculas("ãã", m, 4);
+  espera_str(m, "Ã", "não corta um acento no meio");
 }
 
 void provas_sorteio(void) {

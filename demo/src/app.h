@@ -76,12 +76,15 @@ struct App {
   /* o que o lobby abre quando a mesa fecha */
   int modo_jogo;   /* 0 o hub, 1 o gauntlet (todas as salas, na ordem) */
   int sala_atual;  /* -1 no hub */
+  unsigned salas_feitas; /* as salas concluídas nesta sessão (um bit por sala) */
+  bool robo_sala_unica;  /* --sala com --robo: joga a sala, lê o livro e sai */
   bool gauntlet;   /* o gauntlet está em andamento */
   int gauntlet_passo;
 
   /* argumentos */
   int simular;
   bool robo;
+  bool acelerado; /* só com --simular: passo fixo de 1/60 s, sem esperar o relógio */
   int sala_direta;
   bool diagnostico_direto;
   char captura[512];

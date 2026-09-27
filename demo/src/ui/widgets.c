@@ -207,7 +207,7 @@ static const struct {
     {"{L2}", IC_L2, 1.3f},       {"{R2}", IC_R2, 1.3f},     {"{L3}", IC_L3, 1.0f},
     {"{R3}", IC_R3, 1.0f},       {"{OPT}", IC_OPTIONS, 0.8f}, {"{CRI}", IC_CREATE, 0.8f},
     {"{PS}", IC_PS, 1.0f},       {"{TP}", IC_TOUCHPAD, 1.4f}, {"{MIC}", IC_MIC, 1.0f},
-    {"{DP}", IC_DPAD, 1.0f},
+    {"{DP}", IC_DPAD, 1.0f},     {"{LE}", IC_ANALOGICO_E, 1.0f}, {"{LD}", IC_ANALOGICO_D, 1.0f},
 };
 
 static int marca_em(const char *p, int *ind) {
@@ -258,4 +258,11 @@ float wg_texto_rico(SDL_Renderer *r, int fonte, float x, float y, SDL_Color cor,
   float w = wg_texto_rico_largura(fonte, s);
   float xx = alinhamento == ALINHA_CENTRO ? x - w / 2 : alinhamento == ALINHA_DIR ? x - w : x;
   return rico(r, (Fonte)fonte, xx, y, cor, s, true);
+}
+
+const char *wg_graus(float rad) {
+  int g = (int)lroundf(rad * 57.2957795f);
+  if (g == 0)
+    return "0°";
+  return fmt("%s%d°", g > 0 ? "+" : "−", g > 0 ? g : -g);
 }

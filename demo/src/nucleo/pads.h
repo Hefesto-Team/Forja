@@ -20,6 +20,7 @@
 
 #include "forja_dualsense.h"
 #include "origem.h"
+#include "postura.h"
 #include "taxa.h"
 
 #define MAX_PADS 12
@@ -57,6 +58,7 @@ typedef struct Pad {
   float acel[3];                             /* m/s² */
   Taxa taxa_giro, taxa_acel;
   float giro_hz_declarado, acel_hz_declarado;
+  Postura postura; /* a inclinação, pela fusão do giro com a gravidade */
   Dedo dedo[2];
   int bateria;              /* -1 desconhecida */
   SDL_PowerState energia;
@@ -125,6 +127,7 @@ bool pad_apertou(const Pad *p, SDL_GamepadButton b); /* borda de descida neste q
 bool pad_soltou(const Pad *p, SDL_GamepadButton b);
 bool pad_segura(const Pad *p, SDL_GamepadButton b);
 bool pad_fala_dualsense(const Pad *p);              /* efeitos, sensores e toque */
+const char *pad_origem_rotulo(const Pad *p);        /* "DualSense nativo", "simulado (SDL virtual)"... */
 
 /* A mesa */
 int pads_entrar(struct App *a, int pad);   /* devolve o slot, -1 cheio */

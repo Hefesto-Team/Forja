@@ -34,6 +34,7 @@ static void comecar(App *a) {
   if (a->sala_direta >= 0) {
     int s = a->sala_direta;
     a->sala_direta = -1;
+    a->robo_sala_unica = robo_ativo();
     hub_abrir_sala(a, s);
     return;
   }
@@ -218,7 +219,7 @@ static void desenhar(App *a) {
     const char *linha = p->espelho_de >= 0
                             ? fmt("%s — parece espelho de %s, fora da mesa", p->nome, pads_rotulo_slot(p->espelho_de))
                             : fmt("%s [%s] · %s — aperte {X} para entrar", p->nome, p->vidpid,
-                                  origem_rotulo(p->origem.tipo));
+                                  pad_origem_rotulo(p));
     wg_texto_rico(r, F_PEQUENA, TELA_L / 2.0f, y + n * 30, p->espelho_de >= 0 ? COR_AVISO : COR_TEXTO_2, ALINHA_CENTRO, linha);
     if (++n >= 3)
       break;

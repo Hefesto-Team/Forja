@@ -36,10 +36,14 @@ void wg_aviso(SDL_Renderer *r, const char *texto, float idade);
 void wg_item_menu(SDL_Renderer *r, float x, float y, float w, float h, const char *rotulo,
                   const char *sub, bool selecionado, float brilho, Icone ic);
 /* Texto com ícones no meio: "Aperte {X} para entrar". Marcas: {X} {O} {Q} {T}
- * {L1} {R1} {L2} {R2} {L3} {R3} {OPT} {CRI} {PS} {TP} {MIC} {DP}. Devolve a largura. */
+ * {L1} {R1} {L2} {R2} {L3} {R3} {OPT} {CRI} {PS} {TP} {MIC} {DP} e os
+ * analógicos {LE} {LD}. Devolve a largura. */
 float wg_texto_rico(SDL_Renderer *r, int fonte, float x, float y, SDL_Color cor, int alinhamento,
                     const char *s);
 float wg_texto_rico_largura(int fonte, const char *s);
+
+/* Um ângulo para a tela, de radianos: "+12°", "−3°", "0°" (nunca "-0°"). */
+const char *wg_graus(float rad);
 
 /* A etiqueta do jogador: "P1" num escudo com a cor dele. */
 void wg_escudo_jogador(SDL_Renderer *r, float cx, float cy, float tam, int slot, bool vivo);

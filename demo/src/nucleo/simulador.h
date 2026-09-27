@@ -2,7 +2,15 @@
  *
  * `--simular N` pendura N gamepads virtuais do SDL (SDL_AttachVirtualJoystick)
  * com touchpad de dois dedos, giroscópio e acelerômetro. O teclado dirige o
- * selecionado; `--robo` põe um robô para jogar em todos.
+ * selecionado (Tab troca); `--robo` põe um robô para jogar em todos.
+ *
+ *   Z ou Enter ✕ · X ou Esc ○ · C □ · V △ · Q L1 · E R1 · 1 L2 · 3 R2
+ *   F L3 · G R3 · O Options · P Create · T clique do touchpad · M microfone
+ *   setas: direcional · WASD: analógico esquerdo
+ *   I/K inclina para a frente e para trás · J/L inclina para os lados
+ *   B/N vira para os lados · H a martelada (sacode para baixo)
+ *   mouse: o touchpad — botão esquerdo é um dedo; segure os dois botões e o
+ *   segundo dedo segue o mouse enquanto o primeiro fica parado
  *
  * O ponto que importa: o robô só sabe o que um jogador saberia. Ele "sente" a
  * vibração, "vê" a lightbar e "sente" o gatilho pelos callbacks do joystick
@@ -29,6 +37,22 @@ typedef struct Percepcao {
   int led_mic;
   int leds_jogador;
 } Percepcao;
+
+/* Os defeitos de mentira: o que um intermediário quebrado faria com o
+ * controle, para provar que as salas dizem FALHOU quando devem (a prova da
+ * prova). `lista` é separada por vírgula:
+ *
+ *   troca-cruz-circulo  o ✕ chega como ○ e o ○ como ✕
+ *   analogico-curto     os analógicos só chegam a 70% do curso
+ *   gatilho-digital     L2 e R2 chegam só soltos ou no fundo
+ *   giro-invertido      o eixo Z (rolagem) do giroscópio chega com o sinal trocado
+ *   acel-escala         o acelerômetro chega dez vezes menor
+ *   um-dedo             o segundo dedo do touchpad nunca chega
+ *   sem-clique          o clique do touchpad nunca chega
+ *
+ * Devolve false (e diz qual) se algum nome não existe. */
+bool simulador_defeitos(const char *lista, char *erro, size_t tam_erro);
+const char *simulador_defeitos_texto(void);
 
 void simulador_iniciar(struct App *a, int n);
 void simulador_encerrar(struct App *a);

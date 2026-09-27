@@ -27,6 +27,19 @@ o que ela mandou tem de poder ser comparado com o que chegou.
 4. **O robô do simulador** (`--simular 4 --robo`) joga o gauntlet inteiro sem
    aparelho, sentindo o que o jogo manda pelos callbacks do joystick virtual.
    Ele prova o JOGO no CI; o Hefesto se prova na mesa.
+5. **A prova da prova.** Uma régua que nunca reprova não mede nada. O
+   simulador aceita `--defeito`, que põe entre a mão do robô e o jogo os
+   defeitos que um intermediário quebrado produziria: ✕ e ○ trocados, curso do
+   analógico cortado, gatilho que chega digital, eixo do giroscópio invertido,
+   acelerômetro em escala errada, segundo dedo perdido, clique do touchpad que
+   não chega. `scripts/gauntlet.sh` roda o gauntlet limpo (todo veredito tem
+   de ser PASSOU) e cada defeito (a feature dele tem de ser FALHOU). Com
+   `--acelerado`, o tempo do jogo anda sem esperar o relógio e a bateria
+   inteira cabe em poucos minutos.
+6. **FALHOU só com evidência.** O que a sala não chegou a pedir (o jogador não
+   alcançou a pedra, a runa do botão não acendeu antes do fim) fica NÃO MEDIDO,
+   com o porquê — um defeito numa parte da sala não reprova, em cascata, a
+   feature da parte seguinte.
 
 ## Consequências
 
@@ -35,3 +48,5 @@ o que ela mandou tem de poder ser comparado com o que chegou.
   automatiza lê a versão antes de comparar.
 - "Passou no robô" nunca é "passou no aparelho": o relatório de uma sessão
   simulada diz isso na primeira nota.
+- Toda sala nova entra com o defeito que ela tem de pegar, na lista do
+  `scripts/gauntlet.sh`.

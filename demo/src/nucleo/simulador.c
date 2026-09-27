@@ -30,13 +30,64 @@ typedef struct Sim {
   bool botao_tecla[SDL_GAMEPAD_BUTTON_COUNT];
   float eixo_tecla[SDL_GAMEPAD_AXIS_COUNT];
   float giro_tecla[3];
+  float sacode_tecla;
+  bool mouse_dedo[2]; /* o mouse faz de dedo: esquerdo = dedo 1, direito = dedo 2 */
+  float mouse_x[2], mouse_y[2];
   Uint64 sensor_ns;
   double acum_sensor;
   float fase;
+  float rol, arf, gui; /* a postura do controle de mentira (rad) */
 } Sim;
 
 static Sim g_sim[MAX_SIM];
 static int g_n, g_sel;
+
+enum {
+  DEF_TROCA_CRUZ_CIRCULO = 1 << 0,
+  DEF_ANALOGICO_CURTO = 1 << 1,
+  DEF_GATILHO_DIGITAL = 1 << 2,
+  DEF_GIRO_INVERTIDO = 1 << 3,
+  DEF_ACEL_ESCALA = 1 << 4,
+  DEF_UM_DEDO = 1 << 5,
+  DEF_SEM_CLIQUE = 1 << 6,
+};
+static const struct {
+  const char *nome;
+  unsigned bit;
+} DEFEITOS[] = {
+    {"troca-cruz-circulo", DEF_TROCA_CRUZ_CIRCULO}, {"analogico-curto", DEF_ANALOGICO_CURTO},
+    {"gatilho-digital", DEF_GATILHO_DIGITAL},       {"giro-invertido", DEF_GIRO_INVERTIDO},
+    {"acel-escala", DEF_ACEL_ESCALA},               {"um-dedo", DEF_UM_DEDO},
+    {"sem-clique", DEF_SEM_CLIQUE},
+};
+static unsigned g_defeitos;
+static char g_defeitos_texto[200];
+
+bool simulador_defeitos(const char *lista, char *erro, size_t tam_erro) {
+  g_defeitos = 0;
+  g_defeitos_texto[0] = 0;
+  char tmp[256];
+  SDL_strlcpy(tmp, lista ? lista : "", sizeof(tmp));
+  char *salvo = NULL;
+  for (char *tok = SDL_strtok_r(tmp, ",", &salvo); tok; tok = SDL_strtok_r(NULL, ",", &salvo)) {
+    bool achou = false;
+    for (size_t i = 0; i < sizeof(DEFEITOS) / sizeof(DEFEITOS[0]); i++)
+      if (!SDL_strcmp(tok, DEFEITOS[i].nome)) {
+        g_defeitos |= DEFEITOS[i].bit;
+        achou = true;
+      }
+    if (!achou) {
+      SDL_snprintf(erro, tam_erro, "defeito desconhecido: %s", tok);
+      return false;
+    }
+    if (g_defeitos_texto[0])
+      SDL_strlcat(g_defeitos_texto, ", ", sizeof(g_defeitos_texto));
+    SDL_strlcat(g_defeitos_texto, tok, sizeof(g_defeitos_texto));
+  }
+  return true;
+}
+
+const char *simulador_defeitos_texto(void) { return g_defeitos_texto; }
 static bool g_robo;
 static Sorteio g_sorteio;
 static const Uint32 MASCARA_BOTOES = 0x1FFFFFu & ~((1u << SDL_GAMEPAD_BUTTON_RIGHT_PADDLE1) |
@@ -318,8 +369,44 @@ static int botao_da_tecla(SDL_Keycode k) {
   }
 }
 
+/* O mouse é o touchpad: a tela inteira é a área do toque. Com os dois botões
+ * apertados, o dedo 1 fica onde estava e o dedo 2 segue o mouse — é assim que
+ * se abre e se fecha com dois dedos sem ter dois dedos. */
+static bool mouse(App *a, const SDL_Event *e) {
+  Sim *s = &g_sim[g_sel];
+  float mx, my;
+  SDL_Event c = *e;
+  SDL_ConvertEventToRenderCoordinates(a->r, &c);
+  if (c.type == SDL_EVENT_MOUSE_MOTION) {
+    mx = c.motion.x;
+    my = c.motion.y;
+  } else {
+    mx = c.button.x;
+    my = c.button.y;
+  }
+  float x = limitar(mx / TELA_L, 0, 1), y = limitar(my / TELA_A, 0, 1);
+  if (c.type == SDL_EVENT_MOUSE_BUTTON_DOWN || c.type == SDL_EVENT_MOUSE_BUTTON_UP) {
+    int d = c.button.button == SDL_BUTTON_LEFT ? 0 : c.button.button == SDL_BUTTON_RIGHT ? 1 : -1;
+    if (d < 0)
+      return false;
+    s->mouse_dedo[d] = c.type == SDL_EVENT_MOUSE_BUTTON_DOWN;
+    s->mouse_x[d] = x;
+    s->mouse_y[d] = y;
+    return true;
+  }
+  /* o movimento leva o dedo mais novo; o outro fica parado onde estava */
+  int d = s->mouse_dedo[1] ? 1 : s->mouse_dedo[0] ? 0 : -1;
+  if (d >= 0) {
+    s->mouse_x[d] = x;
+    s->mouse_y[d] = y;
+  }
+  return d >= 0;
+}
+
 bool simulador_evento(App *a, const SDL_Event *e) {
-  (void)a;
+  if (g_n > 0 && (e->type == SDL_EVENT_MOUSE_MOTION || e->type == SDL_EVENT_MOUSE_BUTTON_DOWN ||
+                  e->type == SDL_EVENT_MOUSE_BUTTON_UP))
+    return mouse(a, e);
   if (g_n == 0 || (e->type != SDL_EVENT_KEY_DOWN && e->type != SDL_EVENT_KEY_UP))
     return false;
   if (e->key.repeat)
@@ -357,17 +444,26 @@ bool simulador_evento(App *a, const SDL_Event *e) {
   case SDLK_D:
     s->eixo_tecla[SDL_GAMEPAD_AXIS_LEFTX] = v;
     return true;
-  case SDLK_I:
-    s->giro_tecla[0] = -v * 3;
+  case SDLK_I: /* a borda de longe desce */
+    s->giro_tecla[0] = -v * 2;
     return true;
   case SDLK_K:
-    s->giro_tecla[0] = v * 3;
+    s->giro_tecla[0] = v * 2;
     return true;
-  case SDLK_J:
-    s->giro_tecla[1] = v * 3;
+  case SDLK_J: /* inclina para a esquerda: o lado direito sobe */
+    s->giro_tecla[2] = v * 2;
     return true;
   case SDLK_L:
-    s->giro_tecla[1] = -v * 3;
+    s->giro_tecla[2] = -v * 2;
+    return true;
+  case SDLK_B: /* vira para a esquerda */
+    s->giro_tecla[1] = v * 2;
+    return true;
+  case SDLK_N:
+    s->giro_tecla[1] = -v * 2;
+    return true;
+  case SDLK_H: /* a martelada: sacode para baixo */
+    s->sacode_tecla = v * 1.6f;
     return true;
   default:
     return false;
@@ -384,11 +480,17 @@ void simulador_atualizar(App *a, float dt) {
     bool botao[SDL_GAMEPAD_BUTTON_COUNT];
     float eixo[SDL_GAMEPAD_AXIS_COUNT];
     float giro[3] = {s->giro_tecla[0], s->giro_tecla[1], s->giro_tecla[2]};
-    float sacode = 0;
-    bool dedo[2] = {false, false};
-    float dx[2] = {0}, dy[2] = {0};
+    float sacode = s->sacode_tecla;
+    bool dedo[2] = {s->mouse_dedo[0], s->mouse_dedo[1]};
+    float dx[2] = {s->mouse_x[0], s->mouse_x[1]}, dy[2] = {s->mouse_y[0], s->mouse_y[1]};
     SDL_memcpy(botao, s->botao_tecla, sizeof(botao));
     SDL_memcpy(eixo, s->eixo_tecla, sizeof(eixo));
+    /* quando duas ações pedem a mesma coisa, vale a mais nova (a que acaba
+     * depois): o robô reescreve o analógico e o dedo a cada quadro */
+    float fim_eixo[SDL_GAMEPAD_AXIS_COUNT], fim_dedo[2] = {-1, -1}, fim_giro = -1;
+    for (int x = 0; x < SDL_GAMEPAD_AXIS_COUNT; x++)
+      fim_eixo[x] = -1;
+    float giro_robo[3] = {0, 0, 0};
     for (int k = 0; k < MAX_ACOES; k++) {
       Acao *ac = &s->acao[k];
       if (!ac->viva)
@@ -402,23 +504,60 @@ void simulador_atualizar(App *a, float dt) {
         botao[ac->alvo] = true;
         break;
       case AC_EIXO:
-        eixo[ac->alvo] = ac->valor;
+        if (ac->fim > fim_eixo[ac->alvo]) {
+          fim_eixo[ac->alvo] = ac->fim;
+          eixo[ac->alvo] = ac->valor;
+        }
         break;
       case AC_GIRO:
-        giro[0] += ac->x;
-        giro[1] += ac->y;
-        giro[2] += ac->z;
+        if (ac->fim > fim_giro) {
+          fim_giro = ac->fim;
+          giro_robo[0] = ac->x;
+          giro_robo[1] = ac->y;
+          giro_robo[2] = ac->z;
+        }
         break;
       case AC_SACODE:
-        sacode = ac->valor;
+        if (ac->valor > sacode)
+          sacode = ac->valor;
         break;
       case AC_TOQUE:
-        dedo[ac->alvo] = true;
-        dx[ac->alvo] = ac->x;
-        dy[ac->alvo] = ac->y;
+        if (ac->fim > fim_dedo[ac->alvo]) {
+          fim_dedo[ac->alvo] = ac->fim;
+          dedo[ac->alvo] = true;
+          dx[ac->alvo] = ac->x;
+          dy[ac->alvo] = ac->y;
+        }
         break;
       }
     }
+    for (int e = 0; e < 3; e++)
+      giro[e] += giro_robo[e];
+
+    /* os defeitos entram entre a mão e o "fio": o robô aperta o que quer, e o
+     * jogo recebe o que o intermediário quebrado deixaria passar. Valem dentro
+     * das salas; no menu e no salão o controle chega inteiro, para o robô
+     * chegar até elas */
+    unsigned def = a->sala_atual >= 0 ? g_defeitos : 0;
+    if (def & DEF_TROCA_CRUZ_CIRCULO) {
+      bool c = botao[SDL_GAMEPAD_BUTTON_SOUTH];
+      botao[SDL_GAMEPAD_BUTTON_SOUTH] = botao[SDL_GAMEPAD_BUTTON_EAST];
+      botao[SDL_GAMEPAD_BUTTON_EAST] = c;
+    }
+    if (def & DEF_SEM_CLIQUE)
+      botao[SDL_GAMEPAD_BUTTON_TOUCHPAD] = false;
+    if (def & DEF_ANALOGICO_CURTO) {
+      eixo[SDL_GAMEPAD_AXIS_LEFTX] *= 0.7f;
+      eixo[SDL_GAMEPAD_AXIS_LEFTY] *= 0.7f;
+      eixo[SDL_GAMEPAD_AXIS_RIGHTX] *= 0.7f;
+      eixo[SDL_GAMEPAD_AXIS_RIGHTY] *= 0.7f;
+    }
+    if (def & DEF_GATILHO_DIGITAL) {
+      eixo[SDL_GAMEPAD_AXIS_LEFT_TRIGGER] = eixo[SDL_GAMEPAD_AXIS_LEFT_TRIGGER] > 0.5f ? 1.0f : 0.0f;
+      eixo[SDL_GAMEPAD_AXIS_RIGHT_TRIGGER] = eixo[SDL_GAMEPAD_AXIS_RIGHT_TRIGGER] > 0.5f ? 1.0f : 0.0f;
+    }
+    if (def & DEF_UM_DEDO)
+      dedo[1] = false;
     for (int b = 0; b < SDL_GAMEPAD_BUTTON_COUNT; b++) {
       int j = indice_botao(b);
       if (j >= 0)
@@ -435,7 +574,10 @@ void simulador_atualizar(App *a, float dt) {
     }
     for (int d = 0; d < 2; d++)
       SDL_SetJoystickVirtualTouchpad(s->js, 0, d, dedo[d], dx[d], dy[d], dedo[d] ? 0.6f : 0);
-    /* os sensores a 250 Hz: gravidade no acelerômetro, e o giro pedido */
+    /* os sensores a 250 Hz, coerentes entre si: o controle de mentira tem uma
+     * postura, o giro pedido a move, e o acelerômetro lê a gravidade dessa
+     * postura (convenções do SDL: parado, Y = +9,8). Com o teclado, a mão
+     * "relaxa" e o controle volta devagar ao nível — e o giro diz isso também */
     s->acum_sensor += dt * 250.0;
     s->fase += dt;
     int passos = 0;
@@ -443,10 +585,28 @@ void simulador_atualizar(App *a, float dt) {
       s->acum_sensor -= 1.0;
       passos++;
       s->sensor_ns += 4000000ull;
-      float ruido_g[3] = {(robo_acaso() - 0.5f) * 0.01f, (robo_acaso() - 0.5f) * 0.01f,
-                          (robo_acaso() - 0.5f) * 0.01f};
-      float g[3] = {giro[0] + ruido_g[0], giro[1] + ruido_g[1], giro[2] + ruido_g[2]};
-      float ac[3] = {0.02f * sinf(s->fase), -9.80665f - sacode * 9.80665f * fabsf(sinf(s->fase * 40)), 0.05f};
+      float g[3] = {giro[0], giro[1], giro[2]};
+      if (!g_robo) {
+        if (fabsf(g[0]) < 0.01f)
+          g[0] = -2.5f * s->arf;
+        if (fabsf(g[2]) < 0.01f)
+          g[2] = -2.5f * s->rol;
+      }
+      const float passo = 0.004f, lim = 1.4f;
+      s->arf = limitar(s->arf + g[0] * passo, -lim, lim);
+      s->gui += g[1] * passo;
+      s->rol = limitar(s->rol + g[2] * passo, -lim, lim);
+      for (int e = 0; e < 3; e++)
+        g[e] += (robo_acaso() - 0.5f) * 0.01f;
+      const float G = 9.80665f;
+      float pancada = sacode * G * fabsf(sinf(s->fase * 40));
+      float ac[3] = {G * sinf(s->rol) * cosf(s->arf) + (robo_acaso() - 0.5f) * 0.02f,
+                     G * cosf(s->rol) * cosf(s->arf) + pancada, -G * sinf(s->arf)};
+      if (def & DEF_GIRO_INVERTIDO)
+        g[2] = -g[2];
+      if (def & DEF_ACEL_ESCALA)
+        for (int e = 0; e < 3; e++)
+          ac[e] *= 0.1f;
       SDL_SendJoystickVirtualSensorData(s->js, SDL_SENSOR_GYRO, s->sensor_ns, g, 3);
       SDL_SendJoystickVirtualSensorData(s->js, SDL_SENSOR_ACCEL, s->sensor_ns, ac, 3);
     }

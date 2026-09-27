@@ -97,6 +97,8 @@ void hub_voltar(App *a, bool concluida) {
     ev_str(&ev, "sala", catalogo_sala((Sala)sala)->chave);
     ev_fim(&ev, &a->lt);
   }
+  if (sala >= 0 && concluida)
+    a->salas_feitas |= 1u << sala;
   a->sala_atual = -1;
   pads_silencio_todos(a);
   app_relatorio_mudou(a);
@@ -109,6 +111,11 @@ void hub_voltar(App *a, bool concluida) {
     }
     a->gauntlet = false;
     reg_linha(&a->reg, "Prova de Fogo: terminou");
+    app_trocar_cena(a, &CENA_RELATORIO);
+    return;
+  }
+  if (a->robo_sala_unica) {
+    /* o robô veio por uma sala só: o livro fecha a sessão */
     app_trocar_cena(a, &CENA_RELATORIO);
     return;
   }
@@ -268,15 +275,21 @@ static void atualizar(App *a, float dt) {
       app_trocar_cena(a, &CENA_TITULO);
   }
 
-  /* o robô passeia até a primeira porta aberta e entra */
+  /* o robô visita cada porta aberta uma vez, na ordem das salas, e depois vai
+   * ler o livro */
   if (robo_ativo()) {
     g_robo_alvo_t += dt;
     int alvo = -1;
-    for (int i = 0; i < g_n_pontos; i++)
-      if (g_pontos[i].tipo == PONTO_SALA && hub_sala_pronta(g_pontos[i].sala)) {
+    for (int sala = 0; sala < SALA_TOTAL && alvo < 0; sala++) {
+      if (!hub_sala_pronta(sala) || (a->salas_feitas & (1u << sala)))
+        continue;
+      for (int i = 0; i < g_n_pontos; i++)
+        if (g_pontos[i].tipo == PONTO_SALA && g_pontos[i].sala == sala)
+          alvo = i;
+    }
+    for (int i = 0; i < g_n_pontos && alvo < 0; i++)
+      if (g_pontos[i].tipo == PONTO_LIVRO)
         alvo = i;
-        break;
-      }
     for (int s = 0; s < MAX_JOGADORES; s++) {
       Pad *p = pads_do_slot(a, s);
       if (!p)
