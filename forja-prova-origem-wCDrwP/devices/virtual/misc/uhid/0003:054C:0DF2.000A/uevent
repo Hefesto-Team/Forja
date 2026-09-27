@@ -1,0 +1,4 @@
+HID_ID=0003:0000054C:00000DF2
+HID_NAME=DualSense Wireless Controller (vpad P1)
+HID_PHYS=vpad
+HID_UNIQ=02:fe:12:00:00:78
