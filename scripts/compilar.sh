@@ -142,8 +142,11 @@ empacotar() {
     cp "$RAIZ"/demo/assets/fontes/OFL-*.txt "$w/"
     echo "$versao" >"$w/VERSAO"
     find "$w" -exec touch -h -d "@${SOURCE_DATE_EPOCH}" {} +
+    # o `cmake -E tar` quer a data escrita, não "@segundos"
+    local quando
+    quando="$(date -u -d "@${SOURCE_DATE_EPOCH}" '+%Y-%m-%d %H:%M:%S' 2>/dev/null || echo '1980-01-01 00:00:00')"
     (cd "$tmp" && cmake -E tar cf "$RAIZ/dist/hefesto-tech-demo-windows-x86_64.zip" --format=zip \
-      --mtime="@${SOURCE_DATE_EPOCH}" "hefesto-tech-demo-windows-x86_64")
+      --mtime="$quando" "hefesto-tech-demo-windows-x86_64")
     diga "dist/hefesto-tech-demo-windows-x86_64.zip"
   fi
 }

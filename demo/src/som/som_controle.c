@@ -342,7 +342,35 @@ int somc_falante(App *a, int slot, const Som *s, float ganho) {
   g[j->canal_a[PAPEL_ALTO_FALANTE]] = ganho;
   if (j->canal_b[PAPEL_ALTO_FALANTE] >= 0)
     g[j->canal_b[PAPEL_ALTO_FALANTE]] = ganho;
+  /* com o fone no jack, o som do controle vai para as duas orelhas */
+  if (j->fone && !sd->virtual && j->no[PAPEL_ALTO_FALANTE] >= 0 &&
+      a->somc.nos[j->no[PAPEL_ALTO_FALANTE]].tipo == NO_DUALSENSE_SAIDA)
+    g[0] = g[1] = ganho;
   return mixer_tocar(&sd->mixer, s, g, false);
+}
+
+/* O jack do fone: plugou, o som do controle muda para o fone (as duas
+ * orelhas, e a rota do estéreo no fone); tirou, volta ao alto-falante. Só
+ * quando o alto-falante é a placa do próprio controle, que é onde a rota do
+ * bloco de efeitos manda. */
+static void acompanhar_fone(App *a, int slot) {
+  SomJogador *j = &a->somc.j[slot];
+  Pad *p = pads_do_slot(a, slot);
+  bool fone = p && (p->status53 & 1);
+  if (fone == j->fone)
+    return;
+  j->fone = fone;
+  bool placa = somc_tem(a, slot, PAPEL_ALTO_FALANTE) && j->no[PAPEL_ALTO_FALANTE] >= 0 &&
+               a->somc.nos[j->no[PAPEL_ALTO_FALANTE]].tipo == NO_DUALSENSE_SAIDA;
+  if (!placa)
+    return;
+  pad_alto_falante(a, p, FORJA_VOL_FALANTE_PADRAO, fone ? FORJA_ROTA_FONE : FORJA_ROTA_FALANTE, FORJA_PREAMP_PADRAO);
+  reg_linha(&a->reg, "%s: o fone %s — o som do controle vai para %s", pads_rotulo_slot(slot), fone ? "entrou no jack" : "saiu",
+            fone ? "o fone" : "o alto-falante");
+  Evento ev;
+  ev_iniciar(&ev, &a->lt, "fone", slot + 1);
+  ev_bool(&ev, "plugado", fone);
+  ev_fim(&ev, &a->lt);
 }
 
 int somc_haptica(App *a, int slot, const Som *esq, const Som *dir, float ganho) {
@@ -429,6 +457,8 @@ static void medir_virtual(App *a, SaidaCtl *s, float dt) {
 
 void somc_atualizar(App *a, float dt) {
   SomControles *sc = &a->somc;
+  for (int s = 0; s < MAX_JOGADORES; s++)
+    acompanhar_fone(a, s);
   for (int i = 0; i < SOMC_MAX_SAIDAS; i++)
     if (sc->saidas[i].usada && sc->saidas[i].virtual)
       medir_virtual(a, &sc->saidas[i], dt);

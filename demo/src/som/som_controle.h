@@ -47,6 +47,7 @@ typedef struct SomJogador {
   SDL_AudioStream *mic;
   float mic_nivel, mic_pico; /* 0..1 */
   long mic_quadros;          /* quadros em que chegou som do microfone */
+  bool fone;                 /* o fone está no jack do controle (report USB, byte 53) */
   float *escuta;             /* experimental/: as amostras cruas, sob pedido */
   int escuta_cap, escuta_n;
   bool mic_virtual;

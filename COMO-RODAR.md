@@ -1,12 +1,18 @@
 # Rodar FORJA na sua máquina
 
-Linux x86_64. DualSense no **cabo USB**. Este jogo não fala Bluetooth.
+O jogo principal é a **Hefesto Tech Demo** (SDL3): como compilar, rodar no
+Linux, rodar o `.exe` pelo Proton e validar com quatro DualSense está no
+[README](README.md). Este arquivo cobre o resto da casa: as ferramentas de mesa
+(`forja-send`, `forja-speak`, `forja-read`) e o FORJA em Godot, o jogo de
+antes.
 
-## Um comando
+Linux x86_64. DualSense no **cabo USB**: as ferramentas de mesa não falam
+Bluetooth.
+
+## O jogo Godot
 
 ```bash
-chmod +x run-local.sh
-./run-local.sh
+./run-local.sh godot
 ```
 
 Na primeira vez baixa o Godot 4.4.1 (~60 MB) e abre o jogo. Teclado basta para a demo. DualSense no cabo ativa rumble SDL + relatório USB `0x02` (gatilho, lightbar, LED de jogador).
