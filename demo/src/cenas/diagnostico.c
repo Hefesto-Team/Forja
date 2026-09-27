@@ -190,6 +190,13 @@ static void coluna(App *a, Pad *p, float x, float y, float w, float h) {
     cy += texto_bloco(r, F_MINI, cx, cy, cw, COR_TEXTO_2, ALINHA_ESQ, 1.0f, true,
                       fmt("|a| %.2f g · giroscópio: o SDL declara %.0f Hz; chegam %.0f Hz (%.0f pelo relógio do controle)",
                           sqrtf(mod), p->giro_hz_declarado, hz, hzc));
+    /* a postura: o que um jogo de mira por movimento faria com isso, e se o
+     * giro anda para o mesmo lado da gravidade */
+    static const char *SINAL[3] = {"invertido!", "sem dados", "concorda"};
+    int sr = postura_sinal(&p->postura, 0), sa = postura_sinal(&p->postura, 1);
+    cy += texto_bloco(r, F_MINI, cx, cy, cw, sr < 0 || sa < 0 ? COR_FALHA : COR_TEXTO_2, ALINHA_ESQ, 1.0f, true,
+                      fmt("inclinação: rolagem %s · arfagem %s · sinal do giro: rolagem %s, arfagem %s",
+                          wg_graus(p->postura.rolagem), wg_graus(p->postura.arfagem), SINAL[sr + 1], SINAL[sa + 1]));
     cy += 6;
   } else {
     texto(r, F_PEQUENA, cx, cy, COR_TEXTO_3, "sem giroscópio / acelerômetro");

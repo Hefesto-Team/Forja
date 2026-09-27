@@ -41,8 +41,10 @@ add_library(demo_nucleo STATIC
   demo/src/nucleo/aleatorio.c
   demo/src/nucleo/catalogo.c
   demo/src/nucleo/mascara.c
+  demo/src/nucleo/medidas.c
   demo/src/nucleo/origem.c
   demo/src/nucleo/origem_linux.c
+  demo/src/nucleo/postura.c
   demo/src/nucleo/relatorio.c
   demo/src/nucleo/taxa.c
   demo/src/nucleo/texto_buf.c
@@ -60,6 +62,7 @@ if(FORJA_TESTES)
     demo/testes/provas.c
     demo/testes/prova_basicos.c
     demo/testes/prova_efeitos.c
+    demo/testes/prova_medidas.c
     demo/testes/prova_origem.c
     demo/testes/prova_relatorio.c
   )
@@ -120,6 +123,10 @@ set(DEMO_FONTES
   demo/src/cenas/hub.c
   demo/src/cenas/pausa.c
   demo/src/salas/salas.c
+  demo/src/salas/sala_base.c
+  demo/src/salas/centelha.c
+  demo/src/salas/viga.c
+  demo/src/salas/molde.c
   demo/src/third_party.c
 )
 

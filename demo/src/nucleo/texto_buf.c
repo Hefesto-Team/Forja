@@ -107,3 +107,18 @@ void tb_json_num(TextoBuf *b, double v, int casas) {
       *c = '.';
   tb_texto(b, tmp);
 }
+
+const char *num_pt(char *buf, size_t tam, double v, int casas) {
+  if (!buf || !tam)
+    return "";
+  if (isnan(v) || isinf(v)) {
+    snprintf(buf, tam, "—");
+    return buf;
+  }
+  snprintf(buf, tam, "%.*f", casas, v);
+  /* seja qual for o locale do processo, o texto para gente leva vírgula */
+  for (char *c = buf; *c; c++)
+    if (*c == '.')
+      *c = ',';
+  return buf;
+}

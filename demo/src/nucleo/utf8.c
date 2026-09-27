@@ -63,3 +63,23 @@ int utf8_escrever(uint32_t cp, char out[4]) {
   out[3] = (char)(0x80 | (cp & 0x3F));
   return 4;
 }
+
+void utf8_maiusculas(const char *s, char *out, size_t tam) {
+  if (!out || !tam)
+    return;
+  size_t n = 0;
+  uint32_t cp;
+  while (s && (cp = utf8_proximo(&s)) != 0) {
+    if (cp >= 'a' && cp <= 'z')
+      cp -= 0x20;
+    else if (cp >= 0xE0 && cp <= 0xFE && cp != 0xF7) /* à..þ, menos o ÷ */
+      cp -= 0x20;
+    char b[4];
+    int k = utf8_escrever(cp, b);
+    if (n + (size_t)k + 1 > tam)
+      break;
+    for (int i = 0; i < k; i++)
+      out[n++] = b[i];
+  }
+  out[n] = 0;
+}

@@ -16,6 +16,11 @@
 
 /* Os botões marcados neste quadro — um aperto e uma soltura no mesmo quadro
  * não se perdem. */
+
+const char *pad_origem_rotulo(const Pad *p) {
+  return p->simulado ? "simulado (SDL virtual)" : origem_rotulo(p->origem.tipo);
+}
+
 static bool g_apertou[MAX_PADS][SDL_GAMEPAD_BUTTON_COUNT];
 static bool g_soltou[MAX_PADS][SDL_GAMEPAD_BUTTON_COUNT];
 
@@ -141,7 +146,7 @@ static void preencher_relatorio(App *a, int slot) {
   rel_copiar(c->nome_do_sistema, sizeof(c->nome_do_sistema), p->nome_sistema);
   rel_copiar(c->vid_pid, sizeof(c->vid_pid), p->vidpid);
   rel_copiar(c->conexao, sizeof(c->conexao), conexao_rotulo(p->origem.conexao));
-  rel_copiar(c->origem, sizeof(c->origem), p->simulado ? "simulado (SDL virtual)" : origem_rotulo(p->origem.tipo));
+  rel_copiar(c->origem, sizeof(c->origem), pad_origem_rotulo(p));
   rel_copiar(c->evidencia, sizeof(c->evidencia), p->origem.evidencia);
   rel_copiar(c->tipo_sdl, sizeof(c->tipo_sdl), SDL_GetGamepadStringForType(p->tipo));
   if (p->fw)
@@ -268,14 +273,14 @@ static void conectou(App *a, SDL_JoystickID id) {
     ev_str(&ev, "evento", "conectou");
     ev_str(&ev, "nome", p->nome);
     ev_str(&ev, "vid_pid", p->vidpid);
-    ev_str(&ev, "origem", origem_rotulo(p->origem.tipo));
+    ev_str(&ev, "origem", pad_origem_rotulo(p));
     ev_str(&ev, "conexao", conexao_rotulo(p->origem.conexao));
     ev_bool(&ev, "efeitos", p->cap_efeitos);
     ev_num(&ev, "giro_hz_declarado", p->giro_hz_declarado);
     ev_fim(&ev, &a->lt);
   }
   reg_linha(&a->reg, "conectou: %s [%s] · %s · %s · efeitos %s · giro %s (%.0f Hz declarados) · toque %s",
-            p->nome, p->vidpid, origem_rotulo(p->origem.tipo), conexao_rotulo(p->origem.conexao),
+            p->nome, p->vidpid, pad_origem_rotulo(p), conexao_rotulo(p->origem.conexao),
             p->cap_efeitos ? "sim" : "não", p->cap_giro ? "sim" : "não", p->giro_hz_declarado,
             p->cap_touch ? "sim" : "não");
   if (a->pads.contrato_estrito && p->origem.conexao == CONEXAO_BT && origem_eh_dualsense(p->origem.tipo))
@@ -393,9 +398,11 @@ bool pads_evento(App *a, const SDL_Event *e) {
     if (e->gsensor.sensor == SDL_SENSOR_GYRO) {
       SDL_memcpy(p->giro, e->gsensor.data, sizeof(p->giro));
       taxa_evento(&p->taxa_giro, e->gsensor.timestamp, e->gsensor.sensor_timestamp);
+      postura_giro(&p->postura, p->giro, e->gsensor.sensor_timestamp, e->gsensor.timestamp);
     } else if (e->gsensor.sensor == SDL_SENSOR_ACCEL) {
       SDL_memcpy(p->acel, e->gsensor.data, sizeof(p->acel));
       taxa_evento(&p->taxa_acel, e->gsensor.timestamp, e->gsensor.sensor_timestamp);
+      postura_acel(&p->postura, p->acel);
     }
     return true;
   }
@@ -483,8 +490,10 @@ int pads_entrar(App *a, int idx) {
   Pad *p = &a->pads.pad[idx];
   if (p->slot >= 0)
     return p->slot;
-  /* o espelho: o mesmo aperto chegou por outro controle da mesa agora há pouco */
-  for (int s = 0; s < MAX_JOGADORES; s++) {
+  /* o espelho: o mesmo aperto chegou por outro controle da mesa agora há pouco
+   * (um controle de mentira do simulador nunca é espelho de nada — e, no modo
+   * acelerado, os apertos do robô ficam a milissegundos uns dos outros) */
+  for (int s = 0; s < MAX_JOGADORES && !p->simulado; s++) {
     Pad *o = pads_do_slot(a, s);
     if (!o || o == p)
       continue;
@@ -535,12 +544,12 @@ int pads_entrar(App *a, int idx) {
     ev_str(&ev, "evento", "entrou_na_mesa");
     ev_str(&ev, "nome", p->nome);
     ev_str(&ev, "vid_pid", p->vidpid);
-    ev_str(&ev, "origem", origem_rotulo(p->origem.tipo));
+    ev_str(&ev, "origem", pad_origem_rotulo(p));
     ev_str(&ev, "conexao", conexao_rotulo(p->origem.conexao));
     ev_fim(&ev, &a->lt);
   }
   reg_linha(&a->reg, "%s entrou na mesa: %s [%s] · %s · %s", pads_rotulo_slot(alvo), p->nome, p->vidpid,
-            origem_rotulo(p->origem.tipo), conexao_rotulo(p->origem.conexao));
+            pad_origem_rotulo(p), conexao_rotulo(p->origem.conexao));
   a->pads.ultimo_join_pad = idx;
   a->pads.ultimo_join_ns = SDL_GetTicksNS();
   return alvo;

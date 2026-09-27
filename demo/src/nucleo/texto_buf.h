@@ -29,6 +29,10 @@ void tb_json_str(TextoBuf *b, const char *s);
 /* Um número JSON; NaN e infinito viram null (JSON não os tem). */
 void tb_json_num(TextoBuf *b, double v, int casas);
 
+/* Um número para gente, com vírgula decimal ("250,3"). Escreve em `buf` e o
+ * devolve. */
+const char *num_pt(char *buf, size_t tam, double v, int casas);
+
 #ifdef __cplusplus
 }
 #endif

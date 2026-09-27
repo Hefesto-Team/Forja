@@ -34,5 +34,7 @@ void provas_relatorio(void);
 void provas_origem(void);
 void provas_efeitos(void);
 void provas_catalogo(void);
+void provas_postura(void);
+void provas_medidas(void);
 
 #endif

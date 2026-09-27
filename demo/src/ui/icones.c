@@ -111,7 +111,13 @@ void icone(SDL_Renderer *r, Icone ic, float cx, float cy, float tam, SDL_Color c
     break;
   case IC_ANALOGICO_E:
   case IC_ANALOGICO_D:
-    ds_circulo(r, cx, cy, R * 0.45f, cor_alfa(cor, 0.85f));
+    /* o analógico: as quatro direções em volta e o topo com a letra do lado */
+    for (int i = 0; i < 4; i++) {
+      float ang = i * PI_F / 2;
+      seta(r, cx + cosf(ang) * R * 0.78f, cy + sinf(ang) * R * 0.78f, R * 0.16f, ang, cor_alfa(cor, 0.8f));
+    }
+    ds_circulo(r, cx, cy, R * 0.5f, cor_alfa(cor, 0.9f));
+    rotulo(r, cx, cy, tam * 0.62f, COR_CARVAO, ic == IC_ANALOGICO_E ? "L" : "R");
     break;
   case IC_L1:
   case IC_R1:
@@ -168,18 +174,23 @@ void icone(SDL_Renderer *r, Icone ic, float cx, float cy, float tam, SDL_Color c
   case IC_DPAD_BAIXO:
   case IC_DPAD_ESQ:
   case IC_DPAD_DIR: {
-    float b = tam * 0.3f, L = tam * 0.5f;
-    SDL_Color base = fundo, acende = cor;
+    float b = tam * 0.32f, L = tam * 0.5f;
+    /* a cruz inteira sempre aparece (num tom do ícone), e a seta pedida acende:
+     * pequeno, um braço aceso sozinho vira um tracinho sem sentido */
+    SDL_Color base = ic == IC_DPAD ? fundo : cor_mistura(COR_CARVAO, cor, 0.28f), acende = cor;
     SDL_Color c_cima = ic == IC_DPAD_CIMA ? acende : base, c_baixo = ic == IC_DPAD_BAIXO ? acende : base;
     SDL_Color c_esq = ic == IC_DPAD_ESQ ? acende : base, c_dir = ic == IC_DPAD_DIR ? acende : base;
+    ds_ret(r, cx - b / 2, cy - b / 2, b, b, base);
     ds_ret_arred(r, cx - b / 2, cy - L, b, L - b * 0.2f, b * 0.2f, c_cima);
     ds_ret_arred(r, cx - b / 2, cy + b * 0.2f, b, L - b * 0.2f, b * 0.2f, c_baixo);
     ds_ret_arred(r, cx - L, cy - b / 2, L - b * 0.2f, b, b * 0.2f, c_esq);
     ds_ret_arred(r, cx + b * 0.2f, cy - b / 2, L - b * 0.2f, b, b * 0.2f, c_dir);
-    ds_ret(r, cx - b / 2, cy - b / 2, b, b, base);
-    if (ic == IC_DPAD) {
-      ds_contorno_arred(r, cx - b / 2, cy - L, b, 2 * L, b * 0.2f, 1.5f, borda);
-      ds_contorno_arred(r, cx - L, cy - b / 2, 2 * L, b, b * 0.2f, 1.5f, borda);
+    ds_contorno_arred(r, cx - b / 2, cy - L, b, 2 * L, b * 0.2f, fmaxf(1.2f, tam * 0.03f), borda);
+    ds_contorno_arred(r, cx - L, cy - b / 2, 2 * L, b, b * 0.2f, fmaxf(1.2f, tam * 0.03f), borda);
+    if (ic != IC_DPAD) {
+      /* a ponta da seta no braço aceso, na cor do fundo */
+      float ang = ic == IC_DPAD_CIMA ? -PI_F / 2 : ic == IC_DPAD_BAIXO ? PI_F / 2 : ic == IC_DPAD_ESQ ? PI_F : 0;
+      seta(r, cx + cosf(ang) * L * 0.55f, cy + sinf(ang) * L * 0.55f, b * 0.36f, ang, COR_CARVAO);
     }
     break;
   }
