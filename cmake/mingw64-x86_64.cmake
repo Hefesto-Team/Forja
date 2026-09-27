@@ -1,0 +1,17 @@
+# Toolchain do .exe Windows: mingw-w64, x86_64. O binário sai estático no
+# libgcc (nenhuma DLL do mingw para acompanhar o .exe).
+set(CMAKE_SYSTEM_NAME Windows)
+set(CMAKE_SYSTEM_PROCESSOR x86_64)
+
+set(FORJA_MINGW_PREFIXO x86_64-w64-mingw32)
+find_program(CMAKE_C_COMPILER NAMES ${FORJA_MINGW_PREFIXO}-gcc)
+find_program(CMAKE_CXX_COMPILER NAMES ${FORJA_MINGW_PREFIXO}-g++)
+find_program(CMAKE_RC_COMPILER NAMES ${FORJA_MINGW_PREFIXO}-windres windres)
+
+set(CMAKE_FIND_ROOT_PATH /usr/${FORJA_MINGW_PREFIXO})
+set(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER)
+set(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)
+set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)
+set(CMAKE_FIND_ROOT_PATH_MODE_PACKAGE BOTH)
+
+set(CMAKE_EXE_LINKER_FLAGS_INIT "-static-libgcc")

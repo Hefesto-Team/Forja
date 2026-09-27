@@ -3,3 +3,7 @@ tools/
 godot/.godot/
 *~
 .DS_Store
+.cache/
+build/
+dist/
+relatorios/
