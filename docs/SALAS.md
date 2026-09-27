@@ -112,12 +112,78 @@ alto).
 
 ---
 
+## As salas de saída: a prova às cegas
+
+Uma saída — vibração, cor, gatilho, LED — o jogo não mede sozinho. Ele sabe o
+que **montou** (o payload existe) e se o SDL **aceitou** a chamada (saiu), mas
+não se o plástico obedeceu. Quem sabe é quem segura o controle, desde que não
+possa adivinhar pela tela. Então as salas de saída escondem a resposta e
+perguntam; a estatística decide com folga para o acaso (passar chutando é
+improvável), e o inconclusivo vira NÃO MEDIDO com o pedido de refazer. O
+veredito dessas salas leva o nível **obedeceu** no relatório.
+
+## O Cerco — dano direcional e a vida na luz
+
+**O padrão:** os jogos de ação do PS5 — o tiro da esquerda treme **só** o
+motor da esquerda, a lightbar pisca vermelho no golpe e apaga conforme a vida
+cai. (A lightbar do DualSense é uma cor só para as duas fendas: o lado vem do
+motor; a luz inteira pisca.)
+
+**Como jogar:** no escuro, os golpes vêm um de cada vez, para um controle só.
+A tela não diz de que lado (o aviso "!" não tem lado, e o som sai no meio):
+sinta no controle e levante o escudo — L1 esquerda, R1 direita. Só depois da
+resposta a tela mostra o golpe voando e batendo no escudo ou no autômato. Cada
+jogador leva cinco golpes de cada lado, em três ondas; no fim de cada onda, a
+luz de cada controle acende uma cor sorteada (âmbar, ciano, violeta ou branco)
+e a pessoa diz qual é, olhando o plástico.
+
+| feature | PASSOU | FALHOU |
+| --- | --- | --- |
+| Motor forte (esquerda) | 4 de 5 golpes da esquerda (80%) bloqueados do lado certo | três ou mais do lado errado e mais erros que acertos: os motores chegam **trocados**; ou três ou mais sem resposta: o motor **não chega** |
+| Motor fraco (direita) | o mesmo, para a direita | o mesmo |
+| Vibração só no controle certo | no máximo um escudo levantado com o golpe indo para **outro** controle, e ao menos 60% dos próprios golpes sentidos | três ou mais escudos "fantasma" (este controle vibrou com o golpe de outro); ou menos da metade dos próprios golpes sentidos (a vibração dele foi para outro) |
+| Lightbar | três cores certas com no máximo uma errada | duas erradas (e não mais certas que erradas) |
+
+Sozinho na mesa, o isolamento fica NÃO MEDIDO: não há vizinho para a vibração
+vazar. Se a intensidade da vibração estiver baixa na pausa, a sala avisa e o
+veredito diz o valor.
+
+**Defeitos que ela pega:** `motores-trocados`, `vibra-vizinho`, `luz-parada`.
+
+## A Galeria — armas com gatilho adaptativo
+
+**O padrão:** os jogos de tiro do PS5 — cada arma com o seu gatilho, e a
+munição nas cinco luzinhas brancas embaixo do touchpad (os LEDs de jogador).
+Quando a munição acaba, o gatilho solta ("clique seco") até recarregar.
+
+**Como jogar:** a arma chega no escuro. Aperte R2 e sinta: **parede e clique**
+é a pistola (modo Weapon), **tremor** é a metralhadora (Vibration), **peso** é
+o arco (Feedback) e **solto** é sem arma (Off). Diga qual é — ✕ pistola, ○
+metralhadora, □ arco, △ sem arma — e a caixa abre. Depois, atire nos alvos
+(analógico esquerdo mira, R2 atira; □ recarrega). No fim da rodada, o armeiro
+recarrega sem ninguém ver e a pessoa conta as luzinhas do controle: quantas
+balas restam? Cada arma aparece duas vezes, em ordem sorteada, e a que ficar
+no meio do caminho ganha rodada de desempate.
+
+| feature | PASSOU | FALHOU |
+| --- | --- | --- |
+| Gatilho: resistência | o arco reconhecido 2 de 2 (ou 3 com no máximo 1 erro) | duas ou mais erradas com no máximo uma certa: "o dedo não sentiu nada" (o efeito não chega) ou "pareceu outra arma" (o modo chega trocado) |
+| Gatilho: arma | a pistola, idem | idem |
+| Gatilho: vibração | a metralhadora, idem | idem |
+| LEDs de jogador | três ou mais contagens certas, com no máximo um erro para cada quatro acertos | três ou mais erradas e mais erros que acertos |
+
+Se as rodadas sem arma forem respondidas como alguma arma, o veredito avisa
+que o gatilho não solta. Só os quatro modos oficiais entram no jogo — Off,
+Feedback, Weapon, Vibration ([CONTRATO.md](../CONTRATO.md)).
+
+**Defeitos que ela pega:** `gatilho-mudo`, `leds-errados`.
+
+---
+
 ## As salas que vêm
 
 | sala | marco | valida |
 | --- | --- | --- |
-| O Cerco | 3 | motor forte e fraco, isolamento, lightbar (dano direcional, a luz que apaga com a vida) |
-| A Galeria | 3 | gatilhos adaptativos (resistência, arma, vibração), LEDs de jogador |
 | A Cripta | 4 | microfone, mudo, LED do microfone, alto-falante no susto |
 | Os Caminhos | 4 | háptica por áudio (os canais 3 e 4 do controle) |
 | O Canto | 4 | alto-falante do controle, isolamento do som |

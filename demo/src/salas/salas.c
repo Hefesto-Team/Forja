@@ -9,6 +9,10 @@ const Cena *salas_cena(int sala) {
     return &CENA_VIGA;
   case SALA_MOLDE:
     return &CENA_MOLDE;
+  case SALA_CERCO:
+    return &CENA_CERCO;
+  case SALA_GALERIA:
+    return &CENA_GALERIA;
   default:
     return NULL;
   }

@@ -10,5 +10,7 @@ const Cena *salas_cena(int sala);
 extern const Cena CENA_CENTELHA;
 extern const Cena CENA_VIGA;
 extern const Cena CENA_MOLDE;
+extern const Cena CENA_CERCO;
+extern const Cena CENA_GALERIA;
 
 #endif

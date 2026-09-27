@@ -49,6 +49,11 @@ typedef struct Percepcao {
  *   acel-escala         o acelerômetro chega dez vezes menor
  *   um-dedo             o segundo dedo do touchpad nunca chega
  *   sem-clique          o clique do touchpad nunca chega
+ *   motores-trocados    o motor forte vibra no lugar do fraco, e vice-versa
+ *   vibra-vizinho       a vibração de um controle chega no controle seguinte
+ *   luz-parada          a lightbar não muda mais de cor
+ *   gatilho-mudo        o efeito do gatilho nunca chega ao dedo
+ *   leds-errados        os LEDs de jogador acendem uma luz a menos
  *
  * Devolve false (e diz qual) se algum nome não existe. */
 bool simulador_defeitos(const char *lista, char *erro, size_t tam_erro);

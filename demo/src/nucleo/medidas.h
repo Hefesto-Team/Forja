@@ -27,6 +27,7 @@ extern "C" {
 
 typedef struct Veredito {
   Resultado resultado;
+  NivelEvidencia nivel; /* NIVEL_NENHUM: vale o da sala */
   char pedido[320];
   char medido[480];
   char obs[320];

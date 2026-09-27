@@ -1,6 +1,8 @@
 /* O estado do jogo e os serviços comuns às cenas. Ver app.h. */
 #include "app.h"
 
+#include "nucleo/relogio.h"
+
 #include "nucleo/mascara.h"
 
 #include <stdarg.h>
@@ -25,7 +27,10 @@ void app_avisar(App *a, const char *formato, ...) {
   a->aviso_t = 0;
 }
 
-double app_agora(const App *a) { return (double)(SDL_GetTicksNS() - a->inicio_ns) / 1e9; }
+double app_agora(const App *a) {
+  (void)a;
+  return relogio_agora();
+}
 
 void app_hora(char *out, size_t tam) {
   SDL_Time agora;

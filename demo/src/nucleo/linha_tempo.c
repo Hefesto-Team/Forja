@@ -2,6 +2,7 @@
 #include "linha_tempo.h"
 
 #include "mascara.h"
+#include "relogio.h"
 
 void lt_abrir(LinhaTempo *lt, const char *caminho, Uint64 inicio_ns) {
   SDL_memset(lt, 0, sizeof(*lt));
@@ -18,7 +19,8 @@ void lt_fechar(LinhaTempo *lt) {
 
 void ev_iniciar(Evento *e, const LinhaTempo *lt, const char *tipo, int jogador) {
   tb_iniciar(&e->b);
-  double t = (double)(SDL_GetTicksNS() - lt->inicio_ns) / 1e9;
+  (void)lt;
+  double t = relogio_agora();
   tb_texto(&e->b, "{\"t\": ");
   tb_json_num(&e->b, t, 3);
   tb_texto(&e->b, ", \"tipo\": ");
