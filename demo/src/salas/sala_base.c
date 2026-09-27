@@ -4,6 +4,7 @@
 #include "../cenas/pausa.h"
 #include "../nucleo/simulador.h"
 #include "../nucleo/utf8.h"
+#include "../som/sons_salas.h"
 #include "../ui/desenho.h"
 #include "../ui/icones.h"
 #include "../ui/tema.h"
@@ -30,6 +31,44 @@ void sb_entrar(App *a, SalaBase *b, Sala sala, const Feature *feats, int n_feats
   a->brasas.taxa = a->cfg.reduzir_movimento ? 3 : 10;
   som_ambiente(&a->som, true, false);
   pads_silencio_todos(a);
+  b->papel_som = -1;
+}
+
+void sb_som(App *a, SalaBase *b, PapelSom papel) {
+  b->papel_som = (int)papel;
+  sons_salas();
+  somc_preparar(a);
+  /* o alto-falante do DualSense no cabo precisa da rota: canal R para o
+   * alto-falante interno, volume e pré-amplificador (o que o hid-playstation
+   * também escreve quando o fone sai) */
+  if (papel == PAPEL_ALTO_FALANTE)
+    for (int s = 0; s < MAX_JOGADORES; s++) {
+      Pad *p = pads_do_slot(a, s);
+      if (p && p->cap_efeitos)
+        pad_alto_falante(a, p, FORJA_VOL_FALANTE_PADRAO, FORJA_ROTA_FALANTE, FORJA_PREAMP_PADRAO);
+    }
+}
+
+static void afinar(App *a, SalaBase *b, int s, Pad *p, float dt) {
+  PapelSom papel = (PapelSom)b->papel_som;
+  if (pad_apertou(p, SDL_GAMEPAD_BUTTON_DPAD_LEFT) || pad_apertou(p, SDL_GAMEPAD_BUTTON_DPAD_RIGHT)) {
+    somc_trocar(a, s, papel, pad_apertou(p, SDL_GAMEPAD_BUTTON_DPAD_LEFT) ? -1 : 1);
+    som_evento(&a->som, SOM_NAVEGA, 0.4f);
+  }
+  const SonsSalas *so = sons_salas();
+  if (pad_apertou(p, SDL_GAMEPAD_BUTTON_NORTH)) {
+    if (papel == PAPEL_ALTO_FALANTE)
+      somc_falante(a, s, &so->sino, 0.9f);
+    else if (papel == PAPEL_HAPTICA) {
+      somc_haptica(a, s, &so->pulso, NULL, 1.0f);
+      b->teste_dir[s] = 0.35f;
+    }
+  }
+  if (b->teste_dir[s] > 0) {
+    b->teste_dir[s] -= dt;
+    if (b->teste_dir[s] <= 0)
+      somc_haptica(a, s, NULL, &so->pulso, 1.0f);
+  }
 }
 
 static bool atividade(const Pad *p) {
@@ -149,6 +188,8 @@ int sb_atualizar(App *a, SalaBase *b, float dt) {
       if (!p || !a->pads.slot[s].ocupado)
         continue;
       presentes++;
+      if (b->papel_som >= 0)
+        afinar(a, b, s, p, dt);
       if (!b->pronto[s] && b->t_fase > 0.5f &&
           (pad_apertou(p, SDL_GAMEPAD_BUTTON_SOUTH) || (robo_ativo() && b->t_fase > 1.4f + 0.2f * s))) {
         b->pronto[s] = true;
@@ -424,7 +465,8 @@ void sb_desenhar_aviso(App *a, const SalaBase *b, const char *como_jogar) {
   for (int s = 0; s < MAX_JOGADORES; s++)
     if (a->pads.slot[s].ocupado)
       presentes[n++] = s;
-  float passo = 170, x0 = TELA_L / 2 - passo * (n - 1) / 2.0f, ey = y + h - 96;
+  bool som = b->papel_som >= 0;
+  float passo = som ? 280 : 170, x0 = TELA_L / 2 - passo * (n - 1) / 2.0f, ey = y + h - (som ? 118 : 96);
   for (int i = 0; i < n; i++) {
     int s = presentes[i];
     bool conectado = pads_do_slot(a, s) != NULL;
@@ -438,9 +480,40 @@ void sb_desenhar_aviso(App *a, const SalaBase *b, const char *como_jogar) {
     } else {
       texto_al(r, F_PEQUENA, x0 + i * passo, ey + 34, COR_AVISO, ALINHA_CENTRO, "sem controle");
     }
+    if (som && conectado) {
+      PapelSom papel = (PapelSom)b->papel_som;
+      char nome[40];
+      const char *completo = somc_nome(a, s, papel);
+      if (utf8_contar(completo) > 30) {
+        /* corta no 28º codepoint, sem partir um acento no meio */
+        const char *q = completo;
+        for (int k = 0; k < 28 && utf8_proximo(&q);)
+          k++;
+        size_t bytes = (size_t)(q - completo);
+        if (bytes > sizeof(nome) - 4)
+          bytes = sizeof(nome) - 4;
+        SDL_memcpy(nome, completo, bytes);
+        SDL_memcpy(nome + bytes, "…", 4);
+      } else {
+        SDL_strlcpy(nome, completo, sizeof(nome));
+      }
+      bool achou = somc_tem(a, s, papel);
+      texto_al(r, F_MINI, x0 + i * passo, ey + 60, achou ? COR_TEXTO_2 : COR_AVISO, ALINHA_CENTRO, nome);
+      texto_al(r, F_MINI, x0 + i * passo, ey + 80, COR_TEXTO_3, ALINHA_CENTRO, achar_como_rotulo(somc_como(a, s, papel)));
+      if (papel == PAPEL_MICROFONE && achou)
+        wg_barra(r, x0 + i * passo - 70, ey + 104, 140, 8, somc_mic_nivel(a, s), COR_OK);
+    }
   }
   if (!n)
     texto_al(r, F_TEXTO, TELA_L / 2.0f, ey - 14, COR_AVISO, ALINHA_CENTRO, "ninguém na mesa");
+  if (som) {
+    Dica d[] = {{IC_CRUZ, "pronto"},
+                {IC_DPAD, "trocar o dispositivo"},
+                {IC_TRIANGULO, b->papel_som == PAPEL_MICROFONE ? "fale: a barra sobe" : "testar"},
+                {IC_OPTIONS, "pausa"}};
+    wg_rodape(r, d, 4);
+    return;
+  }
   Dica d[] = {{IC_CRUZ, "pronto"}, {IC_OPTIONS, "pausa"}};
   wg_rodape(r, d, 2);
 }

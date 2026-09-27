@@ -557,3 +557,81 @@ Veredito med_acel_veredito(const MedSensores *m, bool mexeu) {
   v.resultado = RES_PASSOU;
   return v;
 }
+
+/* ---------- microfone e mudo ---------- */
+
+static float db_da_tela(float nivel) { return nivel * 54.0f - 54.0f; }
+
+void med_mic_iniciar(MedMic *m, bool tem) {
+  memset(m, 0, sizeof(*m));
+  m->tem = tem;
+}
+
+Veredito med_mic_veredito(const MedMic *m, bool mexeu) {
+  Veredito v = vazio();
+  v.nivel = NIVEL_REAGIU;
+  snprintf(v.pedido, sizeof(v.pedido), "ficar em silêncio, e depois chamar o guardião falando no controle");
+  if (!m->tem) {
+    v.nivel = NIVEL_NENHUM;
+    snprintf(v.medido, sizeof(v.medido), "o microfone deste controle não foi achado");
+    snprintf(v.obs, sizeof(v.obs), "não medido: nem pelo aparelho, nem pelo nome — aponte o microfone no aviso da sala");
+    return v;
+  }
+  float piso = m->viu_piso ? m->piso : 0;
+  snprintf(v.medido, sizeof(v.medido), "silêncio em %s dB; a voz chegou a %s dB (%s dB acima)", dec(db_da_tela(piso), 0),
+           dec(db_da_tela(m->voz), 0), dec((m->voz - piso) * 54.0f, 0));
+  if (m->quadros == 0) {
+    v.resultado = mexeu ? RES_FALHOU : RES_NAO_MEDIDO;
+    snprintf(v.obs, sizeof(v.obs), "o dispositivo abriu, mas nenhum som chegou dele");
+    return v;
+  }
+  if (m->voz - piso >= MED_VOZ_ACIMA) {
+    v.resultado = RES_PASSOU;
+  } else if (mexeu) {
+    v.resultado = RES_FALHOU;
+    if (m->voz <= 0.001f)
+      snprintf(v.obs, sizeof(v.obs), "o microfone só manda silêncio absoluto (mudo no sistema?)");
+    else
+      snprintf(v.obs, sizeof(v.obs), "a voz não subiu o bastante acima do silêncio (o mínimo é %s dB)",
+               dec(MED_VOZ_ACIMA * 54, 0));
+  } else {
+    snprintf(v.obs, sizeof(v.obs), "não medido: o controle não mexeu nesta sala");
+  }
+  return v;
+}
+
+Veredito med_mudo_veredito(const MedMic *m, bool mexeu) {
+  Veredito v = vazio();
+  v.nivel = NIVEL_REAGIU;
+  snprintf(v.pedido, sizeof(v.pedido), "apertar o botão do microfone para ficar mudo");
+  if (!m->pediu_mudo) {
+    snprintf(v.medido, sizeof(v.medido), "a sala não chegou a pedir o mudo");
+    snprintf(v.obs, sizeof(v.obs), "não medido: a sala não chegou ao mudo");
+    return v;
+  }
+  if (!m->apertou_mudo) {
+    snprintf(v.medido, sizeof(v.medido), "o botão do microfone nunca chegou");
+    if (mexeu) {
+      v.resultado = RES_FALHOU;
+      snprintf(v.obs, sizeof(v.obs), "a sala pediu e o controle estava vivo, mas o botão do microfone não chegou");
+    } else {
+      snprintf(v.obs, sizeof(v.obs), "não medido: o controle não mexeu nesta sala");
+    }
+    return v;
+  }
+  v.resultado = RES_PASSOU;
+  if (m->tem && m->viu_mudo) {
+    float piso = m->viu_piso ? m->piso : 0;
+    bool cortou = m->mudo - piso < MED_VOZ_ACIMA / 2;
+    /* só dá para dizer se o sistema cortou quando o microfone deu voz antes */
+    bool vivo = m->voz - piso >= MED_VOZ_ACIMA;
+    snprintf(v.medido, sizeof(v.medido), "o botão chegou; mudo, sussurrando, o nível ficou em %s dB", dec(db_da_tela(m->mudo), 0));
+    snprintf(v.obs, sizeof(v.obs), "%s",
+             !vivo    ? "o microfone não deu voz nesta sala: não dá para dizer se o sistema também cortou"
+             : cortou ? "o sistema também cortou o microfone"
+                      : "o sistema não cortou o microfone: o mudo foi do jogo (ele deixa de ouvir)");
+  } else {
+    snprintf(v.medido, sizeof(v.medido), "o botão do microfone chegou");
+  }
+  return v;
+}

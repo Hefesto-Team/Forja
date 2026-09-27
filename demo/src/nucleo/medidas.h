@@ -144,6 +144,28 @@ double med_sensores_g_parado(const MedSensores *m);
 Veredito med_giro_veredito(const MedSensores *m, bool controle_mexeu);
 Veredito med_acel_veredito(const MedSensores *m, bool controle_mexeu);
 
+/* ---------- microfone e mudo ---------- */
+
+/* Os níveis estão na escala da tela: 0 = -54 dB, 1 = 0 dB (18 dB a cada
+ * 0,333). A voz tem de subir ao menos 0,25 (13,5 dB) acima do silêncio. */
+#define MED_VOZ_ACIMA 0.25f
+
+typedef struct MedMic {
+  bool tem;          /* o microfone deste controle foi achado */
+  float piso;        /* o nível no silêncio pedido */
+  bool viu_piso;
+  float voz;         /* o maior nível quando a sala pediu a voz */
+  float mudo;        /* o maior nível com a pessoa muda, sussurrando */
+  bool viu_mudo;
+  bool apertou_mudo; /* o botão do microfone chegou */
+  bool pediu_mudo;   /* a sala chegou a pedir o botão */
+  long quadros;      /* quadros com nível lido */
+} MedMic;
+
+void med_mic_iniciar(MedMic *m, bool tem);
+Veredito med_mic_veredito(const MedMic *m, bool controle_mexeu);
+Veredito med_mudo_veredito(const MedMic *m, bool controle_mexeu);
+
 #ifdef __cplusplus
 }
 #endif

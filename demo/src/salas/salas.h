@@ -12,5 +12,8 @@ extern const Cena CENA_VIGA;
 extern const Cena CENA_MOLDE;
 extern const Cena CENA_CERCO;
 extern const Cena CENA_GALERIA;
+extern const Cena CENA_CANTO;
+extern const Cena CENA_CAMINHOS;
+extern const Cena CENA_CRIPTA;
 
 #endif

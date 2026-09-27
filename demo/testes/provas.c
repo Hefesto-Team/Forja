@@ -13,7 +13,8 @@ static const struct {
     {"catálogo", provas_catalogo},        {"relatório", provas_relatorio},
     {"origem do controle", provas_origem}, {"payload do DualSense", provas_efeitos},
     {"postura do controle", provas_postura}, {"medidas das salas", provas_medidas},
-    {"provas às cegas", provas_cegas},
+    {"provas às cegas", provas_cegas},        {"achar o som", provas_achar_som},
+    {"salas de som", provas_som},
 };
 
 int main(void) {

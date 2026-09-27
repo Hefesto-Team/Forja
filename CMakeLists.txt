@@ -38,9 +38,11 @@ target_include_directories(forja_ds5 PUBLIC include)
 
 # --- o núcleo sem SDL: lógica pura, provada sem aparelho --------------------
 add_library(demo_nucleo STATIC
+  demo/src/nucleo/achar_som.c
   demo/src/nucleo/aleatorio.c
   demo/src/nucleo/catalogo.c
   demo/src/nucleo/cegas.c
+  demo/src/nucleo/chao.c
   demo/src/nucleo/mascara.c
   demo/src/nucleo/medidas.c
   demo/src/nucleo/origem.c
@@ -50,8 +52,9 @@ add_library(demo_nucleo STATIC
   demo/src/nucleo/taxa.c
   demo/src/nucleo/texto_buf.c
   demo/src/nucleo/utf8.c
+  demo/src/som/sintese.c
 )
-target_include_directories(demo_nucleo PUBLIC demo/src/nucleo)
+target_include_directories(demo_nucleo PUBLIC demo/src/nucleo demo/src/som)
 target_link_libraries(demo_nucleo PUBLIC forja_ds5)
 if(NOT WIN32)
   target_link_libraries(demo_nucleo PUBLIC m)
@@ -61,12 +64,14 @@ if(FORJA_TESTES)
   enable_testing()
   add_executable(demo-testes
     demo/testes/provas.c
+    demo/testes/prova_achar_som.c
     demo/testes/prova_basicos.c
     demo/testes/prova_cegas.c
     demo/testes/prova_efeitos.c
     demo/testes/prova_medidas.c
     demo/testes/prova_origem.c
     demo/testes/prova_relatorio.c
+    demo/testes/prova_som.c
   )
   target_link_libraries(demo-testes PRIVATE demo_nucleo)
   add_test(NAME demo-testes COMMAND demo-testes)
@@ -117,8 +122,12 @@ set(DEMO_FONTES
   demo/src/ui/widgets.c
   demo/src/ui/automato.c
   demo/src/som/mixer.c
-  demo/src/som/sintese.c
   demo/src/som/sistema.c
+  demo/src/som/som_controle.c
+  demo/src/som/sons_salas.c
+  demo/src/som/som_controle_linux.c
+  demo/src/som/som_controle_windows.c
+  demo/src/som/som_controle_outro.c
   demo/src/cenas/titulo.c
   demo/src/cenas/lobby.c
   demo/src/cenas/diagnostico.c
@@ -132,6 +141,9 @@ set(DEMO_FONTES
   demo/src/salas/molde.c
   demo/src/salas/cerco.c
   demo/src/salas/galeria.c
+  demo/src/salas/canto.c
+  demo/src/salas/caminhos.c
+  demo/src/salas/cripta.c
   demo/src/third_party.c
 )
 

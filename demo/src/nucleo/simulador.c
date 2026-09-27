@@ -31,6 +31,8 @@ typedef struct Sim {
   float eixo_tecla[SDL_GAMEPAD_AXIS_COUNT];
   float giro_tecla[3];
   float sacode_tecla;
+  float fala_tecla;          /* a barra de espaço: falar no microfone de mentira */
+  float fala, fala_ate;      /* o robô falando no microfone: nível e até quando */
   bool mouse_dedo[2]; /* o mouse faz de dedo: esquerdo = dedo 1, direito = dedo 2 */
   float mouse_x[2], mouse_y[2];
   Uint64 sensor_ns;
@@ -42,32 +44,23 @@ typedef struct Sim {
 static Sim g_sim[MAX_SIM];
 static int g_n, g_sel;
 
-enum {
-  DEF_TROCA_CRUZ_CIRCULO = 1 << 0,
-  DEF_ANALOGICO_CURTO = 1 << 1,
-  DEF_GATILHO_DIGITAL = 1 << 2,
-  DEF_GIRO_INVERTIDO = 1 << 3,
-  DEF_ACEL_ESCALA = 1 << 4,
-  DEF_UM_DEDO = 1 << 5,
-  DEF_SEM_CLIQUE = 1 << 6,
-  DEF_MOTORES_TROCADOS = 1 << 7,
-  DEF_VIBRA_VIZINHO = 1 << 8,
-  DEF_LUZ_PARADA = 1 << 9,
-  DEF_GATILHO_MUDO = 1 << 10,
-  DEF_LEDS_ERRADOS = 1 << 11,
-};
 static const struct {
   const char *nome;
   unsigned bit;
 } DEFEITOS[] = {
-    {"troca-cruz-circulo", DEF_TROCA_CRUZ_CIRCULO}, {"analogico-curto", DEF_ANALOGICO_CURTO},
-    {"gatilho-digital", DEF_GATILHO_DIGITAL},       {"giro-invertido", DEF_GIRO_INVERTIDO},
-    {"acel-escala", DEF_ACEL_ESCALA},               {"um-dedo", DEF_UM_DEDO},
-    {"sem-clique", DEF_SEM_CLIQUE},                 {"motores-trocados", DEF_MOTORES_TROCADOS},
-    {"vibra-vizinho", DEF_VIBRA_VIZINHO},           {"luz-parada", DEF_LUZ_PARADA},
-    {"gatilho-mudo", DEF_GATILHO_MUDO},             {"leds-errados", DEF_LEDS_ERRADOS},
+    {"troca-cruz-circulo", DEFEITO_TROCA_CRUZ_CIRCULO}, {"analogico-curto", DEFEITO_ANALOGICO_CURTO},
+    {"gatilho-digital", DEFEITO_GATILHO_DIGITAL},       {"giro-invertido", DEFEITO_GIRO_INVERTIDO},
+    {"acel-escala", DEFEITO_ACEL_ESCALA},               {"um-dedo", DEFEITO_UM_DEDO},
+    {"sem-clique", DEFEITO_SEM_CLIQUE},                 {"motores-trocados", DEFEITO_MOTORES_TROCADOS},
+    {"vibra-vizinho", DEFEITO_VIBRA_VIZINHO},           {"luz-parada", DEFEITO_LUZ_PARADA},
+    {"gatilho-mudo", DEFEITO_GATILHO_MUDO},             {"leds-errados", DEFEITO_LEDS_ERRADOS},
+    {"sem-alto-falante", DEFEITO_SEM_ALTO_FALANTE},     {"som-vizinho", DEFEITO_SOM_VIZINHO},
+    {"haptica-trocada", DEFEITO_HAPTICA_TROCADA},       {"mic-surdo", DEFEITO_MIC_SURDO},
+    {"led-mic-parado", DEFEITO_LED_MIC_PARADO},         {"mudo-nao-chega", DEFEITO_MUDO_NAO_CHEGA},
+    {"haptica-muda", DEFEITO_HAPTICA_MUDA},
 };
 static unsigned g_defeitos;
+static float g_t_sim; /* o app->t do último quadro, para a voz do robô */
 static unsigned g_def_agora; /* os defeitos valendo neste quadro (só dentro das salas) */
 static char g_defeitos_texto[200];
 
@@ -96,6 +89,7 @@ bool simulador_defeitos(const char *lista, char *erro, size_t tam_erro) {
 }
 
 const char *simulador_defeitos_texto(void) { return g_defeitos_texto; }
+unsigned simulador_defeitos_agora(void) { return g_def_agora; }
 static bool g_robo;
 static Sorteio g_sorteio;
 static const Uint32 MASCARA_BOTOES = 0x1FFFFFu & ~((1u << SDL_GAMEPAD_BUTTON_RIGHT_PADDLE1) |
@@ -124,12 +118,12 @@ static int popcount(Uint32 m) {
 
 static bool SDLCALL cb_rumble(void *u, Uint16 baixo, Uint16 alto) {
   Sim *s = u;
-  if (g_def_agora & DEF_MOTORES_TROCADOS) {
+  if (g_def_agora & DEFEITO_MOTORES_TROCADOS) {
     Uint16 t = baixo;
     baixo = alto;
     alto = t;
   }
-  if ((g_def_agora & DEF_VIBRA_VIZINHO) && g_n > 1) {
+  if ((g_def_agora & DEFEITO_VIBRA_VIZINHO) && g_n > 1) {
     /* o fio trocado: a vibração deste controle chega no próximo da fila */
     int i = (int)(s - g_sim);
     s = &g_sim[(i + 1) % g_n];
@@ -148,7 +142,7 @@ static bool SDLCALL cb_rumble_gatilhos(void *u, Uint16 e, Uint16 d) {
 
 static bool SDLCALL cb_led(void *u, Uint8 r, Uint8 g, Uint8 b) {
   Sim *s = u;
-  if (g_def_agora & DEF_LUZ_PARADA)
+  if (g_def_agora & DEFEITO_LUZ_PARADA)
     return true;
   s->perc.luz_r = r;
   s->perc.luz_g = g;
@@ -167,17 +161,17 @@ static bool SDLCALL cb_efeito(void *u, const void *dados, int tam) {
   s->perc.efeito_ms = SDL_GetTicks();
   if (tam >= 47) {
     /* o "firmware" do simulador obedece aos blocos cujos bits vieram ligados */
-    if ((b[0] & 0x04) && !(g_def_agora & DEF_GATILHO_MUDO))
+    if ((b[0] & 0x04) && !(g_def_agora & DEFEITO_GATILHO_MUDO))
       SDL_memcpy(s->perc.gatilho_dir, b + 10, 11);
-    if ((b[0] & 0x08) && !(g_def_agora & DEF_GATILHO_MUDO))
+    if ((b[0] & 0x08) && !(g_def_agora & DEFEITO_GATILHO_MUDO))
       SDL_memcpy(s->perc.gatilho_esq, b + 21, 11);
-    if (b[1] & 0x01)
+    if ((b[1] & 0x01) && !(g_def_agora & DEFEITO_LED_MIC_PARADO))
       s->perc.led_mic = b[8] <= 3 ? b[8] : 0;
     if (b[1] & 0x10) {
       int m = b[43] & 0x1F;
-      s->perc.leds_jogador = (g_def_agora & DEF_LEDS_ERRADOS) ? m >> 1 : m;
+      s->perc.leds_jogador = (g_def_agora & DEFEITO_LEDS_ERRADOS) ? m >> 1 : m;
     }
-    if ((b[1] & 0x04) && !(g_def_agora & DEF_LUZ_PARADA)) {
+    if ((b[1] & 0x04) && !(g_def_agora & DEFEITO_LUZ_PARADA)) {
       s->perc.luz_r = b[44];
       s->perc.luz_g = b[45];
       s->perc.luz_b = b[46];
@@ -348,6 +342,23 @@ void robo_tocar(App *a, int pad, int dedo, float x, float y, float seg) {
 
 float robo_acaso(void) { return sorteio_real(&g_sorteio); }
 
+void robo_falar(App *a, int pad, float nivel, float seg) {
+  Sim *s = sim_do_pad(a, pad);
+  if (!s)
+    return;
+  s->fala = nivel;
+  s->fala_ate = a->t + seg;
+}
+
+float simulador_fala(SDL_JoystickID id) {
+  for (int i = 0; i < g_n; i++)
+    if (g_sim[i].usado && g_sim[i].id == id) {
+      float robo = g_t_sim < g_sim[i].fala_ate ? g_sim[i].fala : 0;
+      return robo > g_sim[i].fala_tecla ? robo : g_sim[i].fala_tecla;
+    }
+  return 0;
+}
+
 /* ---------- o teclado ---------- */
 
 static int botao_da_tecla(SDL_Keycode k) {
@@ -484,6 +495,9 @@ bool simulador_evento(App *a, const SDL_Event *e) {
   case SDLK_N:
     s->giro_tecla[1] = -v * 2;
     return true;
+  case SDLK_SPACE: /* falar no microfone do controle de mentira */
+    s->fala_tecla = v * 0.7f;
+    return true;
   case SDLK_H: /* a martelada: sacode para baixo */
     s->sacode_tecla = v * 1.6f;
     return true;
@@ -496,6 +510,7 @@ bool simulador_evento(App *a, const SDL_Event *e) {
 
 void simulador_atualizar(App *a, float dt) {
   g_def_agora = a->sala_atual >= 0 ? g_defeitos : 0;
+  g_t_sim = a->t;
   for (int i = 0; i < g_n; i++) {
     Sim *s = &g_sim[i];
     if (!s->usado || !s->js)
@@ -562,24 +577,26 @@ void simulador_atualizar(App *a, float dt) {
      * das salas; no menu e no salão o controle chega inteiro, para o robô
      * chegar até elas */
     unsigned def = a->sala_atual >= 0 ? g_defeitos : 0;
-    if (def & DEF_TROCA_CRUZ_CIRCULO) {
+    if (def & DEFEITO_TROCA_CRUZ_CIRCULO) {
       bool c = botao[SDL_GAMEPAD_BUTTON_SOUTH];
       botao[SDL_GAMEPAD_BUTTON_SOUTH] = botao[SDL_GAMEPAD_BUTTON_EAST];
       botao[SDL_GAMEPAD_BUTTON_EAST] = c;
     }
-    if (def & DEF_SEM_CLIQUE)
+    if (def & DEFEITO_SEM_CLIQUE)
       botao[SDL_GAMEPAD_BUTTON_TOUCHPAD] = false;
-    if (def & DEF_ANALOGICO_CURTO) {
+    if (def & DEFEITO_MUDO_NAO_CHEGA)
+      botao[SDL_GAMEPAD_BUTTON_MISC1] = false;
+    if (def & DEFEITO_ANALOGICO_CURTO) {
       eixo[SDL_GAMEPAD_AXIS_LEFTX] *= 0.7f;
       eixo[SDL_GAMEPAD_AXIS_LEFTY] *= 0.7f;
       eixo[SDL_GAMEPAD_AXIS_RIGHTX] *= 0.7f;
       eixo[SDL_GAMEPAD_AXIS_RIGHTY] *= 0.7f;
     }
-    if (def & DEF_GATILHO_DIGITAL) {
+    if (def & DEFEITO_GATILHO_DIGITAL) {
       eixo[SDL_GAMEPAD_AXIS_LEFT_TRIGGER] = eixo[SDL_GAMEPAD_AXIS_LEFT_TRIGGER] > 0.5f ? 1.0f : 0.0f;
       eixo[SDL_GAMEPAD_AXIS_RIGHT_TRIGGER] = eixo[SDL_GAMEPAD_AXIS_RIGHT_TRIGGER] > 0.5f ? 1.0f : 0.0f;
     }
-    if (def & DEF_UM_DEDO)
+    if (def & DEFEITO_UM_DEDO)
       dedo[1] = false;
     for (int b = 0; b < SDL_GAMEPAD_BUTTON_COUNT; b++) {
       int j = indice_botao(b);
@@ -625,9 +642,9 @@ void simulador_atualizar(App *a, float dt) {
       float pancada = sacode * G * fabsf(sinf(s->fase * 40));
       float ac[3] = {G * sinf(s->rol) * cosf(s->arf) + (robo_acaso() - 0.5f) * 0.02f,
                      G * cosf(s->rol) * cosf(s->arf) + pancada, -G * sinf(s->arf)};
-      if (def & DEF_GIRO_INVERTIDO)
+      if (def & DEFEITO_GIRO_INVERTIDO)
         g[2] = -g[2];
-      if (def & DEF_ACEL_ESCALA)
+      if (def & DEFEITO_ACEL_ESCALA)
         for (int e = 0; e < 3; e++)
           ac[e] *= 0.1f;
       SDL_SendJoystickVirtualSensorData(s->js, SDL_SENSOR_GYRO, s->sensor_ns, g, 3);

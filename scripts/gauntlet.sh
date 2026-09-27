@@ -85,11 +85,19 @@ DEFEITOS=(
   "gatilho-mudo:galeria:gatilho_arma"
   "gatilho-mudo:galeria:gatilho_vibracao"
   "leds-errados:galeria:leds_jogador"
+  "sem-alto-falante:canto:alto_falante"
+  "som-vizinho:canto:alto_falante"
+  "haptica-trocada:caminhos:haptica_audio"
+  "haptica-muda:caminhos:haptica_audio"
+  "mic-surdo:cripta:microfone"
+  "mudo-nao-chega:cripta:microfone_mudo"
+  "led-mic-parado:cripta:led_microfone"
 )
 for item in "${DEFEITOS[@]}"; do
   IFS=: read -r defeito sala feature <<<"$item"
   diga "==> defeito $defeito na sala $sala ($feature)"
-  # o isolamento precisa de vizinho: dois controles; um defeito já rodado não roda de novo
+  # o isolamento (da vibração e do som) precisa de vizinho: dois controles; um
+  # defeito já rodado não roda de novo
   if [[ ! -s "$SAIDA/$defeito.jsonl" ]]; then
     rodar "$defeito" --simular 2 --sala "$sala" --defeito "$defeito"
   fi

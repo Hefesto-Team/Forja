@@ -40,6 +40,8 @@ void som_evento(SomSistema *s, SomEvento e, float volume);
 /* balanço: -1 esquerda, 0 centro, 1 direita */
 void som_evento_pan(SomSistema *s, SomEvento e, float volume, float pan);
 void som_ambiente(SomSistema *s, bool fogo, bool musica);
+/* Um som qualquer na saída do sistema (a TV), com balanço. */
+int som_tocar(SomSistema *s, const Som *som, float volume, float pan);
 void som_volume(SomSistema *s, float v);
 /* Converte uma Onda sintetizada num Som do mixer (toma posse do buffer). */
 void som_de_onda(Som *dst, void *onda);

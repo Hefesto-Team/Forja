@@ -65,6 +65,19 @@ void provas_cegas(void) {
   espera(n == 8 && conta[0] == 2 && conta[1] == 2 && conta[2] == 2 && conta[3] == 2, "cada arma duas vezes");
   espera(repetidas <= 1, "quase nunca a mesma arma em seguida");
 
+  /* ---- o plano genérico ---- */
+  int fontes[3] = {0, 2, 9}, vezes[3] = {2, 2, 3}, plano[16];
+  sorteio_semear(&s, 11);
+  n = cegas_plano_fontes(&s, fontes, vezes, 3, plano, 16);
+  int c9 = 0, c0 = 0, rep = 0;
+  for (int i = 0; i < n; i++) {
+    c9 += plano[i] == 9;
+    c0 += plano[i] == 0;
+    rep += i && plano[i] == plano[i - 1];
+  }
+  espera(n == 7 && c9 == 3 && c0 == 2, "cada fonte nas vezes pedidas");
+  espera(rep <= 1, "quase nunca a mesma fonte em seguida");
+
   /* ---- o motor ---- */
   Cega c = cega(5, 0, 0, -1);
   Veredito v = cega_motor_veredito(&c, LADO_ESQ, true, true);

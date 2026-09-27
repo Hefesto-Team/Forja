@@ -180,13 +180,100 @@ Feedback, Weapon, Vibration ([CONTRATO.md](../CONTRATO.md)).
 
 ---
 
-## As salas que vêm
+## As salas de som
+
+O som de cada controle — o alto-falante, os atuadores da háptica e o
+microfone — é um **segundo dispositivo de áudio**, além da TV. O aviso de cada
+sala de som mostra, para cada jogador, o dispositivo achado e **como** foi
+achado (pelo aparelho, pelo número, pelo nome); ◀ ▶ troca, △ testa. O caminho
+inteiro, com as fontes, está em
+[COMO-O-SOM-CHEGA-AO-CONTROLE.md](COMO-O-SOM-CHEGA-AO-CONTROLE.md). Sem o
+dispositivo, a feature fica NÃO MEDIDO, com o porquê — é o caso de um controle
+no rádio sem os nós de som do Hefesto.
+
+Como nas salas de saída, são provas às cegas: a tela não mostra de onde veio o
+som, e quem joga diz o que ouviu ou sentiu.
+
+## O Canto — o ritmo no alto-falante do controle
+
+**O padrão:** o alto-falante do DualSense nos jogos — o som que sai **da mão**,
+paralelo ao da TV: o rádio de Deathloop, as vozes de Ghostwire.
+
+**Como jogar:** a bigorna canta um ritmo de quatro notas, às vezes no
+alto-falante de UM controle, às vezes na TV. Todo mundo ouve; a pergunta é
+outra: o canto saiu da **sua** mão? ✕ "foi no meu", ○ "não foi". A tela revela
+de onde veio, e o dono do canto repete o ritmo com ✕ (pontos por intervalo
+certo, com folga de 120 ms). Cada jogador é o dono de dois cantos (três,
+sozinho), e a TV canta duas vezes (três, sozinho), em ordem sorteada.
+
+| feature | PASSOU | FALHOU |
+| --- | --- | --- |
+| Alto-falante | reconheceu o próprio canto ao menos duas vezes, com no máximo um erro, e disse "foi no meu" no máximo uma vez com o canto em outro lugar | o próprio canto não saiu (duas ou mais erradas e não mais certas); ou o canto dos outros saiu aqui (dois ou mais "foi no meu" fantasmas, na metade das chances ou mais): o som não fica no controle certo |
+
+**Defeitos que ela pega:** `sem-alto-falante`, `som-vizinho`.
+
+## Os Caminhos — o chão que se sente na mão
+
+**O padrão:** a háptica de terreno dos jogos de PS5 (Astro's Playroom,
+Returnal): o passo na grama não é o passo no metal, e a mão sabe antes do
+olho. A háptica é **som** nos canais 3 e 4 da placa do controle.
+
+**Como jogar:** primeiro o treino, com o nome na tela: grama (um baque macio),
+cascalho (quatro estalos), metal (um golpe que ressoa), água (duas ondas).
+Depois, oito trechos no escuro: três passos e a pergunta "que chão é esse?" —
+✕ grama, ○ cascalho, □ metal, △ água; o clique do touchpad é "não senti". No
+meio do caminho, quatro pedras: o tropeço treme **um lado só**, e a pessoa diz
+qual (L1 esquerda, R1 direita; o touchpad é "não senti"). A TV não toca o
+passo: ele só existe no controle.
+
+| feature | PASSOU | FALHOU |
+| --- | --- | --- |
+| Háptica por áudio | ao menos 75% dos chãos certos e ao menos 80% dos tropeços do lado certo | "não senti" em metade dos trechos ou mais (e três ou mais): a háptica não chega; três ou mais tropeços ditos do lado oposto, mais que os certos: os canais 3 e 4 chegam trocados; um lado que nunca foi sentido: o atuador daquele lado não recebe; menos da metade dos chãos certos com três ou mais trocas: a textura chega deformada |
+
+O "não senti" dito é a evidência; não responder não reprova ninguém. Com uma
+háptica de um canal só (um nó mono), o tropeço não é perguntado, e o veredito
+diz isso.
+
+**Defeitos que ela pega:** `haptica-trocada`, `haptica-muda`.
+
+## A Cripta — a voz, o silêncio e o susto
+
+**O padrão:** os jogos de terror que escutam quem joga — o monstro que ouve
+pelo microfone, o botão de mudo que salva, a luz laranja do mudo — e o susto
+que sai da mão: a vibração forte e o grito no alto-falante do controle,
+enquanto a TV bate.
+
+**Como jogar:**
+
+1. **silêncio** — o guardião dorme; todos quietos (o piso de cada microfone);
+2. **o chamado** — cada um na sua vez chama o guardião, falando alto perto do
+   controle; os outros, quietos (o som do ar é de todos: um microfone ouve a
+   voz dos vizinhos, por isso a voz é medida em turnos);
+3. **o mudo** — o guardião acorda; cada um aperta o botão do microfone (a luz
+   laranja acende) e depois fala baixinho;
+4. **a luz** — o jogo apaga, acende ou faz piscar a luz do microfone de cada
+   controle, a tela não mostra, e a pessoa diz como está: ✕ apagada, ○ acesa,
+   □ piscando;
+5. **o susto** — quando a cripta fica quieta demais.
+
+| feature | PASSOU | FALHOU |
+| --- | --- | --- |
+| Microfone | a voz subiu ao menos 13,5 dB acima do silêncio | com o controle vivo: a voz não subiu o bastante; o microfone só manda silêncio absoluto (mudo no sistema?); ou o dispositivo abriu e nenhum som chegou |
+| Mudo do microfone | o botão chegou; e o medido diz se, mudo, o sistema também cortou o som ou se o mudo ficou com o jogo | a sala pediu, o controle estava vivo, e o botão nunca chegou |
+| LED do microfone | três respostas certas com no máximo uma errada | duas erradas e não mais certas que erradas: a luz não é a que o jogo mandou |
+
+Se o SDL recusa o LED (o rádio nativo, que este jogo só lê), a luz não é
+perguntada e o veredito explica. O susto não entra em veredito nenhum: é o
+padrão de jogo, e acaba a sala.
+
+**Defeitos que ela pega:** `mic-surdo`, `mudo-nao-chega`, `led-mic-parado`.
+
+---
+
+## A sala que vem
 
 | sala | marco | valida |
 | --- | --- | --- |
-| A Cripta | 4 | microfone, mudo, LED do microfone, alto-falante no susto |
-| Os Caminhos | 4 | háptica por áudio (os canais 3 e 4 do controle) |
-| O Canto | 4 | alto-falante do controle, isolamento do som |
 | A Prova | 5 | tudo junto, dois contra dois |
 
 ## Jogar sem controle
@@ -200,7 +287,8 @@ troca qual):
 | Q · E · 1 · 3 | L1 · R1 · L2 · R2 |
 | F · G | L3 · R3 |
 | O · P | Options · Create |
-| T · M | clique do touchpad · microfone |
+| T · M | clique do touchpad · botão do microfone |
+| Espaço | falar no microfone de mentira (enquanto segura) |
 | setas · WASD | direcional · analógico esquerdo |
 | I/K · J/L · B/N | inclina para a frente e para trás · para os lados · vira |
 | H | a martelada |
@@ -209,4 +297,7 @@ troca qual):
 `--robo` põe um robô para jogar em todos os controles simulados. Ele só sabe o
 que um jogador saberia: vê a tela (a runa, a mira, o autômato inclinado) e,
 nas salas de saída, sente o que chega ao controle pelos callbacks do joystick
-virtual.
+virtual. Nas salas de som, o controle simulado ganha uma placa virtual de
+quatro canais: o robô ouve o canal do alto-falante do controle dele e sente os
+dois atuadores (o chão, pelo envelope de cada passo; o lado, pelo canal que
+tremeu), e fala no microfone de mentira na vez dele.

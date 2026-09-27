@@ -271,3 +271,93 @@ int sint_textura(Onda *o, float dur, float aspereza, uint32_t semente) {
   normalizar(o, 0.9f);
   return 0;
 }
+
+int sint_passo(Onda *o, int chao, uint32_t semente) {
+  g_lcg = semente * 2654435761u + 7;
+  float lp = 0;
+  switch (chao) {
+  case 0: { /* grama: um baque macio, grave e abafado */
+    float dur = 0.26f;
+    if (alocar(o, dur))
+      return -1;
+    for (int i = 0; i < o->n; i++) {
+      float t = (float)i / SINT_TAXA;
+      float env = sinf(3.14159f * t / dur);
+      lp += (ruido() - lp) * 0.02f;
+      o->a[i] = env * env * (0.7f * sinf(PI2 * 70 * t) + 2.5f * lp);
+    }
+    normalizar(o, 0.45f);
+    break;
+  }
+  case 1: { /* cascalho: quatro estalos secos em fila */
+    float dur = 0.3f;
+    if (alocar(o, dur))
+      return -1;
+    for (int b = 0; b < 4; b++) {
+      int ini = (int)((b * 0.07f + 0.004f * (ruido() + 1)) * SINT_TAXA);
+      int n = (int)(0.03f * SINT_TAXA);
+      for (int i = 0; i < n && ini + i < o->n; i++) {
+        float t = (float)i / SINT_TAXA;
+        float env = sinf(3.14159f * t / 0.03f);
+        o->a[ini + i] += env * (0.6f * sinf(PI2 * 160 * t) + 0.6f * ruido());
+      }
+    }
+    normalizar(o, 0.8f);
+    break;
+  }
+  case 2: { /* metal: o golpe seco que fica ressoando */
+    float dur = 0.55f;
+    if (alocar(o, dur))
+      return -1;
+    for (int i = 0; i < o->n; i++) {
+      float t = (float)i / SINT_TAXA;
+      float env = (t < 0.005f ? t / 0.005f : 1.0f) * expf(-t / 0.16f);
+      o->a[i] = env * (sinf(PI2 * 190 * t) + 0.6f * sinf(PI2 * 285 * t) + 0.35f * sinf(PI2 * 470 * t));
+    }
+    normalizar(o, 0.9f);
+    break;
+  }
+  default: { /* água: duas ondas lentas, que empurram e voltam */
+    float dur = 0.5f;
+    if (alocar(o, dur))
+      return -1;
+    for (int b = 0; b < 2; b++) {
+      int ini = (int)(b * 0.28f * SINT_TAXA);
+      int n = (int)(0.18f * SINT_TAXA);
+      for (int i = 0; i < n && ini + i < o->n; i++) {
+        float t = (float)i / SINT_TAXA;
+        float env = sinf(3.14159f * t / 0.18f);
+        lp += (ruido() - lp) * 0.01f;
+        o->a[ini + i] += env * env * (sinf(PI2 * 45 * t) + 3.0f * lp);
+      }
+    }
+    normalizar(o, 0.6f);
+    break;
+  }
+  }
+  rampas(o, 0.002f, 0.01f);
+  return 0;
+}
+
+int sint_grito(Onda *o, float dur, uint32_t semente) {
+  if (alocar(o, dur))
+    return -1;
+  g_lcg = semente * 22695477u + 11;
+  float fase = 0, bp1 = 0, bp2 = 0;
+  for (int i = 0; i < o->n; i++) {
+    float t = (float)i / SINT_TAXA, k = t / dur;
+    /* sobe rasgando, e cai: 520 → 940 → 600 Hz, com um tremor de 7 Hz */
+    float f = k < 0.25f ? 520 + 420 * (k / 0.25f) : 940 - 340 * ((k - 0.25f) / 0.75f);
+    f *= 1.0f + 0.04f * sinf(PI2 * 7 * t);
+    fase += f / SINT_TAXA;
+    fase -= floorf(fase);
+    float serra = 2 * fase - 1;
+    float x = serra + 0.35f * ruido();
+    bp1 += (x - bp1) * 0.35f; /* um filtro que deixa passar o meio: a garganta */
+    bp2 += (bp1 - bp2) * 0.35f;
+    float env = (k < 0.03f ? k / 0.03f : 1.0f) * (k > 0.8f ? (1 - k) / 0.2f : 1.0f);
+    o->a[i] = (bp1 - 0.6f * bp2) * env;
+  }
+  normalizar(o, 0.95f);
+  return 0;
+}
