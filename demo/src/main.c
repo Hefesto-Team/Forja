@@ -13,6 +13,7 @@
 
 #include "nucleo/catalogo.h"
 #include "nucleo/relogio.h"
+#include "som/sons_salas.h"
 #include "nucleo/simulador.h"
 #include "ui/desenho.h"
 #include "ui/tema.h"
@@ -407,6 +408,7 @@ int main(int argc, char **argv) {
   som_volume(&a->som, a->cfg.volume_sistema);
   reg_linha(&a->reg, "som do sistema: %s", a->som.ativo ? a->som.dispositivo : "desligado");
   particulas_iniciar(&a->brasas, a->semente);
+  somc_iniciar(a);
   pads_iniciar(a);
   if (a->simular > 0)
     simulador_iniciar(a, a->simular);
@@ -463,6 +465,7 @@ int main(int argc, char **argv) {
     if (simulador_ativo())
       simulador_atualizar(a, dt);
     pads_atualizar(a, dt);
+    somc_atualizar(a, dt);
     navegar(a, dt);
 
     if (!a->proxima && a->transicao <= 0)
@@ -519,6 +522,8 @@ int main(int argc, char **argv) {
     a->cena->sair(a);
   /* o silêncio final (motores, gatilhos, luzes) entra no registro antes do fim */
   pads_encerrar(a);
+  somc_encerrar(a);
+  sons_salas_liberar();
   reg_linha(&a->reg, "fim da sessão");
   app_salvar_relatorio(a);
   if (simulador_ativo())

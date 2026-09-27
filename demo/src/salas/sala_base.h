@@ -49,10 +49,18 @@ typedef struct SalaBase {
    * mesma semente refaz a mesma sala, qualquer que seja o caminho até ela */
   Sorteio sorteio;
   int vez;
+  /* as salas de som: o papel que o aviso deixa conferir e trocar (-1 nenhum) */
+  int papel_som;
+  float teste_dir[MAX_JOGADORES]; /* o segundo pulso do teste da háptica */
 } SalaBase;
 
 /* No `entrar` da sala. */
 void sb_entrar(App *a, SalaBase *b, Sala sala, const Feature *feats, int n_feats, float duracao);
+
+/* Numa sala de som, depois do sb_entrar: acha o som de cada controle
+ * (som_controle.h) e deixa o aviso mostrar, trocar (◀ ▶) e testar (△) o
+ * dispositivo do papel. */
+void sb_som(App *a, SalaBase *b, PapelSom papel);
 
 /* No começo do `atualizar` da sala. Trata a pausa, o aviso e o fim. Devolve a
  * fase em que a sala deve rodar a lógica dela neste quadro, ou -1 quando a

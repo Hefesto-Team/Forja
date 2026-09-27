@@ -10,6 +10,7 @@
 #include "nucleo/registro.h"
 #include "nucleo/relatorio.h"
 #include "som/sistema.h"
+#include "som/som_controle.h"
 #include "ui/particulas.h"
 
 typedef struct App App;
@@ -56,6 +57,7 @@ struct App {
   LinhaTempo lt;
   Pads pads;
   SomSistema som;
+  SomControles somc; /* o som que sai e entra em cada controle */
   Particulas brasas;
 
   const Cena *cena;

@@ -111,6 +111,14 @@ void som_evento_pan(SomSistema *s, SomEvento e, float volume, float pan) {
 
 void som_evento(SomSistema *s, SomEvento e, float volume) { som_evento_pan(s, e, volume, 0); }
 
+int som_tocar(SomSistema *s, const Som *som, float volume, float pan) {
+  if (!som)
+    return -1;
+  float ang = (pan + 1) * 0.25f * 3.14159265f;
+  float g[MIX_MAX_CANAIS] = {cosf(ang) * volume * 1.41f, sinf(ang) * volume * 1.41f, 0, 0};
+  return mixer_tocar(&s->mixer, som, g, false);
+}
+
 void som_ambiente(SomSistema *s, bool fogo, bool musica) {
   float gf[MIX_MAX_CANAIS] = {0.28f, 0.28f, 0, 0};
   float gm[MIX_MAX_CANAIS] = {0.5f, 0.5f, 0, 0};

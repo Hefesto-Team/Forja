@@ -311,3 +311,124 @@ Veredito cega_leds_veredito(const Cega *c, bool sdl_aceitou) {
   }
   return v;
 }
+
+/* ---------- as salas de som ---------- */
+
+int cegas_plano_fontes(Sorteio *s, const int *fontes, const int *vezes, int n, int *out, int max) {
+  int resta[16] = {0};
+  if (n > 16)
+    n = 16;
+  for (int i = 0; i < n; i++)
+    resta[i] = vezes[i];
+  int total = 0, antes = -1;
+  while (total < max) {
+    int i = sortear_resto(s, resta, n, antes);
+    if (i < 0)
+      break;
+    resta[i]--;
+    out[total++] = fontes[i];
+    antes = i;
+  }
+  return total;
+}
+
+Veredito cega_alto_falante_veredito(const Cega *meus, int fantasmas, int chances, bool tem) {
+  Veredito v = vazio(NIVEL_SAIU);
+  snprintf(v.pedido, sizeof(v.pedido), "dizer, a cada canto, se ele saiu no SEU controle — às vezes sai em outro, às "
+                                       "vezes na TV");
+  if (!tem) {
+    v.nivel = NIVEL_NENHUM;
+    snprintf(v.medido, sizeof(v.medido), "o alto-falante deste controle não foi achado");
+    snprintf(v.obs, sizeof(v.obs), "não medido: nem pelo aparelho, nem pelo nome — aponte o alto-falante no aviso da sala");
+    return v;
+  }
+  int total = cega_total(meus);
+  snprintf(v.medido, sizeof(v.medido), "reconheceu o próprio canto %d de %d vezes; disse \"foi no meu\" %d vez%s com o "
+           "canto em outro lugar, em %d",
+           meus->certos, total, fantasmas, fantasmas == 1 ? "" : "es", chances);
+  if (total == 0 || meus->certos + meus->errados == 0) {
+    snprintf(v.obs, sizeof(v.obs), "não medido: nenhuma resposta nos cantos dele");
+    return v;
+  }
+  v.nivel = NIVEL_OBEDECEU;
+  if (fantasmas >= 2 && fantasmas * 2 >= chances) {
+    v.resultado = RES_FALHOU;
+    snprintf(v.obs, sizeof(v.obs), "o canto de outro lugar saiu neste controle: o som não fica no alto-falante certo");
+  } else if (meus->errados >= 2 && meus->errados >= meus->certos) {
+    v.resultado = RES_FALHOU;
+    snprintf(v.obs, sizeof(v.obs), "o canto mandado para este controle não saiu no alto-falante dele");
+  } else if (meus->certos >= 2 && meus->errados <= 1 && fantasmas <= 1) {
+    v.resultado = RES_PASSOU;
+  } else {
+    v.nivel = NIVEL_SAIU;
+    snprintf(v.obs, sizeof(v.obs), "não medido: inconclusivo — refaça a sala com calma");
+  }
+  return v;
+}
+
+Veredito cega_haptica_veredito(const Cega *chao, const Cega *le, const Cega *ld, bool tem) {
+  Veredito v = vazio(NIVEL_SAIU);
+  snprintf(v.pedido, sizeof(v.pedido), "reconhecer o chão pelos atuadores (canais 3 e 4), às cegas, e dizer de que lado foi "
+                                       "o tropeço");
+  if (!tem) {
+    v.nivel = NIVEL_NENHUM;
+    snprintf(v.medido, sizeof(v.medido), "a placa de quatro canais (ou a háptica) deste controle não foi achada");
+    snprintf(v.obs, sizeof(v.obs), "não medido: sem os canais dos atuadores — no cabo, o controle é uma placa de quatro "
+                                   "canais; aponte-a no aviso da sala");
+    return v;
+  }
+  int n_chao = cega_total(chao), lados = cega_total(le) + cega_total(ld);
+  int nada_chao = chao->respondeu_como[CAMINHO_NADA];
+  int nada_esq = le->respondeu_como[CAMINHO_NADA_LADO], nada_dir = ld->respondeu_como[CAMINHO_NADA_LADO];
+  /* trocado é dizer o lado oposto; "não senti" não é trocar */
+  int trocados = le->respondeu_como[1] + ld->respondeu_como[0], certos_lado = le->certos + ld->certos;
+  snprintf(v.medido, sizeof(v.medido),
+           "chão: %d de %d certos, %d \"não senti\", %d sem resposta; tropeço: esquerda %d de %d, direita %d de %d",
+           chao->certos, n_chao, nada_chao, chao->perdidos, le->certos, cega_total(le), ld->certos, cega_total(ld));
+  if (chao->certos + chao->errados == 0 && le->certos + le->errados + ld->certos + ld->errados == 0) {
+    snprintf(v.obs, sizeof(v.obs), "não medido: nenhuma resposta");
+    return v;
+  }
+  v.nivel = NIVEL_OBEDECEU;
+  if (nada_chao >= 3 && nada_chao * 2 >= n_chao) {
+    v.resultado = RES_FALHOU;
+    snprintf(v.obs, sizeof(v.obs), "a mão não sentiu os passos (disse \"não senti\" %d vezes): a háptica não chega aos "
+                                   "atuadores", nada_chao);
+  } else if (lados >= 4 && trocados >= 3 && trocados > certos_lado) {
+    v.resultado = RES_FALHOU;
+    snprintf(v.obs, sizeof(v.obs), "os lados chegam trocados: o canal 3 (esquerda) sai na direita e vice-versa");
+  } else if ((nada_esq >= 2 && le->certos == 0) != (nada_dir >= 2 && ld->certos == 0)) {
+    v.resultado = RES_FALHOU;
+    snprintf(v.obs, sizeof(v.obs), "o tropeço da %s nunca chegou: o atuador desse lado (o canal %d) não recebe",
+             nada_esq >= 2 ? "esquerda" : "direita", nada_esq >= 2 ? 3 : 4);
+  } else if (n_chao >= 6 && chao->certos * 2 < n_chao && chao->errados - nada_chao >= 3) {
+    v.resultado = RES_FALHOU;
+    snprintf(v.obs, sizeof(v.obs), "os chãos não se distinguem: a textura chega deformada (ou achatada) nos atuadores");
+  } else if (chao->certos * 4 >= n_chao * 3 && (lados == 0 || certos_lado * 5 >= lados * 4)) {
+    v.resultado = RES_PASSOU;
+  } else {
+    v.nivel = NIVEL_SAIU;
+    snprintf(v.obs, sizeof(v.obs), "não medido: inconclusivo — refaça a sala com calma");
+  }
+  return v;
+}
+
+bool cega_led_mic_decidida(const Cega *c) { return cega_cor_decidida(c); }
+
+Veredito cega_led_mic_veredito(const Cega *c, bool sdl_aceitou) {
+  Veredito v = cega_cor_veredito(c, sdl_aceitou);
+  snprintf(v.pedido, sizeof(v.pedido), "dizer, olhando o controle, se a luz laranja do microfone está apagada, acesa ou "
+                                       "piscando — a tela não mostra");
+  if (v.resultado == RES_FALHOU)
+    snprintf(v.obs, sizeof(v.obs), "a luz do microfone que a pessoa viu não era a que o jogo mandou");
+  if (!sdl_aceitou) {
+    snprintf(v.medido, sizeof(v.medido), "o SDL recusou o LED do microfone");
+    snprintf(v.obs, sizeof(v.obs), "não medido: este controle não aceita o LED do microfone pelo SDL");
+  } else {
+    char *p = strstr(v.medido, " cor");
+    if (p) /* "3 cores certas" vira "3 respostas certas" */
+      snprintf(v.medido, sizeof(v.medido), "%d resposta%s certa%s, %d errada%s, %d sem resposta", c->certos,
+               c->certos == 1 ? "" : "s", c->certos == 1 ? "" : "s", c->errados, c->errados == 1 ? "" : "s", c->perdidos);
+  }
+  return v;
+}

@@ -34,6 +34,12 @@ int sint_tom(Onda *o, float freq, float dur, float rampa_s);
 /* Háptica: pulsos de baixa frequência para os atuadores (canais 3 e 4). */
 int sint_pulso(Onda *o, float freq, float dur, int batidas, float intervalo);
 int sint_textura(Onda *o, float dur, float aspereza, uint32_t semente);
+/* Um passo sentido nos atuadores, pelo chão (0 grama, 1 cascalho, 2 metal,
+ * 3 água). Cada chão tem uma assinatura que a mão sente e que o envelope
+ * mostra: um baque macio; quatro estalos; um golpe que ressoa; duas ondas. */
+int sint_passo(Onda *o, int chao, uint32_t semente);
+/* O grito do susto, para o alto-falante do controle. */
+int sint_grito(Onda *o, float dur, uint32_t semente);
 void onda_liberar(Onda *o);
 
 /* Utilidades provadas */

@@ -8,7 +8,7 @@
  *   F L3 · G R3 · O Options · P Create · T clique do touchpad · M microfone
  *   setas: direcional · WASD: analógico esquerdo
  *   I/K inclina para a frente e para trás · J/L inclina para os lados
- *   B/N vira para os lados · H a martelada (sacode para baixo)
+ *   B/N vira para os lados · H a martelada (sacode para baixo) · espaço fala
  *   mouse: o touchpad — botão esquerdo é um dedo; segure os dois botões e o
  *   segundo dedo segue o mouse enquanto o primeiro fica parado
  *
@@ -54,10 +54,41 @@ typedef struct Percepcao {
  *   luz-parada          a lightbar não muda mais de cor
  *   gatilho-mudo        o efeito do gatilho nunca chega ao dedo
  *   leds-errados        os LEDs de jogador acendem uma luz a menos
+ *   sem-alto-falante    o canal do alto-falante não chega ao plástico
+ *   som-vizinho         o som de um controle sai no controle seguinte
+ *   haptica-trocada     os atuadores da esquerda e da direita trocados
+ *   haptica-muda        nada chega aos atuadores
+ *   mic-surdo           o microfone não manda nada
+ *   led-mic-parado      o LED do microfone não muda mais
+ *   mudo-nao-chega      o botão do microfone nunca chega
  *
  * Devolve false (e diz qual) se algum nome não existe. */
 bool simulador_defeitos(const char *lista, char *erro, size_t tam_erro);
 const char *simulador_defeitos_texto(void);
+
+enum {
+  DEFEITO_TROCA_CRUZ_CIRCULO = 1 << 0,
+  DEFEITO_ANALOGICO_CURTO = 1 << 1,
+  DEFEITO_GATILHO_DIGITAL = 1 << 2,
+  DEFEITO_GIRO_INVERTIDO = 1 << 3,
+  DEFEITO_ACEL_ESCALA = 1 << 4,
+  DEFEITO_UM_DEDO = 1 << 5,
+  DEFEITO_SEM_CLIQUE = 1 << 6,
+  DEFEITO_MOTORES_TROCADOS = 1 << 7,
+  DEFEITO_VIBRA_VIZINHO = 1 << 8,
+  DEFEITO_LUZ_PARADA = 1 << 9,
+  DEFEITO_GATILHO_MUDO = 1 << 10,
+  DEFEITO_LEDS_ERRADOS = 1 << 11,
+  DEFEITO_SEM_ALTO_FALANTE = 1 << 12,
+  DEFEITO_SOM_VIZINHO = 1 << 13,
+  DEFEITO_HAPTICA_TROCADA = 1 << 14,
+  DEFEITO_MIC_SURDO = 1 << 15,
+  DEFEITO_LED_MIC_PARADO = 1 << 16,
+  DEFEITO_MUDO_NAO_CHEGA = 1 << 17,
+  DEFEITO_HAPTICA_MUDA = 1 << 18,
+};
+/* Os defeitos valendo agora (só dentro das salas); 0 fora delas. */
+unsigned simulador_defeitos_agora(void);
 
 void simulador_iniciar(struct App *a, int n);
 void simulador_encerrar(struct App *a);
@@ -78,5 +109,10 @@ void robo_sacudir(struct App *a, int pad, float g, float segundos);
 void robo_tocar(struct App *a, int pad, int dedo, float x, float y, float segundos);
 /* Um número entre 0 e 1 do sorteio do robô (reação humana, erro, demora). */
 float robo_acaso(void);
+/* O robô fala no microfone do controle dele (nível 0..1, por `segundos`). */
+void robo_falar(struct App *a, int pad, float nivel, float segundos);
+/* O que o microfone do controle simulado com esse id capta agora (0..1): a
+ * voz do robô ou a barra de espaço do teclado. */
+float simulador_fala(SDL_JoystickID id);
 
 #endif

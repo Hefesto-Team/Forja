@@ -89,6 +89,28 @@ bool cega_arma_decidida(const Cega *c);
 /* As perguntas de munição (LEDs de jogador). */
 Veredito cega_leds_veredito(const Cega *c, bool sdl_aceitou);
 
+/* ---------- as salas de som ---------- */
+
+/* Um plano genérico: `fontes[i]` aparece `vezes[i]` vezes, embaralhado pela
+ * semente, sem a mesma fonte duas vezes seguidas quando há outra. */
+int cegas_plano_fontes(Sorteio *s, const int *fontes, const int *vezes, int n, int *out, int max);
+
+/* O Canto: nas rodadas em que o canto saiu no controle dele, quantas vezes a
+ * pessoa disse "foi no meu"; e quantas vezes ela disse isso com o canto saindo
+ * em OUTRO lugar (outro controle, ou a TV), em quantas chances. */
+Veredito cega_alto_falante_veredito(const Cega *meus, int fantasmas, int chances, bool tem_alto_falante);
+/* Os Caminhos: o chão reconhecido pela textura, e o tropeço de cada lado.
+ * As respostas: no chão, 0..3 são os chãos (chao.h) e CAMINHO_NADA é "não
+ * senti nada"; no tropeço, 0 é a esquerda, 1 a direita e CAMINHO_NADA_LADO
+ * "não senti". O "não senti" dito é a evidência de que a mão não recebeu —
+ * o silêncio (não responder) não reprova ninguém. */
+#define CAMINHO_NADA 4
+#define CAMINHO_NADA_LADO 2
+Veredito cega_haptica_veredito(const Cega *chao, const Cega *lado_esq, const Cega *lado_dir, bool tem_haptica);
+/* A Cripta: como está a luz do microfone (apagada, acesa, piscando). */
+Veredito cega_led_mic_veredito(const Cega *c, bool sdl_aceitou);
+bool cega_led_mic_decidida(const Cega *c);
+
 #ifdef __cplusplus
 }
 #endif
