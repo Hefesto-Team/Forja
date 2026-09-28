@@ -4,6 +4,8 @@
 |---|---|---|---|
 | `svg/dualsense.svg`, `svg/pecas-do-dualsense.csv` | o desenho do DualSense e a fonte da verdade das peças | app Hefesto (`ds_limpo.svg`, `docs/data/pecas-do-dualsense.csv`) | MIT, aviso abaixo |
 | `mapa/` | as camadas do mapa do controle (uma por peça) e `pecas.json` | geradas do `svg/` por `scripts/mapa_do_controle.js` | MIT, aviso abaixo |
+| `svg/glifos/`, `svg/hefesto-logo.svg` | os glifos dos botões e das features e o logo | app Hefesto (`assets/glyphs/`, `assets/hefesto-logo.svg`), sem mudança | MIT, aviso abaixo |
+| `glifos/`, `hefesto-logo.png` | as mesmas figuras em PNG (máscara branca, para tingir) | geradas do `svg/` por `scripts/mapa_do_controle.js` | MIT, aviso abaixo |
 | `fontes/` | Space Grotesk e JetBrains Mono, os arquivos variáveis que o app Hefesto usa | google/fonts, commit `7ff85c87f93ea6cca5f41c69f2e4edcb90240f26` (sha256 `acad6de1…f72` e `48715a42…eda`, os mesmos que o Hefesto fixa) | SIL OFL 1.1, textos ao lado |
 | `kenney/` | modelos Mini Dungeon | Kenney (www.kenney.nl) | CC0, `kenney/KENNEY-LICENSE.txt` |
 

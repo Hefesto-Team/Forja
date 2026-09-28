@@ -15,6 +15,8 @@
 #include <godot_cpp/variant/array.hpp>
 #include <godot_cpp/variant/color.hpp>
 #include <godot_cpp/variant/dictionary.hpp>
+#include <godot_cpp/variant/packed_byte_array.hpp>
+#include <godot_cpp/variant/packed_float32_array.hpp>
 #include <godot_cpp/variant/packed_string_array.hpp>
 #include <godot_cpp/variant/string.hpp>
 #include <godot_cpp/variant/vector2.hpp>
@@ -119,6 +121,28 @@ public:
   void robo_sacudir(int indice, float g, float s);
   void robo_tocar(int indice, int dedo, float x, float y, float s);
   Dictionary percepcao(int indice) const;
+
+  /* as medidas das salas de entrada (medidas.h), amostradas a cada quadro */
+  bool med_comecar(int lugar, int64_t botoes);
+  void med_parar(int lugar);
+  void med_retomar(int lugar);
+  void med_pedido(int lugar, int botao);
+  void med_repouso(int lugar, bool sim);
+  void med_pedir(int lugar, const String &o_que);
+  void med_faixa(int lugar, int lado);
+  void med_tracou(int lugar);
+  void med_martelada(int lugar);
+  Dictionary med_estado(int lugar) const;
+  Dictionary med_veredito(int lugar, const String &chave, int nivel);
+
+  /* os sons da forja, sintetizados (som/sintese.h): mono, 48 kHz, float */
+  PackedFloat32Array sintetizar(const String &tipo, const Dictionary &p) const;
+  /* o mesmo som em PCM de 16 bits (o que a AudioStreamWAV do Godot toca) */
+  PackedByteArray sintetizar_pcm16(const String &tipo, const Dictionary &p) const;
+
+private:
+  void med_quadro();
+  void med_zerar_tudo();
 };
 
 } // namespace godot

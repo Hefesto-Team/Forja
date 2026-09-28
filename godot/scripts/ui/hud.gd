@@ -11,6 +11,8 @@ var placa := {}
 var sala := {}
 ## Uma linha por lugar, dita pela sala (vida, pontos, o que falta).
 var status_da_sala := ["", "", "", ""]
+## false numa sala que usa o Create (a runa d'A Centelha): o rodapé não o oferece
+var create_livre := true
 
 var _avisos: Array = []  # [texto, restante]
 
@@ -75,7 +77,7 @@ func _draw() -> void:
 			Desenho.texto(self, Vector2(r.end.x - 32 - Desenho.largura(s, fs, Tema.T_ROTULO), r.position.y + 84), s, fs, Tema.T_ROTULO, Tema.COMMENT)
 
 	# as dicas de baixo
-	var pares := [["create", "diagnóstico"], ["options", "pausa"]]
+	var pares := [["create", "diagnóstico"], ["options", "pausa"]] if create_livre else [["options", "pausa"]]
 	Desenho.dicas_a_direita(self, Vector2(w - Tema.MARGEM_X, h - Tema.MARGEM_Y), pares, Tema.T_SELO)
 
 	# os avisos

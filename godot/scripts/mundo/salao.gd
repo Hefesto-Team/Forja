@@ -13,9 +13,9 @@ const KIT := "res://assets/kenney/%s.glb"
 ## As salas, na ordem do percurso. `lado`: a parede do portão; `aberta`: a sala
 ## já existe neste marco (as outras ficam de portão fechado).
 const PORTOES := [
-	{"id": "centelha", "nome": "A Centelha", "sobre": "botões e analógicos", "icone": "stick_l", "lado": "oeste", "t": 3.0, "aberta": false},
-	{"id": "viga", "nome": "A Viga", "sobre": "giroscópio", "icone": "giroscopio", "lado": "oeste", "t": -3.0, "aberta": true},
-	{"id": "molde", "nome": "O Molde", "sobre": "touchpad", "icone": "touchpad", "lado": "norte", "t": -6.0, "aberta": false},
+	{"id": "centelha", "nome": "A Centelha", "sobre": "botões, analógicos e gatilhos", "icone": "stick_l", "lado": "oeste", "t": 3.0, "aberta": true},
+	{"id": "viga", "nome": "A Viga", "sobre": "giroscópio e acelerômetro", "icone": "giroscopio", "lado": "oeste", "t": -3.0, "aberta": true},
+	{"id": "molde", "nome": "O Molde", "sobre": "touchpad: dois dedos e clique", "icone": "touchpad", "lado": "norte", "t": -6.0, "aberta": true},
 	{"id": "impacto", "nome": "O Impacto", "sobre": "vibração e barra de luz", "icone": "rumble_esquerdo", "lado": "norte", "t": -2.0, "aberta": true},
 	{"id": "galeria", "nome": "A Galeria", "sobre": "gatilhos adaptativos", "icone": "r2", "lado": "norte", "t": 2.0, "aberta": true},
 	{"id": "voz", "nome": "A Voz", "sobre": "microfone e mudo", "icone": "mic", "lado": "norte", "t": 6.0, "aberta": true},
@@ -188,7 +188,10 @@ func _portao(p: Dictionary) -> void:
 	sobre.font = Tema.fonte(500)
 	sobre.font_size = 64
 	sobre.pixel_size = 0.004
-	sobre.position.y = -0.42
+	sobre.width = 700
+	sobre.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	sobre.vertical_alignment = VERTICAL_ALIGNMENT_TOP
+	sobre.position.y = -0.3
 	sobre.outline_size = 14
 	sobre.outline_modulate = Color(Tema.CASA, 0.85)
 	sobre.modulate = Tema.ROXO if p.aberta else Tema.COMMENT

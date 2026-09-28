@@ -24,6 +24,7 @@ typedef struct Forja {
   float t;          /* segundos desde o início da sessão */
   float dt;
   Uint64 inicio_ns;
+  Uint64 relogio_sim_ns; /* a soma dos dt: o relógio dos controles simulados */
   float intensidade; /* 0..1: multiplica a vibração (o ajuste da pausa) */
   unsigned long long semente;
 

@@ -107,6 +107,13 @@ func _prova_do_percurso() -> void:
 	await _aperta(0, Forja.CIRCULO)
 	_esperar(jogo.overlay == "", "○ fecha o diagnóstico")
 
+	# As salas de entrada, jogadas pelo robô do começo ao fim: cada lugar sai
+	# com PASSOU em cada feature da sala. Com um defeito de mentira ligado, a
+	# feature que ele quebra tem de sair FALHOU (a prova da prova).
+	await _joga_a_sala("centelha", ["botoes", "analogicos", "gatilhos_analogicos"])
+	await _joga_a_sala("viga", ["giroscopio", "acelerometro"])
+	await _joga_a_sala("molde", ["touchpad_dois_dedos", "touchpad_clique"])
+
 	# A Galeria: o R2 de cada um em Vibration; o L2 solto
 	jogo._entrar_na_sala("galeria", false)
 	await _quadros(6)
@@ -132,17 +139,6 @@ func _prova_do_percurso() -> void:
 	await _quadros(2)
 	var p2 := _perc(1)
 	_esperar(float(p2.get("fraco", 0.0)) > 0.5 and float(p2.get("forte", 1.0)) == 0.0, "Impacto: da direita, só o motor fraco do P2")
-
-	# A Viga: o giro do controle do P2 vira o P2, e só ele
-	jogo._entrar_na_sala("viga", false)
-	await _quadros(4)
-	var antes: Array = jogo.sala.yaw.duplicate()
-	Forja.ctl.simulador_giro(1, Vector3(0, 2.5, 0))
-	await _quadros(30)
-	Forja.ctl.simulador_giro(1, Vector3.ZERO)
-	var depois: Array = jogo.sala.yaw
-	_esperar(absf(depois[1] - antes[1]) > 0.3, "Viga: o giro virou o P2 (%.2f rad)" % (depois[1] - antes[1]))
-	_esperar(absf(depois[0] - antes[0]) < 0.05 and absf(depois[3] - antes[3]) < 0.05, "Viga: o P1 e o P4 ficaram parados")
 
 	# A Voz: o mudo do P3 acende o LED do P3, e só o dele
 	jogo._entrar_na_sala("voz", false)
@@ -170,6 +166,46 @@ func _prova_do_percurso() -> void:
 	await _quadros(2)
 	_esperar(jogo.overlay == "livro", "o livro abre")
 	jogo._fechar_overlay()
+
+
+## Entra na sala, espera o aviso (o robô fica pronto sozinho), o jogo e o
+## veredito; confere o veredito de cada lugar e espera a volta ao salão.
+func _joga_a_sala(id: String, features: Array) -> void:
+	jogo._entrar_na_sala(id, false)
+	await _quadros(2)
+	var sala = jogo.sala
+	_esperar(sala is SalaJogo and sala.id == id, "%s: a sala abriu" % id)
+	if not sala is SalaJogo:
+		return
+	var q := 0
+	while is_instance_valid(sala) and sala.fase != "fim" and q < 9000:
+		await _quadros(10)
+		q += 10
+	_esperar(is_instance_valid(sala) and sala.fase == "fim", "%s: o robô jogou até o fim (%d quadros)" % [id, q])
+	if not is_instance_valid(sala):
+		return
+	for l in 4:
+		var lista: Array = sala.vereditos.get(l, [])
+		for f in features:
+			var v := {}
+			for item in lista:
+				if item.get("feature", "") == f:
+					v = item
+			var ok := int(v.get("resultado", -1)) == Forja.PASSOU
+			var porque := str(v.get("obs", "")) if str(v.get("obs", "")) != "" else str(v.get("medido", "sem veredito"))
+			_esperar(ok, "%s P%d: %s → %s (%s)" % [id, l + 1, f, str(v.get("rotulo", "sem veredito")), porque])
+			var gravado := Forja.ultimo_veredito(l, f)
+			_esperar(int(gravado.get("resultado", -1)) == int(v.get("resultado", -2)), "%s P%d: %s gravado no relatório" % [id, l + 1, f])
+	# o robô aperta ✕ no veredito; a cortina leva de volta ao salão
+	q = 0
+	while (jogo.estado != "salao" or jogo._trocando) and q < 600:
+		await _quadros(5)
+		q += 5
+	_esperar(jogo.estado == "salao", "%s: de volta ao salão pelo veredito" % id)
+	for l in 4:
+		var p := _perc(l)
+		_esperar(int(p.get("gatilho_dir", 0)) == 0x05 and float(p.get("forte", 1.0)) == 0.0,
+			"%s: o P%d voltou ao repouso" % [id, l + 1])
 
 
 func _prova_do_relatorio() -> void:

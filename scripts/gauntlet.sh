@@ -20,7 +20,8 @@ SEMENTE="${SEMENTE:-7}"
 [[ -x "$GODOT" ]] || { echo "sem Godot: rode ./run-local.sh uma vez, ou GODOT=<binário>" >&2; exit 2; }
 [[ -f "$RAIZ/godot/bin/libforja.linux.x86_64.so" ]] || { echo "sem o módulo: scripts/compilar.sh linux" >&2; exit 2; }
 
-DEFEITOS=(vibra-vizinho motores-trocados luz-parada gatilho-mudo led-mic-parado mudo-nao-chega)
+DEFEITOS=(troca-cruz-circulo analogico-curto gatilho-digital giro-invertido acel-escala um-dedo sem-clique
+          vibra-vizinho motores-trocados luz-parada gatilho-mudo led-mic-parado mudo-nao-chega)
 
 SAIDA="$(mktemp -d)"
 trap 'rm -rf "$SAIDA"' EXIT

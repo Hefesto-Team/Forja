@@ -6,6 +6,10 @@ extends Node
 ##   godot --path godot --resolution 1920x1080 res://testes/captura_jogo.tscn -- --simular=4 --robo --semente=7
 ##
 ## SAIDA=<pasta> diz onde gravar os PNG; FOTOS=titulo,lobby,... escolhe quais.
+## ROTEIRO=salas passa pelas salas que medem (aviso, jogo e veredito de cada
+## uma, com o robô jogando). RAPIDO=1 roda numa janela pequena entre as fotos
+## e volta ao tamanho cheio só para cada foto (num renderizador por software,
+## é o que cabe no tempo).
 
 var jogo: Node
 var q := 0
@@ -14,6 +18,7 @@ var roteiro: Array = []
 var _passo := 0
 var _espera := 0
 var _rodando := false  ## um passo com espera dentro não deixa o próximo começar
+var _rapido := false
 
 
 func _ready() -> void:
@@ -23,7 +28,19 @@ func _ready() -> void:
 	jogo = load("res://scenes/main.tscn").instantiate()
 	add_child(jogo)
 	var pedidas := OS.get_environment("FOTOS")
-	roteiro = [
+	_rapido = OS.get_environment("RAPIDO") == "1"
+	if _rapido:
+		_janela(false)
+	roteiro = _roteiro_das_telas() if OS.get_environment("ROTEIRO") != "salas" else _roteiro_das_salas()
+	if pedidas != "":
+		var so := pedidas.split(",")
+		for i in roteiro.size():
+			if roteiro[i][0] == "foto" and not (roteiro[i][1] in so):
+				roteiro[i] = ["espera", 1]
+
+
+func _roteiro_das_telas() -> Array:
+	return [
 		["espera", 70], ["foto", "titulo"],
 		["aperta", 0, Forja.CRUZ], ["espera", 40],
 		["aperta", 0, Forja.CRUZ], ["aperta", 1, Forja.CRUZ], ["aperta", 2, Forja.CRUZ], ["espera", 40],
@@ -45,20 +62,76 @@ func _ready() -> void:
 		["sala", "galeria"], ["espera", 70], ["eixo", 0, Forja.R2, 1.0], ["eixo", 2, Forja.R2, 1.0], ["espera", 14], ["foto", "sala_galeria"],
 		["eixo", 0, Forja.R2, 0.0], ["eixo", 2, Forja.R2, 0.0],
 		["sala", "impacto"], ["espera", 150], ["foto", "sala_impacto"],
-		["sala", "viga"], ["giro", 0, Vector3(0, 2.0, 0)], ["espera", 70], ["giro", 0, Vector3.ZERO], ["foto", "sala_viga"],
 		["sala", "voz"], ["espera", 70], ["foto", "sala_voz"],
 		["sala", "prova"], ["espera", 90], ["foto", "sala_prova"],
 		["fim"],
 	]
-	if pedidas != "":
-		var so := pedidas.split(",")
-		for i in roteiro.size():
-			if roteiro[i][0] == "foto" and not (roteiro[i][1] in so):
-				roteiro[i] = ["espera", 1]
+
+
+## As salas que medem, jogadas pelo robô: o aviso (quem já está pronto), o
+## jogo em dois momentos e o veredito.
+func _roteiro_das_salas() -> Array:
+	var no_salao := func() -> bool:
+		return jogo.estado == "salao" and not jogo._trocando
+	var fase := func(f: String, t: float) -> Callable:
+		return func() -> bool:
+			return jogo.sala is SalaJogo and jogo.sala.fase == f and jogo.sala.t_fase >= t
+	var p1 := func(cond: Callable) -> Callable:
+		return func() -> bool:
+			return jogo.sala is SalaJogo and jogo.sala.fase == "jogo" and cond.call(jogo.sala, jogo.sala.j[0])
+	var runa_analogica := func(sala, e) -> bool:
+		var r = sala._runa_atual(0)
+		return r != null and r.tipo == "analogico" and SalaCentelha._contar(int(e.setores)) >= 4
+	var fole_no_fundo := func(sala, e) -> bool:
+		var r = sala._runa_atual(0)
+		return r != null and r.tipo == "gatilho" and e.estagio == 1
+	var nos_sinos := func(_sala, e) -> bool:
+		return e.trecho == 1 and e.t > 1.2
+	var na_pedra := func(_sala, e) -> bool:
+		return e.trecho == 2 and e.golpes >= 1
+	var tracando := func(_sala, e) -> bool:
+		return e.passo == 0 and e.ponto >= 2
+	var abrindo := func(_sala, e) -> bool:
+		return e.passo == 1 and e.abertura > 0.3
+	var carimbando := func(sala, e) -> bool:
+		return e.passo == 2 and sala._no_ponto(e)
+	return [
+		["espera", 10], ["aperta", 0, Forja.CRUZ], ["espera", 40],
+		["aperta", 0, Forja.CRUZ], ["aperta", 1, Forja.CRUZ], ["aperta", 2, Forja.CRUZ], ["aperta", 3, Forja.CRUZ], ["espera", 10],
+		["aperta", 0, Forja.CRUZ], ["aperta", 1, Forja.CRUZ], ["aperta", 2, Forja.CRUZ], ["aperta", 3, Forja.CRUZ],
+		["ate", no_salao],
+		["sala", "centelha"], ["ate", fase.call("aviso", 1.7)], ["foto", "centelha_aviso"],
+		["ate", fase.call("jogo", 7.0)], ["foto", "centelha_jogo"],
+		["ate", p1.call(runa_analogica)], ["foto", "centelha_analogico"],
+		["ate", p1.call(fole_no_fundo)], ["foto", "centelha_fole"],
+		["ate", fase.call("fim", 1.4)], ["foto", "centelha_fim"],
+		["ate", no_salao],
+		["sala", "viga"], ["ate", fase.call("aviso", 1.7)], ["foto", "viga_aviso"],
+		["ate", fase.call("jogo", 6.0)], ["foto", "viga_travessia"],
+		["ate", p1.call(nos_sinos)], ["foto", "viga_sinos"],
+		["ate", p1.call(na_pedra)], ["foto", "viga_pedra"],
+		["ate", fase.call("fim", 1.4)], ["foto", "viga_fim"],
+		["ate", no_salao],
+		["sala", "molde"], ["ate", fase.call("aviso", 1.7)], ["foto", "molde_aviso"],
+		["ate", p1.call(tracando)], ["foto", "molde_tracar"],
+		["ate", p1.call(abrindo)], ["foto", "molde_abrir"],
+		["ate", p1.call(carimbando)], ["foto", "molde_carimbar"],
+		["ate", fase.call("fim", 1.4)], ["foto", "molde_fim"],
+		["ate", no_salao], ["foto", "salao_depois"],
+		["fim"],
+	]
+
+
+## Cheia para a foto; pequena (e o 3D pela metade) para andar depressa.
+func _janela(cheia: bool) -> void:
+	get_window().size = Vector2i(1920, 1080) if cheia else Vector2i(480, 270)
+	get_viewport().scaling_3d_scale = 1.0 if cheia else 0.5
 
 
 func _process(_dt: float) -> void:
 	q += 1
+	if q % 300 == 0:
+		print("quadro %d em %.0f s (janela %s)" % [q, Time.get_ticks_msec() / 1000.0, get_window().size])
 	if _rodando:
 		return
 	if _espera > 0:
@@ -78,9 +151,23 @@ func _rodar() -> void:
 				_espera = p[1]
 				return
 			"foto":
+				if _rapido:
+					_janela(true)
+					for i in 6:
+						await get_tree().process_frame
 				var img := get_viewport().get_texture().get_image()
 				img.save_png(pasta.path_join(p[1] + ".png"))
-				print("foto: ", p[1])
+				print("foto: ", p[1], " (quadro ", q, ")")
+				if _rapido:
+					_janela(false)
+			"ate":
+				var cond: Callable = p[1]
+				var n := 0
+				while not cond.call() and n < 20000:
+					await get_tree().process_frame
+					n += 1
+				if n >= 20000:
+					printerr("o momento não chegou: passo %d" % _passo)
 			"aperta":
 				Forja.ctl.simulador_botao(p[1], p[2], true)
 				await get_tree().process_frame

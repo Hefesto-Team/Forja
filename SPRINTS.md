@@ -152,8 +152,8 @@ são o desenho de cada sala 3D (o Cerco virou O Impacto; a Cripta, A Voz).
 
 | marco | o que entra no 3D | situação |
 | --- | --- | --- |
-| 1 | o módulo nativo (Linux e Windows), o lobby com os quatro lugares, o salão com os oito portões, o diagnóstico com o mapa do controle, o livro, a pausa, a cara do app Hefesto, a prova do jogo e o gauntlet sem aparelho | feito — esperando o ok das capturas |
-| 2 | A Centelha, A Viga e O Molde como jogos, com os vereditos de entrada | a fazer |
+| 1 | o módulo nativo (Linux e Windows), o lobby com os quatro lugares, o salão com os oito portões, o diagnóstico com o mapa do controle, o livro, a pausa, a cara do app Hefesto, a prova do jogo e o gauntlet sem aparelho | feito |
+| 2 | A Centelha, A Viga e O Molde como jogos, com os vereditos de entrada | feito — as três no 3D com o desenho das salas 2D e as peças do kit; o módulo mede cada controle a cada quadro (a régua de `medidas.c`); o robô joga as três na prova do jogo e o gauntlet pega os sete defeitos de entrada |
 | 3 | O Impacto e A Galeria às cegas: motores, isolamento, lightbar, os três modos de gatilho, LEDs de jogador | a fazer |
 | 4 | o som pelo módulo (PipeWire, WASAPI e o `ContainerId`): A Voz com o microfone de cada controle e o susto, Os Caminhos, O Canto | a fazer |
 | 5 | A Prova com tudo ligado, a Prova de Fogo em ordem, `experimental/` refeito para o 3D | a fazer |

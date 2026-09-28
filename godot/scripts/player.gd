@@ -43,6 +43,9 @@ var hp := 100.0
 var cooldown := 0.0
 ## false: parado pelo jogo (lobby, transição); a entrada não mexe nele
 var controlavel := true
+## true: a sala posiciona e anima o boneco (na viga, caindo na lava); a física
+## e a escolha da animação ficam paradas
+var preso := false
 var modelo: Node3D
 var modelo_i := 0
 var item_i := 0
@@ -172,6 +175,12 @@ func _animar(nome: String, velocidade := 1.0) -> void:
 	anim.speed_scale = velocidade
 
 
+## A animação de base, pedida pela sala (um gesto em curso tem a vez).
+func animar(nome: String, velocidade := 1.0) -> void:
+	if _gesto <= 0.0:
+		_animar(nome, velocidade)
+
+
 ## Um gesto que roda uma vez (comemorar, levar dano, cair).
 func gesto(nome: String, duracao := 1.0) -> void:
 	if anim == null or not anim.has_animation(nome):
@@ -204,6 +213,9 @@ func _physics_process(dt: float) -> void:
 		cooldown -= dt
 	if _gesto > 0.0:
 		_gesto -= dt
+	if preso:
+		velocity = Vector3.ZERO
+		return
 	var mv := Forja.mover(lugar) if controlavel else Vector2.ZERO
 	var rapido := mv.length() > 0.92
 	var v := Vector3(mv.x, 0, mv.y) * (CORRIDA if rapido else VELOCIDADE)

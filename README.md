@@ -46,9 +46,9 @@ As salas, e em que marco cada uma ganha o comportamento de jogo comercial
 
 | sala | valida | agora |
 | --- | --- | --- |
-| A Centelha | botões, analógicos, gatilhos analógicos | marco 2 |
-| A Viga | giroscópio, acelerômetro | aberta (girar o controle gira o boneco); o jogo completo no marco 2 |
-| O Molde | touchpad com dois dedos, clique | marco 2 |
+| A Centelha | botões, analógicos, gatilhos analógicos | o jogo: a runa acende em cima da bigorna de cada um; apertar a tempo martela; o círculo do analógico e o fole do gatilho |
+| A Viga | giroscópio, acelerômetro | o jogo: a travessia sobre a lava (incline contra o vento), os sinos na mira do giroscópio, a pedra que quebra na martelada |
+| O Molde | touchpad com dois dedos, clique | o jogo: o molde é o touchpad; trace a letra, abra e feche com dois dedos, carimbe com o clique |
 | O Impacto | motor forte e fraco, isolamento, lightbar | aberta (o golpe da esquerda treme só a esquerda, a luz é a vida); marco 3 |
 | A Galeria | resistência, arma, vibração, LEDs de jogador | aberta (R2 em vibração no tiro); marco 3 |
 | A Voz | microfone, mudo, LED do microfone | aberta (o mudo acende o LED); o microfone de cada controle no marco 4 |
@@ -163,11 +163,17 @@ mesma semente nas duas (`--semente=7`).
    mexa em tudo em cada controle — no mapa dele, a peça apertada acende em
    rosa, o analógico anda, o dedo no touchpad aparece, o giroscópio mostra a
    taxa. ○ fecha.
-4. Entre nas salas abertas pelos portões. Na Galeria, o R2 de cada um treme no
+4. Jogue as salas que medem: A Centelha (as runas: todos os botões, os dois
+   analógicos até a borda, os dois gatilhos no meio e no fundo), A Viga
+   (incline o controle para equilibrar, gire para mirar nos sinos, sacuda para
+   quebrar a pedra) e O Molde (trace a letra no touchpad, abra e feche com dois
+   dedos, clique quando o metal brilhar). No fim de cada uma, o veredito de
+   cada um na tela, por feature, com o que foi medido.
+5. Entre nas outras salas abertas. Na Galeria, o R2 de cada um treme no
    tiro, e só o dele; no Impacto, o golpe da esquerda treme só o lado esquerdo
    daquele controle, e a luz dele cai com a vida; na Voz, o mudo de cada um
-   acende o LED laranja dele; na Viga, girar o controle gira o boneco dele.
-5. Options → O livro da sessão mostra a tabela. Os arquivos estão em
+   acende o LED laranja dele.
+6. Options → O livro da sessão mostra a tabela. Os arquivos estão em
    `relatorios/`: `relatorio-<sessão>.txt` para ler, `.json` e a linha do tempo
    para comparar.
 

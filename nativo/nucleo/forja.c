@@ -204,6 +204,7 @@ bool forja_abrir(Forja *f, const char *pasta, int simular, bool robo, unsigned l
 void forja_quadro(Forja *f, float dt) {
   f->dt = dt;
   f->t += dt;
+  f->relogio_sim_ns += (Uint64)((double)dt * 1e9);
   /* os apertos do quadro anterior já foram lidos pelo jogo: zera, e só então
    * bombeia os novos — cada borda vale exatamente um quadro */
   pads_fim_do_quadro(f);
