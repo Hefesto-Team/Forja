@@ -198,7 +198,7 @@ const _TECLAS := [
 	KEY_W, KEY_A, KEY_S, KEY_D, KEY_I, KEY_J, KEY_K, KEY_L,
 	KEY_UP, KEY_DOWN, KEY_LEFT, KEY_RIGHT,
 	KEY_SPACE, KEY_ENTER, KEY_BACKSPACE, KEY_Q, KEY_E, KEY_ESCAPE, KEY_TAB,
-	KEY_F, KEY_G, KEY_R, KEY_T, KEY_C, KEY_V, KEY_M, KEY_P, KEY_1, KEY_2, KEY_3, KEY_4,
+	KEY_F, KEY_G, KEY_R, KEY_T, KEY_C, KEY_V, KEY_M, KEY_P, KEY_Z, KEY_1, KEY_2, KEY_3, KEY_4,
 ]
 const _TECLA_BOTAO := {
 	KEY_SPACE: CRUZ, KEY_ENTER: CRUZ, KEY_BACKSPACE: CIRCULO, KEY_Q: QUADRADO, KEY_E: TRIANGULO,
@@ -238,6 +238,8 @@ func _teclado_no_simulado() -> void:
 	ctl.simulador_eixo(s, RY, _eixo_teclas(KEY_I, KEY_K))
 	ctl.simulador_eixo(s, L2, 1.0 if tecla(KEY_G) else 0.0)
 	ctl.simulador_eixo(s, R2, 1.0 if tecla(KEY_F) else 0.0)
+	# Z segurado é falar no microfone do controle simulado
+	ctl.simulador_falar(s, 0.8 if tecla(KEY_Z) else 0.0)
 	# o mouse com o botão direito apertado vira o giroscópio
 	var g := Vector3.ZERO
 	if Input.is_mouse_button_pressed(MOUSE_BUTTON_RIGHT):
@@ -646,6 +648,96 @@ func percepcao(l: int) -> Dictionary:
 	return ctl.percepcao(p) if modulo and p >= 0 else {}
 
 
+# ---------------------------------------------------------------- o som de cada controle --
+# O alto-falante, os dois atuadores e o microfone de cada jogador, achados como
+# um jogo acha (pelo aparelho, pelo número, pelo nome) e tocados pelo módulo,
+# ao lado do som da TV. Controle simulado tem uma placa virtual de quatro
+# canais, que o robô ouve e sente (docs/COMO-O-SOM-CHEGA-AO-CONTROLE.md).
+
+const PAPEL_ALTO_FALANTE := 0
+const PAPEL_HAPTICA := 1
+const PAPEL_MICROFONE := 2
+
+
+## Acha o som de cada um (ao entrar numa sala de som). No alto-falante e no
+## microfone, manda também a rota do alto-falante interno (o bloco de efeitos).
+func som_preparar(papel: int) -> void:
+	if modulo:
+		ctl.som_preparar(papel)
+
+
+func som_encerrar() -> void:
+	if modulo:
+		ctl.som_encerrar()
+
+
+func som_tem(l: int, papel: int) -> bool:
+	return ctl.som_tem(l, papel) if modulo else false
+
+
+## A háptica tem os dois lados (o tropeço pergunta o lado)?
+func som_estereo(l: int, papel: int) -> bool:
+	return ctl.som_estereo(l, papel) if modulo else false
+
+
+## O nome que o jogo mostra do dispositivo achado, e como foi achado.
+func som_nome(l: int, papel: int) -> String:
+	return ctl.som_nome(l, papel) if modulo else ""
+
+
+func som_como(l: int, papel: int) -> String:
+	return ctl.som_como(l, papel) if modulo else ""
+
+
+func som_plataforma() -> String:
+	return ctl.som_plataforma() if modulo else ""
+
+
+## A pessoa aponta outro dispositivo para o papel (◀ -1, ▶ +1).
+func som_trocar(l: int, papel: int, direcao: int) -> void:
+	if modulo:
+		ctl.som_trocar(l, papel, direcao)
+
+
+## Um som da forja no alto-falante do controle ("sino", "nota", "grito"...).
+func som_falante(l: int, som: String, ganho := 0.9) -> int:
+	return ctl.som_falante(l, som, ganho) if modulo else -1
+
+
+## Um som nos atuadores: `esq` no esquerdo, `dir` no direito ("" = nenhum).
+## "passo:<chão>:<variação>" é o passo dos Caminhos.
+func som_haptica(l: int, esq: String, dir: String, ganho := 1.0) -> int:
+	return ctl.som_haptica(l, esq, dir, ganho) if modulo else -1
+
+
+func som_parar(l: int) -> void:
+	if modulo:
+		ctl.som_parar(l)
+
+
+## O microfone do lugar: {nivel, pico} (0 = -54 dB, 1 = 0 dB) e {quadros}.
+func som_mic(l: int) -> Dictionary:
+	return ctl.som_mic(l) if modulo else {}
+
+
+## O que a placa virtual do controle simulado do lugar toca agora, 0..1:
+## {falante, esq, dir}. É o que o robô ouve e sente.
+func som_virtual(l: int) -> Dictionary:
+	return ctl.som_virtual(l) if modulo else {}
+
+
+## O veredito do microfone ("microfone") ou do botão do mudo
+## ("microfone_mudo"), pelo que a sala mediu; grava no relatório.
+func mic_veredito(l: int, chave: String, dados: Dictionary) -> Dictionary:
+	return ctl.mic_veredito(l, chave, dados) if modulo else {}
+
+
+## O chão de um envelope sentido nos atuadores (um nível por quadro): 0 grama,
+## 1 cascalho, 2 metal, 3 água; -1 nada.
+func chao_do_envelope(env: PackedFloat32Array) -> int:
+	return ctl.chao_do_envelope(env) if modulo else -1
+
+
 # ---------------------------------------------------------------- o robô --
 # Com --robo, o robô joga nos controles simulados apertando os botões DELES
 # (o caminho inteiro do módulo roda, e os defeitos de mentira pegam).
@@ -678,6 +770,13 @@ func robo_tocar(l: int, dedo: int, x: float, y: float, segundos := 0.06) -> void
 	var p := pad_do_lugar(l)
 	if modulo and p >= 0:
 		ctl.robo_tocar(p, dedo, x, y, segundos)
+
+
+## O robô fala no microfone do controle dele (nível 0..1).
+func robo_falar(l: int, nivel: float, segundos: float) -> void:
+	var p := pad_do_lugar(l)
+	if modulo and p >= 0:
+		ctl.robo_falar(p, nivel, segundos)
 
 
 ## As capacidades do controle do lugar (giro, acel, toque, efeitos...).

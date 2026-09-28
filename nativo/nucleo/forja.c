@@ -4,6 +4,8 @@
 #include "mascara.h"
 #include "relogio.h"
 #include "simulador.h"
+#include "som_controle.h"
+#include "sons_salas.h"
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -160,6 +162,10 @@ bool forja_abrir(Forja *f, const char *pasta, int simular, bool robo, unsigned l
 
   /* o contrato, antes de tudo: sem o relatório estendido, um DualSense nativo
    * no rádio fica só com a entrada básica — este jogo não monta o 0x31 */
+  /* o processo é do Godot: o Ctrl+C e o SIGTERM são dele (sem esta dica, o
+   * SDL troca os dois por um evento de saída que ninguém lê, e o jogo não
+   * fecha pelo terminal) */
+  SDL_SetHint(SDL_HINT_NO_SIGNAL_HANDLERS, "1");
   SDL_SetHint(SDL_HINT_JOYSTICK_ENHANCED_REPORTS, "0");
   SDL_SetHint(SDL_HINT_JOYSTICK_ALLOW_BACKGROUND_EVENTS, "1");
   SDL_SetHint(SDL_HINT_JOYSTICK_HIDAPI_PS5_PLAYER_LED, "1");
@@ -214,6 +220,8 @@ void forja_quadro(Forja *f, float dt) {
   while (SDL_PollEvent(&e))
     pads_evento(f, &e);
   pads_atualizar(f, dt);
+  /* o som de cada controle (só depois de uma sala de som pedir) */
+  somc_atualizar(f, dt);
 }
 
 bool forja_simular(Forja *f, int n) {
@@ -230,6 +238,8 @@ bool forja_simular(Forja *f, int n) {
 void forja_fechar(Forja *f) {
   if (!FORJA)
     return;
+  somc_encerrar(f);
+  sons_salas_liberar();
   pads_encerrar(f);
   if (f->simular > 0)
     simulador_encerrar(f);

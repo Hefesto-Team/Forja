@@ -28,7 +28,8 @@
 #include <devpkey.h>
 #include <cfgmgr32.h>
 
-#include "../app.h"
+#include "forja.h"
+#include "pads.h"
 
 #include <stdio.h>
 
@@ -126,7 +127,7 @@ static bool instancia_do_caminho(const char *caminho, char *out, size_t tam) {
   return true;
 }
 
-bool somc_plataforma_pad(App *a, int slot, char *usb, size_t tam_usb, char *container, size_t tam_c) {
+bool somc_plataforma_pad(Forja *a, int slot, char *usb, size_t tam_usb, char *container, size_t tam_c) {
   (void)usb;
   (void)tam_usb;
   Pad *p = pads_do_slot(a, slot);

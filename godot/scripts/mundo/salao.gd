@@ -20,7 +20,7 @@ const PORTOES := [
 	{"id": "galeria", "nome": "A Galeria", "sobre": "gatilhos adaptativos", "icone": "r2", "lado": "norte", "t": 2.0, "aberta": true},
 	{"id": "voz", "nome": "A Voz", "sobre": "microfone e mudo", "icone": "mic", "lado": "norte", "t": 6.0, "aberta": true},
 	{"id": "caminhos", "nome": "Os Caminhos", "sobre": "háptica por áudio", "icone": "rumble_direito", "lado": "leste", "t": -3.0, "aberta": false},
-	{"id": "canto", "nome": "O Canto", "sobre": "alto-falante", "icone": "alto-falante", "lado": "leste", "t": 3.0, "aberta": false},
+	{"id": "canto", "nome": "O Canto", "sobre": "alto-falante", "icone": "alto-falante", "lado": "leste", "t": 3.0, "aberta": true},
 ]
 
 const X_OESTE := -12.0

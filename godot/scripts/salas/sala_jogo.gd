@@ -36,6 +36,10 @@ var _itens := {}  ## lugar -> o que o boneco levava antes da sala
 ## true numa prova às cegas (as salas de saída): enquanto se joga, o
 ## diagnóstico fica fechado — ele mostraria a luz e o motor do controle
 var cega := false
+## Nas salas de som, o papel que o aviso deixa conferir, trocar (◀ ▶) e testar
+## (△): Forja.PAPEL_ALTO_FALANTE, _HAPTICA ou _MICROFONE; -1 nas outras.
+var papel_som := -1
+var _teste_dir := [0.0, 0.0, 0.0, 0.0]  ## o segundo pulso do teste da háptica
 
 
 func entrar(js: Array) -> void:
@@ -45,6 +49,9 @@ func entrar(js: Array) -> void:
 		Forja.med_comecar(p.lugar, botoes_pedidos)
 		Forja.med_repouso(p.lugar, true)
 		p.controlavel = false
+	if papel_som >= 0:
+		# o som de cada um, achado como um jogo acha; o aviso mostra e deixa trocar
+		Forja.som_preparar(papel_som)
 
 
 func sair() -> void:
@@ -53,6 +60,8 @@ func sair() -> void:
 		p.preso = false
 		if _itens.has(p.lugar):
 			p.visual(p.modelo_i, int(_itens[p.lugar]))
+	if papel_som >= 0:
+		Forja.som_encerrar()
 	super()
 
 
@@ -118,6 +127,8 @@ func _quadro_aviso() -> void:
 		if not Forja.lugar(l).get("conectado", false):
 			continue
 		presentes += 1
+		if papel_som >= 0:
+			_afinar_som(l, p)
 		if not prontos[l] and t_fase > 0.5:
 			if Forja.apertou(l, Forja.CRUZ) or (Forja.robo and t_fase > 1.4 + 0.2 * l):
 				prontos[l] = true
@@ -127,6 +138,25 @@ func _quadro_aviso() -> void:
 			n_prontos += 1
 	if presentes > 0 and n_prontos == presentes and t_fase > 0.9:
 		comecar()
+
+
+## No aviso de uma sala de som: ◀ ▶ aponta outro dispositivo para o papel, △
+## toca o teste nele (o sino no alto-falante; um pulso na esquerda e depois na
+## direita, na háptica). No microfone, a barra do aviso sobe com a voz.
+func _afinar_som(l: int, p: ForjaPlayer) -> void:
+	if Forja.apertou(l, Forja.ESQUERDA) or Forja.apertou(l, Forja.DIREITA):
+		Forja.som_trocar(l, papel_som, -1 if Forja.apertou(l, Forja.ESQUERDA) else 1)
+		Som.tocar("tique", p.global_position + Vector3(0, 1, 0))
+	if Forja.apertou(l, Forja.TRIANGULO):
+		if papel_som == Forja.PAPEL_ALTO_FALANTE:
+			Forja.som_falante(l, "sino", 0.9)
+		elif papel_som == Forja.PAPEL_HAPTICA:
+			Forja.som_haptica(l, "pulso", "")
+			_teste_dir[l] = 0.35
+	if _teste_dir[l] > 0.0:
+		_teste_dir[l] -= get_process_delta_time()
+		if _teste_dir[l] <= 0.0:
+			Forja.som_haptica(l, "", "pulso")
 
 
 func comecar() -> void:

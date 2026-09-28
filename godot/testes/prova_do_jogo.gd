@@ -165,6 +165,34 @@ func _prova_do_percurso() -> void:
 			_esperar(perto, "Impacto P%d: a luz acendeu %s para a pergunta" % [l + 1, SalaImpacto.CORES[pedida].nome])
 		await _termina_a_sala(impacto, ["vibracao_forte", "vibracao_fraca", "vibracao_isolamento", "lightbar"])
 
+	# O Canto, às cegas: o canto de um controle toca só no alto-falante daquele
+	# controle (a placa virtual, que o robô ouve); o canto da TV, em nenhum
+	var canto = await _comeca_a_sala("canto")
+	if canto:
+		var viu_controle := false
+		var viu_tv := false
+		var q := 0
+		while is_instance_valid(canto) and canto.fase == "jogo" and not (viu_controle and viu_tv) and q < 6000:
+			await _quadros(1)
+			q += 1
+			if canto.estado != SalaCanto.CANTO or canto.notas_tocadas == 0 or canto.t_estado < 0.05:
+				continue
+			var fonte: int = canto.fonte
+			if fonte == SalaCanto.TV and not viu_tv:
+				viu_tv = true
+				for l in 4:
+					var nivel := float(Forja.som_virtual(l).get("falante", 1.0))
+					_esperar(nivel < 0.05, "Canto: o canto da TV não sai no alto-falante do P%d (%.2f)" % [l + 1, nivel])
+			elif fonte != SalaCanto.TV and not viu_controle:
+				viu_controle = true
+				for l in 4:
+					var nivel := float(Forja.som_virtual(l).get("falante", 0.0))
+					var certo := nivel > 0.1 if l == fonte else nivel < 0.05
+					_esperar(certo, "Canto: o canto do P%d %s no alto-falante do P%d (%.2f)" % [
+						fonte + 1, "sai" if l == fonte else "não sai", l + 1, nivel])
+		_esperar(viu_controle and viu_tv, "Canto: cantou num controle e na TV")
+		await _termina_a_sala(canto, ["alto_falante"])
+
 	# A Voz: o mudo do P3 acende o LED do P3, e só o dele
 	jogo._entrar_na_sala("voz", false)
 	await _quadros(4)

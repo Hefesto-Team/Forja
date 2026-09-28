@@ -1,14 +1,36 @@
 /* O som de cada controle. Ver som_controle.h. */
 #include "som_controle.h"
 
-#include "../app.h"
-#include "../nucleo/simulador.h"
-#include "../ui/tema.h"
+#include "forja.h"
+#include "pads.h"
+#include "simulador.h"
 
 #include <math.h>
 #include <stdio.h>
 
+static SomControles g_sc;
 static SDL_AudioDeviceID g_ids[SOM_MAX_NOS];
+static bool g_preparado;
+static bool g_audio_tentou, g_audio_ok;
+static char g_sem_audio[200];
+
+static float limitar(float v, float a, float b) { return v < a ? a : (v > b ? b : v); }
+static float aproximar(float atual, float alvo, float taxa, float dt) {
+  return alvo + (atual - alvo) * expf(-taxa * dt);
+}
+
+/* O som do SDL abre na primeira sala de som, não no começo: quem só joga as
+ * salas de entrada não pede nada ao servidor de som. Sem ele (a prova do CI
+ * não tem servidor), os controles simulados seguem com a placa virtual. */
+static void abrir_audio(void) {
+  if (g_audio_tentou)
+    return;
+  g_audio_tentou = true;
+  g_audio_ok = SDL_InitSubSystem(SDL_INIT_AUDIO);
+  if (!g_audio_ok)
+    SDL_snprintf(g_sem_audio, sizeof(g_sem_audio), "sem som do sistema (%s): só os controles simulados têm som",
+                 SDL_GetError());
+}
 
 /* ---------- as saídas ---------- */
 
@@ -35,9 +57,9 @@ static void fechar_saida(SaidaCtl *s) {
   SDL_memset(s, 0, sizeof(*s));
 }
 
-static int nova_saida(SomControles *sc) {
+static int nova_saida(void) {
   for (int i = 0; i < SOMC_MAX_SAIDAS; i++)
-    if (!sc->saidas[i].usada)
+    if (!g_sc.saidas[i].usada)
       return i;
   return -1;
 }
@@ -52,17 +74,17 @@ static int preparar_saida(SaidaCtl *s, int canais) {
 }
 
 /* A saída de um nó da lista: reaproveita se outro papel já a abriu. */
-static int abrir_no(SomControles *sc, int no) {
+static int abrir_no(int no) {
   if (no < 0)
     return -1;
   for (int i = 0; i < SOMC_MAX_SAIDAS; i++)
-    if (sc->saidas[i].usada && !sc->saidas[i].virtual && sc->saidas[i].no == no)
+    if (g_sc.saidas[i].usada && !g_sc.saidas[i].virtual_ && g_sc.saidas[i].no == no)
       return i;
-  int i = nova_saida(sc);
+  int i = nova_saida();
   if (i < 0)
     return -1;
-  SaidaCtl *s = &sc->saidas[i];
-  int canais = sc->nos[no].canais > 0 ? sc->nos[no].canais : 2;
+  SaidaCtl *s = &g_sc.saidas[i];
+  int canais = g_sc.nos[no].canais > 0 ? g_sc.nos[no].canais : 2;
   if (preparar_saida(s, canais) < 0) {
     fechar_saida(s);
     return -1;
@@ -78,19 +100,19 @@ static int abrir_no(SomControles *sc, int no) {
   return i;
 }
 
-static int abrir_virtual(SomControles *sc, int slot) {
+static int abrir_virtual(int slot) {
   for (int i = 0; i < SOMC_MAX_SAIDAS; i++)
-    if (sc->saidas[i].usada && sc->saidas[i].virtual && sc->saidas[i].dono == slot)
+    if (g_sc.saidas[i].usada && g_sc.saidas[i].virtual_ && g_sc.saidas[i].dono == slot)
       return i;
-  int i = nova_saida(sc);
+  int i = nova_saida();
   if (i < 0)
     return -1;
-  SaidaCtl *s = &sc->saidas[i];
+  SaidaCtl *s = &g_sc.saidas[i];
   if (preparar_saida(s, 4) < 0) {
     fechar_saida(s);
     return -1;
   }
-  s->virtual = true;
+  s->virtual_ = true;
   s->no = -1;
   s->dono = slot;
   return i;
@@ -98,32 +120,37 @@ static int abrir_virtual(SomControles *sc, int slot) {
 
 /* ---------- a lista e a escolha ---------- */
 
-static void listar(SomControles *sc) {
-  sc->n = 0;
-  for (int gravacao = 0; gravacao < 2; gravacao++) {
-    int total = 0;
-    SDL_AudioDeviceID *ids = gravacao ? SDL_GetAudioRecordingDevices(&total) : SDL_GetAudioPlaybackDevices(&total);
-    for (int k = 0; ids && k < total && sc->n < SOM_MAX_NOS; k++) {
-      const char *nome = SDL_GetAudioDeviceName(ids[k]);
-      if (!nome)
-        continue;
-      NoSom *no = &sc->nos[sc->n];
-      SDL_memset(no, 0, sizeof(*no));
-      SDL_strlcpy(no->nome, nome, sizeof(no->nome));
-      SDL_AudioSpec spec;
-      int quadros = 0;
-      no->canais = SDL_GetAudioDeviceFormat(ids[k], &spec, &quadros) ? spec.channels : 2;
-      no->gravacao = gravacao;
-      no->tipo = achar_tipo(nome, gravacao);
-      no->controle_n = achar_numero(nome);
-      no->no_sistema = -1;
-      g_ids[sc->n] = ids[k];
-      sc->n++;
+static void listar(void) {
+  g_sc.n = 0;
+  if (g_audio_ok)
+    for (int gravacao = 0; gravacao < 2; gravacao++) {
+      int total = 0;
+      SDL_AudioDeviceID *ids = gravacao ? SDL_GetAudioRecordingDevices(&total) : SDL_GetAudioPlaybackDevices(&total);
+      for (int k = 0; ids && k < total && g_sc.n < SOM_MAX_NOS; k++) {
+        const char *nome = SDL_GetAudioDeviceName(ids[k]);
+        if (!nome)
+          continue;
+        NoSom *no = &g_sc.nos[g_sc.n];
+        SDL_memset(no, 0, sizeof(*no));
+        SDL_strlcpy(no->nome, nome, sizeof(no->nome));
+        SDL_AudioSpec spec;
+        int quadros = 0;
+        no->canais = SDL_GetAudioDeviceFormat(ids[k], &spec, &quadros) ? spec.channels : 2;
+        no->gravacao = gravacao;
+        no->tipo = achar_tipo(nome, gravacao);
+        no->controle_n = achar_numero(nome);
+        no->no_sistema = -1;
+        g_ids[g_sc.n] = ids[k];
+        g_sc.n++;
+      }
+      SDL_free(ids);
     }
-    SDL_free(ids);
-  }
-  somc_plataforma_nos(sc, sc->plataforma, sizeof(sc->plataforma));
-  sc->listou = true;
+  if (g_sc.n > 0)
+    somc_plataforma_nos(&g_sc, g_sc.plataforma, sizeof(g_sc.plataforma));
+  else
+    SDL_strlcpy(g_sc.plataforma, g_audio_ok ? "nenhum dispositivo de som na lista" : g_sem_audio,
+                sizeof(g_sc.plataforma));
+  g_sc.listou = true;
 }
 
 static bool e_candidato(const NoSom *no, PapelSom papel) {
@@ -134,9 +161,8 @@ static bool e_candidato(const NoSom *no, PapelSom papel) {
   return true;
 }
 
-static void ligar_saidas(App *a, int s) {
-  SomControles *sc = &a->somc;
-  SomJogador *j = &sc->j[s];
+static void ligar_saidas(Forja *a, int s) {
+  SomJogador *j = &g_sc.j[s];
   for (int p = 0; p < PAPEL_TOTAL; p++) {
     j->canal_a[p] = j->canal_b[p] = -1;
     j->saida[p] = -1;
@@ -144,7 +170,7 @@ static void ligar_saidas(App *a, int s) {
   Pad *pad = pads_do_slot(a, s);
   if (pad && pad->simulado) {
     /* o controle de mentira: uma placa virtual de quatro canais, como a do cabo */
-    int v = abrir_virtual(sc, s);
+    int v = abrir_virtual(s);
     j->saida[PAPEL_ALTO_FALANTE] = j->saida[PAPEL_HAPTICA] = v;
     j->canal_a[PAPEL_ALTO_FALANTE] = 1;
     j->canal_a[PAPEL_HAPTICA] = 2;
@@ -155,8 +181,8 @@ static void ligar_saidas(App *a, int s) {
   for (int p = 0; p < PAPEL_MICROFONE; p++) {
     if (j->no[p] < 0)
       continue;
-    achar_canais(&sc->nos[j->no[p]], (PapelSom)p, &j->canal_a[p], &j->canal_b[p]);
-    j->saida[p] = abrir_no(sc, j->no[p]);
+    achar_canais(&g_sc.nos[j->no[p]], (PapelSom)p, &j->canal_a[p], &j->canal_b[p]);
+    j->saida[p] = abrir_no(j->no[p]);
   }
   if (j->mic) {
     SDL_DestroyAudioStream(j->mic);
@@ -171,14 +197,13 @@ static void ligar_saidas(App *a, int s) {
   }
 }
 
-static void escolher(App *a) {
-  SomControles *sc = &a->somc;
+static void escolher(Forja *a) {
   char usb[MAX_JOGADORES][512], cont[MAX_JOGADORES][48];
   bool tem[MAX_JOGADORES];
   for (int s = 0; s < MAX_JOGADORES; s++) {
     for (int p = 0; p < PAPEL_TOTAL; p++) {
-      sc->j[s].no[p] = -1;
-      sc->j[s].como[p] = ACHOU_NADA;
+      g_sc.j[s].no[p] = -1;
+      g_sc.j[s].como[p] = ACHOU_NADA;
     }
     usb[s][0] = cont[s][0] = 0;
     Pad *pad = pads_do_slot(a, s);
@@ -190,12 +215,12 @@ static void escolher(App *a) {
     bool usado[SOM_MAX_NOS] = {false};
     /* o nó que é, pelo aparelho, de um controle que não está na mesa também
      * não vai para ninguém pelo nome */
-    for (int i = 0; i < sc->n; i++) {
-      if (!sc->nos[i].usb[0])
+    for (int i = 0; i < g_sc.n; i++) {
+      if (!g_sc.nos[i].usb[0])
         continue;
       for (int k = 0; k < MAX_PADS; k++) {
         Pad *o = &a->pads.pad[k];
-        if (o->usado && o->slot < 0 && o->usb_pai[0] && !SDL_strcmp(o->usb_pai, sc->nos[i].usb))
+        if (o->usado && o->slot < 0 && o->usb_pai[0] && !SDL_strcmp(o->usb_pai, g_sc.nos[i].usb))
           usado[i] = true;
       }
     }
@@ -203,15 +228,15 @@ static void escolher(App *a) {
      * pelo nome — ninguém leva pelo nome o que é de outro pelo aparelho */
     for (int passada = 0; passada < 3; passada++)
       for (int s = 0; s < MAX_JOGADORES; s++) {
-        if (!tem[s] || sc->j[s].no[p] >= 0 || pads_do_slot(a, s)->simulado)
+        if (!tem[s] || g_sc.j[s].no[p] >= 0 || pads_do_slot(a, s)->simulado)
           continue;
         ComoAchou como;
-        int i = achar_para(sc->nos, sc->n, (PapelSom)p, passada == 0 ? usb[s] : NULL, passada == 0 ? cont[s] : NULL,
+        int i = achar_para(g_sc.nos, g_sc.n, (PapelSom)p, passada == 0 ? usb[s] : NULL, passada == 0 ? cont[s] : NULL,
                            passada == 1 ? s + 1 : 0, usado, &como);
         ComoAchou quer = passada == 0 ? ACHOU_APARELHO : passada == 1 ? ACHOU_NUMERO : ACHOU_NOME;
         if (i >= 0 && como == quer) {
-          sc->j[s].no[p] = i;
-          sc->j[s].como[p] = como;
+          g_sc.j[s].no[p] = i;
+          g_sc.j[s].como[p] = como;
           usado[i] = true;
         }
       }
@@ -221,72 +246,77 @@ static void escolher(App *a) {
       Pad *pad = pads_do_slot(a, s);
       if (pad->simulado)
         for (int p = 0; p < PAPEL_TOTAL; p++)
-          sc->j[s].como[p] = ACHOU_APARELHO;
+          g_sc.j[s].como[p] = ACHOU_APARELHO;
       ligar_saidas(a, s);
     }
 }
 
 /* ---------- a vida ---------- */
 
-void somc_iniciar(App *a) {
-  SDL_memset(&a->somc, 0, sizeof(a->somc));
+static void zerar(void) {
+  SDL_memset(&g_sc, 0, sizeof(g_sc));
   for (int s = 0; s < MAX_JOGADORES; s++)
     for (int p = 0; p < PAPEL_TOTAL; p++)
-      a->somc.j[s].no[p] = a->somc.j[s].saida[p] = -1;
+      g_sc.j[s].no[p] = g_sc.j[s].saida[p] = -1;
 }
 
-void somc_encerrar(App *a) {
-  SomControles *sc = &a->somc;
-  for (int s = 0; s < MAX_JOGADORES; s++) {
-    if (sc->j[s].mic) {
-      SDL_DestroyAudioStream(sc->j[s].mic);
-      sc->j[s].mic = NULL;
+void somc_encerrar(Forja *a) {
+  (void)a;
+  for (int s = 0; s < MAX_JOGADORES; s++)
+    if (g_sc.j[s].mic) {
+      SDL_DestroyAudioStream(g_sc.j[s].mic);
+      g_sc.j[s].mic = NULL;
     }
-    somc_escuta_parar(a, s);
-  }
   for (int i = 0; i < SOMC_MAX_SAIDAS; i++)
-    fechar_saida(&sc->saidas[i]);
+    fechar_saida(&g_sc.saidas[i]);
+  g_preparado = false;
 }
 
-void somc_preparar(App *a) {
+bool somc_preparado(void) { return g_preparado; }
+
+const char *somc_plataforma(void) { return g_sc.plataforma; }
+
+void somc_preparar(Forja *a) {
   somc_encerrar(a);
-  somc_iniciar(a);
-  listar(&a->somc);
+  zerar();
+  abrir_audio();
+  listar();
   escolher(a);
+  g_preparado = true;
   somc_relatorio(a);
+  reg_linha(&a->reg, "som: %d dispositivo(s) na lista · %s", g_sc.n, g_sc.plataforma);
   for (int s = 0; s < MAX_JOGADORES; s++) {
     if (!pads_do_slot(a, s) || !a->pads.slot[s].ocupado)
       continue;
-    SomJogador *j = &a->somc.j[s];
+    SomJogador *j = &g_sc.j[s];
     reg_linha(&a->reg, "%s · som: alto-falante %s (%s) · háptica %s · microfone %s", pads_rotulo_slot(s),
               somc_nome(a, s, PAPEL_ALTO_FALANTE), achar_como_rotulo(j->como[PAPEL_ALTO_FALANTE]),
               somc_nome(a, s, PAPEL_HAPTICA), somc_nome(a, s, PAPEL_MICROFONE));
   }
 }
 
-void somc_trocar(App *a, int slot, PapelSom papel, int direcao) {
-  SomControles *sc = &a->somc;
-  if (slot < 0 || slot >= MAX_JOGADORES)
+void somc_trocar(Forja *a, int slot, PapelSom papel, int direcao) {
+  if (slot < 0 || slot >= MAX_JOGADORES || !g_preparado || papel < 0 || papel >= PAPEL_TOTAL)
     return;
-  SomJogador *j = &sc->j[slot];
+  SomJogador *j = &g_sc.j[slot];
   Pad *pad = pads_do_slot(a, slot);
   if (!pad || pad->simulado)
     return;
   /* os candidatos, e o "nenhum" no fim da roda */
   int atual = j->no[papel];
-  for (int passo = 0; passo < sc->n + 1; passo++) {
+  for (int passo = 0; passo < g_sc.n + 1; passo++) {
     atual += direcao;
-    if (atual >= sc->n)
+    if (atual >= g_sc.n)
       atual = -1;
     if (atual < -1)
-      atual = sc->n - 1;
-    if (atual < 0 || e_candidato(&sc->nos[atual], papel))
+      atual = g_sc.n - 1;
+    if (atual < 0 || e_candidato(&g_sc.nos[atual], papel))
       break;
   }
   j->no[papel] = atual;
   j->como[papel] = atual >= 0 ? ACHOU_PESSOA : ACHOU_NADA;
-  if (papel == PAPEL_ALTO_FALANTE && atual >= 0 && sc->nos[atual].tipo == NO_DUALSENSE_SAIDA &&
-      sc->nos[atual].canais >= 4) {
+  if (papel == PAPEL_ALTO_FALANTE && atual >= 0 && g_sc.nos[atual].tipo == NO_DUALSENSE_SAIDA &&
+      g_sc.nos[atual].canais >= 4) {
     /* a placa do controle traz os atuadores junto */
     j->no[PAPEL_HAPTICA] = atual;
     j->como[PAPEL_HAPTICA] = ACHOU_PESSOA;
@@ -299,52 +329,55 @@ void somc_trocar(App *a, int slot, PapelSom papel, int direcao) {
             somc_nome(a, slot, papel));
 }
 
-bool somc_tem(App *a, int slot, PapelSom papel) {
-  if (slot < 0 || slot >= MAX_JOGADORES)
+bool somc_tem(Forja *a, int slot, PapelSom papel) {
+  (void)a;
+  if (slot < 0 || slot >= MAX_JOGADORES || !g_preparado || papel < 0 || papel >= PAPEL_TOTAL)
     return false;
-  SomJogador *j = &a->somc.j[slot];
+  SomJogador *j = &g_sc.j[slot];
   if (papel == PAPEL_MICROFONE)
     return j->mic || j->mic_virtual;
   return j->saida[papel] >= 0 && j->canal_a[papel] >= 0;
 }
 
-bool somc_estereo(App *a, int slot, PapelSom papel) {
+bool somc_estereo(Forja *a, int slot, PapelSom papel) {
   if (!somc_tem(a, slot, papel) || papel == PAPEL_MICROFONE)
     return false;
-  SomJogador *j = &a->somc.j[slot];
+  SomJogador *j = &g_sc.j[slot];
   return j->canal_b[papel] >= 0 && j->canal_b[papel] != j->canal_a[papel];
 }
 
-const char *somc_nome(App *a, int slot, PapelSom papel) {
-  if (slot < 0 || slot >= MAX_JOGADORES)
+const char *somc_nome(Forja *a, int slot, PapelSom papel) {
+  if (slot < 0 || slot >= MAX_JOGADORES || papel < 0 || papel >= PAPEL_TOTAL)
     return "—";
-  SomJogador *j = &a->somc.j[slot];
+  SomJogador *j = &g_sc.j[slot];
   Pad *pad = pads_do_slot(a, slot);
   if (pad && pad->simulado)
     return "placa virtual do controle simulado";
-  if (j->no[papel] < 0)
+  if (!g_preparado || j->no[papel] < 0)
     return "não achado";
-  return a->somc.nos[j->no[papel]].nome;
+  return g_sc.nos[j->no[papel]].nome;
 }
 
-ComoAchou somc_como(App *a, int slot, PapelSom papel) {
-  return slot >= 0 && slot < MAX_JOGADORES ? a->somc.j[slot].como[papel] : ACHOU_NADA;
+ComoAchou somc_como(Forja *a, int slot, PapelSom papel) {
+  (void)a;
+  return slot >= 0 && slot < MAX_JOGADORES && papel >= 0 && papel < PAPEL_TOTAL ? g_sc.j[slot].como[papel]
+                                                                                 : ACHOU_NADA;
 }
 
 /* ---------- tocar ---------- */
 
-int somc_falante(App *a, int slot, const Som *s, float ganho) {
+int somc_falante(Forja *a, int slot, const Som *s, float ganho) {
   if (!somc_tem(a, slot, PAPEL_ALTO_FALANTE) || !s)
     return -1;
-  SomJogador *j = &a->somc.j[slot];
-  SaidaCtl *sd = &a->somc.saidas[j->saida[PAPEL_ALTO_FALANTE]];
+  SomJogador *j = &g_sc.j[slot];
+  SaidaCtl *sd = &g_sc.saidas[j->saida[PAPEL_ALTO_FALANTE]];
   float g[MIX_MAX_CANAIS] = {0};
   g[j->canal_a[PAPEL_ALTO_FALANTE]] = ganho;
   if (j->canal_b[PAPEL_ALTO_FALANTE] >= 0)
     g[j->canal_b[PAPEL_ALTO_FALANTE]] = ganho;
   /* com o fone no jack, o som do controle vai para as duas orelhas */
-  if (j->fone && !sd->virtual && j->no[PAPEL_ALTO_FALANTE] >= 0 &&
-      a->somc.nos[j->no[PAPEL_ALTO_FALANTE]].tipo == NO_DUALSENSE_SAIDA)
+  if (j->fone && !sd->virtual_ && j->no[PAPEL_ALTO_FALANTE] >= 0 &&
+      g_sc.nos[j->no[PAPEL_ALTO_FALANTE]].tipo == NO_DUALSENSE_SAIDA)
     g[0] = g[1] = ganho;
   return mixer_tocar(&sd->mixer, s, g, false);
 }
@@ -353,33 +386,33 @@ int somc_falante(App *a, int slot, const Som *s, float ganho) {
  * orelhas, e a rota do estéreo no fone); tirou, volta ao alto-falante. Só
  * quando o alto-falante é a placa do próprio controle, que é onde a rota do
  * bloco de efeitos manda. */
-static void acompanhar_fone(App *a, int slot) {
-  SomJogador *j = &a->somc.j[slot];
+static void acompanhar_fone(Forja *a, int slot) {
+  SomJogador *j = &g_sc.j[slot];
   Pad *p = pads_do_slot(a, slot);
   bool fone = p && (p->status53 & 1);
   if (fone == j->fone)
     return;
   j->fone = fone;
   bool placa = somc_tem(a, slot, PAPEL_ALTO_FALANTE) && j->no[PAPEL_ALTO_FALANTE] >= 0 &&
-               a->somc.nos[j->no[PAPEL_ALTO_FALANTE]].tipo == NO_DUALSENSE_SAIDA;
+               g_sc.nos[j->no[PAPEL_ALTO_FALANTE]].tipo == NO_DUALSENSE_SAIDA;
   if (!placa)
     return;
   pad_alto_falante(a, p, FORJA_VOL_FALANTE_PADRAO, fone ? FORJA_ROTA_FONE : FORJA_ROTA_FALANTE, FORJA_PREAMP_PADRAO);
-  reg_linha(&a->reg, "%s: o fone %s — o som do controle vai para %s", pads_rotulo_slot(slot), fone ? "entrou no jack" : "saiu",
-            fone ? "o fone" : "o alto-falante");
+  reg_linha(&a->reg, "%s: o fone %s — o som do controle vai para %s", pads_rotulo_slot(slot),
+            fone ? "entrou no jack" : "saiu", fone ? "o fone" : "o alto-falante");
   Evento ev;
   ev_iniciar(&ev, &a->lt, "fone", slot + 1);
   ev_bool(&ev, "plugado", fone);
   ev_fim(&ev, &a->lt);
 }
 
-int somc_haptica(App *a, int slot, const Som *esq, const Som *dir, float ganho) {
+int somc_haptica(Forja *a, int slot, const Som *esq, const Som *dir, float ganho) {
   if (!somc_tem(a, slot, PAPEL_HAPTICA))
     return -1;
-  SomJogador *j = &a->somc.j[slot];
-  SaidaCtl *sd = &a->somc.saidas[j->saida[PAPEL_HAPTICA]];
+  SomJogador *j = &g_sc.j[slot];
+  SaidaCtl *sd = &g_sc.saidas[j->saida[PAPEL_HAPTICA]];
   int voz = -1;
-  float k = limitar(a->cfg.intensidade, 0, 1) * ganho;
+  float k = limitar(a->intensidade, 0, 1) * ganho;
   if (esq) {
     float g[MIX_MAX_CANAIS] = {0};
     g[j->canal_a[PAPEL_HAPTICA]] = k;
@@ -395,16 +428,19 @@ int somc_haptica(App *a, int slot, const Som *esq, const Som *dir, float ganho) 
   return voz;
 }
 
-void somc_parar_tudo(App *a, int slot) {
-  SomJogador *j = &a->somc.j[slot];
+void somc_parar_tudo(Forja *a, int slot) {
+  (void)a;
+  if (slot < 0 || slot >= MAX_JOGADORES || !g_preparado)
+    return;
+  SomJogador *j = &g_sc.j[slot];
   for (int p = 0; p < PAPEL_MICROFONE; p++)
     if (j->saida[p] >= 0)
-      mixer_parar_tudo(&a->somc.saidas[j->saida[p]].mixer);
+      mixer_parar_tudo(&g_sc.saidas[j->saida[p]].mixer);
 }
 
 /* ---------- a cada quadro ---------- */
 
-static void medir_virtual(App *a, SaidaCtl *s, float dt) {
+static void medir_virtual(Forja *a, SaidaCtl *s, float dt) {
   int quadros = (int)(dt * MIX_TAXA);
   if (quadros > s->tmp_quadros)
     quadros = s->tmp_quadros;
@@ -436,8 +472,8 @@ static void medir_virtual(App *a, SaidaCtl *s, float dt) {
       if (!pads_do_slot(a, vizinho))
         continue;
       for (int i = 0; i < SOMC_MAX_SAIDAS; i++)
-        if (a->somc.saidas[i].usada && a->somc.saidas[i].virtual && a->somc.saidas[i].dono == vizinho)
-          alvo = &a->somc.saidas[i];
+        if (g_sc.saidas[i].usada && g_sc.saidas[i].virtual_ && g_sc.saidas[i].dono == vizinho)
+          alvo = &g_sc.saidas[i];
       break;
     }
   }
@@ -455,16 +491,17 @@ static void medir_virtual(App *a, SaidaCtl *s, float dt) {
       s->nivel[c] = aproximar(s->nivel[c], 0, 20, dt);
 }
 
-void somc_atualizar(App *a, float dt) {
-  SomControles *sc = &a->somc;
+void somc_atualizar(Forja *a, float dt) {
+  if (!g_preparado)
+    return;
   for (int s = 0; s < MAX_JOGADORES; s++)
     acompanhar_fone(a, s);
   for (int i = 0; i < SOMC_MAX_SAIDAS; i++)
-    if (sc->saidas[i].usada && sc->saidas[i].virtual)
-      medir_virtual(a, &sc->saidas[i], dt);
+    if (g_sc.saidas[i].usada && g_sc.saidas[i].virtual_)
+      medir_virtual(a, &g_sc.saidas[i], dt);
   float buf[2048];
   for (int s = 0; s < MAX_JOGADORES; s++) {
-    SomJogador *j = &sc->j[s];
+    SomJogador *j = &g_sc.j[s];
     float nivel = 0, pico = 0;
     if (j->mic_virtual) {
       Pad *p = pads_do_slot(a, s);
@@ -482,14 +519,6 @@ void somc_atualizar(App *a, float dt) {
         continue;
       }
       j->mic_quadros++;
-      if (j->escuta) {
-        int cabe = j->escuta_cap - j->escuta_n;
-        int n_esc = amostras < cabe ? amostras : cabe;
-        if (n_esc > 0) {
-          SDL_memcpy(j->escuta + j->escuta_n, buf, (size_t)n_esc * sizeof(float));
-          j->escuta_n += n_esc;
-        }
-      }
       double soma = 0;
       for (int k = 0; k < amostras; k++) {
         float v = fabsf(buf[k]);
@@ -507,32 +536,44 @@ void somc_atualizar(App *a, float dt) {
   }
 }
 
-float somc_mic_nivel(App *a, int slot) { return slot >= 0 && slot < MAX_JOGADORES ? a->somc.j[slot].mic_nivel : 0; }
-float somc_mic_pico(App *a, int slot) { return slot >= 0 && slot < MAX_JOGADORES ? a->somc.j[slot].mic_pico : 0; }
-long somc_mic_quadros(App *a, int slot) { return slot >= 0 && slot < MAX_JOGADORES ? a->somc.j[slot].mic_quadros : 0; }
-
-static SaidaCtl *virtual_de(App *a, int slot) {
-  SomJogador *j = &a->somc.j[slot];
-  int i = j->saida[PAPEL_ALTO_FALANTE];
-  return i >= 0 && a->somc.saidas[i].virtual ? &a->somc.saidas[i] : NULL;
+float somc_mic_nivel(Forja *a, int slot) {
+  (void)a;
+  return slot >= 0 && slot < MAX_JOGADORES ? g_sc.j[slot].mic_nivel : 0;
+}
+float somc_mic_pico(Forja *a, int slot) {
+  (void)a;
+  return slot >= 0 && slot < MAX_JOGADORES ? g_sc.j[slot].mic_pico : 0;
+}
+long somc_mic_quadros(Forja *a, int slot) {
+  (void)a;
+  return slot >= 0 && slot < MAX_JOGADORES ? g_sc.j[slot].mic_quadros : 0;
 }
 
-float somc_virtual_falante(App *a, int slot) {
-  SaidaCtl *s = slot >= 0 && slot < MAX_JOGADORES ? virtual_de(a, slot) : NULL;
+static SaidaCtl *virtual_de(int slot) {
+  if (slot < 0 || slot >= MAX_JOGADORES || !g_preparado)
+    return NULL;
+  int i = g_sc.j[slot].saida[PAPEL_ALTO_FALANTE];
+  return i >= 0 && g_sc.saidas[i].virtual_ ? &g_sc.saidas[i] : NULL;
+}
+
+float somc_virtual_falante(Forja *a, int slot) {
+  (void)a;
+  SaidaCtl *s = virtual_de(slot);
   return s ? s->nivel[1] : 0;
 }
 
-float somc_virtual_atuador(App *a, int slot, int lado) {
-  SaidaCtl *s = slot >= 0 && slot < MAX_JOGADORES ? virtual_de(a, slot) : NULL;
+float somc_virtual_atuador(Forja *a, int slot, int lado) {
+  (void)a;
+  SaidaCtl *s = virtual_de(slot);
   return s ? s->nivel[lado ? 3 : 2] : 0;
 }
 
-void somc_relatorio(App *a) {
+void somc_relatorio(Forja *a) {
   for (int s = 0; s < MAX_JOGADORES; s++) {
     RelControle *c = &a->rel.controles[s];
     if (!c->presente)
       continue;
-    SomJogador *j = &a->somc.j[s];
+    SomJogador *j = &g_sc.j[s];
     RelSom *alvos[PAPEL_TOTAL] = {&c->alto_falante, &c->haptica, &c->microfone};
     for (int p = 0; p < PAPEL_TOTAL; p++) {
       RelSom *r = alvos[p];
@@ -545,55 +586,19 @@ void somc_relatorio(App *a) {
       }
       if (j->no[p] < 0) {
         r->nome[0] = 0;
-        rel_copiar(r->como, sizeof(r->como), a->somc.listou ? "nem pelo aparelho, nem pelo nome" : "");
+        rel_copiar(r->como, sizeof(r->como), g_sc.listou ? "nem pelo aparelho, nem pelo nome" : "");
         r->canais = 0;
         continue;
       }
-      const NoSom *no = &a->somc.nos[j->no[p]];
+      const NoSom *no = &g_sc.nos[j->no[p]];
       rel_copiar(r->nome, sizeof(r->nome), no->nome);
       char como[96];
       SDL_snprintf(como, sizeof(como), "%s%s%s", achar_como_rotulo(j->como[p]),
-                   j->como[p] == ACHOU_APARELHO && a->somc.plataforma[0] ? " · " : "",
-                   j->como[p] == ACHOU_APARELHO ? a->somc.plataforma : "");
+                   j->como[p] == ACHOU_APARELHO && g_sc.plataforma[0] ? " · " : "",
+                   j->como[p] == ACHOU_APARELHO ? g_sc.plataforma : "");
       rel_copiar(r->como, sizeof(r->como), como);
       r->canais = no->canais;
     }
   }
-  app_relatorio_mudou(a);
-}
-
-/* ---------- a escuta do experimental/ ---------- */
-
-bool somc_escutar(App *a, int slot, float segundos) {
-  if (slot < 0 || slot >= MAX_JOGADORES)
-    return false;
-  SomJogador *j = &a->somc.j[slot];
-  if (!j->mic)
-    return false;
-  somc_escuta_parar(a, slot);
-  j->escuta_cap = (int)(segundos * MIX_TAXA);
-  j->escuta = SDL_calloc((size_t)j->escuta_cap, sizeof(float));
-  j->escuta_n = 0;
-  if (!j->escuta)
-    return false;
-  SDL_ClearAudioStream(j->mic); /* a primeira amostra gravada é de depois de agora */
-  return true;
-}
-
-const float *somc_escuta(App *a, int slot, int *n) {
-  if (slot < 0 || slot >= MAX_JOGADORES || !a->somc.j[slot].escuta) {
-    *n = 0;
-    return NULL;
-  }
-  *n = a->somc.j[slot].escuta_n;
-  return a->somc.j[slot].escuta;
-}
-
-void somc_escuta_parar(App *a, int slot) {
-  if (slot < 0 || slot >= MAX_JOGADORES)
-    return;
-  SomJogador *j = &a->somc.j[slot];
-  SDL_free(j->escuta);
-  j->escuta = NULL;
-  j->escuta_cap = j->escuta_n = 0;
+  forja_relatorio_mudou(a);
 }
