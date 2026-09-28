@@ -1,36 +1,36 @@
 # experimental/ — a bancada dos experimentos
 
-> **Neste marco a bancada está parada.** Ela rodava dentro do app 2D, que saiu
-> do branch ([ADR-007](../docs/adr/007-o-jogo-e-o-3d-em-godot.md)); volta no
-> marco 5, pelo módulo nativo do jogo 3D. O que foi medido antes continua em
-> [RESULTADOS.md](RESULTADOS.md).
-
 Cada experimento é uma pergunta que o jogo ainda não sabe responder com
 certeza — sobre o alto-falante, os microfones, a háptica e o gatilho do
 DualSense — medida no aparelho e **gravada inteira**: o que funcionou, o que
 falhou e o que não deu para medir, com o porquê. Nada daqui decide veredito
 das salas; é o caderno de bancada de quem valida o Hefesto.
 
-O código mora em `experimental/src/` e entra no mesmo binário do jogo (usa o
-mesmo som por controle e o mesmo simulador): `experimentos.c` é a cena,
-`analise.c` é a lógica pura, provada sem aparelho em
-`demo/testes/prova_experimentos.c`.
+A bancada roda dentro do jogo 3D, pelo mesmo módulo nativo das salas (o mesmo
+som por controle, o mesmo simulador): a sala é
+`godot/scripts/salas/bancada.gd`; a escuta crua do microfone, o report cru e
+o resultado de cada medida estão em `nativo/godot/forja_bancada.cpp`; a
+análise é `nativo/nucleo/analise.c`, lógica pura provada sem aparelho em
+`nativo/testes/prova_experimentos.c`.
 
 ## Como rodar
 
 ```sh
-./run-local.sh -- --experimento laco          # Linux, com os controles na mesa
+./run-local.sh -- --experimento=laco          # Linux, com os controles na mesa
 experimental/rodar.sh                          # os cinco, um depois do outro
+experimental/rodar.sh -- --simular=4 --robo    # a rodada de teste, sem aparelho
+bash tests/prova_da_bancada.sh                 # a prova da bancada (o CI roda)
 ```
 
-No Windows, ou no `.exe` pelo Proton, ponha `--experimento laco` nas opções de
-inicialização. Abre a mesa de sempre — cada jogador aperta ✕ — e o
-experimento entra no lugar do salão. No fim, ✕ repete e ○ volta ao título;
-Options para no meio.
+No Windows, ou no `.exe` pelo Proton, ponha `--experimento=laco` nas opções de
+inicialização. Todos os controles conectados entram na mesa, cada um no seu
+lugar, e o experimento entra no lugar do salão. No fim, ✕ repete e ○ fecha a
+sessão (o `rodar.sh` passa ao próximo); Options pausa no meio.
 
-Sem controle, `--simular 4 --robo` roda o experimento com controles de
+Sem controle, `--simular=4 --robo` roda o experimento com controles de
 mentira: prova que a bancada anda, e o que precisa de aparelho de verdade sai
-"não medido". Os defeitos de mentira (`--defeito`) valem na bancada também.
+"não medido", com o porquê; com o robô, a sessão fecha sozinha no fim. Os
+defeitos de mentira (`--defeitos=`) valem na bancada também.
 
 ## Onde fica o resultado
 

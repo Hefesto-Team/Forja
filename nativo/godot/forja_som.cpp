@@ -77,7 +77,12 @@ String ForjaControles::som_nome(int lugar, int papel) const {
 }
 
 String ForjaControles::som_como(int lugar, int papel) const {
-  return aberto_ && papel_ok(papel) ? txt(achar_como_rotulo(somc_como(FORJA, lugar, (PapelSom)papel))) : String();
+  if (!aberto_ || !papel_ok(papel))
+    return String();
+  Pad *p = pads_do_slot(FORJA, lugar);
+  if (p && p->simulado)
+    return txt("simulado: quatro canais, como no cabo");
+  return txt(achar_como_rotulo(somc_como(FORJA, lugar, (PapelSom)papel)));
 }
 
 String ForjaControles::som_plataforma() const { return aberto_ ? txt(somc_plataforma()) : String(); }

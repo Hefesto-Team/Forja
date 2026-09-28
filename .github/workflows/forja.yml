@@ -69,6 +69,9 @@ jobs:
       - name: A prova do jogo (quatro DualSense simulados, headless)
         run: bash tests/prova_do_jogo.sh
 
+      - name: A prova da bancada (os experimentos do experimental/, sem aparelho)
+        run: bash tests/prova_da_bancada.sh
+
       - uses: actions/upload-artifact@v4
         with:
           name: forja-modulo-linux-x86_64
