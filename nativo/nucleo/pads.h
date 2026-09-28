@@ -76,6 +76,7 @@ typedef struct Pad {
   bool rumble_escala_cheia; /* o SDL manda o rumble inteiro (Edge ou fw >= 0x0224) */
   Uint16 rumble_baixo, rumble_alto;
   Uint64 rumble_ate_ms;
+  float rumble_ate_t; /* simulado: quando o motor para, no relógio do jogo (a->t) */
   SDL_Color luz;
   ForjaTriggerMode modo_l2, modo_r2;
   int leds_jogador;

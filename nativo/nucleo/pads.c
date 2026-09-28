@@ -434,7 +434,14 @@ void pads_atualizar(Forja *a, float dt) {
     Pad *p = &a->pads.pad[i];
     if (!p->usado)
       continue;
-    if (p->rumble_ate_ms && agora >= p->rumble_ate_ms) {
+    if (p->simulado && p->rumble_ate_t > 0 && a->t >= p->rumble_ate_t) {
+      /* o controle simulado: quem para o motor é o jogo, no relógio dele */
+      SDL_RumbleGamepad(p->gp, 0, 0, 0);
+      p->rumble_ate_t = 0;
+      p->rumble_ate_ms = 0;
+      p->rumble_baixo = p->rumble_alto = 0;
+      p->sombra.motor_esq = p->sombra.motor_dir = 0;
+    } else if (!p->simulado && p->rumble_ate_ms && agora >= p->rumble_ate_ms) {
       p->rumble_ate_ms = 0;
       p->rumble_baixo = p->rumble_alto = 0;
       p->sombra.motor_esq = p->sombra.motor_dir = 0;
@@ -618,10 +625,17 @@ bool pad_rumble(Forja *a, Pad *p, float forte, float fraco, int ms) {
   float k = limitar(a->intensidade, 0, 1);
   Uint16 baixo = (Uint16)(limitar(forte, 0, 1) * k * 65535.0f);
   Uint16 alto = (Uint16)(limitar(fraco, 0, 1) * k * 65535.0f);
-  bool ok = SDL_RumbleGamepad(p->gp, baixo, alto, (Uint32)(ms > 0 ? ms : 0));
+  /* Num controle simulado, a duração corre no relógio do jogo (a->t), como a
+   * taxa do giroscópio: a prova roda mais rápido que o tempo real e a captura
+   * mais devagar, e um golpe de 260 ms do relógio de parede caberia inteiro
+   * entre dois quadros de um runner lento — o robô não sentiria. O SDL fica
+   * sem prazo, e pads_atualizar para o motor na hora. */
+  Uint32 dur = (Uint32)(ms > 0 ? ms : 0);
+  bool ok = SDL_RumbleGamepad(p->gp, baixo, alto, p->simulado ? 0 : dur);
   p->rumble_baixo = baixo;
   p->rumble_alto = alto;
   p->rumble_ate_ms = (baixo || alto) && ms > 0 ? SDL_GetTicks() + (Uint64)ms : 0;
+  p->rumble_ate_t = (baixo || alto) && ms > 0 ? a->t + (float)ms / 1000.0f : 0.0f;
   p->sombra.motor_esq = escala_rumble(p, baixo);
   p->sombra.motor_dir = escala_rumble(p, alto);
   Evento ev;
