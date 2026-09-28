@@ -70,6 +70,13 @@ func _ready() -> void:
 	_abrir_pelos_args.call_deferred()
 
 
+## Numa sala, o salão fica fora da árvore; fechando o jogo ali (a pausa, ou
+## --sair-no-fim), ninguém mais o solta.
+func _exit_tree() -> void:
+	if salao and salao.get_parent() == null:
+		salao.free()
+
+
 func _ambiente() -> void:
 	var env := Environment.new()
 	env.background_mode = Environment.BG_COLOR
@@ -306,6 +313,10 @@ func _ao_terminar_a_sala() -> void:
 		Forja.registrar("Prova de Fogo: terminou")
 		Forja.evento("sala", 0, {"evento": "prova_de_fogo", "o": "terminou"})
 		Forja.gravar_relatorio()
+		if "--sair-no-fim" in OS.get_cmdline_user_args():
+			# sem ninguém olhando (a prova da exportação): o relatório gravado, e fecha
+			get_tree().quit()
+			return
 		_ir_para_o_salao()
 		get_tree().create_timer(0.9).timeout.connect(func() -> void:
 			if estado == "salao" and overlay == "":

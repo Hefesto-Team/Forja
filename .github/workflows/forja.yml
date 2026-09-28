@@ -1,7 +1,9 @@
 # FORJA, a Hefesto Tech Demo: o módulo nativo do jogo 3D (a GDExtension com o
 # SDL3 dentro) para Linux e para Windows, as provas da lógica, as ferramentas
 # de bancada e a prova do jogo — o Godot headless com quatro DualSense
-# simulados, conferindo o que cada controle recebeu, sala por sala.
+# simulados, conferindo o que cada controle recebeu, sala por sala. No fim, o
+# jogo exportado (o binário Linux e o .exe) joga a Prova de Fogo inteira nos
+# dois sistemas, e os dois pacotes ficam como artefatos.
 name: FORJA
 
 on:
@@ -115,4 +117,62 @@ jobs:
         with:
           name: forja-modulo-windows-x86_64
           path: godot/bin/libforja.windows.x86_64.dll
+          if-no-files-found: error
+
+  exportar:
+    name: Exportação — o binário Linux e o .exe, e a Prova de Fogo nos dois
+    runs-on: ubuntu-24.04
+    needs: [linux, windows]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Os dois módulos (os artefatos dos jobs acima)
+        uses: actions/download-artifact@v4
+        with:
+          pattern: forja-modulo-*
+          path: godot/bin
+          merge-multiple: true
+
+      - name: O Godot em cache
+        id: godot
+        uses: actions/cache@v4
+        with:
+          path: tools
+          key: godot-${{ env.GODOT_VERSAO }}
+
+      - name: Baixar o Godot
+        if: steps.godot.outputs.cache-hit != 'true'
+        run: |
+          mkdir -p tools
+          curl -fsSL -o /tmp/godot.zip \
+            "https://github.com/godotengine/godot/releases/download/${GODOT_VERSAO}/Godot_v${GODOT_VERSAO}_linux.x86_64.zip"
+          unzip -o -q /tmp/godot.zip -d tools
+
+      - name: Os modelos de exportação em cache (o Linux e o Windows, por sha256)
+        uses: actions/cache@v4
+        with:
+          path: .cache/godot-dados
+          key: modelos-${{ env.GODOT_VERSAO }}-${{ hashFiles('scripts/exportar.sh') }}
+
+      - name: Exportar o jogo (o binário Linux e o .exe)
+        run: scripts/exportar.sh tudo
+
+      - name: O Wine, a base do Proton, para rodar o .exe
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends wine wine64
+
+      - name: A prova da exportação (a Prova de Fogo no binário Linux e no .exe pelo Wine)
+        run: bash tests/prova_da_exportacao.sh
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: forja-linux-x86_64
+          path: dist/forja-linux-x86_64.tar.gz
+          if-no-files-found: error
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: forja-windows-x86_64
+          path: dist/forja-windows-x86_64.zip
           if-no-files-found: error
