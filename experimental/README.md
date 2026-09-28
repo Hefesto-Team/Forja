@@ -1,5 +1,10 @@
 # experimental/ — a bancada dos experimentos
 
+> **Neste marco a bancada está parada.** Ela rodava dentro do app 2D, que saiu
+> do branch ([ADR-007](../docs/adr/007-o-jogo-e-o-3d-em-godot.md)); volta no
+> marco 5, pelo módulo nativo do jogo 3D. O que foi medido antes continua em
+> [RESULTADOS.md](RESULTADOS.md).
+
 Cada experimento é uma pergunta que o jogo ainda não sabe responder com
 certeza — sobre o alto-falante, os microfones, a háptica e o gatilho do
 DualSense — medida no aparelho e **gravada inteira**: o que funcionou, o que

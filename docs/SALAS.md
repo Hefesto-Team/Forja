@@ -1,5 +1,12 @@
 # As salas — o que cada uma pede, mede e decide
 
+> **No jogo 3D** ([ADR-007](adr/007-o-jogo-e-o-3d-em-godot.md)) este é o desenho
+> de cada sala. Os nomes mudaram em duas: **o Cerco é O Impacto** e **a Cripta
+> é A Voz**. As salas ganham o comportamento abaixo marco a marco (ver
+> [SPRINTS.md](../SPRINTS.md)); até lá, as abertas no salão são a versão curta
+> (A Viga, O Impacto, A Galeria, A Voz, A Prova) e as outras têm o portão
+> fechado.
+
 O Salão da Forja é o hub da Hefesto Tech Demo (ver [ADR-002](adr/002-hubs-e-salas.md)).
 Cada porta é uma sala; cada sala é um jeito que os jogos comerciais usam o
 DualSense, jogado de verdade — e, enquanto se joga, a sala mede o que chegou do

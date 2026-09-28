@@ -1,59 +1,48 @@
 #!/usr/bin/env bash
-# Sobe FORJA na máquina.
+# Sobe o FORJA (a Hefesto Tech Demo) na máquina: o jogo 3D em Godot 4.4 com o
+# módulo nativo (SDL3) que fala com os DualSense.
 #
-#   ./run-local.sh                  a Hefesto Tech Demo (SDL3): compila e abre
-#   ./run-local.sh -- --sala=voz    argumentos depois de -- vão para a Tech Demo
-#   ./run-local.sh godot            o FORJA em Godot 4.4, como antes
+#   ./run-local.sh                     compila o módulo e abre o jogo
+#   ./run-local.sh -- --simular=4      argumentos depois de -- vão para o jogo
+#   ./run-local.sh bancada             só as ferramentas de bancada (forja-send e cia.)
 #
-# Os dois falam DualSense do mesmo jeito: relatório USB 0x02, um empacotador só
-# (src/forja_dualsense.c). Ver CONTRATO.md.
+# Sem controle nenhum, o título oferece jogar no teclado (um DualSense simulado).
+# Argumentos do jogo: --simular[=N] --robo --semente=N --relatorios=PASTA --sala=ID
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")" && pwd)"
 cd "$ROOT"
 
-echo "==> empacotador DualSense (USB 0x02)"
+GODOT_VER="4.4.1-stable"
+GODOT_BIN="$ROOT/tools/Godot_v${GODOT_VER}_linux.x86_64"
+GODOT_URL="https://github.com/godotengine/godot/releases/download/${GODOT_VER}/Godot_v${GODOT_VER}_linux.x86_64.zip"
+
+echo "==> ferramentas de bancada (o mesmo empacotador USB 0x02 do jogo)"
 make -s all
 
-echo "==> DualSense na mesa (hidraw USB)"
-"$ROOT/bin/forja-send" --list || true
-
-if [[ ! -e /dev/hidraw0 ]]; then
-  echo "aviso: nenhum hidraw visível. o jogo ainda abre; rumble SDL funciona se o pad estiver no cabo."
+if [[ "${1:-}" == bancada ]]; then
+  "$ROOT/bin/forja-send" --list || true
+  exit 0
 fi
-
-if [[ "${1:-}" == godot ]]; then
-  shift
-  GODOT_VER="4.4.1-stable"
-  GODOT_BIN="$ROOT/tools/Godot_v${GODOT_VER}_linux.x86_64"
-  GODOT_URL="https://github.com/godotengine/godot/releases/download/${GODOT_VER}/Godot_v${GODOT_VER}_linux.x86_64.zip"
-
-  if [[ ! -x "$GODOT_BIN" ]]; then
-    echo "==> baixando Godot ${GODOT_VER} (editor Linux x86_64, ~60 MB)"
-    mkdir -p "$ROOT/tools"
-    tmp="$(mktemp -d)"
-    curl -fsSL -o "$tmp/godot.zip" "$GODOT_URL"
-    unzip -o "$tmp/godot.zip" -d "$ROOT/tools"
-    chmod +x "$GODOT_BIN"
-    rm -rf "$tmp"
-  fi
-
-  echo "==> importando assets Godot (primeira vez)"
-  "$GODOT_BIN" --headless --path "$ROOT/godot" --import --quit >/tmp/forja-godot-import.log 2>&1 || true
-
-  echo "==> abrindo FORJA (Godot)"
-  echo "    WASD anda · Espaço atira · Esc hub"
-  echo "    3 = P3 toma da esquerda (só o motor L do player 2 deve tremer)"
-  echo "    F1 Galeria  F2 Impacto  F3 Viga  F4 A Prova"
-  exec "$GODOT_BIN" --path "$ROOT/godot" "$@"
-fi
-
 [[ "${1:-}" == "--" ]] && shift
 
-echo "==> Hefesto Tech Demo (SDL3 estático, primeira vez baixa e compila o SDL)"
+echo "==> módulo nativo (SDL3 + godot-cpp; a primeira vez baixa e compila)"
 "$ROOT/scripts/compilar.sh" linux
 
-echo "==> abrindo a Hefesto Tech Demo"
-echo "    ✕ entra na mesa · Options começa · ○ volta"
-echo "    sem controle: --simular 4 (teclado: Z/X/C/V, setas, WASD, Tab troca o controle)"
+if [[ ! -x "$GODOT_BIN" ]]; then
+  echo "==> baixando Godot ${GODOT_VER} (editor Linux x86_64, ~60 MB)"
+  mkdir -p "$ROOT/tools"
+  tmp="$(mktemp -d)"
+  curl -fsSL -o "$tmp/godot.zip" "$GODOT_URL"
+  unzip -o -q "$tmp/godot.zip" -d "$ROOT/tools"
+  chmod +x "$GODOT_BIN"
+  rm -rf "$tmp"
+fi
+
+echo "==> importando os assets (a primeira vez demora)"
+"$GODOT_BIN" --headless --path "$ROOT/godot" --import >"$ROOT/build/godot-import.log" 2>&1 || true
+
+echo "==> abrindo o FORJA"
+echo "    ✕ entra e fica pronto · Create diagnóstico · Options pausa"
+echo "    sem controle: Enter no título (o teclado vira um DualSense simulado)"
 echo "    relatórios em relatorios/"
-exec "$ROOT/build/linux/hefesto-tech-demo" --relatorios "$ROOT/relatorios" "$@"
+exec "$GODOT_BIN" --path "$ROOT/godot" -- --relatorios="$ROOT/relatorios" "$@"

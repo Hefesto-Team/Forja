@@ -1,0 +1,452 @@
+class_name Salao
+extends Node3D
+## O salão da forja: o lugar de onde se sai para cada sala. Paredes de pedra do
+## kit Mini Dungeon (Kenney, CC0) com oito portões — um por sala, na ordem do
+## percurso, no sentido do relógio —, a bigorna de A Prova no meio e os quatro
+## pedestais do lobby na frente.
+##
+## O kit é pequeno (o bloco de parede tem 1×1,1); tudo sai na escala K.
+
+const K := 2.0
+const KIT := "res://assets/kenney/%s.glb"
+
+## As salas, na ordem do percurso. `lado`: a parede do portão; `aberta`: a sala
+## já existe neste marco (as outras ficam de portão fechado).
+const PORTOES := [
+	{"id": "centelha", "nome": "A Centelha", "sobre": "botões e analógicos", "icone": "stick_l", "lado": "oeste", "t": 3.0, "aberta": false},
+	{"id": "viga", "nome": "A Viga", "sobre": "giroscópio", "icone": "giroscopio", "lado": "oeste", "t": -3.0, "aberta": true},
+	{"id": "molde", "nome": "O Molde", "sobre": "touchpad", "icone": "touchpad", "lado": "norte", "t": -6.0, "aberta": false},
+	{"id": "impacto", "nome": "O Impacto", "sobre": "vibração e barra de luz", "icone": "rumble_esquerdo", "lado": "norte", "t": -2.0, "aberta": true},
+	{"id": "galeria", "nome": "A Galeria", "sobre": "gatilhos adaptativos", "icone": "r2", "lado": "norte", "t": 2.0, "aberta": true},
+	{"id": "voz", "nome": "A Voz", "sobre": "microfone e mudo", "icone": "mic", "lado": "norte", "t": 6.0, "aberta": true},
+	{"id": "caminhos", "nome": "Os Caminhos", "sobre": "háptica por áudio", "icone": "rumble_direito", "lado": "leste", "t": -3.0, "aberta": false},
+	{"id": "canto", "nome": "O Canto", "sobre": "alto-falante", "icone": "alto-falante", "lado": "leste", "t": 3.0, "aberta": false},
+]
+
+const X_OESTE := -12.0
+const X_LESTE := 12.0
+const Z_NORTE := -9.0
+const Z_SUL := 9.0
+
+var portoes := {}  ## id -> {no, porta, anim, frente, placa, luzes, aberto}
+var pedestais: Array[Vector3] = []
+var pedestais_no: Node3D  ## os quatro pedestais do lobby (somem no título)
+var bigorna: Node3D
+var _cenas := {}
+var _tochas: Array[OmniLight3D] = []
+var _t := 0.0
+
+
+func _ready() -> void:
+	_chao()
+	_paredes()
+	for p in PORTOES:
+		_portao(p)
+	_bigorna()
+	_pedestais()
+	_enfeites()
+
+
+func _process(dt: float) -> void:
+	_t += dt
+	# as tochas tremem, cada uma no seu passo
+	for i in _tochas.size():
+		var l := _tochas[i]
+		l.light_energy = 1.6 + 0.25 * sin(_t * 7.3 + i * 1.7) + 0.15 * sin(_t * 13.1 + i * 0.9)
+
+
+func peca(nome: String, pos: Vector3, rot_y := 0.0, escala := K) -> Node3D:
+	if not _cenas.has(nome):
+		_cenas[nome] = load(KIT % nome)
+	var cena: PackedScene = _cenas[nome]
+	if cena == null:
+		return Node3D.new()
+	var n: Node3D = cena.instantiate()
+	n.position = pos
+	n.rotation.y = rot_y
+	n.scale = Vector3.ONE * escala
+	add_child(n)
+	return n
+
+
+func _caixa_solida(centro: Vector3, tamanho: Vector3) -> void:
+	var corpo := StaticBody3D.new()
+	var forma := CollisionShape3D.new()
+	var caixa := BoxShape3D.new()
+	caixa.size = tamanho
+	forma.shape = caixa
+	corpo.position = centro
+	corpo.add_child(forma)
+	add_child(corpo)
+
+
+func _chao() -> void:
+	var sorteio := RandomNumberGenerator.new()
+	sorteio.seed = 7
+	for i in range(-5, 6):
+		for j in range(-4, 5):
+			var pos := Vector3(i * K, 0, j * K)
+			var detalhe := sorteio.randf() < 0.07
+			peca("floor-detail" if detalhe else "floor", pos, sorteio.randi_range(0, 3) * PI * 0.5)
+	# o chão sólido
+	_caixa_solida(Vector3(0, -0.5, 0), Vector3(40, 1, 40))
+	# a passarela: dos pedestais do lobby até o tablado da bigorna
+	var passarela := CSGBox3D.new()
+	passarela.size = Vector3(2.6, 0.03, 7.4)
+	passarela.position = Vector3(0, 0.015, 5.3)
+	var pano := StandardMaterial3D.new()
+	pano.albedo_color = Color("#3a2f56")
+	pano.roughness = 1.0
+	passarela.material = pano
+	add_child(passarela)
+	for lado in [-1.0, 1.0]:
+		var friso := CSGBox3D.new()
+		friso.size = Vector3(0.08, 0.035, 7.4)
+		friso.position = Vector3(lado * 1.3, 0.018, 5.3)
+		var rosa := StandardMaterial3D.new()
+		rosa.albedo_color = Tema.ROSA
+		rosa.emission_enabled = true
+		rosa.emission = Tema.ROSA
+		rosa.emission_energy_multiplier = 0.9
+		friso.material = rosa
+		add_child(friso)
+
+
+func _eh_abertura(lado: String, t: float) -> bool:
+	for p in PORTOES:
+		if p.lado == lado and absf(p.t - t) < 0.1:
+			return true
+	return false
+
+
+func _paredes() -> void:
+	# norte: de ponta a ponta
+	for i in range(-6, 7):
+		var x := i * K
+		if not _eh_abertura("norte", x):
+			peca("wall", Vector3(x, 0, Z_NORTE))
+	# oeste e leste
+	for j in range(-4, 5):
+		var z := j * K
+		if not _eh_abertura("oeste", z):
+			peca("wall", Vector3(X_OESTE, 0, z))
+		if not _eh_abertura("leste", z):
+			peca("wall", Vector3(X_LESTE, 0, z))
+	# sul: sem parede à vista (é o lado da câmera, como num diorama); só o sólido
+	# os sólidos das paredes
+	_caixa_solida(Vector3(0, 1.1, Z_NORTE), Vector3(26, 2.2, 2))
+	_caixa_solida(Vector3(X_OESTE, 1.1, 0), Vector3(2, 2.2, 20))
+	_caixa_solida(Vector3(X_LESTE, 1.1, 0), Vector3(2, 2.2, 20))
+	_caixa_solida(Vector3(0, 1.0, Z_SUL), Vector3(26, 2.0, 2))
+
+
+func _portao(p: Dictionary) -> void:
+	var pos := Vector3.ZERO
+	var rot := 0.0
+	var frente := Vector3.ZERO  # para dentro do salão
+	match p.lado:
+		"norte":
+			pos = Vector3(p.t, 0, Z_NORTE)
+			rot = 0.0
+			frente = Vector3(0, 0, 1)
+		"oeste":
+			pos = Vector3(X_OESTE, 0, p.t)
+			rot = PI * 0.5
+			frente = Vector3(1, 0, 0)
+		"leste":
+			pos = Vector3(X_LESTE, 0, p.t)
+			rot = -PI * 0.5
+			frente = Vector3(-1, 0, 0)
+	var moldura := peca("wall-opening", pos, rot)
+	var portao := peca("gate", pos + frente * 0.2, rot, K)
+	var anim: AnimationPlayer = portao.find_child("AnimationPlayer", true, false)
+
+	# a placa: o nome da sala e o que ela prova, virada para o salão
+	var placa := Node3D.new()
+	placa.position = pos + frente * 1.15 + Vector3(0, 2.75, 0)
+	placa.rotation.y = rot
+	add_child(placa)
+	var nome := Label3D.new()
+	nome.text = p.nome
+	nome.font = Tema.fonte(700)
+	nome.font_size = 96
+	nome.pixel_size = 0.004
+	nome.outline_size = 18
+	nome.outline_modulate = Color(Tema.CASA, 0.85)
+	nome.modulate = Tema.FG if p.aberta else Tema.MUDO
+	placa.add_child(nome)
+	var icone := Sprite3D.new()
+	icone.texture = Desenho.glifo(p.icone)
+	icone.pixel_size = 0.0055
+	icone.position.y = 0.72
+	icone.modulate = Tema.ROXO if p.aberta else Tema.COMMENT
+	icone.shaded = false
+	icone.texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
+	placa.add_child(icone)
+	var sobre := Label3D.new()
+	sobre.text = p.sobre if p.aberta else p.sobre + " · em breve"
+	sobre.font = Tema.fonte(500)
+	sobre.font_size = 64
+	sobre.pixel_size = 0.004
+	sobre.position.y = -0.42
+	sobre.outline_size = 14
+	sobre.outline_modulate = Color(Tema.CASA, 0.85)
+	sobre.modulate = Tema.ROXO if p.aberta else Tema.COMMENT
+	placa.add_child(sobre)
+
+	# as tochas dos dois lados do portão
+	var luzes: Array[OmniLight3D] = []
+	var lado := frente.cross(Vector3.UP)
+	for s in [-1.0, 1.0]:
+		var base: Vector3 = pos + frente * 1.0 + lado * s * 1.45 + Vector3(0, 1.55, 0)
+		luzes.append(_tocha(base, p.aberta))
+
+	portoes[p.id] = {
+		"no": moldura, "porta": portao, "anim": anim, "frente": frente, "pos": pos,
+		"placa": placa, "luzes": luzes, "aberta": p.aberta, "aberto": false, "dados": p,
+	}
+
+
+func _tocha(pos: Vector3, acesa: bool) -> OmniLight3D:
+	var cabo := CSGCylinder3D.new()
+	cabo.radius = 0.05
+	cabo.height = 0.5
+	cabo.position = pos + Vector3(0, -0.25, 0)
+	var madeira := StandardMaterial3D.new()
+	madeira.albedo_color = Color("#8a4b2a")
+	cabo.material = madeira
+	add_child(cabo)
+	var chama := MeshInstance3D.new()
+	var esfera := SphereMesh.new()
+	esfera.radius = 0.1
+	esfera.height = 0.26
+	chama.mesh = esfera
+	var fogo := StandardMaterial3D.new()
+	fogo.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	fogo.albedo_color = Tema.LARANJA if acesa else Tema.TRILHO
+	fogo.emission_enabled = acesa
+	fogo.emission = Tema.LARANJA
+	fogo.emission_energy_multiplier = 3.0
+	chama.material_override = fogo
+	chama.position = pos + Vector3(0, 0.08, 0)
+	add_child(chama)
+	var luz := OmniLight3D.new()
+	luz.position = pos + Vector3(0, 0.25, 0)
+	luz.light_color = Color("#ffb070")
+	luz.omni_range = 5.5
+	luz.omni_attenuation = 1.4
+	luz.light_energy = 1.6 if acesa else 0.0
+	luz.shadow_enabled = false
+	add_child(luz)
+	if acesa:
+		_tochas.append(luz)
+	return luz
+
+
+## A bigorna do logo do Hefesto, em pedra e nas cores dele: tampo claro com o
+## chifre, cintura roxa, base azul-ardósia. É o centro de A Prova.
+func _bigorna() -> void:
+	bigorna = Node3D.new()
+	bigorna.position = Vector3(0, 0, -1.0)
+	add_child(bigorna)
+	var pedra := func(cor: Color, rugoso := 0.8) -> StandardMaterial3D:
+		var m := StandardMaterial3D.new()
+		m.albedo_color = cor
+		m.roughness = rugoso
+		return m
+	# o tablado redondo
+	var tablado := CSGCylinder3D.new()
+	tablado.radius = 3.0
+	tablado.height = 0.3
+	tablado.sides = 32
+	tablado.position.y = 0.15
+	tablado.material = pedra.call(Color("#7d7aa8"))
+	bigorna.add_child(tablado)
+	var borda := CSGTorus3D.new()
+	borda.inner_radius = 2.95
+	borda.outer_radius = 3.12
+	borda.sides = 48
+	borda.ring_sides = 8
+	borda.position.y = 0.3
+	var brilho := StandardMaterial3D.new()
+	brilho.albedo_color = Tema.ROXO
+	brilho.emission_enabled = true
+	brilho.emission = Tema.ROXO
+	brilho.emission_energy_multiplier = 1.6
+	borda.material = brilho
+	bigorna.add_child(borda)
+	# a base, a cintura, o tampo e o chifre
+	var base := CSGBox3D.new()
+	base.size = Vector3(1.5, 0.45, 1.0)
+	base.position.y = 0.3 + 0.225
+	base.material = pedra.call(Color("#6272a4"))
+	bigorna.add_child(base)
+	var cintura := CSGBox3D.new()
+	cintura.size = Vector3(0.8, 0.45, 0.62)
+	cintura.position.y = 0.75 + 0.225
+	cintura.material = pedra.call(Tema.ROXO, 0.5)
+	bigorna.add_child(cintura)
+	var tampo := CSGBox3D.new()
+	tampo.size = Vector3(1.9, 0.38, 0.8)
+	tampo.position = Vector3(-0.1, 1.2 + 0.19, 0)
+	tampo.material = pedra.call(Color("#e9e7f2"), 0.35)
+	bigorna.add_child(tampo)
+	var chifre := CSGCylinder3D.new()
+	chifre.cone = true
+	chifre.radius = 0.19
+	chifre.height = 0.9
+	chifre.sides = 16
+	chifre.rotation.z = -PI * 0.5
+	chifre.position = Vector3(1.28, 1.39, 0)
+	chifre.material = pedra.call(Color("#e9e7f2"), 0.35)
+	bigorna.add_child(chifre)
+	# o fogo da forja: brasa rosa e laranja embaixo da bigorna
+	var forja := OmniLight3D.new()
+	forja.position = Vector3(0, 0.9, 0.9)
+	forja.light_color = Color("#ff8a70")
+	forja.light_energy = 2.2
+	forja.omni_range = 7.0
+	bigorna.add_child(forja)
+	_tochas.append(forja)
+	var acima := OmniLight3D.new()
+	acima.position = Vector3(0, 3.5, 0)
+	acima.light_color = Tema.ROSA
+	acima.light_energy = 0.8
+	acima.omni_range = 6.0
+	bigorna.add_child(acima)
+	_brasas(bigorna)
+	_caixa_solida(Vector3(0, 0.8, -1.0), Vector3(2.2, 1.6, 1.2))
+
+
+func _brasas(onde: Node3D) -> void:
+	var p := GPUParticles3D.new()
+	p.amount = 48
+	p.lifetime = 2.6
+	p.position = Vector3(0, 1.6, 0)
+	var m := ParticleProcessMaterial.new()
+	m.emission_shape = ParticleProcessMaterial.EMISSION_SHAPE_SPHERE
+	m.emission_sphere_radius = 0.8
+	m.direction = Vector3(0, 1, 0)
+	m.spread = 25.0
+	m.initial_velocity_min = 0.3
+	m.initial_velocity_max = 0.9
+	m.gravity = Vector3(0, 0.25, 0)
+	m.scale_min = 0.5
+	m.scale_max = 1.0
+	var grad := Gradient.new()
+	grad.set_color(0, Color(Tema.LARANJA, 1.0))
+	grad.set_color(1, Color(Tema.ROSA, 0.0))
+	var tg := GradientTexture1D.new()
+	tg.gradient = grad
+	m.color_ramp = tg
+	p.process_material = m
+	var q := QuadMesh.new()
+	q.size = Vector2(0.06, 0.06)
+	var mat := StandardMaterial3D.new()
+	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	mat.billboard_mode = BaseMaterial3D.BILLBOARD_ENABLED
+	mat.vertex_color_use_as_albedo = true
+	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	mat.emission_enabled = true
+	mat.emission = Tema.LARANJA
+	mat.emission_energy_multiplier = 2.0
+	q.material = mat
+	p.draw_pass_1 = q
+	onde.add_child(p)
+
+
+func _pedestais() -> void:
+	pedestais_no = Node3D.new()
+	pedestais_no.name = "Pedestais"
+	add_child(pedestais_no)
+	for i in 4:
+		var pos := Vector3(-4.2 + i * 2.8, 0, 4.4)
+		pedestais.append(pos + Vector3(0, 0.32, 0))
+		var disco := CSGCylinder3D.new()
+		disco.radius = 0.95
+		disco.height = 0.32
+		disco.sides = 32
+		disco.position = pos + Vector3(0, 0.16, 0)
+		var m := StandardMaterial3D.new()
+		m.albedo_color = Color("#8784b3")
+		m.roughness = 0.7
+		disco.material = m
+		pedestais_no.add_child(disco)
+		var aro := CSGTorus3D.new()
+		aro.inner_radius = 0.92
+		aro.outer_radius = 1.02
+		aro.sides = 40
+		aro.ring_sides = 6
+		aro.position = pos + Vector3(0, 0.32, 0)
+		var brilho := StandardMaterial3D.new()
+		var cor: Color = Forja.cor_do_lugar(i)
+		brilho.albedo_color = cor
+		brilho.emission_enabled = true
+		brilho.emission = cor
+		brilho.emission_energy_multiplier = 1.2
+		aro.material = brilho
+		aro.name = "Aro%d" % i
+		pedestais_no.add_child(aro)
+
+
+func _enfeites() -> void:
+	# colunas entre os portões do norte
+	for x in [-8.0, -4.0, 0.0, 4.0, 8.0]:
+		peca("column", Vector3(x, 0, Z_NORTE + 1.4), 0.0, K * 1.1)
+	# estandartes nas paredes do norte, acima das colunas
+	for x in [-10.0, 10.0]:
+		peca("banner", Vector3(x, 0.4, Z_NORTE + 1.0 + 1.06), PI, K)
+	# barris, caixotes, pedras nos cantos
+	peca("barrel", Vector3(-10.2, 0, -7.2), 0.3)
+	peca("barrel", Vector3(-9.3, 0, -7.6), 1.2)
+	peca("barrel", Vector3(10.1, 0, -7.3), 0.7)
+	peca("wood-structure", Vector3(9.8, 0, 7.0), 0.0, K * 0.9)
+	peca("rocks", Vector3(-10.3, 0, 7.3), 0.4, K * 0.8)
+	peca("stones", Vector3(10.4, 0, -1.0), 1.1, K * 0.7)
+	peca("chest", Vector3(-10.0, 0.1, 0.0), PI * 0.5, K)
+	peca("table", Vector3(8.6, 0, 6.6), 0.2, K)
+	peca("pot", Vector3(7.7, 0, 7.3), 0.0, K * 0.9)
+	# o suporte de armas ao lado do baú
+	var escudo := peca("shield-round", Vector3(-11.0, 1.4, 1.4), PI * 0.5, K)
+	escudo.rotation.x = 0.0
+	peca("weapon-sword", Vector3(-11.0, 1.1, 2.0), PI * 0.5, K)
+	peca("weapon-spear", Vector3(-11.1, 0.0, 2.5), PI * 0.5, K)
+
+
+## O portão mais perto de `pos` (dentro do alcance), ou "".
+func portao_perto(pos: Vector3, alcance := 2.4) -> String:
+	var melhor := ""
+	var dist := alcance
+	for id in portoes:
+		var g: Dictionary = portoes[id]
+		var frente_do_portao: Vector3 = g.pos + g.frente * 1.4
+		var d := Vector2(pos.x - frente_do_portao.x, pos.z - frente_do_portao.z).length()
+		if d < dist:
+			dist = d
+			melhor = id
+	return melhor
+
+
+func abrir_portao(id: String, abrir: bool) -> void:
+	if not portoes.has(id):
+		return
+	var g: Dictionary = portoes[id]
+	if not g.aberta or g.aberto == abrir:
+		return
+	g.aberto = abrir
+	if g.anim:
+		g.anim.play("open" if abrir else "close")
+
+
+## Onde o jogador para, de frente para o portão, ao voltar da sala.
+func saida_do_portao(id: String, lugar: int) -> Vector3:
+	var g: Dictionary = portoes.get(id, {})
+	if g.is_empty():
+		return Vector3((lugar - 1.5) * 1.4, 0, 3.0)
+	var lado: Vector3 = g.frente.cross(Vector3.UP)
+	return g.pos + g.frente * 2.6 + lado * (lugar - 1.5) * 1.1
+
+
+func centro_do_portao(id: String) -> Vector3:
+	var g: Dictionary = portoes.get(id, {})
+	return g.get("pos", Vector3.ZERO)

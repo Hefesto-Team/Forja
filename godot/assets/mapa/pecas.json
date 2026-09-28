@@ -1,0 +1,735 @@
+{
+ "fonte": "godot/assets/svg/dualsense.svg e pecas-do-dualsense.csv (Hefesto, MIT)",
+ "viewbox": [
+  6.399,
+  22.99,
+  116.684,
+  80.472
+ ],
+ "largura": 1160,
+ "altura": 800,
+ "camadas": {
+  "base": [
+   0,
+   0,
+   1160,
+   800
+  ],
+  "corpo": [
+   0,
+   0,
+   1160,
+   800
+  ],
+  "miolo_l": [
+   360,
+   355,
+   99,
+   99
+  ],
+  "miolo_r": [
+   688,
+   355,
+   100,
+   99
+  ],
+  "triangle": [
+   882,
+   130,
+   77,
+   77
+  ],
+  "circle": [
+   962,
+   210,
+   76,
+   77
+  ],
+  "square": [
+   803,
+   210,
+   76,
+   77
+  ],
+  "cross": [
+   882,
+   290,
+   77,
+   76
+  ],
+  "dpad_up": [
+   186,
+   150,
+   77,
+   92
+  ],
+  "dpad_right": [
+   241,
+   220,
+   92,
+   77
+  ],
+  "dpad_down": [
+   186,
+   274,
+   77,
+   92
+  ],
+  "dpad_left": [
+   117,
+   220,
+   92,
+   77
+  ],
+  "l1": [
+   194,
+   23,
+   114,
+   70
+  ],
+  "r1": [
+   838,
+   23,
+   114,
+   70
+  ],
+  "l2": [
+   126,
+   48,
+   92,
+   61
+  ],
+  "r2": [
+   928,
+   47,
+   92,
+   62
+  ],
+  "share": [
+   305,
+   105,
+   31,
+   46
+  ],
+  "options": [
+   806,
+   105,
+   31,
+   46
+  ],
+  "ps": [
+   535,
+   360,
+   77,
+   74
+  ],
+  "mic": [
+   551,
+   444,
+   52,
+   15
+  ],
+  "touchpad": [
+   337,
+   36,
+   469,
+   267
+  ],
+  "stick_l": [
+   327,
+   322,
+   166,
+   166
+  ],
+  "stick_r": [
+   655,
+   321,
+   166,
+   167
+  ],
+  "lightbar": [
+   342,
+   75,
+   464,
+   200
+  ],
+  "alto-falante": [
+   530,
+   319,
+   93,
+   35
+  ],
+  "led-jogador-1": [
+   497,
+   287,
+   27,
+   14
+  ],
+  "led-jogador-2": [
+   539,
+   287,
+   27,
+   14
+  ],
+  "led-jogador-3": [
+   563,
+   287,
+   27,
+   14
+  ],
+  "led-jogador-4": [
+   587,
+   287,
+   27,
+   14
+  ],
+  "led-jogador-5": [
+   630,
+   287,
+   27,
+   14
+  ],
+  "feat-rumble-esquerdo": [
+   7,
+   61,
+   371,
+   720
+  ],
+  "feat-rumble-direito": [
+   768,
+   61,
+   370,
+   720
+  ],
+  "glifo-triangle": [
+   900,
+   146,
+   41,
+   36
+  ],
+  "glifo-circle": [
+   981,
+   229,
+   38,
+   38
+  ],
+  "glifo-square": [
+   826,
+   233,
+   30,
+   30
+  ],
+  "glifo-cross": [
+   907,
+   314,
+   28,
+   28
+  ],
+  "glifo-dpad_up": [
+   211,
+   170,
+   27,
+   20
+  ],
+  "glifo-dpad_right": [
+   293,
+   242,
+   20,
+   26
+  ],
+  "glifo-dpad_down": [
+   212,
+   327,
+   27,
+   19
+  ],
+  "glifo-dpad_left": [
+   137,
+   244,
+   19,
+   27
+  ],
+  "glifo-l1": [
+   234,
+   40,
+   36,
+   36
+  ],
+  "glifo-r1": [
+   877,
+   40,
+   37,
+   35
+  ],
+  "glifo-l2": [
+   157,
+   60,
+   30,
+   29
+  ],
+  "glifo-r2": [
+   958,
+   60,
+   31,
+   30
+  ],
+  "glifo-stick_l": [
+   390,
+   375,
+   39,
+   60
+  ],
+  "glifo-stick_r": [
+   717,
+   375,
+   42,
+   60
+  ],
+  "glifo-share": [
+   301,
+   84,
+   27,
+   25
+  ],
+  "glifo-options": [
+   814,
+   85,
+   28,
+   24
+  ],
+  "glifo-ps": [
+   535,
+   366,
+   83,
+   69
+  ],
+  "glifo-mic": [
+   567,
+   464,
+   19,
+   24
+  ]
+ },
+ "pecas": {
+  "triangle": {
+   "nome": "Triângulo",
+   "tipo": "botao",
+   "regiao": "face",
+   "glifo": "triangle",
+   "no_svg": "triangle",
+   "caixa": [
+    95.5,
+    36.46,
+    102.5,
+    43.47
+   ],
+   "angulo": 0,
+   "zona": "botoes_face"
+  },
+  "circle": {
+   "nome": "Círculo",
+   "tipo": "botao",
+   "regiao": "face",
+   "glifo": "circle",
+   "no_svg": "circle",
+   "caixa": [
+    103.5,
+    44.46,
+    110.5,
+    51.46
+   ],
+   "angulo": 0,
+   "zona": "botoes_face"
+  },
+  "square": {
+   "nome": "Quadrado",
+   "tipo": "botao",
+   "regiao": "face",
+   "glifo": "square",
+   "no_svg": "square",
+   "caixa": [
+    87.5,
+    44.46,
+    94.5,
+    51.46
+   ],
+   "angulo": 0,
+   "zona": "botoes_face"
+  },
+  "cross": {
+   "nome": "Cruz",
+   "tipo": "botao",
+   "regiao": "face",
+   "glifo": "cross",
+   "no_svg": "cross",
+   "caixa": [
+    95.5,
+    52.46,
+    102.5,
+    59.46
+   ],
+   "angulo": 0,
+   "zona": "botoes_face"
+  },
+  "dpad_up": {
+   "nome": "D-pad Cima",
+   "tipo": "botao",
+   "regiao": "direcional",
+   "glifo": "dpad_up",
+   "no_svg": "dpad_up",
+   "caixa": [
+    25.5,
+    38.46,
+    32.5,
+    47
+   ],
+   "angulo": 0,
+   "zona": "dpad"
+  },
+  "dpad_right": {
+   "nome": "D-pad Direita",
+   "tipo": "botao",
+   "regiao": "direcional",
+   "glifo": "dpad_right",
+   "no_svg": "dpad_right",
+   "caixa": [
+    30.96,
+    45.46,
+    39.5,
+    52.46
+   ],
+   "angulo": 0,
+   "zona": "dpad"
+  },
+  "dpad_down": {
+   "nome": "D-pad Baixo",
+   "tipo": "botao",
+   "regiao": "direcional",
+   "glifo": "dpad_down",
+   "no_svg": "dpad_down",
+   "caixa": [
+    25.5,
+    50.92,
+    32.5,
+    59.46
+   ],
+   "angulo": 0,
+   "zona": "dpad"
+  },
+  "dpad_left": {
+   "nome": "D-pad Esquerda",
+   "tipo": "botao",
+   "regiao": "direcional",
+   "glifo": "dpad_left",
+   "no_svg": "dpad_left",
+   "caixa": [
+    18.5,
+    45.46,
+    27.04,
+    52.46
+   ],
+   "angulo": 0,
+   "zona": "dpad"
+  },
+  "l1": {
+   "nome": "L1",
+   "tipo": "botao",
+   "regiao": "ombros",
+   "glifo": "l1",
+   "no_svg": "l1",
+   "caixa": [
+    26.31,
+    25.64,
+    37.02,
+    32
+   ],
+   "angulo": 0,
+   "zona": "gatilhos"
+  },
+  "r1": {
+   "nome": "R1",
+   "tipo": "botao",
+   "regiao": "ombros",
+   "glifo": "r1",
+   "no_svg": "r1",
+   "caixa": [
+    91.07,
+    25.62,
+    101.78,
+    32
+   ],
+   "angulo": 0,
+   "zona": "gatilhos"
+  },
+  "l2": {
+   "nome": "L2",
+   "tipo": "gatilho",
+   "regiao": "gatilhos",
+   "glifo": "l2",
+   "no_svg": "l2",
+   "caixa": [
+    19.43,
+    28.13,
+    28.02,
+    33.62
+   ],
+   "angulo": 0,
+   "zona": "gatilhos"
+  },
+  "r2": {
+   "nome": "R2",
+   "tipo": "gatilho",
+   "regiao": "gatilhos",
+   "glifo": "r2",
+   "no_svg": "r2",
+   "caixa": [
+    100.07,
+    28.11,
+    108.66,
+    33.61
+   ],
+   "angulo": 0,
+   "zona": "gatilhos"
+  },
+  "stick_l": {
+   "nome": "Analógico Esquerdo",
+   "tipo": "eixo",
+   "regiao": "analogicos",
+   "glifo": "stick_l",
+   "no_svg": "stick_l",
+   "caixa": [
+    39.62,
+    55.68,
+    55.62,
+    71.68
+   ],
+   "angulo": 0,
+   "zona": "analogicos"
+  },
+  "stick_r": {
+   "nome": "Analógico Direito",
+   "tipo": "eixo",
+   "regiao": "analogicos",
+   "glifo": "stick_r",
+   "no_svg": "stick_r",
+   "caixa": [
+    72.62,
+    55.67,
+    88.62,
+    71.69
+   ],
+   "angulo": 0,
+   "zona": "analogicos"
+  },
+  "share": {
+   "nome": "Share",
+   "tipo": "botao",
+   "regiao": "centro",
+   "glifo": "share",
+   "no_svg": "share",
+   "caixa": [
+    37.48,
+    33.86,
+    39.89,
+    37.8
+   ],
+   "angulo": -14.04,
+   "zona": "painel"
+  },
+  "options": {
+   "nome": "Options",
+   "tipo": "botao",
+   "regiao": "centro",
+   "glifo": "options",
+   "no_svg": "options",
+   "caixa": [
+    87.86,
+    33.86,
+    90.27,
+    37.8
+   ],
+   "angulo": 14.04,
+   "zona": "painel"
+  },
+  "touchpad": {
+   "nome": "Touchpad",
+   "tipo": "superficie",
+   "regiao": "centro",
+   "glifo": "touchpad",
+   "no_svg": "touchpad",
+   "caixa": [
+    40.66,
+    26.94,
+    87.1,
+    53.08
+   ],
+   "angulo": 0,
+   "zona": "touch"
+  },
+  "ps": {
+   "nome": "PS",
+   "tipo": "botao",
+   "regiao": "centro",
+   "glifo": "ps",
+   "no_svg": "ps",
+   "caixa": [
+    60.54,
+    59.56,
+    67.59,
+    66.3
+   ],
+   "angulo": 0,
+   "zona": "painel"
+  },
+  "mic": {
+   "nome": "Microfone",
+   "tipo": "entrada",
+   "regiao": "audio",
+   "glifo": "mic",
+   "no_svg": "mic",
+   "caixa": [
+    62.15,
+    68.03,
+    66.7,
+    68.78
+   ],
+   "angulo": 0,
+   "zona": "painel"
+  },
+  "alto-falante": {
+   "nome": "Alto-falante",
+   "tipo": "saida",
+   "regiao": "audio",
+   "glifo": "alto-falante",
+   "no_svg": "alto-falante",
+   "caixa": [
+    60.1,
+    55.38,
+    68.74,
+    58.22
+   ],
+   "angulo": 0,
+   "zona": "painel"
+  },
+  "lightbar": {
+   "nome": "Lightbar",
+   "tipo": "luz",
+   "regiao": "luzes",
+   "glifo": "lightbar",
+   "no_svg": "lightbar",
+   "caixa": [
+    41.13,
+    30.93,
+    87.07,
+    50.31
+   ],
+   "angulo": 0,
+   "zona": "luz"
+  },
+  "led-jogador": {
+   "nome": "Indicador de jogador",
+   "tipo": "luz",
+   "regiao": "luzes",
+   "glifo": "led-jogador",
+   "no_svg": "led-jogador",
+   "caixa": [
+    56.71,
+    52.23,
+    72.13,
+    52.9
+   ],
+   "angulo": 0,
+   "zona": "luz"
+  },
+  "feat-giroscopio": {
+   "nome": "Giroscópio",
+   "tipo": "sensor",
+   "regiao": "sensores",
+   "glifo": "giroscopio",
+   "no_svg": "feat-giroscopio",
+   "caixa": [
+    7.5,
+    29.46,
+    120.5,
+    101.51
+   ],
+   "angulo": 0,
+   "zona": "-"
+  },
+  "feat-acelerometro": {
+   "nome": "Acelerômetro",
+   "tipo": "sensor",
+   "regiao": "sensores",
+   "glifo": "acelerometro",
+   "no_svg": "feat-acelerometro",
+   "caixa": [
+    7.5,
+    29.46,
+    120.5,
+    101.51
+   ],
+   "angulo": 0,
+   "zona": "-"
+  },
+  "feat-bateria": {
+   "nome": "Bateria",
+   "tipo": "sensor",
+   "regiao": "energia",
+   "glifo": "bateria",
+   "no_svg": "feat-bateria",
+   "caixa": [
+    40.86,
+    31.04,
+    87.28,
+    50.4
+   ],
+   "angulo": 0,
+   "zona": "-"
+  },
+  "corpo": {
+   "nome": "Corpo",
+   "tipo": "superficie",
+   "regiao": "chassi",
+   "glifo": null,
+   "no_svg": "corpo",
+   "caixa": [
+    7.5,
+    29.46,
+    120.5,
+    101.51
+   ],
+   "angulo": 0,
+   "zona": "casca"
+  },
+  "feat-rumble-esquerdo": {
+   "nome": "Motor de vibração esquerdo",
+   "tipo": "saida",
+   "regiao": "vibracao",
+   "glifo": "rumble_esquerdo",
+   "no_svg": "feat-rumble-esquerdo",
+   "caixa": [
+    7.44,
+    29.46,
+    44.08,
+    101.17
+   ],
+   "angulo": 0,
+   "zona": "-"
+  },
+  "feat-rumble-direito": {
+   "nome": "Motor de vibração direito",
+   "tipo": "saida",
+   "regiao": "vibracao",
+   "glifo": "rumble_direito",
+   "no_svg": "feat-rumble-direito",
+   "caixa": [
+    83.99,
+    29.46,
+    120.5,
+    101.24
+   ],
+   "angulo": 0,
+   "zona": "-"
+  }
+ }
+}

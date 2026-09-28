@@ -1,38 +1,17 @@
 # Rodar FORJA na sua máquina
 
-O jogo principal é a **Hefesto Tech Demo** (SDL3): como compilar, rodar no
-Linux, rodar o `.exe` pelo Proton e validar com quatro DualSense está no
-[README](README.md). Este arquivo cobre o resto da casa: as ferramentas de mesa
-(`forja-send`, `forja-speak`, `forja-read`) e o FORJA em Godot, o jogo de
-antes.
+O jogo é o FORJA em 3D (Godot 4.4 com o módulo nativo): como compilar, rodar
+no Linux, rodar o `.exe` pelo Proton e validar com quatro DualSense está no
+[README](README.md). Este arquivo cobre as ferramentas de bancada
+(`forja-send`, `forja-speak`, `forja-read`) — o mesmo empacotador USB `0x02`
+do jogo, para mandar um efeito a um controle sem abrir o jogo.
 
-Linux x86_64. DualSense no **cabo USB**: as ferramentas de mesa não falam
+Linux x86_64. DualSense no **cabo USB**: as ferramentas de bancada não falam
 Bluetooth.
 
-## O jogo Godot
-
 ```bash
-./run-local.sh godot
+./run-local.sh bancada     # compila as ferramentas e lista os DualSense no cabo
 ```
-
-Na primeira vez baixa o Godot 4.4.1 (~60 MB) e abre o jogo. Teclado basta para a demo. DualSense no cabo ativa rumble SDL + relatório USB `0x02` (gatilho, lightbar, LED de jogador).
-
-## O que você deve ver na mesa
-
-| Tecla | O que o jogo manda | Aceite |
-| --- | --- | --- |
-| `1` | P1 dispara, motor R, R2 Vibration | P2/P3/P4 quietos |
-| `3` | P3 toma da esquerda, motor L = 240 | P1 não treme |
-| `F1` | Galeria, 4 lanes | R2 de um pad não endurece o vizinho |
-| `F2` | Impacto | Tiro esquerdo = motor L daquele pad |
-| `F3` | Viga | Flick 180 só naquele player |
-| `F4` | A Prova | Lightbar cai com a vida de cada um |
-| `F5` | Voz: o microfone padrão do sistema | A barra sobe com a voz; o botão de mudo zera a barra |
-| `Esc` | Hub | |
-
-Na Galeria, o tiro de quem joga sai **no alto-falante do próprio controle** (forja-speak). Na Viga, girar o controle gira o boneco (forja-read); sem IMU, a HUD diz «stick». Embaixo, a linha do som diz o alto-falante que o jogo achou — ou que não achou.
-
-Se o motor do vizinho tremer, o isolamento na frente do hidraw falhou. O jogo não percebe — a mesa é o oráculo.
 
 ## Empacotador sozinho (sem Godot)
 

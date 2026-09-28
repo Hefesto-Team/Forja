@@ -141,10 +141,28 @@ A Forja virou o jogo de prova do alto-falante, do microfone e do movimento (deci
 
 ---
 
-## Onde cada sprint está — 27/09/2026
+## Onde cada sprint está — 28/09/2026: o jogo 3D volta a ser a base
+
+A tabela de 27/09 (logo abaixo) descrevia o app 2D em SDL3, que saiu do branch
+([ADR-007](docs/adr/007-o-jogo-e-o-3d-em-godot.md)): o jogo é o 3D em Godot, e
+o SDL3 vai dentro dele como módulo nativo. O que o 2D provou (o relatório, os
+vereditos, a origem do controle, o simulador, as provas às cegas) mora em
+`nativo/` e volta às salas 3D marco a marco. As salas 2D de `docs/SALAS.md`
+são o desenho de cada sala 3D (o Cerco virou O Impacto; a Cripta, A Voz).
+
+| marco | o que entra no 3D | situação |
+| --- | --- | --- |
+| 1 | o módulo nativo (Linux e Windows), o lobby com os quatro lugares, o salão com os oito portões, o diagnóstico com o mapa do controle, o livro, a pausa, a cara do app Hefesto, a prova do jogo e o gauntlet sem aparelho | feito — esperando o ok das capturas |
+| 2 | A Centelha, A Viga e O Molde como jogos, com os vereditos de entrada | a fazer |
+| 3 | O Impacto e A Galeria às cegas: motores, isolamento, lightbar, os três modos de gatilho, LEDs de jogador | a fazer |
+| 4 | o som pelo módulo (PipeWire, WASAPI e o `ContainerId`): A Voz com o microfone de cada controle e o susto, Os Caminhos, O Canto | a fazer |
+| 5 | A Prova com tudo ligado, a Prova de Fogo em ordem, `experimental/` refeito para o 3D | a fazer |
+| 6 | a exportação: o binário Linux e o `.exe` pelo Proton, no CI; o README fechado | a fazer |
+
+## Onde cada sprint estava — 27/09/2026 (o app 2D, fora do branch)
 
 A Hefesto Tech Demo (SDL3, `demo/`) fechou a maior parte deste plano em salas
-novas, com o mesmo contrato e o mesmo empacotador. O jogo Godot continua como
+novas, com o mesmo contrato e o mesmo empacotador. O jogo Godot continuava como
 estava. "Feito" aponta onde; "parcial" diz o que falta; "fica" é o que não
 entrou.
 
