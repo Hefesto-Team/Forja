@@ -14,6 +14,8 @@ var camera_pos := Vector3(0, 13, 13)
 var camera_olhar := Vector3.ZERO
 ## O tremor da câmera agora (0: parada), para o susto e os golpes grandes.
 var tremor := 0.0
+## false: a sala desenha o próprio painel no lugar do HUD do jogo (a bancada).
+var com_hud := true
 var t := 0.0
 
 

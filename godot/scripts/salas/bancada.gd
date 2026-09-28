@@ -81,6 +81,7 @@ func _init() -> void:
 	id = "bancada"
 	nome = "A bancada"
 	acao = "experimental/ · a bancada dos experimentos"
+	com_hud = false  # o painel da bancada tem o cabeçalho, os lugares e as dicas dele
 	camera_pos = Vector3(0, 6.5, 9.5)
 	camera_olhar = Vector3(0, 1.0, 0.0)
 

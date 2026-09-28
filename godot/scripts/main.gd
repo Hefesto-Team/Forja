@@ -184,7 +184,7 @@ func _mostrar(qual: String) -> void:
 	estado = qual
 	titulo.visible = qual == "titulo"
 	lobby.visible = qual == "lobby"
-	hud.visible = qual in ["salao", "sala"] and overlay == ""
+	hud.visible = _hud_visivel()
 	salao.pedestais_no.visible = qual == "lobby"
 	if qual == "lobby":
 		for l in 4:
@@ -554,9 +554,15 @@ func _diagnostico_livre() -> bool:
 	return not (estado == "sala" and sala is SalaJogo and not (sala as SalaJogo).diagnostico_livre())
 
 
+## O HUD aparece no salão e nas salas, sem menu aberto — menos na sala que
+## desenha o próprio painel no lugar dele.
+func _hud_visivel() -> bool:
+	return estado in ["salao", "sala"] and overlay == "" and not (estado == "sala" and sala and not sala.com_hud)
+
+
 func _fechar_overlay() -> void:
 	overlay = ""
-	hud.visible = estado in ["salao", "sala"]
+	hud.visible = _hud_visivel()
 	painel.escondido = false
 	# a sala volta no quadro seguinte: o botão que fechou o menu não vale nela
 	if sala is SalaJogo:

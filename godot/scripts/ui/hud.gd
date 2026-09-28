@@ -64,17 +64,24 @@ func _draw() -> void:
 	# a placa do portão
 	if not placa.is_empty():
 		var aberta: bool = placa.get("aberta", false)
-		var r := Rect2(Vector2((w - 620) * 0.5, h - 230), Vector2(620, 150))
+		var nome_p := str(placa.get("nome", ""))
+		var sobre := str(placa.get("sobre", ""))
+		var fn_p := Tema.fonte(700)
+		var fs_p := Tema.fonte(500)
+		var s := "em breve"
+		var fs := Tema.fonte(600)
+		var wd := Glifo.largura_dica("cruz", "entrar", Tema.T_CORPO) if aberta else Desenho.largura(s, fs, Tema.T_ROTULO)
+		# a placa cresce com o texto: o "✕ entrar" nunca fica por cima do que ela diz
+		var texto_w := maxf(Desenho.largura(nome_p, fn_p, 40), Desenho.largura(sobre, fs_p, Tema.T_ROTULO))
+		var larg_p := clampf(texto_w + wd + 32 * 2 + 40, 620.0, w - 2 * Tema.MARGEM_X)
+		var r := Rect2(Vector2((w - larg_p) * 0.5, h - 230), Vector2(larg_p, 150))
 		Desenho.moldura(self, r, Color(Tema.PAINEL, 0.96), Tema.LINHA, 2, Tema.RAIO_QUADRO)
-		Desenho.texto(self, r.position + Vector2(32, 58), str(placa.get("nome", "")), Tema.fonte(700), 40, Tema.FG)
-		Desenho.texto(self, r.position + Vector2(32, 100), str(placa.get("sobre", "")), Tema.fonte(500), Tema.T_ROTULO, Tema.ROXO)
+		Desenho.texto(self, r.position + Vector2(32, 58), nome_p, fn_p, 40, Tema.FG)
+		Desenho.texto(self, r.position + Vector2(32, 100), sobre, fs_p, Tema.T_ROTULO, Tema.ROXO)
 		if aberta:
-			var wd := Glifo.largura_dica("cruz", "entrar", Tema.T_CORPO)
 			Glifo.dica(self, Vector2(r.end.x - 32 - wd, r.position.y + 84), "cruz", "entrar", Tema.T_CORPO, Tema.ROSA, Tema.FG)
 		else:
-			var s := "em breve"
-			var fs := Tema.fonte(600)
-			Desenho.texto(self, Vector2(r.end.x - 32 - Desenho.largura(s, fs, Tema.T_ROTULO), r.position.y + 84), s, fs, Tema.T_ROTULO, Tema.COMMENT)
+			Desenho.texto(self, Vector2(r.end.x - 32 - wd, r.position.y + 84), s, fs, Tema.T_ROTULO, Tema.COMMENT)
 
 	# as dicas de baixo
 	var pares := [["create", "diagnóstico"], ["options", "pausa"]] if create_livre else [["options", "pausa"]]
@@ -120,6 +127,11 @@ func _lugares(fim: Vector2) -> void:
 			Desenho.texto(self, Vector2(r.end.x - 20 - Desenho.largura(s, fm, Tema.T_SELO), r.position.y + 40), s, fm, Tema.T_SELO, Tema.VERDE)
 		var linha: String = status_da_sala[l]
 		if linha != "":
-			Desenho.texto(self, r.position + Vector2(20, 76), linha, Tema.fonte(500), 22, Tema.SUAVE, HORIZONTAL_ALIGNMENT_LEFT, larg - 40)
+			# a linha encolhe até caber (cortada, "4 bala" viraria "4 bal")
+			var fl := Tema.fonte(500)
+			var tam := 22
+			while tam > 16 and Desenho.largura(linha, fl, tam) > larg - 40:
+				tam -= 1
+			Desenho.texto(self, r.position + Vector2(20, 76), linha, fl, tam, Tema.SUAVE, HORIZONTAL_ALIGNMENT_LEFT, larg - 40)
 		else:
 			Desenho.leds(self, r.position + Vector2(20, 60), int(info.get("leds", 0)), 10.0)
