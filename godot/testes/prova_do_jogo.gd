@@ -114,31 +114,56 @@ func _prova_do_percurso() -> void:
 	await _joga_a_sala("viga", ["giroscopio", "acelerometro"])
 	await _joga_a_sala("molde", ["touchpad_dois_dedos", "touchpad_clique"])
 
-	# A Galeria: o R2 de cada um em Vibration; o L2 solto
-	jogo._entrar_na_sala("galeria", false)
-	await _quadros(6)
-	for l in 4:
-		var p := _perc(l)
-		_esperar(int(Forja.estado_saida(l).get("r2", -1)) == Forja.GATILHO_VIBRACAO, "Galeria P%d: R2 em Vibration" % (l + 1))
-		_esperar(int(p.get("gatilho_dir", 0)) == 0x26, "Galeria P%d: o controle recebeu o modo 0x26" % (l + 1))
-		_esperar(int(p.get("gatilho_esq", 0)) == 0x05, "Galeria P%d: o L2 solto (0x05)" % (l + 1))
+	# A Galeria, às cegas: a arma do escuro chega ao R2 de cada um no modo dela
+	# (e o L2 fica solto); o robô sente o gatilho, responde e conta as luzinhas
+	var galeria = await _comeca_a_sala("galeria")
+	if galeria:
+		await _quadros(4)
+		for l in 4:
+			var arma: int = galeria.j[l].arma
+			var esperado: int = [0x25, 0x26, 0x21, 0x05][arma]
+			var pg := _perc(l)
+			_esperar(int(pg.get("gatilho_dir", 0)) == esperado,
+				"Galeria P%d: a arma do escuro (%s) chegou ao R2 como 0x%02x" % [l + 1, SalaGaleria.NOME_ARMA[arma], esperado])
+			_esperar(int(pg.get("gatilho_esq", 0)) == 0x05, "Galeria P%d: o L2 solto (0x05)" % (l + 1))
+		await _termina_a_sala(galeria, ["gatilho_resistencia", "gatilho_arma", "gatilho_vibracao", "leds_jogador"])
 
-	# O Impacto: o golpe da esquerda no P3 treme só o motor esquerdo do P3
-	jogo._entrar_na_sala("impacto", false)
-	await _quadros(4)
-	jogo.sala._golpe(jogo.jogadores[2], true)
-	await _quadros(2)
-	var p3 := _perc(2)
-	_esperar(float(p3.get("forte", 0.0)) > 0.5 and float(p3.get("fraco", 1.0)) == 0.0, "Impacto: da esquerda, só o motor forte do P3")
-	for l in [0, 1, 3]:
-		var p := _perc(l)
-		_esperar(float(p.get("forte", 0.0)) == 0.0 and float(p.get("fraco", 0.0)) == 0.0, "Impacto: o P%d não tremeu" % (l + 1))
-	var luz3: Color = p3.get("luz", Color.BLACK)
-	_esperar(luz3.get_luminance() < Forja.cor_do_lugar(2).get_luminance(), "Impacto: a luz do P3 caiu com a vida")
-	jogo.sala._golpe(jogo.jogadores[1], false)
-	await _quadros(2)
-	var p2 := _perc(1)
-	_esperar(float(p2.get("fraco", 0.0)) > 0.5 and float(p2.get("forte", 1.0)) == 0.0, "Impacto: da direita, só o motor fraco do P2")
+	# O Impacto, às cegas: o golpe treme só o motor do lado dele, e só no
+	# controle do alvo; na pergunta da onda, a luz de cada um é a cor sorteada
+	var impacto = await _comeca_a_sala("impacto")
+	if impacto:
+		var q := 0
+		while impacto.estado != SalaImpacto.GOLPE and q < 900:
+			await _quadros(1)
+			q += 1
+		await _quadros(2)
+		var alvo: int = impacto.atual.x
+		var lado: int = impacto.atual.y
+		for l in 4:
+			var pe := _perc(l)
+			var forte := float(pe.get("forte", 0.0))
+			var fraco := float(pe.get("fraco", 0.0))
+			if l == alvo:
+				var certo := (forte > 0.5 and fraco == 0.0) if lado == 0 else (fraco > 0.5 and forte == 0.0)
+				_esperar(certo, "Impacto: o golpe da %s treme só o motor %s do P%d" % [
+					"esquerda" if lado == 0 else "direita", "forte" if lado == 0 else "fraco", l + 1])
+			else:
+				_esperar(forte == 0.0 and fraco == 0.0, "Impacto: o golpe no P%d não treme o P%d" % [alvo + 1, l + 1])
+		q = 0
+		while impacto.estado != SalaImpacto.PERGUNTA and q < 3000:
+			await _quadros(1)
+			q += 1
+		await _quadros(2)
+		for l in 4:
+			var pedida: int = impacto.j[l].cor_pedida
+			if pedida < 0:
+				continue
+			var luz: Color = _perc(l).get("luz", Color.BLACK)
+			var cor: Color = SalaImpacto.CORES[pedida].cor
+			# a cor passa por 8 bits no caminho: um degrau de folga
+			var perto := absf(luz.r - cor.r) < 0.01 and absf(luz.g - cor.g) < 0.01 and absf(luz.b - cor.b) < 0.01
+			_esperar(perto, "Impacto P%d: a luz acendeu %s para a pergunta" % [l + 1, SalaImpacto.CORES[pedida].nome])
+		await _termina_a_sala(impacto, ["vibracao_forte", "vibracao_fraca", "vibracao_isolamento", "lightbar"])
 
 	# A Voz: o mudo do P3 acende o LED do P3, e só o dele
 	jogo._entrar_na_sala("voz", false)
@@ -171,14 +196,34 @@ func _prova_do_percurso() -> void:
 ## Entra na sala, espera o aviso (o robô fica pronto sozinho), o jogo e o
 ## veredito; confere o veredito de cada lugar e espera a volta ao salão.
 func _joga_a_sala(id: String, features: Array) -> void:
+	var sala = await _comeca_a_sala(id)
+	if sala:
+		await _termina_a_sala(sala, features)
+
+
+## Entra na sala e espera o jogo começar (o robô fica pronto no aviso).
+## Devolve a sala, ou null se ela não abriu.
+func _comeca_a_sala(id: String):
 	jogo._entrar_na_sala(id, false)
 	await _quadros(2)
 	var sala = jogo.sala
 	_esperar(sala is SalaJogo and sala.id == id, "%s: a sala abriu" % id)
 	if not sala is SalaJogo:
-		return
+		return null
 	var q := 0
-	while is_instance_valid(sala) and sala.fase != "fim" and q < 9000:
+	while is_instance_valid(sala) and sala.fase == "aviso" and q < 600:
+		await _quadros(1)
+		q += 1
+	_esperar(is_instance_valid(sala) and sala.fase == "jogo", "%s: o aviso passou com os quatro prontos" % id)
+	return sala if is_instance_valid(sala) else null
+
+
+## Espera o veredito, confere cada lugar em cada feature (e o que foi para o
+## relatório) e espera a volta ao salão, com os controles no repouso.
+func _termina_a_sala(sala, features: Array) -> void:
+	var id: String = sala.id
+	var q := 0
+	while is_instance_valid(sala) and sala.fase != "fim" and q < 12000:
 		await _quadros(10)
 		q += 10
 	_esperar(is_instance_valid(sala) and sala.fase == "fim", "%s: o robô jogou até o fim (%d quadros)" % [id, q])

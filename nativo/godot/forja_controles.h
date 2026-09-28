@@ -135,6 +135,14 @@ public:
   Dictionary med_estado(int lugar) const;
   Dictionary med_veredito(int lugar, const String &chave, int nivel);
 
+  /* as provas às cegas das salas de saída (cegas.h): os planos pelo sorteio
+   * do núcleo, e o veredito das respostas guardadas pela sala */
+  Array cega_plano_tiros(const PackedInt32Array &slots, int por_lado, int64_t semente) const;
+  PackedInt32Array cega_plano_armas(int vezes, int64_t semente) const;
+  PackedInt32Array cega_plano_fontes(const PackedInt32Array &fontes, const PackedInt32Array &vezes, int64_t semente) const;
+  bool cega_decidida(const String &tipo, const Dictionary &cega) const;
+  Dictionary cega_veredito(int lugar, const String &chave, const Dictionary &dados);
+
   /* os sons da forja, sintetizados (som/sintese.h): mono, 48 kHz, float */
   PackedFloat32Array sintetizar(const String &tipo, const Dictionary &p) const;
   /* o mesmo som em PCM de 16 bits (o que a AudioStreamWAV do Godot toca) */

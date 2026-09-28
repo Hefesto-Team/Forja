@@ -122,6 +122,7 @@ add_library(forja SHARED
   godot/registro_tipos.cpp
   godot/forja_controles.cpp
   godot/forja_medidas.cpp
+  godot/forja_cegas.cpp
 )
 target_link_libraries(forja PRIVATE forja_sdl godot-cpp::template_release)
 target_compile_definitions(forja PRIVATE FORJA_VERSAO="${FORJA_VERSAO}")

@@ -95,6 +95,10 @@ func _dicas() -> void:
 	for l in 4:
 		if not Forja.ocupado(l):
 			continue
+		var q: Dictionary = sala.pergunta(l)
+		if not q.is_empty():
+			_pergunta(cam, l, q)
+			continue
 		var d: Dictionary = sala.dica(l)
 		if d.is_empty() or not d.has("pos"):
 			continue
@@ -123,10 +127,78 @@ func _dicas() -> void:
 				x += Desenho.largura(s, f, tam) + 10.0
 
 
+## Uma pergunta às cegas embaixo da raia: o título, as quatro respostas (o
+## glifo do botão, a cor quando a pergunta é de cor, a palavra) e, revelada, a
+## certa em verde e a escolhida errada em vermelho, com a frase do resultado.
+func _pergunta(cam: Camera3D, l: int, q: Dictionary) -> void:
+	var larg := 400.0
+	var opcoes: Array = q.get("opcoes", [])
+	var linhas := int(ceil(opcoes.size() / 2.0))
+	var rodape := str(q.get("rodape", ""))
+	var ft := Tema.fonte(600)
+	var fo := Tema.fonte(500)
+	# o título quebra em até duas linhas; a segunda empurra as respostas
+	var titulo := str(q.get("titulo", ""))
+	var extra := maxf(0.0, Desenho.altura_paragrafo(titulo, ft, 22, larg - 40, 2) - ft.get_height(22))
+	var alt := 70.0 + extra + 58.0 * linhas + (40.0 if rodape != "" else 10.0)
+	var centro := cam.unproject_position(q.get("pos", Vector3.ZERO))
+	var r := Rect2(Vector2(centro.x - larg * 0.5, centro.y - alt * 0.5), Vector2(larg, alt))
+	r.position.x = clampf(r.position.x, 12.0, size.x - larg - 12.0)
+	r.position.y = clampf(r.position.y, 230.0, size.y - alt - 90.0)
+	var cor_id := Tema.tom_para_a_borda(Forja.cor_do_lugar(l))
+	Desenho.moldura(self, r, Color(Tema.PAINEL, 0.95), cor_id, 2, 14)
+	Desenho.paragrafo(self, r.position + Vector2(20, 38), titulo, ft, 22, Tema.FG, larg - 40, 2)
+	var escolhida := int(q.get("escolhida", -1))
+	var certa := int(q.get("certa", -1))
+	var w := (larg - 40.0) * 0.5
+	for i in opcoes.size():
+		var o: Array = opcoes[i]
+		var cx := r.position.x + 20.0 + (i % 2) * w
+		var cy := r.position.y + 58.0 + extra + int(i / 2) * 58.0
+		var caixa := Rect2(Vector2(cx, cy), Vector2(w - 8.0, 50.0))
+		var borda := Tema.LINHA
+		var fundo := Color(Tema.APP, 0.9)
+		if i == escolhida:
+			fundo = Tema.SEL
+		if certa >= 0 and i == certa:
+			borda = Tema.VERDE
+		elif certa >= 0 and i == escolhida:
+			borda = Tema.VERMELHO
+		Desenho.moldura(self, caixa, fundo, borda, 2 if borda == Tema.LINHA else 3, 10)
+		var tex := Desenho.glifo(str(o[0]))
+		if tex:
+			draw_texture_rect(tex, Rect2(caixa.position + Vector2(10, 9), Vector2(32, 32)), false, Tema.ROSA)
+		var tx := caixa.position.x + 50.0
+		if o.size() > 1 and o[1] is Color:
+			draw_circle(Vector2(tx + 11.0, caixa.position.y + 25.0), 11.0, o[1])
+			draw_arc(Vector2(tx + 11.0, caixa.position.y + 25.0), 11.0, 0.0, TAU, 24, Tema.LINHA, 1.5)
+			tx += 30.0
+		# a palavra encolhe para caber inteira ("metralhadora") em vez de cortar
+		var palavra := str(o[o.size() - 1])
+		var cabe := caixa.end.x - tx - 8.0
+		var tam := 20
+		while tam > 15 and Desenho.largura(palavra, fo, tam) > cabe:
+			tam -= 1
+		Desenho.texto(self, Vector2(tx, caixa.position.y + 32.0 + tam * 0.05), palavra, fo, tam, Tema.FG,
+			HORIZONTAL_ALIGNMENT_LEFT, cabe + 2.0)
+	if rodape != "":
+		var bom := certa >= 0 and escolhida == certa
+		Desenho.texto(self, Vector2(r.position.x + 20, r.end.y - 16), rodape, fo, 20, Tema.VERDE if bom else Tema.LARANJA,
+			HORIZONTAL_ALIGNMENT_LEFT, larg - 40)
+
+
 func _tempo() -> void:
 	_dicas()
 	var d: float = sala.duracao
 	if d <= 0.0:
+		# sem relógio: a linha de progresso da sala, no mesmo lugar
+		var linha := str(sala.progresso())
+		if linha != "":
+			var fp := Tema.fonte(500)
+			var lw := Desenho.largura(linha, fp, Tema.T_SELO)
+			var q := Rect2(Vector2(Tema.MARGEM_X - 28, 162), Vector2(lw + 44, 52))
+			Desenho.moldura(self, q, Color(Tema.PAINEL, 0.9), Tema.LINHA, 2, 12)
+			Desenho.texto(self, q.position + Vector2(22, 34), linha, fp, Tema.T_SELO, Tema.SUAVE)
 		return
 	# o tempo que resta, logo abaixo do nome da sala (o quadro da HUD)
 	var resta := maxf(0.0, d - float(sala.t_fase))
@@ -170,7 +242,12 @@ func _fim() -> void:
 			var res := int(v.get("resultado", 0))
 			var cor: Color = [Tema.MUDO, Tema.VERDE, Tema.VERMELHO][clampi(res, 0, 2)]
 			var palavra: String = ["— NÃO MEDIDO", "✓ PASSOU", "✗ FALHOU"][clampi(res, 0, 2)]
-			Desenho.texto(self, Vector2(x, y + 26), str(v.get("nome", "")), Tema.fonte(600), Tema.T_SELO, Tema.FG, HORIZONTAL_ALIGNMENT_LEFT, coluna - 40)
+			# o nome da feature inteiro: a letra encolhe até caber na coluna
+			var nome_f := str(v.get("nome", ""))
+			var tam_nome := Tema.T_SELO
+			while tam_nome > 16 and Desenho.largura(nome_f, Tema.fonte(600), tam_nome) > coluna - 40:
+				tam_nome -= 1
+			Desenho.texto(self, Vector2(x, y + 26), nome_f, Tema.fonte(600), tam_nome, Tema.FG, HORIZONTAL_ALIGNMENT_LEFT, coluna - 40)
 			Desenho.selo(self, Vector2(x, y + 40), palavra, cor, 20)
 			# o que foi medido; se não passou, o porquê (a observação diz)
 			var medido := str(v.get("medido", ""))

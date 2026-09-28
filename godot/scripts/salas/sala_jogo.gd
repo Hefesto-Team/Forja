@@ -33,6 +33,9 @@ var rng := RandomNumberGenerator.new()
 ## param (o ✕ do menu não é o ✕ da runa)
 var congelada := false
 var _itens := {}  ## lugar -> o que o boneco levava antes da sala
+## true numa prova às cegas (as salas de saída): enquanto se joga, o
+## diagnóstico fica fechado — ele mostraria a luz e o motor do controle
+var cega := false
 
 
 func entrar(js: Array) -> void:
@@ -47,6 +50,7 @@ func entrar(js: Array) -> void:
 func sair() -> void:
 	for p in jogadores:
 		Forja.med_parar(p.lugar)
+		p.preso = false
 		if _itens.has(p.lugar):
 			p.visual(p.modelo_i, int(_itens[p.lugar]))
 	super()
@@ -202,6 +206,24 @@ func status(lugar: int) -> String:
 
 func marcar(lugar: int, n: int) -> void:
 	pontos[lugar] += n
+
+
+## O diagnóstico pode abrir agora? Numa prova às cegas em jogo, não.
+func diagnostico_livre() -> bool:
+	return not (cega and fase == "jogo")
+
+
+## Uma pergunta às cegas para o lugar, embaixo da raia dele (no lugar da dica):
+## {titulo, opcoes: [[glifo, cor ou null, texto]...], escolhida, certa,
+## rodape, pos}. `certa` fica -1 até a resposta ser revelada. Vazio: nada.
+func pergunta(_lugar: int) -> Dictionary:
+	return {}
+
+
+## Uma linha de progresso da sala, no lugar do tempo quando ela não tem
+## relógio ("onda 1 de 3 · golpe 4 de 30"). Vazio: nada.
+func progresso() -> String:
+	return ""
 
 
 ## A dica de cada lugar durante o jogo, embaixo da raia dele: {partes, pos}.

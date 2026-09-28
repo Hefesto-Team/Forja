@@ -256,7 +256,8 @@ func _entrar_na_sala(id: String, com_cortina := true) -> void:
 		sala.entrar(js)
 		sala.terminou.connect(_ao_terminar_a_sala)
 		painel.sala = sala
-		hud.create_livre = not (sala is SalaJogo and ((sala as SalaJogo).botoes_pedidos >> Forja.CREATE) & 1)
+		hud.create_livre = not (sala is SalaJogo and (((sala as SalaJogo).botoes_pedidos >> Forja.CREATE) & 1
+			or (sala as SalaJogo).cega))
 		_mostrar("sala")
 		hud.sala = {"nome": sala.nome, "acao": sala.acao}
 		hud.placa = {}
@@ -446,6 +447,9 @@ func _atalhos_de_overlay() -> bool:
 
 
 func _abrir_overlay(qual: String, lugar: int) -> void:
+	if qual == "diagnostico" and not _diagnostico_livre():
+		hud.mostrar_aviso("prova às cegas: o diagnóstico volta no fim da sala")
+		return
 	overlay = qual
 	diagnostico.visible = qual == "diagnostico"
 	livro.visible = qual == "livro"
@@ -459,8 +463,14 @@ func _abrir_overlay(qual: String, lugar: int) -> void:
 	if qual == "livro":
 		livro.abrir()
 	if qual == "pausa":
-		pausa.abrir(lugar, estado == "sala")
+		pausa.abrir(lugar, estado == "sala", _diagnostico_livre())
 	get_tree().paused = false
+
+
+## Numa prova às cegas em jogo, o diagnóstico não abre: ele mostraria a luz e
+## o motor do controle, e a resposta viria da tela.
+func _diagnostico_livre() -> bool:
+	return not (estado == "sala" and sala is SalaJogo and not (sala as SalaJogo).diagnostico_livre())
 
 
 func _fechar_overlay() -> void:
