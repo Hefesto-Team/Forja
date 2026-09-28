@@ -256,7 +256,11 @@ func _pergunta(l: int, q: Dictionary, r: Rect2) -> void:
 			HORIZONTAL_ALIGNMENT_LEFT, cabe + 2.0)
 	if rodape != "":
 		var bom := certa >= 0 and escolhida == certa
-		Desenho.texto(self, Vector2(r.position.x + 20, r.end.y - 16), rodape, fo, 20, Tema.VERDE if bom else Tema.LARANJA,
+		# o rodapé também encolhe até caber ("mesmo com tudo ligado" saía "tudo lig")
+		var tam_r := 20
+		while tam_r > 14 and Desenho.largura(rodape, fo, tam_r) > larg - 40:
+			tam_r -= 1
+		Desenho.texto(self, Vector2(r.position.x + 20, r.end.y - 16), rodape, fo, tam_r, Tema.VERDE if bom else Tema.LARANJA,
 			HORIZONTAL_ALIGNMENT_LEFT, larg - 40)
 
 
