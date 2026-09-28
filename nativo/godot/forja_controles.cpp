@@ -678,6 +678,11 @@ void ForjaControles::_bind_methods() {
   METODO(med_martelada, "lugar");
   METODO(med_estado, "lugar");
   METODO(med_veredito, "lugar", "chave", "nivel");
+  METODO(cega_plano_tiros, "slots", "por_lado", "semente");
+  METODO(cega_plano_armas, "vezes", "semente");
+  METODO(cega_plano_fontes, "fontes", "vezes", "semente");
+  METODO(cega_decidida, "tipo", "cega");
+  METODO(cega_veredito, "lugar", "chave", "dados");
   METODO(sintetizar, "tipo", "parametros");
   METODO(sintetizar_pcm16, "tipo", "parametros");
 

@@ -607,6 +607,45 @@ func med_veredito(l: int, chave: String, nivel := NIVEL_REAGIU) -> Dictionary:
 	return ctl.med_veredito(l, chave, nivel) if modulo else {}
 
 
+# ---------------------------------------------------------------- as provas às cegas --
+# As salas de saída escondem a resposta e perguntam; a sala guarda o que a
+# pessoa disse (Cega) e o módulo dá o veredito pela régua do núcleo (cegas.c),
+# no degrau que a prova alcançou. Os planos saem do mesmo sorteio do núcleo.
+
+## A ordem dos golpes: `por_lado` de cada lado para cada lugar, um de cada vez.
+## Cada item é Vector2i(lugar, lado), lado 0 = esquerda (o motor forte).
+func cega_plano_tiros(lugares: Array, por_lado: int, semente: int) -> Array:
+	return ctl.cega_plano_tiros(PackedInt32Array(lugares), por_lado, semente) if modulo else []
+
+
+## A ordem das armas: cada uma `vezes` vezes (0 pistola, 1 metralhadora, 2 arco, 3 nenhuma).
+func cega_plano_armas(vezes: int, semente: int) -> PackedInt32Array:
+	return ctl.cega_plano_armas(vezes, semente) if modulo else PackedInt32Array()
+
+
+## Um plano genérico: fontes[i] aparece vezes[i] vezes, sem repetir em seguida.
+func cega_plano_fontes(fontes: Array, vezes: Array, semente: int) -> PackedInt32Array:
+	return ctl.cega_plano_fontes(PackedInt32Array(fontes), PackedInt32Array(vezes), semente) if modulo else PackedInt32Array()
+
+
+## A pergunta já decidiu ("cor", "arma", "led_mic"), ou vale mais uma rodada?
+func cega_decidida(tipo: String, c: Dictionary) -> bool:
+	return ctl.cega_decidida(tipo, c) if modulo else true
+
+
+## O veredito de uma feature de saída; grava no relatório e devolve
+## {resultado, rotulo, nivel, pedido, medido, obs, nome}.
+func cega_veredito(l: int, chave: String, dados: Dictionary) -> Dictionary:
+	return ctl.cega_veredito(l, chave, dados) if modulo else {}
+
+
+## O que o controle SIMULADO do lugar sentiu (vibração, luz, gatilhos, LEDs):
+## é o que o robô "sente na mão". Vazio num controle de verdade.
+func percepcao(l: int) -> Dictionary:
+	var p := pad_do_lugar(l)
+	return ctl.percepcao(p) if modulo and p >= 0 else {}
+
+
 # ---------------------------------------------------------------- o robô --
 # Com --robo, o robô joga nos controles simulados apertando os botões DELES
 # (o caminho inteiro do módulo roda, e os defeitos de mentira pegam).

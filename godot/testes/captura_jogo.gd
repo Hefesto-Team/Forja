@@ -7,7 +7,7 @@ extends Node
 ##
 ## SAIDA=<pasta> diz onde gravar os PNG; FOTOS=titulo,lobby,... escolhe quais.
 ## ROTEIRO=salas passa pelas salas que medem (aviso, jogo e veredito de cada
-## uma, com o robô jogando). RAPIDO=1 roda numa janela pequena entre as fotos
+## uma, com o robô jogando); SALAS=impacto,galeria escolhe quais. RAPIDO=1 roda numa janela pequena entre as fotos
 ## e volta ao tamanho cheio só para cada foto (num renderizador por software,
 ## é o que cabe no tempo).
 
@@ -79,47 +79,60 @@ func _roteiro_das_salas() -> Array:
 	var p1 := func(cond: Callable) -> Callable:
 		return func() -> bool:
 			return jogo.sala is SalaJogo and jogo.sala.fase == "jogo" and cond.call(jogo.sala, jogo.sala.j[0])
-	var runa_analogica := func(sala, e) -> bool:
-		var r = sala._runa_atual(0)
-		return r != null and r.tipo == "analogico" and SalaCentelha._contar(int(e.setores)) >= 4
-	var fole_no_fundo := func(sala, e) -> bool:
-		var r = sala._runa_atual(0)
-		return r != null and r.tipo == "gatilho" and e.estagio == 1
-	var nos_sinos := func(_sala, e) -> bool:
-		return e.trecho == 1 and e.t > 1.2
-	var na_pedra := func(_sala, e) -> bool:
-		return e.trecho == 2 and e.golpes >= 1
-	var tracando := func(_sala, e) -> bool:
-		return e.passo == 0 and e.ponto >= 2
-	var abrindo := func(_sala, e) -> bool:
-		return e.passo == 1 and e.abertura > 0.3
-	var carimbando := func(sala, e) -> bool:
-		return e.passo == 2 and sala._no_ponto(e)
-	return [
+	var na_sala := func(cond: Callable) -> Callable:
+		return func() -> bool:
+			return jogo.sala is SalaJogo and jogo.sala.fase == "jogo" and cond.call(jogo.sala)
+	# os momentos de cada sala: [a foto, quando]
+	var momentos := {
+		"centelha": [
+			["centelha_jogo", fase.call("jogo", 7.0)],
+			["centelha_analogico", p1.call(func(sala, e) -> bool:
+				var r = sala._runa_atual(0)
+				return r != null and r.tipo == "analogico" and SalaCentelha._contar(int(e.setores)) >= 4)],
+			["centelha_fole", p1.call(func(sala, e) -> bool:
+				var r = sala._runa_atual(0)
+				return r != null and r.tipo == "gatilho" and e.estagio == 1)],
+		],
+		"viga": [
+			["viga_travessia", fase.call("jogo", 6.0)],
+			["viga_sinos", p1.call(func(_sala, e) -> bool: return e.trecho == 1 and e.t > 1.2)],
+			["viga_pedra", p1.call(func(_sala, e) -> bool: return e.trecho == 2 and e.golpes >= 1)],
+		],
+		"molde": [
+			["molde_tracar", p1.call(func(_sala, e) -> bool: return e.passo == 0 and e.ponto >= 2)],
+			["molde_abrir", p1.call(func(_sala, e) -> bool: return e.passo == 1 and e.abertura > 0.3)],
+			["molde_carimbar", p1.call(func(sala, e) -> bool: return e.passo == 2 and sala._no_ponto(e))],
+		],
+		"impacto": [
+			["impacto_golpe", na_sala.call(func(sala) -> bool: return sala.estado == SalaImpacto.GOLPE and sala.t_estado > 0.25)],
+			["impacto_escudo", na_sala.call(func(sala) -> bool:
+				return sala.estado == SalaImpacto.VOANDO and sala.t_estado > 0.22 and sala.resposta == sala.atual.y)],
+			["impacto_pergunta", na_sala.call(func(sala) -> bool: return sala.estado == SalaImpacto.PERGUNTA and sala.t_estado > 1.2)],
+			["impacto_resposta", na_sala.call(func(sala) -> bool: return sala.estado == SalaImpacto.RESPOSTA and sala.t_estado > 0.3)],
+		],
+		"galeria": [
+			["galeria_escuro", p1.call(func(_sala, e) -> bool: return e.passo == SalaGaleria.IDENTIFICAR and e.puxou)],
+			["galeria_revela", p1.call(func(_sala, e) -> bool:
+				return e.passo == SalaGaleria.REVELANDO and e.arma != SalaGaleria.NENHUMA and e.t > 0.5)],
+			["galeria_tiro", p1.call(func(_sala, e) -> bool: return e.passo == SalaGaleria.ATIRAR and e.t > 2.0)],
+			["galeria_municao", p1.call(func(_sala, e) -> bool: return e.passo == SalaGaleria.MUNICAO and e.t > 0.4)],
+		],
+	}
+	var roteiro_salas: Array = [
 		["espera", 10], ["aperta", 0, Forja.CRUZ], ["espera", 40],
 		["aperta", 0, Forja.CRUZ], ["aperta", 1, Forja.CRUZ], ["aperta", 2, Forja.CRUZ], ["aperta", 3, Forja.CRUZ], ["espera", 10],
 		["aperta", 0, Forja.CRUZ], ["aperta", 1, Forja.CRUZ], ["aperta", 2, Forja.CRUZ], ["aperta", 3, Forja.CRUZ],
 		["ate", no_salao],
-		["sala", "centelha"], ["ate", fase.call("aviso", 1.7)], ["foto", "centelha_aviso"],
-		["ate", fase.call("jogo", 7.0)], ["foto", "centelha_jogo"],
-		["ate", p1.call(runa_analogica)], ["foto", "centelha_analogico"],
-		["ate", p1.call(fole_no_fundo)], ["foto", "centelha_fole"],
-		["ate", fase.call("fim", 1.4)], ["foto", "centelha_fim"],
-		["ate", no_salao],
-		["sala", "viga"], ["ate", fase.call("aviso", 1.7)], ["foto", "viga_aviso"],
-		["ate", fase.call("jogo", 6.0)], ["foto", "viga_travessia"],
-		["ate", p1.call(nos_sinos)], ["foto", "viga_sinos"],
-		["ate", p1.call(na_pedra)], ["foto", "viga_pedra"],
-		["ate", fase.call("fim", 1.4)], ["foto", "viga_fim"],
-		["ate", no_salao],
-		["sala", "molde"], ["ate", fase.call("aviso", 1.7)], ["foto", "molde_aviso"],
-		["ate", p1.call(tracando)], ["foto", "molde_tracar"],
-		["ate", p1.call(abrindo)], ["foto", "molde_abrir"],
-		["ate", p1.call(carimbando)], ["foto", "molde_carimbar"],
-		["ate", fase.call("fim", 1.4)], ["foto", "molde_fim"],
-		["ate", no_salao], ["foto", "salao_depois"],
-		["fim"],
 	]
+	var pedidas := OS.get_environment("SALAS")
+	var salas: Array = Array(pedidas.split(",")) if pedidas != "" else ["centelha", "viga", "molde"]
+	for id in salas:
+		roteiro_salas.append_array([["sala", id], ["ate", fase.call("aviso", 1.7)], ["foto", id + "_aviso"]])
+		for m in momentos.get(id, []):
+			roteiro_salas.append_array([["ate", m[1]], ["foto", m[0]]])
+		roteiro_salas.append_array([["ate", fase.call("fim", 1.4)], ["foto", id + "_fim"], ["ate", no_salao]])
+	roteiro_salas.append_array([["foto", "salao_depois"], ["fim"]])
+	return roteiro_salas
 
 
 ## Cheia para a foto; pequena (e o 3D pela metade) para andar depressa.

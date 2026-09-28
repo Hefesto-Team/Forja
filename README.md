@@ -49,8 +49,8 @@ As salas, e em que marco cada uma ganha o comportamento de jogo comercial
 | A Centelha | botões, analógicos, gatilhos analógicos | o jogo: a runa acende em cima da bigorna de cada um; apertar a tempo martela; o círculo do analógico e o fole do gatilho |
 | A Viga | giroscópio, acelerômetro | o jogo: a travessia sobre a lava (incline contra o vento), os sinos na mira do giroscópio, a pedra que quebra na martelada |
 | O Molde | touchpad com dois dedos, clique | o jogo: o molde é o touchpad; trace a letra, abra e feche com dois dedos, carimbe com o clique |
-| O Impacto | motor forte e fraco, isolamento, lightbar | aberta (o golpe da esquerda treme só a esquerda, a luz é a vida); marco 3 |
-| A Galeria | resistência, arma, vibração, LEDs de jogador | aberta (R2 em vibração no tiro); marco 3 |
+| O Impacto | motor forte e fraco, isolamento, lightbar | o jogo, às cegas: no escuro, o golpe treme só o motor do lado e você levanta o escudo daquele lado (L1/R1); a luz pisca no golpe e apaga com a vida; no fim da onda, a cor da luz, olhando o controle |
+| A Galeria | resistência, arma, vibração, LEDs de jogador | o jogo, às cegas: a arma chega no baú fechado e se reconhece pelo gatilho (parede e clique, tremor, peso, solto); a munição nas luzinhas, contadas no controle |
 | A Voz | microfone, mudo, LED do microfone | aberta (o mudo acende o LED); o microfone de cada controle no marco 4 |
 | Os Caminhos | háptica por áudio (canais 3 e 4) | marco 4 |
 | O Canto | alto-falante do controle | marco 4 |
@@ -169,10 +169,11 @@ mesma semente nas duas (`--semente=7`).
    quebrar a pedra) e O Molde (trace a letra no touchpad, abra e feche com dois
    dedos, clique quando o metal brilhar). No fim de cada uma, o veredito de
    cada um na tela, por feature, com o que foi medido.
-5. Entre nas outras salas abertas. Na Galeria, o R2 de cada um treme no
-   tiro, e só o dele; no Impacto, o golpe da esquerda treme só o lado esquerdo
-   daquele controle, e a luz dele cai com a vida; na Voz, o mudo de cada um
-   acende o LED laranja dele.
+5. Jogue as salas às cegas, que perguntam o que a tela não mostra: O Impacto
+   (sinta de que lado veio o golpe e levante o escudo daquele lado; no fim da
+   onda, diga a cor da luz do seu controle) e A Galeria (aperte R2 e diga que
+   arma é pelo gatilho; depois, conte as luzinhas embaixo do touchpad). Na
+   Voz, o mudo de cada um acende o LED laranja dele.
 6. Options → O livro da sessão mostra a tabela. Os arquivos estão em
    `relatorios/`: `relatorio-<sessão>.txt` para ler, `.json` e a linha do tempo
    para comparar.

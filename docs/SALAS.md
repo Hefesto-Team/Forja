@@ -3,16 +3,18 @@
 > **No jogo 3D** ([ADR-007](adr/007-o-jogo-e-o-3d-em-godot.md)) este é o desenho
 > de cada sala. Os nomes mudaram em duas: **o Cerco é O Impacto** e **a Cripta
 > é A Voz**. As salas ganham o comportamento abaixo marco a marco (ver
-> [SPRINTS.md](../SPRINTS.md)). A Centelha, A Viga e O Molde já são o jogo
-> inteiro (marco 2); O Impacto, A Galeria, A Voz e A Prova estão abertas na
-> versão curta; Os Caminhos e O Canto têm o portão fechado.
+> [SPRINTS.md](../SPRINTS.md)). A Centelha, A Viga e O Molde (marco 2), O
+> Impacto e A Galeria (marco 3) já são o jogo inteiro; A Voz e A Prova estão
+> abertas na versão curta; Os Caminhos e O Canto têm o portão fechado.
 >
 > As três fases de toda sala que mede são as mesmas no 3D: o **aviso** (o
 > objetivo numa frase, as features que a sala prova, e cada um aperta ✕
 > quando pronto), o **jogo** (a dica de cada um embaixo da raia dele, o tempo
 > no alto) e o **veredito** (por lugar e por feature, com ícone, palavra e o
 > que foi medido). A pausa congela a sala e a medida: o ✕ do menu não vale na
-> sala.
+> sala. Numa prova às cegas, o diagnóstico fica fechado enquanto se joga (ele
+> mostraria a luz e o motor do controle); a pergunta aparece embaixo da raia
+> de cada um, e a resposta certa só depois de respondida.
 
 O Salão da Forja é o hub da Hefesto Tech Demo (ver [ADR-002](adr/002-hubs-e-salas.md)).
 Cada porta é uma sala; cada sala é um jeito que os jogos comerciais usam o
@@ -152,9 +154,12 @@ cai. (A lightbar do DualSense é uma cor só para as duas fendas: o lado vem do
 motor; a luz inteira pisca.)
 
 **Como jogar:** no escuro, os golpes vêm um de cada vez, para um controle só.
-A tela não diz de que lado (o aviso "!" não tem lado, e o som sai no meio):
-sinta no controle e levante o escudo — L1 esquerda, R1 direita. Só depois da
-resposta a tela mostra o golpe voando e batendo no escudo ou no autômato. Cada
+A tela não diz de que lado (o aviso "!" não tem lado, a borda da raia pulsa
+inteira e o som sai no meio): sinta no controle e levante o escudo — L1
+esquerda, R1 direita. Só depois da resposta a tela mostra a sentinela de pedra
+que atirou e o golpe batendo no escudo ou no boneco. A lanterna ao lado de
+cada um é a luz do controle, apagando com a vida (e neutra na pergunta da
+cor). Cada
 jogador leva cinco golpes de cada lado, em três ondas; no fim de cada onda, a
 luz de cada controle acende uma cor sorteada (âmbar, ciano, violeta ou branco)
 e a pessoa diz qual é, olhando o plástico.
@@ -178,10 +183,10 @@ veredito diz o valor.
 munição nas cinco luzinhas brancas embaixo do touchpad (os LEDs de jogador).
 Quando a munição acaba, o gatilho solta ("clique seco") até recarregar.
 
-**Como jogar:** a arma chega no escuro. Aperte R2 e sinta: **parede e clique**
-é a pistola (modo Weapon), **tremor** é a metralhadora (Vibration), **peso** é
-o arco (Feedback) e **solto** é sem arma (Off). Diga qual é — ✕ pistola, ○
-metralhadora, □ arco, △ sem arma — e a caixa abre. Depois, atire nos alvos
+**Como jogar:** a arma chega no baú fechado. Aperte R2 e sinta: **parede e
+clique** é a pistola (modo Weapon), **tremor** é a metralhadora (Vibration),
+**peso** é o arco (Feedback) e **solto** é sem arma (Off). Diga qual é — ✕
+pistola, ○ metralhadora, □ arco, △ sem arma — e o baú abre. Depois, atire nos alvos
 (analógico esquerdo mira, R2 atira; □ recarrega). No fim da rodada, o armeiro
 recarrega sem ninguém ver e a pessoa conta as luzinhas do controle: quantas
 balas restam? Cada arma aparece duas vezes, em ordem sorteada, e a que ficar
