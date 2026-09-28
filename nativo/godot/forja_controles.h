@@ -143,6 +143,27 @@ public:
   bool cega_decidida(const String &tipo, const Dictionary &cega) const;
   Dictionary cega_veredito(int lugar, const String &chave, const Dictionary &dados);
 
+  /* o som de cada controle (som/som_controle.h): papel 0 alto-falante, 1
+   * háptica, 2 microfone; os sons pelo nome (som/sons_salas.h) */
+  void som_preparar(int papel);
+  void som_encerrar();
+  bool som_preparado() const;
+  bool som_tem(int lugar, int papel) const;
+  bool som_estereo(int lugar, int papel) const;
+  String som_nome(int lugar, int papel) const;
+  String som_como(int lugar, int papel) const;
+  String som_plataforma() const;
+  void som_trocar(int lugar, int papel, int direcao);
+  int som_falante(int lugar, const String &som, float ganho);
+  int som_haptica(int lugar, const String &esq, const String &dir, float ganho);
+  void som_parar(int lugar);
+  Dictionary som_mic(int lugar) const;
+  Dictionary som_virtual(int lugar) const;
+  void robo_falar(int indice, float nivel, float s);
+  void simulador_falar(int sim, float nivel);
+  int chao_do_envelope(const PackedFloat32Array &env) const;
+  Dictionary mic_veredito(int lugar, const String &chave, const Dictionary &dados);
+
   /* os sons da forja, sintetizados (som/sintese.h): mono, 48 kHz, float */
   PackedFloat32Array sintetizar(const String &tipo, const Dictionary &p) const;
   /* o mesmo som em PCM de 16 bits (o que a AudioStreamWAV do Godot toca) */

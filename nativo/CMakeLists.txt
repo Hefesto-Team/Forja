@@ -104,10 +104,20 @@ add_library(forja_sdl STATIC
   nucleo/registro.c
   nucleo/relogio.c
   nucleo/simulador.c
+  som/mixer.c
+  som/som_controle.c
+  som/som_controle_linux.c
+  som/som_controle_outro.c
+  som/som_controle_windows.c
+  som/sons_salas.c
 )
-target_include_directories(forja_sdl PUBLIC nucleo)
+target_include_directories(forja_sdl PUBLIC nucleo som)
 target_compile_definitions(forja_sdl PRIVATE FORJA_VERSAO="${FORJA_VERSAO}")
 target_link_libraries(forja_sdl PUBLIC forja_nucleo SDL3::SDL3-static)
+if(WIN32)
+  # o som de cada controle: o WASAPI (COM) e o ContainerId do HID (CfgMgr32)
+  target_link_libraries(forja_sdl PUBLIC ole32 cfgmgr32)
+endif()
 
 # --- a GDExtension -----------------------------------------------------------
 if(NOT GODOT_CPP_DIR)
@@ -123,6 +133,7 @@ add_library(forja SHARED
   godot/forja_controles.cpp
   godot/forja_medidas.cpp
   godot/forja_cegas.cpp
+  godot/forja_som.cpp
 )
 target_link_libraries(forja PRIVATE forja_sdl godot-cpp::template_release)
 target_compile_definitions(forja PRIVATE FORJA_VERSAO="${FORJA_VERSAO}")

@@ -13,8 +13,9 @@
 
 #if defined(__linux__)
 
-#include "../app.h"
-#include "../nucleo/origem.h"
+#include "forja.h"
+#include "origem.h"
+#include "pads.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -72,7 +73,7 @@ void somc_plataforma_nos(SomControles *sc, char *rotulo, size_t tam) {
   (void)achados;
 }
 
-bool somc_plataforma_pad(App *a, int slot, char *usb, size_t tam_usb, char *container, size_t tam_c) {
+bool somc_plataforma_pad(Forja *a, int slot, char *usb, size_t tam_usb, char *container, size_t tam_c) {
   (void)container;
   (void)tam_c;
   Pad *p = pads_do_slot(a, slot);

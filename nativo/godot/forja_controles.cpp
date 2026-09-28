@@ -683,6 +683,24 @@ void ForjaControles::_bind_methods() {
   METODO(cega_plano_fontes, "fontes", "vezes", "semente");
   METODO(cega_decidida, "tipo", "cega");
   METODO(cega_veredito, "lugar", "chave", "dados");
+  METODO(som_preparar, "papel");
+  METODO(som_encerrar);
+  METODO(som_preparado);
+  METODO(som_tem, "lugar", "papel");
+  METODO(som_estereo, "lugar", "papel");
+  METODO(som_nome, "lugar", "papel");
+  METODO(som_como, "lugar", "papel");
+  METODO(som_plataforma);
+  METODO(som_trocar, "lugar", "papel", "direcao");
+  METODO(som_falante, "lugar", "som", "ganho");
+  METODO(som_haptica, "lugar", "esq", "dir", "ganho");
+  METODO(som_parar, "lugar");
+  METODO(som_mic, "lugar");
+  METODO(som_virtual, "lugar");
+  METODO(robo_falar, "indice", "nivel", "segundos");
+  METODO(simulador_falar, "sim", "nivel");
+  METODO(chao_do_envelope, "envelope");
+  METODO(mic_veredito, "lugar", "chave", "dados");
   METODO(sintetizar, "tipo", "parametros");
   METODO(sintetizar_pcm16, "tipo", "parametros");
 
@@ -728,4 +746,8 @@ void ForjaControles::_bind_methods() {
   CONSTANTE("CRU_FONE", 1);
   CONSTANTE("CRU_MIC_DO_FONE", 2);
   CONSTANTE("CRU_MUDO", 4);
+  /* os papéis do som de cada controle */
+  CONSTANTE("PAPEL_ALTO_FALANTE", 0);
+  CONSTANTE("PAPEL_HAPTICA", 1);
+  CONSTANTE("PAPEL_MICROFONE", 2);
 }

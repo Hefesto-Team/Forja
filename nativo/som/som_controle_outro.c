@@ -9,7 +9,7 @@ void somc_plataforma_nos(SomControles *sc, char *rotulo, size_t tam) {
   SDL_snprintf(rotulo, tam, "só pelo nome nesta plataforma");
 }
 
-bool somc_plataforma_pad(struct App *a, int slot, char *usb, size_t tam_usb, char *container, size_t tam_c) {
+bool somc_plataforma_pad(struct Forja *a, int slot, char *usb, size_t tam_usb, char *container, size_t tam_c) {
   (void)a;
   (void)slot;
   (void)usb;

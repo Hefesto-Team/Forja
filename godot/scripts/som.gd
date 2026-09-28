@@ -5,7 +5,7 @@ extends Node
 ## do seu lado.
 ##
 ## Este é o som da TV. O som de cada controle (o alto-falante, a háptica pelos
-## atuadores) chega no marco do áudio.
+## atuadores) sai pelo módulo (Forja.som_falante, Forja.som_haptica).
 
 ## nome -> [receita, parâmetros]
 const RECEITAS := {
@@ -21,6 +21,11 @@ const RECEITAS := {
 	"vento": ["sopro", {"dur": 1.4, "semente": 8}],
 	"carimbo": ["martelada", {"freq": 294.0, "semente": 7}],
 	"fogo": ["fogo", {"dur": 4.0, "semente": 6}],
+	# os mesmos sons que o módulo toca no controle (som/sons_salas.c): no Canto,
+	# o ritmo da TV tem o timbre do ritmo do controle
+	"nota": ["bigorna", {"freq": 784.0, "dur": 0.42, "brilho": 1.1, "semente": 23}],
+	"nota_alta": ["bigorna", {"freq": 1174.7, "dur": 0.42, "brilho": 1.2, "semente": 29}],
+	"grito": ["grito", {"dur": 0.9, "semente": 31}],
 }
 
 var _streams := {}

@@ -38,7 +38,8 @@ func _aviso() -> void:
 	var fo := Tema.fonte(400)
 	var objetivo := str(sala.objetivo)
 	var alt_obj := Desenho.altura_paragrafo(objetivo, fo, Tema.T_CORPO, larg - 96)
-	var alt := 420.0 + alt_obj
+	var papel: int = sala.papel_som
+	var alt := 420.0 + alt_obj + (104.0 if papel >= 0 else 0.0)
 	var r := Rect2(Vector2((size.x - larg) * 0.5, (size.y - alt) * 0.5 - 10), Vector2(larg, alt))
 	Desenho.moldura(self, r, Color(Tema.PAINEL, 0.97), Tema.LINHA, 2, Tema.RAIO_QUADRO)
 	var x := r.position.x + 48
@@ -65,16 +66,43 @@ func _aviso() -> void:
 			continue
 		var cor_id := Tema.tom_para_a_borda(Forja.cor_do_lugar(l))
 		var pronto: bool = sala.prontos[l]
-		var chip := Rect2(Vector2(cx, y), Vector2(236, 64))
+		var chip := Rect2(Vector2(cx, y), Vector2(236, 64 + (104 if papel >= 0 else 0)))
 		Desenho.moldura(self, chip, Tema.SEL if pronto else Tema.APP, cor_id, 3, 12)
 		Desenho.texto(self, chip.position + Vector2(20, 42), "P%d" % (l + 1), Tema.fonte(700), Tema.T_ROTULO, cor_id)
 		if pronto:
 			Desenho.texto(self, chip.position + Vector2(76, 42), "✓ pronto", Tema.fonte(600), Tema.T_SELO, Tema.VERDE)
 		else:
 			Desenho.texto(self, chip.position + Vector2(76, 42), "aguardando", Tema.fonte(400), Tema.T_SELO, Tema.MUDO)
+		if papel >= 0:
+			_som_do_lugar(chip, l, papel)
 		cx += 252
-	# o botão, no alto à direita (a linha dos lugares é dos quatro)
-	Desenho.dicas_a_direita(self, Vector2(r.end.x - 48, r.position.y + 84), [["cruz", "pronto"]], Tema.T_ROTULO)
+	# os botões, no alto à direita (a linha dos lugares é dos quatro)
+	var dicas := [["cruz", "pronto"]]
+	if papel >= 0:
+		dicas = [["esquerda", "trocar"], ["triangulo", "testar"], ["cruz", "pronto"]]
+		if papel == Forja.PAPEL_MICROFONE:
+			dicas = [["esquerda", "trocar"], ["cruz", "pronto"]]
+	Desenho.dicas_a_direita(self, Vector2(r.end.x - 48, r.position.y + 84), dicas, Tema.T_ROTULO)
+
+
+## O dispositivo do papel de um lugar, no aviso de uma sala de som: o nome que
+## o jogo mostra, como foi achado e, no microfone, a barra que sobe com a voz.
+func _som_do_lugar(chip: Rect2, l: int, papel: int) -> void:
+	var x := chip.position.x + 20.0
+	var w := chip.size.x - 40.0
+	var tem := Forja.som_tem(l, papel)
+	var nome := Forja.som_nome(l, papel)
+	var f := Tema.fonte(500)
+	var f2 := Tema.fonte(400)
+	var nome_cabe := Desenho.caber(nome, f, 18, w, 2)
+	Desenho.paragrafo(self, Vector2(x, chip.position.y + 86), nome_cabe, f, 18, Tema.FG if tem else Tema.LARANJA, w, 2)
+	var como := Forja.som_como(l, papel) if tem else "não achado"
+	Desenho.texto(self, Vector2(x, chip.position.y + 138), Desenho.caber(como, f2, 16, w, 1), f2, 16, Tema.MUDO)
+	if papel == Forja.PAPEL_MICROFONE and tem:
+		var nivel := float(Forja.som_mic(l).get("nivel", 0.0))
+		var trilho := Rect2(Vector2(x, chip.position.y + 150), Vector2(w, 8))
+		draw_rect(trilho, Tema.TRILHO)
+		draw_rect(Rect2(trilho.position, Vector2(w * clampf(nivel, 0.0, 1.0), 8)), Tema.VERDE)
 
 
 func _nome_da_feature(chave: String) -> String:
