@@ -54,7 +54,7 @@ func _chegou(texto: String) -> void:
 
 
 func _listar() -> String:
-	var bin := DualSensePad.bin_irmao("forja-speak")
+	var bin := bin_irmao("forja-speak")
 	if bin == "":
 		return "# forja-speak ausente — rode make"
 	var saida: Array = []
@@ -107,8 +107,7 @@ func ler_a_lista(texto: String) -> String:
 
 
 ## O motor inteiro passa a sair no controle — é o modo "Couro"/"Voz" do
-## SPRINTS.md, com TODO o som no plástico. Para som POR JOGADOR, ver
-## DualSensePad.tocar_sfx (forja-speak).
+## SPRINTS.md, com TODO o som no plástico.
 func tomar_a_saida() -> bool:
 	if nome_do_no == "":
 		return false
@@ -130,3 +129,17 @@ func linha_da_hud() -> String:
 	var outros := achados.size() - 1
 	var mais := " (+%d)" % outros if outros > 0 else ""
 	return "alto-falante: %s%s" % [nome_que_o_jogo_mostra, mais]
+
+
+## Uma ferramenta de bancada (bin/ do repositório, ou ao lado do jogo).
+static func bin_irmao(nome: String) -> String:
+	var raiz := ProjectSettings.globalize_path("res://")
+	var candidatos := [
+		raiz.path_join("../bin").path_join(nome).simplify_path(),
+		OS.get_executable_path().get_base_dir().path_join(nome),
+		OS.get_executable_path().get_base_dir().path_join("../bin").path_join(nome),
+	]
+	for c in candidatos:
+		if FileAccess.file_exists(c):
+			return c
+	return ""

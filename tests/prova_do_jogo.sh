@@ -1,14 +1,16 @@
 #!/usr/bin/env bash
-# A prova do jogo, sem janela: o Godot --headless abre a cena inteira e lê a
-# HUD. Com o nome que a Sony dá ao alto-falante na lista de som, o jogo acha o
-# alto-falante; sem ele, a HUD tem de dizer que não achou (a mordida).
+# A prova do jogo, sem janela: o Godot --headless abre a cena inteira com
+# quatro DualSense simulados (o módulo nativo, com o SDL3 dentro, roda todo) e
+# confere o que cada controle simulado recebeu — player index, luz, lâmpadas,
+# gatilhos, motores, LED do mudo — sala por sala, e o relatório gravado.
 #
 # O servidor de som é de mentira (pactl e pw-cat numa pasta temporária, na
-# frente do PATH) e a mesa é um sysfs vazio (FORJA_SYSFS): nem o forja-send
-# nem o forja-speak acham pad para escrever. Com o `bwrap` instalado, o jogo
-# roda num /dev novo, sem hidraw nem input: o Godot abre os joypads que achar
-# mesmo sem janela, e numa prova ele não tem de achar nenhum.
+# frente do PATH) e o sysfs é vazio (FORJA_SYSFS): com o nome que a Sony dá ao
+# alto-falante na lista de som, o jogo acha o alto-falante; sem ele, diz que
+# não achou (a mordida). Com o `bwrap` instalado, o jogo roda num /dev novo,
+# sem hidraw nem input: numa prova ele não tem de achar controle de verdade.
 #
+# Precisa do módulo compilado (scripts/compilar.sh linux).
 # Uso: bash tests/prova_do_jogo.sh        (GODOT=<binário> para outro Godot)
 set -u
 RAIZ="$(cd "$(dirname "$0")/.." && pwd)"
@@ -50,14 +52,16 @@ fi
 
 FALHAS=0
 rodar() {
+  local rel="$TMP/relatorios-$1"
+  mkdir -p "$rel"
   SERVIDOR_DE_MENTIRA="$TMP/$1" ESPERADO="$2" \
-    "${CAIXA[@]}" "$GODOT" --headless --path "$RAIZ/godot" --script res://testes/prova_do_jogo.gd \
-    > "$TMP/$1.log" 2>&1
+    "${CAIXA[@]}" "$GODOT" --headless --fixed-fps 60 --path "$RAIZ/godot" res://testes/prova_do_jogo.tscn \
+    -- --simular=4 --robo --semente=7 --relatorios="$rel" > "$TMP/$1.log" 2>&1
   local rc=$?
-  grep -E "HUD do som|FAIL|SCRIPT ERROR" "$TMP/$1.log"
+  grep -E "alto-falante do sistema|FAIL|SCRIPT ERROR|prova do jogo ok" "$TMP/$1.log"
   [ "$rc" -eq 0 ] || { echo "FAIL a prova com o servidor «$1» (rc=$rc)"; FALHAS=$((FALHAS + 1)); }
 }
 rodar forma-a "alto-falante: Alto-falante do Controle 1 (DualSense Wireless Controller)"
 rodar antes "nenhum alto-falante de controle na lista (2 dispositivos)"
 [ "$FALHAS" -eq 0 ] || exit 1
-echo "prova do jogo ok — com o nome da Sony o jogo acha o alto-falante; sem ele, a HUD diz que não achou"
+echo "prova do jogo ok — os quatro lugares, as salas e o relatório; com o nome da Sony o jogo acha o alto-falante, sem ele diz que não achou"

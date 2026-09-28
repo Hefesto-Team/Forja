@@ -1,6 +1,6 @@
 # ADR-004: SDL3 em C, um binário Linux e um .exe pelo Proton
 
-**Status:** aceito · **Data:** 2026-09-27
+**Status:** substituído em parte pelo [ADR-007](007-o-jogo-e-o-3d-em-godot.md) · **Data:** 2026-09-27
 
 ## Contexto
 

@@ -1,571 +1,554 @@
 extends Node3D
-## 4-player local DualSense tech demo. USB 0x02 only.
+## FORJA, a Hefesto Tech Demo: quatro jogadores no mesmo sofá, cada um com um
+## DualSense, num salão de forja com uma sala por feature do controle.
+##
+## Título → lobby (quem joga: cada controle ganha um lugar P1..P4, a luz e as
+## lâmpadas do lugar) → salão (os portões das salas) ⇄ salas. Por cima de
+## tudo: o diagnóstico ao vivo (Create), o livro da sessão e a pausa (Options).
+##
+## Toda entrada e toda saída passam pelo autoload Forja, por lugar (0..3).
 
-const COLORS := [
-	Color(0.36, 0.55, 0.94),
-	Color(0.91, 0.36, 0.36),
-	Color(0.30, 0.69, 0.48),
-	Color(0.91, 0.54, 0.71),
-]
-const LANES := [-4.5, -1.5, 1.5, 4.5]
-const STATIONS := [
-	{ "id": "galeria", "name": "Galeria", "pos": Vector3(-4.2, 0, -5.2) },
-	{ "id": "impacto", "name": "Impacto", "pos": Vector3(4.2, 0, -5.2) },
-	{ "id": "giro", "name": "Viga", "pos": Vector3(0, 0, -5.5) },
-	{ "id": "prova", "name": "A Prova", "pos": Vector3(0, 0, 0.2) },
-]
+const SALAS := {
+	"galeria": preload("res://scripts/salas/galeria.gd"),
+	"impacto": preload("res://scripts/salas/impacto.gd"),
+	"viga": preload("res://scripts/salas/viga.gd"),
+	"voz": preload("res://scripts/salas/voz.gd"),
+	"prova": preload("res://scripts/salas/prova.gd"),
+}
 
-var pads: Array[DualSensePad] = []
-var players: Array[ForjaPlayer] = []
-var mode := "hub"
-var thesis := "O jogo envia USB 0x02 no DualSense do player index. O vizinho apagado é o aceite."
-var message := "Ande até um portão. Espaço / X entra. 1 dispara P1 · 3 P3 toma da esquerda."
-var near_station := ""
-var time_in := 0.0
-var bolts: Array = []
-var shots: Array = []
-var targets: Array = []
-var hud: Label
-var pad_hud: Label
-## Sound and motion, found the way a game finds them (A-FORJA-VALIDA-O-SOM-01):
-## the controller speaker by the name the game shows, the default microphone,
-## and the IMU from report 0x01. None of them knows any daemon.
-var alto_falante: AltoFalanteDoControle
-var microfone: MicrofoneDoControle
-var movimentos: Array[MovimentoDoControle] = []
-var som_hud: Label
-var _procura_em := 0.0
-var _giro_base := 0.0
+var estado := "titulo"
+var salao: Salao
+var jogadores: Array[ForjaPlayer] = []
+var sala: Sala
+var sala_id := ""
+var camera: Camera3D
+var _cam_pos := Vector3(0, 6, 14)
+var _cam_olhar := Vector3(0, 1, 0)
+var _t := 0.0
+
+var ui: Control
+var titulo: TelaTitulo
+var lobby: TelaLobby
+var hud: HudJogo
+var diagnostico: Diagnostico
+var livro: Livro
+var pausa: Pausa
+var cortina: ColorRect
+var overlay := ""  ## "", "diagnostico", "livro", "pausa"
+var _trocando := false
+var _stick_antes := [Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO]
+var _portao_perto := ""
 
 
 func _ready() -> void:
-	randomize()
-	_build_world()
-	hud = $HUD/Title
-	pad_hud = $HUD/Pads
-	for i in 4:
-		var p := DualSensePad.new()
-		p.name = "Pad%d" % i
-		p.player_index = i
-		p.set_lightbar(COLORS[i])
-		p.set_triggers(DualSensePad.Trigger.OFF, DualSensePad.Trigger.OFF)
+	camera = $Camera3D
+	_ambiente()
+	salao = Salao.new()
+	salao.name = "Salao"
+	add_child(salao)
+	for l in 4:
+		var p := ForjaPlayer.new()
+		p.montar(l)
+		p.visible = false
+		p.controlavel = false
 		add_child(p)
-		pads.append(p)
-		var actor := ForjaPlayer.new()
-		actor.name = "P%d" % (i + 1)
-		actor.setup(i, p, COLORS[i])
-		add_child(actor)
-		players.append(actor)
-	alto_falante = AltoFalanteDoControle.new()
-	alto_falante.name = "AltoFalante"
-	add_child(alto_falante)
-	microfone = MicrofoneDoControle.new()
-	microfone.name = "Microfone"
-	add_child(microfone)
-	for i in 4:
-		var m := MovimentoDoControle.new()
-		m.name = "Movimento%d" % i
-		m.player_index = i
-		add_child(m)
-		movimentos.append(m)
-	som_hud = Label.new()
-	som_hud.name = "Som"
-	som_hud.position = Vector2(24, 588)
-	som_hud.add_theme_font_size_override("font_size", 14)
-	som_hud.add_theme_color_override("font_color", Color(0.96, 0.86, 0.62))
-	$HUD.add_child(som_hud)
-	_rebind_joys()
-	reset_hub()
-	Input.joy_connection_changed.connect(_on_joy)
-	_abrir_na_sala_pedida()
+		p.global_position = salao.pedestais[l]
+		jogadores.append(p)
+	_interface()
+	pausa.escolheu.connect(_na_pausa)
+	_mostrar("titulo")
+	_abrir_pelos_args.call_deferred()
 
 
-## `-- --sala=voz` opens the game straight in a room, the way a test sheet asks
-## for it ("open the game on the Voice room for controller 2"). Unknown rooms
-## are ignored: the hub is always a valid place to start.
-func _abrir_na_sala_pedida() -> void:
-	for arg in OS.get_cmdline_user_args():
-		if not arg.begins_with("--sala="):
-			continue
-		var sala := arg.substr(7)
-		if sala == "viga":
-			sala = "giro"
-		if sala in ["galeria", "impacto", "giro", "prova", "voz"]:
-			start_mode(sala)
-
-
-func _on_joy(_device: int, _connected: bool) -> void:
-	_rebind_joys()
-	## A controller that comes or goes changes the speaker list too.
-	alto_falante.procurar_em_fundo()
-
-
-## Sensors only run in the room that uses them: an open microphone lights the
-## controller's mic LED for the whole match, and nobody knows why.
-func _parar_os_sensores() -> void:
-	microfone.desligar()
-	for m in movimentos:
-		m.desligar()
-
-
-func _rebind_joys() -> void:
-	var joys := Input.get_connected_joypads()
-	for i in 4:
-		pads[i].device = -1
-		players[i].is_bot = i != 0
-		if i < joys.size():
-			pads[i].bind_joy(joys[i])
-			players[i].is_bot = false
-		pads[i].flush()
-
-
-func _build_world() -> void:
-	var floor := CSGBox3D.new()
-	floor.size = Vector3(14.2, 0.2, 14.2)
-	floor.position.y = -0.1
-	var fm := StandardMaterial3D.new()
-	fm.albedo_color = Color(0.42, 0.36, 0.28)
-	floor.material = fm
-	add_child(floor)
-	_wall(Vector3(0, 1.2, -7.1), Vector3(14.2, 2.6, 0.28))
-	_wall(Vector3(0, 1.2, 7.1), Vector3(14.2, 2.6, 0.28))
-	_wall(Vector3(-7.1, 1.2, 0), Vector3(0.28, 2.6, 14.2))
-	_wall(Vector3(7.1, 1.2, 0), Vector3(0.28, 2.6, 14.2))
-	for s in STATIONS:
-		if s["id"] == "prova":
-			continue
-		_gate(s["pos"], s["name"])
-	_try_kenney()
+func _ambiente() -> void:
 	var env := Environment.new()
 	env.background_mode = Environment.BG_COLOR
-	env.background_color = Color(0.07, 0.06, 0.05)
+	env.background_color = Tema.CASA
 	env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
-	env.ambient_light_color = Color(0.28, 0.22, 0.18)
+	env.ambient_light_color = Color("#6d64a0")
+	env.ambient_light_energy = 0.42
+	env.tonemap_mode = Environment.TONE_MAPPER_FILMIC
+	env.tonemap_exposure = 1.05
+	env.glow_enabled = true
+	env.glow_intensity = 0.7
+	env.glow_bloom = 0.08
+	env.glow_hdr_threshold = 0.9
+	env.ssao_enabled = true
+	env.ssao_radius = 1.2
+	env.ssao_intensity = 1.6
 	env.fog_enabled = true
-	env.fog_light_color = Color(0.12, 0.09, 0.07)
-	env.fog_density = 0.018
-	$Camera3D.environment = env
+	env.fog_light_color = Color("#241f33")
+	env.fog_density = 0.012
+	env.adjustment_enabled = true
+	env.adjustment_saturation = 1.08
+	var we := WorldEnvironment.new()
+	we.environment = env
+	add_child(we)
 
 
-func _wall(pos: Vector3, size: Vector3) -> void:
-	var w := CSGBox3D.new()
-	w.size = size
-	w.position = pos
-	var m := StandardMaterial3D.new()
-	m.albedo_color = Color(0.22, 0.18, 0.14)
-	w.material = m
-	add_child(w)
+func _interface() -> void:
+	ui = Control.new()
+	ui.name = "UI"
+	ui.theme = Tema.tema()
+	ui.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	ui.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	$Interface.add_child(ui)
+	titulo = TelaTitulo.new()
+	lobby = TelaLobby.new()
+	hud = HudJogo.new()
+	diagnostico = Diagnostico.new()
+	livro = Livro.new()
+	pausa = Pausa.new()
+	for c in [titulo, lobby, hud, diagnostico, livro, pausa]:
+		ui.add_child(c)
+	cortina = ColorRect.new()
+	cortina.color = Color(Tema.CASA, 0.0)
+	cortina.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	cortina.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	ui.add_child(cortina)
+	diagnostico.visible = false
+	livro.visible = false
+	pausa.visible = false
 
 
-func _gate(pos: Vector3, label: String) -> void:
-	var g := CSGBox3D.new()
-	g.size = Vector3(1.6, 2.2, 0.35)
-	g.position = pos + Vector3(0, 1.1, 0)
-	var m := StandardMaterial3D.new()
-	m.albedo_color = Color(0.55, 0.42, 0.22)
-	m.emission_enabled = true
-	m.emission = Color(0.7, 0.45, 0.12)
-	m.emission_energy_multiplier = 0.4
-	g.material = m
-	add_child(g)
-	var l := Label3D.new()
-	l.text = label
-	l.font_size = 42
-	l.position = pos + Vector3(0, 2.4, 0.2)
-	l.modulate = Color(0.96, 0.9, 0.78)
-	add_child(l)
+## `-- --sala=galeria` abre direto na sala, com todo controle já dentro (é o que
+## uma folha de teste pede: "abra na Galeria"). `--tela=` abre numa tela.
+func _abrir_pelos_args() -> void:
+	var tela := ""
+	for a in OS.get_cmdline_user_args():
+		if a.begins_with("--tela="):
+			tela = a.substr(7)
+	var sala_pedida := Forja.sala_pedida
+	if sala_pedida == "giro":
+		sala_pedida = "viga"
+	if sala_pedida != "" or tela in ["lobby", "salao", "diagnostico", "livro"]:
+		await get_tree().process_frame
+		await get_tree().process_frame
+		_todos_entram()
+	if sala_pedida != "" and SALAS.has(sala_pedida):
+		_ir_para_o_salao(false)
+		_entrar_na_sala(sala_pedida, false)
+		return
+	match tela:
+		"lobby":
+			_mostrar("lobby")
+		"salao":
+			_ir_para_o_salao(false)
+		"diagnostico":
+			_ir_para_o_salao(false)
+			_abrir_overlay("diagnostico", 0)
+		"livro":
+			_ir_para_o_salao(false)
+			_abrir_overlay("livro", 0)
 
 
-func _try_kenney() -> void:
-	var paths := [
-		["res://assets/kenney/barrel.glb", Vector3(-5.6, 0, 5.4)],
-		["res://assets/kenney/barrel.glb", Vector3(5.4, 0, 5.6)],
-		["res://assets/kenney/gate.glb", Vector3(-4.2, 0, -5.2)],
-		["res://assets/kenney/gate.glb", Vector3(4.2, 0, -5.2)],
-	]
-	for p in paths:
-		var res = load(p[0])
-		if res is PackedScene:
-			var n: Node3D = res.instantiate()
-			n.position = p[1]
-			add_child(n)
+func _todos_entram() -> void:
+	for p in Forja.pads():
+		if int(p.lugar) < 0:
+			Forja.entrar(int(p.pad))
+	_sincronizar_jogadores()
 
 
-func reset_hub() -> void:
-	_parar_os_sensores()
-	mode = "hub"
-	_clear_fx_nodes()
-	message = "Ande até um portão. Espaço / X entra."
-	thesis = "Quatro DualSense. Relatório USB 0x02 por player index — ou o vizinho acende."
-	for i in 4:
-		players[i].hp = 100
-		players[i].position = Vector3((i - 1.5) * 1.4, 0, 4.3)
-		players[i].rotation.y = PI
-		players[i].visible = true
-		pads[i].set_triggers(DualSensePad.Trigger.OFF, DualSensePad.Trigger.OFF)
-		pads[i].set_lightbar(COLORS[i])
-		pads[i].set_rumble(0, 0, 0.05)
-		pads[i].flush()
-	_aim_cam(Vector3(0, 9.2, 12.5), Vector3.ZERO)
+# ------------------------------------------------------------------ estados --
+
+func _mostrar(qual: String) -> void:
+	estado = qual
+	titulo.visible = qual == "titulo"
+	lobby.visible = qual == "lobby"
+	hud.visible = qual in ["salao", "sala"] and overlay == ""
+	salao.pedestais_no.visible = qual == "lobby"
+	if qual == "lobby":
+		for l in 4:
+			var p := jogadores[l]
+			p.controlavel = false
+			p.global_position = salao.pedestais[l]
+			p.rotation.y = 0.0
+		_sincronizar_jogadores()
 
 
-func start_mode(id: String) -> void:
-	_parar_os_sensores()
-	mode = id
-	time_in = 0.0
-	_clear_fx_nodes()
-	for i in 4:
-		players[i].hp = 100
-		players[i].cooldown = 0.4 * i
-		players[i].visible = true
-		pads[i].set_lightbar(COLORS[i])
-		match id:
-			"galeria", "impacto":
-				players[i].position = Vector3(LANES[i], 0, 4.7)
-				players[i].rotation.y = PI
-			"giro":
-				players[i].position = Vector3(LANES[i], 0, 0)
-				players[i].rotation.y = -PI / 2.0
-			"voz":
-				players[i].position = Vector3((i - 1.5) * 1.4, 0, 2.0)
-				players[i].rotation.y = PI
-			_:
-				players[i].position = Vector3(-4.2 if i < 2 else 4.2, 0, 3.3 if i % 2 == 0 else -3.3)
-	match id:
-		"galeria":
-			message = "R2 / Espaço — cada lane é um DualSense. R2 = Vibration."
-			thesis = "O R2 Vibration do P1 não pode endurecer o R2 do P3."
-			_spawn_targets()
-			for i in 4:
-				pads[i].set_triggers(DualSensePad.Trigger.OFF, DualSensePad.Trigger.VIBRATION)
-				pads[i].flush()
-			_aim_cam(Vector3(0, 10, 11), Vector3(0, 0, -1))
-		"impacto":
-			message = "Desvie. Tiro da esquerda = motor L daquele pad."
-			thesis = "Tiro vindo da esquerda vibra só o motor esquerdo daquele DualSense."
-			_aim_cam(Vector3(0, 10, 11), Vector3(0, 0, -1))
-		"giro":
-			message = "Gire o controle — o boneco gira junto. Sem IMU: stick / A D, flick = 180."
-			thesis = "IMU no DualSense do player. O yaw do P3 não vira o P1."
-			_giro_base = -PI / 2.0
-			for m in movimentos:
-				m.ligar()
-			_aim_cam(Vector3(0, 8, 8), Vector3(0, 0, 0))
-		"voz":
-			message = "Fale no controle — a barra sobe com a voz. O botão de mudo zera a barra."
-			thesis = "O microfone padrão do sistema, como um jogo pede. Qualquer máscara."
-			if not microfone.ligar():
-				thesis = "sem entrada de áudio: o jogo nasceu sem audio/driver/enable_input"
-			_aim_cam(Vector3(0, 9.2, 12.5), Vector3.ZERO)
-		"prova":
-			message = "2v2 · P1+P3 vs P2+P4. Lightbar cai com a vida."
-			thesis = "Se aguentou as salas, aguenta um round. Zero vazamento."
-			for i in 4:
-				pads[i].set_triggers(DualSensePad.Trigger.FEEDBACK, DualSensePad.Trigger.WEAPON)
-				pads[i].flush()
-			_aim_cam(Vector3(0, 11, 12), Vector3.ZERO)
+func _sincronizar_jogadores() -> void:
+	for l in 4:
+		var ocupado := Forja.ocupado(l)
+		var p := jogadores[l]
+		if ocupado and not p.visible:
+			p.visible = true
+			if estado == "lobby":
+				p.global_position = salao.pedestais[l]
+				p.rotation.y = 0.0
+				p.gesto("emote-yes", 1.0)
+		elif not ocupado and p.visible:
+			p.visible = false
+			lobby.prontos[l] = false
 
 
-func _aim_cam(from: Vector3, to: Vector3) -> void:
-	$Camera3D.position = from
-	$Camera3D.look_at(to)
+func _trocar(acao: Callable) -> void:
+	if _trocando:
+		return
+	_trocando = true
+	var tw := create_tween()
+	tw.tween_property(cortina, "color:a", 1.0, 0.22).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	await tw.finished
+	acao.call()
+	_cam_pos = _pose_da_camera()[0]
+	_cam_olhar = _pose_da_camera()[1]
+	var tw2 := create_tween()
+	tw2.tween_property(cortina, "color:a", 0.0, 0.3).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	await tw2.finished
+	_trocando = false
 
 
-func _clear_fx_nodes() -> void:
-	for b in bolts:
-		if is_instance_valid(b.get("node")):
-			b.node.queue_free()
-	bolts.clear()
-	for s in shots:
-		if is_instance_valid(s.get("node")):
-			s.node.queue_free()
-	shots.clear()
-	for t in targets:
-		if is_instance_valid(t):
-			t.queue_free()
-	targets.clear()
+func _ir_para_o_lobby() -> void:
+	_sair_da_sala()
+	if salao.get_parent() == null:
+		add_child(salao)
+	for l in 4:
+		lobby.prontos[l] = false
+	lobby.contagem = -1.0
+	Forja.silencio_todos()
+	_mostrar("lobby")
 
 
-func _spawn_targets() -> void:
-	for i in 4:
-		var n := CSGSphere3D.new()
-		n.radius = 0.32
-		n.position = Vector3(LANES[i], 0.7, -4.4)
-		var m := StandardMaterial3D.new()
-		m.albedo_color = Color(0.9, 0.75, 0.2)
-		m.emission_enabled = true
-		m.emission = Color(1.0, 0.8, 0.2)
-		n.material = m
-		add_child(n)
-		targets.append(n)
+func _ir_para_o_salao(com_cortina := true) -> void:
+	var feito := func():
+		_sair_da_sala()
+		if salao.get_parent() == null:
+			add_child(salao)
+		var i := 0
+		for p in jogadores:
+			if not p.visible:
+				continue
+			var volta := salao.saida_do_portao(sala_id, p.lugar) if sala_id != "" else Vector3(-3.0 + i * 2.0, 0.05, 3.2)
+			p.global_position = volta
+			p.rotation.y = PI
+			p.controlavel = true
+			p.visible = Forja.ocupado(p.lugar)
+			i += 1
+		_mostrar("salao")
+		hud.sala = {}
+		hud.status_da_sala = ["", "", "", ""]
+	if com_cortina:
+		_trocar(feito)
+	else:
+		feito.call()
+		_cam_pos = _pose_da_camera()[0]
+		_cam_olhar = _pose_da_camera()[1]
 
+
+func _entrar_na_sala(id: String, com_cortina := true) -> void:
+	if not SALAS.has(id):
+		return
+	var feito := func():
+		_sair_da_sala()
+		if salao.get_parent() != null:
+			remove_child(salao)
+		sala_id = id
+		sala = SALAS[id].new()
+		sala.name = "Sala"
+		add_child(sala)
+		var js: Array = []
+		for p in jogadores:
+			if p.visible:
+				js.append(p)
+		sala.entrar(js)
+		_mostrar("sala")
+		hud.sala = {"nome": sala.nome, "acao": sala.acao}
+		hud.placa = {}
+	if com_cortina:
+		_trocar(feito)
+	else:
+		feito.call()
+		_cam_pos = _pose_da_camera()[0]
+		_cam_olhar = _pose_da_camera()[1]
+
+
+func _sair_da_sala() -> void:
+	if sala:
+		sala.sair()
+		sala.queue_free()
+		sala = null
+		for p in jogadores:
+			p.controlavel = true
+			p.visible = Forja.ocupado(p.lugar)
+
+
+# ------------------------------------------------------------------ quadro --
 
 func _process(dt: float) -> void:
-	var d := minf(dt, 0.1)
-	time_in += d
-	near_station = ""
-	if mode == "hub":
-		_tick_hub(d)
-	elif mode == "galeria":
-		_tick_galeria(d)
-	elif mode == "impacto":
-		_tick_impacto(d)
-	elif mode == "giro":
-		_tick_giro(d)
-	elif mode == "voz":
-		_tick_voz(d)
-	else:
-		_tick_prova(d)
-	_tick_projectiles(d)
-	_procura_em -= d
-	if _procura_em <= 0.0:
-		_procura_em = 3.0
-		alto_falante.procurar_em_fundo()
-	_update_hud()
-
-
-func _tick_hub(dt: float) -> void:
-	for i in 4:
-		var bot := Vector2.ZERO
-		if players[i].is_bot:
-			bot = Vector2(sin(time_in + i), cos(time_in * 0.4 + i)) * 0.15
-		players[i].tick(dt, mode, bot)
-	var p0 := players[0]
-	for s in STATIONS:
-		if s["id"] == "prova":
-			continue
-		if p0.position.distance_to(s["pos"]) < 1.35:
-			near_station = s["id"]
-			message = "Espaço / X — entrar em %s" % s["name"]
-	if near_station != "" and players[0].wants_fire():
-		start_mode(near_station)
-		players[0].cooldown = 0.4
-
-
-func _tick_galeria(dt: float) -> void:
-	for i in 4:
-		var bot := Vector2.ZERO
-		players[i].tick(dt, mode, bot)
-		players[i].position.x = LANES[i]
-		if players[i].wants_fire() or (players[i].is_bot and fmod(time_in + i, 1.6) < dt * 2.0):
-			_fire(i)
-
-
-func _tick_impacto(dt: float) -> void:
-	for i in 4:
-		var bot := Vector2(0, sin(time_in * 2.0 + i) * 0.4)
-		players[i].tick(dt, mode, bot)
-		players[i].position.x = LANES[i]
-	if fmod(time_in, 1.35) < dt * 2.0:
-		var slot := randi() % 4
-		var from_left := (randi() % 2) == 0
-		_spawn_bolt(slot, from_left)
-
-
-func _tick_giro(dt: float) -> void:
-	for i in 4:
-		var mx := 0.0
-		if i == 0:
-			if Input.is_physical_key_pressed(KEY_A):
-				mx -= 1.0
-			if Input.is_physical_key_pressed(KEY_D):
-				mx += 1.0
-		if pads[i].device >= 0:
-			mx += Input.get_joy_axis(pads[i].device, JOY_AXIS_RIGHT_X)
-			mx += Input.get_joy_axis(pads[i].device, JOY_AXIS_LEFT_X) * 0.35
-		if players[i].is_bot:
-			mx += sin(time_in * 1.3 + i) * 0.25
-		players[i].position.x = clampf(players[i].position.x + mx * 3.4 * dt, -6.2, 6.2)
-		players[i].position.z = 0.0
-		if movimentos[i].tem_imu:
-			## The controller's own yaw turns THIS player only; the stick still
-			## walks. Turning the pad 90 degrees turns the character 90.
-			players[i].rotation.y = _giro_base + deg_to_rad(movimentos[i].yaw_acumulado)
-			continue
-		if absf(mx) > 0.92:
-			players[i].rotation.y += PI
-			pads[i].set_rumble(0, 180)
-			pads[i].flush()
-			thesis = "player index %d · USB 0x02 · flick 180 · vizinho intocado" % i
-		elif absf(mx) > 0.55:
-			pads[i].set_rumble(int(absf(mx) * 40.0), int(absf(mx) * 90.0), 0.12)
-			pads[i].flush()
-
-
-func _tick_voz(dt: float) -> void:
-	for i in 4:
-		players[i].tick(dt, "hub", Vector2.ZERO)
-	if microfone.ligado:
-		thesis = "microfone %s %d dB" % [MicrofoneDoControle.barra(microfone.ultimo_db), int(microfone.ultimo_db)]
-
-
-func _tick_prova(dt: float) -> void:
-	for i in 4:
-		var bot := Vector2.ZERO
-		if players[i].is_bot:
-			var enemy := players[i ^ 1]
-			bot = Vector2(enemy.position.x - players[i].position.x, enemy.position.z - players[i].position.z).normalized() * 0.6
-		players[i].tick(dt, mode, bot)
-		var k := clampf(players[i].hp / 100.0, 0.12, 1.0)
-		pads[i].set_lightbar(COLORS[i] * k)
-		if players[i].wants_fire() or (players[i].is_bot and fmod(time_in + i * 0.37, 1.1) < dt * 2.0):
-			_fire(i)
-		pads[i].flush()
-
-
-func _fire(slot: int) -> void:
-	var a := players[slot]
-	if a.cooldown > 0.0 or a.hp <= 0.0:
-		return
-	a.cooldown = 0.22
-	if mode == "galeria" and not a.is_bot:
-		## The shot sounds on the shooter's own controller speaker, and only there.
-		pads[slot].tocar_sfx(1300.0, 90)
-	pads[slot].set_rumble(30, 170)
-	pads[slot].set_triggers(DualSensePad.Trigger.OFF, DualSensePad.Trigger.VIBRATION)
-	pads[slot].flush()
-	thesis = "player index %d · USB 0x02 · R2 Vibration · motor R" % slot
-	var n := CSGSphere3D.new()
-	n.radius = 0.12
-	n.position = a.position + Vector3(0, 0.7, 0) + Vector3(sin(a.rotation.y), 0, cos(a.rotation.y)) * -0.5
-	var mat := StandardMaterial3D.new()
-	mat.albedo_color = COLORS[slot]
-	mat.emission_enabled = true
-	mat.emission = COLORS[slot]
-	n.material = mat
-	add_child(n)
-	var dir := Vector3(sin(a.rotation.y), 0, cos(a.rotation.y)) * -14.0
-	if mode == "galeria" or mode == "impacto":
-		dir = Vector3(0, 0, -16)
-		n.position = Vector3(a.position.x, 0.7, a.position.z - 0.5)
-	shots.append({ "node": n, "vel": dir, "owner": slot, "ttl": 1.4 })
-
-
-func _spawn_bolt(slot: int, from_left: bool) -> void:
-	var n := CSGBox3D.new()
-	n.size = Vector3(0.45, 0.18, 0.18)
-	var z := players[slot].position.z
-	n.position = Vector3(-6.4 if from_left else 6.4, 0.7, z)
-	var m := StandardMaterial3D.new()
-	m.albedo_color = Color(1.0, 0.85, 0.2)
-	m.emission_enabled = true
-	m.emission = Color(1.0, 0.8, 0.15)
-	n.material = m
-	add_child(n)
-	var vx := 9.5 if from_left else -9.5
-	bolts.append({ "node": n, "slot": slot, "from_left": from_left, "vel": Vector3(vx, 0, 0), "ttl": 2.0 })
-
-
-func hit_from_left(slot: int) -> void:
-	_spawn_bolt(slot, true)
-	_apply_side_hit(slot, true)
-
-
-func _apply_side_hit(slot: int, from_left: bool) -> void:
-	players[slot].hp = maxf(0.0, players[slot].hp - 18.0)
-	if from_left:
-		pads[slot].set_rumble(240, 12)
-	else:
-		pads[slot].set_rumble(12, 240)
-	pads[slot].set_lightbar(players[slot].hp_color(COLORS[slot]))
-	pads[slot].flush()
-	thesis = "player index %d · USB 0x02 · motor %s = 240 · vizinho intocado no relatório" % [slot, "L" if from_left else "R"]
-
-
-func _tick_projectiles(dt: float) -> void:
-	var keep_b: Array = []
-	for b in bolts:
-		if not is_instance_valid(b.node):
-			continue
-		b.node.position += b.vel * dt
-		b.ttl -= dt
-		var slot: int = b.slot
-		if players[slot].position.distance_to(b.node.position) < 0.7:
-			_apply_side_hit(slot, b.from_left)
-			b.node.queue_free()
-			continue
-		if b.ttl > 0.0:
-			keep_b.append(b)
+	_t += dt
+	if estado == "lobby" or estado == "titulo":
+		_sincronizar_jogadores()
+	if estado == "lobby":
+		for l in 4:
+			lobby.pes[l] = camera.unproject_position(salao.pedestais[l])
+			lobby.visual[l] = [ForjaPlayer.NOME_DO_MODELO[jogadores[l].modelo_i], ForjaPlayer.ITENS[jogadores[l].item_i].nome]
+	if not _trocando:
+		if overlay != "":
+			_quadro_overlay()
 		else:
-			b.node.queue_free()
-	bolts = keep_b
-	var keep_s: Array = []
-	for s in shots:
-		if not is_instance_valid(s.node):
-			continue
-		s.node.position += s.vel * dt
-		s.ttl -= dt
-		var dead := false
-		if mode == "prova":
-			for i in 4:
-				if i == s.owner or players[i].hp <= 0.0:
-					continue
-				if players[i].position.distance_to(s.node.position) < 0.7:
-					players[i].hp = maxf(0.0, players[i].hp - 22.0)
-					pads[i].set_rumble(160, 40)
-					pads[i].set_lightbar(players[i].hp_color(COLORS[i]))
-					pads[i].flush()
-					dead = true
-					break
-		if mode == "galeria":
-			for t in targets:
-				if is_instance_valid(t) and t.position.distance_to(s.node.position) < 0.55:
-					t.position.y += 0.05
-					dead = true
-		if dead or s.ttl <= 0.0:
-			s.node.queue_free()
-		else:
-			keep_s.append(s)
-	shots = keep_s
+			match estado:
+				"titulo": _quadro_titulo()
+				"lobby": _quadro_lobby(dt)
+				"salao": _quadro_salao()
+				"sala": _quadro_sala()
+	if sala:
+		for l in 4:
+			hud.status_da_sala[l] = sala.status(l) if Forja.ocupado(l) else ""
+	_mover_camera(dt)
+	for l in 4:
+		_stick_antes[l] = Forja.mover(l)
 
 
-func _update_hud() -> void:
-	var njoy := Input.get_connected_joypads().size()
-	var send := pads[0]._send_bin() if pads.size() else ""
-	var send_ok := "forja-send ok" if send != "" else "forja-send ausente — só rumble SDL"
-	hud.text = "FORJA  ·  %s  ·  %d DualSense no SDL  ·  %s\n%s\n%s" % [
-		mode, njoy, send_ok, message, thesis,
-	]
-	var lines: PackedStringArray = PackedStringArray()
-	for i in 4:
-		var p := pads[i]
-		var tag := "bot"
-		if not players[i].is_bot:
-			tag = "joy %d" % p.device
-		var mark := "*" if (p.rumble_l > 8 or p.rumble_r > 8) else " "
-		var linha := "P%d %s  L=%3d R=%3d  R2=%s  hp=%d %s" % [
-			i + 1, tag, p.rumble_l, p.rumble_r, p._mode_name(p.r2), int(players[i].hp), mark,
-		]
-		if mode == "giro":
-			linha += "  " + movimentos[i].linha_da_hud()
-		lines.append(linha)
-	pad_hud.text = "\n".join(lines)
-	som_hud.text = alto_falante.linha_da_hud()
+func _algum_pad_apertou(botao: int) -> int:
+	for p in Forja.pads():
+		if Forja.pad_apertou(int(p.pad), botao):
+			return int(p.pad)
+	return -1
 
 
-func _unhandled_input(event: InputEvent) -> void:
-	if not (event is InputEventKey and event.pressed and not event.echo):
+func _quadro_titulo() -> void:
+	if not Forja.modulo:
+		if Forja.apertou(0, Forja.CRUZ):
+			_trocar(_ir_para_o_lobby)
 		return
-	match event.physical_keycode:
-		KEY_ESCAPE:
-			reset_hub()
-		KEY_1:
-			_fire(0)
-		KEY_2:
-			_fire(1)
-		KEY_3:
-			hit_from_left(2)
-		KEY_4:
-			hit_from_left(1)
-		KEY_F1, KEY_G:
-			start_mode("galeria")
-		KEY_F2, KEY_I:
-			start_mode("impacto")
-		KEY_F3, KEY_V:
-			start_mode("giro")
-		KEY_F4, KEY_P:
-			start_mode("prova")
-		KEY_F5:
-			start_mode("voz")
-		KEY_H:
-			reset_hub()
+	if Forja.conectados() == 0:
+		if Forja.tecla_apertou(KEY_ENTER) or Forja.tecla_apertou(KEY_SPACE):
+			if Forja.jogar_no_teclado():
+				_trocar(_ir_para_o_lobby)
+		return
+	if _algum_pad_apertou(Forja.CRUZ) >= 0 or _algum_pad_apertou(Forja.OPTIONS) >= 0:
+		_trocar(_ir_para_o_lobby)
+
+
+func _quadro_lobby(dt: float) -> void:
+	# quem ainda não tem lugar entra com ✕ (e esse ✕ não conta como pronto)
+	var chegou := [false, false, false, false]
+	for p in Forja.pads():
+		if int(p.lugar) < 0 and Forja.pad_apertou(int(p.pad), Forja.CRUZ):
+			var l := Forja.entrar(int(p.pad))
+			if l >= 0:
+				chegou[l] = true
+				Forja.registrar("P%d entrou no lobby" % (l + 1))
+	# sem módulo, o teclado é o P1
+	if not Forja.modulo:
+		lobby.prontos[0] = lobby.prontos[0] or Forja.apertou(0, Forja.CRUZ)
+	for l in 4:
+		if not Forja.ocupado(l) or chegou[l]:
+			continue
+		# antes de ficar pronto, cada um escolhe o visual: ◀▶ o boneco, ▲▼ o que leva
+		if not lobby.prontos[l]:
+			var dx := _passo(l, false)
+			var dy := _passo(l, true)
+			if dx != 0 or dy != 0:
+				var p := jogadores[l]
+				p.visual(p.modelo_i + dx, p.item_i + dy)
+				p.gesto("interact-right", 0.5)
+				Forja.vibrar(l, 0.0, 0.25, 40)
+		if Forja.apertou(l, Forja.CRUZ) and not lobby.prontos[l]:
+			lobby.prontos[l] = true
+			jogadores[l].gesto("emote-yes", 1.2)
+			Forja.vibrar(l, 0.0, 0.5, 90)
+			Forja.evento("visual", l + 1, {"boneco": ForjaPlayer.NOME_DO_MODELO[jogadores[l].modelo_i],
+				"leva": ForjaPlayer.ITENS[jogadores[l].item_i].nome})
+		elif Forja.apertou(l, Forja.CIRCULO):
+			if lobby.prontos[l]:
+				lobby.prontos[l] = false
+			else:
+				Forja.sair(l)
+				Forja.registrar("P%d saiu do lobby" % (l + 1))
+	_sincronizar_jogadores()
+	var ocupados := 0
+	var prontos := 0
+	for l in 4:
+		if Forja.ocupado(l):
+			ocupados += 1
+			if lobby.prontos[l]:
+				prontos += 1
+	if ocupados > 0 and prontos == ocupados:
+		if lobby.contagem < 0.0:
+			lobby.contagem = 1.6
+		lobby.contagem -= dt
+		if lobby.contagem <= 0.0:
+			lobby.contagem = -1.0
+			_ir_para_o_salao()
+	else:
+		lobby.contagem = -1.0
+
+
+func _quadro_salao() -> void:
+	if _atalhos_de_overlay():
+		return
+	# o portão mais perto de algum jogador
+	var perto := ""
+	var quem := -1
+	for p in jogadores:
+		if not p.visible:
+			continue
+		var g := salao.portao_perto(p.global_position)
+		if g != "":
+			perto = g
+			quem = p.lugar
+			break
+	if perto != _portao_perto:
+		if _portao_perto != "":
+			salao.abrir_portao(_portao_perto, false)
+		if perto != "":
+			salao.abrir_portao(perto, true)
+		_portao_perto = perto
+	if perto == "":
+		hud.placa = {}
+		return
+	var dados: Dictionary = salao.portoes[perto].dados
+	hud.placa = {"nome": dados.nome, "sobre": dados.sobre, "aberta": dados.aberta}
+	if dados.aberta:
+		for p in jogadores:
+			if p.visible and Forja.apertou(p.lugar, Forja.CRUZ):
+				_entrar_na_sala(perto)
+				return
+	elif quem >= 0 and Forja.apertou(quem, Forja.CRUZ):
+		Forja.vibrar(quem, 0.2, 0.0, 60)
+
+
+func _quadro_sala() -> void:
+	_atalhos_de_overlay()
+
+
+## Create abre o diagnóstico, Options a pausa. Devolve true se abriu: o resto
+## do quadro não roda (um ✕ no mesmo quadro não entra numa sala por baixo).
+func _atalhos_de_overlay() -> bool:
+	for l in 4:
+		if not Forja.ocupado(l):
+			continue
+		if Forja.apertou(l, Forja.CREATE):
+			_abrir_overlay("diagnostico", l)
+			return true
+		if Forja.apertou(l, Forja.OPTIONS):
+			_abrir_overlay("pausa", l)
+			return true
+	return false
+
+
+func _abrir_overlay(qual: String, lugar: int) -> void:
+	overlay = qual
+	diagnostico.visible = qual == "diagnostico"
+	livro.visible = qual == "livro"
+	pausa.visible = qual == "pausa"
+	for p in jogadores:
+		p.controlavel = false
+	hud.visible = false
+	if qual == "livro":
+		livro.abrir()
+	if qual == "pausa":
+		pausa.abrir(lugar, estado == "sala")
+	get_tree().paused = false
+
+
+func _fechar_overlay() -> void:
+	overlay = ""
+	hud.visible = estado in ["salao", "sala"]
+	diagnostico.visible = false
+	livro.visible = false
+	pausa.visible = false
+	var pode := estado == "salao" or (estado == "sala" and sala and sala.id == "prova")
+	for p in jogadores:
+		p.controlavel = pode and p.visible
+
+
+## Uma borda do analógico ou do d-pad: -1, 0 ou 1 no eixo pedido.
+func _passo(l: int, vertical: bool) -> int:
+	var agora: Vector2 = Forja.mover(l)
+	var antes: Vector2 = _stick_antes[l]
+	var a := agora.y if vertical else agora.x
+	var b := antes.y if vertical else antes.x
+	if a > 0.6 and b <= 0.6:
+		return 1
+	if a < -0.6 and b >= -0.6:
+		return -1
+	return 0
+
+
+func _quadro_overlay() -> void:
+	match overlay:
+		"diagnostico":
+			for l in 4:
+				if Forja.apertou(l, Forja.CIRCULO) or Forja.apertou(l, Forja.CREATE):
+					_fechar_overlay()
+					return
+		"livro":
+			for l in 4:
+				if Forja.apertou(l, Forja.CIRCULO):
+					_fechar_overlay()
+					return
+				var dy := _passo(l, true)
+				var dx := _passo(l, false)
+				if dx != 0 or dy != 0:
+					livro.navegar(dx, dy)
+		"pausa":
+			var q := pausa.quem
+			var dy2 := _passo(q, true)
+			if dy2 != 0:
+				pausa.navegar(dy2)
+			if Forja.apertou(q, Forja.CRUZ):
+				pausa.confirmar()
+			elif Forja.apertou(q, Forja.CIRCULO) or Forja.apertou(q, Forja.OPTIONS):
+				_fechar_overlay()
+
+
+func _na_pausa(acao: String) -> void:
+	match acao:
+		"continuar":
+			_fechar_overlay()
+		"diagnostico":
+			_abrir_overlay("diagnostico", pausa.quem)
+		"livro":
+			_abrir_overlay("livro", pausa.quem)
+		"salao":
+			_fechar_overlay()
+			_ir_para_o_salao()
+		"lobby":
+			_fechar_overlay()
+			_trocar(_ir_para_o_lobby)
+		"sair":
+			Forja.gravar_relatorio()
+			get_tree().quit()
+
+
+# ------------------------------------------------------------------ câmera --
+
+func _pose_da_camera() -> Array:
+	match estado:
+		"titulo":
+			var a := _t * 0.08
+			var centro := salao.bigorna.global_position + Vector3(0, 1.3, 0)
+			return [centro + Vector3(sin(a) * 7.5 + 3.0, 3.2, cos(a) * 7.5 + 2.0), centro]
+		"lobby":
+			return [Vector3(0, 2.9, 14.2), Vector3(0, 0.55, 4.4)]
+		"sala":
+			if sala:
+				return [sala.camera_pos, sala.camera_olhar]
+	# o salão: enquadra quem está jogando
+	var soma := Vector3.ZERO
+	var n := 0
+	var mn := Vector3(INF, 0, INF)
+	var mx := Vector3(-INF, 0, -INF)
+	for p in jogadores:
+		if p.visible:
+			var q := p.global_position
+			soma += q
+			n += 1
+			mn = Vector3(minf(mn.x, q.x), 0, minf(mn.z, q.z))
+			mx = Vector3(maxf(mx.x, q.x), 0, maxf(mx.z, q.z))
+	var c := soma / n if n > 0 else Vector3(0, 0, 2)
+	var abertura := maxf(mx.x - mn.x, (mx.z - mn.z) * 1.6) if n > 1 else 0.0
+	var dist := clampf(11.5 + abertura * 0.5, 11.5, 18.0)
+	c.x = clampf(c.x, -6.0, 6.0)
+	c.z = clampf(c.z, -4.0, 5.0)
+	return [c + Vector3(0, dist * 0.92, dist * 0.7), c + Vector3(0, 0.6, -3.2)]
+
+
+func _mover_camera(dt: float) -> void:
+	var pose := _pose_da_camera()
+	var k := minf(1.0, dt * (1.2 if estado == "titulo" else 4.0))
+	_cam_pos = _cam_pos.lerp(pose[0], k)
+	_cam_olhar = _cam_olhar.lerp(pose[1], k)
+	camera.global_position = _cam_pos
+	camera.look_at(_cam_olhar)

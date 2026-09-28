@@ -1,0 +1,115 @@
+# FORJA, a Hefesto Tech Demo: o módulo nativo do jogo 3D (a GDExtension com o
+# SDL3 dentro) para Linux e para Windows, as provas da lógica, as ferramentas
+# de bancada e a prova do jogo — o Godot headless com quatro DualSense
+# simulados, conferindo o que cada controle recebeu, sala por sala.
+name: FORJA
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  GODOT_VERSAO: "4.4.1-stable"
+
+jobs:
+  linux:
+    name: Linux — módulo, provas e a prova do jogo
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # a versão do jogo vem do git describe
+
+      - name: Dependências (o SDL carrega X11, Wayland e o som em tempo de execução)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            build-essential cmake ninja-build pkg-config \
+            libasound2-dev libpulse-dev libpipewire-0.3-dev \
+            libx11-dev libxext-dev libxrandr-dev libxcursor-dev libxfixes-dev libxi-dev \
+            libxss-dev libxtst-dev libxkbcommon-dev \
+            libwayland-dev wayland-protocols libdecor-0-dev \
+            libdrm-dev libgbm-dev libgl1-mesa-dev libgles2-mesa-dev libegl1-mesa-dev \
+            libdbus-1-dev libudev-dev
+
+      - name: O SDL e o godot-cpp em cache
+        uses: actions/cache@v4
+        with:
+          path: .cache
+          key: deps-linux-${{ hashFiles('scripts/compilar.sh') }}
+
+      - name: As provas da lógica (sem SDL, sem Godot)
+        run: scripts/compilar.sh testes
+
+      - name: O módulo Linux
+        run: scripts/compilar.sh linux
+
+      - name: As ferramentas de bancada e as provas delas
+        run: make all
+
+      - name: O Godot em cache
+        id: godot
+        uses: actions/cache@v4
+        with:
+          path: tools
+          key: godot-${{ env.GODOT_VERSAO }}
+
+      - name: Baixar o Godot
+        if: steps.godot.outputs.cache-hit != 'true'
+        run: |
+          mkdir -p tools
+          curl -fsSL -o /tmp/godot.zip \
+            "https://github.com/godotengine/godot/releases/download/${GODOT_VERSAO}/Godot_v${GODOT_VERSAO}_linux.x86_64.zip"
+          unzip -o -q /tmp/godot.zip -d tools
+
+      - name: A prova do jogo (quatro DualSense simulados, headless)
+        run: bash tests/prova_do_jogo.sh
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: forja-modulo-linux-x86_64
+          path: godot/bin/libforja.linux.x86_64.so
+          if-no-files-found: error
+
+  windows:
+    name: Windows — o módulo (mingw-w64)
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Dependências
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends cmake ninja-build mingw-w64
+
+      - name: O SDL e o godot-cpp em cache
+        uses: actions/cache@v4
+        with:
+          path: .cache
+          key: deps-windows-${{ hashFiles('scripts/compilar.sh') }}
+
+      - name: O módulo Windows
+        run: scripts/compilar.sh windows
+
+      - name: A DLL só depende do que o Windows (e o Proton) já têm, e só exporta a porta de entrada
+        run: |
+          dll=godot/bin/libforja.windows.x86_64.dll
+          x86_64-w64-mingw32-objdump -p "$dll" | awk '/DLL Name/ { print $3 }' | sort -u | tee dlls.txt
+          permitidas='^(ADVAPI32|CFGMGR32|GDI32|IMM32|KERNEL32|OLEAUT32|SETUPAPI|SHELL32|USER32|VERSION|WINMM|msvcrt|ole32|dinput8|dxgi|d3d11|d3d12|dwmapi|uxtheme|hid|WS2_32|bcrypt|CRYPT32)\.dll$'
+          if grep -viE "$permitidas" dlls.txt; then
+            echo "a DLL pede uma DLL que não vem com o Windows" >&2
+            exit 1
+          fi
+          x86_64-w64-mingw32-objdump -p "$dll" | grep -q forja_iniciar_biblioteca
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: forja-modulo-windows-x86_64
+          path: godot/bin/libforja.windows.x86_64.dll
+          if-no-files-found: error

@@ -1,17 +1,18 @@
 #!/usr/bin/env bash
-# Build reproduzível da Hefesto Tech Demo.
+# Build reproduzível do módulo nativo do FORJA (a GDExtension do jogo 3D).
 #
-#   scripts/compilar.sh linux      binário Linux nativo       -> build/linux/
-#   scripts/compilar.sh windows    .exe Windows (mingw-w64)   -> build/windows/
-#   scripts/compilar.sh testes     só a lógica, sem SDL        -> build/testes/
-#   scripts/compilar.sh tudo       os três, e os pacotes em dist/
+#   scripts/compilar.sh linux      o módulo Linux    -> godot/bin/libforja.linux.x86_64.so
+#   scripts/compilar.sh windows    o módulo Windows  -> godot/bin/libforja.windows.x86_64.dll
+#   scripts/compilar.sh testes     só a lógica, sem SDL e sem Godot, e as provas
+#   scripts/compilar.sh tudo       os três
+#   scripts/compilar.sh deps       só baixa e confere o SDL3 e o godot-cpp
 #
-# Reproduzível quer dizer: o SDL3 entra por versão E por sha256 (nunca "o que
-# a distro tiver"), os caminhos da máquina saem do binário (-ffile-prefix-map)
-# e os pacotes carregam a data do último commit, não a hora do build.
+# Reproduzível quer dizer: o SDL3 entra por versão E por sha256, o godot-cpp
+# por tag E por commit (nunca "o que a distro tiver"), e os caminhos desta
+# máquina saem do binário (-ffile-prefix-map).
 #
 # O SDL3 é o 3.4.14 — a mesma série que a Steam distribui no runtime, e a que o
-# Hefesto usa como régua ("medir contra a SDL3 que a Steam distribui").
+# Hefesto usa como régua. O godot-cpp é o da série 4.4, a do Godot do jogo.
 set -euo pipefail
 
 RAIZ="$(cd "$(dirname "$0")/.." && pwd)"
@@ -21,14 +22,13 @@ SDL_VERSAO="3.4.14"
 SDL_SHA256="30d4aa2b3037718142b32dffd4e72f917ebb6cc5227150e7bb9c45efb2153aeb"
 SDL_URL="https://github.com/libsdl-org/SDL/releases/download/release-${SDL_VERSAO}/SDL3-${SDL_VERSAO}.tar.gz"
 
+GODOT_CPP_TAG="godot-4.4-stable"
+GODOT_CPP_COMMIT="714c9e2c165db2dcb7e6ea57e62a04204d3cfbfa"
+GODOT_CPP_URL="https://github.com/godotengine/godot-cpp.git"
+
 CACHE="${FORJA_CACHE:-$RAIZ/.cache}"
 JOBS="${JOBS:-$(getconf _NPROCESSORS_ONLN 2>/dev/null || echo 2)}"
 TIPO="${FORJA_BUILD_TIPO:-Release}"
-
-if [[ -z "${SOURCE_DATE_EPOCH:-}" ]]; then
-  SOURCE_DATE_EPOCH="$(git -C "$RAIZ" log -1 --format=%ct 2>/dev/null || echo 0)"
-fi
-export SOURCE_DATE_EPOCH
 
 # Tira da string de debug e das macros __FILE__ o caminho desta máquina.
 MAPA="-ffile-prefix-map=$RAIZ=. -ffile-prefix-map=$CACHE=.cache"
@@ -70,6 +70,7 @@ compilar_sdl() {
   fi
   diga "SDL ${SDL_VERSAO} estático para ${alvo}"
   rm -rf "$build"
+  # PIC: o SDL vai para dentro de uma biblioteca compartilhada (a GDExtension)
   cmake -S "$fonte" -B "$build" -G Ninja \
     -DCMAKE_BUILD_TYPE=Release \
     -DCMAKE_INSTALL_PREFIX="$prefixo" \
@@ -84,89 +85,71 @@ compilar_sdl() {
   touch "$prefixo/.pronto"
 }
 
+# O godot-cpp na tag fixada, e só se o commit conferir. GODOT_CPP_DIR aponta
+# para uma árvore que já existe (conferida do mesmo jeito).
+preparar_godot_cpp() {
+  local dir="${GODOT_CPP_DIR:-$CACHE/godot-cpp-${GODOT_CPP_TAG}}"
+  if [[ ! -d "$dir/.git" ]]; then
+    diga "baixando godot-cpp ${GODOT_CPP_TAG}" >&2
+    rm -rf "$dir"
+    git clone -q --depth 1 --branch "$GODOT_CPP_TAG" "$GODOT_CPP_URL" "$dir" >&2
+  fi
+  local tem
+  tem="$(git -C "$dir" rev-parse HEAD)"
+  if [[ "$tem" != "$GODOT_CPP_COMMIT" ]]; then
+    echo "commit do godot-cpp não confere: $tem (esperado $GODOT_CPP_COMMIT)" >&2
+    exit 1
+  fi
+  printf '%s' "$dir"
+}
+
 # $1 = linux | windows | testes
-compilar_jogo() {
+compilar() {
   local alvo="$1"
   local build="$RAIZ/build/$alvo"
   local extra=()
   case "$alvo" in
     linux)
       compilar_sdl linux
-      extra+=(-DCMAKE_PREFIX_PATH="$CACHE/sdl-${SDL_VERSAO}-linux" -DFORJA_DEMO=ON)
+      extra+=(-DCMAKE_PREFIX_PATH="$CACHE/sdl-${SDL_VERSAO}-linux"
+              -DGODOT_CPP_DIR="$(preparar_godot_cpp)" -DFORJA_TESTES=OFF)
       ;;
     windows)
       compilar_sdl windows
       extra+=(-DCMAKE_TOOLCHAIN_FILE="$RAIZ/cmake/mingw64-x86_64.cmake"
-              -DCMAKE_PREFIX_PATH="$CACHE/sdl-${SDL_VERSAO}-windows" -DFORJA_DEMO=ON
-              -DFORJA_TESTES=OFF)
+              -DCMAKE_PREFIX_PATH="$CACHE/sdl-${SDL_VERSAO}-windows"
+              -DGODOT_CPP_DIR="$(preparar_godot_cpp)" -DFORJA_TESTES=OFF)
       ;;
     testes)
-      extra+=(-DFORJA_DEMO=OFF)
+      extra+=(-DFORJA_EXTENSAO=OFF -DFORJA_TESTES=ON)
       ;;
   esac
-  diga "jogo: ${alvo}"
-  cmake -S "$RAIZ" -B "$build" -G Ninja -DCMAKE_BUILD_TYPE="$TIPO" \
-    -DCMAKE_C_FLAGS="$MAPA" "${extra[@]}" >/dev/null
+  diga "módulo: ${alvo}"
+  cmake -S "$RAIZ/nativo" -B "$build" -G Ninja -DCMAKE_BUILD_TYPE="$TIPO" \
+    -DCMAKE_C_FLAGS="$MAPA" -DCMAKE_CXX_FLAGS="$MAPA" "${extra[@]}" >/dev/null
   cmake --build "$build" -j "$JOBS"
-  if [[ "$alvo" != windows ]]; then
-    diga "testes da lógica (${alvo})"
+  if [[ "$alvo" == testes ]]; then
+    diga "provas da lógica"
     ctest --test-dir "$build" --output-on-failure
   fi
 }
 
-empacotar() {
-  local versao
-  versao="$(git -C "$RAIZ" describe --always --dirty 2>/dev/null || echo sem-git)"
-  mkdir -p "$RAIZ/dist"
-  local tmp
-  tmp="$(mktemp -d)"
-  trap 'rm -rf "$tmp"' RETURN
-
-  if [[ -x "$RAIZ/build/linux/hefesto-tech-demo" ]]; then
-    local d="$tmp/hefesto-tech-demo-linux-x86_64"
-    mkdir -p "$d"
-    cp "$RAIZ/build/linux/hefesto-tech-demo" "$d/"
-    cp "$RAIZ/README.md" "$RAIZ/LICENSE" "$d/"
-    cp -r "$RAIZ/udev" "$d/"
-    cp "$RAIZ"/demo/assets/fontes/OFL-*.txt "$d/"
-    echo "$versao" >"$d/VERSAO"
-    tar --sort=name --mtime="@${SOURCE_DATE_EPOCH}" --owner=0 --group=0 --numeric-owner \
-      -C "$tmp" -czf "$RAIZ/dist/hefesto-tech-demo-linux-x86_64.tar.gz" "hefesto-tech-demo-linux-x86_64"
-    diga "dist/hefesto-tech-demo-linux-x86_64.tar.gz"
-  fi
-  if [[ -f "$RAIZ/build/windows/hefesto-tech-demo.exe" ]]; then
-    local w="$tmp/hefesto-tech-demo-windows-x86_64"
-    mkdir -p "$w"
-    cp "$RAIZ/build/windows/hefesto-tech-demo.exe" "$w/"
-    cp "$RAIZ/README.md" "$RAIZ/LICENSE" "$w/"
-    cp "$RAIZ"/demo/assets/fontes/OFL-*.txt "$w/"
-    echo "$versao" >"$w/VERSAO"
-    find "$w" -exec touch -h -d "@${SOURCE_DATE_EPOCH}" {} +
-    # o `cmake -E tar` quer a data escrita, não "@segundos"
-    local quando
-    quando="$(date -u -d "@${SOURCE_DATE_EPOCH}" '+%Y-%m-%d %H:%M:%S' 2>/dev/null || echo '1980-01-01 00:00:00')"
-    (cd "$tmp" && cmake -E tar cf "$RAIZ/dist/hefesto-tech-demo-windows-x86_64.zip" --format=zip \
-      --mtime="$quando" "hefesto-tech-demo-windows-x86_64")
-    diga "dist/hefesto-tech-demo-windows-x86_64.zip"
-  fi
-}
-
 case "${1:-linux}" in
-  linux) compilar_jogo linux ;;
-  windows) compilar_jogo windows ;;
-  testes) compilar_jogo testes ;;
+  linux) compilar linux ;;
+  windows) compilar windows ;;
+  testes) compilar testes ;;
   tudo)
-    compilar_jogo linux
-    compilar_jogo windows
-    empacotar
+    compilar testes
+    compilar linux
+    compilar windows
     ;;
-  pacotes) empacotar ;;
-  sdl)
+  deps)
     compilar_sdl linux
     compilar_sdl windows
+    preparar_godot_cpp >/dev/null
     ;;
   *)
-    echo "uso: scripts/compilar.sh [linux|windows|testes|tudo|pacotes|sdl]" >&2
+    echo "uso: scripts/compilar.sh [linux|windows|testes|tudo|deps]" >&2
     exit 64
     ;;
 esac
