@@ -261,12 +261,13 @@ static void zerar(void) {
 }
 
 void somc_encerrar(Forja *a) {
-  (void)a;
-  for (int s = 0; s < MAX_JOGADORES; s++)
+  for (int s = 0; s < MAX_JOGADORES; s++) {
     if (g_sc.j[s].mic) {
       SDL_DestroyAudioStream(g_sc.j[s].mic);
       g_sc.j[s].mic = NULL;
     }
+    somc_escuta_parar(a, s);
+  }
   for (int i = 0; i < SOMC_MAX_SAIDAS; i++)
     fechar_saida(&g_sc.saidas[i]);
   g_preparado = false;
@@ -519,6 +520,14 @@ void somc_atualizar(Forja *a, float dt) {
         continue;
       }
       j->mic_quadros++;
+      if (j->escuta) {
+        int cabe = j->escuta_cap - j->escuta_n;
+        int n_esc = amostras < cabe ? amostras : cabe;
+        if (n_esc > 0) {
+          SDL_memcpy(j->escuta + j->escuta_n, buf, (size_t)n_esc * sizeof(float));
+          j->escuta_n += n_esc;
+        }
+      }
       double soma = 0;
       for (int k = 0; k < amostras; k++) {
         float v = fabsf(buf[k]);
@@ -601,4 +610,42 @@ void somc_relatorio(Forja *a) {
     }
   }
   forja_relatorio_mudou(a);
+}
+
+/* ---------- a escuta da bancada ---------- */
+
+bool somc_escutar(Forja *a, int slot, float segundos) {
+  if (slot < 0 || slot >= MAX_JOGADORES || !g_preparado)
+    return false;
+  SomJogador *j = &g_sc.j[slot];
+  if (!j->mic)
+    return false;
+  somc_escuta_parar(a, slot);
+  j->escuta_cap = (int)(segundos * MIX_TAXA);
+  j->escuta = SDL_calloc((size_t)j->escuta_cap, sizeof(float));
+  j->escuta_n = 0;
+  if (!j->escuta)
+    return false;
+  SDL_ClearAudioStream(j->mic); /* a primeira amostra gravada é de depois de agora */
+  return true;
+}
+
+const float *somc_escuta(Forja *a, int slot, int *n) {
+  (void)a;
+  if (slot < 0 || slot >= MAX_JOGADORES || !g_sc.j[slot].escuta) {
+    *n = 0;
+    return NULL;
+  }
+  *n = g_sc.j[slot].escuta_n;
+  return g_sc.j[slot].escuta;
+}
+
+void somc_escuta_parar(Forja *a, int slot) {
+  (void)a;
+  if (slot < 0 || slot >= MAX_JOGADORES)
+    return;
+  SomJogador *j = &g_sc.j[slot];
+  SDL_free(j->escuta);
+  j->escuta = NULL;
+  j->escuta_cap = j->escuta_n = 0;
 }

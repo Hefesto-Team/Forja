@@ -4,8 +4,8 @@
 > de cada sala. Os nomes mudaram em duas: **o Cerco é O Impacto** e **a Cripta
 > é A Voz**. As salas ganham o comportamento abaixo marco a marco (ver
 > [SPRINTS.md](../SPRINTS.md)). A Centelha, A Viga e O Molde (marco 2), O
-> Impacto e A Galeria (marco 3), O Canto, Os Caminhos e A Voz (marco 4) já
-> são o jogo inteiro; A Prova está aberta na versão curta.
+> Impacto e A Galeria (marco 3), O Canto, Os Caminhos e A Voz (marco 4) e A
+> Prova (marco 5) são o jogo inteiro.
 >
 > As três fases de toda sala que mede são as mesmas no 3D: o **aviso** (o
 > objetivo numa frase, as features que a sala prova, e cada um aperta ✕
@@ -356,6 +356,22 @@ sala, a voz de um é ouvida por todos (A Voz mede em turnos).
 
 **Defeito que ela pega:** `engasga` (a cada 40 pacotes de efeito, a entrada do
 controle para por 1,5 s).
+
+No 3D, a arena tem os campos de grama das duas equipes, a faixa de metal no
+meio, o riacho que corta de lado a lado e o cascalho em volta dos quatro
+pilares; cada lutador leva o martelo do Hefesto e um disco na cor da equipe
+debaixo dos pés, e a luz do controle vira a cor da equipe na partida. Entra-se
+pela bigorna do meio do salão (✕).
+
+## A Prova de Fogo — todas as salas, na ordem
+
+Na bigorna do meio do salão, △ acende a Prova de Fogo: as nove salas que
+medem, na ordem do percurso (A Centelha, A Viga, O Molde, O Impacto, A
+Galeria, O Canto, Os Caminhos, A Voz e A Prova), uma atrás da outra, sem
+voltar ao salão; o aviso de cada uma diz "sala N de 9", o ✕ do veredito segue
+para a próxima, e no fim abre o livro da sessão. A pausa desiste e volta ao
+salão. `--prova-de-fogo` começa direto nela — é a rodada inteira da validação
+com uma sessão só, e com `--robo` o robô joga as nove.
 
 ## Jogar sem controle
 

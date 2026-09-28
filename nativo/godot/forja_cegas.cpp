@@ -6,6 +6,7 @@
  * alcançou (montou, saiu ou obedeceu). Os planos — a ordem dos golpes, das
  * armas, das fontes de som — saem do mesmo sorteio do núcleo. */
 #include "forja_controles.h"
+#include "forja_interno.h"
 
 extern "C" {
 #include "aleatorio.h"
@@ -24,48 +25,13 @@ using namespace godot;
 
 namespace {
 
-/* A Cega do dicionário da sala: {certos, errados, perdidos, como}, em que
- * `como[i]` conta as erradas em que a pessoa disse a opção i. */
-Cega cega_de(const Variant &v) {
-  Cega c;
-  cega_zerar(&c);
-  if (v.get_type() != Variant::DICTIONARY)
-    return c;
-  Dictionary d = v;
-  c.certos = (int)d.get("certos", 0);
-  c.errados = (int)d.get("errados", 0);
-  c.perdidos = (int)d.get("perdidos", 0);
-  if (d.has("como")) {
-    Array a = d["como"];
-    for (int i = 0; i < a.size() && i < CEGA_OPCOES; i++)
-      c.respondeu_como[i] = (int)a[i];
-  }
-  return c;
-}
+using forja_interno::cega_de;
+using forja_interno::explica_recusa;
+using forja_interno::juntar_obs;
 
 bool sim(const Dictionary &d, const char *k, bool padrao) { return d.has(k) ? (bool)d[k] : padrao; }
 int num(const Dictionary &d, const char *k) { return d.has(k) ? (int)d[k] : 0; }
 String txt(const char *s) { return String::utf8(s ? s : ""); }
-
-void juntar_obs(Veredito *v, const char *s) {
-  size_t n = std::strlen(v->obs);
-  std::snprintf(v->obs + n, sizeof(v->obs) - n, "%s%s", n ? " — " : "", s);
-}
-
-/* A saída nem montou (o SDL recusou): o porquê é a origem do controle. */
-void explica_recusa(int lugar, Veredito *v) {
-  Pad *p = FORJA ? pads_do_slot(FORJA, lugar) : nullptr;
-  if (!p || v->nivel != NIVEL_MONTOU)
-    return;
-  char pq[240];
-  if (FORJA->pads.contrato_estrito && p->origem.conexao == CONEXAO_BT && origem_eh_dualsense(p->origem.tipo))
-    std::snprintf(pq, sizeof(pq), "no rádio, este jogo só lê: o relatório 0x31 fica de fora (CONTRATO.md) — ligue o "
-                                  "DualSense no cabo, ou um DualSense virtual USB");
-  else
-    std::snprintf(pq, sizeof(pq), "o controle chegou como %s (%s)", pad_origem_rotulo(p),
-                  conexao_rotulo(p->origem.conexao));
-  juntar_obs(v, pq);
-}
 
 } // namespace
 

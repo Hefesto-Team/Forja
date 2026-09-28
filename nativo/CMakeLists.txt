@@ -134,6 +134,7 @@ add_library(forja SHARED
   godot/forja_medidas.cpp
   godot/forja_cegas.cpp
   godot/forja_som.cpp
+  godot/forja_bancada.cpp
 )
 target_link_libraries(forja PRIVATE forja_sdl godot-cpp::template_release)
 target_compile_definitions(forja PRIVATE FORJA_VERSAO="${FORJA_VERSAO}")

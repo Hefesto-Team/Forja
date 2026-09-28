@@ -21,12 +21,13 @@ typedef struct SonsSalas {
   Som tropeco;  /* o tropeço dos Caminhos: um lado só */
   Som clique;   /* o clique seco na mão */
   Som pronto;   /* o especial carregado, só no controle de quem tem */
+  Som tom;      /* a bancada: o tom de 1 kHz do eco */
   Som passo[4][SONS_PASSOS_VARIANTES]; /* o chão (chao.h) e a variação */
 } SonsSalas;
 
 const SonsSalas *sons_salas(void);
 /* Um som pelo nome: "sino", "pulso", "nota", "nota_alta", "grito", "tropeco",
- * "clique", "pronto" ou "passo:<chão>:<variação>". NULL se não existe. */
+ * "clique", "pronto", "tom" ou "passo:<chão>:<variação>". NULL se não existe. */
 const Som *sons_salas_por_nome(const char *nome);
 void sons_salas_liberar(void);
 

@@ -135,6 +135,14 @@ public:
   Dictionary med_estado(int lugar) const;
   Dictionary med_veredito(int lugar, const String &chave, int nivel);
 
+  /* A Prova: a carga da partida (medidas.h) e o veredito de tudo junto */
+  bool carga_comecar(int lugar);
+  void carga_parar(int lugar);
+  void carga_saida(int lugar, bool ok);
+  void carga_placar(int lugar, int tiros, int acertos, int derrubadas);
+  Dictionary carga_estado(int lugar) const;
+  Dictionary carga_veredito(int lugar, const Dictionary &leds, const Dictionary &cor, bool mexeu);
+
   /* as provas às cegas das salas de saída (cegas.h): os planos pelo sorteio
    * do núcleo, e o veredito das respostas guardadas pela sala */
   Array cega_plano_tiros(const PackedInt32Array &slots, int por_lado, int64_t semente) const;
@@ -163,6 +171,18 @@ public:
   void simulador_falar(int sim, float nivel);
   int chao_do_envelope(const PackedFloat32Array &env) const;
   Dictionary mic_veredito(int lugar, const String &chave, const Dictionary &dados);
+
+  /* a bancada dos experimentos (experimental/): a escuta crua do microfone,
+   * a análise (analise.h), o report cru e o resultado de cada medida */
+  bool som_escutar(int lugar, float segundos);
+  PackedFloat32Array som_escuta(int lugar) const;
+  void som_escuta_parar(int lugar);
+  int exp_ataque(const PackedFloat32Array &a, float vezes, float minimo) const;
+  float exp_rms_db(const PackedFloat32Array &a, int ini, int n) const;
+  float exp_mediana(const PackedFloat32Array &v) const;
+  Dictionary exp_diagonal(const PackedFloat32Array &niveis, int n) const;
+  PackedByteArray relatorio_cru(int lugar) const;
+  void experimento(int lugar, const String &chave, const String &o, int resultado, const String &texto);
 
   /* os sons da forja, sintetizados (som/sintese.h): mono, 48 kHz, float */
   PackedFloat32Array sintetizar(const String &tipo, const Dictionary &p) const;

@@ -5,9 +5,11 @@
  * amostra os controles a cada quadro, depois de bombear o SDL, e no fim dá o
  * veredito e o grava no relatório. */
 #include "forja_controles.h"
+#include "forja_interno.h"
 
 extern "C" {
 #include "catalogo.h"
+#include "cegas.h"
 #include "forja.h"
 #include "medidas.h"
 #include "pads.h"
@@ -39,6 +41,10 @@ struct MedidaLugar {
   int concorda0[2] = {0, 0}, discorda0[2] = {0, 0};
   uint32_t marcados = 0; /* botões cujo primeiro aperto já foi para a linha do tempo */
   bool marcou_toque = false, marcou_dois = false, marcou_clique = false;
+  /* A Prova: a carga (o giroscópio sem buraco, as saídas aceitas) */
+  bool carga_ativa = false;
+  MedCarga carga{};
+  uint64_t carga_giro_ult = 0;
 };
 
 MedidaLugar g_med[MAX_JOGADORES];
@@ -230,6 +236,12 @@ void ForjaControles::med_quadro() {
       marco(l, "toque", "dois dedos ao mesmo tempo");
     }
     med_sensores_amostra(&m.sensores, p->giro, p->acel);
+    if (m.carga_ativa) {
+      /* as amostras de giroscópio que chegaram neste quadro de partida */
+      uint64_t total = p->taxa_giro.total;
+      med_carga_quadro(&m.carga, (long)(total - m.carga_giro_ult), FORJA->dt);
+      m.carga_giro_ult = total;
+    }
     if (!m.repouso && (std::hypot(lx, ly) > 0.5f || std::hypot(rx, ry) > 0.5f))
       atividade = true;
     if (tl > 0.2f || tr > 0.2f || baixo[0] || baixo[1])
@@ -404,4 +416,81 @@ PackedByteArray ForjaControles::sintetizar_pcm16(const String &tipo, const Dicti
     dst[i * 2 + 1] = (uint8_t)((s16 >> 8) & 0xFF);
   }
   return b;
+}
+
+/* ---------- A Prova: a carga ---------- */
+
+/* A partida começou: daqui em diante, cada quadro conta as amostras de
+ * giroscópio que chegaram (o buraco maior, as paradas de mais de 1 s). */
+bool ForjaControles::carga_comecar(int lugar) {
+  if (!aberto_ || !lugar_valido(lugar))
+    return false;
+  MedidaLugar &m = g_med[lugar];
+  Pad *p = pads_do_slot(FORJA, lugar);
+  med_carga_zerar(&m.carga, p && p->cap_giro);
+  m.carga_giro_ult = p ? p->taxa_giro.total : 0;
+  m.carga_ativa = p != nullptr;
+  return m.carga_ativa;
+}
+
+void ForjaControles::carga_parar(int lugar) {
+  if (lugar_valido(lugar))
+    g_med[lugar].carga_ativa = false;
+}
+
+/* Uma saída mandada no meio da carga: o SDL aceitou? */
+void ForjaControles::carga_saida(int lugar, bool ok) {
+  if (!lugar_valido(lugar))
+    return;
+  MedCarga &c = g_med[lugar].carga;
+  c.saidas++;
+  if (!ok)
+    c.recusadas++;
+}
+
+void ForjaControles::carga_placar(int lugar, int tiros, int acertos, int derrubadas) {
+  if (!lugar_valido(lugar))
+    return;
+  MedCarga &c = g_med[lugar].carga;
+  c.tiros = tiros;
+  c.acertos = acertos;
+  c.derrubadas = derrubadas;
+}
+
+Dictionary ForjaControles::carga_estado(int lugar) const {
+  Dictionary d;
+  if (!lugar_valido(lugar))
+    return d;
+  const MedCarga &c = g_med[lugar].carga;
+  d["segundos"] = c.segundos;
+  d["amostras_giro"] = (int64_t)c.amostras_giro;
+  d["maior_parada"] = c.maior_parada;
+  d["paradas"] = c.paradas;
+  d["saidas"] = c.saidas;
+  d["recusadas"] = c.recusadas;
+  return d;
+}
+
+/* O veredito de "tudo junto": a carga da partida e a prova final às cegas
+ * (as luzinhas e a cor), pela régua de cegas.c. */
+Dictionary ForjaControles::carga_veredito(int lugar, const Dictionary &leds, const Dictionary &cor, bool mexeu) {
+  Dictionary d;
+  if (!aberto_ || !lugar_valido(lugar))
+    return d;
+  MedidaLugar &m = g_med[lugar];
+  m.carga_ativa = false;
+  Cega cl = forja_interno::cega_de(leds), cc = forja_interno::cega_de(cor);
+  Veredito v = cega_tudo_junto_veredito(&m.carga, &cl, &cc, mexeu || m.mexeu);
+  forja_interno::explica_recusa(lugar, &v);
+  int n = v.nivel != NIVEL_NENHUM ? (int)v.nivel : (int)NIVEL_SAIU;
+  veredito(lugar, F_TUDO_JUNTO, (int)v.resultado, n, txt(v.pedido), txt(v.medido), txt(v.obs));
+  d["feature"] = "tudo_junto";
+  d["nome"] = txt(catalogo_feature(F_TUDO_JUNTO)->nome);
+  d["resultado"] = (int)v.resultado;
+  d["rotulo"] = txt(rel_resultado_rotulo(v.resultado));
+  d["nivel"] = n;
+  d["pedido"] = txt(v.pedido);
+  d["medido"] = txt(v.medido);
+  d["obs"] = txt(v.obs);
+  return d;
 }
