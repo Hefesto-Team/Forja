@@ -20,7 +20,7 @@ nem procurado.
 | por onde | o relatório USB `0x02`, no bloco de efeitos de 47 bytes (`SDL_SendGamepadEffect`) | USB Audio Class: uma placa de 4 canais de saída a 48 kHz, e a entrada do microfone | a mesma placa, canais 3 e 4 |
 | quem entrega | o SDL (driver hidapi do PS5) | o sistema: ALSA/PipeWire no Linux, WASAPI no Windows (e no Wine, sob Proton) | o sistema, igual ao (b) |
 | como o jogo acha | o próprio controle aberto no SDL | o dispositivo de áudio do **mesmo aparelho** do controle (ver abaixo) | igual ao (b) |
-| na Tech Demo | todas as salas de saída; na Cripta, o LED e o botão do mudo | O Canto (alto-falante) e A Cripta (microfone) | Os Caminhos |
+| na Tech Demo | todas as salas de saída; n'A Voz, o LED e o botão do mudo | O Canto (alto-falante) e A Voz (microfone) | Os Caminhos |
 
 ### (a) O painel: HID pelo SDL3
 
@@ -39,12 +39,12 @@ economia de energia).
   e o pré-amp padrão (`0x64` e `2`) são os que o próprio driver do kernel
   escolhe quando o fone sai (hid-playstation).
 - **A luz do microfone.** O byte 8: `0` apagada, `1` acesa, `2` piscando. É ela
-  que A Cripta pergunta às cegas.
+  que A Voz pergunta às cegas.
 - **O botão do microfone.** Chega pelo SDL3 como `SDL_GAMEPAD_BUTTON_MISC1` (a
   documentação do SDL lista "PS5 microphone button" nesse botão).
 - **O mudo do kernel.** No Linux, o hid-playstation trata o botão por conta
   própria: a cada aperto ele alterna o mudo, acende a luz e manda o controle
-  calar o microfone no próprio aparelho. Por isso A Cripta mede as duas
+  calar o microfone no próprio aparelho. Por isso A Voz mede as duas
   coisas separadas: o botão chegou ao jogo? E, mudo, o som do microfone caiu
   (o sistema cortou) ou continuou (o mudo ficou com o jogo)?
 
@@ -135,8 +135,16 @@ veredito é NÃO MEDIDO, com o porquê.
 
 ## Como a Tech Demo acha o som de cada jogador
 
-Ao entrar numa sala de som (`demo/src/som/som_controle.c`), o jogo pede ao SDL
-a lista de dispositivos de áudio e completa cada um com o que o sistema sabe:
+No jogo 3D, o som da TV é do Godot (o autoload `Som`); o som de cada controle
+é do módulo nativo, que tem o SDL3 dentro: um segundo cliente de som, ao lado
+do Godot, com um fluxo por dispositivo (`nativo/som/som_controle.c`). O som do
+SDL só abre na primeira sala de som — quem joga só as salas de entrada não
+pede nada ao servidor de som —, e o GDScript toca pelo lugar do jogador
+(`Forja.som_falante`, `Forja.som_haptica`, `Forja.som_mic`); os sons que vão
+ao controle são os da forja, sintetizados no módulo (`nativo/som/sons_salas.c`).
+
+Ao entrar numa sala de som, o módulo pede ao SDL a lista de dispositivos de
+áudio e completa cada um com o que o sistema sabe:
 
 - **Linux:** `pactl` dá o `sysfs.path`, e dele o `usb_device`;
 - **Windows e Proton:** o WASAPI dá o `ContainerId` de cada endpoint, e o
@@ -144,7 +152,7 @@ a lista de dispositivos de áudio e completa cada um com o que o sistema sabe:
   `SDL_GetGamepadPath`).
 
 Depois, para cada jogador e cada papel (alto-falante, háptica, microfone),
-tenta nesta ordem (`demo/src/nucleo/achar_som.c`, provado sem aparelho):
+tenta nesta ordem (`nativo/nucleo/achar_som.c`, provado sem aparelho):
 
 1. **pelo aparelho** — o mesmo USB, ou o mesmo `ContainerId`;
 2. **pelo número** — «… do Controle N» com o N do lugar do jogador;
@@ -160,8 +168,12 @@ voz). Quem joga confere antes de a prova começar.
 Controle simulado (`--simular`) não tem dispositivo: o som dele vai para uma
 placa **virtual** de quatro canais que só o simulador "escuta" — é assim que o
 robô do gauntlet ouve o alto-falante e sente os atuadores do controle dele, e
-é aí que entram os defeitos de mentira (`--defeito sem-alto-falante`,
-`som-vizinho`, `haptica-trocada`, `haptica-muda`, `mic-surdo`).
+é aí que entram os defeitos de mentira (`--defeitos=sem-alto-falante`,
+`som-vizinho`, `haptica-trocada`, `haptica-muda`, `mic-surdo`). A placa virtual
+não precisa de servidor de som: a prova do CI, que não tem nenhum, roda as três
+salas de som inteiras. Ela anda no tempo do jogo (cada quadro mistura o que
+cabe no quadro), e é por isso que a prova, mais rápida que o tempo real, ouve
+o mesmo que ouviria devagar.
 
 ---
 
@@ -175,12 +187,12 @@ com evidência.
   na TV. Todo mundo ouve; a pergunta é outra: "saiu da SUA mão?". Reprova o
   canto que não sai no controle dele (o canal 2 não chega ao alto-falante) e o
   canto dos outros que sai no dele (o som não fica no controle certo).
-- **Os Caminhos** — o autômato anda no escuro; o chão (grama, cascalho, metal,
+- **Os Caminhos** — cada boneco anda no escuro; o chão (grama, cascalho, metal,
   água) só existe nos atuadores, e um tropeço treme um lado só. Reprova quem
   diz "não senti" o caminho inteiro, os lados trocados (canais 3 e 4
   invertidos), o atuador de um lado que nunca recebe e a textura que chega
   deformada.
-- **A Cripta** — o silêncio de todos (o piso), a voz de cada um na sua vez, o
+- **A Voz** — o silêncio de todos (o piso), a voz de cada um na sua vez, o
   botão do mudo, a voz baixinha já mudo, e a luz do microfone perguntada às
   cegas. Reprova o microfone que não sobe com a voz, o botão que não chega e a
   luz que não é a que o jogo mandou. O susto do fim — vibração forte e o grito

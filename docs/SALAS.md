@@ -4,8 +4,8 @@
 > de cada sala. Os nomes mudaram em duas: **o Cerco é O Impacto** e **a Cripta
 > é A Voz**. As salas ganham o comportamento abaixo marco a marco (ver
 > [SPRINTS.md](../SPRINTS.md)). A Centelha, A Viga e O Molde (marco 2), O
-> Impacto e A Galeria (marco 3) já são o jogo inteiro; A Voz e A Prova estão
-> abertas na versão curta; Os Caminhos e O Canto têm o portão fechado.
+> Impacto e A Galeria (marco 3), O Canto, Os Caminhos e A Voz (marco 4) já
+> são o jogo inteiro; A Prova está aberta na versão curta.
 >
 > As três fases de toda sala que mede são as mesmas no 3D: o **aviso** (o
 > objetivo numa frase, as features que a sala prova, e cada um aperta ✕
@@ -60,7 +60,7 @@ gatilhos, numa ordem sorteada pela semente. Runa perdida volta para o fim da
 fila (até três vezes).
 
 O Options é a pausa; o PS fica de fora (o sistema costuma tomá-lo); o botão do
-microfone é da Cripta; o clique do touchpad é do Molde. Nesta sala o Create é
+microfone é d'A Voz; o clique do touchpad é do Molde. Nesta sala o Create é
 uma runa: o diagnóstico abre pela pausa.
 
 | feature | PASSOU | FALHOU |
@@ -221,6 +221,13 @@ no rádio sem os nós de som do Hefesto.
 Como nas salas de saída, são provas às cegas: a tela não mostra de onde veio o
 som, e quem joga diz o que ouviu ou sentiu.
 
+No 3D, o som de cada controle sai pelo módulo, paralelo ao som da TV (que é do
+Godot): o alto-falante, os dois atuadores e o microfone de cada jogador,
+achados como um jogo acha
+([COMO-O-SOM-CHEGA-AO-CONTROLE.md](COMO-O-SOM-CHEGA-AO-CONTROLE.md)). O aviso
+de cada sala de som mostra, embaixo de cada jogador, o dispositivo achado e
+como foi achado: △ toca o teste nele, ◀ ▶ troca.
+
 ## O Canto — o ritmo no alto-falante do controle
 
 **O padrão:** o alto-falante do DualSense nos jogos — o som que sai **da mão**,
@@ -232,6 +239,12 @@ outra: o canto saiu da **sua** mão? ✕ "foi no meu", ○ "não foi". A tela re
 de onde veio, e o dono do canto repete o ritmo com ✕ (pontos por intervalo
 certo, com folga de 120 ms). Cada jogador é o dono de dois cantos (três,
 sozinho), e a TV canta duas vezes (três, sozinho), em ordem sorteada.
+
+No 3D, a TV é o sino grande pendurado no fundo, e cada jogador tem um sino
+pequeno ao lado. Enquanto canta, o sino grande balança e as notas sobem do
+meio, qualquer que seja a fonte: a tela não aponta ninguém. Na revelação, o
+sino de quem cantou brilha e balança; na repetição, a partitura em cima do
+dono mostra as quatro notas e os toques dele.
 
 | feature | PASSOU | FALHOU |
 | --- | --- | --- |
@@ -253,6 +266,12 @@ meio do caminho, quatro pedras: o tropeço treme **um lado só**, e a pessoa diz
 qual (L1 esquerda, R1 direita; o touchpad é "não senti"). A TV não toca o
 passo: ele só existe no controle.
 
+No 3D, cada um anda num caminho de pedra que desliza para trás a cada passo; a
+lanterna só mostra o boneco. No treino o chão aparece (a grama com os tufos, o
+cascalho, a chapa rebitada, a água com as ondas); nos trechos da prova ele fica
+escuro e só aparece depois da resposta. No tropeço o boneco cambaleia para os
+dois lados, e a pedra só aparece, do lado dela, depois de respondido.
+
 | feature | PASSOU | FALHOU |
 | --- | --- | --- |
 | Háptica por áudio | ao menos 75% dos chãos certos e ao menos 80% dos tropeços do lado certo | "não senti" em metade dos trechos ou mais (e três ou mais): a háptica não chega; três ou mais tropeços ditos do lado oposto, mais que os certos: os canais 3 e 4 chegam trocados; um lado que nunca foi sentido: o atuador daquele lado não recebe; menos da metade dos chãos certos com três ou mais trocas: a textura chega deformada |
@@ -263,7 +282,7 @@ diz isso.
 
 **Defeitos que ela pega:** `haptica-trocada`, `haptica-muda`.
 
-## A Cripta — a voz, o silêncio e o susto
+## A Voz — a voz, o silêncio e o susto
 
 **O padrão:** os jogos de terror que escutam quem joga — o monstro que ouve
 pelo microfone, o botão de mudo que salva, a luz laranja do mudo — e o susto
@@ -282,6 +301,12 @@ enquanto a TV bate.
    controle, a tela não mostra, e a pessoa diz como está: ✕ apagada, ○ acesa,
    □ piscando;
 5. **o susto** — quando a cripta fica quieta demais.
+
+No 3D, o guardião é a máscara de bronze na parede do fundo: os olhos fecham no
+silêncio e abrem com as vozes, a boca abre, com os dentes, no susto. À frente
+de cada boneco, um braseiro: a chama sobe com o que o microfone DELE ouve, e
+apaga no mudo. Na vez de chamar, um foco acende em cima de quem fala. O
+microfone de cada um é o do próprio controle, achado pelo módulo.
 
 | feature | PASSOU | FALHOU |
 | --- | --- | --- |
@@ -327,28 +352,26 @@ O que um jogo não mede, a Prova mede: com tudo isso junto, a entrada
 continuou chegando e as saídas continuaram sendo aceitas? Se o SDL recusa
 todas as saídas desde o começo (o rádio nativo, que este jogo só lê), o
 veredito é NÃO MEDIDO, com o porquê. O microfone fica de fora: no ar de uma
-sala, a voz de um é ouvida por todos (a Cripta mede em turnos).
+sala, a voz de um é ouvida por todos (A Voz mede em turnos).
 
 **Defeito que ela pega:** `engasga` (a cada 40 pacotes de efeito, a entrada do
 controle para por 1,5 s).
 
 ## Jogar sem controle
 
-`--simular N` pendura N DualSense de mentira. O teclado dirige um deles (Tab
-troca qual):
+`--simular N` pendura N DualSense de mentira (sem controle nenhum, o título
+oferece um). O teclado dirige um deles (Ctrl+1…4 troca qual):
 
 | tecla | controle |
 | --- | --- |
-| Z ou Enter · X ou Esc · C · V | ✕ · ○ · □ · △ |
-| Q · E · 1 · 3 | L1 · R1 · L2 · R2 |
-| F · G | L3 · R3 |
-| O · P | Options · Create |
-| T · M | clique do touchpad · botão do microfone |
-| Espaço | falar no microfone de mentira (enquanto segura) |
-| setas · WASD | direcional · analógico esquerdo |
-| I/K · J/L · B/N | inclina para a frente e para trás · para os lados · vira |
-| H | a martelada |
-| mouse | o touchpad: botão esquerdo é um dedo; com os dois botões, o segundo dedo segue o mouse |
+| Espaço ou Enter · Backspace · Q · E | ✕ · ○ · □ · △ |
+| R · T · G · F | L1 · R1 · L2 · R2 |
+| C · V | L3 · R3 |
+| Esc · Tab | Options · Create |
+| P · M | clique do touchpad · botão do microfone |
+| Z | falar no microfone do controle simulado (enquanto segura) |
+| setas · WASD · IJKL | direcional · analógico esquerdo · analógico direito |
+| mouse com o botão direito | o giroscópio |
 
 `--robo` põe um robô para jogar em todos os controles simulados. Ele só sabe o
 que um jogador saberia: vê a tela (a runa, a mira, o autômato inclinado) e,
