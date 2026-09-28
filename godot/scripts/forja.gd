@@ -17,6 +17,7 @@ extends Node
 ##   --relatorios=PASTA onde gravar o relatório (sem ele: ao lado do jogo)
 ##   --sala=ID          abre direto numa sala
 ##   --prova-de-fogo    abre na Prova de Fogo: todas as salas, na ordem, e o livro
+##   --sair-no-fim      no fim da Prova de Fogo, grava o relatório e fecha o jogo
 ##   --experimento=ID   a bancada do experimental/ no lugar do salão
 ##   --defeitos=LISTA   defeitos de mentira nos simulados (a prova que morde)
 ##   --sem-modulo       finge que o módulo não existe
