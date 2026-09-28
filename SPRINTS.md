@@ -1,11 +1,12 @@
 # FORJA — sprints (plano, não execução)
 
-**Repo:** [AndreBFarias/forja](https://github.com/AndreBFarias/forja) · privado · `main` @ `07248b2` (13/09/2026)\
-**O que está no GitHub hoje:** empacotador C USB `0x02` + Godot 4.4 (Hub / Galeria / Impacto / Viga / Prova) + `./run-local.sh`.\
-**O que NÃO está no GitHub:** o preview web (eleição de modo, packer alinhado ao mapa USB do specs.html, WebHID, audio 4.0).\
+**Repo:** [Hefesto-Team/Forja](https://github.com/Hefesto-Team/Forja) · `main` com os seis marcos do jogo 3D (28/09/2026)\
+**O que está no GitHub hoje:** o jogo 3D em Godot 4.4 com o módulo nativo (SDL3), as nove salas, a Prova de Fogo, o relatório da sessão, as provas sem aparelho e a exportação (o binário Linux e o `.exe`).\
 **Contrato:** o jogo fala Sony/Steam no cabo. Não fala Hefesto. Sem relatório `0x31`.
 
-Este arquivo é backlog. Não começa trabalho sozinho.
+Este arquivo é backlog. Não começa trabalho sozinho. O plano de 13/09 (os
+sprints 0 a 5) fica abaixo como foi escrito; onde ele chegou está nas tabelas
+do fim, e o que falta, no backlog de 28/09.
 
 Fonte de verdade das features: coluna **cabo** do `html/specs.html` (branch `dev` do hefesto-dualsense4unix). Cada modo abaixo cita a `chave` do mapa.
 
@@ -157,7 +158,128 @@ são o desenho de cada sala 3D (o Cerco virou O Impacto; a Cripta, A Voz).
 | 3 | O Impacto e A Galeria às cegas: motores, isolamento, lightbar, os três modos de gatilho, LEDs de jogador | feito — as duas no 3D com o desenho do Cerco e da Galeria; o módulo dá o veredito às cegas pela régua de `cegas.c` (degrau obedeceu); o robô sente o que o controle simulado recebeu, e o gauntlet pega motores-trocados, vibra-vizinho, luz-parada, gatilho-mudo e leds-errados |
 | 4 | o som pelo módulo (PipeWire, WASAPI e o `ContainerId`): A Voz com o microfone de cada controle e o susto, Os Caminhos, O Canto | feito — o som de cada controle no módulo (o SDL abre o som só na primeira sala de som; pelo aparelho, pelo número, pelo nome; o aviso mostra, troca e testa); as três salas no 3D com o desenho do Canto, dos Caminhos e da Cripta; o robô ouve e sente a placa virtual do controle simulado e fala no microfone dele; o gauntlet pega sem-alto-falante, som-vizinho, haptica-trocada, haptica-muda e mic-surdo |
 | 5 | A Prova com tudo ligado, a Prova de Fogo em ordem, `experimental/` refeito para o 3D | feito — A Prova no 3D (a Brasa contra a Maré, a carga medida pelo módulo a cada quadro, a prova final às cegas) e a Prova de Fogo (as nove salas na ordem, e o livro no fim); o gauntlet pega o `engasga`; a bancada do `experimental/` volta dentro do jogo 3D (`--experimento=`), com a prova dela no CI |
-| 6 | a exportação: o binário Linux e o `.exe` pelo Proton, no CI; o README fechado | a fazer |
+| 6 | a exportação: o binário Linux e o `.exe` pelo Proton, no CI; o README fechado | feito — `scripts/exportar.sh` exporta os dois, com os modelos do Godot por versão e sha256 (só os dois que o jogo usa); a prova da exportação faz o robô jogar a Prova de Fogo inteira no binário Linux e no `.exe` pelo Wine, a base do Proton (a mesma matriz nos dois, nenhum falhou); o CI deixa os dois pacotes como artefatos; o README diz como baixar, exportar e rodar pelo Proton |
+
+## O projeto fechado — 28/09/2026
+
+Os seis marcos do jogo 3D estão feitos e integrados na `main`. O que o jogo
+entrega, e onde se confere:
+
+- **as nove salas como jogos**, cada uma medindo o que chegou de cada controle
+  e dando o veredito por lugar e por feature — passou, falhou ou não medido,
+  com o porquê; a Prova de Fogo joga as nove em ordem e fecha no livro;
+- **o relatório da sessão** em `relatorios/` (o texto para ler, o JSON e a
+  linha do tempo para comparar), sem endereço de aparelho nem caminho da
+  máquina;
+- **o jogo exportado**: o binário Linux e o `.exe` (o mesmo do Proton), com
+  os dois pacotes como artefatos de cada execução do CI;
+- **as provas sem aparelho**, a cada push: a lógica do módulo, a prova do jogo
+  (o robô joga as salas com quatro DualSense simulados), o gauntlet (cada
+  defeito de mentira tem de ser pego), a bancada do `experimental/` e a
+  exportação (a Prova de Fogo inteira no binário Linux e no `.exe` pelo Wine);
+- **os estudos** que guiaram a cara e o método, em
+  [docs/estudos](docs/estudos/README.md).
+
+Quem continua começa pelo [AGENTS.md](AGENTS.md) (a lei do repositório e os
+comandos), pelo [CONTRATO.md](CONTRATO.md) e pelo backlog abaixo. Trabalho
+novo começa por um item daqui — e, como o resto deste arquivo, a lista não
+começa trabalho sozinha.
+
+### O que ficou de fora dos seis marcos, e por quê
+
+| item | por quê |
+| --- | --- |
+| GodotSteam, o action set do Steam Input e o trailer (sprint 5) | o jogo fala o DualSense pelo SDL3, como a Sony e a Steam documentam; com o Steam Input na frente, o jogo recebe um controle Xbox e perde o resto do DualSense. O trailer volta no sprint D |
+| a rodada que acaba com a bateria (Carga) | no cabo, a bateria fica em 100% e carregando: o cartão do lobby mostra isso, e é o que há para mostrar |
+| a voz devolvida pelo alto-falante do próprio controle | o eco se mede na bancada (`experimental/`, `eco`); no jogo, o susto d'A Voz sai no alto-falante de cada controle |
+| o ícone e os metadados do `.exe` | trocá-los pede o rcedit rodando pelo Wine na exportação; o `.exe` sai com os do Godot (volta no sprint D) |
+| o celular | a demo é para a TV e o desktop |
+| o DualSense nativo no rádio com tudo | sem ninguém na frente, entra só com a entrada, e o cartão diz isso ([ADR-005](docs/adr/005-o-radio-nativo-so-entrada.md)); com o Hefesto na frente, entra inteiro |
+
+## O que falta para um jogo completo — o backlog a partir de 28/09/2026
+
+A Tech Demo valida o controle jogando, e cada sala já é um jogo. Para ser um
+jogo de festa completo — que alguém baixa, joga uma noite inteira e quer
+jogar de novo — falta o que está abaixo, na ordem. Cada sprint diz quando está
+pronto.
+
+### Sprint A — a rodada com quatro controles de verdade
+
+O CI prova o jogo contra o simulador; falta o oráculo.
+
+| item | detalhe |
+| --- | --- |
+| a rodada no cabo e no rádio | o roteiro do README com quatro DualSense, a mesma semente, os dois relatórios lado a lado; cada diferença vira um item aqui ou no Hefesto |
+| o som de cada controle, de verdade | o alto-falante, a háptica (canais 3-4) e o microfone de cada controle achados pelo aparelho, no PipeWire e no WASAPI; e sob o Proton, onde um jogo tocando no controle do cabo "ainda não foi confirmada" ([estudo 01](docs/estudos/01-o-hefesto-por-dentro.md)) |
+| a bancada com aparelho | `experimental/rodar.sh` com um controle no cabo: o laço, o eco e o gatilho pelo report cru deixam de dizer "não medido" |
+| o `.exe` pelo Proton, na Steam | com o Steam Input desligado: os quatro controles, a luz, os gatilhos e o som |
+
+**Pronto quando:** os dois relatórios da rodada (cabo e rádio) estão anotados
+em `experimental/RESULTADOS.md`, e cada diferença tem dono.
+
+### Sprint B — a partida de festa
+
+Hoje cada sala dá vereditos; um jogo de festa também dá um vencedor.
+
+| item | detalhe |
+| --- | --- |
+| os pontos da noite | cada sala já conta pontos por lugar (runas, alvos, golpes, o chão certo); somá-los numa partida, com o placar entre as salas e o pódio no fim |
+| a partida escolhida | 3, 5 ou as 9 salas; na ordem ou sorteadas (a semente já existe) |
+| variação e dificuldade | cada sala com duas ou três variações (tempo, velocidade, quantos alvos) e um nível para quem joga pela primeira vez |
+| menos de quatro | toda sala jogável com 1, 2 ou 3 (A Prova já faz: com três, dois contra um e um boneco de treino); a sala diz o que muda |
+| a sala sem o recurso | com o microfone mudo, A Voz passa sozinha pela parte que pede voz (como o Astro faz com o sopro); sem alto-falante achado, O Canto diz e segue — o veredito fica "não medido", nunca "falhou" |
+
+**Pronto quando:** quatro pessoas jogam uma partida de cinco salas, do lobby
+ao pódio, sem ninguém explicar nada — e pedem outra.
+
+### Sprint C — conforto e acessibilidade
+
+Os estudos [02](docs/estudos/02-manuais-de-ui-e-ux.md) e
+[04](docs/estudos/04-minimalismo-e-o-dualsense-nos-jogos.md) trazem os
+números; falta o menu.
+
+| item | detalhe |
+| --- | --- |
+| opções por jogador | gatilho Desligado / Fraco / Forte e vibração de 0 a 100%, por lugar, no lobby e na pausa (como o GT7) |
+| opções da sessão | o volume da TV e o do alto-falante do controle, o tremor da câmera e os flashes desligáveis, tela cheia ou janela, o tamanho do texto |
+| o checklist do estudo 02 | os 31 itens conferidos tela por tela: texto de leitura ≥ 30 px, a área segura, um foco só (contorno de 4 px), ✕ confirma e ○ volta, nada de segurar para confirmar, o aviso pulável a partir da segunda vez |
+| a cor nunca sozinha | as capturas passadas por simulação de protanopia, deuteranopia e tritanopia; o veredito sempre com palavra |
+| as opções guardadas | num arquivo de configuração do usuário (por máquina, nunca por aparelho) |
+
+**Pronto quando:** o checklist do estudo 02 passa inteiro numa TV de 40" a 3 m
+e na tela do Steam Deck.
+
+### Sprint D — som, música e acabamento
+
+| item | detalhe |
+| --- | --- |
+| a música | uma trilha do salão e uma por sala, com o volume do menu; a música se cala quando a sala pede silêncio (A Voz, O Canto) |
+| o som da TV | os efeitos de hoje são sintetizados (`scripts/som.gd`); gravar ou licenciar os que pedem corpo (o martelo, o golpe, o sino) |
+| a arte das salas | os bonecos reagindo (ao veredito, ao golpe, à vitória), partículas e luz por sala, as transições |
+| o título e os créditos | a tela de título com a bigorna, e os créditos com as licenças (os modelos Kenney, CC0; as fontes, OFL; o SDL, zlib; o Godot e o godot-cpp, MIT; os glifos e o mapa do app Hefesto, MIT) |
+| o ícone do jogo | o ícone e os metadados do `.exe` (o rcedit pelo Wine na exportação) e o `.desktop` do Linux |
+| o trailer | os 60 s do sprint 5, agora com as salas 3D |
+
+**Pronto quando:** o trailer sai sem nenhum corte para esconder tela crua.
+
+### Sprint E — robustez e alcance
+
+| item | detalhe |
+| --- | --- |
+| o controle que cai | tirar o cabo no meio de cada sala: a sala segue, o lugar espera, o controle volta ao mesmo lugar — a regra do sprint 1, conferida sala por sala no 3D |
+| o Steam Deck | 1280×800 a 60 quadros, com os DualSense pelo Bluetooth ou pelo dock |
+| o inglês | as telas e o README em inglês, com o português como padrão |
+| a distribuição | um AppImage ou Flatpak no Linux, e os pacotes da exportação como release no GitHub a cada tag |
+| as telas no CI | as fotos que o `testes/captura_jogo.gd` já tira, comparadas com as da versão anterior |
+
+**Pronto quando:** o jogo roda no Deck e num PC com Windows, com quatro
+DualSense, a partir do pacote baixado, sem compilar nada.
+
+### Fora do escopo, de propósito
+
+O online (o jogo é local); o relatório `0x31` do rádio e tudo o que é do
+Hefesto por dentro (o socket, o `uniq`, o CRC); o DSX; e o SDK oficial da
+Sony, que é sob NDA — não se usa, não se procura, não se reproduz.
 
 ## Onde cada sprint estava — 27/09/2026 (o app 2D, fora do branch)
 

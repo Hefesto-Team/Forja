@@ -3,13 +3,18 @@ extends Node
 ## quatro DualSense simulados e passa pelas telas apertando os botões DELES
 ## (o caminho inteiro do módulo roda). Nada de aparelho, nada de janela real:
 ##
-##   godot --path godot --resolution 1920x1080 res://testes/captura_jogo.tscn -- --simular=4 --robo --semente=7
+##   godot --fixed-fps 60 --path godot --resolution 1920x1080 res://testes/captura_jogo.tscn -- --simular=4 --robo --semente=7
+##
+## O --fixed-fps 60 é obrigatório: o roteiro espera pelo relógio do jogo, e sem
+## ele as fotos saem nos momentos errados.
 ##
 ## SAIDA=<pasta> diz onde gravar os PNG; FOTOS=titulo,lobby,... escolhe quais.
 ## ROTEIRO=salas passa pelas salas que medem (aviso, jogo e veredito de cada
-## uma, com o robô jogando); SALAS=impacto,galeria escolhe quais. RAPIDO=1 roda numa janela pequena entre as fotos
-## e volta ao tamanho cheio só para cada foto (num renderizador por software,
-## é o que cabe no tempo).
+## uma, com o robô jogando); SALAS=impacto,galeria escolhe quais.
+## ROTEIRO=bancada, com -- --experimento=ID, fotografa a bancada do
+## experimental/. RAPIDO=1 roda numa janela pequena entre as fotos e volta ao
+## tamanho cheio só para cada foto (num renderizador por software, é o que
+## cabe no tempo).
 
 var jogo: Node
 var q := 0
