@@ -53,6 +53,8 @@ typedef struct SomJogador {
   long mic_quadros;          /* quadros em que chegou som do microfone */
   bool fone;                 /* o fone está no jack do controle (report USB, byte 53) */
   bool mic_virtual;
+  float *escuta;             /* a bancada: as amostras cruas do microfone, sob pedido */
+  int escuta_cap, escuta_n;
 } SomJogador;
 
 #define SOMC_MAX_SAIDAS 12
@@ -100,6 +102,15 @@ long somc_mic_quadros(struct Forja *a, int slot);
  * "sente" em cada atuador, 0..1. */
 float somc_virtual_falante(struct Forja *a, int slot);
 float somc_virtual_atuador(struct Forja *a, int slot, int lado);
+
+/* A bancada (experimental/): grava as próximas `segundos` de amostras do
+ * microfone do jogador (48 kHz, mono), a partir de agora — o que estava no
+ * fluxo é descartado, para a primeira amostra ser de depois deste instante.
+ * Só com microfone de verdade; devolve false sem ele. */
+bool somc_escutar(struct Forja *a, int slot, float segundos);
+/* As amostras gravadas até agora (NULL sem escuta). */
+const float *somc_escuta(struct Forja *a, int slot, int *n);
+void somc_escuta_parar(struct Forja *a, int slot);
 
 /* Grava no relatório o alto-falante, o microfone e a háptica de cada um. */
 void somc_relatorio(struct Forja *a);

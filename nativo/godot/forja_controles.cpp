@@ -678,6 +678,12 @@ void ForjaControles::_bind_methods() {
   METODO(med_martelada, "lugar");
   METODO(med_estado, "lugar");
   METODO(med_veredito, "lugar", "chave", "nivel");
+  METODO(carga_comecar, "lugar");
+  METODO(carga_parar, "lugar");
+  METODO(carga_saida, "lugar", "ok");
+  METODO(carga_placar, "lugar", "tiros", "acertos", "derrubadas");
+  METODO(carga_estado, "lugar");
+  METODO(carga_veredito, "lugar", "leds", "cor", "mexeu");
   METODO(cega_plano_tiros, "slots", "por_lado", "semente");
   METODO(cega_plano_armas, "vezes", "semente");
   METODO(cega_plano_fontes, "fontes", "vezes", "semente");
@@ -701,6 +707,15 @@ void ForjaControles::_bind_methods() {
   METODO(simulador_falar, "sim", "nivel");
   METODO(chao_do_envelope, "envelope");
   METODO(mic_veredito, "lugar", "chave", "dados");
+  METODO(som_escutar, "lugar", "segundos");
+  METODO(som_escuta, "lugar");
+  METODO(som_escuta_parar, "lugar");
+  METODO(exp_ataque, "amostras", "vezes", "minimo");
+  METODO(exp_rms_db, "amostras", "inicio", "n");
+  METODO(exp_mediana, "valores");
+  METODO(exp_diagonal, "niveis", "n");
+  METODO(relatorio_cru, "lugar");
+  METODO(experimento, "lugar", "chave", "o", "resultado", "texto");
   METODO(sintetizar, "tipo", "parametros");
   METODO(sintetizar_pcm16, "tipo", "parametros");
 

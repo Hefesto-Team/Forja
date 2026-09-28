@@ -551,7 +551,7 @@ func progresso() -> String:
 			return "mudos, sussurrem"
 		LUZ:
 			return "a luz do microfone"
-	return "…"
+	return ""
 
 
 func dica(lugar: int) -> Dictionary:

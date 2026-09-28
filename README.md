@@ -54,7 +54,7 @@ As salas, e em que marco cada uma ganha o comportamento de jogo comercial
 | A Voz | microfone, mudo, LED do microfone | o jogo: o guardião da cripta escuta pelo microfone do SEU controle — o silêncio de todos, cada um chama na sua vez (a chama sobe com a voz), o mudo acende a luz laranja; a luz do microfone às cegas; e o susto no alto-falante e nos motores |
 | Os Caminhos | háptica por áudio (canais 3 e 4) | o jogo, às cegas: no escuro, o chão só existe nos atuadores — grama, cascalho, metal, água; diga o chão a cada três passos, e o lado da pedra no tropeço (L1/R1) |
 | O Canto | alto-falante do controle | o jogo, às cegas: a bigorna canta no alto-falante de UM controle ou na TV; saiu da sua mão? (✕/○); o dono repete o ritmo |
-| A Prova | tudo junto, duas equipes | aberta (R2 arma, L2 resistência, a luz cai com a vida); marco 5 |
+| A Prova | tudo junto, duas equipes | o jogo: a Brasa contra a Maré, noventa segundos com tudo ligado — R2 arma, L2 afina, a munição nas luzinhas, o tiro treme o motor do lado, o passo no chão, a martelada — e, no fim, as luzinhas e a cor às cegas. Entra-se pela bigorna do meio do salão |
 
 ## O que tem aqui
 
@@ -182,7 +182,12 @@ mesma semente nas duas (`--semente=7`).
    ritmo), Os Caminhos (sinta o chão e o lado da pedra, sem olhar a tela) e
    A Voz (silêncio; chame o guardião na sua vez; fique mudo pelo botão do
    microfone; diga como está a luz dele).
-7. Options → O livro da sessão mostra a tabela. Os arquivos estão em
+7. Na bigorna do meio do salão, ✕ entra n'A Prova: noventa segundos de partida
+   com tudo ligado, e no fim diga as luzinhas e a cor do seu controle sem olhar
+   a tela. Na mesma bigorna, △ acende a **Prova de Fogo**: todas as salas, na
+   ordem do percurso, sem voltar ao salão, e o livro no fim
+   (`./run-local.sh -- --prova-de-fogo` começa direto nela).
+8. Options → O livro da sessão mostra a tabela. Os arquivos estão em
    `relatorios/`: `relatorio-<sessão>.txt` para ler, `.json` e a linha do tempo
    para comparar.
 

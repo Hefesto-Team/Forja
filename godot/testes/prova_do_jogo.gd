@@ -48,6 +48,7 @@ func _ready() -> void:
 	add_child(jogo)
 	await _prova_do_percurso()
 	await _prova_do_relatorio()
+	await _prova_de_fogo()
 	if falhas > 0:
 		printerr("%d falha(s)" % falhas)
 		get_tree().quit(1)
@@ -242,16 +243,27 @@ func _prova_do_percurso() -> void:
 		_esperar(viu, "Voz: o mudo chegou de uns antes dos outros")
 		await _termina_a_sala(voz, ["microfone", "microfone_mudo", "led_microfone"])
 
-	# A Prova: R2 arma, L2 resistência, em todos
-	jogo._entrar_na_sala("prova", false)
-	await _quadros(4)
-	for l in 4:
-		var p := _perc(l)
-		_esperar(int(p.get("gatilho_dir", 0)) == 0x25, "Prova P%d: R2 arma (0x25)" % (l + 1))
-		_esperar(int(p.get("gatilho_esq", 0)) == 0x21, "Prova P%d: L2 resistência (0x21)" % (l + 1))
+	# A Prova: noventa segundos de tudo ligado. Na partida, R2 arma e L2
+	# resistência em todos, e a luz é a da equipe; no fim, a prova final às
+	# cegas, e cada um sai com PASSOU em tudo junto
+	var prova = await _comeca_a_sala("prova")
+	if prova:
+		var q := 0
+		while is_instance_valid(prova) and prova.etapa != SalaProva.PARTIDA and q < 600:
+			await _quadros(1)
+			q += 1
+		await _quadros(4)
+		for l in 4:
+			var p := _perc(l)
+			_esperar(int(p.get("gatilho_dir", 0)) == 0x25, "Prova P%d: R2 arma (0x25)" % (l + 1))
+			_esperar(int(p.get("gatilho_esq", 0)) == 0x21, "Prova P%d: L2 resistência (0x21)" % (l + 1))
+			var equipe: int = prova.lut[prova.lut_do_lugar[l]].equipe
+			var luz: Color = p.get("luz", Color.BLACK)
+			var cor: Color = SalaProva.LUZ_EQUIPE[equipe]
+			_esperar(absf(luz.r - cor.r) < 0.01 and absf(luz.g - cor.g) < 0.01 and absf(luz.b - cor.b) < 0.01,
+				"Prova P%d: a luz é a da %s" % [l + 1, SalaProva.NOME_EQUIPE[equipe]])
+		await _termina_a_sala(prova, ["tudo_junto"])
 
-	jogo._ir_para_o_salao(false)
-	await _quadros(4)
 	for l in 4:
 		var p := _perc(l)
 		_esperar(int(p.get("gatilho_dir", 0)) == 0x05, "de volta ao salão, o R2 do P%d solto" % (l + 1))
@@ -319,6 +331,38 @@ func _termina_a_sala(sala, features: Array) -> void:
 		var p := _perc(l)
 		_esperar(int(p.get("gatilho_dir", 0)) == 0x05 and float(p.get("forte", 1.0)) == 0.0,
 			"%s: o P%d voltou ao repouso" % [id, l + 1])
+
+
+## A Prova de Fogo: todas as salas na ordem, sem voltar ao salão. Aqui só a
+## costura: a primeira abre com "sala 1 de 9", o ✕ do veredito leva à segunda
+## (a primeira acaba na hora: as salas já foram provadas jogadas), e a pausa
+## desiste e volta ao salão.
+func _prova_de_fogo() -> void:
+	jogo._comecar_a_prova_de_fogo(false)
+	await _quadros(3)
+	var sala = jogo.sala
+	_esperar(sala is SalaJogo and sala.id == "centelha" and sala.na_prova_de_fogo == "Prova de Fogo · sala 1 de 9",
+		"Prova de Fogo: começa n'A Centelha, sala 1 de 9")
+	if not sala is SalaJogo:
+		return
+	var q := 0
+	while is_instance_valid(sala) and sala.fase == "aviso" and q < 600:
+		await _quadros(1)
+		q += 1
+	sala.terminar()
+	q = 0
+	while (not jogo.sala is SalaJogo or jogo.sala.id != "viga" or jogo._trocando) and q < 900:
+		await _quadros(2)
+		q += 2
+	var viga = jogo.sala
+	_esperar(viga is SalaJogo and viga.id == "viga" and viga.na_prova_de_fogo == "Prova de Fogo · sala 2 de 9",
+		"Prova de Fogo: o ✕ do veredito leva à Viga, sala 2 de 9")
+	jogo._na_pausa("salao")
+	q = 0
+	while (jogo.estado != "salao" or jogo._trocando) and q < 600:
+		await _quadros(2)
+		q += 2
+	_esperar(jogo.estado == "salao" and jogo.fogo == -1, "Prova de Fogo: pela pausa, desiste e volta ao salão")
 
 
 func _prova_do_relatorio() -> void:

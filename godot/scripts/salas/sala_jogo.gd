@@ -39,6 +39,10 @@ var cega := false
 ## Nas salas de som, o papel que o aviso deixa conferir, trocar (◀ ▶) e testar
 ## (△): Forja.PAPEL_ALTO_FALANTE, _HAPTICA ou _MICROFONE; -1 nas outras.
 var papel_som := -1
+## Na Prova de Fogo: "Prova de Fogo · sala 3 de 9" (vazio fora dela), e o que
+## o ✕ do veredito faz.
+var na_prova_de_fogo := ""
+var seguir := "voltar ao salão"
 var _teste_dir := [0.0, 0.0, 0.0, 0.0]  ## o segundo pulso do teste da háptica
 
 

@@ -609,6 +609,40 @@ func med_veredito(l: int, chave: String, nivel := NIVEL_REAGIU) -> Dictionary:
 	return ctl.med_veredito(l, chave, nivel) if modulo else {}
 
 
+# ---------------------------------------------------------------- A Prova: a carga --
+# Com tudo ligado ao mesmo tempo, a entrada continuou chegando (o giroscópio
+# sem buraco) e o SDL aceitou todas as saídas? O módulo conta a cada quadro.
+
+func carga_comecar(l: int) -> bool:
+	return ctl.carga_comecar(l) if modulo else false
+
+
+func carga_parar(l: int) -> void:
+	if modulo:
+		ctl.carga_parar(l)
+
+
+## Uma saída mandada no meio da partida, e se o SDL aceitou.
+func carga_saida(l: int, ok: bool) -> void:
+	if modulo:
+		ctl.carga_saida(l, ok)
+
+
+func carga_placar(l: int, tiros: int, acertos: int, derrubadas: int) -> void:
+	if modulo:
+		ctl.carga_placar(l, tiros, acertos, derrubadas)
+
+
+func carga_estado(l: int) -> Dictionary:
+	return ctl.carga_estado(l) if modulo else {}
+
+
+## O veredito de "tudo junto": a carga e a prova final às cegas (as luzinhas e
+## a cor); grava no relatório.
+func carga_veredito(l: int, leds: Dictionary, cor: Dictionary, mexeu: bool) -> Dictionary:
+	return ctl.carga_veredito(l, leds, cor, mexeu) if modulo else {}
+
+
 # ---------------------------------------------------------------- as provas às cegas --
 # As salas de saída escondem a resposta e perguntam; a sala guarda o que a
 # pessoa disse (Cega) e o módulo dá o veredito pela régua do núcleo (cegas.c),

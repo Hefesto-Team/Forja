@@ -41,6 +41,8 @@ const SonsSalas *sons_salas(void) {
   som_de_onda(&g_sons.clique, &o);
   sint_bigorna(&o, 1568.0f, 0.5f, 1.3f, 37);
   som_de_onda(&g_sons.pronto, &o);
+  sint_tom(&o, 1000.0f, 1.0f, 0.01f);
+  som_de_onda(&g_sons.tom, &o);
   for (int c = 0; c < 4; c++)
     for (int v = 0; v < SONS_PASSOS_VARIANTES; v++) {
       sint_passo(&o, c, (uint32_t)(100 + c * 10 + v));
@@ -72,6 +74,7 @@ const Som *sons_salas_por_nome(const char *nome) {
       {"nota", offsetof(SonsSalas, nota)},       {"nota_alta", offsetof(SonsSalas, nota_alta)},
       {"grito", offsetof(SonsSalas, grito)},     {"tropeco", offsetof(SonsSalas, tropeco)},
       {"clique", offsetof(SonsSalas, clique)},   {"pronto", offsetof(SonsSalas, pronto)},
+      {"tom", offsetof(SonsSalas, tom)},
   };
   for (size_t i = 0; i < sizeof(TABELA) / sizeof(TABELA[0]); i++)
     if (!SDL_strcmp(nome, TABELA[i].nome))
@@ -90,6 +93,7 @@ void sons_salas_liberar(void) {
   som_liberar(&g_sons.tropeco);
   som_liberar(&g_sons.clique);
   som_liberar(&g_sons.pronto);
+  som_liberar(&g_sons.tom);
   for (int c = 0; c < 4; c++)
     for (int v = 0; v < SONS_PASSOS_VARIANTES; v++)
       som_liberar(&g_sons.passo[c][v]);

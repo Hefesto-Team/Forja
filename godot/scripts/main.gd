@@ -20,7 +20,11 @@ const SALAS := {
 	"prova": preload("res://scripts/salas/prova.gd"),
 }
 
+## A Prova de Fogo: todas as salas, na ordem do percurso, e o livro no fim.
+const ORDEM_DO_FOGO := ["centelha", "viga", "molde", "impacto", "galeria", "canto", "caminhos", "voz", "prova"]
+
 var estado := "titulo"
+var fogo := -1  ## a sala da Prova de Fogo em curso (índice em ORDEM_DO_FOGO); -1 fora dela
 var salao: Salao
 var jogadores: Array[ForjaPlayer] = []
 var sala: Sala
@@ -127,10 +131,15 @@ func _abrir_pelos_args() -> void:
 	var sala_pedida := Forja.sala_pedida
 	if sala_pedida == "giro":
 		sala_pedida = "viga"
-	if sala_pedida != "" or tela in ["lobby", "salao", "diagnostico", "livro"]:
+	var pede_o_fogo := "--prova-de-fogo" in OS.get_cmdline_user_args()
+	if sala_pedida != "" or pede_o_fogo or tela in ["lobby", "salao", "diagnostico", "livro"]:
 		await get_tree().process_frame
 		await get_tree().process_frame
 		_todos_entram()
+	if pede_o_fogo:
+		_ir_para_o_salao(false)
+		_comecar_a_prova_de_fogo(false)
+		return
 	if sala_pedida != "" and SALAS.has(sala_pedida):
 		_ir_para_o_salao(false)
 		_entrar_na_sala(sala_pedida, false)
@@ -255,6 +264,10 @@ func _entrar_na_sala(id: String, com_cortina := true) -> void:
 		for p in jogadores:
 			if p.visible:
 				js.append(p)
+		if fogo >= 0 and sala is SalaJogo:
+			var sj := sala as SalaJogo
+			sj.na_prova_de_fogo = "Prova de Fogo · sala %d de %d" % [fogo + 1, ORDEM_DO_FOGO.size()]
+			sj.seguir = "seguir a Prova de Fogo" if fogo + 1 < ORDEM_DO_FOGO.size() else "o livro da sessão"
 		sala.entrar(js)
 		sala.terminou.connect(_ao_terminar_a_sala)
 		painel.sala = sala
@@ -271,10 +284,35 @@ func _entrar_na_sala(id: String, com_cortina := true) -> void:
 		_cam_olhar = _pose_da_camera()[1]
 
 
-## A sala acabou e alguém apertou ✕ no veredito: de volta ao salão.
+## A sala acabou e alguém apertou ✕ no veredito: de volta ao salão — ou, na
+## Prova de Fogo, a sala seguinte, e o livro no fim.
 func _ao_terminar_a_sala() -> void:
-	if estado == "sala" and overlay == "":
+	# o robô aperta ✕ a cada quadro até a cortina fechar: uma troca só
+	if estado != "sala" or overlay != "" or _trocando:
+		return
+	if fogo >= 0:
+		fogo += 1
+		if fogo < ORDEM_DO_FOGO.size():
+			_entrar_na_sala(ORDEM_DO_FOGO[fogo])
+			return
+		fogo = -1
+		Forja.registrar("Prova de Fogo: terminou")
+		Forja.evento("sala", 0, {"evento": "prova_de_fogo", "o": "terminou"})
+		Forja.gravar_relatorio()
 		_ir_para_o_salao()
+		get_tree().create_timer(0.9).timeout.connect(func() -> void:
+			if estado == "salao" and overlay == "":
+				_abrir_overlay("livro", 0))
+		return
+	_ir_para_o_salao()
+
+
+## Todas as salas que medem, na ordem do percurso, sem voltar ao salão.
+func _comecar_a_prova_de_fogo(com_cortina := true) -> void:
+	fogo = 0
+	Forja.registrar("Prova de Fogo: começou (semente %d)" % Forja.semente)
+	Forja.evento("sala", 0, {"evento": "prova_de_fogo", "o": "começou"})
+	_entrar_na_sala(ORDEM_DO_FOGO[0], com_cortina)
 
 
 func _sair_da_sala() -> void:
@@ -413,7 +451,7 @@ func _quadro_salao() -> void:
 			salao.abrir_portao(perto, true)
 		_portao_perto = perto
 	if perto == "":
-		hud.placa = {}
+		_perto_da_bigorna()
 		return
 	var dados: Dictionary = salao.portoes[perto].dados
 	hud.placa = {"nome": dados.nome, "sobre": dados.sobre, "aberta": dados.aberta}
@@ -424,6 +462,29 @@ func _quadro_salao() -> void:
 				return
 	elif quem >= 0 and Forja.apertou(quem, Forja.CRUZ):
 		Forja.vibrar(quem, 0.2, 0.0, 60)
+
+
+## A bigorna no meio do salão: ✕ entra n'A Prova, △ acende a Prova de Fogo.
+func _perto_da_bigorna() -> void:
+	var centro := salao.bigorna.global_position
+	for p in jogadores:
+		if not p.visible:
+			continue
+		if Vector2(p.global_position.x - centro.x, p.global_position.z - centro.z).length() > 3.1:
+			continue
+		hud.placa = {"nome": "A Prova", "sobre": "tudo junto, duas equipes · △ a Prova de Fogo", "aberta": true}
+		for q in jogadores:
+			if not q.visible:
+				continue
+			if Forja.apertou(q.lugar, Forja.CRUZ):
+				_entrar_na_sala("prova")
+				return
+			if Forja.apertou(q.lugar, Forja.TRIANGULO):
+				Som.tocar("martelo", centro + Vector3(0, 1, 0))
+				_comecar_a_prova_de_fogo()
+				return
+		return
+	hud.placa = {}
 
 
 func _quadro_sala() -> void:
@@ -485,7 +546,7 @@ func _fechar_overlay() -> void:
 	diagnostico.visible = false
 	livro.visible = false
 	pausa.visible = false
-	var pode := estado == "salao" or (estado == "sala" and sala and sala.id == "prova")
+	var pode := estado == "salao"
 	for p in jogadores:
 		p.controlavel = pode and p.visible
 
@@ -540,9 +601,11 @@ func _na_pausa(acao: String) -> void:
 			_abrir_overlay("livro", pausa.quem)
 		"salao":
 			_fechar_overlay()
+			fogo = -1
 			_ir_para_o_salao()
 		"lobby":
 			_fechar_overlay()
+			fogo = -1
 			_trocar(_ir_para_o_lobby)
 		"sair":
 			Forja.gravar_relatorio()
