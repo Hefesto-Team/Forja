@@ -15,6 +15,7 @@ const SALAS := {
 	"impacto": preload("res://scripts/salas/impacto.gd"),
 	"viga": preload("res://scripts/salas/viga.gd"),
 	"voz": preload("res://scripts/salas/voz.gd"),
+	"caminhos": preload("res://scripts/salas/caminhos.gd"),
 	"canto": preload("res://scripts/salas/canto.gd"),
 	"prova": preload("res://scripts/salas/prova.gd"),
 }

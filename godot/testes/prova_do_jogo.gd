@@ -193,6 +193,30 @@ func _prova_do_percurso() -> void:
 		_esperar(viu_controle and viu_tv, "Canto: cantou num controle e na TV")
 		await _termina_a_sala(canto, ["alto_falante"])
 
+	# Os Caminhos, às cegas: o tropeço treme só o atuador do lado da pedra, no
+	# controle de quem tropeçou (o passo vai aos dois lados)
+	var caminhos = await _comeca_a_sala("caminhos")
+	if caminhos:
+		var viu := false
+		var q := 0
+		while is_instance_valid(caminhos) and caminhos.fase == "jogo" and not viu and q < 9000:
+			await _quadros(1)
+			q += 1
+			for l in 4:
+				var e: Dictionary = caminhos.j[l]
+				if not e.trop_aberto or float(e.trop_t) < 0.03 or float(e.trop_t) > 0.12:
+					continue
+				var v := Forja.som_virtual(l)
+				var lado: int = e.trop_agora
+				var dele := float(v.get("esq" if lado == 0 else "dir", 0.0))
+				var outro := float(v.get("dir" if lado == 0 else "esq", 1.0))
+				_esperar(dele > 0.05 and outro < 0.02, "Caminhos P%d: o tropeço da %s treme só aquele atuador (%.2f × %.2f)" % [
+					l + 1, "esquerda" if lado == 0 else "direita", dele, outro])
+				viu = true
+				break
+		_esperar(viu, "Caminhos: alguém tropeçou")
+		await _termina_a_sala(caminhos, ["haptica_audio"])
+
 	# A Voz: o mudo do P3 acende o LED do P3, e só o dele
 	jogo._entrar_na_sala("voz", false)
 	await _quadros(4)

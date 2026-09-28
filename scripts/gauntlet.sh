@@ -22,7 +22,7 @@ SEMENTE="${SEMENTE:-7}"
 
 DEFEITOS=(troca-cruz-circulo analogico-curto gatilho-digital giro-invertido acel-escala um-dedo sem-clique
           vibra-vizinho motores-trocados luz-parada gatilho-mudo leds-errados led-mic-parado mudo-nao-chega
-          sem-alto-falante som-vizinho)
+          sem-alto-falante som-vizinho haptica-trocada haptica-muda)
 
 SAIDA="$(mktemp -d)"
 trap 'rm -rf "$SAIDA"' EXIT
