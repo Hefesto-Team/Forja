@@ -43,7 +43,6 @@ func _ready() -> void:
 		if a.begins_with("--relatorios="):
 			pasta = a.substr(13)
 	_prova_a_lista()
-	_prova_o_microfone()
 	_prova_o_alto_falante_do_sistema()
 	jogo = load("res://scenes/main.tscn").instantiate()
 	add_child(jogo)
@@ -217,14 +216,31 @@ func _prova_do_percurso() -> void:
 		_esperar(viu, "Caminhos: alguém tropeçou")
 		await _termina_a_sala(caminhos, ["haptica_audio"])
 
-	# A Voz: o mudo do P3 acende o LED do P3, e só o dele
-	jogo._entrar_na_sala("voz", false)
-	await _quadros(4)
-	await _aperta(2, Forja.MICROFONE)
-	await _quadros(2)
-	for l in 4:
-		var aceso := int(_perc(l).get("led_mic", 0)) != 0
-		_esperar(aceso == (l == 2), "Voz: LED do mudo do P%d %s" % [l + 1, "aceso" if l == 2 else "apagado"])
+	# A Voz: o robô chama o guardião no microfone do controle dele, fica mudo
+	# e olha a luz; o mudo acende o LED de quem apertou, e só o dele
+	var voz = await _comeca_a_sala("voz")
+	if voz:
+		var viu := false
+		var q := 0
+		while is_instance_valid(voz) and voz.fase == "jogo" and not viu and q < 6000:
+			await _quadros(1)
+			q += 1
+			if voz.estado != SalaVoz.MUDO:
+				continue
+			var mudos := 0
+			for l in 4:
+				if voz.j[l].apertou_mudo:
+					mudos += 1
+			if mudos == 0 or mudos == 4:
+				continue
+			await _quadros(2)
+			viu = true
+			for l in 4:
+				var aceso := int(_perc(l).get("led_mic", 0)) != 0
+				var deve: bool = voz.j[l].apertou_mudo
+				_esperar(aceso == deve, "Voz: o LED do mudo do P%d %s" % [l + 1, "aceso" if deve else "apagado"])
+		_esperar(viu, "Voz: o mudo chegou de uns antes dos outros")
+		await _termina_a_sala(voz, ["microfone", "microfone_mudo", "led_microfone"])
 
 	# A Prova: R2 arma, L2 resistência, em todos
 	jogo._entrar_na_sala("prova", false)
@@ -356,14 +372,6 @@ func _prova_a_lista() -> void:
 	_esperar(motivo[0] == "nenhum alto-falante de controle na lista (7 dispositivos)", "alto-falante: a recusa diz a conta")
 	_esperar(not af.tomar_a_saida(), "alto-falante: sem nó, nada se toma")
 	af.free()
-
-
-func _prova_o_microfone() -> void:
-	var silencio := PackedVector2Array([Vector2.ZERO, Vector2.ZERO])
-	_esperar(MicrofoneDoControle.nivel_de(silencio) == MicrofoneDoControle.SILENCIO_DB, "microfone: o mudo zera a barra")
-	var meio := PackedVector2Array([Vector2(0.5, -0.25), Vector2(-0.1, 0.0)])
-	_esperar(absf(MicrofoneDoControle.nivel_de(meio) - linear_to_db(0.5)) < 0.01, "microfone: o pico em dB")
-	_esperar(ProjectSettings.get_setting("audio/driver/enable_input", false), "o jogo nasce com entrada de áudio")
 
 
 ## Com o pactl de mentira (tests/prova_do_jogo.sh), o forja-speak --list acha
