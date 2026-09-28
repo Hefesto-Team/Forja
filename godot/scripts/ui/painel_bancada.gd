@@ -1,8 +1,9 @@
 class_name PainelBancada
 extends Control
 ## O painel da bancada: o experimento e a pergunta dele, o que está
-## acontecendo agora e cada resultado, com o lugar e o selo — medido, falhou
-## ou não medido (o que não deu para medir também é resultado, com o porquê).
+## acontecendo agora e cada resultado, com o lugar (ou "todos", quando a
+## medida é dos quatro juntos) e o selo — medido, falhou ou não medido (o que
+## não deu para medir também é resultado, com o porquê).
 
 var bancada: SalaBancada
 
@@ -52,7 +53,7 @@ func _draw() -> void:
 			Desenho.texto(self, Vector2(cx, y + 24), "P%d" % (l + 1), Tema.fonte(700), Tema.T_ROTULO,
 				Tema.tom_para_a_borda(Forja.cor_do_lugar(l)))
 		else:
-			Desenho.texto(self, Vector2(cx, y + 24), "mesa", Tema.fonte(600), Tema.T_SELO, Tema.SUAVE)
+			Desenho.texto(self, Vector2(cx, y + 24), "todos", Tema.fonte(600), Tema.T_SELO, Tema.SUAVE)
 		Desenho.selo(self, Vector2(cx + 80, y + 2), SalaBancada.NOME_RES[res], cores[res], 20)
 		Desenho.paragrafo(self, Vector2(cx + 280, y + 22), texto, ft, 22, Tema.FG, larg - 400)
 		y += maxf(alt, 32.0) + 8
