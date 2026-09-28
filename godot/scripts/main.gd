@@ -589,3 +589,7 @@ func _mover_camera(dt: float) -> void:
 	_cam_olhar = _cam_olhar.lerp(pose[1], k)
 	camera.global_position = _cam_pos
 	camera.look_at(_cam_olhar)
+	if estado == "sala" and sala and sala.tremor > 0.0:
+		var k2: float = sala.tremor
+		camera.global_position += Vector3(sin(_t * 71.0), sin(_t * 53.0 + 1.3), 0.0) * 0.12 * k2
+		camera.rotate_object_local(Vector3.BACK, sin(_t * 47.0) * 0.012 * k2)

@@ -12,6 +12,8 @@ var acao := ""
 var jogadores: Array = []  ## os ForjaPlayer dos lugares ocupados
 var camera_pos := Vector3(0, 13, 13)
 var camera_olhar := Vector3.ZERO
+## O tremor da câmera agora (0: parada), para o susto e os golpes grandes.
+var tremor := 0.0
 var t := 0.0
 
 
