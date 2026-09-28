@@ -18,6 +18,7 @@ const SALAS := {
 	"caminhos": preload("res://scripts/salas/caminhos.gd"),
 	"canto": preload("res://scripts/salas/canto.gd"),
 	"prova": preload("res://scripts/salas/prova.gd"),
+	"bancada": preload("res://scripts/salas/bancada.gd"),
 }
 
 ## A Prova de Fogo: todas as salas, na ordem do percurso, e o livro no fim.
@@ -132,10 +133,16 @@ func _abrir_pelos_args() -> void:
 	if sala_pedida == "giro":
 		sala_pedida = "viga"
 	var pede_o_fogo := "--prova-de-fogo" in OS.get_cmdline_user_args()
-	if sala_pedida != "" or pede_o_fogo or tela in ["lobby", "salao", "diagnostico", "livro"]:
+	var bancada := Forja.experimento != ""
+	if sala_pedida != "" or pede_o_fogo or bancada or tela in ["lobby", "salao", "diagnostico", "livro"]:
 		await get_tree().process_frame
 		await get_tree().process_frame
 		_todos_entram()
+	if bancada:
+		# a bancada do experimental/ no lugar do salão
+		_ir_para_o_salao(false)
+		_entrar_na_sala("bancada", false)
+		return
 	if pede_o_fogo:
 		_ir_para_o_salao(false)
 		_comecar_a_prova_de_fogo(false)

@@ -65,7 +65,7 @@ As salas, e em que marco cada uma ganha o comportamento de jogo comercial
 | `include/`, `src/` | o empacotador USB `0x02` compartilhado, e as ferramentas de bancada `forja-send`, `forja-speak`, `forja-read` |
 | `scripts/` | `compilar.sh` (o build reproduzível do módulo), `gauntlet.sh` (a prova com defeitos de mentira), `mapa_do_controle.js` (as camadas do mapa, dos SVGs do app) |
 | `tests/` | a prova do jogo (Godot headless, quatro DualSense simulados) e a prova do som |
-| `experimental/` | a bancada dos experimentos e os resultados anotados |
+| `experimental/` | a bancada dos experimentos (`--experimento=` abre no jogo 3D, no lugar do salão) e os resultados anotados |
 | `docs/` | as salas, o som, e as decisões ([docs/adr](docs/adr/README.md)) |
 | `udev/` | a regra para ler e escrever o hidraw sem root |
 
@@ -209,9 +209,10 @@ pedido e o que chegou.
 ## As provas sem aparelho
 
 ```sh
-bash tests/prova_do_jogo.sh   # o jogo headless com quatro DualSense simulados
-scripts/gauntlet.sh           # a mesma prova, e de novo com cada defeito de mentira: tem de falhar
-make test                     # as ferramentas de bancada e o empacotador
+bash tests/prova_do_jogo.sh     # o jogo headless com quatro DualSense simulados
+scripts/gauntlet.sh             # a mesma prova, e de novo com cada defeito de mentira: tem de falhar
+bash tests/prova_da_bancada.sh  # os experimentos do experimental/, sem aparelho
+make test                       # as ferramentas de bancada e o empacotador
 ```
 
 A prova do jogo confere, pelo que cada controle simulado **recebeu**, que o

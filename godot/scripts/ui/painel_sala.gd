@@ -100,9 +100,6 @@ func _som_do_lugar(chip: Rect2, l: int, papel: int) -> void:
 	var nome_cabe := Desenho.caber(nome, f, 18, w, 2)
 	Desenho.paragrafo(self, Vector2(x, chip.position.y + 86), nome_cabe, f, 18, Tema.FG if tem else Tema.LARANJA, w, 2)
 	var como := Forja.som_como(l, papel) if tem else "não achado"
-	var pad := Forja.pad_do_lugar(l)
-	if tem and pad >= 0 and bool(Forja.pad(pad).get("simulado", false)):
-		como = "simulado: quatro canais, como no cabo"
 	Desenho.texto(self, Vector2(x, chip.position.y + 138), Desenho.caber(como, f2, 16, w, 1), f2, 16, Tema.MUDO)
 	if papel == Forja.PAPEL_MICROFONE and tem:
 		var nivel := float(Forja.som_mic(l).get("nivel", 0.0))

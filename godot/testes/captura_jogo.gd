@@ -31,7 +31,13 @@ func _ready() -> void:
 	_rapido = OS.get_environment("RAPIDO") == "1"
 	if _rapido:
 		_janela(false)
-	roteiro = _roteiro_das_telas() if OS.get_environment("ROTEIRO") != "salas" else _roteiro_das_salas()
+	match OS.get_environment("ROTEIRO"):
+		"salas":
+			roteiro = _roteiro_das_salas()
+		"bancada":
+			roteiro = _roteiro_da_bancada()
+		_:
+			roteiro = _roteiro_das_telas()
 	if pedidas != "":
 		var so := pedidas.split(",")
 		for i in roteiro.size():
@@ -131,6 +137,13 @@ func _roteiro_das_salas() -> Array:
 			["caminhos_tropeco", p1.call(func(_sala, e) -> bool: return e.trop_aberto and e.trop_t > 0.25)],
 			["caminhos_revela", p1.call(func(_sala, e) -> bool: return e.estado == SalaCaminhos.REVELA and e.rodada >= 3 and e.t > 0.3)],
 		],
+		"prova": [
+			["prova_partida", na_sala.call(func(sala) -> bool: return sala.etapa == SalaProva.PARTIDA and sala.t_etapa > 24.0)],
+			["prova_tiroteio", na_sala.call(func(sala) -> bool:
+				return sala.etapa == SalaProva.PARTIDA and sala.t_etapa > 55.0 and sala.tiros.size() >= 3)],
+			["prova_luzinhas", na_sala.call(func(sala) -> bool: return sala.etapa == SalaProva.LEDS and sala.t_etapa > 2.4)],
+			["prova_cor", na_sala.call(func(sala) -> bool: return sala.etapa == SalaProva.COR and sala.t_etapa > 2.4)],
+		],
 		"voz": [
 			["voz_chamado", na_sala.call(func(sala) -> bool:
 				return sala.estado == SalaVoz.CHAMADO and sala.vez >= 0 and sala.j[sala.vez].chama > 0.45)],
@@ -157,8 +170,24 @@ func _roteiro_das_salas() -> Array:
 		for m in momentos.get(id, []):
 			roteiro_salas.append_array([["ate", m[1]], ["foto", m[0]]])
 		roteiro_salas.append_array([["ate", fase.call("fim", 1.4)], ["foto", id + "_fim"], ["ate", no_salao]])
-	roteiro_salas.append_array([["foto", "salao_depois"], ["fim"]])
+	roteiro_salas.append_array([["foto", "salao_depois"]])
+	if "prova" in salas:
+		# a placa da bigorna: ✕ A Prova, △ a Prova de Fogo
+		roteiro_salas.append_array([["posiciona", 0, Vector3(0.0, 0.05, 2.1), PI], ["espera", 40], ["foto", "salao_bigorna"]])
+	roteiro_salas.append_array([["fim"]])
 	return roteiro_salas
+
+
+## A bancada (--experimento=CHAVE): no meio da medida e no fim.
+func _roteiro_da_bancada() -> Array:
+	var na_bancada := func(cond: Callable) -> Callable:
+		return func() -> bool:
+			return jogo.sala is SalaBancada and cond.call(jogo.sala)
+	return [
+		["ate", na_bancada.call(func(b) -> bool: return b.linhas.size() == 0 and b.agora.contains("fale agora"))],
+		["espera", 30], ["foto", "bancada_medindo"],
+		["ate", na_bancada.call(func(b) -> bool: return b.acabou)], ["foto", "bancada_fim"], ["fim"],
+	]
 
 
 ## Cheia para a foto; pequena (e o 3D pela metade) para andar depressa.

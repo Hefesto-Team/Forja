@@ -16,6 +16,8 @@ extends Node
 ##   --semente=N        os sorteios repetem
 ##   --relatorios=PASTA onde gravar o relatório (sem ele: ao lado do jogo)
 ##   --sala=ID          abre direto numa sala
+##   --prova-de-fogo    abre na Prova de Fogo: todas as salas, na ordem, e o livro
+##   --experimento=ID   a bancada do experimental/ no lugar do salão
 ##   --defeitos=LISTA   defeitos de mentira nos simulados (a prova que morde)
 ##   --sem-modulo       finge que o módulo não existe
 
@@ -76,6 +78,7 @@ var robo := false
 var semente := 0
 var pasta_relatorios := ""
 var sala_pedida := ""
+var experimento := ""  ## --experimento=CHAVE: a bancada do experimental/ no lugar do salão
 var sim_teclado := 0  ## qual controle simulado o teclado dirige
 
 var _args := {}
@@ -127,6 +130,7 @@ func _ler_args() -> void:
 		simular = 4
 	semente = int(_args.get("semente", "0"))
 	sala_pedida = str(_args.get("sala", ""))
+	experimento = str(_args.get("experimento", ""))
 
 
 ## A pasta do relatório, resolvida agora e nunca escrita no código: a pedida,
@@ -764,6 +768,60 @@ func som_virtual(l: int) -> Dictionary:
 ## ("microfone_mudo"), pelo que a sala mediu; grava no relatório.
 func mic_veredito(l: int, chave: String, dados: Dictionary) -> Dictionary:
 	return ctl.mic_veredito(l, chave, dados) if modulo else {}
+
+
+## O volume, a rota e o pré-amplificador do alto-falante do controle (o bloco
+## de efeitos do relatório USB 0x02).
+func alto_falante(l: int, volume: int, rota: int, preamp: int) -> bool:
+	return ctl.alto_falante(l, volume, rota, preamp) if modulo else false
+
+
+# ---------------------------------------------------------------- a bancada --
+# experimental/: a escuta crua do microfone, a análise provada sem aparelho, o
+# report cru e o resultado de cada medida na linha do tempo.
+
+## Grava os próximos `segundos` do microfone do controle (só um de verdade).
+func som_escutar(l: int, segundos: float) -> bool:
+	return ctl.som_escutar(l, segundos) if modulo else false
+
+
+func som_escuta(l: int) -> PackedFloat32Array:
+	return ctl.som_escuta(l) if modulo else PackedFloat32Array()
+
+
+func som_escuta_parar(l: int) -> void:
+	if modulo:
+		ctl.som_escuta_parar(l)
+
+
+## A primeira amostra em que o som sobe acima do fundo (-1: nenhuma).
+func exp_ataque(a: PackedFloat32Array, vezes: float, minimo: float) -> int:
+	return ctl.exp_ataque(a, vezes, minimo) if modulo else -1
+
+
+func exp_rms_db(a: PackedFloat32Array, ini: int, n: int) -> float:
+	return ctl.exp_rms_db(a, ini, n) if modulo else -90.0
+
+
+func exp_mediana(v: Array) -> float:
+	return ctl.exp_mediana(PackedFloat32Array(v)) if modulo else 0.0
+
+
+## Quatro microfones: niveis[mic][quem fala] em 16 números; {certos, margem_db}.
+func exp_diagonal(niveis: Array, n: int) -> Dictionary:
+	return ctl.exp_diagonal(PackedFloat32Array(niveis), n) if modulo else {}
+
+
+## O report cru USB 0x01 do controle (64 bytes), ou vazio sem ele.
+func relatorio_cru(l: int) -> PackedByteArray:
+	return ctl.relatorio_cru(l) if modulo else PackedByteArray()
+
+
+## Um resultado da bancada (0 medido, 1 falhou, 2 não medido): a linha do tempo
+## e o registro.
+func resultado_experimento(l: int, chave: String, o: String, resultado: int, texto: String) -> void:
+	if modulo:
+		ctl.experimento(l, chave, o, resultado, texto)
 
 
 ## O chão de um envelope sentido nos atuadores (um nível por quadro): 0 grama,
