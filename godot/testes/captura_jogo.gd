@@ -117,6 +117,32 @@ func _roteiro_das_salas() -> Array:
 			["galeria_tiro", p1.call(func(_sala, e) -> bool: return e.passo == SalaGaleria.ATIRAR and e.t > 2.0)],
 			["galeria_municao", p1.call(func(_sala, e) -> bool: return e.passo == SalaGaleria.MUNICAO and e.t > 0.4)],
 		],
+		"canto": [
+			["canto_canto", na_sala.call(func(sala) -> bool: return sala.estado == SalaCanto.CANTO and sala.notas_tocadas >= 2)],
+			["canto_pergunta", na_sala.call(func(sala) -> bool: return sala.estado == SalaCanto.PERGUNTA and sala.t_estado > 0.9)],
+			["canto_revela", na_sala.call(func(sala) -> bool:
+				return sala.estado == SalaCanto.REVELA and sala.fonte != SalaCanto.TV and sala.t_estado > 0.5)],
+			["canto_repete", na_sala.call(func(sala) -> bool:
+				return sala.estado == SalaCanto.REPETE and sala.j[sala.fonte].toques.size() >= 3)],
+		],
+		"caminhos": [
+			["caminhos_treino", p1.call(func(_sala, e) -> bool: return e.estado == SalaCaminhos.TREINO and e.treino == 1 and e.t > 0.9)],
+			["caminhos_anda", p1.call(func(_sala, e) -> bool: return e.estado == SalaCaminhos.ANDA and e.rodada >= 1 and e.passos >= 2)],
+			["caminhos_tropeco", p1.call(func(_sala, e) -> bool: return e.trop_aberto and e.trop_t > 0.25)],
+			["caminhos_revela", p1.call(func(_sala, e) -> bool: return e.estado == SalaCaminhos.REVELA and e.rodada >= 3 and e.t > 0.3)],
+		],
+		"voz": [
+			["voz_chamado", na_sala.call(func(sala) -> bool:
+				return sala.estado == SalaVoz.CHAMADO and sala.vez >= 0 and sala.j[sala.vez].chama > 0.45)],
+			["voz_mudo", na_sala.call(func(sala) -> bool:
+				var n := 0
+				for l in sala.j:
+					if sala.j[l].apertou_mudo:
+						n += 1
+				return sala.estado == SalaVoz.MUDO and n >= 2)],
+			["voz_luz", na_sala.call(func(sala) -> bool: return sala.estado == SalaVoz.LUZ and sala.j[0].fase == SalaVoz.REVELA_LUZ)],
+			["voz_susto", na_sala.call(func(sala) -> bool: return sala.estado == SalaVoz.SUSTO and sala.t_estado > 0.3)],
+		],
 	}
 	var roteiro_salas: Array = [
 		["espera", 10], ["aperta", 0, Forja.CRUZ], ["espera", 40],

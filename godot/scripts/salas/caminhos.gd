@@ -168,7 +168,7 @@ func _montar_raia(l: int, p: ForjaPlayer) -> Dictionary:
 	# as bordas de pedra do caminho
 	for lado in [-1.0, 1.0]:
 		for s in range(0, 4 + RODADAS, 2):
-			Kit.peca(trilha, "rocks", Vector3(lado * 1.45, 0.0, -s * LADRILHO), rng.randf() * TAU, 0.6 + 0.15 * (s % 3))
+			Kit.peca(trilha, "rocks", Vector3(lado * 1.3, 0.0, -s * LADRILHO), rng.randf() * TAU, 0.34 + 0.08 * (s % 3))
 	# a pedra do tropeço, que só aparece depois da resposta
 	var pedra_trop := Kit.peca(self, "rocks", Vector3(x, 0.0, Z_JOGADOR), 0.0, 0.9)
 	pedra_trop.visible = false
@@ -182,20 +182,21 @@ func _montar_raia(l: int, p: ForjaPlayer) -> Dictionary:
 	# o nome do chão no treino, e o "!" do tropeço (sem lado)
 	var placa := Label3D.new()
 	placa.font = Tema.fonte(700)
-	placa.font_size = 72
+	placa.font_size = 60
 	placa.pixel_size = 0.005
 	placa.billboard = BaseMaterial3D.BILLBOARD_ENABLED
 	placa.no_depth_test = true
 	placa.outline_size = 14
 	placa.outline_modulate = Color(Tema.CASA, 0.9)
-	placa.position = Vector3(x, 2.75, Z_JOGADOR - 0.4)
+	# nas raias da ponta, puxada para dentro: o nome inteiro na tela
+	placa.position = Vector3(x * 0.84, 2.75, Z_JOGADOR - 0.4)
 	placa.visible = false
 	add_child(placa)
 	var aviso := placa.duplicate() as Label3D
 	aviso.text = "!"
 	aviso.font_size = 150
 	aviso.modulate = Tema.LARANJA
-	aviso.position = Vector3(x, 2.9, Z_JOGADOR)
+	aviso.position = Vector3(x * 0.9, 2.7, Z_JOGADOR)
 	add_child(aviso)
 	p.position = Vector3(x, 0.1, Z_JOGADOR)
 	p.rotation.y = PI

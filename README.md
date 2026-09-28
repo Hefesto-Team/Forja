@@ -51,9 +51,9 @@ As salas, e em que marco cada uma ganha o comportamento de jogo comercial
 | O Molde | touchpad com dois dedos, clique | o jogo: o molde é o touchpad; trace a letra, abra e feche com dois dedos, carimbe com o clique |
 | O Impacto | motor forte e fraco, isolamento, lightbar | o jogo, às cegas: no escuro, o golpe treme só o motor do lado e você levanta o escudo daquele lado (L1/R1); a luz pisca no golpe e apaga com a vida; no fim da onda, a cor da luz, olhando o controle |
 | A Galeria | resistência, arma, vibração, LEDs de jogador | o jogo, às cegas: a arma chega no baú fechado e se reconhece pelo gatilho (parede e clique, tremor, peso, solto); a munição nas luzinhas, contadas no controle |
-| A Voz | microfone, mudo, LED do microfone | aberta (o mudo acende o LED); o microfone de cada controle no marco 4 |
-| Os Caminhos | háptica por áudio (canais 3 e 4) | marco 4 |
-| O Canto | alto-falante do controle | marco 4 |
+| A Voz | microfone, mudo, LED do microfone | o jogo: o guardião da cripta escuta pelo microfone do SEU controle — o silêncio de todos, cada um chama na sua vez (a chama sobe com a voz), o mudo acende a luz laranja; a luz do microfone às cegas; e o susto no alto-falante e nos motores |
+| Os Caminhos | háptica por áudio (canais 3 e 4) | o jogo, às cegas: no escuro, o chão só existe nos atuadores — grama, cascalho, metal, água; diga o chão a cada três passos, e o lado da pedra no tropeço (L1/R1) |
+| O Canto | alto-falante do controle | o jogo, às cegas: a bigorna canta no alto-falante de UM controle ou na TV; saiu da sua mão? (✕/○); o dono repete o ritmo |
 | A Prova | tudo junto, duas equipes | aberta (R2 arma, L2 resistência, a luz cai com a vida); marco 5 |
 
 ## O que tem aqui
@@ -121,8 +121,9 @@ relatórios vão para `relatorios/`. Argumentos depois de `--` vão para o jogo:
 Sem controle nenhum, o título oferece jogar no teclado: o teclado vira um
 DualSense simulado (o módulo inteiro roda, e o relatório diz que foi
 simulado). WASD anda, Espaço é ✕, Backspace ○, Q □, E △, F é R2, G é L2, Tab
-é Create, Esc é Options; com `--simular=N`, Ctrl+1…4 troca o controle que o
-teclado dirige.
+é Create, Esc é Options, M é o botão do microfone, e Z segurado é falar no
+microfone do controle simulado; com `--simular=N`, Ctrl+1…4 troca o controle
+que o teclado dirige.
 
 Para ler e escrever o hidraw do DualSense no cabo sem root (o report cru do
 jack do fone, e as ferramentas de bancada), a regra do udev:
@@ -172,9 +173,16 @@ mesma semente nas duas (`--semente=7`).
 5. Jogue as salas às cegas, que perguntam o que a tela não mostra: O Impacto
    (sinta de que lado veio o golpe e levante o escudo daquele lado; no fim da
    onda, diga a cor da luz do seu controle) e A Galeria (aperte R2 e diga que
-   arma é pelo gatilho; depois, conte as luzinhas embaixo do touchpad). Na
-   Voz, o mudo de cada um acende o LED laranja dele.
-6. Options → O livro da sessão mostra a tabela. Os arquivos estão em
+   arma é pelo gatilho; depois, conte as luzinhas embaixo do touchpad).
+6. Jogue as salas de som. No aviso de cada uma, confira embaixo do seu nome o
+   dispositivo que o jogo achou para você e como achou (pelo aparelho, pelo
+   número, pelo nome): △ toca o teste nele (o sino no alto-falante; um pulso
+   na esquerda e outro na direita, na háptica; no microfone, fale e a barra
+   sobe), ◀ ▶ troca. O Canto (o canto saiu do seu controle? e repita o
+   ritmo), Os Caminhos (sinta o chão e o lado da pedra, sem olhar a tela) e
+   A Voz (silêncio; chame o guardião na sua vez; fique mudo pelo botão do
+   microfone; diga como está a luz dele).
+7. Options → O livro da sessão mostra a tabela. Os arquivos estão em
    `relatorios/`: `relatorio-<sessão>.txt` para ler, `.json` e a linha do tempo
    para comparar.
 

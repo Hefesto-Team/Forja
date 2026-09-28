@@ -35,7 +35,7 @@ const VOZ_ACIMA := 0.25 + 0.05  ## a voz acima do silêncio (MED_VOZ_ACIMA, com 
 const NOME_LUZ := ["apagada", "acesa", "piscando"]
 const BOTAO_LUZ := [F.CRUZ, F.CIRCULO, F.QUADRADO]
 const GLIFO_LUZ := ["cross", "circle", "square"]
-const GUARDIAO := Vector3(0.0, 3.35, -4.35)
+const GUARDIAO := Vector3(0.0, 3.05, -4.35)
 
 enum { SILENCIO, CHAMADO, MUDO, SUSSURRO, LUZ, ESPERA, SUSTO, ACABOU }
 enum { OLHAR, REVELA_LUZ, FIM_LUZ }
@@ -107,6 +107,7 @@ func _novo_jogador() -> Dictionary:
 func _montar_guardiao() -> Dictionary:
 	var pivo := Node3D.new()
 	pivo.position = GUARDIAO
+	pivo.scale = Vector3.ONE * 0.86
 	add_child(pivo)
 	var bronze := Kit.material(Color("#6a4a2c"), 0.0, 0.5)
 	bronze.metallic = 0.6
