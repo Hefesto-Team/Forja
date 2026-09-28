@@ -47,8 +47,11 @@ Para abrir o jogo direto numa sala (é o que a folha de teste do Hefesto faz):
 
 ```bash
 make test         # o empacotador, o alto-falante e o movimento — sem som e sem aparelho
-make test-jogo    # o jogo headless: a HUD acha o alto-falante pelo nome (precisa do Godot em tools/)
+make test-jogo    # o jogo headless com quatro DualSense simulados (tests/prova_do_jogo.sh)
 ```
+
+As provas do jogo inteiro (o gauntlet, a bancada e a exportação) estão no
+[README](README.md#as-provas-sem-aparelho).
 
 ## Permissão hidraw
 
@@ -60,12 +63,20 @@ sudo udevadm control --reload-rules
 sudo udevadm trigger
 ```
 
-Reconecte o DualSense. Sem isso o rumble ainda pode funcionar via SDL (`Input.start_joy_vibration`); gatilho e lightbar precisam do hidraw.
+Reconecte o DualSense. A regra vale para as ferramentas de bancada e para o
+jogo: sem acesso ao hidraw, o SDL do módulo cai no joystick genérico do
+kernel, e os botões chegam, mas os gatilhos, a lightbar, os LEDs de jogador e
+o report cru, não.
 
 ## Godot na mão
 
-Godot 4.4+: abra `godot/project.godot` e aperte Play. O jogo procura `../bin/forja-send` sozinho.
+Godot 4.4.1: compile o módulo antes (`scripts/compilar.sh linux`, que deixa
+`godot/bin/libforja.linux.x86_64.so`), abra `godot/project.godot` e aperte
+Play. Sem o módulo, o jogo abre só com o teclado e diz isso na tela.
 
-## Windows / macOS
+## Windows e macOS
 
-O jogo Godot abre. Rumble SDL funciona. `forja-send` é Linux hidraw — a prova de isolamento USB `0x02` é no Linux, que é a mesa do Hefesto.
+No Windows, o jogo é o `.exe` exportado, com a DLL do módulo ao lado: o SDL
+fala o DualSense ali como no Linux, e o som de cada controle se acha pelo
+WASAPI (ver o [README](README.md#rodar-o-exe-pelo-proton)). As ferramentas
+de bancada são só Linux (o hidraw). O macOS não tem módulo nem exportação.
