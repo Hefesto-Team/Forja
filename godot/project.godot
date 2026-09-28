@@ -16,6 +16,7 @@ driver/enable_input=true
 [autoload]
 
 Forja="*res://scripts/forja.gd"
+Som="*res://scripts/som.gd"
 
 [display]
 

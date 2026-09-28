@@ -534,3 +534,116 @@ func registro_recente(n: int) -> PackedStringArray:
 func em_sala(sim: bool) -> void:
 	if modulo:
 		ctl.em_sala(sim)
+
+
+# ---------------------------------------------------------------- as medidas --
+# As salas de entrada dizem o que estão pedindo; o módulo amostra os controles a
+# cada quadro e, no fim, dá o veredito de cada feature pela régua do núcleo
+# (medidas.h) e o grava no relatório.
+
+## A máscara de botões que a sala vai pedir (bit = botão do SDL).
+static func mascara(botoes: Array) -> int:
+	var m := 0
+	for b in botoes:
+		m |= 1 << int(b)
+	return m
+
+
+func med_comecar(l: int, botoes := 0) -> bool:
+	return ctl.med_comecar(l, botoes) if modulo else false
+
+
+func med_parar(l: int) -> void:
+	if modulo:
+		ctl.med_parar(l)
+
+
+## Volta a medir depois da pausa, sem zerar o que já foi medido.
+func med_retomar(l: int) -> void:
+	if modulo:
+		ctl.med_retomar(l)
+
+
+## O botão da runa acesa agora (-1: nenhuma).
+func med_pedido(l: int, botao: int) -> void:
+	if modulo:
+		ctl.med_pedido(l, botao)
+
+
+func med_repouso(l: int, sim: bool) -> void:
+	if modulo:
+		ctl.med_repouso(l, sim)
+
+
+## A sala chegou a pedir: "analogico_l", "analogico_r", "gatilho_l2",
+## "gatilho_r2", "dois_dedos", "clique", "mira", "martelada".
+func med_pedir(l: int, o_que: String) -> void:
+	if modulo:
+		ctl.med_pedir(l, o_que)
+
+
+func med_faixa(l: int, lado: int) -> void:
+	if modulo:
+		ctl.med_faixa(l, lado)
+
+
+func med_tracou(l: int) -> void:
+	if modulo:
+		ctl.med_tracou(l)
+
+
+func med_martelada(l: int) -> void:
+	if modulo:
+		ctl.med_martelada(l)
+
+
+func med_estado(l: int) -> Dictionary:
+	return ctl.med_estado(l) if modulo else {}
+
+
+## O veredito da feature pelo que foi medido; grava no relatório e devolve
+## {resultado, rotulo, nivel, pedido, medido, obs, nome}.
+func med_veredito(l: int, chave: String, nivel := NIVEL_REAGIU) -> Dictionary:
+	return ctl.med_veredito(l, chave, nivel) if modulo else {}
+
+
+# ---------------------------------------------------------------- o robô --
+# Com --robo, o robô joga nos controles simulados apertando os botões DELES
+# (o caminho inteiro do módulo roda, e os defeitos de mentira pegam).
+
+func robo_apertar(l: int, botao: int, segundos := 0.09) -> void:
+	var p := pad_do_lugar(l)
+	if modulo and p >= 0:
+		ctl.robo_apertar(p, botao, segundos)
+
+
+func robo_eixo(l: int, e: int, v: float, segundos := 0.06) -> void:
+	var p := pad_do_lugar(l)
+	if modulo and p >= 0:
+		ctl.robo_eixo(p, e, v, segundos)
+
+
+func robo_girar(l: int, g: Vector3, segundos := 0.06) -> void:
+	var p := pad_do_lugar(l)
+	if modulo and p >= 0:
+		ctl.robo_girar(p, g, segundos)
+
+
+func robo_sacudir(l: int, g: float, segundos := 0.2) -> void:
+	var p := pad_do_lugar(l)
+	if modulo and p >= 0:
+		ctl.robo_sacudir(p, g, segundos)
+
+
+func robo_tocar(l: int, dedo: int, x: float, y: float, segundos := 0.06) -> void:
+	var p := pad_do_lugar(l)
+	if modulo and p >= 0:
+		ctl.robo_tocar(p, dedo, x, y, segundos)
+
+
+## As capacidades do controle do lugar (giro, acel, toque, efeitos...).
+func capacidade(l: int, qual: String) -> bool:
+	var p := pad_do_lugar(l)
+	if p < 0:
+		return false
+	return bool(pad(p).get(qual, false))

@@ -100,6 +100,7 @@ bool ForjaControles::abrir(const String &pasta, int simular, bool robo, int64_t 
     return false;
   }
   CharString p = pasta.utf8();
+  med_zerar_tudo();
   aberto_ = forja_abrir(&g_forja, p.get_data(), simular, robo, (unsigned long long)semente);
   set_process(aberto_);
   return aberto_;
@@ -119,6 +120,7 @@ void ForjaControles::_process(double delta) {
   if (!aberto_ || Engine::get_singleton()->is_editor_hint())
     return;
   forja_quadro(&g_forja, (float)delta);
+  med_quadro();
   if (g_forja.relatorio_sujo) {
     /* grava de vez em quando, não a cada veredito */
     static double desde = 0;
@@ -256,7 +258,7 @@ Vector2 ForjaControles::postura(int lugar) const {
 
 float ForjaControles::giro_hz(int lugar) const {
   const Pad *p = pad_por_lugar(lugar);
-  return p ? (float)taxa_hz_host(&p->taxa_giro, SDL_GetTicksNS(), 2.0) : 0.0f;
+  return p ? (float)taxa_hz_host(&p->taxa_giro, pad_agora_ns(FORJA, p), 2.0) : 0.0f;
 }
 
 int ForjaControles::status_cru(int lugar) const {
@@ -664,6 +666,20 @@ void ForjaControles::_bind_methods() {
   METODO(robo_sacudir, "indice", "g", "segundos");
   METODO(robo_tocar, "indice", "dedo", "x", "y", "segundos");
   METODO(percepcao, "indice");
+
+  METODO(med_comecar, "lugar", "botoes");
+  METODO(med_parar, "lugar");
+  METODO(med_retomar, "lugar");
+  METODO(med_pedido, "lugar", "botao");
+  METODO(med_repouso, "lugar", "sim");
+  METODO(med_pedir, "lugar", "o_que");
+  METODO(med_faixa, "lugar", "lado");
+  METODO(med_tracou, "lugar");
+  METODO(med_martelada, "lugar");
+  METODO(med_estado, "lugar");
+  METODO(med_veredito, "lugar", "chave", "nivel");
+  METODO(sintetizar, "tipo", "parametros");
+  METODO(sintetizar_pcm16, "tipo", "parametros");
 
   /* os botões, como o SDL3 os numera */
   CONSTANTE("BOTAO_CRUZ", SDL_GAMEPAD_BUTTON_SOUTH);

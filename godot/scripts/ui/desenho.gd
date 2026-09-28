@@ -22,6 +22,8 @@ static var _glifos := {}
 
 ## Um glifo de feature (branco, para tingir), com mipmaps.
 static func glifo(nome: String) -> Texture2D:
+	if nome == "":
+		return null
 	if _glifos.has(nome):
 		return _glifos[nome]
 	var t: Texture2D = load("res://assets/glifos/%s.png" % nome)
@@ -57,6 +59,40 @@ static func tracejado(ci: CanvasItem, r: Rect2, cor: Color, largura := 2.0, trac
 static func texto(ci: CanvasItem, pos: Vector2, s: String, f: Font, tam: int, cor: Color,
 		alinhamento := HORIZONTAL_ALIGNMENT_LEFT, largura := -1.0) -> void:
 	ci.draw_string(f, pos, s, alinhamento, largura, tam, cor)
+
+
+## Um parágrafo que quebra a linha na `largura` (`pos` é a base da primeira
+## linha). Devolve a altura que ele ocupou.
+static func paragrafo(ci: CanvasItem, pos: Vector2, s: String, f: Font, tam: int, cor: Color, largura: float,
+		max_linhas := -1) -> float:
+	ci.draw_multiline_string(f, pos, s, HORIZONTAL_ALIGNMENT_LEFT, largura, tam, max_linhas, cor)
+	return altura_paragrafo(s, f, tam, largura, max_linhas)
+
+
+static var _cabe := {}
+
+
+## O texto que cabe em `linhas` linhas da `largura`: se não cabe, corta numa
+## palavra e fecha com reticências.
+static func caber(s: String, f: Font, tam: int, largura: float, linhas: int) -> String:
+	var chave := "%s|%d|%d|%d" % [s, tam, int(largura), linhas]
+	if _cabe.has(chave):
+		return _cabe[chave]
+	var limite := f.get_height(tam) * linhas + 1.0
+	var r := s
+	if altura_paragrafo(s, f, tam, largura) > limite:
+		var palavras := s.split(" ")
+		while palavras.size() > 1:
+			palavras.resize(palavras.size() - 1)
+			r = " ".join(palavras).trim_suffix(",").trim_suffix(";") + "…"
+			if altura_paragrafo(r, f, tam, largura) <= limite:
+				break
+	_cabe[chave] = r
+	return r
+
+
+static func altura_paragrafo(s: String, f: Font, tam: int, largura: float, max_linhas := -1) -> float:
+	return f.get_multiline_string_size(s, HORIZONTAL_ALIGNMENT_LEFT, largura, tam, max_linhas).y
 
 
 static func largura(s: String, f: Font, tam: int) -> float:

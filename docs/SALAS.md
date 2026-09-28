@@ -3,9 +3,16 @@
 > **No jogo 3D** ([ADR-007](adr/007-o-jogo-e-o-3d-em-godot.md)) este é o desenho
 > de cada sala. Os nomes mudaram em duas: **o Cerco é O Impacto** e **a Cripta
 > é A Voz**. As salas ganham o comportamento abaixo marco a marco (ver
-> [SPRINTS.md](../SPRINTS.md)); até lá, as abertas no salão são a versão curta
-> (A Viga, O Impacto, A Galeria, A Voz, A Prova) e as outras têm o portão
-> fechado.
+> [SPRINTS.md](../SPRINTS.md)). A Centelha, A Viga e O Molde já são o jogo
+> inteiro (marco 2); O Impacto, A Galeria, A Voz e A Prova estão abertas na
+> versão curta; Os Caminhos e O Canto têm o portão fechado.
+>
+> As três fases de toda sala que mede são as mesmas no 3D: o **aviso** (o
+> objetivo numa frase, as features que a sala prova, e cada um aperta ✕
+> quando pronto), o **jogo** (a dica de cada um embaixo da raia dele, o tempo
+> no alto) e o **veredito** (por lugar e por feature, com ícone, palavra e o
+> que foi medido). A pausa congela a sala e a medida: o ✕ do menu não vale na
+> sala.
 
 O Salão da Forja é o hub da Hefesto Tech Demo (ver [ADR-002](adr/002-hubs-e-salas.md)).
 Cada porta é uma sala; cada sala é um jeito que os jogos comerciais usam o
@@ -30,15 +37,17 @@ Todo veredito vai para o livro (a tela do relatório), para o
 `linha-do-tempo-<sessão>.jsonl` (eventos `"tipo": "veredito"`). As entradas
 que chegam pela primeira vez viram eventos `"tipo": "entrada"`.
 
-Cada sala entra com o defeito que ela tem de pegar (`--defeito`, ver
+Cada sala entra com o defeito que ela tem de pegar (`--defeitos=`, ver
 [ADR-003](adr/003-o-gauntlet.md)); `scripts/gauntlet.sh` confere todos.
 
 ---
 
 ## A Centelha — runas que acendem ao apertar
 
-**O padrão:** o QTE e o jogo de ritmo. Cada jogador tem a sua pedra; a runa
-acende com um símbolo e o anel em volta vai se apagando.
+**O padrão:** o QTE e o jogo de ritmo. Cada jogador tem a sua bigorna; a runa
+acende em cima dela com o glifo do botão, e o anel em volta vai se fechando.
+Acertou, o boneco martela a bigorna (faíscas, o som da bigorna e um toque no
+motor fraco).
 
 **Como jogar:** aperte o botão da runa antes do anel apagar. Na runa de um
 analógico, gire-o em volta até a borda (as oito marcas acendem). No fole,
@@ -49,7 +58,8 @@ gatilhos, numa ordem sorteada pela semente. Runa perdida volta para o fim da
 fila (até três vezes).
 
 O Options é a pausa; o PS fica de fora (o sistema costuma tomá-lo); o botão do
-microfone é da Cripta; o clique do touchpad é do Molde.
+microfone é da Cripta; o clique do touchpad é do Molde. Nesta sala o Create é
+uma runa: o diagnóstico abre pela pausa.
 
 | feature | PASSOU | FALHOU |
 | --- | --- | --- |
@@ -68,12 +78,14 @@ um deles fica acima de 12% solto, vira observação.
 **O padrão:** o equilíbrio por inclinação dos jogos de plataforma e a mira por
 giroscópio dos jogos de tiro. Três trechos:
 
-1. **a travessia** — o autômato anda sozinho pela viga e o vento empurra;
-   incline o controle para o lado contrário (rolagem). Cair volta ao último
-   ponto de retorno;
-2. **os sinos** — gire o controle para mirar (guinada e arfagem), R1 ou ✕
-   arremessa o martelo, L1 centraliza a mira;
-3. **a pedra** — uma martelada: sacuda o controle para baixo.
+1. **a travessia** — o boneco anda sozinho pela viga sobre a lava, com a vara
+   de equilíbrio, e o vento empurra (os riscos mostram de que lado); incline o
+   controle para o lado contrário (rolagem). A régua em cima dele mostra o
+   quanto falta para cair; cair volta à última bandeirola;
+2. **os sinos** — três sinos pendurados no fundo; gire o controle para mirar
+   (guinada e arfagem), R1 ou ✕ arremessa o martelo, L1 centraliza a mira;
+3. **a pedra** — uma martelada: sacuda o controle para baixo. Duas quebram a
+   pedra e o baú de trás abre.
 
 | feature | PASSOU | FALHOU |
 | --- | --- | --- |
@@ -83,7 +95,8 @@ giroscópio dos jogos de tiro. Três trechos:
 O `medido` do giroscópio traz, lado a lado, a taxa que o SDL **declara** e a
 que **chega** — pelo relógio do computador e pelo relógio do próprio controle
 (o `sensor_timestamp`). A diferença acima de 20% vira observação: é o que o
-Hefesto quer ver de um DualSense virtual.
+Hefesto quer ver de um DualSense virtual. Num controle simulado, o relógio do
+computador é o do simulador (a prova roda mais rápido que o tempo real).
 
 **O sinal:** a cada 0,3 s a sala compara quanto o giro integrado andou com
 quanto o ângulo da gravidade andou (rolagem e arfagem). Janelas em que os dois
@@ -97,12 +110,14 @@ analógicos e o ✕, e o veredito é NÃO MEDIDO com a origem do controle.
 
 ## O Molde — desenhar e moldar no touchpad
 
-**O padrão:** os três usos do touchpad nos jogos. Três passos:
+**O padrão:** os três usos do touchpad nos jogos. O molde na bancada de cada
+um é o touchpad dele, na mesma proporção (duas vezes mais largo que alto) e
+virado para a câmera: o dedo aparece no molde onde o jogo o vê. Três passos:
 
 1. **traçar** — uma letra grega (zeta, lambda, sigma, eta, mi) aparece no
    molde; toque os pontos na ordem;
-2. **abrir** — dois dedos no touchpad: afaste até o molde abrir e junte até
-   ele fechar;
+2. **abrir** — dois dedos no touchpad: afaste até o molde abrir (as duas
+   metades de pedra se afastam com os dedos) e junte até ele fechar;
 3. **carimbar** — o metal esquenta e esfria; clique o touchpad quando ele
    brilhar, três vezes.
 

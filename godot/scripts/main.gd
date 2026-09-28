@@ -9,6 +9,8 @@ extends Node3D
 ## Toda entrada e toda saída passam pelo autoload Forja, por lugar (0..3).
 
 const SALAS := {
+	"centelha": preload("res://scripts/salas/centelha.gd"),
+	"molde": preload("res://scripts/salas/molde.gd"),
 	"galeria": preload("res://scripts/salas/galeria.gd"),
 	"impacto": preload("res://scripts/salas/impacto.gd"),
 	"viga": preload("res://scripts/salas/viga.gd"),
@@ -30,6 +32,7 @@ var ui: Control
 var titulo: TelaTitulo
 var lobby: TelaLobby
 var hud: HudJogo
+var painel: PainelSala
 var diagnostico: Diagnostico
 var livro: Livro
 var pausa: Pausa
@@ -96,10 +99,11 @@ func _interface() -> void:
 	titulo = TelaTitulo.new()
 	lobby = TelaLobby.new()
 	hud = HudJogo.new()
+	painel = PainelSala.new()
 	diagnostico = Diagnostico.new()
 	livro = Livro.new()
 	pausa = Pausa.new()
-	for c in [titulo, lobby, hud, diagnostico, livro, pausa]:
+	for c in [titulo, lobby, hud, painel, diagnostico, livro, pausa]:
 		ui.add_child(c)
 	cortina = ColorRect.new()
 	cortina.color = Color(Tema.CASA, 0.0)
@@ -250,6 +254,9 @@ func _entrar_na_sala(id: String, com_cortina := true) -> void:
 			if p.visible:
 				js.append(p)
 		sala.entrar(js)
+		sala.terminou.connect(_ao_terminar_a_sala)
+		painel.sala = sala
+		hud.create_livre = not (sala is SalaJogo and ((sala as SalaJogo).botoes_pedidos >> Forja.CREATE) & 1)
 		_mostrar("sala")
 		hud.sala = {"nome": sala.nome, "acao": sala.acao}
 		hud.placa = {}
@@ -261,7 +268,15 @@ func _entrar_na_sala(id: String, com_cortina := true) -> void:
 		_cam_olhar = _pose_da_camera()[1]
 
 
+## A sala acabou e alguém apertou ✕ no veredito: de volta ao salão.
+func _ao_terminar_a_sala() -> void:
+	if estado == "sala" and overlay == "":
+		_ir_para_o_salao()
+
+
 func _sair_da_sala() -> void:
+	painel.sala = null
+	hud.create_livre = true
 	if sala:
 		sala.sair()
 		sala.queue_free()
@@ -414,11 +429,14 @@ func _quadro_sala() -> void:
 
 ## Create abre o diagnóstico, Options a pausa. Devolve true se abriu: o resto
 ## do quadro não roda (um ✕ no mesmo quadro não entra numa sala por baixo).
+## Numa sala que pede o Create (a runa d'A Centelha), ele é da sala: o
+## diagnóstico abre pela pausa.
 func _atalhos_de_overlay() -> bool:
+	var create_livre := not (sala is SalaJogo and ((sala as SalaJogo).botoes_pedidos >> Forja.CREATE) & 1)
 	for l in 4:
 		if not Forja.ocupado(l):
 			continue
-		if Forja.apertou(l, Forja.CREATE):
+		if create_livre and Forja.apertou(l, Forja.CREATE):
 			_abrir_overlay("diagnostico", l)
 			return true
 		if Forja.apertou(l, Forja.OPTIONS):
@@ -435,6 +453,9 @@ func _abrir_overlay(qual: String, lugar: int) -> void:
 	for p in jogadores:
 		p.controlavel = false
 	hud.visible = false
+	painel.escondido = true
+	if sala is SalaJogo:
+		(sala as SalaJogo).congelar(true)
 	if qual == "livro":
 		livro.abrir()
 	if qual == "pausa":
@@ -445,6 +466,10 @@ func _abrir_overlay(qual: String, lugar: int) -> void:
 func _fechar_overlay() -> void:
 	overlay = ""
 	hud.visible = estado in ["salao", "sala"]
+	painel.escondido = false
+	# a sala volta no quadro seguinte: o botão que fechou o menu não vale nela
+	if sala is SalaJogo:
+		(sala as SalaJogo).congelar.call_deferred(false)
 	diagnostico.visible = false
 	livro.visible = false
 	pausa.visible = false

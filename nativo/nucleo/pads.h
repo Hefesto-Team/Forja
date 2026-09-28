@@ -128,6 +128,10 @@ bool pad_soltou(const Pad *p, SDL_GamepadButton b);
 bool pad_segura(const Pad *p, SDL_GamepadButton b);
 bool pad_fala_dualsense(const Pad *p);              /* efeitos, sensores e toque */
 const char *pad_origem_rotulo(const Pad *p);        /* "DualSense nativo", "simulado (SDL virtual)"... */
+/* O relógio do host para medir a taxa deste controle: o do SDL; num controle
+ * simulado, o do próprio simulador (a soma dos quadros), porque a prova roda
+ * mais rápido que o tempo real e a captura de tela mais devagar. */
+Uint64 pad_agora_ns(const struct Forja *a, const Pad *p);
 
 /* A mesa */
 int pads_entrar(struct Forja *a, int pad);   /* devolve o slot, -1 cheio */

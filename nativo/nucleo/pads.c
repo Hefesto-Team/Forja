@@ -26,6 +26,10 @@ static float limitar(float v, float a, float b) { return v < a ? a : (v > b ? b 
 /* Os botões marcados neste quadro — um aperto e uma soltura no mesmo quadro
  * não se perdem. */
 
+Uint64 pad_agora_ns(const Forja *a, const Pad *p) {
+  return p && p->simulado && a ? a->relogio_sim_ns : SDL_GetTicksNS();
+}
+
 const char *pad_origem_rotulo(const Pad *p) {
   return p->simulado ? "simulado (SDL virtual)" : origem_rotulo(p->origem.tipo);
 }
@@ -402,13 +406,14 @@ bool pads_evento(Forja *a, const SDL_Event *e) {
     if (i < 0)
       return true;
     Pad *p = &a->pads.pad[i];
+    Uint64 host = p->simulado ? a->relogio_sim_ns : e->gsensor.timestamp;
     if (e->gsensor.sensor == SDL_SENSOR_GYRO) {
       SDL_memcpy(p->giro, e->gsensor.data, sizeof(p->giro));
-      taxa_evento(&p->taxa_giro, e->gsensor.timestamp, e->gsensor.sensor_timestamp);
-      postura_giro(&p->postura, p->giro, e->gsensor.sensor_timestamp, e->gsensor.timestamp);
+      taxa_evento(&p->taxa_giro, host, e->gsensor.sensor_timestamp);
+      postura_giro(&p->postura, p->giro, e->gsensor.sensor_timestamp, host);
     } else if (e->gsensor.sensor == SDL_SENSOR_ACCEL) {
       SDL_memcpy(p->acel, e->gsensor.data, sizeof(p->acel));
-      taxa_evento(&p->taxa_acel, e->gsensor.timestamp, e->gsensor.sensor_timestamp);
+      taxa_evento(&p->taxa_acel, host, e->gsensor.sensor_timestamp);
       postura_acel(&p->postura, p->acel);
     }
     return true;
@@ -464,7 +469,7 @@ void pads_atualizar(Forja *a, float dt) {
     if (!p)
       continue;
     RelControle *c = &a->rel.controles[s];
-    Uint64 ns = SDL_GetTicksNS();
+    Uint64 ns = pad_agora_ns(a, p);
     double hz = taxa_hz_host(&p->taxa_giro, ns, 2.0);
     if (hz > 0) {
       c->giro_medido_hz = hz;
