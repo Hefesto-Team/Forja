@@ -243,6 +243,9 @@ const EN := {
 	"treino": "practice",
 	"treino ✓": "practice ✓",
 	"lidera": "leads",
+	"a última sala": "the last room",
+	"as salas, de trás para a frente": "the rooms, last to first",
+	"o sorteio": "the draw",
 	"virada!": "comeback!",
 	# a pausa
 	"Pausa": "Pause",
@@ -290,6 +293,7 @@ const EN_PADROES := [
 	["^Partida · sala (\\d+) de (\\d+)$", "Match · room $1 of $2"],
 	["^Prova de Fogo · sala (\\d+) de (\\d+)$", "Trial by Fire · room $1 of $2"],
 	["^P(\\d) venceu a noite$", "P$1 won the night"],
+	["^(.+) · desempate: (.+)$", "$1 · tiebreak: $2"],
 	["^(.+) dividem a noite$", "$1 share the night"],
 	["^P(\\d) escolhe$", "P$1 chooses"],
 	["^P(\\d) pausou$", "P$1 paused"],

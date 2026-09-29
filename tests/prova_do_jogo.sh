@@ -55,7 +55,7 @@ rodar() {
   local rel="$TMP/relatorios-$1"
   mkdir -p "$rel"
   SERVIDOR_DE_MENTIRA="$TMP/$1" ESPERADO="$2" \
-    "${CAIXA[@]}" "$GODOT" --headless --fixed-fps 60 --path "$RAIZ/godot" res://testes/prova_do_jogo.tscn \
+    timeout 1200 "${CAIXA[@]}" "$GODOT" --headless --fixed-fps 60 --path "$RAIZ/godot" res://testes/prova_do_jogo.tscn \
     -- --simular=4 --robo --semente=7 --relatorios="$rel" > "$TMP/$1.log" 2>&1
   local rc=$?
   grep -E "alto-falante do sistema|FAIL|SCRIPT ERROR|prova do jogo ok" "$TMP/$1.log"

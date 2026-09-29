@@ -410,7 +410,9 @@ terceiro 2, o quarto 1, e quem empata divide a colocação de cima. Depois de
 cada veredito, o placar: a colocação na sala, o que ela deu e o total; ✕ segue
 para a próxima. No fim, o pódio no salão, cada boneco no pedestal do seu lugar
 e quem venceu comemorando (o controle dele sente): mais pontos da noite, e no
-empate mais salas vencidas. ✕ joga outra partida do mesmo tamanho (outro
+empate mais salas vencidas, depois quem foi melhor na última sala (e na
+anterior, para trás), e por fim o sorteio da semente: alguém sempre ganha, e
+o pódio diz o que desempatou. ✕ joga outra partida do mesmo tamanho (outro
 sorteio), ○ volta ao salão. `--partida=N` (com `--sorteada`) começa direto
 nela, e o relatório registra cada placar e o pódio.
 

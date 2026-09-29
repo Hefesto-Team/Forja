@@ -246,7 +246,7 @@ ensina jogando, pelas dicas curtas na raia de cada um.
 | --- | --- |
 | o boneco mostra | feito — o aviso sobe para o alto e deixa a arena à mostra; o boneco de quem não está pronto repete o gesto da sala (martela, atira, toca o molde, levanta o escudo de um lado e do outro). A amostra no controle ficou de fora: no aviso os analógicos medem a deriva, e um motor ligado ali sujaria a medida |
 | a dica aprendida vira glifo | feito — depois de três acertos na sala, a dica da raia perde as palavras e fica só o glifo; sem glifo, some |
-| a primeira rodada ensina | fica — o ritmo "primeira vez" dá mais tempo a todas as janelas; a rodada de graça, sem ponto, pede mexer no plano de cada sala |
+| a primeira rodada ensina | feito — toda sala começa em treino: três acertos de cada um (ou 15 s) sem valer ponto, e aí o "Valendo!" |
 | o veredito enxuto | feito — uma linha por feature (o glifo e o nome), um selo por lugar; o porquê só no que não passou; o resto no livro |
 
 ### Sprint C — conforto e acessibilidade
@@ -259,7 +259,7 @@ números; falta o menu.
 | --- | --- |
 | opções por jogador | gatilho Desligado / Fraco / Forte e vibração de 0 a 100%, por lugar, no lobby e na pausa (como o GT7) — **feito**: △ no lobby (antes de ficar pronto) ou Opções na pausa; a vibração dá um toque na força nova; o recurso desligado nas opções deixa o veredito da feature "não medido", com o porquê, nunca "falhou" |
 | opções da sessão | o volume da TV e o do alto-falante do controle, o tremor da câmera e os flashes desligáveis, tela cheia ou janela, o tamanho do texto — **feito** (o texto: normal ou grande, ×1,15) |
-| o checklist do estudo 02 | os 31 itens conferidos tela por tela: texto de leitura ≥ 30 px, a área segura, um foco só (contorno de 4 px), ✕ confirma e ○ volta, nada de segurar para confirmar, o aviso pulável a partir da segunda vez — **conferido**: [CHECKLIST-DO-ESTUDO-02](docs/CHECKLIST-DO-ESTUDO-02.md), 23 ok, 6 parciais, 2 que faltam (o livro a 80 colunas e o teste na TV e no Deck) |
+| o checklist do estudo 02 | os 31 itens conferidos tela por tela: texto de leitura ≥ 30 px, a área segura, um foco só (contorno de 4 px), ✕ confirma e ○ volta, nada de segurar para confirmar, o aviso pulável a partir da segunda vez — **conferido**: [CHECKLIST-DO-ESTUDO-02](docs/CHECKLIST-DO-ESTUDO-02.md), 24 ok, 5 parciais, 2 que faltam (o livro a 80 colunas e o teste na TV e no Deck) |
 | a cor nunca sozinha | as capturas passadas por simulação de protanopia, deuteranopia e tritanopia; o veredito sempre com palavra — **feito**: `scripts/daltonismo.gd` faz as pranchas; a cor de cada lugar é clareada até 3:1 nas quatro visões |
 | as opções guardadas | num arquivo de configuração do usuário (por máquina, nunca por aparelho) — **feito**: `user://opcoes.cfg`; as provas não leem nem gravam |
 

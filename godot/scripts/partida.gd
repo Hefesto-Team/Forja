@@ -6,8 +6,9 @@ extends RefCounted
 ## que um molde d'O Molde), então a partida não soma os pontos crus: soma a
 ## colocação em cada sala. O primeiro da sala leva 4 pontos da noite, o segundo
 ## 3, o terceiro 2, o quarto 1; quem empata divide a colocação de cima. No fim,
-## o pódio: mais pontos da noite; no empate, mais salas vencidas; e, se ainda
-## empatar, os dois dividem o degrau.
+## o pódio — e alguém sempre ganha: mais pontos da noite; no empate, mais
+## salas vencidas; depois, quem foi melhor na última sala (e na anterior, e
+## assim para trás); e, se ainda empatar, o sorteio da semente decide.
 ##
 ## Tudo aqui é lógica pura (sem nó, sem controle): a prova do jogo confere as
 ## contas sem abrir uma sala.
@@ -29,6 +30,7 @@ const NOMES := {
 }
 
 var salas: Array = []  ## os ids, na ordem em que se jogam
+var semente := 0  ## o sorteio do último desempate
 var sorteada := false
 var passo := 0  ## a sala em curso (índice em `salas`)
 var total := [0, 0, 0, 0]  ## os pontos da noite de cada lugar
@@ -64,6 +66,7 @@ static func nova(n: int, sortear: bool, semente: int, percurso: Array) -> Partid
 	var p := Partida.new()
 	p.salas = roteiro(n, sortear, semente, percurso)
 	p.sorteada = sortear
+	p.semente = semente
 	return p
 
 
@@ -109,22 +112,53 @@ func registrar(id: String, pontos: Array, presentes: Array) -> Dictionary:
 	return entrada
 
 
-## O pódio: [{lugar, total, vitorias, degrau}], do primeiro ao último. O degrau
-## é 1 + quantos estão acima (pontos da noite, e no empate, salas vencidas).
+## O pódio: [{lugar, total, vitorias, degrau, criterio}], do primeiro ao
+## último, sem degrau dividido. `criterio` diz o que separou o lugar do de
+## baixo: "" (os pontos), "salas vencidas", "a última sala" ou "o sorteio".
 func podio(presentes: Array) -> Array:
 	var lista: Array = []
 	for l in presentes:
-		var acima := 0
-		for o in presentes:
-			if _acima(o, l):
-				acima += 1
-		lista.append({"lugar": l, "total": total[l], "vitorias": vitorias[l], "degrau": acima + 1})
-	lista.sort_custom(func(a, b): return a.degrau < b.degrau or (a.degrau == b.degrau and a.lugar < b.lugar))
+		lista.append({"lugar": l, "total": total[l], "vitorias": vitorias[l]})
+	lista.sort_custom(func(a, b): return _acima(int(a.lugar), int(b.lugar)))
+	for i in lista.size():
+		lista[i]["degrau"] = i + 1
+		lista[i]["criterio"] = _criterio(int(lista[i].lugar), int(lista[i + 1].lugar)) if i + 1 < lista.size() else ""
 	return lista
 
 
+## A ordem da noite entre dois lugares: true se `a` fica acima de `b`.
 func _acima(a: int, b: int) -> bool:
-	return total[a] > total[b] or (total[a] == total[b] and vitorias[a] > vitorias[b])
+	if total[a] != total[b]:
+		return total[a] > total[b]
+	if vitorias[a] != vitorias[b]:
+		return vitorias[a] > vitorias[b]
+	for k in range(historico.size() - 1, -1, -1):
+		var ca := int(historico[k].colocacao[a])
+		var cb := int(historico[k].colocacao[b])
+		if ca != cb and ca > 0 and cb > 0:
+			return ca < cb
+	return _sorteio(a) > _sorteio(b)
+
+
+## O que separou `a` de `b` (o de baixo).
+func _criterio(a: int, b: int) -> String:
+	if total[a] != total[b]:
+		return ""
+	if vitorias[a] != vitorias[b]:
+		return "salas vencidas"
+	for k in range(historico.size() - 1, -1, -1):
+		var ca := int(historico[k].colocacao[a])
+		var cb := int(historico[k].colocacao[b])
+		if ca != cb and ca > 0 and cb > 0:
+			return "a última sala" if k == historico.size() - 1 else "as salas, de trás para a frente"
+	return "o sorteio"
+
+
+## O número do sorteio de um lugar: fixo pela semente, diferente por lugar.
+func _sorteio(l: int) -> int:
+	var rng := RandomNumberGenerator.new()
+	rng.seed = semente * 7919 + 104729 * (l + 1)
+	return rng.randi()
 
 
 ## Quem joga agora: os lugares que jogaram alguma sala da partida.
