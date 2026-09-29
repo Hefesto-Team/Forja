@@ -909,7 +909,8 @@ func _na_pausa(acao: String) -> void:
 func _pose_da_camera() -> Array:
 	match estado:
 		"titulo":
-			var a := _t * 0.08
+			# o giro lento em volta da bigorna; parado com o movimento desligado
+			var a := _t * 0.08 if Opcoes.tremor else 0.0
 			var centro := salao.bigorna.global_position + Vector3(0, 1.3, 0)
 			return [centro + Vector3(sin(a) * 7.5 + 3.0, 3.2, cos(a) * 7.5 + 2.0), centro]
 		"lobby":

@@ -25,7 +25,7 @@ func abrir(lugar: int) -> void:
 		["vibracao", "Vibração", "P%d" % (lugar + 1)],
 		["volume_tv", "Volume da TV", "sessao"],
 		["volume_controle", "Volume do controle", "sessao"],
-		["tremor", "Tremor da câmera", "sessao"],
+		["tremor", "Movimento da câmera", "sessao"],
 		["flashes", "Flashes", "sessao"],
 		["tela_cheia", "Tela", "sessao"],
 		["texto", "Texto", "sessao"],

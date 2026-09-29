@@ -61,7 +61,7 @@ speaker. Someone always wins.
 3. ✕ to join, ✕ to get ready. Options pauses, and in the lobby △ opens your seat's options.
 
 **So everyone plays well:** triggers can be weak or off and rumble goes from
-0 to 100%, per player; camera shake and flashes turn off; text can grow; and
+0 to 100%, per player; camera motion and flashes turn off; text can grow; and
 the screens speak Portuguese or English. Each player's color always comes
 with their name (P1, P2…), and the colors were checked for color blindness.
 
