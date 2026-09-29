@@ -12,7 +12,8 @@ extends Node
 ## ROTEIRO=salas passa pelas salas que medem (aviso, jogo e veredito de cada
 ## uma, com o robô jogando); SALAS=impacto,galeria escolhe quais.
 ## ROTEIRO=bancada, com -- --experimento=ID, fotografa a bancada do
-## experimental/. RAPIDO=1 roda numa janela pequena entre as fotos e volta ao
+## experimental/. ROTEIRO=partida joga uma partida curta: a placa da bigorna,
+## a escolha, o placar entre as salas e o pódio. RAPIDO=1 roda numa janela pequena entre as fotos e volta ao
 ## tamanho cheio só para cada foto (num renderizador por software, é o que
 ## cabe no tempo).
 
@@ -41,6 +42,8 @@ func _ready() -> void:
 			roteiro = _roteiro_das_salas()
 		"bancada":
 			roteiro = _roteiro_da_bancada()
+		"partida":
+			roteiro = _roteiro_da_partida()
 		_:
 			roteiro = _roteiro_das_telas()
 	if pedidas != "":
@@ -183,6 +186,37 @@ func _roteiro_das_salas() -> Array:
 	return roteiro_salas
 
 
+## A partida curta: a bigorna, a escolha (na ordem e sorteada), cada sala um
+## pouco jogada pelo robô, o placar depois de cada uma e o pódio no fim.
+func _roteiro_da_partida() -> Array:
+	var no_salao := func() -> bool:
+		return jogo.estado == "salao" and not jogo._trocando
+	var jogo_andou := func() -> bool:
+		return jogo.sala is SalaJogo and jogo.sala.fase == "jogo" and jogo.sala.t_fase >= 12.0 and not jogo._trocando
+	var no_placar := func() -> bool:
+		return jogo.overlay == "placar" and jogo.placar._t > 1.2
+	var no_podio := func() -> bool:
+		return jogo.estado == "podio" and not jogo._trocando and jogo.placar._t > 2.0
+	var r: Array = [
+		["espera", 10], ["aperta", 0, Forja.CRUZ], ["espera", 40],
+		["aperta", 0, Forja.CRUZ], ["aperta", 1, Forja.CRUZ], ["aperta", 2, Forja.CRUZ], ["aperta", 3, Forja.CRUZ], ["espera", 10],
+		["aperta", 0, Forja.CRUZ], ["aperta", 1, Forja.CRUZ], ["aperta", 2, Forja.CRUZ], ["aperta", 3, Forja.CRUZ],
+		["ate", no_salao],
+		["posiciona", 0, Vector3(0.0, 0.05, 2.1), PI], ["espera", 40], ["foto", "partida_bigorna"],
+		["aperta", 0, Forja.QUADRADO], ["espera", 20], ["foto", "partida_escolha"],
+		["aperta", 0, Forja.DIREITA], ["espera", 10], ["aperta", 0, Forja.BAIXO], ["espera", 20], ["foto", "partida_escolha_sorteada"],
+		["aperta", 0, Forja.ESQUERDA], ["espera", 6], ["aperta", 0, Forja.CIMA], ["espera", 6], ["aperta", 0, Forja.CIMA], ["espera", 10],
+		["aperta", 0, Forja.CRUZ],
+	]
+	for i in 3:
+		r.append_array([["ate", jogo_andou]])
+		if i == 0:
+			r.append_array([["foto", "partida_sala"]])
+		r.append_array([["termina"], ["ate", no_placar], ["foto", "partida_placar_%d" % (i + 1)]])
+	r.append_array([["ate", no_podio], ["foto", "partida_podio"], ["fim"]])
+	return r
+
+
 ## A bancada (--experimento=CHAVE): no meio da medida e no fim.
 func _roteiro_da_bancada() -> Array:
 	var na_bancada := func(cond: Callable) -> Callable:
@@ -272,6 +306,8 @@ func _rodar() -> void:
 				Forja.veredito(2, "lightbar", Forja.PASSOU, Forja.NIVEL_OBEDECEU, "cor sorteada: verde", "a pessoa disse verde")
 			"sala":
 				jogo._entrar_na_sala(p[1], false)
+			"termina":
+				jogo.sala.terminar()
 			"fim":
 				get_tree().quit()
 				return

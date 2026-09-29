@@ -3,8 +3,10 @@ extends Node3D
 ## DualSense, num salão de forja com uma sala por feature do controle.
 ##
 ## Título → lobby (quem joga: cada controle ganha um lugar P1..P4, a luz e as
-## lâmpadas do lugar) → salão (os portões das salas) ⇄ salas. Por cima de
-## tudo: o diagnóstico ao vivo (Create), o livro da sessão e a pausa (Options).
+## lâmpadas do lugar) → salão (os portões das salas) ⇄ salas. Na bigorna, a
+## partida: 3, 5 ou 9 salas seguidas, o placar entre elas e o pódio no fim. Por
+## cima de tudo: o diagnóstico ao vivo (Create), o livro da sessão e a pausa
+## (Options).
 ##
 ## Toda entrada e toda saída passam pelo autoload Forja, por lugar (0..3).
 
@@ -26,6 +28,8 @@ const ORDEM_DO_FOGO := ["centelha", "viga", "molde", "impacto", "galeria", "cant
 
 var estado := "titulo"
 var fogo := -1  ## a sala da Prova de Fogo em curso (índice em ORDEM_DO_FOGO); -1 fora dela
+var partida: Partida = null  ## a partida em curso; null fora dela
+var _partidas := 0  ## quantas partidas a sessão já começou (a próxima sorteia outra)
 var salao: Salao
 var jogadores: Array[ForjaPlayer] = []
 var sala: Sala
@@ -43,8 +47,10 @@ var painel: PainelSala
 var diagnostico: Diagnostico
 var livro: Livro
 var pausa: Pausa
+var escolha: EscolhaPartida
+var placar: Placar
 var cortina: ColorRect
-var overlay := ""  ## "", "diagnostico", "livro", "pausa"
+var overlay := ""  ## "", "diagnostico", "livro", "pausa", "partida" (a escolha), "placar"
 var _trocando := false
 var _stick_antes := [Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO]
 var _portao_perto := ""
@@ -66,6 +72,7 @@ func _ready() -> void:
 		jogadores.append(p)
 	_interface()
 	pausa.escolheu.connect(_na_pausa)
+	escolha.escolheu.connect(_comecar_a_partida.bind(true))
 	_mostrar("titulo")
 	_abrir_pelos_args.call_deferred()
 
@@ -117,7 +124,9 @@ func _interface() -> void:
 	diagnostico = Diagnostico.new()
 	livro = Livro.new()
 	pausa = Pausa.new()
-	for c in [titulo, lobby, hud, painel, diagnostico, livro, pausa]:
+	escolha = EscolhaPartida.new()
+	placar = Placar.new()
+	for c in [titulo, lobby, hud, painel, diagnostico, livro, pausa, escolha, placar]:
 		ui.add_child(c)
 	cortina = ColorRect.new()
 	cortina.color = Color(Tema.CASA, 0.0)
@@ -127,21 +136,28 @@ func _interface() -> void:
 	diagnostico.visible = false
 	livro.visible = false
 	pausa.visible = false
+	escolha.visible = false
+	placar.visible = false
 
 
 ## `-- --sala=galeria` abre direto na sala, com todo controle já dentro (é o que
 ## uma folha de teste pede: "abra na Galeria"). `--tela=` abre numa tela.
+## `--partida=5` começa uma partida de cinco salas (`--sorteada`: na ordem do
+## sorteio).
 func _abrir_pelos_args() -> void:
 	var tela := ""
+	var n_partida := 0
 	for a in OS.get_cmdline_user_args():
 		if a.begins_with("--tela="):
 			tela = a.substr(7)
+		if a.begins_with("--partida="):
+			n_partida = int(a.substr(10))
 	var sala_pedida := Forja.sala_pedida
 	if sala_pedida == "giro":
 		sala_pedida = "viga"
 	var pede_o_fogo := "--prova-de-fogo" in OS.get_cmdline_user_args()
 	var bancada := Forja.experimento != ""
-	if sala_pedida != "" or pede_o_fogo or bancada or tela in ["lobby", "salao", "diagnostico", "livro"]:
+	if sala_pedida != "" or pede_o_fogo or bancada or n_partida > 0 or tela in ["lobby", "salao", "diagnostico", "livro"]:
 		await get_tree().process_frame
 		await get_tree().process_frame
 		_todos_entram()
@@ -153,6 +169,10 @@ func _abrir_pelos_args() -> void:
 	if pede_o_fogo:
 		_ir_para_o_salao(false)
 		_comecar_a_prova_de_fogo(false)
+		return
+	if n_partida > 0:
+		_ir_para_o_salao(false)
+		_comecar_a_partida(n_partida, "--sorteada" in OS.get_cmdline_user_args(), false)
 		return
 	if sala_pedida != "" and SALAS.has(sala_pedida):
 		_ir_para_o_salao(false)
@@ -185,7 +205,7 @@ func _mostrar(qual: String) -> void:
 	titulo.visible = qual == "titulo"
 	lobby.visible = qual == "lobby"
 	hud.visible = _hud_visivel()
-	salao.pedestais_no.visible = qual == "lobby"
+	salao.pedestais_no.visible = qual in ["lobby", "podio"]
 	if qual == "lobby":
 		for l in 4:
 			var p := jogadores[l]
@@ -282,6 +302,11 @@ func _entrar_na_sala(id: String, com_cortina := true) -> void:
 			var sj := sala as SalaJogo
 			sj.na_prova_de_fogo = "Prova de Fogo · sala %d de %d" % [fogo + 1, ORDEM_DO_FOGO.size()]
 			sj.seguir = "seguir a Prova de Fogo" if fogo + 1 < ORDEM_DO_FOGO.size() else "o livro da sessão"
+		elif partida and sala is SalaJogo:
+			var sj := sala as SalaJogo
+			sj.na_prova_de_fogo = partida.rotulo()
+			sj.seguir = "o placar"
+		painel.escondido = false
 		sala.entrar(js)
 		sala.terminou.connect(_ao_terminar_a_sala)
 		painel.sala = sala
@@ -303,6 +328,9 @@ func _entrar_na_sala(id: String, com_cortina := true) -> void:
 func _ao_terminar_a_sala() -> void:
 	# o robô aperta ✕ a cada quadro até a cortina fechar: uma troca só
 	if estado != "sala" or overlay != "" or _trocando:
+		return
+	if partida and sala is SalaJogo:
+		_placar_da_sala(sala as SalaJogo)
 		return
 	if fogo >= 0:
 		fogo += 1
@@ -331,6 +359,107 @@ func _comecar_a_prova_de_fogo(com_cortina := true) -> void:
 	Forja.registrar("Prova de Fogo: começou (semente %d)" % Forja.semente)
 	Forja.evento("sala", 0, {"evento": "prova_de_fogo", "o": "começou"})
 	_entrar_na_sala(ORDEM_DO_FOGO[0], com_cortina)
+
+
+# ----------------------------------------------------------------- partida --
+
+## Uma partida de `n` salas (na ordem, ou sorteadas pela semente): a primeira
+## sala abre na hora; entre as salas, o placar; no fim, o pódio.
+func _comecar_a_partida(n: int, sorteada: bool, com_cortina := true) -> void:
+	if overlay != "":
+		_fechar_overlay()
+	fogo = -1
+	partida = Partida.nova(n, sorteada, Forja.semente + _partidas, ORDEM_DO_FOGO)
+	_partidas += 1
+	var ids := ", ".join(partida.salas)
+	Forja.registrar("Partida: começou, %d salas%s (%s)" % [partida.salas.size(), ", sorteadas" if sorteada else "", ids])
+	Forja.evento("sala", 0, {"evento": "partida", "o": "começou", "salas": ids})
+	_entrar_na_sala(partida.sala_atual(), com_cortina)
+
+
+## A sala da partida acabou: a colocação de cada um vira pontos da noite, e o
+## placar aparece por cima do veredito.
+func _placar_da_sala(sj: SalaJogo) -> void:
+	var presentes: Array = []
+	for l in 4:
+		if sj.jogando[l]:
+			presentes.append(l)
+	var e := partida.registrar(sj.id, sj.pontos, presentes)
+	var linha: PackedStringArray = []
+	for l in presentes:
+		linha.append("P%d %dº +%d" % [l + 1, int(e.colocacao[l]), int(e.ganhos[l])])
+	Forja.registrar("Partida: %s — %s" % [sj.nome, " · ".join(linha)])
+	Forja.evento("sala", 0, {"evento": "partida", "o": "placar", "sala": sj.id, "ganhos": e.ganhos})
+	_abrir_overlay("placar", 0)
+
+
+## ✕ no placar: a sala seguinte, ou o pódio.
+func _seguir_a_partida() -> void:
+	overlay = ""
+	placar.visible = false
+	if partida.acabou():
+		_trocar(_ir_para_o_podio)
+	else:
+		_entrar_na_sala(partida.sala_atual())
+
+
+## O pódio: de volta ao salão, cada boneco no pedestal do seu lugar, e o placar
+## final ao lado. Quem venceu comemora (e o controle dele sente).
+func _ir_para_o_podio() -> void:
+	_sair_da_sala()
+	if salao.get_parent() == null:
+		add_child(salao)
+	painel.escondido = false
+	var lista := partida.podio(partida.presentes())
+	for p in jogadores:
+		p.controlavel = false
+		p.global_position = salao.pedestais[p.lugar]
+		p.rotation.y = 0.0
+	for e in lista:
+		var l := int(e.lugar)
+		if int(e.degrau) == 1:
+			jogadores[l].gesto("emote-yes", 2.0)
+			Forja.vibrar(l, 0.4, 0.6, 400)
+	_mostrar("podio")
+	hud.sala = {}
+	hud.placa = {}
+	placar.abrir(partida, true)
+	placar.visible = true
+	var frase := Placar.frase_do_vencedor(lista)
+	Forja.registrar("Partida: terminou — %s" % frase)
+	Forja.evento("sala", 0, {"evento": "partida", "o": "terminou", "podio": lista.map(func(e): return int(e.lugar) + 1)})
+	Forja.gravar_relatorio()
+
+
+## No pódio: ✕ outra partida do mesmo tamanho (outro sorteio), ○ o salão.
+## Quem venceu segue comemorando.
+func _quadro_podio() -> void:
+	if not placar.pronto():
+		return
+	for e in partida.podio(partida.presentes()):
+		if int(e.degrau) == 1 and jogadores[int(e.lugar)]._gesto <= 0.0:
+			jogadores[int(e.lugar)].gesto("emote-yes", 2.0)
+	if Forja.robo and "--sair-no-fim" in OS.get_cmdline_user_args() and placar._t > 3.0:
+		get_tree().quit()
+		return
+	for l in 4:
+		if not Forja.ocupado(l):
+			continue
+		if Forja.apertou(l, Forja.CRUZ):
+			var n := partida.salas.size()
+			var sorteada := partida.sorteada
+			_sair_do_podio()
+			_comecar_a_partida(n, sorteada)
+			return
+		if Forja.apertou(l, Forja.CIRCULO):
+			_sair_do_podio()
+			partida = null
+			_ir_para_o_salao()
+			return
+
+
+func _sair_do_podio() -> void:
+	placar.visible = false
 
 
 func _sair_da_sala() -> void:
@@ -364,6 +493,7 @@ func _process(dt: float) -> void:
 				"lobby": _quadro_lobby(dt)
 				"salao": _quadro_salao()
 				"sala": _quadro_sala()
+				"podio": _quadro_podio()
 	if sala:
 		for l in 4:
 			hud.status_da_sala[l] = sala.status(l) if Forja.ocupado(l) else ""
@@ -482,7 +612,8 @@ func _quadro_salao() -> void:
 		Forja.vibrar(quem, 0.2, 0.0, 60)
 
 
-## A bigorna no meio do salão: ✕ entra n'A Prova, △ acende a Prova de Fogo.
+## A bigorna no meio do salão: ✕ entra n'A Prova, □ escolhe uma partida, △
+## acende a Prova de Fogo.
 func _perto_da_bigorna() -> void:
 	var centro := salao.bigorna.global_position
 	for p in jogadores:
@@ -490,12 +621,15 @@ func _perto_da_bigorna() -> void:
 			continue
 		if Vector2(p.global_position.x - centro.x, p.global_position.z - centro.z).length() > 3.1:
 			continue
-		hud.placa = {"nome": "A Prova", "sobre": "tudo junto, duas equipes · △ a Prova de Fogo", "aberta": true}
+		hud.placa = {"nome": "A Prova", "sobre": "tudo junto, duas equipes · □ a partida · △ a Prova de Fogo", "aberta": true}
 		for q in jogadores:
 			if not q.visible:
 				continue
 			if Forja.apertou(q.lugar, Forja.CRUZ):
 				_entrar_na_sala("prova")
+				return
+			if Forja.apertou(q.lugar, Forja.QUADRADO):
+				_abrir_overlay("partida", q.lugar)
 				return
 			if Forja.apertou(q.lugar, Forja.TRIANGULO):
 				Som.tocar("martelo", centro + Vector3(0, 1, 0))
@@ -535,6 +669,8 @@ func _abrir_overlay(qual: String, lugar: int) -> void:
 	diagnostico.visible = qual == "diagnostico"
 	livro.visible = qual == "livro"
 	pausa.visible = qual == "pausa"
+	escolha.visible = qual == "partida"
+	placar.visible = qual == "placar"
 	for p in jogadores:
 		p.controlavel = false
 	hud.visible = false
@@ -545,6 +681,10 @@ func _abrir_overlay(qual: String, lugar: int) -> void:
 		livro.abrir()
 	if qual == "pausa":
 		pausa.abrir(lugar, estado == "sala", _diagnostico_livre())
+	if qual == "partida":
+		escolha.abrir(lugar, Forja.semente + _partidas, ORDEM_DO_FOGO)
+	if qual == "placar":
+		placar.abrir(partida, false)
 	get_tree().paused = false
 
 
@@ -570,6 +710,8 @@ func _fechar_overlay() -> void:
 	diagnostico.visible = false
 	livro.visible = false
 	pausa.visible = false
+	escolha.visible = false
+	placar.visible = false
 	var pode := estado == "salao"
 	for p in jogadores:
 		p.controlavel = pode and p.visible
@@ -613,6 +755,27 @@ func _quadro_overlay() -> void:
 				pausa.confirmar()
 			elif Forja.apertou(q, Forja.CIRCULO) or Forja.apertou(q, Forja.OPTIONS):
 				_fechar_overlay()
+		"partida":
+			var qp := escolha.quem
+			var dy3 := _passo(qp, true)
+			if dy3 != 0:
+				escolha.navegar(dy3)
+			if _passo(qp, false) != 0:
+				escolha.trocar_ordem()
+			if Forja.apertou(qp, Forja.CRUZ):
+				escolha.confirmar()
+			elif Forja.apertou(qp, Forja.CIRCULO):
+				_fechar_overlay()
+		"placar":
+			if not placar.pronto():
+				return
+			if Forja.robo and placar._t > 2.0:
+				_seguir_a_partida()
+				return
+			for l in 4:
+				if Forja.ocupado(l) and Forja.apertou(l, Forja.CRUZ):
+					_seguir_a_partida()
+					return
 
 
 func _na_pausa(acao: String) -> void:
@@ -626,10 +789,12 @@ func _na_pausa(acao: String) -> void:
 		"salao":
 			_fechar_overlay()
 			fogo = -1
+			partida = null
 			_ir_para_o_salao()
 		"lobby":
 			_fechar_overlay()
 			fogo = -1
+			partida = null
 			_trocar(_ir_para_o_lobby)
 		"sair":
 			Forja.gravar_relatorio()
@@ -646,6 +811,9 @@ func _pose_da_camera() -> Array:
 			return [centro + Vector3(sin(a) * 7.5 + 3.0, 3.2, cos(a) * 7.5 + 2.0), centro]
 		"lobby":
 			return [Vector3(0, 2.9, 14.2), Vector3(0, 0.55, 4.4)]
+		"podio":
+			# os pedestais à direita: o placar final fica à esquerda
+			return [Vector3(-4.6, 4.0, 19.5), Vector3(-4.6, 0.9, 4.4)]
 		"sala":
 			if sala:
 				return [sala.camera_pos, sala.camera_olhar]

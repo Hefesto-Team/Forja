@@ -57,8 +57,10 @@ repositório é o [CONTRATO.md](CONTRATO.md).
 </table>
 
 O **salão da forja** é o hub: oito portões, um por sala, e a bigorna no meio —
-✕ nela entra n'A Prova, △ acende a **Prova de Fogo** (as nove salas na ordem,
-sem voltar ao salão, e o livro no fim). O **livro** (Options → O livro da
+✕ nela entra n'A Prova, □ escolhe uma **partida** (3, 5 ou as 9 salas, na
+ordem ou sorteadas, com o placar entre elas e o pódio no fim), △ acende a
+**Prova de Fogo** (as nove salas na ordem, sem voltar ao salão, e o livro no
+fim). O **livro** (Options → O livro da
 sessão) é o relatório na tela: feature × lugar, o pedido, o medido e o degrau
 da evidência.
 
@@ -137,6 +139,7 @@ Os argumentos do jogo vêm depois de `--`:
 
 ```sh
 ./forja.x86_64 -- --prova-de-fogo          # todas as salas, na ordem, e o livro no fim
+./forja.x86_64 -- --partida=5 --sorteada   # uma partida de cinco salas sorteadas, e o pódio
 ./forja.x86_64 -- --sala=galeria           # direto numa sala, com todo controle dentro
 ./forja.x86_64 -- --semente=42             # o mesmo sorteio, para comparar sessões
 ./forja.x86_64 -- --simular=4 --robo       # sem controle: quatro de mentira, e o robô joga
