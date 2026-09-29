@@ -115,6 +115,14 @@ if [ -f "$APPIMAGE" ]; then
   fi
 fi
 
+if [ -f "$WINDOWS" ]; then
+  echo "==> o ícone e a versão do .exe"
+  recursos="$(python3 "$RAIZ/scripts/icone_do_exe.py" --conferir "$WINDOWS")"
+  echo "$recursos" | sed 's/^/    /'
+  echo "$recursos" | grep -q "^ícone: 256 .* 16$" || falha "o .exe não tem o ícone do FORJA"
+  echo "$recursos" | grep -q "^ProductName: Forja$" || falha "o .exe não tem a versão do FORJA"
+fi
+
 echo "==> o .exe exportado, pelo Wine: a mesma Prova de Fogo"
 if ! command -v wine > /dev/null; then
   if [ "${SO_LINUX:-0}" = 1 ]; then
