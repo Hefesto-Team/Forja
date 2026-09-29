@@ -41,7 +41,11 @@ const PERGUNTA_S := 8.0
 const PLACAR_S := 3.0
 const ARENA_X := 11.3
 const ARENA_Z := 6.9
+## Os pilares: nos quatro cantos, ou (a variante 1) em cata-vento — sempre
+## simétricos pelo centro, para a Brasa e a Maré terem a mesma arena.
 const PILARES := [Vector3(-4.4, 0, -3.4), Vector3(4.4, 0, -3.4), Vector3(-4.4, 0, 3.4), Vector3(4.4, 0, 3.4)]
+const PILARES_CATAVENTO := [Vector3(-6.8, 0, 2.8), Vector3(6.8, 0, -2.8), Vector3(-2.2, 0, -4.2), Vector3(2.2, 0, 4.2)]
+static var pilares: Array = PILARES
 const RAIO_PILAR := 0.7
 const METAL_X := 3.0  ## a faixa de metal no meio
 const AGUA_Z := 0.9  ## o riacho que corta a arena
@@ -91,13 +95,14 @@ func sair() -> void:
 
 
 func montar() -> void:
+	pilares = PILARES_CATAVENTO if variante == 1 else PILARES
 	Kit.arena(self, 6, 4)
 	# a arena: a Brasa de um lado, a Maré do outro
 	atmosfera(Color("#ffb86c"), Tema.LARANJA, true, 40, 24.0, -9.8)
 	Efeitos.poeira(self, Vector3(0, 1.8, 0), Vector3(24, 3.5, 9), Tema.CIANO, 30)
 	luzes([Vector3(-10, 3.0, -6), Vector3(10, 3.0, -6), Vector3(-10, 3.0, 6), Vector3(10, 3.0, 6)])
 	_montar_chao()
-	for c in PILARES:
+	for c in pilares:
 		Kit.peca(self, "column", c, 0.0, 2.2)
 		Kit.cilindro(self, CASCALHO, 0.03, c + Vector3(0, 0.03, 0), Kit.material(COR_CHAO[1], 0.0, 0.95))
 	# o clique seco, o sino do especial e os passos saem do controle de cada um
@@ -126,7 +131,7 @@ func _montar_chao() -> void:
 
 ## O chão debaixo de um ponto (chao.h: 0 grama, 1 cascalho, 2 metal, 3 água).
 static func chao_em(p: Vector3) -> int:
-	for c in PILARES:
+	for c in pilares:
 		if Vector2(p.x - c.x, p.z - c.z).length() < CASCALHO:
 			return 1
 	if absf(p.x) < METAL_X:
@@ -380,7 +385,7 @@ func _martelada(i: int) -> void:
 
 
 func _empurrar(p: Vector3) -> Vector3:
-	for c in PILARES:
+	for c in pilares:
 		var d := Vector2(p.x - c.x, p.z - c.z)
 		var minimo := RAIO_PILAR + RAIO
 		if d.length() < minimo and d.length() > 0.01:
@@ -510,7 +515,7 @@ func _mover_tiros(dt: float) -> void:
 		t.vida = float(t.vida) - dt
 		var vivo := float(t.vida) > 0.0 and absf(t.pos.x) < ARENA_X + 0.5 and absf(t.pos.z) < ARENA_Z + 0.5
 		if vivo:
-			for c in PILARES:
+			for c in pilares:
 				if Vector2(t.pos.x - c.x, t.pos.z - c.z).length() < RAIO_PILAR:
 					vivo = false
 					Efeitos.faiscas(self, t.pos, Color("#ff9a50"), 6, 0.5)

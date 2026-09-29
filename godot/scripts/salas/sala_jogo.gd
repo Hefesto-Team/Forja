@@ -41,6 +41,10 @@ var _gesto_aviso_lado := false
 ## lugar -> Array de vereditos ({feature, nome, resultado, rotulo, medido, obs})
 var vereditos := {}
 var rng := RandomNumberGenerator.new()
+## A variação de conteúdo da noite (0 ou 1), pela semente e fora do sorteio do
+## jogo: quantos alvos, quantos sinos, onde ficam os pilares. O que a sala
+## mede não muda.
+var variante := 0
 ## true enquanto a pausa ou o diagnóstico estão por cima: o jogo e a medida
 ## param (o ✕ do menu não é o ✕ da runa)
 var congelada := false
@@ -74,6 +78,9 @@ var _teste_dir := [0.0, 0.0, 0.0, 0.0]  ## o segundo pulso do teste da háptica
 
 func entrar(js: Array) -> void:
 	rng.seed = int(Forja.semente) * 131 + hash(id)
+	var sorteio := RandomNumberGenerator.new()
+	sorteio.seed = hash("%d:%s" % [int(Forja.semente), id])
+	variante = sorteio.randi() % 2
 	ritmo_nivel = Forja.ritmo()
 	if duracao > 0.0:
 		duracao *= ritmo_nivel
