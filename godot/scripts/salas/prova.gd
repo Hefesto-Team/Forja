@@ -93,7 +93,7 @@ func sair() -> void:
 func montar() -> void:
 	Kit.arena(self, 6, 4)
 	# a arena: a Brasa de um lado, a Maré do outro
-	atmosfera(Color("#ffb86c"), Tema.LARANJA, true, 40, 24.0, -8.0)
+	atmosfera(Color("#ffb86c"), Tema.LARANJA, true, 40, 24.0, -9.8)
 	Efeitos.poeira(self, Vector3(0, 1.8, 0), Vector3(24, 3.5, 9), Tema.CIANO, 30)
 	luzes([Vector3(-10, 3.0, -6), Vector3(10, 3.0, -6), Vector3(-10, 3.0, 6), Vector3(10, 3.0, 6)])
 	_montar_chao()

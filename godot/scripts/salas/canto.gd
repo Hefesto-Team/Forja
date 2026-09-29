@@ -72,7 +72,7 @@ func _init() -> void:
 func montar() -> void:
 	Kit.arena(self, 5, 3)
 	# a capela: poeira violeta, e o neon roxo
-	atmosfera(Color("#b88cff"), Tema.ROXO, false, 36, 22.0, -6.0, 0.2)
+	atmosfera(Color("#b88cff"), Tema.ROXO, false, 36, 22.0, -7.8, 0.2)
 	var frio := OmniLight3D.new()
 	frio.position = Vector3(0, 8.0, 4.0)
 	frio.light_color = Color("#8a80c8")
