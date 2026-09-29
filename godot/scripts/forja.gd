@@ -14,6 +14,7 @@ extends Node
 ##   --simular[=N]      N DualSense de mentira (4 se só --simular); o teclado joga no escolhido
 ##   --robo             o robô joga nos simulados (a prova de ponta a ponta)
 ##   --semente=N        os sorteios repetem
+##   --nivel=N          o ritmo das salas: 0 primeira vez, 1 normal, 2 rápido
 ##   --relatorios=PASTA onde gravar o relatório (sem ele: ao lado do jogo)
 ##   --sala=ID          abre direto numa sala
 ##   --prova-de-fogo    abre na Prova de Fogo: todas as salas, na ordem, e o livro
@@ -82,6 +83,12 @@ var pasta_relatorios := ""
 var sala_pedida := ""
 var experimento := ""  ## --experimento=CHAVE: a bancada do experimental/ no lugar do salão
 var sim_teclado := 0  ## qual controle simulado o teclado dirige
+## O ritmo das salas: as janelas de tempo (a runa, o escudo, o tiro, a
+## partida) se esticam para quem joga pela primeira vez e encurtam no rápido.
+## A quantidade de medidas nunca muda: o veredito vale nos três.
+const NIVEIS := ["primeira vez", "normal", "rápido"]
+const RITMO_DO_NIVEL := [1.35, 1.0, 0.8]
+var nivel := 1
 
 var _args := {}
 var _aviso_seq := 0
@@ -133,6 +140,7 @@ func _ler_args() -> void:
 	semente = int(_args.get("semente", "0"))
 	sala_pedida = str(_args.get("sala", ""))
 	experimento = str(_args.get("experimento", ""))
+	nivel = clampi(int(_args.get("nivel", "1")), 0, NIVEIS.size() - 1)
 
 
 ## A pasta do relatório, resolvida agora e nunca escrita no código: a pedida,
@@ -518,6 +526,11 @@ func controle_do_relatorio(l: int) -> Dictionary:
 func nota(texto: String) -> void:
 	if modulo:
 		ctl.nota(texto)
+
+
+## O multiplicador das janelas de tempo das salas, pelo nível da sessão.
+func ritmo() -> float:
+	return RITMO_DO_NIVEL[nivel]
 
 
 func registrar(linha: String) -> void:

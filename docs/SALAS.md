@@ -387,11 +387,19 @@ vez dele no chamado, a HUD diz "microfone mudo", e o veredito do microfone
 fica "não medido", com o que fazer. Sem alto-falante achado para um controle,
 O Canto não canta nele: o dono só responde, e o veredito fica "não medido".
 
+## O ritmo
+
+A sessão tem um ritmo: **primeira vez**, **normal** ou **rápido**
+(`--nivel=0..2`; na partida, a terceira linha da escolha). Ele estica (×1,35)
+ou encurta (×0,8) as janelas de tempo — a runa d'A Centelha, o escudo d'O
+Impacto, o tiro d'A Galeria, o tempo das salas com relógio e a partida d'A
+Prova — e nunca a quantidade de medidas: o veredito vale nos três.
+
 ## A partida — o placar e o pódio
 
 Na bigorna do meio do salão, □ abre a partida: quem apertou escolhe o tamanho
-(▲▼: três salas, cinco ou as nove) e a ordem (◀▶: a do percurso ou sorteada
-pela semente); ✕ começa. Na ordem, a curta é A Centelha, A Galeria e A Prova,
+e a ordem (a do percurso ou sorteada pela semente) e o ritmo — ▲▼ escolhe a
+linha, ◀▶ troca o valor; ✕ começa. Na ordem, a curta é A Centelha, A Galeria e A Prova,
 e a de cinco põe A Viga e O Impacto no meio — nenhuma delas pede o som do
 controle, então jogam em qualquer sala de estar; a de nove é o percurso.
 Sorteada, as salas saem embaralhadas e A Prova fecha sempre.

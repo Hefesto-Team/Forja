@@ -3,7 +3,8 @@
 # (o robô joga as nove com N DualSense simulados, e cada sala diz no aviso o
 # que muda), e a sala sem o recurso — com o microfone mudo no sistema
 # (o defeito de mentira mic-surdo), A Voz segue sozinha e o veredito fica
-# "não medido", nunca "falhou".
+# "não medido", nunca "falhou". E os ritmos (--nivel=0 e 2): as janelas de
+# tempo mudam, e o robô ainda passa sem nenhum "falhou".
 #
 # Precisa do módulo compilado (scripts/compilar.sh linux).
 # Uso: bash tests/prova_de_poucos.sh        (GODOT=<binário> para outro Godot)
@@ -40,6 +41,10 @@ rodar um --simular=1 & a=$!
 rodar dois --simular=2 & b=$!
 rodar tres --simular=3 & c=$!
 for p in $a $b $c; do wait "$p" || FALHAS=$((FALHAS + 1)); done
-SALAS=voz rodar mudo-no-sistema --simular=4 --defeitos=mic-surdo || FALHAS=$((FALHAS + 1))
+SALAS=voz rodar mudo-no-sistema --simular=4 --defeitos=mic-surdo & d=$!
+# os ritmos: as janelas de tempo mudam, a medida não
+SALAS=centelha,impacto,galeria,prova rodar rapido --simular=4 --nivel=2 & e=$!
+SALAS=centelha,impacto,galeria,prova rodar primeira-vez --simular=2 --nivel=0 & f=$!
+for p in $d $e $f; do wait "$p" || FALHAS=$((FALHAS + 1)); done
 [ "$FALHAS" -eq 0 ] || exit 1
-echo "prova de poucos ok — as nove salas com 1, 2 e 3 controles, e A Voz com o microfone mudo no sistema"
+echo "prova de poucos ok — as nove salas com 1, 2 e 3 controles, A Voz com o microfone mudo no sistema e os três ritmos"

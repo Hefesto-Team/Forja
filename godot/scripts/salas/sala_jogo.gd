@@ -27,6 +27,17 @@ var prontos := [false, false, false, false]
 var acabou := [false, false, false, false]
 var jogando := [false, false, false, false]
 var pontos := [0, 0, 0, 0]
+## Quantas vezes cada um já pontuou na sala: depois de APRENDEU acertos, a dica
+## da raia perde as palavras e fica só o glifo (mostrar, não contar).
+var acertos := [0, 0, 0, 0]
+const APRENDEU := 3
+## O gesto que o boneco repete no aviso, para mostrar o que a sala pede (o
+## Astro faz assim); vazio: o boneco só espera. "lados" alterna esquerda e direita.
+var gesto_do_aviso := ""
+var _gesto_aviso_t := [0.0, 0.0, 0.0, 0.0]
+## O ritmo do nível (Forja.ritmo): as salas multiplicam as janelas de tempo.
+var ritmo_nivel := 1.0
+var _gesto_aviso_lado := false
 ## lugar -> Array de vereditos ({feature, nome, resultado, rotulo, medido, obs})
 var vereditos := {}
 var rng := RandomNumberGenerator.new()
@@ -49,6 +60,9 @@ var _teste_dir := [0.0, 0.0, 0.0, 0.0]  ## o segundo pulso do teste da háptica
 
 func entrar(js: Array) -> void:
 	rng.seed = int(Forja.semente) * 131 + hash(id)
+	ritmo_nivel = Forja.ritmo()
+	if duracao > 0.0:
+		duracao *= ritmo_nivel
 	super(js)
 	for p in jogadores:
 		Forja.med_comecar(p.lugar, botoes_pedidos)
@@ -141,8 +155,24 @@ func _quadro_aviso() -> void:
 				Som.tocar("tique", p.global_position + Vector3(0, 1, 0))
 		if prontos[l]:
 			n_prontos += 1
+		elif gesto_do_aviso != "":
+			_mostrar_o_gesto(l, p)
 	if presentes > 0 and n_prontos == presentes and t_fase > 0.9:
 		comecar()
+
+
+## O boneco de quem ainda não está pronto repete o gesto da sala.
+func _mostrar_o_gesto(l: int, p: ForjaPlayer) -> void:
+	_gesto_aviso_t[l] -= get_process_delta_time()
+	if _gesto_aviso_t[l] > 0.0:
+		return
+	_gesto_aviso_t[l] = 1.6
+	var g := gesto_do_aviso
+	if g == "lados":
+		g = "interact-left" if _gesto_aviso_lado else "interact-right"
+		if l == 0:
+			_gesto_aviso_lado = not _gesto_aviso_lado
+	p.gesto(g, 0.5)
 
 
 ## No aviso de uma sala de som: ◀ ▶ aponta outro dispositivo para o papel, △
@@ -241,6 +271,13 @@ func status(lugar: int) -> String:
 
 func marcar(lugar: int, n: int) -> void:
 	pontos[lugar] += n
+	if n > 0:
+		acertos[lugar] += 1
+
+
+## A dica já foi aprendida: fica só o glifo.
+func aprendeu(lugar: int) -> bool:
+	return acertos[lugar] >= APRENDEU
 
 
 ## O diagnóstico pode abrir agora? Numa prova às cegas em jogo, não.

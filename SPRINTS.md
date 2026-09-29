@@ -225,7 +225,7 @@ Hoje cada sala dá vereditos; um jogo de festa também dá um vencedor.
 | --- | --- |
 | os pontos da noite | cada sala já conta pontos por lugar (runas, alvos, golpes, o chão certo); somá-los numa partida, com o placar entre as salas e o pódio no fim — **feito**: a partida soma a colocação (4, 3, 2, 1; o empate divide), não os pontos crus, porque cada sala tem a sua régua; o placar depois de cada veredito, o pódio no salão, e o relatório registra os dois (`scripts/partida.gd`, [SALAS](docs/SALAS.md#a-partida--o-placar-e-o-pódio)) |
 | a partida escolhida | 3, 5 ou as 9 salas; na ordem ou sorteadas (a semente já existe) — **feito**: □ na bigorna; na ordem, as curtas só com salas que não pedem o som do controle; sorteada, A Prova fecha sempre; `--partida=N --sorteada` |
-| variação e dificuldade | cada sala com duas ou três variações (tempo, velocidade, quantos alvos) e um nível para quem joga pela primeira vez |
+| variação e dificuldade | cada sala com duas ou três variações (tempo, velocidade, quantos alvos) e um nível para quem joga pela primeira vez — **feito em parte**: o ritmo da sessão (primeira vez, normal, rápido; `--nivel=0..2`), escolhido na partida, estica ou encurta as janelas de tempo (a runa, o escudo, o tiro, o tempo da sala, a partida d'A Prova) sem mudar a quantidade de medidas; a prova de poucos joga os ritmos. As variações de conteúdo (quantos alvos, outra arena) ainda não |
 | menos de quatro | toda sala jogável com 1, 2 ou 3 (A Prova já faz: com três, dois contra um e um boneco de treino); a sala diz o que muda — **feito**: as nove salas já jogavam com menos; agora o aviso diz o que muda (A Prova, O Impacto e O Canto dizem o delas), e a prova de poucos (`tests/prova_de_poucos.sh`, no CI) faz o robô jogar as nove com 1, 2 e 3 controles: cada sala acaba sozinha, com veredito para quem está e nenhum "falhou" por faltar gente |
 | a sala sem o recurso | com o microfone mudo, A Voz passa sozinha pela parte que pede voz (como o Astro faz com o sopro); sem alto-falante achado, O Canto diz e segue — o veredito fica "não medido", nunca "falhou" — **feito**: com o microfone mudo no sistema (silêncio absoluto, nem o ambiente chega), a vez dele no chamado passa e a HUD diz; sem alto-falante achado, o controle não canta, só responde; os dois vereditos ficam "não medido". O controle simulado agora ouve o ambiente de uma sala quieta, e o `mic-surdo` do gauntlet continua pego |
 
@@ -242,11 +242,12 @@ que muda com menos de quatro é um selo, não uma frase. As regras por extenso
 ficam no código (`objetivo`) e no [SALAS](docs/SALAS.md); na tela, a sala
 ensina jogando, pelas dicas curtas na raia de cada um.
 
-| falta | detalhe |
+| item | situação |
 | --- | --- |
-| o boneco mostra | no aviso, o boneco de cada um repete o gesto da sala (o Astro faz assim: a bola rola, o zíper abre) e o controle dá uma amostra do que vem — fora das provas às cegas |
-| a primeira rodada ensina | a primeira runa, o primeiro alvo, o primeiro golpe valem sem pressa e sem ponto; a dica some quando a pessoa acertou uma vez |
-| o veredito enxuto | ✓ ou ✗ grande por feature; o que foi medido só no que falhou (o resto fica no livro) |
+| o boneco mostra | feito — o aviso sobe para o alto e deixa a arena à mostra; o boneco de quem não está pronto repete o gesto da sala (martela, atira, toca o molde, levanta o escudo de um lado e do outro). A amostra no controle ficou de fora: no aviso os analógicos medem a deriva, e um motor ligado ali sujaria a medida |
+| a dica aprendida vira glifo | feito — depois de três acertos na sala, a dica da raia perde as palavras e fica só o glifo; sem glifo, some |
+| a primeira rodada ensina | fica — o ritmo "primeira vez" dá mais tempo a todas as janelas; a rodada de graça, sem ponto, pede mexer no plano de cada sala |
+| o veredito enxuto | feito — uma linha por feature (o glifo e o nome), um selo por lugar; o porquê só no que não passou; o resto no livro |
 
 ### Sprint C — conforto e acessibilidade
 

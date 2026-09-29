@@ -54,6 +54,7 @@ func _init() -> void:
 	id = "viga"
 	nome = "A Viga"
 	acao = "Equilibre, mire e martele com o controle."
+	gesto_do_aviso = "attack-melee-right"
 	objetivo = "Na viga, o vento empurra: incline o controle para o outro lado. Nos sinos, gire o controle para mirar e arremesse com R1 (L1 centraliza). Na pedra, sacuda o controle para baixo, com vontade."
 	features = ["giroscopio", "acelerometro"]
 	duracao = 80.0

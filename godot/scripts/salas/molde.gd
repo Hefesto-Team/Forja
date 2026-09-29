@@ -54,6 +54,7 @@ func _init() -> void:
 	id = "molde"
 	nome = "O Molde"
 	acao = "O touchpad é o molde: trace, abra, carimbe."
+	gesto_do_aviso = "interact-right"
 	objetivo = "O touchpad é o molde. Trace a letra tocando os pontos na ordem; depois, dois dedos: afaste até o molde abrir e junte até fechar; por fim, clique o touchpad quando o metal brilhar — três carimbos."
 	features = ["touchpad_dois_dedos", "touchpad_clique"]
 	botoes_pedidos = F.mascara([F.TOUCHPAD])

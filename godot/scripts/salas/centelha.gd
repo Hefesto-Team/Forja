@@ -38,6 +38,7 @@ func _init() -> void:
 	id = "centelha"
 	nome = "A Centelha"
 	acao = "Aperte o botão da runa antes do anel fechar."
+	gesto_do_aviso = "attack-melee-right"
 	objetivo = "Aperte o botão da runa antes do anel fechar. Na runa do analógico, gire até a borda; no fole, segure o gatilho na faixa e aperte até o fundo."
 	features = ["botoes", "analogicos", "gatilhos_analogicos"]
 	botoes_pedidos = F.mascara(BOTOES)
@@ -102,7 +103,7 @@ func _novo_jogador() -> Dictionary:
 		e += 1
 	for r in fila:
 		r["tentativas"] = 0
-	return {"fila": fila, "atual": 0, "t": 0.0, "janela": JANELA_INICIAL, "setores": 0, "estagio": 0,
+	return {"fila": fila, "atual": 0, "t": 0.0, "janela": JANELA_INICIAL * ritmo_nivel, "setores": 0, "estagio": 0,
 		"segurou": 0.0, "combo": 0, "tremor": 0.0, "pop": 0.0,
 		"robo_reacao": -1.0, "robo_passo": 0, "robo_ang": 0.0, "robo_gatilho": 0.0}
 
@@ -331,7 +332,7 @@ func _acertou(l: int, p: ForjaPlayer, base: int) -> void:
 	Som.tocar("bigorna_aguda" if r != null and r.tipo == "botao" else "bigorna", bigorna_topo, -2.0)
 	p.gesto("attack-melee-right", 0.45)
 	Forja.vibrar(l, 0.0, 0.2, 50)
-	if r != null and r.tipo == "botao" and e.janela > JANELA_MINIMA:
+	if r != null and r.tipo == "botao" and e.janela > JANELA_MINIMA * ritmo_nivel:
 		e.janela -= 0.08
 	_proxima(l)
 	if e.atual >= e.fila.size():

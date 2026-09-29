@@ -204,8 +204,10 @@ func _roteiro_da_partida() -> Array:
 		["ate", no_salao],
 		["posiciona", 0, Vector3(0.0, 0.05, 2.1), PI], ["espera", 40], ["foto", "partida_bigorna"],
 		["aperta", 0, Forja.QUADRADO], ["espera", 20], ["foto", "partida_escolha"],
-		["aperta", 0, Forja.DIREITA], ["espera", 10], ["aperta", 0, Forja.BAIXO], ["espera", 20], ["foto", "partida_escolha_sorteada"],
-		["aperta", 0, Forja.ESQUERDA], ["espera", 6], ["aperta", 0, Forja.CIMA], ["espera", 6], ["aperta", 0, Forja.CIMA], ["espera", 10],
+		["aperta", 0, Forja.DIREITA], ["espera", 10], ["aperta", 0, Forja.BAIXO], ["espera", 6], ["aperta", 0, Forja.DIREITA], ["espera", 6],
+		["aperta", 0, Forja.BAIXO], ["espera", 6], ["aperta", 0, Forja.ESQUERDA], ["espera", 20], ["foto", "partida_escolha_sorteada"],
+		["aperta", 0, Forja.DIREITA], ["espera", 6], ["aperta", 0, Forja.CIMA], ["espera", 6], ["aperta", 0, Forja.ESQUERDA], ["espera", 6],
+		["aperta", 0, Forja.CIMA], ["espera", 6], ["aperta", 0, Forja.ESQUERDA], ["aperta", 0, Forja.ESQUERDA], ["espera", 10],
 		["aperta", 0, Forja.CRUZ],
 	]
 	for i in 3:
