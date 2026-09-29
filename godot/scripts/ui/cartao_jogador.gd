@@ -61,7 +61,12 @@ func _draw() -> void:
 		return
 
 	# linha 2: o nome que o controle dá
-	Desenho.texto(self, Vector2(x, 98), p.get("nome", "controle"), Tema.fonte(500), 30, Tema.FG, HORIZONTAL_ALIGNMENT_LEFT, size.x - 56)
+	# o nome encolhe até caber (em inglês, "Simulated DualSense 2" é mais longo)
+	var nome := str(p.get("nome", "controle"))
+	var tam_nome := 30
+	while tam_nome > 22 and Desenho.largura(nome, Tema.fonte(500), tam_nome) > size.x - 56:
+		tam_nome -= 1
+	Desenho.texto(self, Vector2(x, 98), nome, Tema.fonte(500), tam_nome, Tema.FG, HORIZONTAL_ALIGNMENT_LEFT, size.x - 56)
 	# linha 3: VID:PID; linha 4: a origem (o que o jogo concluiu do aparelho)
 	Desenho.texto(self, Vector2(x, 136), p.get("vidpid", "----:----"), mono, Tema.T_SELO, Tema.SUAVE)
 	var origem: String = p.get("origem_curta", "")
@@ -75,10 +80,11 @@ func _draw() -> void:
 	var luz: Color = saida.get("luz", cor_luz)
 	var y4 := size.y - 104
 	Desenho.texto(self, Vector2(x, y4 + 22), "Luz", Tema.fonte(600), Tema.T_SELO, Tema.VERDE)
-	var chip := Rect2(Vector2(x + 58, y4), Vector2(64, 30))
+	var chip := Rect2(Vector2(x + Desenho.largura("Luz", Tema.fonte(600), Tema.T_SELO) + 14, y4), Vector2(64, 30))
 	Desenho.moldura(self, chip, luz, Tema.LINHA, 2, 8)
-	Desenho.texto(self, Vector2(x + 146, y4 + 22), "LEDs", Tema.fonte(600), Tema.T_SELO, Tema.VERDE)
-	Desenho.leds(self, Vector2(x + 214, y4 + 8), int(saida.get("leds_jogador", info.get("leds", 0))), 14.0)
+	var xl := chip.end.x + 24
+	Desenho.texto(self, Vector2(xl, y4 + 22), "LEDs", Tema.fonte(600), Tema.T_SELO, Tema.VERDE)
+	Desenho.leds(self, Vector2(xl + Desenho.largura("LEDs", Tema.fonte(600), Tema.T_SELO) + 14, y4 + 8), int(saida.get("leds_jogador", info.get("leds", 0))), 14.0)
 
 	# rodapé: pronto, ou as ações do dono do lugar
 	if pronto:

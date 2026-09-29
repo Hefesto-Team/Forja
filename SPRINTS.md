@@ -271,11 +271,11 @@ e na tela do Steam Deck.
 | item | detalhe |
 | --- | --- |
 | a música | uma trilha do salão e uma por sala, com o volume do menu; a música se cala quando a sala pede silêncio (A Voz, O Canto) — **feito**: synthwave sintetizado no módulo (`sint_trilha`: pad de serras, baixo em colcheias, arpejo com eco, bateria de máquina), oito compassos em laço sem emenda, com tônica, andamento e energia por sala; cala n'A Voz, n'O Canto e na bancada |
-| o som da TV | os efeitos de hoje são sintetizados (`scripts/som.gd`); gravar ou licenciar os que pedem corpo (o martelo, o golpe, o sino) |
-| a arte das salas | os bonecos reagindo (ao veredito, ao golpe, à vitória), partículas e luz por sala, as transições |
+| o som da TV | os efeitos de hoje são sintetizados (`scripts/som.gd`); gravar ou licenciar os que pedem corpo (o martelo, o golpe, o sino) — fica: gravar pede microfone e sala; licenciar é decisão da equipe |
+| a arte das salas | os bonecos reagindo (ao veredito, ao golpe, à vitória), partículas e luz por sala, as transições — **feito em parte**: no veredito, quem passou em tudo comemora, quem falhou balança a cabeça, e quem fez mais pontos ganha as faíscas na cor do lugar; o pódio comemora com o controle; as transições ficaram em 370 ms. Luz e partículas próprias de cada sala ainda não |
 | o título e os créditos | a tela de título com a bigorna, e os créditos com as licenças (os modelos Kenney, CC0; as fontes, OFL; o SDL, zlib; o Godot e o godot-cpp, MIT; os glifos e o mapa do app Hefesto, MIT) — **feito em parte**: △ no título abre os créditos, só "Hefesto Team" sobre o sol do synthwave; as licenças vão com o jogo em `assets/LEIA-ME.md` e nos textos ao lado de cada coisa |
 | o ícone do jogo | o ícone e os metadados do `.exe` (o rcedit pelo Wine na exportação) e o `.desktop` do Linux — **feito em parte**: o `.desktop` e o ícone no pacote Linux e no AppImage; o `.exe` segue com o ícone do Godot (o rcedit pelo Wine não entrou) |
-| o trailer | os 60 s do sprint 5, agora com as salas 3D |
+| o trailer | os 60 s do sprint 5, agora com as salas 3D — **feito**: `scripts/trailer.sh` grava o jogo rodando pelo Movie Maker do Godot (o título, o lobby, A Galeria, O Impacto, A Viga, O Molde, A Prova, o pódio e os créditos, em 70 s), sem corte nenhum; com um ffmpeg no PATH, sai também o `.mp4` |
 
 **Pronto quando:** o trailer sai sem nenhum corte para esconder tela crua.
 
@@ -284,8 +284,8 @@ e na tela do Steam Deck.
 | item | detalhe |
 | --- | --- |
 | o controle que cai | tirar o cabo no meio de cada sala: a sala segue, o lugar espera, o controle volta ao mesmo lugar — a regra do sprint 1, conferida sala por sala no 3D — **feito**: o simulador tira e põe o cabo (`simulador_cabo`); a prova de poucos tira o do P2 no meio de cada uma das nove salas. Ela achou dois defeitos, corrigidos: a medida dos sensores guardava a contagem do controle antigo (A Viga dava "falhou" ao P2 que voltou) e A Prova contava como recusa do SDL a saída mandada com o cabo fora. Agora ninguém sai com "falhou" por perder o cabo |
-| o Steam Deck | 1280×800 a 60 quadros, com os DualSense pelo Bluetooth ou pelo dock |
-| o inglês | as telas e o README em inglês, com o português como padrão |
+| o Steam Deck | 1280×800 a 60 quadros, com os DualSense pelo Bluetooth ou pelo dock — **feito em parte**: as fotos a 1280×800 mostraram as telas inteiras (o `expand` dá conta) e o 3D cortando as raias da ponta; em telas mais estreitas que 16:9, a câmera agora guarda a largura. Os 60 quadros e os controles pelo dock pedem o aparelho |
+| o inglês | as telas e o README em inglês, com o português como padrão — **feito**: todo texto das telas passa por `Traducoes` (a frase exata, ou um padrão com os números); a lista saiu de uma coleta do que as telas desenham jogando todas as salas; **Idioma** nas opções, `FORJA_IDIOMA=en` para as fotos; o `README.en.md`. O porquê de cada veredito e o relatório vêm do núcleo em C e ficam em português |
 | a distribuição | um AppImage ou Flatpak no Linux, e os pacotes da exportação como release no GitHub a cada tag — **feito**: `scripts/exportar.sh appimage` (o appimagetool 1.9.0 por sha256, o runtime tirado dele mesmo); a prova da exportação joga a Prova de Fogo no AppImage e confere a mesma matriz do binário; a cada tag, o job `release` publica o `.tar.gz`, o `.zip` e o AppImage. Os pacotes levam `LICENCAS.txt` (o `LICENCAS-DE-TERCEIROS.md` e os avisos do Godot tirados do binário) |
 | as telas no CI | as fotos que o `testes/captura_jogo.gd` já tira, comparadas com as da versão anterior — **feito**: o job `telas` fotografa nove telas (`tests/telas.sh`), compara com as da versão anterior do branch (o cache) e deixa as pranchas de diferença e de daltonismo como artefato; relata, não reprova (o 3D por software varia entre máquinas) |
 

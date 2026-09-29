@@ -888,7 +888,26 @@ func _pose_da_camera() -> Array:
 	return [c + Vector3(0, dist * 0.92, dist * 0.7), c + Vector3(0, 0.6, -3.2)]
 
 
+## As salas são desenhadas para 16:9. Numa tela mais estreita (o Steam Deck,
+## 16:10), a câmera guarda a largura em vez da altura: as quatro raias
+## continuam inteiras, e sobra chão em cima e embaixo.
+const FOV_16_9 := 40.0
+
+
+func _enquadrar() -> void:
+	var tam := get_viewport().get_visible_rect().size
+	if tam.y <= 0.0:
+		return
+	if tam.x / tam.y < 16.0 / 9.0 - 0.01:
+		camera.keep_aspect = Camera3D.KEEP_WIDTH
+		camera.fov = rad_to_deg(2.0 * atan(tan(deg_to_rad(FOV_16_9) * 0.5) * 16.0 / 9.0))
+	else:
+		camera.keep_aspect = Camera3D.KEEP_HEIGHT
+		camera.fov = FOV_16_9
+
+
 func _mover_camera(dt: float) -> void:
+	_enquadrar()
 	var pose := _pose_da_camera()
 	var k := minf(1.0, dt * (1.2 if estado == "titulo" else 4.0))
 	_cam_pos = _cam_pos.lerp(pose[0], k)

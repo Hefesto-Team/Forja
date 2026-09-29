@@ -29,6 +29,7 @@ func abrir(lugar: int) -> void:
 		["flashes", "Flashes", "sessao"],
 		["tela_cheia", "Tela", "sessao"],
 		["texto", "Texto", "sessao"],
+		["idioma", "Idioma", "sessao"],
 	]
 
 
@@ -57,6 +58,8 @@ func trocar(dx: int) -> void:
 			Opcoes.tela_cheia = not Opcoes.tela_cheia
 		"texto":
 			Opcoes.texto = wrapi(Opcoes.texto + dx, 0, Opcoes.TEXTO.size())
+		"idioma":
+			Opcoes.idioma = wrapi(Opcoes.idioma + dx, 0, Opcoes.IDIOMAS.size())
 	mudou.emit(chave)
 
 
@@ -70,6 +73,7 @@ func valor(chave: String) -> String:
 		"flashes": return "ligados" if Opcoes.flashes else "desligados"
 		"tela_cheia": return "tela cheia" if Opcoes.tela_cheia else "janela"
 		"texto": return Opcoes.TEXTO[Opcoes.texto]
+		"idioma": return Opcoes.NOMES_DOS_IDIOMAS[Opcoes.idioma]
 	return ""
 
 

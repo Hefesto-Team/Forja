@@ -46,6 +46,8 @@ func _ready() -> void:
 			roteiro = _roteiro_da_partida()
 		"extras":
 			roteiro = _roteiro_dos_extras()
+		"trailer":
+			roteiro = _roteiro_do_trailer()
 		_:
 			roteiro = _roteiro_das_telas()
 	if pedidas != "":
@@ -221,6 +223,26 @@ func _roteiro_da_partida() -> Array:
 	return r
 
 
+## O trailer de 60 s (scripts/trailer.sh grava com o --write-movie): o título,
+## o lobby, as salas com o robô jogando — A Galeria, O Impacto, A Viga, O
+## Molde, A Prova —, o pódio e os créditos. Os tempos são em quadros (60 por
+## segundo).
+func _roteiro_do_trailer() -> Array:
+	var r: Array = [
+		["espera", 200],
+		["aperta", 0, Forja.CRUZ], ["espera", 30],
+		["aperta", 0, Forja.CRUZ], ["aperta", 1, Forja.CRUZ], ["aperta", 2, Forja.CRUZ], ["aperta", 3, Forja.CRUZ],
+		["espera", 60], ["aperta", 1, Forja.DIREITA], ["aperta", 2, Forja.BAIXO], ["espera", 50],
+		["aperta", 0, Forja.CRUZ], ["aperta", 1, Forja.CRUZ], ["aperta", 2, Forja.CRUZ], ["aperta", 3, Forja.CRUZ],
+		["espera", 150],
+	]
+	# cada sala: o aviso com o gesto, e o jogo andando (o robô joga)
+	for s in [["galeria", 520], ["impacto", 520], ["viga", 460], ["molde", 400], ["prova", 700]]:
+		r.append_array([["sala_cortina", s[0]], ["espera", 110 + int(s[1])]])
+	r.append_array([["podio_de_mentira"], ["espera", 300], ["creditos"], ["espera", 200], ["fim"]])
+	return r
+
+
 ## O título com os créditos, e as opções pelo lobby (△ de quem não está pronto).
 func _roteiro_dos_extras() -> Array:
 	return [
@@ -325,6 +347,20 @@ func _rodar() -> void:
 				jogo._entrar_na_sala(p[1], false)
 			"termina":
 				jogo.sala.terminar()
+			"sala_cortina":
+				jogo._entrar_na_sala(p[1], true)
+			"podio_de_mentira":
+				# uma noite de três salas, para o pódio do trailer
+				var pa := Partida.nova(3, false, 7, jogo.ORDEM_DO_FOGO)
+				pa.registrar("galeria", [40, 90, 60, 20], [0, 1, 2, 3])
+				pa.registrar("impacto", [70, 80, 30, 50], [0, 1, 2, 3])
+				pa.registrar("prova", [30, 100, 90, 10], [0, 1, 2, 3])
+				jogo.partida = pa
+				jogo._trocar(jogo._ir_para_o_podio)
+			"creditos":
+				jogo.placar.visible = false
+				jogo.estado = "titulo"
+				jogo._abrir_overlay("creditos", 0)
 			"fim":
 				get_tree().quit()
 				return

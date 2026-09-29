@@ -435,7 +435,7 @@ func _mostrar(p: ForjaPlayer, dt: float) -> void:
 	var placa: Label3D = nos.placa
 	placa.visible = fase == "jogo" and int(e.estado) == TREINO
 	if placa.visible:
-		placa.text = NOME_CHAO[int(e.treino)]
+		placa.text = Traducoes.traduzir(NOME_CHAO[int(e.treino)])
 		placa.modulate = COR_CHAO[int(e.treino)].lightened(0.35)
 	var aviso: Label3D = nos.aviso
 	aviso.visible = e.trop_aberto

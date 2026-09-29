@@ -240,7 +240,29 @@ func terminar() -> void:
 	Forja.evento("sala", 0, {"sala": id, "evento": "jogo_terminou"})
 	Forja.gravar_relatorio()
 	Som.tocar("sucesso")
+	_reagir_ao_veredito()
 	ao_terminar()
+
+
+## Mostrar, não contar: os bonecos reagem ao veredito. Quem passou em tudo
+## comemora, quem teve algo falho balança a cabeça; quem fez mais pontos na
+## sala ganha as faíscas na cor do lugar.
+func _reagir_ao_veredito() -> void:
+	var melhor := 0
+	for p in jogadores:
+		if jogando[p.lugar]:
+			melhor = maxi(melhor, int(pontos[p.lugar]))
+	for p in jogadores:
+		var l: int = p.lugar
+		if not jogando[l] or not is_instance_valid(p):
+			continue
+		var falhou := false
+		for v in vereditos.get(l, []):
+			if int(v.get("resultado", 0)) == Forja.FALHOU:
+				falhou = true
+		p.gesto("emote-no" if falhou else "emote-yes", 1.4)
+		if melhor > 0 and int(pontos[l]) == melhor:
+			Efeitos.faiscas(self, p.global_position + Vector3(0, 2.2, 0), Forja.cor_do_lugar(l), 40, 1.3)
 
 
 ## O recurso desligado nas opções do lugar (a vibração em 0%, o gatilho
