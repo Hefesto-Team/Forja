@@ -16,7 +16,8 @@ var fase := "aviso"
 var t_fase := 0.0
 ## O tempo da sala, em segundos (0: sem limite).
 var duracao := 90.0
-## A frase do aviso: o que fazer, com um verbo.
+## As regras por extenso, para quem desenha a sala (o docs/SALAS.md). A tela
+## não as mostra: o aviso diz o verbo (`acao`) e a sala ensina jogando.
 var objetivo := ""
 ## As features que a sala mede (chaves do catálogo), na ordem do veredito.
 var features: Array = []
@@ -267,12 +268,7 @@ func dica(_lugar: int) -> Dictionary:
 	return {}
 
 
-## Com menos de quatro, o que muda na sala, numa frase para o aviso (vazio com
-## os quatro). As salas que mudam de verdade (A Prova, O Canto) dizem o delas.
+## Com menos de quatro, o que muda na sala, em poucas palavras para o selo do
+## aviso (vazio quando nada muda). Só as salas que mudam dizem o delas.
 func com_poucos() -> String:
-	var n := jogadores.size()
-	if n >= 4:
-		return ""
-	if n == 1:
-		return "Sozinho: a sala é a mesma, só a sua raia."
-	return "Com %d: a sala é a mesma, uma raia para cada um." % n
+	return ""

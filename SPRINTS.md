@@ -232,6 +232,22 @@ Hoje cada sala dá vereditos; um jogo de festa também dá um vencedor.
 **Pronto quando:** quatro pessoas jogam uma partida de cinco salas, do lobby
 ao pódio, sem ninguém explicar nada — e pedem outra.
 
+### Mostrar, não contar — 28/09/2026
+
+O aviso de cada sala era um parágrafo (de 150 a 530 caracteres) antes de
+jogar, contra a regra 1 do [estudo 04](docs/estudos/04-minimalismo-e-o-dualsense-nos-jogos.md)
+("no máximo 3 coisas novas por sala, porque texto longo não é lido"). Agora o
+aviso mostra o nome, o verbo numa linha e os glifos do que se sente na mão; o
+que muda com menos de quatro é um selo, não uma frase. As regras por extenso
+ficam no código (`objetivo`) e no [SALAS](docs/SALAS.md); na tela, a sala
+ensina jogando, pelas dicas curtas na raia de cada um.
+
+| falta | detalhe |
+| --- | --- |
+| o boneco mostra | no aviso, o boneco de cada um repete o gesto da sala (o Astro faz assim: a bola rola, o zíper abre) e o controle dá uma amostra do que vem — fora das provas às cegas |
+| a primeira rodada ensina | a primeira runa, o primeiro alvo, o primeiro golpe valem sem pressa e sem ponto; a dica some quando a pessoa acertou uma vez |
+| o veredito enxuto | ✓ ou ✗ grande por feature; o que foi medido só no que falhou (o resto fica no livro) |
+
 ### Sprint C — conforto e acessibilidade
 
 Os estudos [02](docs/estudos/02-manuais-de-ui-e-ux.md) e

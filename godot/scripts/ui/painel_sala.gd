@@ -35,15 +35,11 @@ func _draw() -> void:
 func _aviso() -> void:
 	draw_rect(Rect2(Vector2.ZERO, size), Color(Tema.CASA, 0.55))
 	var larg := 1120.0
-	var fo := Tema.fonte(400)
-	var objetivo := str(sala.objetivo)
-	var alt_obj := Desenho.altura_paragrafo(objetivo, fo, Tema.T_CORPO, larg - 96)
-	# com menos de quatro, a sala diz o que muda, logo depois do objetivo
+	# mostrar, não contar: o nome, o verbo numa linha e o que se sente na mão
+	# (os glifos). O resto a sala ensina jogando, pelas dicas curtas na raia.
 	var poucos := str(sala.com_poucos())
-	var fp := Tema.fonte(500)
-	var alt_poucos := Desenho.altura_paragrafo(poucos, fp, Tema.T_ROTULO, larg - 96) + 16.0 if poucos != "" else 0.0
 	var papel: int = sala.papel_som
-	var alt := 420.0 + alt_obj + alt_poucos + (104.0 if papel >= 0 else 0.0)
+	var alt := 410.0 + (40.0 if poucos != "" else 0.0) + (104.0 if papel >= 0 else 0.0)
 	var r := Rect2(Vector2((size.x - larg) * 0.5, (size.y - alt) * 0.5 - 10), Vector2(larg, alt))
 	Desenho.moldura(self, r, Color(Tema.PAINEL, 0.97), Tema.LINHA, 2, Tema.RAIO_QUADRO)
 	var x := r.position.x + 48
@@ -51,13 +47,13 @@ func _aviso() -> void:
 	if str(sala.na_prova_de_fogo) != "":
 		Desenho.texto(self, Vector2(x + Desenho.largura(str(sala.nome), Tema.fonte(700), Tema.T_TITULO) + 28, r.position.y + 88),
 			str(sala.na_prova_de_fogo), Tema.fonte(600), Tema.T_SELO, Tema.LARANJA)
-	Desenho.paragrafo(self, Vector2(x, r.position.y + 150), objetivo, fo, Tema.T_CORPO, Tema.SUAVE, larg - 96)
+	Desenho.texto(self, Vector2(x, r.position.y + 156), str(sala.acao), Tema.fonte(500), Tema.T_SUBTITULO, Tema.ROSA,
+		HORIZONTAL_ALIGNMENT_LEFT, larg - 96)
+	# com menos de quatro, o que muda: um selo, não uma frase
 	if poucos != "":
-		Desenho.paragrafo(self, Vector2(x, r.position.y + 150 + alt_obj + 16), poucos, fp, Tema.T_ROTULO, Tema.CIANO, larg - 96)
+		Desenho.selo(self, Vector2(x, r.position.y + 180), poucos, Tema.CIANO, Tema.T_SELO)
 	# o que a sala prova: glifo e nome
-	var y := r.position.y + 150 + alt_obj + alt_poucos + 36
-	Desenho.texto(self, Vector2(x, y), "O que esta sala mede", Tema.fonte(600), Tema.T_SELO, Tema.ROXO)
-	y += 24
+	var y := r.position.y + 186 + (40.0 if poucos != "" else 0.0)
 	var fx := x
 	for f in sala.features:
 		var tex := Desenho.glifo(Desenho.GLIFO_DA_FEATURE.get(f, ""))

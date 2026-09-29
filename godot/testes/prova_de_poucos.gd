@@ -56,8 +56,10 @@ func _joga(id: String, n: int) -> void:
 	if not sala is SalaJogo or sala.id != id:
 		_esperar(false, "%s: a sala abriu" % id)
 		return
-	_esperar(sala.com_poucos() != "" if n < 4 else sala.com_poucos() == "",
-		"%s com %d: o aviso diz o que muda (%s)" % [id, n, sala.com_poucos()])
+	# só as salas que mudam dizem; A Prova sempre muda com menos de quatro
+	if id == "prova":
+		_esperar(sala.com_poucos() != "" if n < 4 else sala.com_poucos() == "",
+			"%s com %d: o selo diz o que muda (%s)" % [id, n, sala.com_poucos()])
 	var q := 0
 	while is_instance_valid(sala) and sala.fase != "fim" and q < 20000:
 		await _quadros(10)
