@@ -97,7 +97,8 @@ void provas_som(void) {
   m.voz = 0;
   m.piso = 0;
   v = med_mic_veredito(&m, true);
-  espera(v.resultado == RES_FALHOU && strstr(v.obs, "silêncio absoluto") != NULL, "só silêncio: mudo no sistema?");
+  espera(v.resultado == RES_NAO_MEDIDO && strstr(v.obs, "silêncio absoluto") != NULL,
+         "só silêncio absoluto: mudo no sistema, não medido (nunca falhou)");
   m.quadros = 0;
   espera(med_mic_veredito(&m, true).resultado == RES_FALHOU, "abriu e não chegou nada: falhou");
 

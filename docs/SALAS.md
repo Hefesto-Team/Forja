@@ -373,6 +373,20 @@ para a próxima, e no fim abre o livro da sessão. A pausa desiste e volta ao
 salão. `--prova-de-fogo` começa direto nela — é a rodada inteira da validação
 com uma sessão só, e com `--robo` o robô joga as nove.
 
+## Menos de quatro, e a sala sem o recurso
+
+Toda sala joga com 1, 2 ou 3 controles, e o aviso diz o que muda: A Prova vira
+dois contra um com um boneco de treino (três), um contra um (dois) ou você
+contra dois bonecos (sozinho); O Impacto, sozinho, não tem vizinho para medir o
+isolamento da vibração; O Canto dá mais cantos a cada controle. Faltar gente
+nunca é defeito: o que não dá para medir fica "não medido".
+
+A sala também segue sem o recurso. Com o microfone mudo no sistema (no
+silêncio do começo, nem o ambiente chega — silêncio absoluto), A Voz pula a
+vez dele no chamado, a HUD diz "microfone mudo", e o veredito do microfone
+fica "não medido", com o que fazer. Sem alto-falante achado para um controle,
+O Canto não canta nele: o dono só responde, e o veredito fica "não medido".
+
 ## A partida — o placar e o pódio
 
 Na bigorna do meio do salão, □ abre a partida: quem apertou escolhe o tamanho

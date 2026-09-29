@@ -233,6 +233,12 @@ func iniciar_jogo() -> void:
 	t_estado = 0.0
 
 
+## No silêncio, nem o ambiente chegou: o microfone está mudo no sistema. A
+## sala segue sem a voz dele (a vez passa) e o veredito fica "não medido".
+func _mudo_no_sistema(e: Dictionary) -> bool:
+	return e.tem and e.viu_piso and float(e.piso) <= 0.001
+
+
 func _conectado(l: int) -> bool:
 	return Forja.lugar(l).get("conectado", false)
 
@@ -241,7 +247,7 @@ func _conectado(l: int) -> bool:
 func _proxima_vez() -> int:
 	while i_vez < ordem.size():
 		var l: int = ordem[i_vez]
-		if _conectado(l) and j[l].tem:
+		if _conectado(l) and j[l].tem and not _mudo_no_sistema(j[l]):
 			return l
 		i_vez += 1
 	return -1
@@ -362,6 +368,10 @@ func jogar(dt: float) -> void:
 				for l in j:
 					if jogando[l] and j[l].viu_piso:
 						Forja.evento("jogo", l + 1, {"sala": id, "o": "silêncio", "piso": snappedf(float(j[l].piso), 0.01)})
+				for l in j:
+					if jogando[l] and _mudo_no_sistema(j[l]):
+						Forja.registrar("A Voz: o microfone do P%d está mudo no sistema; a vez dele passa" % (l + 1))
+						Forja.evento("jogo", l + 1, {"sala": id, "o": "mudo no sistema"})
 				estado = CHAMADO
 				t_estado = 0.0
 				i_vez = 0
@@ -527,6 +537,8 @@ func status(lugar: int) -> String:
 		SILENCIO:
 			return "silêncio"
 		CHAMADO:
+			if _mudo_no_sistema(e):
+				return "microfone mudo"
 			if vez == lugar:
 				return "chamou ✓" if e.chamou else "sua vez: chame!"
 			return "chamou ✓" if e.chamou else "quieto"
@@ -563,6 +575,8 @@ func dica(lugar: int) -> Dictionary:
 		SILENCIO:
 			return {"partes": ["silêncio: o guardião dorme"], "pos": pos}
 		CHAMADO:
+			if _mudo_no_sistema(e):
+				return {"partes": ["@mic", "mudo no sistema: a sua vez passa"], "pos": pos}
 			if vez == lugar:
 				return {"partes": ["fale alto: chame o guardião"], "pos": pos}
 			return {"partes": ["quieto: é a vez do P%d" % (vez + 1)], "pos": pos}
