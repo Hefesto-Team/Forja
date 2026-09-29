@@ -226,6 +226,10 @@ exportar() {
     tar -C "$DIST" -czf "$DIST/$nome.tar.gz" "$nome"
     diga "dist/$nome.tar.gz"
   else
+    # o ícone e a versão do FORJA no .exe (o Godot 4.4 pediria o rcedit)
+    local versao
+    versao="$(sed -n 's/^config\/version="\(.*\)"/\1/p' "$RAIZ/godot/project.godot")"
+    python3 "$RAIZ/scripts/icone_do_exe.py" "$saida/$exe" "$RAIZ/scripts/forja.ico" "$versao"
     (cd "$DIST" && rm -f "$nome.zip" && zip -q -r "$nome.zip" "$nome")
     diga "dist/$nome.zip"
   fi
