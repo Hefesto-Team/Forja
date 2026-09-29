@@ -134,6 +134,8 @@ void ForjaControles::robo_falar(int indice, float nivel, float s) {
 
 void ForjaControles::simulador_falar(int sim_, float nivel) { simulador_manual_fala(sim_, nivel); }
 
+bool ForjaControles::simulador_cabo(int sim_, bool ligado) { return ::simulador_cabo(sim_, ligado); }
+
 int ForjaControles::chao_do_envelope(const PackedFloat32Array &env) const {
   return chao_pelo_envelope(env.ptr(), (int)env.size());
 }

@@ -205,7 +205,8 @@ static func _tingir(n: Node, cor: Color) -> void:
 # Cada saída mandada na partida conta para a carga: o SDL aceitou?
 
 func _saida(l: int, ok: bool) -> void:
-	if l >= 0:
+	# com o cabo fora, a saída não chega a controle nenhum: não é o SDL recusando
+	if l >= 0 and Forja.lugar(l).get("conectado", false):
 		Forja.carga_saida(l, ok)
 
 

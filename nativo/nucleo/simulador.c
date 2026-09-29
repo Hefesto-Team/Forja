@@ -202,17 +202,14 @@ static void SDLCALL cb_indice(void *u, int indice) {
 
 /* ---------- vida ---------- */
 
-void simulador_iniciar(Forja *a, int n) {
-  (void)a;
-  SDL_memset(g_sim, 0, sizeof(g_sim));
-  g_n = n > MAX_SIM ? MAX_SIM : n;
-  g_robo = a->robo;
-  sorteio_semear(&g_sorteio, a->semente ^ 0x5151ull);
+/* Pendura o controle virtual `i` no SDL (na abertura, e de novo quando o
+ * cabo volta: o mesmo nome, a mesma assinatura — o jogo o devolve ao lugar). */
+static bool anexar(int i) {
   static SDL_VirtualJoystickTouchpadDesc toque = {2, {0, 0, 0}};
   static SDL_VirtualJoystickSensorDesc sensores[2] = {{SDL_SENSOR_GYRO, 250.0f}, {SDL_SENSOR_ACCEL, 250.0f}};
   static const char *nomes[MAX_SIM] = {"DualSense simulado 1", "DualSense simulado 2", "DualSense simulado 3",
                                        "DualSense simulado 4"};
-  for (int i = 0; i < g_n; i++) {
+  {
     Sim *s = &g_sim[i];
     SDL_VirtualJoystickDesc d;
     SDL_INIT_INTERFACE(&d);
@@ -241,11 +238,46 @@ void simulador_iniciar(Forja *a, int n) {
     s->perc.gatilho_dir[0] = s->perc.gatilho_esq[0] = 0x05;
     s->id = SDL_AttachVirtualJoystick(&d);
     if (!s->id)
-      continue;
+      return false;
     s->js = SDL_OpenJoystick(s->id);
     s->usado = true;
     s->fase = (float)i;
   }
+  return true;
+}
+
+void simulador_iniciar(Forja *a, int n) {
+  SDL_memset(g_sim, 0, sizeof(g_sim));
+  g_n = n > MAX_SIM ? MAX_SIM : n;
+  g_robo = a->robo;
+  sorteio_semear(&g_sorteio, a->semente ^ 0x5151ull);
+  for (int i = 0; i < g_n; i++)
+    anexar(i);
+}
+
+/* O cabo do controle simulado `sim`: false tira (o SDL vê o controle sair),
+ * true põe de volta. É a prova do "controle que cai" sem aparelho. */
+bool simulador_cabo(int sim, bool ligado) {
+  if (sim < 0 || sim >= g_n)
+    return false;
+  Sim *s = &g_sim[sim];
+  if (!ligado) {
+    if (!s->usado)
+      return false;
+    if (s->js)
+      SDL_CloseJoystick(s->js);
+    SDL_DetachVirtualJoystick(s->id);
+    s->js = NULL;
+    s->id = 0;
+    s->usado = false;
+    return true;
+  }
+  if (s->usado)
+    return false;
+  Percepcao limpa;
+  SDL_memset(&limpa, 0, sizeof(limpa));
+  s->perc = limpa;
+  return anexar(sim);
 }
 
 void simulador_encerrar(Forja *a) {

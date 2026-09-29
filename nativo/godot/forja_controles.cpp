@@ -705,6 +705,7 @@ void ForjaControles::_bind_methods() {
   METODO(som_virtual, "lugar");
   METODO(robo_falar, "indice", "nivel", "segundos");
   METODO(simulador_falar, "sim", "nivel");
+  METODO(simulador_cabo, "sim", "ligado");
   METODO(chao_do_envelope, "envelope");
   METODO(mic_veredito, "lugar", "chave", "dados");
   METODO(som_escutar, "lugar", "segundos");

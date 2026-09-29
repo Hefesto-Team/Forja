@@ -102,6 +102,8 @@ void simulador_manual_dedo(int sim, int dedo, bool baixo, float x, float y);
 void simulador_manual_fala(int sim, float nivel);
 void simulador_manual_sacode(int sim, float g);
 bool simulador_ativo(void);
+/* O cabo de um controle simulado: false tira, true põe de volta. */
+bool simulador_cabo(int sim, bool ligado);
 /* A percepção do controle simulado com esse id (NULL se não é simulado). */
 const Percepcao *simulador_percepcao(SDL_JoystickID id);
 int simulador_selecionado(void);
