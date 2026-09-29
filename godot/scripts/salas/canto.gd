@@ -246,9 +246,15 @@ func iniciar_jogo() -> void:
 			n_jog += 1
 	var cada := 3 if n_jog <= 1 else 2
 	for p in jogadores:
-		if jogando[p.lugar]:
-			fontes.append(p.lugar)
-			vezes.append(cada)
+		if not jogando[p.lugar]:
+			continue
+		if not Forja.som_tem(p.lugar, F.PAPEL_ALTO_FALANTE):
+			# sem alto-falante achado, o controle não canta: ele só responde, e o
+			# veredito dele fica "não medido"
+			Forja.registrar("O Canto: sem alto-falante achado no P%d; ele só responde" % (p.lugar + 1))
+			continue
+		fontes.append(p.lugar)
+		vezes.append(cada)
 	fontes.append(TV)
 	vezes.append(3 if n_jog <= 1 else 2)
 	plano = Forja.cega_plano_fontes(fontes, vezes, rng.randi())
@@ -583,3 +589,10 @@ func _robo(l: int, e: Dictionary, dt: float) -> void:
 			if t_estado >= quando:
 				Forja.robo_apertar(l, F.CRUZ, 0.06)
 				e.robo_toque = k + 1
+
+
+func com_poucos() -> String:
+	match jogadores.size():
+		1: return "Sozinho: três cantos no seu controle e três na TV."
+		2, 3: return "Com %d: dois cantos em cada controle e dois na TV." % jogadores.size()
+	return ""

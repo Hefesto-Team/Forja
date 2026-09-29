@@ -15,6 +15,9 @@
 
 #include <SDL3/SDL.h>
 
+/* O nível do microfone simulado numa sala quieta (na escala da tela, ~-48 dB). */
+#define SIM_PISO_DA_SALA 0.12f
+
 struct Forja;
 
 typedef struct Percepcao {

@@ -265,3 +265,14 @@ func progresso() -> String:
 ## mundo onde ela fica (o painel projeta na tela). Vazio: sem dica.
 func dica(_lugar: int) -> Dictionary:
 	return {}
+
+
+## Com menos de quatro, o que muda na sala, numa frase para o aviso (vazio com
+## os quatro). As salas que mudam de verdade (A Prova, O Canto) dizem o delas.
+func com_poucos() -> String:
+	var n := jogadores.size()
+	if n >= 4:
+		return ""
+	if n == 1:
+		return "Sozinho: a sala é a mesma, só a sua raia."
+	return "Com %d: a sala é a mesma, uma raia para cada um." % n

@@ -71,6 +71,9 @@ jobs:
       - name: A prova do jogo (quatro DualSense simulados, headless)
         run: bash tests/prova_do_jogo.sh
 
+      - name: A prova de poucos (as salas com 1, 2 e 3 controles, e o microfone mudo)
+        run: bash tests/prova_de_poucos.sh
+
       - name: A prova da bancada (os experimentos do experimental/, sem aparelho)
         run: bash tests/prova_da_bancada.sh
 

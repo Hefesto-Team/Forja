@@ -371,7 +371,9 @@ void robo_falar(Forja *a, int pad, float nivel, float seg) {
 float simulador_fala(SDL_JoystickID id) {
   for (int i = 0; i < g_n; i++)
     if (g_sim[i].usado && g_sim[i].id == id) {
-      float robo = g_t_sim < g_sim[i].fala_ate ? g_sim[i].fala : 0;
+      /* uma sala quieta não é silêncio absoluto: o microfone de verdade sempre
+       * ouve o ambiente (SIM_PISO_DA_SALA); silêncio absoluto é o mudo do sistema */
+      float robo = g_t_sim < g_sim[i].fala_ate ? g_sim[i].fala : SIM_PISO_DA_SALA;
       return robo > g_sim[i].fala_tecla ? robo : g_sim[i].fala_tecla;
     }
   return 0;

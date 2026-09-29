@@ -292,6 +292,7 @@ exporta o jogo e deixa os módulos e os pacotes como artefatos.
 
 ```sh
 bash tests/prova_do_jogo.sh     # o jogo headless com quatro DualSense simulados
+bash tests/prova_de_poucos.sh   # as nove salas com 1, 2 e 3 controles, e o microfone mudo
 scripts/gauntlet.sh             # a mesma prova, e de novo com cada defeito de mentira: tem de falhar
 bash tests/prova_da_bancada.sh  # os experimentos do experimental/, sem aparelho
 make test                       # as ferramentas de bancada e o empacotador

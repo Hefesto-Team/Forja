@@ -587,13 +587,15 @@ Veredito med_mic_veredito(const MedMic *m, bool mexeu) {
   }
   if (m->voz - piso >= MED_VOZ_ACIMA) {
     v.resultado = RES_PASSOU;
+  } else if (m->voz <= 0.001f) {
+    /* nem o ambiente chegou: o microfone está mudo no sistema. Não é defeito
+     * do controle, e a sala seguiu sem a voz dele */
+    snprintf(v.obs, sizeof(v.obs), "não medido: o microfone só mandou silêncio absoluto (mudo no sistema); "
+             "tire o mudo e jogue a sala de novo");
   } else if (mexeu) {
     v.resultado = RES_FALHOU;
-    if (m->voz <= 0.001f)
-      snprintf(v.obs, sizeof(v.obs), "o microfone só manda silêncio absoluto (mudo no sistema?)");
-    else
-      snprintf(v.obs, sizeof(v.obs), "a voz não subiu o bastante acima do silêncio (o mínimo é %s dB)",
-               dec(MED_VOZ_ACIMA * 54, 0));
+    snprintf(v.obs, sizeof(v.obs), "a voz não subiu o bastante acima do silêncio (o mínimo é %s dB)",
+             dec(MED_VOZ_ACIMA * 54, 0));
   } else {
     snprintf(v.obs, sizeof(v.obs), "não medido: o controle não mexeu nesta sala");
   }

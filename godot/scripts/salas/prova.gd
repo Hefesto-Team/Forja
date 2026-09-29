@@ -873,3 +873,11 @@ func _robo(i: int, dt: float) -> void:
 		Forja.robo_apertar(l, F.TOUCHPAD, 0.08)
 	elif rng.randf() < 0.004:
 		Forja.robo_apertar(l, F.CRUZ, 0.08)
+
+
+func com_poucos() -> String:
+	match jogadores.size():
+		1: return "Sozinho: você contra dois bonecos de treino."
+		2: return "Com 2: um contra um."
+		3: return "Com 3: dois contra um, e um boneco de treino do lado de quem está só."
+	return ""
