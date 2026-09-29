@@ -98,15 +98,16 @@ func _sons() -> void:
 		Som.tocar("placar" if _virada else "confirma")
 
 
-## A frase do pódio: "P2 venceu a noite", ou quem divide o primeiro degrau.
+## A frase do pódio: "P2 venceu a noite" — e, se foi no desempate, o que
+## decidiu. Alguém sempre ganha.
 static func frase_do_vencedor(lista: Array) -> String:
-	var primeiros: PackedStringArray = []
-	for e in lista:
-		if int(e.degrau) == 1:
-			primeiros.append("P%d" % (int(e.lugar) + 1))
-	if primeiros.size() == 1:
-		return "%s venceu a noite" % primeiros[0]
-	return "%s dividem a noite" % " e ".join(primeiros)
+	if lista.is_empty():
+		return ""
+	var frase := "P%d venceu a noite" % (int(lista[0].lugar) + 1)
+	var criterio := str(lista[0].get("criterio", ""))
+	if criterio != "":
+		frase += " · desempate: " + criterio
+	return frase
 
 
 static func _suave(k: float) -> float:

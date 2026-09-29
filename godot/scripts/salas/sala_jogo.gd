@@ -55,13 +55,15 @@ var papel_som := -1
 var sfx_no_controle := true
 ## A rodada de treino: o jogo começa valendo nada. Os acertos ensinam (a dica
 ## segue cheia) e não somam, o erro não tira; acaba quando cada um acertou
-## uma vez, ou em TREINO_MAX s — e aí "Valendo!". O relógio da sala devolve o
+## TREINO_ACERTOS vezes, ou em TREINO_MAX s — e aí "Valendo!". O relógio da sala devolve o
 ## tempo do treino. As medidas seguem contando: uma tentativa de treino também
 ## é uma tentativa honesta do controle. false: a sala tem o treino dela.
 var com_treino := true
 var treinando := false
 var valendo_t := 0.0  ## o "Valendo!" na tela (s que faltam)
 var _treino_ok := [false, false, false, false]
+var _treino_acertos := [0, 0, 0, 0]
+const TREINO_ACERTOS := 3  ## quantos acertos cada um faz no treino
 const TREINO_MAX := 15.0
 ## Na Prova de Fogo: "Prova de Fogo · sala 3 de 9" (vazio fora dela), e o que
 ## o ✕ do veredito faz.
@@ -275,6 +277,7 @@ func comecar() -> void:
 	t_fase = 0.0
 	treinando = com_treino
 	_treino_ok = [false, false, false, false]
+	_treino_acertos = [0, 0, 0, 0]
 	for p in jogadores:
 		jogando[p.lugar] = true
 		Forja.med_repouso(p.lugar, false)
@@ -393,15 +396,18 @@ func marcar(lugar: int, n: int) -> void:
 	if treinando:
 		# no treino, nada soma nem tira: o acerto só ensina
 		if n > 0 and not _treino_ok[lugar]:
-			_treino_ok[lugar] = true
+			_treino_acertos[lugar] += 1
+			acertos[lugar] += 1
 			Som.tocar("seleciona")
+			if _treino_acertos[lugar] >= TREINO_ACERTOS:
+				_treino_ok[lugar] = true
 		return
 	pontos[lugar] += n
 	if n > 0:
 		acertos[lugar] += 1
 
 
-## O treino acaba quando cada um acertou uma vez (ou no tempo máximo).
+## O treino acaba quando cada um acertou TREINO_ACERTOS vezes (ou no tempo máximo).
 func _quadro_treino() -> void:
 	var todos := true
 	for p in jogadores:

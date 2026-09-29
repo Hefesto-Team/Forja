@@ -27,7 +27,7 @@ Steam Deck).
 | 16 | captura passada por protanopia, deuteranopia e tritanopia | ok — `scripts/daltonismo.gd` faz a prancha das quatro versões; ele achou o "P2" vermelho quase sumindo no painel sob protanopia, e a cor do lugar agora é clareada até ter 3:1 nas quatro visões (`Tema.tom_para_a_borda`) |
 | 17 | veredito com ícone, palavra e cor; não medido com forma própria | ok — "✓ PASSOU", "✗ FALHOU", "— NÃO MEDIDO" |
 | 18 | aviso: objetivo numa frase e até 3 ícones | ok — o verbo numa linha e os glifos (A Galeria tem 4 features: um além) |
-| 19 | aviso com treino que não conta pontos | parcial — Os Caminhos têm o treino; nas outras, o ritmo "primeira vez" dá mais tempo, e a rodada de graça ainda falta |
+| 19 | aviso com treino que não conta pontos | ok — toda sala começa em treino (três acertos de cada um, ou 15 s, sem ponto); Os Caminhos têm o treino deles |
 | 20 | aviso sem relógio, mostrando quem falta | ok — "aguardando" / "✓ pronto" por lugar |
 | 21 | aviso pulável a partir da segunda vez | ok — ✕ sai do aviso a qualquer momento depois de meio segundo |
 | 22 | fim avança só por botão | ok — ✕ (o robô das provas avança sozinho) |

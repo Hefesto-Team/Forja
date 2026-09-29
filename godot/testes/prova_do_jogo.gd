@@ -460,13 +460,25 @@ func _prova_das_contas_da_partida() -> void:
 	var e := p.registrar("centelha", [300, 100, 300, 0], [0, 1, 2, 3])
 	_esperar(e.ganhos == [4, 2, 4, 1], "partida: 1º 4, 3º 2, 4º 1, e o empate em primeiro dá 4 aos dois")
 	p.registrar("galeria", [0, 10, 20, 30], [0, 1, 2, 3])
-	# P1 4+1=5, P2 2+2=4, P3 4+3=7, P4 1+4=5: P3 primeiro; P1 e P4 empatam em 5,
-	# e P1 venceu uma sala (P4 também): dividem o 2º
+	# P1 4+1=5, P2 2+2=4, P3 4+3=7, P4 1+4=5: P3 primeiro; P1 e P4 empatam em 5
+	# e numa sala vencida cada: a última sala desempata (P4 1º, P1 4º)
 	var podio := p.podio([0, 1, 2, 3])
 	_esperar(int(podio[0].lugar) == 2 and int(podio[0].degrau) == 1, "partida: P3 no topo do pódio")
-	_esperar(int(podio[1].degrau) == 2 and int(podio[2].degrau) == 2 and int(podio[3].lugar) == 1 and int(podio[3].degrau) == 4,
-		"partida: o empate em pontos e em salas vencidas divide o degrau")
+	_esperar(int(podio[1].lugar) == 3 and int(podio[2].lugar) == 0 and str(podio[1].criterio) == "a última sala",
+		"partida: o empate em pontos e em salas vencidas, a última sala desempata")
+	var degraus := {}
+	for item in podio:
+		degraus[int(item.degrau)] = true
+	_esperar(degraus.size() == 4, "partida: nenhum degrau dividido — alguém sempre ganha")
 	_esperar(Placar.frase_do_vencedor(podio) == "P3 venceu a noite", "partida: a frase do pódio")
+	# o empate total (mesmos pontos, nenhuma sala vencida a mais, as mesmas
+	# colocações): o sorteio da semente decide, e decide igual sempre
+	var q := Partida.nova(3, false, 7, ordem)
+	q.registrar("centelha", [10, 10, 10, 10], [0, 1, 2, 3])
+	var pq := q.podio([0, 1, 2, 3])
+	_esperar(str(pq[0].criterio) == "o sorteio" and Placar.frase_do_vencedor(pq).ends_with("desempate: o sorteio"),
+		"partida: o empate de todos, o sorteio decide (%s)" % Placar.frase_do_vencedor(pq))
+	_esperar(int(q.podio([0, 1, 2, 3])[0].lugar) == int(pq[0].lugar), "partida: o sorteio é o mesmo a cada consulta")
 	p.registrar("prova", [0, 0, 0, 0], [0, 1, 2, 3])
 	_esperar(p.acabou(), "partida: acabou depois da terceira sala")
 
