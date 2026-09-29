@@ -1,8 +1,8 @@
 # Rodar FORJA na sua máquina
 
 O jogo é o FORJA em 3D (Godot 4.4 com o módulo nativo): como compilar, rodar
-no Linux, rodar o `.exe` pelo Proton e validar com quatro DualSense está no
-[README](README.md). Este arquivo cobre as ferramentas de bancada
+no Linux e exportar está em [docs/DESENVOLVER.md](docs/DESENVOLVER.md); rodar o
+`.exe` pelo Proton e validar com quatro DualSense, em [docs/VALIDAR.md](docs/VALIDAR.md). Este arquivo cobre as ferramentas de bancada
 (`forja-send`, `forja-speak`, `forja-read`) — o mesmo empacotador USB `0x02`
 do jogo, para mandar um efeito a um controle sem abrir o jogo.
 
@@ -51,7 +51,7 @@ make test-jogo    # o jogo headless com quatro DualSense simulados (tests/prova_
 ```
 
 As provas do jogo inteiro (o gauntlet, a bancada e a exportação) estão no
-[README](README.md#as-provas-sem-aparelho).
+[docs/DESENVOLVER.md](docs/DESENVOLVER.md#as-provas-sem-aparelho).
 
 ## Permissão hidraw
 
@@ -78,5 +78,5 @@ Play. Sem o módulo, o jogo abre só com o teclado e diz isso na tela.
 
 No Windows, o jogo é o `.exe` exportado, com a DLL do módulo ao lado: o SDL
 fala o DualSense ali como no Linux, e o som de cada controle se acha pelo
-WASAPI (ver o [README](README.md#rodar-o-exe-pelo-proton)). As ferramentas
+WASAPI (ver o [docs/VALIDAR.md](docs/VALIDAR.md#rodar-o-exe-pelo-proton)). As ferramentas
 de bancada são só Linux (o hidraw). O macOS não tem módulo nem exportação.

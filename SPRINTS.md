@@ -1,12 +1,38 @@
-# FORJA — sprints (plano, não execução)
+# Forja — onde estamos e o que falta
 
-**Repo:** [Hefesto-Team/Forja](https://github.com/Hefesto-Team/Forja) · `main` com os seis marcos do jogo 3D (28/09/2026)\
-**O que está no GitHub hoje:** o jogo 3D em Godot 4.4 com o módulo nativo (SDL3), as nove salas, a Prova de Fogo, o relatório da sessão, as provas sem aparelho e a exportação (o binário Linux e o `.exe`).\
+**Hoje (29/09/2026):** o Forja é um jogo de festa completo para até quatro
+DualSense — nove salas, a partida de 3, 5 ou 9 salas com treino, placar e
+pódio, música e efeitos, opções de conforto, português e inglês, e pacotes
+para Linux (AppImage e `.tar.gz`) e Windows. Tudo provado sem aparelho a cada
+push. O que ainda não foi provado é o que só a mesa prova.
+
 **Contrato:** o jogo fala Sony/Steam no cabo. Não fala Hefesto. Sem relatório `0x31`.
 
-Este arquivo é backlog. Não começa trabalho sozinho. O plano de 13/09 (os
-sprints 0 a 5) fica abaixo como foi escrito; onde ele chegou está nas tabelas
-do fim, e o que falta, no backlog de 28/09.
+## O próximo passo: a noite de teste
+
+Quatro pessoas, quatro DualSense, uma partida de cinco salas do lobby ao
+pódio — e duas perguntas: **o controle fez o que o jogo pediu?** (o relatório
+responde, [docs/VALIDAR.md](docs/VALIDAR.md)) e **foi divertido, e querem
+outra?** (as pessoas respondem). É o Sprint A, logo abaixo, e é por ele que o
+resto se decide.
+
+## O que ainda falta
+
+| o quê | por quê | quem destrava |
+| --- | --- | --- |
+| o Sprint A inteiro: a rodada no cabo e no rádio, o som de cada controle de verdade, a bancada com aparelho, o `.exe` pela Steam | as provas rodam contra controles simulados; o juiz é a mesa | a noite de teste |
+| ouvir os efeitos | foram escolhidos pelo nome, sem escuta | uma partida com som |
+| a TV de 40" a 3 m e o Steam Deck de verdade | o tamanho do texto e os 60 quadros só se veem no aparelho | a noite de teste |
+| o ícone do `.exe` | pede o rcedit rodando pelo Wine na exportação | uma tarde |
+| os selos e rótulos abaixo de 30 px, o giro do título que não desliga, o livro a 80 colunas | os parciais do [checklist](docs/CHECKLIST-DO-ESTUDO-02.md) | uma tarde |
+| variações de conteúdo por sala (quantos alvos, outra arena) | hoje a variação é o ritmo | depois da noite de teste, se pedirem |
+
+## Como este arquivo se lê
+
+Daqui para baixo é o histórico, como foi escrito: o plano de 13/09 (os
+sprints 0 a 5), onde ele chegou, o backlog de 28/09 (os sprints A a E) com o
+que cada item virou, e o que ficou de fora de propósito. Este arquivo é
+backlog: não começa trabalho sozinho.
 
 Fonte de verdade das features: coluna **cabo** do `html/specs.html` (branch `dev` do hefesto-dualsense4unix). Cada modo abaixo cita a `chave` do mapa.
 
