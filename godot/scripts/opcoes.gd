@@ -2,7 +2,7 @@ class_name Opcoes
 extends RefCounted
 ## As opções de conforto (o estudo 04, regra 11; o GT7 e a XAG 110): por
 ## lugar, o gatilho (desligado, fraco, forte) e a vibração (0 a 100%); da
-## sessão, o volume da TV e o do alto-falante do controle, o tremor da câmera,
+## sessão, o volume da TV e o do alto-falante do controle, o movimento da câmera (o tremor e o giro do título),
 ## os flashes, tela cheia ou janela e o tamanho do texto.
 ##
 ## Guardadas em user://opcoes.cfg — por máquina, nunca por aparelho (o lugar

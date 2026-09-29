@@ -172,7 +172,7 @@ const EN := {
 	"Vibração": "Rumble",
 	"Volume da TV": "TV volume",
 	"Volume do controle": "Controller volume",
-	"Tremor da câmera": "Camera shake",
+	"Movimento da câmera": "Camera motion",
 	"Flashes": "Flashes",
 	"Tela": "Screen",
 	"Texto": "Text",

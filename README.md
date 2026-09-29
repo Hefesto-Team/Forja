@@ -113,8 +113,8 @@ sudo udevadm control --reload-rules && sudo udevadm trigger
 ```
 
 **Para todo mundo jogar bem:** nas opções, o gatilho pode ficar fraco ou
-desligado e a vibração vai de 0 a 100%, por jogador; o tremor da câmera e os
-flashes se desligam; o texto pode crescer; e as telas falam português ou
+desligado e a vibração vai de 0 a 100%, por jogador; o movimento da câmera e
+os flashes se desligam; o texto pode crescer; e as telas falam português ou
 inglês. A cor de cada jogador sempre vem com o nome dele (P1, P2…), e as
 cores foram conferidas para quem enxerga diferente.
 
