@@ -17,6 +17,9 @@ const PASSO := 25  ## a vibração e os volumes andam de 25 em 25%
 const TEXTO := ["normal", "grande"]
 const ESCALA_DO_TEXTO := [1.0, 1.15]
 const ARQUIVO := "user://opcoes.cfg"
+## As línguas das telas: o português é o padrão.
+const IDIOMAS := ["pt_BR", "en"]
+const NOMES_DOS_IDIOMAS := ["português", "English"]
 
 ## As features que a vibração e o gatilho carregam: com o recurso desligado
 ## nas opções, o veredito delas é "não medido", nunca "falhou".
@@ -31,6 +34,7 @@ static var tremor := true
 static var flashes := true
 static var tela_cheia := false
 static var texto := 0
+static var idioma := 0
 static var _carregou := false
 
 
@@ -43,6 +47,7 @@ static func de_fabrica() -> void:
 	flashes = true
 	tela_cheia = false
 	texto = 0
+	idioma = 0
 
 
 static func carregar(robo: bool) -> void:
@@ -64,6 +69,7 @@ static func carregar(robo: bool) -> void:
 	flashes = bool(cfg.get_value("sessao", "flashes", true))
 	tela_cheia = bool(cfg.get_value("sessao", "tela_cheia", false))
 	texto = clampi(int(cfg.get_value("sessao", "texto", 0)), 0, TEXTO.size() - 1)
+	idioma = clampi(int(cfg.get_value("sessao", "idioma", 0)), 0, IDIOMAS.size() - 1)
 
 
 static func gravar(robo: bool) -> void:
@@ -79,6 +85,7 @@ static func gravar(robo: bool) -> void:
 	cfg.set_value("sessao", "flashes", flashes)
 	cfg.set_value("sessao", "tela_cheia", tela_cheia)
 	cfg.set_value("sessao", "texto", texto)
+	cfg.set_value("sessao", "idioma", idioma)
 	cfg.save(ARQUIVO)
 
 

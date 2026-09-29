@@ -9,6 +9,8 @@
   que mede, enquanto se joga, o que chegou de cada controle.</b>
 </p>
 
+<p align="center">Português · <a href="README.en.md">English</a></p>
+
 <p align="center">
   <a href="https://github.com/Hefesto-Team/Forja/actions/workflows/forja.yml"><img src="https://github.com/Hefesto-Team/Forja/actions/workflows/forja.yml/badge.svg" alt="o CI do FORJA"></a>
 </p>

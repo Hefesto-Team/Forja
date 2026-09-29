@@ -56,16 +56,39 @@ static func tracejado(ci: CanvasItem, r: Rect2, cor: Color, largura := 2.0, trac
 		ci.draw_dashed_line(cantos[i], cantos[(i + 1) % 4], cor, largura, traco, true)
 
 
+## A língua das telas: todo texto passa por aqui (e pelo Glifo) e sai
+## traduzido pela tabela do idioma escolhido (scripts/traducoes.gd); o que
+## não tem tradução sai como está. Com FORJA_COLETAR_TEXTOS=<arquivo>, anota
+## cada texto desenhado (para montar a tabela).
+static var _coletar := ""
+static var _coletados := {}
+
+
+static func t(s: String) -> String:
+	if _coletar == "":
+		_coletar = OS.get_environment("FORJA_COLETAR_TEXTOS")
+		if _coletar == "":
+			_coletar = "-"
+	if _coletar != "-" and not _coletados.has(s):
+		_coletados[s] = true
+		var f := FileAccess.open(_coletar, FileAccess.READ_WRITE if FileAccess.file_exists(_coletar) else FileAccess.WRITE)
+		if f:
+			f.seek_end()
+			f.store_line(s.c_escape())
+			f.close()
+	return Traducoes.traduzir(s)
+
+
 static func texto(ci: CanvasItem, pos: Vector2, s: String, f: Font, tam: int, cor: Color,
 		alinhamento := HORIZONTAL_ALIGNMENT_LEFT, largura := -1.0) -> void:
-	ci.draw_string(f, pos, s, alinhamento, largura, Tema.t(tam), cor)
+	ci.draw_string(f, pos, t(s), alinhamento, largura, Tema.t(tam), cor)
 
 
 ## Um parágrafo que quebra a linha na `largura` (`pos` é a base da primeira
 ## linha). Devolve a altura que ele ocupou.
 static func paragrafo(ci: CanvasItem, pos: Vector2, s: String, f: Font, tam: int, cor: Color, largura: float,
 		max_linhas := -1) -> float:
-	ci.draw_multiline_string(f, pos, s, HORIZONTAL_ALIGNMENT_LEFT, largura, Tema.t(tam), max_linhas, cor)
+	ci.draw_multiline_string(f, pos, t(s), HORIZONTAL_ALIGNMENT_LEFT, largura, Tema.t(tam), max_linhas, cor)
 	return altura_paragrafo(s, f, tam, largura, max_linhas)
 
 
@@ -75,6 +98,8 @@ static var _cabe := {}
 ## O texto que cabe em `linhas` linhas da `largura`: se não cabe, corta numa
 ## palavra e fecha com reticências.
 static func caber(s: String, f: Font, tam: int, largura: float, linhas: int) -> String:
+	# corta o texto já traduzido (cortado em português, a tradução não o acharia)
+	s = t(s)
 	var chave := "%s|%d|%d|%d" % [s, Tema.t(tam), int(largura), linhas]
 	if _cabe.has(chave):
 		return _cabe[chave]
@@ -92,11 +117,11 @@ static func caber(s: String, f: Font, tam: int, largura: float, linhas: int) -> 
 
 
 static func altura_paragrafo(s: String, f: Font, tam: int, largura: float, max_linhas := -1) -> float:
-	return f.get_multiline_string_size(s, HORIZONTAL_ALIGNMENT_LEFT, largura, Tema.t(tam), max_linhas).y
+	return f.get_multiline_string_size(Traducoes.traduzir(s), HORIZONTAL_ALIGNMENT_LEFT, largura, Tema.t(tam), max_linhas).y
 
 
 static func largura(s: String, f: Font, tam: int) -> float:
-	return f.get_string_size(s, HORIZONTAL_ALIGNMENT_LEFT, -1, Tema.t(tam)).x
+	return f.get_string_size(Traducoes.traduzir(s), HORIZONTAL_ALIGNMENT_LEFT, -1, Tema.t(tam)).x
 
 
 ## O selo: mono 600 em fundo cheio, texto escuro (texto sobre acento é #21222c).
@@ -106,7 +131,7 @@ static func selo(ci: CanvasItem, pos: Vector2, s: String, cor: Color, tam := Tem
 	var h := tam * 1.45
 	var r := Rect2(pos, Vector2(w, h))
 	moldura(ci, r, cor, cor, 0, Tema.RAIO_SELO)
-	ci.draw_string(f, Vector2(pos.x + tam * 0.45, pos.y + h * 0.5 + tam * 0.36), s, HORIZONTAL_ALIGNMENT_LEFT, -1, Tema.t(tam), Tema.APP)
+	ci.draw_string(f, Vector2(pos.x + tam * 0.45, pos.y + h * 0.5 + tam * 0.36), t(s), HORIZONTAL_ALIGNMENT_LEFT, -1, Tema.t(tam), Tema.APP)
 	return w
 
 

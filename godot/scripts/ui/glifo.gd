@@ -98,12 +98,14 @@ static func _retangulo_arred(ci: CanvasItem, r: Rect2, raio: float, cor: Color, 
 static func largura_dica(glifo: String, texto: String, tam: int) -> float:
 	var f := Tema.fonte(600)
 	tam = Tema.t(tam)
+	texto = Traducoes.traduzir(texto)
 	return tam * 1.25 + 10.0 + f.get_string_size(texto, HORIZONTAL_ALIGNMENT_LEFT, -1, tam).x
 
 
 ## Uma dica: o glifo e a palavra, na linha de base `pos` (canto esquerdo).
 static func dica(ci: CanvasItem, pos: Vector2, glifo: String, texto: String, tam: int, cor_glifo: Color, cor_texto: Color) -> float:
 	tam = Tema.t(tam)
+	texto = Desenho.t(texto)
 	var lado := tam * 1.25
 	desenhar(ci, glifo, Rect2(pos + Vector2(0, -lado * 0.82), Vector2(lado, lado)), cor_glifo)
 	var f := Tema.fonte(600)

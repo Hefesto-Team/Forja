@@ -127,6 +127,9 @@ func aplicar_opcoes() -> void:
 	AudioServer.set_bus_volume_db(0, linear_to_db(maxf(Opcoes.volume_tv / 100.0, 0.0001)))
 	AudioServer.set_bus_mute(0, Opcoes.volume_tv == 0)
 	Tema.escala_texto = Opcoes.ESCALA_DO_TEXTO[Opcoes.texto]
+	Traducoes.idioma = Opcoes.IDIOMAS[Opcoes.idioma]
+	if OS.get_environment("FORJA_IDIOMA") != "":
+		Traducoes.idioma = OS.get_environment("FORJA_IDIOMA")
 	if DisplayServer.get_name() != "headless" and not robo:
 		var modo := DisplayServer.WINDOW_MODE_FULLSCREEN if Opcoes.tela_cheia else DisplayServer.WINDOW_MODE_WINDOWED
 		if DisplayServer.window_get_mode() != modo:

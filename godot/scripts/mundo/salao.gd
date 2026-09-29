@@ -167,7 +167,7 @@ func _portao(p: Dictionary) -> void:
 	placa.rotation.y = rot
 	add_child(placa)
 	var nome := Label3D.new()
-	nome.text = p.nome
+	nome.text = Traducoes.traduzir(p.nome)
 	nome.font = Tema.fonte(700)
 	nome.font_size = 96
 	nome.pixel_size = 0.004
@@ -184,7 +184,7 @@ func _portao(p: Dictionary) -> void:
 	icone.texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
 	placa.add_child(icone)
 	var sobre := Label3D.new()
-	sobre.text = p.sobre if p.aberta else p.sobre + " · em breve"
+	sobre.text = Traducoes.traduzir(p.sobre) if p.aberta else Traducoes.traduzir(p.sobre) + " · " + Traducoes.traduzir("em breve")
 	sobre.font = Tema.fonte(500)
 	sobre.font_size = 64
 	sobre.pixel_size = 0.004
