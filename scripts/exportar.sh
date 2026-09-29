@@ -4,6 +4,7 @@
 #   scripts/exportar.sh linux     dist/forja-linux-x86_64/    forja.x86_64, forja.pck e o módulo
 #   scripts/exportar.sh windows   dist/forja-windows-x86_64/  forja.exe, forja.pck e a DLL
 #   scripts/exportar.sh tudo      os dois
+#   scripts/exportar.sh appimage  dist/FORJA-x86_64.AppImage (depois do linux)
 #
 # Cada pasta sai também empacotada ao lado (o .tar.gz do Linux guarda o bit de
 # executável; o .zip do Windows é o que se abre no Windows e no Proton).
@@ -29,6 +30,10 @@ MODELO_LINUX="linux_release.x86_64"
 MODELO_LINUX_SHA256="820f3fec74869f088dc4509737a5d30a8b54208a75d148ec26da9e0e839d9d9a"
 MODELO_WINDOWS="windows_release_x86_64.exe"
 MODELO_WINDOWS_SHA256="b493c1d53fb915f7805f360cfe42d1c3126e720dfc234a4b0f2feb99200f9a4b"
+# O AppImage: o appimagetool por versão E por sha256; o runtime sai do começo
+# dele mesmo (um AppImage é o runtime seguido do squashfs), e fica fixo junto.
+APPIMAGETOOL_URL="https://github.com/AppImage/appimagetool/releases/download/1.9.0/appimagetool-x86_64.AppImage"
+APPIMAGETOOL_SHA256="46fdd785094c7f6e545b61afcfb0f3d98d8eab243f644b4b17698c01d06083d1"
 
 CACHE="${FORJA_CACHE:-$RAIZ/.cache}"
 # O Godot procura os modelos em $XDG_DATA_HOME/godot/export_templates/<versão>:
@@ -121,6 +126,70 @@ TEXTO
   fi
 }
 
+# Os avisos de licença que vão com o jogo: os do repositório e os do Godot (e
+# do que ele embute), tirados do próprio binário.
+licencas() {
+  cat "$RAIZ/LICENCAS-DE-TERCEIROS.md"
+  local tmp
+  tmp="$(mktemp)"
+  "$GODOT_BIN" --headless -s "$RAIZ/scripts/licencas.gd" -- "$tmp" > /dev/null 2>&1
+  printf '\n## Godot, e o que ele embute\n\n'
+  cat "$tmp"
+  rm -f "$tmp"
+}
+
+# A entrada do menu no Linux (e a do AppImage).
+desktop() {
+  cat <<'TEXTO'
+[Desktop Entry]
+Type=Application
+Name=FORJA
+GenericName=Jogo de festa para quatro DualSense
+Comment=Quatro DualSense no mesmo sofá
+Exec=forja.x86_64
+Icon=forja
+Terminal=false
+Categories=Game;
+TEXTO
+}
+
+# O AppImage, a partir da pasta do Linux já exportada.
+appimage() {
+  local pasta="$DIST/forja-linux-x86_64"
+  [[ -x "$pasta/forja.x86_64" ]] || { echo "exporte o linux antes (scripts/exportar.sh linux)" >&2; exit 1; }
+  local ferramenta="$CACHE/appimagetool-1.9.0"
+  if ! confere "$ferramenta" "$APPIMAGETOOL_SHA256"; then
+    diga "baixando o appimagetool 1.9.0"
+    curl -fsSL -o "$ferramenta.parcial" "$APPIMAGETOOL_URL"
+    mv "$ferramenta.parcial" "$ferramenta"
+    confere "$ferramenta" "$APPIMAGETOOL_SHA256" || { echo "sha256 do appimagetool não confere" >&2; rm -f "$ferramenta"; exit 1; }
+  fi
+  chmod +x "$ferramenta"
+  local runtime="$CACHE/appimage-runtime-x86_64"
+  head -c "$(APPIMAGE_EXTRACT_AND_RUN=1 "$ferramenta" --appimage-offset)" "$ferramenta" > "$runtime"
+  local app="$DIST/FORJA.AppDir"
+  rm -rf "$app"
+  mkdir -p "$app/usr/bin"
+  cp "$pasta/forja.x86_64" "$pasta/forja.pck" "$pasta/libforja.linux.x86_64.so" "$app/usr/bin/"
+  cp "$pasta/LEIA-ME.txt" "$pasta/LICENCAS.txt" "$app/"
+  cp "$pasta/forja.png" "$app/forja.png"
+  cp "$pasta/forja.png" "$app/.DirIcon"
+  desktop > "$app/forja.desktop"
+  cat > "$app/AppRun" <<'TEXTO'
+#!/bin/sh
+# O FORJA dentro do AppImage: os relatórios vão para a pasta de dados do
+# usuário (ao lado do jogo, aqui dentro, não dá para escrever).
+AQUI="$(dirname "$(readlink -f "$0")")"
+exec "$AQUI/usr/bin/forja.x86_64" "$@"
+TEXTO
+  chmod +x "$app/AppRun"
+  diga "empacotando dist/FORJA-x86_64.AppImage"
+  ARCH=x86_64 APPIMAGE_EXTRACT_AND_RUN=1 "$ferramenta" --runtime-file "$runtime" --no-appstream "$app" \
+    "$DIST/FORJA-x86_64.AppImage" > "$DIST/appimage.log" 2>&1 || { cat "$DIST/appimage.log" >&2; exit 1; }
+  rm -rf "$app"
+  diga "dist/FORJA-x86_64.AppImage"
+}
+
 # $1 = linux | windows
 exportar() {
   local qual="$1" preset nome exe modulo
@@ -149,8 +218,11 @@ exportar() {
     [[ -s "$saida/$f" ]] || { echo "a exportação para ${preset} não deixou $f" >&2; exit 1; }
   done
   leia_me "$qual" > "$saida/LEIA-ME.txt"
+  licencas > "$saida/LICENCAS.txt"
   if [[ "$qual" == linux ]]; then
     cp "$RAIZ/udev/99-forja-dualsense.rules" "$saida/"
+    cp "$RAIZ/godot/assets/hefesto-logo.png" "$saida/forja.png"
+    desktop > "$saida/forja.desktop"
     tar -C "$DIST" -czf "$DIST/$nome.tar.gz" "$nome"
     diga "dist/$nome.tar.gz"
   else
@@ -161,13 +233,18 @@ exportar() {
 
 ALVO="${1:-tudo}"
 case "$ALVO" in
-  linux | windows | tudo) ;;
+  linux | windows | tudo | appimage) ;;
   *)
-    echo "uso: $0 linux|windows|tudo" >&2
+    echo "uso: $0 linux|windows|tudo|appimage" >&2
     exit 2
     ;;
 esac
 
+if [[ "$ALVO" == appimage ]]; then
+  garantir_godot
+  appimage
+  exit 0
+fi
 garantir_godot
 garantir_modelos
 mkdir -p "$DIST"

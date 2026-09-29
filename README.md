@@ -146,6 +146,7 @@ Os argumentos do jogo vêm depois de `--`:
 ```sh
 ./forja.x86_64 -- --prova-de-fogo          # todas as salas, na ordem, e o livro no fim
 ./forja.x86_64 -- --partida=5 --sorteada   # uma partida de cinco salas sorteadas, e o pódio
+./forja.x86_64 -- --nivel=0                # o ritmo: 0 primeira vez, 1 normal, 2 rápido
 ./forja.x86_64 -- --sala=galeria           # direto numa sala, com todo controle dentro
 ./forja.x86_64 -- --semente=42             # o mesmo sorteio, para comparar sessões
 ./forja.x86_64 -- --simular=4 --robo       # sem controle: quatro de mentira, e o robô joga
@@ -281,10 +282,13 @@ Rodando do código, os relatórios vão para `relatorios/`, na raiz.
 scripts/exportar.sh linux      # dist/forja-linux-x86_64/ e dist/forja-linux-x86_64.tar.gz
 scripts/exportar.sh windows    # dist/forja-windows-x86_64/ e dist/forja-windows-x86_64.zip
 scripts/exportar.sh tudo       # os dois
+scripts/exportar.sh appimage   # dist/FORJA-x86_64.AppImage, a partir do linux
 ```
 
-Cada pacote leva o executável, o `forja.pck`, o módulo nativo ao lado e um
-`LEIA-ME.txt`; o do Linux leva também a regra do udev. O módulo da plataforma
+Cada pacote leva o executável, o `forja.pck`, o módulo nativo ao lado, um
+`LEIA-ME.txt` e o `LICENCAS.txt` (os avisos de terceiros); o do Linux leva
+também a regra do udev, o ícone e o `forja.desktop`. A cada tag, o CI publica
+os três pacotes como release no GitHub. O módulo da plataforma
 tem de estar compilado antes. O Godot é o mesmo do `run-local.sh`, e os
 modelos de exportação do Godot entram como o SDL, por versão e por sha256: só
 os dois que o jogo usa (~60 MB, lidos por pedaços do pacote oficial de
