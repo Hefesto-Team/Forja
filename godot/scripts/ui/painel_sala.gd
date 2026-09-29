@@ -49,7 +49,7 @@ func _aviso() -> void:
 			filas += 1
 			fila_x = 0.0
 		fila_x += w
-	var alt := 410.0 + 64.0 * (filas - 1) + (40.0 if poucos != "" else 0.0) + (104.0 if papel >= 0 else 0.0)
+	var alt := 410.0 + 64.0 * (filas - 1) + (40.0 if poucos != "" else 0.0) + (ALTURA_SOM if papel >= 0 else 0.0)
 	var r := Rect2(Vector2((size.x - larg) * 0.5, 176), Vector2(larg, alt))
 	# o quadro entra deslizando (a sala nova chega, não aparece)
 	var k := clampf(float(sala.t_fase) / 0.35, 0.0, 1.0)
@@ -87,7 +87,7 @@ func _aviso() -> void:
 			continue
 		var cor_id := Tema.tom_para_a_borda(Forja.cor_do_lugar(l))
 		var pronto: bool = sala.prontos[l]
-		var chip := Rect2(Vector2(cx, y), Vector2(250, 64 + (104 if papel >= 0 else 0)))
+		var chip := Rect2(Vector2(cx, y), Vector2(250, 64.0 + (ALTURA_SOM if papel >= 0 else 0.0)))
 		Desenho.moldura(self, chip, Tema.SEL if pronto else Tema.APP, cor_id, 3, 12)
 		Desenho.texto(self, chip.position + Vector2(20, 42), "P%d" % (l + 1), Tema.fonte(700), Tema.T_ROTULO, cor_id)
 		if pronto:
@@ -110,6 +110,10 @@ func _aviso() -> void:
 	Desenho.dicas_a_direita(self, Vector2(r.end.x - 48, r.position.y + 84), dicas, Tema.T_ROTULO)
 
 
+## O que o chip de cada lugar cresce numa sala de som.
+const ALTURA_SOM := 190.0
+
+
 ## O dispositivo do papel de um lugar, no aviso de uma sala de som: o nome que
 ## o jogo mostra, como foi achado e, no microfone, a barra que sobe com a voz.
 func _som_do_lugar(chip: Rect2, l: int, papel: int) -> void:
@@ -119,13 +123,18 @@ func _som_do_lugar(chip: Rect2, l: int, papel: int) -> void:
 	var nome := Forja.som_nome(l, papel)
 	var f := Tema.fonte(500)
 	var f2 := Tema.fonte(400)
-	var nome_cabe := Desenho.caber(nome, f, 18, w, 2)
-	Desenho.paragrafo(self, Vector2(x, chip.position.y + 86), nome_cabe, f, 18, Tema.FG if tem else Tema.LARANJA, w, 2)
+	# o nome do aparelho em até três linhas a 30 px (é o que diz qual é qual)
+	var tam := Tema.T_SELO
+	var nome_cabe := Desenho.caber(nome, f, tam, w, 3)
+	var topo := chip.position.y + 64.0 + 8.0
+	var alt_nome := Desenho.paragrafo(self, Vector2(x, topo + f.get_ascent(Tema.t(tam))), nome_cabe, f, tam,
+		Tema.FG if tem else Tema.LARANJA, w, 3)
 	var como := Forja.som_como(l, papel) if tem else "não achado"
-	Desenho.texto(self, Vector2(x, chip.position.y + 138), Desenho.caber(como, f2, 16, w, 1), f2, 16, Tema.MUDO)
+	var y_como := topo + alt_nome + f2.get_ascent(Tema.t(tam))
+	Desenho.texto(self, Vector2(x, y_como), Desenho.caber(como, f2, tam, w, 1), f2, tam, Tema.MUDO)
 	if papel == Forja.PAPEL_MICROFONE and tem:
 		var nivel := float(Forja.som_mic(l).get("nivel", 0.0))
-		var trilho := Rect2(Vector2(x, chip.position.y + 150), Vector2(w, 8))
+		var trilho := Rect2(Vector2(x, y_como + 14.0), Vector2(w, 8))
 		draw_rect(trilho, Tema.TRILHO)
 		draw_rect(Rect2(trilho.position, Vector2(w * clampf(nivel, 0.0, 1.0), 8)), Tema.VERDE)
 
@@ -144,7 +153,7 @@ func _dicas() -> void:
 	if cam == null:
 		return
 	var f := Tema.fonte(500)
-	var tam := 22
+	var tam := Tema.T_SELO
 	# as perguntas primeiro: onde cada uma cairia, e depois lado a lado, sem
 	# uma cobrir a outra (numa câmera mais perto, as raias vizinhas se tocam)
 	var perguntas: Array = []  # [lugar, pergunta, retângulo]
@@ -157,6 +166,8 @@ func _dicas() -> void:
 	_afastar(perguntas)
 	for item in perguntas:
 		_pergunta(item[0], item[1], item[2])
+	# as dicas: onde cada uma cairia, afastadas como as perguntas, e desenhadas
+	var pilulas: Array = []  # [lugar, partes, retângulo]
 	for l in 4:
 		if not Forja.ocupado(l) or not sala.pergunta(l).is_empty():
 			continue
@@ -178,6 +189,12 @@ func _dicas() -> void:
 		var r := Rect2(Vector2(centro.x - larg * 0.5, centro.y - 26.0), Vector2(larg, 52.0))
 		r.position.x = clampf(r.position.x, 12.0, size.x - larg - 12.0)
 		r.position.y = clampf(r.position.y, 12.0, size.y - 140.0)
+		pilulas.append([l, partes, r])
+	_afastar(pilulas)
+	for item in pilulas:
+		var l: int = item[0]
+		var partes: Array = item[1]
+		var r: Rect2 = item[2]
 		var cor_id := Tema.tom_para_a_borda(Forja.cor_do_lugar(l))
 		Desenho.moldura(self, r, Color(Tema.PAINEL, 0.92), cor_id, 2, 12)
 		var x := r.position.x + 18.0
@@ -194,20 +211,31 @@ func _dicas() -> void:
 
 
 const LARG_PERGUNTA := 400.0
+## As respostas numa coluna só, a 30 px (quatro painéis lado a lado não cabem
+## duas respostas por linha nesse tamanho: "metralhadora" não caberia).
+const T_PERGUNTA := Tema.T_SELO
+const LINHA_RESPOSTA := 52.0
 
 
-## O título quebra em até duas linhas; a segunda empurra as respostas.
-func _extra_do_titulo(q: Dictionary) -> float:
+## A altura do título e a do rodapé (até duas linhas cada).
+func _alturas(q: Dictionary) -> Array:
 	var ft := Tema.fonte(600)
-	return maxf(0.0, Desenho.altura_paragrafo(str(q.get("titulo", "")), ft, 22, LARG_PERGUNTA - 40, 2) - ft.get_height(22))
+	var fo := Tema.fonte(500)
+	var titulo := str(q.get("titulo", ""))
+	var rodape := str(q.get("rodape", ""))
+	var th := Desenho.altura_paragrafo(Desenho.caber(titulo, ft, T_PERGUNTA, LARG_PERGUNTA - 40, 2), ft, T_PERGUNTA, LARG_PERGUNTA - 40, 2)
+	var rh := 0.0
+	if rodape != "":
+		rh = Desenho.altura_paragrafo(Desenho.caber(rodape, fo, T_PERGUNTA, LARG_PERGUNTA - 40, 2), fo, T_PERGUNTA, LARG_PERGUNTA - 40, 2)
+	return [th, rh]
 
 
 ## Onde a pergunta cai: embaixo da raia, dentro da tela.
 func _rect_pergunta(cam: Camera3D, q: Dictionary) -> Rect2:
 	var larg := LARG_PERGUNTA
-	var linhas := int(ceil(Array(q.get("opcoes", [])).size() / 2.0))
-	var rodape := str(q.get("rodape", ""))
-	var alt := 70.0 + _extra_do_titulo(q) + 58.0 * linhas + (40.0 if rodape != "" else 10.0)
+	var n := Array(q.get("opcoes", [])).size()
+	var h := _alturas(q)
+	var alt := 16.0 + float(h[0]) + 10.0 + LINHA_RESPOSTA * n + (float(h[1]) + 14.0 if float(h[1]) > 0.0 else 10.0)
 	var centro := cam.unproject_position(q.get("pos", Vector3.ZERO))
 	var r := Rect2(Vector2(centro.x - larg * 0.5, centro.y - alt * 0.5), Vector2(larg, alt))
 	r.position.x = clampf(r.position.x, 12.0, size.x - larg - 12.0)
@@ -220,18 +248,26 @@ func _rect_pergunta(cam: Camera3D, q: Dictionary) -> Rect2:
 ## tela.
 func _afastar(itens: Array) -> void:
 	var vao := 10.0
+	itens.sort_custom(func(p, q): return (p[2] as Rect2).position.x < (q[2] as Rect2).position.x)
 	for i in range(1, itens.size()):
 		var a: Rect2 = itens[i - 1][2]
 		var b: Rect2 = itens[i][2]
-		if b.position.x < a.end.x + vao:
+		if b.position.x < a.end.x + vao and _mesma_faixa(a, b):
 			b.position.x = a.end.x + vao
 			itens[i][2] = b
 	for i in range(itens.size() - 1, -1, -1):
 		var b: Rect2 = itens[i][2]
-		var limite := size.x - 12.0 if i == itens.size() - 1 else (itens[i + 1][2] as Rect2).position.x - vao
+		var limite := size.x - 12.0
+		if i < itens.size() - 1 and _mesma_faixa(b, itens[i + 1][2]):
+			limite = (itens[i + 1][2] as Rect2).position.x - vao
 		if b.end.x > limite:
 			b.position.x = limite - b.size.x
 			itens[i][2] = b
+
+
+## Duas caixas na mesma altura da tela (uma empurra a outra só se se cruzam na vertical).
+func _mesma_faixa(a: Rect2, b: Rect2) -> bool:
+	return a.position.y < b.end.y and b.position.y < a.end.y
 
 
 ## Uma pergunta às cegas embaixo da raia: o título, as quatro respostas (o
@@ -243,19 +279,18 @@ func _pergunta(l: int, q: Dictionary, r: Rect2) -> void:
 	var rodape := str(q.get("rodape", ""))
 	var ft := Tema.fonte(600)
 	var fo := Tema.fonte(500)
-	var titulo := str(q.get("titulo", ""))
-	var extra := _extra_do_titulo(q)
+	var h := _alturas(q)
+	var titulo := Desenho.caber(str(q.get("titulo", "")), ft, T_PERGUNTA, larg - 40, 2)
 	var cor_id := Tema.tom_para_a_borda(Forja.cor_do_lugar(l))
 	Desenho.moldura(self, r, Color(Tema.PAINEL, 0.95), cor_id, 2, 14)
-	Desenho.paragrafo(self, r.position + Vector2(20, 38), titulo, ft, 22, Tema.FG, larg - 40, 2)
+	Desenho.paragrafo(self, r.position + Vector2(20, 16 + ft.get_ascent(Tema.t(T_PERGUNTA))), titulo, ft, T_PERGUNTA,
+		Tema.FG, larg - 40, 2)
 	var escolhida := int(q.get("escolhida", -1))
 	var certa := int(q.get("certa", -1))
-	var w := (larg - 40.0) * 0.5
+	var y0 := r.position.y + 16.0 + float(h[0]) + 10.0
 	for i in opcoes.size():
 		var o: Array = opcoes[i]
-		var cx := r.position.x + 20.0 + (i % 2) * w
-		var cy := r.position.y + 58.0 + extra + int(i / 2) * 58.0
-		var caixa := Rect2(Vector2(cx, cy), Vector2(w - 8.0, 50.0))
+		var caixa := Rect2(Vector2(r.position.x + 20.0, y0 + i * LINHA_RESPOSTA), Vector2(larg - 40.0, LINHA_RESPOSTA - 6.0))
 		var borda := Tema.LINHA
 		var fundo := Color(Tema.APP, 0.9)
 		if i == escolhida:
@@ -265,30 +300,28 @@ func _pergunta(l: int, q: Dictionary, r: Rect2) -> void:
 		elif certa >= 0 and i == escolhida:
 			borda = Tema.VERMELHO
 		Desenho.moldura(self, caixa, fundo, borda, 2 if borda == Tema.LINHA else 3, 10)
+		var meio := caixa.position.y + caixa.size.y * 0.5
 		var tex := Desenho.glifo(str(o[0]))
 		if tex:
-			draw_texture_rect(tex, Rect2(caixa.position + Vector2(10, 9), Vector2(32, 32)), false, Tema.ROSA)
-		var tx := caixa.position.x + 50.0
+			draw_texture_rect(tex, Rect2(Vector2(caixa.position.x + 10, meio - 16), Vector2(32, 32)), false, Tema.ROSA)
+		var tx := caixa.position.x + 54.0
 		if o.size() > 1 and o[1] is Color:
-			draw_circle(Vector2(tx + 11.0, caixa.position.y + 25.0), 11.0, o[1])
-			draw_arc(Vector2(tx + 11.0, caixa.position.y + 25.0), 11.0, 0.0, TAU, 24, Tema.LINHA, 1.5)
-			tx += 30.0
-		# a palavra encolhe para caber inteira ("metralhadora") em vez de cortar
+			draw_circle(Vector2(tx + 12.0, meio), 12.0, o[1])
+			draw_arc(Vector2(tx + 12.0, meio), 12.0, 0.0, TAU, 24, Tema.LINHA, 1.5)
+			tx += 34.0
+		# a palavra encolhe para caber inteira em vez de cortar (só se precisar)
 		var palavra := str(o[o.size() - 1])
-		var cabe := caixa.end.x - tx - 8.0
-		var tam := 20
-		while tam > 15 and Desenho.largura(palavra, fo, tam) > cabe:
+		var cabe := caixa.end.x - tx - 10.0
+		var tam := T_PERGUNTA
+		while tam > 22 and Desenho.largura(palavra, fo, tam) > cabe:
 			tam -= 1
-		Desenho.texto(self, Vector2(tx, caixa.position.y + 32.0 + tam * 0.05), palavra, fo, tam, Tema.FG,
+		Desenho.texto(self, Vector2(tx, meio + fo.get_ascent(Tema.t(tam)) * 0.36 + 2.0), palavra, fo, tam, Tema.FG,
 			HORIZONTAL_ALIGNMENT_LEFT, cabe + 2.0)
 	if rodape != "":
 		var bom := certa >= 0 and escolhida == certa
-		# o rodapé também encolhe até caber ("mesmo com tudo ligado" saía "tudo lig")
-		var tam_r := 20
-		while tam_r > 14 and Desenho.largura(rodape, fo, tam_r) > larg - 40:
-			tam_r -= 1
-		Desenho.texto(self, Vector2(r.position.x + 20, r.end.y - 16), rodape, fo, tam_r, Tema.VERDE if bom else Tema.LARANJA,
-			HORIZONTAL_ALIGNMENT_LEFT, larg - 40)
+		var ry := y0 + opcoes.size() * LINHA_RESPOSTA + 4.0
+		Desenho.paragrafo(self, Vector2(r.position.x + 20, ry + fo.get_ascent(Tema.t(T_PERGUNTA))),
+			Desenho.caber(rodape, fo, T_PERGUNTA, larg - 40, 2), fo, T_PERGUNTA, Tema.VERDE if bom else Tema.LARANJA, larg - 40, 2)
 
 
 func _tempo() -> void:

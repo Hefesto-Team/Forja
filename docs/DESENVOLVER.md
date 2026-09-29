@@ -133,6 +133,18 @@ FORJA_IDIOMA=en bash tests/telas.sh fotos pasta/     # as mesmas telas em inglê
 scripts/trailer.sh                      # o trailer, gravado pelo Movie Maker do Godot (dist/trailer.avi)
 ```
 
+O clarão d'A Voz tem medida própria (o estudo 02 pede menos de 20% da tela):
+as fotos `voz_antes_do_susto` e `voz_clarao` saem do roteiro das salas com o
+tremor desligado, e o `scripts/medir_clarao.gd` diz a área.
+
+```sh
+SAIDA=pasta ROTEIRO=salas SALAS=voz SEM_TREMOR=1 RAPIDO=1 xvfb-run -a -s "-screen 0 1920x1080x24" \
+  tools/Godot_v4.4.1-stable_linux.x86_64 --rendering-driver opengl3 --fixed-fps 60 --path godot \
+  --resolution 1920x1080 res://testes/captura_jogo.tscn -- --simular=4 --robo --semente=7
+tools/Godot_v4.4.1-stable_linux.x86_64 --headless -s scripts/medir_clarao.gd -- \
+  pasta/voz_antes_do_susto.png pasta/voz_clarao.png 20
+```
+
 ## O mapa do código
 
 | caminho | o que é |

@@ -9,7 +9,7 @@ Steam Deck).
 
 | # | item | situação |
 | --- | --- | --- |
-| 1 | leitura a 30 px ou mais | parcial — o corpo tem 32 px; rótulos, selos, números e a linha de cada lugar no HUD, 30 (a linha encolhe até 20 quando não cabe); a opção **Texto: grande** (×1,15) leva tudo acima de 34. Abaixo ficam o que mora embaixo de cada raia — as perguntas às cegas e as dicas curtas (quatro painéis lado a lado: 20 a 22 px) —, o nome do aparelho de som no aviso d'O Canto e d'A Voz (16 a 18) e o diagnóstico, tela de bancada lida de perto (20 a 22) |
+| 1 | leitura a 30 px ou mais | ok — o corpo tem 32 px; rótulos, selos, números, a linha de cada lugar no HUD, as perguntas às cegas (as respostas numa coluna só), as dicas de cada raia e o nome do aparelho de som, 30; a opção **Texto: grande** (×1,15) leva tudo acima de 34. Só a linha do HUD encolhe (até 20) quando o texto não cabe. Fora da regra, de propósito: o diagnóstico, tela de bancada lida de perto (20 a 22) |
 | 2 | texto que some: 46 px, 40 caracteres, 2 linhas | ok — os avisos do HUD têm 46 px e cortam em duas linhas, com reticências |
 | 3 | contraste 4,5:1 (3:1 só em fonte grande) | ok — os tokens medidos no estudo 03 |
 | 4 | nada de Comment, Red, Purple ou Pink como texto sobre #44475A | ok — o trilho (#44475A) nunca leva texto |
@@ -37,6 +37,6 @@ Steam Deck).
 | 26 | microinterações de 100 a 200 ms; troca de cena até 400 ms | ok — a cortina fecha em 150 ms e abre em 220 |
 | 27 | evento crítico com som e visual | ok — o golpe, o tiro, o susto e o veredito |
 | 28 | desligar tremor, fundo animado e gatilho | ok — **Movimento da câmera: desligado** para o tremor e o giro do título; o gatilho, nas opções de cada jogador |
-| 29 | flashes: até 3 por segundo, menos de 20% da tela | parcial — o único clarão (o susto d'A Voz) é um por sala, e **Flashes: desligados** o reduz a um brilho |
+| 29 | flashes: até 3 por segundo, menos de 20% da tela | ok — o único clarão (o susto d'A Voz) é um por sala e, no pico, muda a luz de 6,1% da tela (medido com o `scripts/medir_clarao.gd`, pela definição de flash do WCAG); **Flashes: desligados** o reduz a um brilho |
 | 30 | livro e diagnóstico: 80 caracteres por linha, entrelinha 1,5 | ok — o detalhe do livro quebra em no máximo 80 caracteres, com entrelinha 1,5, e o que não cabe vira reticências (o texto inteiro está no relatório); o diagnóstico não tem parágrafo: cada linha é um valor |
 | 31 | TV de 40" a 3 m e a tela do Deck | falta — pede aparelho (sprints A e E) |
