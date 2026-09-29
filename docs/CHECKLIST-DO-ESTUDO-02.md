@@ -1,7 +1,7 @@
 # O checklist do estudo 02, tela por tela
 
 A conferência dos 31 itens do [estudo 02](estudos/02-manuais-de-ui-e-ux.md) no
-jogo 3D, em 28/09/2026. **ok** quer dizer conferido nas fotos das telas
+jogo 3D, em 28/09/2026, e revista em 29/09. **ok** quer dizer conferido nas fotos das telas
 (`godot/testes/captura_jogo.gd`); **parcial**, que vale em parte e o que
 falta está dito; **falta**, que não vale ainda. O item 31 pede aparelho e
 TV: fica para o Sprint A (a rodada com quatro controles de verdade) e o E (o
@@ -9,8 +9,8 @@ Steam Deck).
 
 | # | item | situação |
 | --- | --- | --- |
-| 1 | leitura a 30 px ou mais | parcial — o corpo tem 32 px, mas os selos (24) e os rótulos (28) ficam abaixo; a opção **Texto: grande** (×1,15) leva os dois a 28 e 32 |
-| 2 | texto que some: 46 px, 40 caracteres, 2 linhas | parcial — os avisos do HUD têm 28 px e uma linha curta |
+| 1 | leitura a 30 px ou mais | parcial — o corpo tem 32 px; rótulos, selos, números e a linha de cada lugar no HUD, 30 (a linha encolhe até 20 quando não cabe); a opção **Texto: grande** (×1,15) leva tudo acima de 34. Abaixo ficam o que mora embaixo de cada raia — as perguntas às cegas e as dicas curtas (quatro painéis lado a lado: 20 a 22 px) —, o nome do aparelho de som no aviso d'O Canto e d'A Voz (16 a 18) e o diagnóstico, tela de bancada lida de perto (20 a 22) |
+| 2 | texto que some: 46 px, 40 caracteres, 2 linhas | ok — os avisos do HUD têm 46 px e cortam em duas linhas, com reticências |
 | 3 | contraste 4,5:1 (3:1 só em fonte grande) | ok — os tokens medidos no estudo 03 |
 | 4 | nada de Comment, Red, Purple ou Pink como texto sobre #44475A | ok — o trilho (#44475A) nunca leva texto |
 | 5 | texto e focáveis em x 96–1824, y 60–1020 | ok — `Tema.MARGEM_X` 96 e `MARGEM_Y` 60 |
@@ -36,7 +36,7 @@ Steam Deck).
 | 25 | retorno visual no quadro seguinte | ok — o toque do gesto, o tique e a borda mudam no mesmo quadro |
 | 26 | microinterações de 100 a 200 ms; troca de cena até 400 ms | ok — a cortina fecha em 150 ms e abre em 220 |
 | 27 | evento crítico com som e visual | ok — o golpe, o tiro, o susto e o veredito |
-| 28 | desligar tremor, fundo animado e gatilho | parcial — tremor e gatilho nas opções; o giro da câmera no título ainda não desliga |
+| 28 | desligar tremor, fundo animado e gatilho | ok — **Movimento da câmera: desligado** para o tremor e o giro do título; o gatilho, nas opções de cada jogador |
 | 29 | flashes: até 3 por segundo, menos de 20% da tela | parcial — o único clarão (o susto d'A Voz) é um por sala, e **Flashes: desligados** o reduz a um brilho |
-| 30 | livro e diagnóstico: 80 caracteres por linha, entrelinha 1,5 | falta conferir |
+| 30 | livro e diagnóstico: 80 caracteres por linha, entrelinha 1,5 | ok — o detalhe do livro quebra em no máximo 80 caracteres, com entrelinha 1,5, e o que não cabe vira reticências (o texto inteiro está no relatório); o diagnóstico não tem parágrafo: cada linha é um valor |
 | 31 | TV de 40" a 3 m e a tela do Deck | falta — pede aparelho (sprints A e E) |

@@ -37,10 +37,11 @@ const LED_ACESO := Color("#e8ecf5") ## a lâmpada do LED de jogador acesa
 const T_DISPLAY := 112
 const T_TITULO := 64
 const T_SUBTITULO := 44
+const T_AVISO := 46  ## o texto que some sozinho (o estudo 02, item 2)
 const T_CORPO := 32
-const T_ROTULO := 28
-const T_MONO := 28
-const T_SELO := 24
+const T_ROTULO := 30  ## o estudo 02, item 1: nada que se lê abaixo de 30 px
+const T_MONO := 30
+const T_SELO := 30
 
 const RAIO_QUADRO := 18
 const RAIO_CARTAO := 14

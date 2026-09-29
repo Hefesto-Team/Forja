@@ -67,11 +67,12 @@ func _draw() -> void:
 	var sessao := Forja.sessao()
 	var sub := "sessão %s  ·  gravado ao lado do jogo em relatorio-%s.json e .txt" % [sessao, sessao] if sessao != "" \
 		else "sem o módulo nativo, nada é medido nem gravado"
-	Desenho.texto(self, Vector2(Tema.MARGEM_X, 164), sub, Tema.mono(400), 22, Tema.SUAVE)
+	Desenho.texto(self, Vector2(Tema.MARGEM_X, 164), sub, Tema.mono(400), Tema.T_MONO, Tema.SUAVE, HORIZONTAL_ALIGNMENT_LEFT, size.x - 2 * Tema.MARGEM_X)
 
 	var x0 := float(Tema.MARGEM_X)
-	var larg_feat := 460.0
-	var larg_cel := 164.0
+	# a coluna cabe "não medido" a 30 px; o detalhe fica com o que sobra
+	var larg_feat := 420.0
+	var larg_cel := 214.0
 	# o cabeçalho das colunas
 	for l in 4:
 		var cor_id := Tema.tom_para_a_borda(Forja.cor_do_lugar(l))
@@ -94,7 +95,7 @@ func _draw() -> void:
 		var tg := Desenho.glifo(Desenho.GLIFO_DA_FEATURE.get(item.chave, ""))
 		if tg:
 			draw_texture_rect(tg, Rect2(Vector2(x0 + 8, y + 8), Vector2(30, 30)), false, Tema.SUAVE)
-		Desenho.texto(self, Vector2(x0 + 50, y + 32), item.nome, Tema.fonte(400), 26, Tema.FG, HORIZONTAL_ALIGNMENT_LEFT, larg_feat - 60)
+		Desenho.texto(self, Vector2(x0 + 50, y + 32), item.nome, Tema.fonte(400), Tema.T_ROTULO, Tema.FG, HORIZONTAL_ALIGNMENT_LEFT, larg_feat - 60)
 		for l in 4:
 			var xc := x0 + larg_feat + l * larg_cel
 			var cel := Rect2(Vector2(xc + 4, y + 4), Vector2(larg_cel - 8, ALTURA - 8))
@@ -123,13 +124,13 @@ func _draw() -> void:
 				if f.chave == item2.chave:
 					onde = f.sala_nome
 			if onde != "":
-				Desenho.texto(self, Vector2(px, py), "Quem mede é %s." % onde, Tema.fonte(400), 24, Tema.SUAVE, HORIZONTAL_ALIGNMENT_LEFT, dr.size.x - 56)
+				Desenho.texto(self, Vector2(px, py), "Quem mede é %s." % onde, Tema.fonte(400), Tema.T_ROTULO, Tema.SUAVE, HORIZONTAL_ALIGNMENT_LEFT, dr.size.x - 56)
 			return
 		var res := int(v.get("resultado", 0))
 		var cor: Color = [Tema.MUDO, Tema.VERDE, Tema.VERMELHO][clampi(res, 0, 2)]
 		var palavra: String = ["— NÃO MEDIDO", "✓ PASSOU", "✗ FALHOU"][clampi(res, 0, 2)]
 		Desenho.selo(self, Vector2(px, py - 30), palavra, cor)
-		py += 40
+		py += 60
 		var campos := [
 			["Evidência", NIVEIS[clampi(int(v.get("nivel", 0)), 0, 4)]],
 			["Pedido", str(v.get("pedido", ""))],
@@ -139,48 +140,57 @@ func _draw() -> void:
 		for c in campos:
 			if str(c[1]) == "":
 				continue
-			Desenho.texto(self, Vector2(px, py), c[0], Tema.fonte(600), 22, Tema.VERDE)
-			py += 30
-			py = _paragrafo(Vector2(px, py), str(c[1]), dr.size.x - 56)
+			if py > dr.end.y - 60:
+				break
+			Desenho.texto(self, Vector2(px, py), c[0], Tema.fonte(600), Tema.T_SELO, Tema.VERDE)
+			py += Tema.t(Tema.T_SELO) * 1.3
+			py = _paragrafo(Vector2(px, py), str(c[1]), dr.size.x - 56, dr.end.y - 24)
 			py += 14
 
 	Desenho.dicas_a_direita(self, Vector2(size.x - Tema.MARGEM_X, size.y - 40), [["cima", "linha"], ["esquerda", "lugar"], ["circulo", "fechar"]], Tema.T_SELO)
 
 
 func _celula(r: Rect2, v: Dictionary, ocupado: bool) -> void:
-	var y := r.position.y + r.size.y * 0.5 + 9
+	var y := r.position.y + r.size.y * 0.5 + 11
 	var x := r.position.x + 12
 	if not ocupado:
-		Desenho.texto(self, Vector2(x, y), "·", Tema.fonte(600), 24, Tema.SUTIL)
+		Desenho.texto(self, Vector2(x, y), "·", Tema.fonte(600), Tema.T_SELO, Tema.SUTIL)
 		return
 	var res := int(v.get("resultado", 0)) if not v.is_empty() else 0
 	match res:
 		1:
-			Desenho.texto(self, Vector2(x, y), "✓ passou", Tema.fonte(600), 24, Tema.VERDE)
+			Desenho.texto(self, Vector2(x, y), "✓ passou", Tema.fonte(600), Tema.T_SELO, Tema.VERDE)
 		2:
-			Desenho.texto(self, Vector2(x, y), "✗ falhou", Tema.fonte(600), 24, Tema.VERMELHO)
+			Desenho.texto(self, Vector2(x, y), "✗ falhou", Tema.fonte(600), Tema.T_SELO, Tema.VERMELHO)
 		_:
 			# não medido tem forma própria: o anel vazado, e a palavra apagada
 			draw_arc(Vector2(x + 8, y - 8), 7, 0, TAU, 20, Tema.MUDO, 2, true)
-			Desenho.texto(self, Vector2(x + 24, y), "não medido", Tema.fonte(400), 22, Tema.MUDO)
+			Desenho.texto(self, Vector2(x + 24, y), "não medido", Tema.fonte(400), Tema.T_SELO, Tema.MUDO)
 
 
-## Um parágrafo quebrado na largura; devolve o y depois dele.
-func _paragrafo(pos: Vector2, texto: String, largura: float) -> float:
+## Um parágrafo quebrado na largura (até 80 caracteres por linha, entrelinha
+## de 1,5: o estudo 02, item 30); devolve o y depois dele. O que passa do
+## `fundo` vira reticências: o texto inteiro está no relatório.
+func _paragrafo(pos: Vector2, texto: String, largura: float, fundo: float) -> float:
 	var f := Tema.fonte(400)
-	var tam := 24
+	var tam := Tema.T_ROTULO
+	var passo := Tema.t(tam) * 1.5
+	largura = minf(largura, Desenho.largura("n".repeat(80), f, tam))
 	var palavras := texto.split(" ")
 	var atual := ""
 	var y := pos.y
 	for p in palavras:
 		var teste := p if atual == "" else atual + " " + p
 		if Desenho.largura(teste, f, tam) > largura and atual != "":
+			if y + 2 * passo > fundo:
+				Desenho.texto(self, Vector2(pos.x, y), Desenho.caber(atual + " …", f, tam, largura, 1), f, tam, Tema.FG)
+				return y + passo
 			Desenho.texto(self, Vector2(pos.x, y), atual, f, tam, Tema.FG)
-			y += 34
+			y += passo
 			atual = p
 		else:
 			atual = teste
 	if atual != "":
 		Desenho.texto(self, Vector2(pos.x, y), atual, f, tam, Tema.FG)
-		y += 34
+		y += passo
 	return y

@@ -88,15 +88,20 @@ func _draw() -> void:
 	Desenho.dicas_a_direita(self, Vector2(w - Tema.MARGEM_X, h - Tema.MARGEM_Y), pares, Tema.T_SELO)
 
 	# os avisos
+	# o texto que some sozinho é grande e curto: 46 px, até duas linhas
 	var y := 190.0
 	for a in _avisos:
 		var alfa := clampf(a[1] / 0.4, 0.0, 1.0)
 		var f := Tema.fonte(500)
-		var tw := Desenho.largura(a[0], f, Tema.T_ROTULO)
-		var r2 := Rect2(Vector2((w - tw) * 0.5 - 28, y), Vector2(tw + 56, 56))
+		var larg_max := 1100.0
+		var s := Desenho.caber(a[0], f, Tema.T_AVISO, larg_max, 2)
+		var tw := minf(Desenho.largura(s, f, Tema.T_AVISO), larg_max)
+		var th := Desenho.altura_paragrafo(s, f, Tema.T_AVISO, larg_max)
+		var r2 := Rect2(Vector2((w - tw) * 0.5 - 32, y), Vector2(tw + 64, th + 28))
 		Desenho.moldura(self, r2, Color(Tema.ELEVADO, 0.95 * alfa), Color(Tema.LINHA, alfa), 2, 12)
-		Desenho.texto(self, Vector2(r2.position.x + 28, y + 38), a[0], f, Tema.T_ROTULO, Color(Tema.FG, alfa))
-		y += 68.0
+		Desenho.paragrafo(self, Vector2(r2.position.x + 32, y + 14 + f.get_ascent(Tema.t(Tema.T_AVISO))), s, f,
+			Tema.T_AVISO, Color(Tema.FG, alfa), larg_max + 1.0, 2)
+		y += r2.size.y + 12.0
 
 
 ## Os lugares, da direita para a esquerda a partir de `fim` (P4 mais à direita).
@@ -129,8 +134,8 @@ func _lugares(fim: Vector2) -> void:
 		if linha != "":
 			# a linha encolhe até caber (cortada, "4 bala" viraria "4 bal")
 			var fl := Tema.fonte(500)
-			var tam := 22
-			while tam > 16 and Desenho.largura(linha, fl, tam) > larg - 40:
+			var tam := Tema.T_SELO
+			while tam > 20 and Desenho.largura(linha, fl, tam) > larg - 40:
 				tam -= 1
 			Desenho.texto(self, r.position + Vector2(20, 76), linha, fl, tam, Tema.SUAVE, HORIZONTAL_ALIGNMENT_LEFT, larg - 40)
 		else:

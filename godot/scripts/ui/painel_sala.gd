@@ -40,7 +40,16 @@ func _aviso() -> void:
 	# (os glifos). O resto a sala ensina jogando, pelas dicas curtas na raia.
 	var poucos := str(sala.com_poucos())
 	var papel: int = sala.papel_som
-	var alt := 410.0 + (40.0 if poucos != "" else 0.0) + (104.0 if papel >= 0 else 0.0)
+	# os glifos das features, em quantas linhas couberem na largura
+	var filas := 1
+	var fila_x := 0.0
+	for f in sala.features:
+		var w := 64.0 + Desenho.largura(_nome_da_feature(f), Tema.fonte(500), Tema.T_ROTULO) + 48.0
+		if fila_x > 0.0 and fila_x + w - 48.0 > larg - 96.0:
+			filas += 1
+			fila_x = 0.0
+		fila_x += w
+	var alt := 410.0 + 64.0 * (filas - 1) + (40.0 if poucos != "" else 0.0) + (104.0 if papel >= 0 else 0.0)
 	var r := Rect2(Vector2((size.x - larg) * 0.5, 176), Vector2(larg, alt))
 	# o quadro entra deslizando (a sala nova chega, não aparece)
 	var k := clampf(float(sala.t_fase) / 0.35, 0.0, 1.0)
@@ -63,6 +72,9 @@ func _aviso() -> void:
 		var tex := Desenho.glifo(Desenho.GLIFO_DA_FEATURE.get(f, ""))
 		var nome := _nome_da_feature(f)
 		var w := 64.0 + Desenho.largura(nome, Tema.fonte(500), Tema.T_ROTULO) + 48.0
+		if fx > x and fx + w - 48.0 > x + larg - 96.0:
+			fx = x
+			y += 64.0
 		if tex:
 			draw_texture_rect(tex, Rect2(Vector2(fx, y + 8), Vector2(48, 48)), false, Tema.CIANO)
 		Desenho.texto(self, Vector2(fx + 60, y + 44), nome, Tema.fonte(500), Tema.T_ROTULO, Tema.FG)
@@ -75,16 +87,20 @@ func _aviso() -> void:
 			continue
 		var cor_id := Tema.tom_para_a_borda(Forja.cor_do_lugar(l))
 		var pronto: bool = sala.prontos[l]
-		var chip := Rect2(Vector2(cx, y), Vector2(236, 64 + (104 if papel >= 0 else 0)))
+		var chip := Rect2(Vector2(cx, y), Vector2(250, 64 + (104 if papel >= 0 else 0)))
 		Desenho.moldura(self, chip, Tema.SEL if pronto else Tema.APP, cor_id, 3, 12)
 		Desenho.texto(self, chip.position + Vector2(20, 42), "P%d" % (l + 1), Tema.fonte(700), Tema.T_ROTULO, cor_id)
 		if pronto:
-			Desenho.texto(self, chip.position + Vector2(76, 42), "✓ pronto", Tema.fonte(600), Tema.T_SELO, Tema.VERDE)
+			Desenho.texto(self, chip.position + Vector2(62, 42), "✓ pronto", Tema.fonte(600), Tema.T_SELO, Tema.VERDE, HORIZONTAL_ALIGNMENT_LEFT, 180)
 		else:
-			Desenho.texto(self, chip.position + Vector2(76, 42), "aguardando", Tema.fonte(400), Tema.T_SELO, Tema.MUDO)
+			# encolhe em vez de cortar (com o texto grande não caberia)
+			var tam_ag := Tema.T_SELO
+			while tam_ag > 20 and Desenho.largura("aguardando", Tema.fonte(400), tam_ag) > 180.0:
+				tam_ag -= 1
+			Desenho.texto(self, chip.position + Vector2(62, 42), "aguardando", Tema.fonte(400), tam_ag, Tema.MUDO, HORIZONTAL_ALIGNMENT_LEFT, 180)
 		if papel >= 0:
 			_som_do_lugar(chip, l, papel)
-		cx += 252
+		cx += 258
 	# os botões, no alto à direita (a linha dos lugares é dos quatro)
 	var dicas := [["cruz", "pronto"]]
 	if papel >= 0:
@@ -322,7 +338,7 @@ func _fim() -> void:
 			var v := _veredito_de(l, f)
 			if not v.is_empty() and int(v.get("resultado", 0)) != Forja.PASSOU:
 				alta = true
-		linhas.append([f, 132.0 if alta else 76.0])
+		linhas.append([f, 156.0 if alta else 76.0])
 	var alt := 200.0
 	for li in linhas:
 		alt += li[1]
@@ -359,8 +375,8 @@ func _fim() -> void:
 			Desenho.selo(self, Vector2(x, y + 10), palavra, cor, Tema.T_SELO)
 			if res != 1:
 				var porque := str(v.get("obs", "")) if str(v.get("obs", "")) != "" else str(v.get("medido", ""))
-				porque = Desenho.caber(porque, Tema.fonte(400), 20, coluna - 24, 2)
-				Desenho.paragrafo(self, Vector2(x, y + 70), porque, Tema.fonte(400), 18, Tema.SUAVE, coluna - 24, 2)
+				porque = Desenho.caber(porque, Tema.fonte(400), Tema.T_SELO, coluna - 24, 2)
+				Desenho.paragrafo(self, Vector2(x, y + 70), porque, Tema.fonte(400), Tema.T_SELO, Tema.SUAVE, coluna - 24, 2)
 		y += li[1]
 	if float(sala.t_fase) > 0.8:
 		Desenho.dicas_a_direita(self, Vector2(r.end.x - 48, r.position.y + 84), [["cruz", str(sala.seguir)]], Tema.T_ROTULO)
