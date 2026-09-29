@@ -598,6 +598,5 @@ static func _cor_mais_perto(c: Color) -> int:
 
 func com_poucos() -> String:
 	match jogadores.size():
-		1: return "Sozinho: sem vizinho, o isolamento da vibração fica sem medir."
-		2, 3: return "Com %d: o golpe de um não pode tremer o controle do outro." % jogadores.size()
+		1: return "sozinho: isolamento não medido"
 	return ""

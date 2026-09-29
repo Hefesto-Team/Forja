@@ -593,6 +593,5 @@ func _robo(l: int, e: Dictionary, dt: float) -> void:
 
 func com_poucos() -> String:
 	match jogadores.size():
-		1: return "Sozinho: três cantos no seu controle e três na TV."
-		2, 3: return "Com %d: dois cantos em cada controle e dois na TV." % jogadores.size()
+		1: return "3 cantos no seu controle"
 	return ""

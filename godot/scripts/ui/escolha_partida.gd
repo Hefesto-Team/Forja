@@ -56,8 +56,6 @@ func _draw() -> void:
 	var q := "P%d escolhe" % (quem + 1)
 	var fq := Tema.fonte(600)
 	Desenho.texto(self, Vector2(r.end.x - 48 - Desenho.largura(q, fq, Tema.T_SELO), r.position.y + 76), q, fq, Tema.T_SELO, cor_id)
-	Desenho.paragrafo(self, r.position + Vector2(48, 136), "Cada sala dá pontos da noite pela colocação; no fim, o pódio.",
-		Tema.fonte(400), Tema.T_ROTULO, Tema.SUAVE, larg - 96)
 	# os tamanhos, à esquerda
 	var col := 600.0
 	for i in LINHAS.size():

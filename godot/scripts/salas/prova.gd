@@ -877,7 +877,7 @@ func _robo(i: int, dt: float) -> void:
 
 func com_poucos() -> String:
 	match jogadores.size():
-		1: return "Sozinho: você contra dois bonecos de treino."
-		2: return "Com 2: um contra um."
-		3: return "Com 3: dois contra um, e um boneco de treino do lado de quem está só."
+		1: return "você contra 2 bonecos"
+		2: return "1 contra 1"
+		3: return "2 contra 1 + boneco"
 	return ""
