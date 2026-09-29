@@ -130,7 +130,7 @@ var _energia_preenchimento := 0.0
 ## flutua), um preenchimento de cor por cima e dois neons na parede do fundo
 ## (o synthwave da trilha). O ambiente é constante: numa prova às cegas, a luz
 ## da sala não diz nada que a mão tenha de descobrir.
-func atmosfera(cor_ar: Color, cor_neon: Color, brasas := false, n := 48, largura := 22.0, fundo := -6.0,
+func atmosfera(cor_ar: Color, cor_neon: Color, brasas := false, n := 48, largura := 22.0, fundo := -7.8,
 		preenche := 0.35) -> void:
 	var caixa := Vector3(largura, 3.5, 9.0)
 	if brasas:
@@ -155,7 +155,7 @@ func atmosfera(cor_ar: Color, cor_neon: Color, brasas := false, n := 48, largura
 		mat.emission = cor_neon
 		mat.emission_energy_multiplier = 3.0
 		neon.material_override = mat
-		neon.position = Vector3(lado * largura * 0.27, 3.6, fundo)
+		neon.position = Vector3(lado * largura * 0.27, 2.3, fundo)
 		add_child(neon)
 		var brilho := OmniLight3D.new()
 		brilho.light_color = cor_neon

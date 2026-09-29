@@ -151,7 +151,7 @@ func _cenario() -> void:
 	Efeitos.brasas(self, Vector3(0, -1.2, 0.5), Vector3(22, 0.2, 4.6), Tema.LARANJA, 70)
 	luzes([Vector3(-10, 2.8, -5.4), Vector3(10, 2.8, -5.4), Vector3(0, 3.4, 4.8)])
 	# a lava: o preenchimento vermelho e o neon laranja
-	atmosfera(Color("#ff6a3d"), Tema.LARANJA, false, 30, 22.0, -6.0, 0.3)
+	atmosfera(Color("#ff6a3d"), Tema.LARANJA, false, 30, 22.0, -7.8, 0.3)
 
 
 func _shader_lava() -> Shader:

@@ -67,7 +67,7 @@ func _init() -> void:
 func montar() -> void:
 	Kit.arena(self, 5, 3)
 	# quase breu: poeira verde e o neon ciano, o preenchimento fraco
-	atmosfera(Color("#7ff0b0"), Tema.CIANO, false, 30, 22.0, -6.0, 0.08)
+	atmosfera(Color("#7ff0b0"), Tema.CIANO, false, 30, 22.0, -7.8, 0.08)
 	# quase breu: um enchimento frio e fraco; a luz de cada raia é a lanterna dele
 	var frio := OmniLight3D.new()
 	frio.position = Vector3(0, 9.0, 5.0)

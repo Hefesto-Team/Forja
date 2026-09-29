@@ -426,6 +426,7 @@ func _ir_para_o_podio() -> void:
 	var lista := partida.podio(partida.presentes())
 	for p in jogadores:
 		p.controlavel = false
+		p.preso = true  # sem gravidade: o bloco leva o boneco para cima
 		p.global_position = salao.pedestais[p.lugar]
 		p.rotation.y = 0.0
 	# o pódio de verdade: um bloco sobe debaixo de cada um, mais alto para quem
@@ -510,6 +511,8 @@ func _quadro_podio() -> void:
 
 func _sair_do_podio() -> void:
 	placar.visible = false
+	for p in jogadores:
+		p.preso = false
 	Forja.som_encerrar()
 	if is_instance_valid(_blocos_do_podio):
 		_blocos_do_podio.queue_free()
