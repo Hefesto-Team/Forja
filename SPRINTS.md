@@ -274,7 +274,7 @@ e na tela do Steam Deck.
 | o som da TV | os efeitos de hoje são sintetizados (`scripts/som.gd`); gravar ou licenciar os que pedem corpo (o martelo, o golpe, o sino) |
 | a arte das salas | os bonecos reagindo (ao veredito, ao golpe, à vitória), partículas e luz por sala, as transições |
 | o título e os créditos | a tela de título com a bigorna, e os créditos com as licenças (os modelos Kenney, CC0; as fontes, OFL; o SDL, zlib; o Godot e o godot-cpp, MIT; os glifos e o mapa do app Hefesto, MIT) — **feito em parte**: △ no título abre os créditos, só "Hefesto Team" sobre o sol do synthwave; as licenças vão com o jogo em `assets/LEIA-ME.md` e nos textos ao lado de cada coisa |
-| o ícone do jogo | o ícone e os metadados do `.exe` (o rcedit pelo Wine na exportação) e o `.desktop` do Linux |
+| o ícone do jogo | o ícone e os metadados do `.exe` (o rcedit pelo Wine na exportação) e o `.desktop` do Linux — **feito em parte**: o `.desktop` e o ícone no pacote Linux e no AppImage; o `.exe` segue com o ícone do Godot (o rcedit pelo Wine não entrou) |
 | o trailer | os 60 s do sprint 5, agora com as salas 3D |
 
 **Pronto quando:** o trailer sai sem nenhum corte para esconder tela crua.
@@ -286,8 +286,8 @@ e na tela do Steam Deck.
 | o controle que cai | tirar o cabo no meio de cada sala: a sala segue, o lugar espera, o controle volta ao mesmo lugar — a regra do sprint 1, conferida sala por sala no 3D |
 | o Steam Deck | 1280×800 a 60 quadros, com os DualSense pelo Bluetooth ou pelo dock |
 | o inglês | as telas e o README em inglês, com o português como padrão |
-| a distribuição | um AppImage ou Flatpak no Linux, e os pacotes da exportação como release no GitHub a cada tag |
-| as telas no CI | as fotos que o `testes/captura_jogo.gd` já tira, comparadas com as da versão anterior |
+| a distribuição | um AppImage ou Flatpak no Linux, e os pacotes da exportação como release no GitHub a cada tag — **feito**: `scripts/exportar.sh appimage` (o appimagetool 1.9.0 por sha256, o runtime tirado dele mesmo); a prova da exportação joga a Prova de Fogo no AppImage e confere a mesma matriz do binário; a cada tag, o job `release` publica o `.tar.gz`, o `.zip` e o AppImage. Os pacotes levam `LICENCAS.txt` (o `LICENCAS-DE-TERCEIROS.md` e os avisos do Godot tirados do binário) |
+| as telas no CI | as fotos que o `testes/captura_jogo.gd` já tira, comparadas com as da versão anterior — **feito**: o job `telas` fotografa nove telas (`tests/telas.sh`), compara com as da versão anterior do branch (o cache) e deixa as pranchas de diferença e de daltonismo como artefato; relata, não reprova (o 3D por software varia entre máquinas) |
 
 **Pronto quando:** o jogo roda no Deck e num PC com Windows, com quatro
 DualSense, a partir do pacote baixado, sem compilar nada.

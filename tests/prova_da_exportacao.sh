@@ -88,6 +88,33 @@ else
   conferir linux "$TMP/linux" Linux || FALHAS=$((FALHAS + 1))
 fi
 
+echo "==> o que vai junto: as licenças nos dois pacotes, o ícone e o .desktop no Linux"
+for f in "$DIST/forja-linux-x86_64/LICENCAS.txt" "$DIST/forja-windows-x86_64/LICENCAS.txt"; do
+  if [ -f "$(dirname "$f")/forja.pck" ] || [ -f "$(dirname "$f")/forja.x86_64" ]; then
+    grep -q "Godot Engine" "$f" 2> /dev/null && grep -q "Sam Lantinga" "$f" && grep -q "Open Font License" "$f" \
+      || falha "$(basename "$(dirname "$f")"): LICENCAS.txt sem o Godot, o SDL ou as fontes"
+  fi
+done
+[ -s "$DIST/forja-linux-x86_64/forja.png" ] && grep -q "^Exec=forja.x86_64" "$DIST/forja-linux-x86_64/forja.desktop" \
+  || falha "o Linux sem o ícone ou sem o .desktop"
+
+APPIMAGE="$DIST/FORJA-x86_64.AppImage"
+if [ -f "$APPIMAGE" ]; then
+  echo "==> o AppImage: a mesma Prova de Fogo"
+  mkdir -p "$TMP/appimage"
+  chmod +x "$APPIMAGE"
+  APPIMAGE_EXTRACT_AND_RUN=1 timeout 900 "${CAIXA[@]}" "$APPIMAGE" "${ARGS[@]}" --relatorios="$TMP/appimage" > "$TMP/appimage.log" 2>&1
+  rc=$?
+  if [ "$rc" -ne 0 ]; then
+    tail -n 40 "$TMP/appimage.log"
+    falha "o AppImage saiu com $rc"
+  elif conferir appimage "$TMP/appimage" Linux; then
+    diff -u "$TMP/linux/matriz.txt" "$TMP/appimage/matriz.txt" > /dev/null || falha "o AppImage mediu outra matriz"
+  else
+    FALHAS=$((FALHAS + 1))
+  fi
+fi
+
 echo "==> o .exe exportado, pelo Wine: a mesma Prova de Fogo"
 if ! command -v wine > /dev/null; then
   if [ "${SO_LINUX:-0}" = 1 ]; then

@@ -157,8 +157,12 @@ jobs:
           path: .cache/godot-dados
           key: modelos-${{ env.GODOT_VERSAO }}-${{ hashFiles('scripts/exportar.sh') }}
 
-      - name: Exportar o jogo (o binário Linux e o .exe)
-        run: scripts/exportar.sh tudo
+      - name: Exportar o jogo (o binário Linux, o .exe e o AppImage)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends desktop-file-utils
+          scripts/exportar.sh tudo
+          scripts/exportar.sh appimage
 
       - name: O Wine, a base do Proton, para rodar o .exe
         run: |
@@ -179,3 +183,100 @@ jobs:
           name: forja-windows-x86_64
           path: dist/forja-windows-x86_64.zip
           if-no-files-found: error
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: forja-appimage-x86_64
+          path: dist/FORJA-x86_64.AppImage
+          if-no-files-found: error
+
+  telas:
+    name: As telas — as fotos do jogo contra as da versão anterior
+    runs-on: ubuntu-24.04
+    needs: [linux]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: O módulo Linux (o artefato do job acima)
+        uses: actions/download-artifact@v4
+        with:
+          name: forja-modulo-linux-x86_64
+          path: godot/bin
+
+      - name: O Godot em cache
+        id: godot
+        uses: actions/cache@v4
+        with:
+          path: tools
+          key: godot-${{ env.GODOT_VERSAO }}
+
+      - name: Baixar o Godot
+        if: steps.godot.outputs.cache-hit != 'true'
+        run: |
+          mkdir -p tools
+          curl -fsSL -o /tmp/godot.zip \
+            "https://github.com/godotengine/godot/releases/download/${GODOT_VERSAO}/Godot_v${GODOT_VERSAO}_linux.x86_64.zip"
+          unzip -o -q /tmp/godot.zip -d tools
+
+      - name: A tela virtual e o OpenGL por software
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends xvfb libgl1-mesa-dri libegl1 libxkbcommon0
+
+      - name: As fotos desta versão
+        run: bash tests/telas.sh fotos telas/depois
+
+      - name: As fotos da versão anterior (o cache mais recente deste branch)
+        uses: actions/cache/restore@v4
+        with:
+          path: telas/antes
+          key: telas-${{ github.ref_name }}-${{ github.sha }}
+          restore-keys: |
+            telas-${{ github.ref_name }}-
+            telas-main-
+
+      - name: A comparação (relata; não reprova)
+        run: bash tests/telas.sh comparar telas/antes telas/depois telas/diferencas
+
+      - name: Guardar estas fotos para a próxima versão
+        if: always()
+        run: rm -rf telas/antes && cp -r telas/depois telas/antes
+
+      - uses: actions/cache/save@v4
+        if: always()
+        with:
+          path: telas/antes
+          key: telas-${{ github.ref_name }}-${{ github.sha }}
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: forja-telas
+          path: telas/
+          if-no-files-found: error
+
+  release:
+    name: O release — os pacotes a cada tag
+    runs-on: ubuntu-24.04
+    needs: [exportar]
+    if: startsWith(github.ref, 'refs/tags/')
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Os três pacotes (os artefatos da exportação)
+        uses: actions/download-artifact@v4
+        with:
+          pattern: forja-*-x86_64
+          path: dist
+          merge-multiple: true
+
+      - name: Publicar
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          ls -la dist
+          gh release create "${GITHUB_REF_NAME}" --title "FORJA ${GITHUB_REF_NAME}" --generate-notes --verify-tag \
+            dist/forja-linux-x86_64.tar.gz dist/forja-windows-x86_64.zip dist/FORJA-x86_64.AppImage
