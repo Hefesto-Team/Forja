@@ -42,6 +42,9 @@ func _aviso() -> void:
 	var papel: int = sala.papel_som
 	var alt := 410.0 + (40.0 if poucos != "" else 0.0) + (104.0 if papel >= 0 else 0.0)
 	var r := Rect2(Vector2((size.x - larg) * 0.5, 176), Vector2(larg, alt))
+	# o quadro entra deslizando (a sala nova chega, não aparece)
+	var k := clampf(float(sala.t_fase) / 0.35, 0.0, 1.0)
+	r.position.x += (1.0 - k * k * (3.0 - 2.0 * k)) * 520.0
 	Desenho.moldura(self, r, Color(Tema.PAINEL, 0.97), Tema.LINHA, 2, Tema.RAIO_QUADRO)
 	var x := r.position.x + 48
 	Desenho.texto(self, Vector2(x, r.position.y + 92), str(sala.nome), Tema.fonte(700), Tema.T_TITULO, Tema.FG)
@@ -274,6 +277,7 @@ func _pergunta(l: int, q: Dictionary, r: Rect2) -> void:
 
 func _tempo() -> void:
 	_dicas()
+	_treino_e_valendo()
 	var d: float = sala.duracao
 	if d <= 0.0:
 		# sem relógio: a linha de progresso da sala, no mesmo lugar
@@ -367,3 +371,24 @@ func _veredito_de(l: int, f: String) -> Dictionary:
 		if str(v.get("feature", "")) == f:
 			return v
 	return {}
+
+
+## O selo do treino no alto, e o "Valendo!" grande quando ele acaba.
+func _treino_e_valendo() -> void:
+	if sala.treinando:
+		var s := "treino — não vale ponto"
+		var f := Tema.fonte(600)
+		var w := Desenho.largura(s, f, Tema.T_ROTULO) + 56
+		var r := Rect2(Vector2((size.x - w) * 0.5, 176), Vector2(w, 56))
+		Desenho.moldura(self, r, Color(Tema.PAINEL, 0.94), Tema.CIANO, 3, 14)
+		Desenho.texto(self, r.position + Vector2(28, 38), s, f, Tema.T_ROTULO, Tema.CIANO)
+	elif float(sala.valendo_t) > 0.0:
+		var k: float = 1.4 - float(sala.valendo_t)
+		var escala := 1.0 + 0.35 * maxf(0.0, 1.0 - k / 0.25)
+		var alfa := clampf(float(sala.valendo_t) / 0.4, 0.0, 1.0)
+		var s2 := "Valendo!"
+		var f2 := Tema.fonte(700)
+		var tam := int(Tema.T_DISPLAY * escala)
+		var w2 := Desenho.largura(s2, f2, tam)
+		Desenho.texto(self, Vector2((size.x - w2) * 0.5 + 4, size.y * 0.42 + 4), s2, f2, tam, Color(Tema.CASA, 0.6 * alfa))
+		Desenho.texto(self, Vector2((size.x - w2) * 0.5, size.y * 0.42), s2, f2, tam, Color(Tema.ROSA, alfa))

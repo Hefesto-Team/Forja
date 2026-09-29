@@ -6,6 +6,12 @@ extends Node
 ##
 ## Este é o som da TV. O som de cada controle (o alto-falante, a háptica pelos
 ## atuadores) sai pelo módulo (Forja.som_falante, Forja.som_haptica).
+##
+## Os efeitos de sabor (o martelo, o golpe, o tiro, o sino, a interface, os
+## jingles) são gravações CC0 da Kenney em assets/sons/, várias versões de
+## cada, tocadas com um tom levemente sorteado; sem gravação, a síntese. Os
+## sons que as salas MEDEM (as notas do Canto, os passos dos Caminhos, o sino
+## e o pulso de teste) seguem sintetizados: a assinatura deles é a régua.
 
 ## nome -> [receita, parâmetros]
 const RECEITAS := {
@@ -28,7 +34,20 @@ const RECEITAS := {
 	"grito": ["grito", {"dur": 0.9, "semente": 31}],
 }
 
+## O nome que as salas usam -> o nome da gravação em assets/sons/ (<nome>_N.wav).
+const GRAVADOS := {
+	"martelo": "martelo", "tique": "tique", "confirma": "confirma", "falha": "falha",
+	"carimbo": "carimbo", "sucesso": "vitoria_sala", "golpe": "golpe", "escudo": "escudo",
+	"tiro": "tiro", "alvo": "alvo", "pedra": "pedra", "sino_viga": "sino", "vazio": "vazio",
+	"recarga": "recarga", "ponto": "ponto", "portao": "portao", "transicao": "transicao",
+	"especial": "especial", "sobe": "sobe", "placar": "placar", "vitoria_noite": "vitoria_noite",
+	"seleciona": "seleciona", "volta": "volta", "passo_salao": "passo",
+}
+
 var _streams := {}
+var _gravados := {}  ## nome da gravação -> Array[AudioStreamWAV]
+var _no_controle := {}  ## "nome_k" já registrado no módulo
+var _rng := RandomNumberGenerator.new()
 var _players: Array[AudioStreamPlayer3D] = []
 var _players_2d: Array[AudioStreamPlayer] = []
 var _proximo := 0
@@ -72,8 +91,28 @@ func stream(nome: String, laco := false) -> AudioStreamWAV:
 
 
 ## Toca um som: em `pos` (3D, do lado da raia) ou sem posição (a tela toda).
+## As versões gravadas de um efeito (vazio: não há gravação).
+func versoes(gravacao: String) -> Array:
+	if _gravados.has(gravacao):
+		return _gravados[gravacao]
+	var lista: Array = []
+	for k in 10:
+		var caminho := "res://assets/sons/%s_%d.wav" % [gravacao, k]
+		if not ResourceLoader.exists(caminho):
+			break
+		lista.append(load(caminho))
+	_gravados[gravacao] = lista
+	return lista
+
+
 func tocar(nome: String, pos: Variant = null, volume_db := 0.0, tom := 1.0) -> void:
-	var s := stream(nome)
+	var s: AudioStream = null
+	var lista := versoes(GRAVADOS.get(nome, ""))
+	if not lista.is_empty():
+		s = lista[_rng.randi() % lista.size()]
+		tom *= _rng.randf_range(0.95, 1.05)
+	else:
+		s = stream(nome)
 	if s == null:
 		return
 	if pos is Vector3:
@@ -105,3 +144,22 @@ func laco(nome: String, pai: Node3D, pos: Vector3, volume_db := -8.0) -> AudioSt
 	p.position = pos
 	pai.add_child(p)
 	return p
+
+
+## O mesmo efeito no alto-falante do controle do lugar (o módulo recebe a
+## gravação na primeira vez). Só depois da resposta nas provas às cegas: um
+## som no controle não pode entregar o que a mão tem de descobrir.
+func no_controle(lugar: int, nome: String, ganho := 0.7) -> void:
+	if not Forja.modulo:
+		return
+	var gravacao: String = GRAVADOS.get(nome, "")
+	var lista := versoes(gravacao)
+	if lista.is_empty():
+		return
+	var k := _rng.randi() % lista.size()
+	var chave := "%s_%d" % [gravacao, k]
+	if not _no_controle.has(chave):
+		var w: AudioStreamWAV = lista[k]
+		_no_controle[chave] = Forja.ctl.som_registrar(chave, w.data, w.mix_rate)
+	if _no_controle[chave]:
+		Forja.som_falante(lugar, chave, ganho)

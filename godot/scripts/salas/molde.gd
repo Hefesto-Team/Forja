@@ -65,6 +65,8 @@ func _init() -> void:
 
 func montar() -> void:
 	Kit.arena(self, 5, 3)
+	# a oficina: poeira dourada no ar, e o neon roxo
+	atmosfera(Color("#f1c86a"), Tema.ROXO, false, 50)
 	luzes([Vector3(-9, 2.5, -4), Vector3(9, 2.5, -4), Vector3(0, 3.0, 4)])
 	for p in jogadores:
 		var l: int = p.lugar
@@ -285,6 +287,7 @@ func _jogar(l: int, p: ForjaPlayer, e: Dictionary, dt: float) -> void:
 					Efeitos.faiscas(self, centro, Tema.AMARELO, 30, 1.0)
 					Efeitos.anel(self, centro, Tema.AMARELO, 0.6)
 					Som.tocar("carimbo", centro, 0.0)
+					Som.no_controle(l, "carimbo", 0.6)
 					Forja.vibrar(l, 0.5, 0.3, 90)
 				else:
 					e.fora += 1

@@ -70,6 +70,8 @@ func _init() -> void:
 
 func montar() -> void:
 	Kit.arena(self, 5, 3)
+	# no escuro: só uma poeira fria e o neon azul, o preenchimento fraco
+	atmosfera(Color("#6fa8ff"), Color("#3b6bff"), false, 30, 22.0, -6.0, 0.1)
 	# no escuro: um enchimento frio e fraco; a luz de cada raia é a lanterna dele
 	var frio := OmniLight3D.new()
 	frio.position = Vector3(0, 8.0, 3.0)
@@ -246,6 +248,9 @@ func _resolver(r: int) -> void:
 		e.combo += 1
 		marcar(l, 100 + (50 if t_estado < 0.6 else 0) + 10 * (int(e.combo) - 1))
 		res = "certo"
+		# depois da resposta: o escudo segurou, e se ouve na mão
+		Som.tocar("escudo", jogador(l).global_position + Vector3(0, 1.2, 0), -2.0)
+		Som.no_controle(l, "escudo", 0.7)
 	else:
 		if r < 0:
 			Cega.perdido(cega)
@@ -254,6 +259,8 @@ func _resolver(r: int) -> void:
 			Cega.errado(cega, r)
 			res = "errado"
 		e.combo = 0
+		Som.tocar("golpe", jogador(l).global_position + Vector3(0, 1.2, 0), -2.0)
+		Som.no_controle(l, "golpe", 0.7)
 		e.vida = maxf(VIDA_MIN, float(e.vida) - DANO)
 		e.dano = 1.0
 		e.pisca = 0.34

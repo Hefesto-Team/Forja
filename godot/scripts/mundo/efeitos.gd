@@ -105,3 +105,36 @@ static func anel(pai: Node, pos: Vector3, cor: Color, raio := 0.6, virado_para :
 	tw.tween_property(a, "scale", Vector3.ONE * 2.2, 0.45).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 	tw.tween_property(m, "albedo_color:a", 0.0, 0.45)
 	tw.chain().tween_callback(a.queue_free)
+
+
+## A poeira no ar: pontos de luz que flutuam devagar, sem cair (o clima da sala).
+static func poeira(pai: Node, centro: Vector3, tamanho: Vector3, cor: Color, n := 40) -> GPUParticles3D:
+	var p := GPUParticles3D.new()
+	p.amount = n
+	p.lifetime = 7.0
+	p.preprocess = 7.0
+	p.visibility_aabb = AABB(-tamanho * 0.5 - Vector3(1, 1, 1), tamanho + Vector3(2, 2, 2))
+	var m := ParticleProcessMaterial.new()
+	m.emission_shape = ParticleProcessMaterial.EMISSION_SHAPE_BOX
+	m.emission_box_extents = tamanho * 0.5
+	m.direction = Vector3(0.3, 0.2, 0)
+	m.spread = 180.0
+	m.initial_velocity_min = 0.05
+	m.initial_velocity_max = 0.25
+	m.gravity = Vector3.ZERO
+	m.scale_min = 0.5
+	m.scale_max = 1.2
+	var grad := Gradient.new()
+	grad.offsets = PackedFloat32Array([0.0, 0.3, 0.7, 1.0])
+	grad.colors = PackedColorArray([Color(cor, 0.0), Color(cor, 0.8), Color(cor, 0.8), Color(cor, 0.0)])
+	var tg := GradientTexture1D.new()
+	tg.gradient = grad
+	m.color_ramp = tg
+	p.process_material = m
+	var q := QuadMesh.new()
+	q.size = Vector2(0.04, 0.04)
+	q.material = _material_brilho(Color.WHITE)
+	p.draw_pass_1 = q
+	p.position = centro
+	pai.add_child(p)
+	return p

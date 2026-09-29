@@ -29,7 +29,9 @@ const ORDEM_DO_FOGO := ["centelha", "viga", "molde", "impacto", "galeria", "cant
 var estado := "titulo"
 var fogo := -1  ## a sala da Prova de Fogo em curso (índice em ORDEM_DO_FOGO); -1 fora dela
 var partida: Partida = null  ## a partida em curso; null fora dela
-var _partidas := 0  ## quantas partidas a sessão já começou (a próxima sorteia outra)
+var _partidas := 0
+var _blocos_do_podio: Node3D = null
+var _confete_t := 0.0  ## quantas partidas a sessão já começou (a próxima sorteia outra)
 var salao: Salao
 var jogadores: Array[ForjaPlayer] = []
 var sala: Sala
@@ -242,6 +244,7 @@ func _trocar(acao: Callable) -> void:
 	if _trocando:
 		return
 	_trocando = true
+	Som.tocar("transicao", null, -10.0)
 	var tw := create_tween()
 	# a troca de cena em até 400 ms (o estudo 02, item 26): 150 fechando, 220 abrindo
 	tw.tween_property(cortina, "color:a", 1.0, 0.15).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
@@ -425,12 +428,41 @@ func _ir_para_o_podio() -> void:
 		p.controlavel = false
 		p.global_position = salao.pedestais[p.lugar]
 		p.rotation.y = 0.0
+	# o pódio de verdade: um bloco sobe debaixo de cada um, mais alto para quem
+	# ficou na frente, e leva o boneco junto
+	_blocos_do_podio = Node3D.new()
+	salao.add_child(_blocos_do_podio)
+	Forja.som_preparar(Forja.PAPEL_ALTO_FALANTE)
 	for e in lista:
 		var l := int(e.lugar)
+		var altura: float = [1.1, 0.7, 0.45, 0.25][clampi(int(e.degrau) - 1, 0, 3)]
+		var bloco := CSGBox3D.new()
+		bloco.size = Vector3(1.5, 1.0, 1.5)
+		var mat := StandardMaterial3D.new()
+		mat.albedo_color = Color("#8784b3").lerp(Forja.cor_do_lugar(l), 0.25)
+		mat.emission_enabled = int(e.degrau) == 1
+		mat.emission = Forja.cor_do_lugar(l)
+		mat.emission_energy_multiplier = 0.6
+		bloco.material = mat
+		var base: Vector3 = salao.pedestais[l]
+		bloco.position = base + Vector3(0, -0.5, 0)
+		bloco.scale = Vector3(1, 0.01, 1)
+		_blocos_do_podio.add_child(bloco)
+		var tw := create_tween().set_parallel(true).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+		var espera := 0.25 * (4 - int(e.degrau))
+		tw.tween_property(bloco, "scale", Vector3(1, altura, 1), 0.7).set_delay(espera)
+		tw.tween_property(bloco, "position", base + Vector3(0, altura * 0.5, 0), 0.7).set_delay(espera)
+		tw.tween_property(jogadores[l], "global_position", base + Vector3(0, altura, 0), 0.7).set_delay(espera)
 		if int(e.degrau) == 1:
 			jogadores[l].gesto("emote-yes", 2.0)
 			Forja.vibrar(l, 0.4, 0.6, 400)
+			# a fanfarra na TV e na mão de quem venceu
+			get_tree().create_timer(0.9).timeout.connect(func() -> void:
+				Som.tocar("vitoria_noite")
+				Som.no_controle(l, "vitoria_noite", 0.8))
+	_confete_t = 0.0
 	_mostrar("podio")
+	Musica.tocar("podio")
 	hud.sala = {}
 	hud.placa = {}
 	placar.abrir(partida, true)
@@ -449,6 +481,14 @@ func _quadro_podio() -> void:
 	for e in partida.podio(partida.presentes()):
 		if int(e.degrau) == 1 and jogadores[int(e.lugar)]._gesto <= 0.0:
 			jogadores[int(e.lugar)].gesto("emote-yes", 2.0)
+	# o confete: faíscas nas quatro cores caindo sobre o primeiro degrau
+	_confete_t -= get_process_delta_time()
+	if _confete_t <= 0.0:
+		_confete_t = 0.45
+		for e in partida.podio(partida.presentes()):
+			if int(e.degrau) == 1:
+				var alto: Vector3 = jogadores[int(e.lugar)].global_position + Vector3(randf_range(-1.2, 1.2), 3.2, randf_range(-0.6, 0.6))
+				Efeitos.faiscas(salao, alto, Forja.cor_do_lugar(randi() % 4), 22, 0.9)
 	if Forja.robo and "--sair-no-fim" in OS.get_cmdline_user_args() and placar._t > 3.0:
 		get_tree().quit()
 		return
@@ -470,6 +510,10 @@ func _quadro_podio() -> void:
 
 func _sair_do_podio() -> void:
 	placar.visible = false
+	Forja.som_encerrar()
+	if is_instance_valid(_blocos_do_podio):
+		_blocos_do_podio.queue_free()
+	_blocos_do_podio = null
 
 
 func _sair_da_sala() -> void:
@@ -614,6 +658,7 @@ func _quadro_salao() -> void:
 			salao.abrir_portao(_portao_perto, false)
 		if perto != "":
 			salao.abrir_portao(perto, true)
+			Som.tocar("portao", salao.centro_do_portao(perto), -8.0)
 		_portao_perto = perto
 	if perto == "":
 		_perto_da_bigorna()
@@ -817,8 +862,12 @@ func _quadro_overlay() -> void:
 					return
 		"placar":
 			if not placar.pronto():
+				# ✕ no meio da animação pula para o fim dela
+				for l in 4:
+					if Forja.ocupado(l) and Forja.apertou(l, Forja.CRUZ):
+						placar.pular()
 				return
-			if Forja.robo and placar._t > 2.0:
+			if Forja.robo and placar._t > Placar.T_PRONTO + 0.6:
 				_seguir_a_partida()
 				return
 			for l in 4:

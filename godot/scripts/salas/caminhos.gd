@@ -56,6 +56,7 @@ func _init() -> void:
 	objetivo = "No escuro, o chão só existe no controle: a grama é um baque macio, o cascalho são quatro estalos, o metal um golpe que ressoa, a água duas ondas. Primeiro o treino, com o chão à vista; depois, a cada três passos, diga o chão — ✕ grama, ○ cascalho, □ metal, △ água, o touchpad é \"não senti\". Se tropeçar numa pedra, diga o lado que tremeu: L1 esquerda, R1 direita. Confira a sua háptica aqui embaixo: △ dá um pulso na esquerda e outro na direita, ◀ ▶ troca."
 	features = ["haptica_audio"]
 	cega = true
+	com_treino = false  # Os Caminhos têm o treino deles: sentir cada chão antes
 	papel_som = F.PAPEL_HAPTICA
 	botoes_pedidos = F.mascara([F.CRUZ, F.CIRCULO, F.QUADRADO, F.TRIANGULO, F.L1, F.R1, F.TOUCHPAD])
 	duracao = 0.0
@@ -65,6 +66,8 @@ func _init() -> void:
 
 func montar() -> void:
 	Kit.arena(self, 5, 3)
+	# quase breu: poeira verde e o neon ciano, o preenchimento fraco
+	atmosfera(Color("#7ff0b0"), Tema.CIANO, false, 30, 22.0, -6.0, 0.08)
 	# quase breu: um enchimento frio e fraco; a luz de cada raia é a lanterna dele
 	var frio := OmniLight3D.new()
 	frio.position = Vector3(0, 9.0, 5.0)

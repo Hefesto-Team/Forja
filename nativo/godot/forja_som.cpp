@@ -4,6 +4,9 @@
  * Godot. Os sons que vão ao controle são os da forja, sintetizados aqui
  * (som/sons_salas.h), pelo nome. O veredito do microfone e do botão do mudo
  * sai da régua do núcleo (medidas.h). */
+#include <map>
+#include <string>
+#include <cstdlib>
 #include "forja_controles.h"
 
 extern "C" {
@@ -28,15 +31,60 @@ bool papel_ok(int papel) { return papel >= 0 && papel < PAPEL_TOTAL; }
 bool sim(const Dictionary &d, const char *k, bool padrao) { return d.has(k) ? (bool)d[k] : padrao; }
 float real(const Dictionary &d, const char *k) { return d.has(k) ? (float)(double)d[k] : 0.0f; }
 
-/* O som pelo nome ("sino", "passo:2:1"...); vazio é nenhum. */
+/* Os sons gravados que o jogo registrou (os efeitos CC0 de assets/sons),
+ * pelo nome; ficam até o fim do processo. Os sons que as salas medem (os
+ * passos, as notas, o sino e o pulso de teste) seguem sintetizados. */
+std::map<std::string, Som> &registrados() {
+  static std::map<std::string, Som> m;
+  return m;
+}
+
+/* O som pelo nome ("sino", "passo:2:1", "tiro_0"...); vazio é nenhum. Um
+ * registrado com o mesmo nome de um sintetizado não o substitui. */
 const Som *som_do_nome(const String &nome) {
   if (nome.is_empty())
     return nullptr;
   CharString c = nome.utf8();
-  return sons_salas_por_nome(c.get_data());
+  const Som *s = sons_salas_por_nome(c.get_data());
+  if (s)
+    return s;
+  auto it = registrados().find(c.get_data());
+  return it != registrados().end() ? &it->second : nullptr;
 }
 
 } // namespace
+
+bool ForjaControles::som_registrar(const String &nome, const PackedByteArray &pcm16, int taxa) {
+  if (nome.is_empty() || pcm16.size() < 4 || taxa < 8000)
+    return false;
+  CharString c = nome.utf8();
+  if (sons_salas_por_nome(c.get_data()))
+    return false; /* os sintetizados das salas não se trocam */
+  auto &m = registrados();
+  if (m.count(c.get_data()))
+    return true;
+  /* 16 bits mono na taxa dada → float na MIX_TAXA (interpolação linear) */
+  int n_ent = (int)(pcm16.size() / 2);
+  const uint8_t *b = pcm16.ptr();
+  int n = (int)((int64_t)n_ent * MIX_TAXA / taxa);
+  Som s{};
+  s.amostras = (float *)std::calloc((size_t)n, sizeof(float));
+  if (!s.amostras)
+    return false;
+  s.n = n;
+  for (int i = 0; i < n; i++) {
+    double pos = (double)i * taxa / MIX_TAXA;
+    int k = (int)pos;
+    double fr = pos - k;
+    auto amostra = [&](int j) -> float {
+      j = j < n_ent ? j : n_ent - 1;
+      return (int16_t)(b[j * 2] | (b[j * 2 + 1] << 8)) / 32768.0f;
+    };
+    s.amostras[i] = (float)(amostra(k) * (1.0 - fr) + amostra(k + 1) * fr);
+  }
+  m[c.get_data()] = s;
+  return true;
+}
 
 void ForjaControles::som_preparar(int papel) {
   if (!aberto_)

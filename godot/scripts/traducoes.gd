@@ -238,6 +238,12 @@ const EN := {
 	"mudo no sistema: a sua vez passa": "muted by the system: your turn is skipped",
 	"Quantas luzinhas acesas?": "How many lights are on?",
 	"isso: obedeceu, mesmo com tudo ligado": "right: it obeyed, even with everything on",
+	"treino — não vale ponto": "practice — no points",
+	"Valendo!": "For real!",
+	"treino": "practice",
+	"treino ✓": "practice ✓",
+	"lidera": "leads",
+	"virada!": "comeback!",
 	# a pausa
 	"Pausa": "Pause",
 	"Continuar": "Continue",

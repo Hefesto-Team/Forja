@@ -170,6 +170,7 @@ public:
   void robo_falar(int indice, float nivel, float s);
   void simulador_falar(int sim, float nivel);
   bool simulador_cabo(int sim, bool ligado);
+  bool som_registrar(const String &nome, const PackedByteArray &pcm16, int taxa);
   int chao_do_envelope(const PackedFloat32Array &env) const;
   Dictionary mic_veredito(int lugar, const String &chave, const Dictionary &dados);
 
