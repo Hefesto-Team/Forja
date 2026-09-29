@@ -67,6 +67,8 @@ func _roteiro_das_telas() -> Array:
 		["posiciona", 0, Vector3(2.0, 0.05, -6.0), PI], ["posiciona", 1, Vector3(-2.6, 0.05, 2.4), PI * 0.8],
 		["posiciona", 2, Vector3(4.8, 0.05, 1.0), PI * 1.2],
 		["anda", 0, Vector2(0.0, -0.5), 12], ["espera", 40], ["foto", "salao_portao"],
+		["aviso", "P2 saiu do cabo: ligue de novo para voltar ao mesmo lugar"], ["aviso", "P2 voltou"],
+		["espera", 12], ["foto", "aviso"],
 		["segura", 0, Forja.CRUZ, true], ["eixo", 1, Forja.R2, 0.8], ["eixo", 0, Forja.LX, -0.9],
 		["dedo", 2, 0, true, 0.3, 0.4], ["dedo", 2, 1, true, 0.72, 0.62],
 		["aperta", 0, Forja.CREATE], ["espera", 30], ["foto", "diagnostico"],
@@ -344,6 +346,8 @@ func _rodar() -> void:
 				var j: Node3D = jogo.jogadores[p[1]]
 				j.global_position = p[2]
 				j.rotation.y = p[3]
+			"aviso":
+				jogo.hud.mostrar_aviso(p[1])
 			"vereditos":
 				Forja.veredito(0, "botoes", Forja.PASSOU, Forja.NIVEL_REAGIU, "apertar ✕ ○ □ △", "os quatro chegaram")
 				Forja.veredito(1, "vibracao_forte", Forja.FALHOU, Forja.NIVEL_OBEDECEU, "motor esquerdo, às cegas", "a pessoa disse direita duas vezes")
