@@ -242,8 +242,15 @@ void achar_canais(const NoSom *no, PapelSom papel, int *a, int *b) {
       *b = 1;
     break;
   case NO_NUMERADO_HAPTICA:
-    *a = 0;
-    *b = no->canais >= 2 ? 1 : 0;
+    if (no->canais >= 4) {
+      /* o «Háptica do Controle N» do Hefesto tem 4 canais, FL FR RL RR, como a
+       * placa: os atuadores são os traseiros (o mesmo 2 e 3 da placa acima) */
+      *a = 2;
+      *b = 3;
+    } else {
+      *a = 0;
+      *b = no->canais >= 2 ? 1 : 0;
+    }
     break;
   case NO_DUALSENSE_ENTRADA:
   case NO_NUMERADO_MIC:

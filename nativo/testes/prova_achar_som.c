@@ -138,5 +138,8 @@ void provas_achar_som(void) {
   NoSom hap = no("Háptica do Controle 2 (DualSense Wireless Controller)", 2, false, NULL);
   achar_canais(&hap, PAPEL_HAPTICA, &a, &b);
   espera(a == 0 && b == 1, "na háptica numerada estéreo, esquerda e direita");
+  NoSom hap4 = no("Háptica do Controle 2 (DualSense Wireless Controller)", 4, false, NULL);
+  achar_canais(&hap4, PAPEL_HAPTICA, &a, &b);
+  espera(a == 2 && b == 3, "na háptica numerada de 4 canais, os atuadores são os traseiros, como na placa");
   espera(strcmp(achar_como_rotulo(ACHOU_APARELHO), "pelo aparelho") == 0, "os rótulos");
 }
