@@ -17,7 +17,8 @@ Leia [CONTRATO.md](CONTRATO.md) antes de qualquer patch. Se o patch quebra uma l
 - Nada que dependa da máquina de alguém: nenhum caminho fixo e nenhum endereço de aparelho no código, no registro ou no relatório. Endereço que aparecer sai com os octetos 4 e 5 zerados.
 - O SDK oficial da Sony é sob NDA: não se usa, não se procura, não se reproduz.
 - A voz das telas é a do app Hefesto ([estudo 03](docs/estudos/03-o-sistema-visual-do-app-hefesto.md)): maiúscula só na primeira letra da frase; nunca na tela: "mesa", "uinput", "hidraw", "MAC".
-- Trabalho novo começa por um item do backlog do [SPRINTS.md](SPRINTS.md) (*O que falta para um jogo completo*).
+- Trabalho novo começa por um item do [SPRINTS.md](SPRINTS.md) (*O que ainda falta*, no topo).
+- Os documentos têm um mapa: [docs/README.md](docs/README.md). Compilar, exportar e provar: [docs/DESENVOLVER.md](docs/DESENVOLVER.md).
 
 ## Os comandos
 

@@ -1,98 +1,95 @@
 <p align="center">
-  <img src="docs/imagens/salao.jpg" alt="The forge hall: four players, the room gates and the anvil in the middle" width="100%">
+  <img src="docs/imagens/forja.gif" alt="Forja running: The Gallery, The Beam and The Trial, with four players" width="100%">
 </p>
 
-<h1 align="center">Forja — the Hefesto Tech Demo</h1>
+<h1 align="center">Forja</h1>
 
 <p align="center">
-  <b>A local 3D party game for up to four DualSense controllers —<br>
-  that measures, while you play, what actually reached each controller.</b>
+  <b>A game night for four friends, four DualSense controllers and one couch.</b><br>
+  Nine rooms, a party match, a podium — and the controller doing everything it can do.
 </p>
 
 <p align="center"><a href="README.md">Português</a> · English</p>
 
 ---
 
-## What it is
+## What a Forja night is like
 
-Forja uses everything the DualSense has — buttons, sticks, adaptive
-triggers, gyroscope, accelerometer, touchpad, both rumble motors, the light
-bar, the player LEDs, the speaker, the voice-coil haptics and the microphone
-with its mute button — the way commercial games use them, in nine short rooms
-for four people on the same couch.
+Everyone grabs a DualSense and presses ✕. The controller lights up in your
+seat's color, the little lights under the touchpad show who's who, and your
+character steps onto a pedestal. Pick a look, get ready, and everyone walks
+into the forge hall.
 
-While you play, each room measures what reached each controller and gives,
-per player, a verdict for every feature: **passed**, **failed** (with what was
-measured) or **not measured** (with the reason). At the end, the session book
-shows the table, and the report is written to disk.
+At the anvil in the middle, someone presses □ and picks the match: three
+rooms, five or all nine, in order or shuffled, at a first-timer's pace or a
+fast one. And off you go.
 
-This is how [Hefesto](https://github.com/Hefesto-Team/hefesto-dualsense4unix)
-is validated: by playing. The game speaks DualSense the way Sony and Steam
-document it — USB report `0x02`, the four official trigger modes, player
-index 0..3 — and never talks to Hefesto. Whatever sits in front of the
-controller is invisible; four controllers in four hands are the oracle. The
-law of the repository is [CONTRATO.md](CONTRATO.md) (in Portuguese).
+In each room, the character shows you what to do, and the first round is
+**practice** — no points, just getting the feel. After three hits the screen
+shouts **"For real!"**. Then it's hammering the rune before the ring closes,
+balancing on the beam by tilting the controller, telling with your eyes
+closed which weapon is in your trigger, raising the shield on the side the
+blow shook, calling the crypt's guardian through the controller's microphone.
 
-## The party
+Between rooms, the scoreboard: points count up, rows swap, someone takes the
+lead — sometimes a comeback. At the end the podium rises in blocks, confetti
+falls, and the fanfare plays on the TV and on the winner's controller
+speaker. Someone always wins.
 
-In the hall, □ at the anvil starts a **match**: 3, 5 or all 9 rooms, in the
-route order or shuffled, at a pace (first time, normal, fast). Each room gives
-night points by placement (4, 3, 2, 1), the scoreboard shows up between rooms,
-and the podium closes the night. Every room also plays with 1, 2 or 3
-controllers and says what changes.
+## The nine rooms
 
-Before getting ready in the lobby, △ opens the **options**: per seat, the
-triggers (off, weak, strong) and rumble (0 to 100%); per session, TV and
-controller volume, camera shake, flashes, fullscreen, larger text and the
-**language** (Português or English). The music is synthwave, synthesized by
-the game itself.
-
-## The rooms
-
-| room | validates |
+| room | what you do |
 | --- | --- |
-| A Centelha (The Spark) | buttons, sticks, analog triggers |
-| A Viga (The Beam) | gyroscope, accelerometer |
-| O Molde (The Mold) | two-finger touchpad, click |
-| O Impacto (The Impact) | strong and weak motors, isolation between controllers, light bar |
-| A Galeria (The Gallery) | trigger resistance, weapon and vibration modes; player LEDs |
-| O Canto (The Song) | controller speaker |
-| Os Caminhos (The Paths) | audio haptics (channels 3 and 4) |
-| A Voz (The Voice) | microphone, mute, mute LED |
-| A Prova (The Trial) | everything at once, in two teams |
+| The Spark | press the rune's button before the ring closes, and hammer |
+| The Beam | cross the lava tilting against the wind, aim at the bells by turning, break the stone with a shake |
+| The Mold | the touchpad is the mold: trace, spread with two fingers, stamp with the click |
+| The Impact | in the dark, the blow shakes one side of the controller: raise the shield on that side |
+| The Gallery | the weapon comes in a closed chest; press R2 — pistol, machine gun or bow? |
+| The Song | the anvil sings on one controller only, or on the TV: did it come from your hand? |
+| The Paths | the ground only exists in your palm: grass, gravel, metal or water? |
+| The Voice | the guardian listens through *your* controller's microphone: silence, call, mute |
+| The Trial | Ember against Tide, ninety seconds with everything on at once |
 
-## Download and play
+## Play
 
-Each tagged version is published as a GitHub release with three packages:
-`forja-linux-x86_64.tar.gz`, `FORJA-x86_64.AppImage` and
-`forja-windows-x86_64.zip` (the `.exe`, which also runs through Proton with
-Steam Input turned off for the game). Every CI run also leaves them as
-artifacts.
+1. Download a package from the [latest release](https://github.com/Hefesto-Team/Forja/releases)
+   (or, until the first one is out, from the latest
+   [CI run](https://github.com/Hefesto-Team/Forja/actions/workflows/forja.yml)):
+   the **AppImage** or `.tar.gz` on Linux, the `.zip` on Windows — which also
+   runs through Proton on Steam, with Steam Input turned off for the game.
+2. Plug in the DualSense controllers — on the cable, preferably — and open the game.
+3. ✕ to join, ✕ to get ready. Options pauses, and in the lobby △ opens your seat's options.
 
-On the controller: ✕ joins and readies, Create opens the live diagnostics,
-Options pauses. With no controller at all, the title screen offers to play on
-the keyboard (it becomes a simulated DualSense).
+**So everyone plays well:** triggers can be weak or off and rumble goes from
+0 to 100%, per player; camera shake and flashes turn off; text can grow; and
+the screens speak Portuguese or English. Each player's color always comes
+with their name (P1, P2…), and the colors were checked for color blindness.
 
-## Build from source
+## Why Forja exists
+
+Forja was born to validate [Hefesto](https://github.com/Hefesto-Team/hefesto-dualsense4unix),
+which brings the whole DualSense to Linux. While you play, each room notes
+what it asked of each controller and what arrived, and gives a verdict per
+feature — **passed**, **failed** or **not measured**, with the reason. The
+game speaks DualSense the way Sony and Steam document it, never to Hefesto:
+four controllers in four people's hands are the judge.
+
+## For developers
 
 ```sh
-./run-local.sh                       # builds the native module and opens the game
-./run-local.sh -- --simular=4 --robo # four simulated controllers, and the robot plays
-scripts/exportar.sh tudo             # the Linux build and the .exe
-scripts/exportar.sh appimage         # the AppImage, from the Linux build
+./run-local.sh                       # builds, fetches Godot the first time, opens the game
+./run-local.sh -- --simular=4 --robo # four fake controllers, and the robot plays
 ```
 
-## Tests without hardware
+Everything is tested without hardware on every push. The build, the tests and
+the code map are in [docs/DESENVOLVER.md](docs/DESENVOLVER.md) (in
+Portuguese, like the rest of the documentation; the screens are translated).
 
-```sh
-bash tests/prova_do_jogo.sh     # the game, headless, with four simulated DualSense
-bash tests/prova_de_poucos.sh   # every room with 1, 2 and 3 controllers, the paces, the options, the cable pulled mid-room
-scripts/gauntlet.sh             # the same test again with each fake defect: it must fail
-bash tests/telas.sh fotos out/  # screenshots, compared in CI against the previous version
-```
+## Credits
 
-## What stays in Portuguese
-
-The screens are translated. The explanation under each verdict (what was
-measured and why) and the session report come from the native core and stay in
-Portuguese, as does the documentation in `docs/`.
+Made by **Hefesto Team**. Code under MIT ([LICENSE](LICENSE)); third-party
+works and their notices in [LICENCAS-DE-TERCEIROS.md](LICENCAS-DE-TERCEIROS.md):
+Kenney's 3D models and sound effects (CC0), Space Grotesk and JetBrains Mono
+(OFL), SDL (zlib), Godot and godot-cpp (MIT). The music is synthesized by the
+game itself. DualSense and PlayStation are trademarks of Sony Interactive
+Entertainment; this project is not affiliated with Sony.
