@@ -29,10 +29,13 @@ func _quadros(n: int) -> void:
 ## OPCOES_DE_TESTE=1: a vibração do P2 em 0% e o gatilho do P3 desligado
 ## (as opções do lugar), e as contas do gatilho fraco.
 var com_opcoes := false
+## CABO=1: no meio de cada sala, o cabo do P2 sai por 3 s e volta.
+var com_cabo := false
 
 
 func _ready() -> void:
 	com_opcoes = OS.get_environment("OPCOES_DE_TESTE") == "1"
+	com_cabo = OS.get_environment("CABO") == "1"
 	if com_opcoes:
 		_prova_das_contas_das_opcoes()
 		Opcoes.vibracao[1] = 0
@@ -71,6 +74,8 @@ func _joga(id: String, n: int) -> void:
 		_esperar(sala.com_poucos() != "" if n < 4 else sala.com_poucos() == "",
 			"%s com %d: o selo diz o que muda (%s)" % [id, n, sala.com_poucos()])
 	var q := 0
+	if com_cabo:
+		await _tira_e_poe_o_cabo(sala, id)
 	while is_instance_valid(sala) and sala.fase != "fim" and q < 20000:
 		await _quadros(10)
 		q += 10
@@ -81,6 +86,15 @@ func _joga(id: String, n: int) -> void:
 		var tem: bool = sala.vereditos.has(l) and not Array(sala.vereditos[l]).is_empty()
 		_esperar(tem == (l < n), "%s com %d: P%d %s" % [id, n, l + 1, "tem veredito" if l < n else "vazio, sem veredito"])
 		for v in sala.vereditos.get(l, []):
+			if com_cabo:
+				if l == 1:
+					# o cabo que cai não é defeito: passou ou não medido, nunca falhou
+					_esperar(int(v.get("resultado", -1)) != Forja.FALHOU, "%s: o P2, que perdeu o cabo, %s → %s (%s)" % [
+						id, str(v.get("feature", "")), str(v.get("rotulo", "")), str(v.get("obs", ""))])
+				else:
+					_esperar(int(v.get("resultado", -1)) == Forja.PASSOU, "%s: com o cabo do P2 fora, o P%d %s passou" % [
+						id, l + 1, str(v.get("feature", ""))])
+				continue
 			if com_opcoes:
 				var motivo := Opcoes.por_que_nao_mede(l, str(v.get("feature", "")))
 				if motivo != "":
@@ -112,3 +126,28 @@ func _prova_das_contas_das_opcoes() -> void:
 	Opcoes.vibracao[0] = 50
 	_esperar(is_equal_approx(Opcoes.escala_vibracao(0), 0.5), "vibração em 50%: metade")
 	Opcoes.vibracao[0] = 100
+
+
+## O cabo do P2 sai no meio do jogo e volta: a sala segue, o lugar espera, e o
+## controle volta ao mesmo lugar, com o mesmo player index.
+func _tira_e_poe_o_cabo(sala, id: String) -> void:
+	var q := 0
+	while is_instance_valid(sala) and (sala.fase != "jogo" or sala.t_fase < 2.0) and q < 3000:
+		await _quadros(1)
+		q += 1
+	if not is_instance_valid(sala) or sala.fase != "jogo":
+		_esperar(false, "%s: a sala chegou ao jogo para tirar o cabo" % id)
+		return
+	_esperar(Forja.ctl.simulador_cabo(1, false), "%s: o cabo do P2 saiu" % id)
+	await _quadros(180)
+	_esperar(is_instance_valid(sala) and sala.fase in ["jogo", "fim"], "%s: sem o P2, a sala seguiu" % id)
+	_esperar(not Forja.lugar(1).get("conectado", true) and Forja.ocupado(1), "%s: o lugar do P2 espera, sem controle" % id)
+	_esperar(Forja.ctl.simulador_cabo(1, true), "%s: o cabo do P2 voltou" % id)
+	q = 0
+	while not Forja.lugar(1).get("conectado", false) and q < 300:
+		await _quadros(1)
+		q += 1
+	await _quadros(4)
+	_esperar(Forja.lugar(1).get("conectado", false), "%s: o P2 voltou ao lugar" % id)
+	var p: Dictionary = Forja.ctl.percepcao(Forja.pad_do_lugar(1))
+	_esperar(int(p.get("player_index", -9)) == 1, "%s: com o mesmo player index (1)" % id)

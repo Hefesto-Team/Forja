@@ -4,7 +4,9 @@
 # que muda), e a sala sem o recurso — com o microfone mudo no sistema
 # (o defeito de mentira mic-surdo), A Voz segue sozinha e o veredito fica
 # "não medido", nunca "falhou". E os ritmos (--nivel=0 e 2): as janelas de
-# tempo mudam, e o robô ainda passa sem nenhum "falhou".
+# tempo mudam, e o robô ainda passa sem nenhum "falhou". E o controle que cai
+# (CABO=1): em cada sala o cabo do P2 sai e volta; a sala segue, o lugar
+# espera, o controle volta ao mesmo lugar, e ninguém sai com "falhou".
 #
 # Precisa do módulo compilado (scripts/compilar.sh linux).
 # Uso: bash tests/prova_de_poucos.sh        (GODOT=<binário> para outro Godot)
@@ -48,5 +50,7 @@ SALAS=centelha,impacto,galeria,prova rodar primeira-vez --simular=2 --nivel=0 & 
 # as opções do lugar: a vibração do P2 em 0% e o gatilho do P3 desligado
 OPCOES_DE_TESTE=1 SALAS=impacto,galeria,caminhos rodar opcoes --simular=4 & g=$!
 for p in $d $e $f $g; do wait "$p" || FALHAS=$((FALHAS + 1)); done
+# o controle que cai: em cada sala, o cabo do P2 sai por 3 s e volta
+CABO=1 rodar cabo --simular=4 || FALHAS=$((FALHAS + 1))
 [ "$FALHAS" -eq 0 ] || exit 1
-echo "prova de poucos ok — as nove salas com 1, 2 e 3 controles, A Voz com o microfone mudo no sistema e os três ritmos"
+echo "prova de poucos ok — as nove salas com 1, 2 e 3 controles, A Voz com o microfone mudo no sistema, os três ritmos, as opções e o controle que cai"

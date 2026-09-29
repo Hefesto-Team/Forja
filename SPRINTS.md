@@ -283,7 +283,7 @@ e na tela do Steam Deck.
 
 | item | detalhe |
 | --- | --- |
-| o controle que cai | tirar o cabo no meio de cada sala: a sala segue, o lugar espera, o controle volta ao mesmo lugar — a regra do sprint 1, conferida sala por sala no 3D |
+| o controle que cai | tirar o cabo no meio de cada sala: a sala segue, o lugar espera, o controle volta ao mesmo lugar — a regra do sprint 1, conferida sala por sala no 3D — **feito**: o simulador tira e põe o cabo (`simulador_cabo`); a prova de poucos tira o do P2 no meio de cada uma das nove salas. Ela achou dois defeitos, corrigidos: a medida dos sensores guardava a contagem do controle antigo (A Viga dava "falhou" ao P2 que voltou) e A Prova contava como recusa do SDL a saída mandada com o cabo fora. Agora ninguém sai com "falhou" por perder o cabo |
 | o Steam Deck | 1280×800 a 60 quadros, com os DualSense pelo Bluetooth ou pelo dock |
 | o inglês | as telas e o README em inglês, com o português como padrão |
 | a distribuição | um AppImage ou Flatpak no Linux, e os pacotes da exportação como release no GitHub a cada tag — **feito**: `scripts/exportar.sh appimage` (o appimagetool 1.9.0 por sha256, o runtime tirado dele mesmo); a prova da exportação joga a Prova de Fogo no AppImage e confere a mesma matriz do binário; a cada tag, o job `release` publica o `.tar.gz`, o `.zip` e o AppImage. Os pacotes levam `LICENCAS.txt` (o `LICENCAS-DE-TERCEIROS.md` e os avisos do Godot tirados do binário) |

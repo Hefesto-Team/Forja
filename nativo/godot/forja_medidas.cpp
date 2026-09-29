@@ -39,6 +39,13 @@ struct MedidaLugar {
   MedSensores sensores;
   long giro0 = 0, acel0 = 0;
   int concorda0[2] = {0, 0}, discorda0[2] = {0, 0};
+  /* O controle que cai e volta é outro Pad, com as contagens do zero: o que o
+   * antigo já tinha contado fica guardado aqui, e as bases passam ao novo. */
+  SDL_JoystickID pad_id = 0;
+  long giro_antes = 0, acel_antes = 0;
+  int concorda_antes[2] = {0, 0}, discorda_antes[2] = {0, 0};
+  long giro_visto = 0, acel_visto = 0;
+  int concorda_visto[2] = {0, 0}, discorda_visto[2] = {0, 0};
   uint32_t marcados = 0; /* botões cujo primeiro aperto já foi para a linha do tempo */
   bool marcou_toque = false, marcou_dois = false, marcou_clique = false;
   /* A Prova: a carga (o giroscópio sem buraco, as saídas aceitas) */
@@ -109,6 +116,7 @@ bool ForjaControles::med_comecar(int lugar, int64_t botoes) {
   Pad *p = pads_do_slot(FORJA, lugar);
   med_sensores_iniciar(&m.sensores, p && p->cap_giro, p && p->cap_acel, p ? p->giro_hz_declarado : 0);
   if (p) {
+    m.pad_id = p->id;
     m.giro0 = p->postura.amostras_giro;
     m.acel0 = p->postura.amostras_acel;
     for (int e = 0; e < 2; e++) {
@@ -194,6 +202,29 @@ void ForjaControles::med_quadro() {
     Pad *p = pads_do_slot(FORJA, l);
     if (!p)
       continue;
+    if (p->id != m.pad_id) {
+      /* o controle voltou ao lugar: guarda o que o de antes contou e rebaseia */
+      m.giro_antes += m.giro_visto;
+      m.acel_antes += m.acel_visto;
+      for (int e = 0; e < 2; e++) {
+        m.concorda_antes[e] += m.concorda_visto[e];
+        m.discorda_antes[e] += m.discorda_visto[e];
+        m.concorda0[e] = p->postura.concorda[e];
+        m.discorda0[e] = p->postura.discorda[e];
+        m.concorda_visto[e] = m.discorda_visto[e] = 0;
+      }
+      m.giro0 = p->postura.amostras_giro;
+      m.acel0 = p->postura.amostras_acel;
+      m.giro_visto = m.acel_visto = 0;
+      m.carga_giro_ult = p->taxa_giro.total;
+      m.pad_id = p->id;
+    }
+    m.giro_visto = p->postura.amostras_giro - m.giro0;
+    m.acel_visto = p->postura.amostras_acel - m.acel0;
+    for (int e = 0; e < 2; e++) {
+      m.concorda_visto[e] = p->postura.concorda[e] - m.concorda0[e];
+      m.discorda_visto[e] = p->postura.discorda[e] - m.discorda0[e];
+    }
     bool atividade = false;
     for (int b = 0; b < SDL_GAMEPAD_BUTTON_COUNT && b < MED_MAX_BOTOES; b++) {
       if (!::pad_apertou(p, (SDL_GamepadButton)b) || b == SDL_GAMEPAD_BUTTON_START)
@@ -312,13 +343,15 @@ Dictionary ForjaControles::med_veredito(int lugar, const String &chave, int nive
   case F_ACELEROMETRO:
     if (p) {
       Uint64 agora = pad_agora_ns(FORJA, p);
-      m.sensores.amostras_giro = p->postura.amostras_giro - m.giro0;
-      m.sensores.amostras_acel = p->postura.amostras_acel - m.acel0;
+      bool mesmo = p->id == m.pad_id;
+      m.sensores.amostras_giro = m.giro_antes + (mesmo ? p->postura.amostras_giro - m.giro0 : 0);
+      m.sensores.amostras_acel = m.acel_antes + (mesmo ? p->postura.amostras_acel - m.acel0 : 0);
       m.sensores.hz_host = taxa_hz_host(&p->taxa_giro, agora, 2.0);
       m.sensores.hz_relogio = taxa_hz_sensor(&p->taxa_giro, agora, 2.0);
       for (int e = 0; e < 2; e++)
-        m.sensores.sinal[e] =
-            postura_sinal_contagem(p->postura.concorda[e] - m.concorda0[e], p->postura.discorda[e] - m.discorda0[e]);
+        m.sensores.sinal[e] = postura_sinal_contagem(
+            m.concorda_antes[e] + (mesmo ? p->postura.concorda[e] - m.concorda0[e] : 0),
+            m.discorda_antes[e] + (mesmo ? p->postura.discorda[e] - m.discorda0[e] : 0));
     }
     if (f == F_GIROSCOPIO) {
       v = med_giro_veredito(&m.sensores, m.mexeu);
