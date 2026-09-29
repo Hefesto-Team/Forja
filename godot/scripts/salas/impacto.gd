@@ -58,6 +58,7 @@ func _init() -> void:
 	id = "impacto"
 	nome = "O Impacto"
 	acao = "Sinta o golpe e levante o escudo do lado."
+	gesto_do_aviso = "lados"
 	objetivo = "No escuro, os golpes vêm um de cada vez, para um controle só, e a tela não diz o lado: sinta no controle e levante o escudo — L1 esquerda, R1 direita. Só no seu golpe! A luz do controle pisca vermelho no golpe e apaga com a vida; no fim de cada onda, diga a cor dela."
 	features = ["vibracao_forte", "vibracao_fraca", "vibracao_isolamento", "lightbar"]
 	cega = true
@@ -411,7 +412,7 @@ func jogar(dt: float) -> void:
 					e.interroga = 1.0
 					marcar(l, -20)
 					Forja.evento("jogo", l + 1, {"sala": id, "o": "fantasma", "golpe_de": "P%d" % (atual.x + 1)})
-			if estado == GOLPE and t_estado >= JANELA:
+			if estado == GOLPE and t_estado >= JANELA * ritmo_nivel:
 				_resolver(-1)
 		VOANDO:
 			if t_estado >= MOSTRA:

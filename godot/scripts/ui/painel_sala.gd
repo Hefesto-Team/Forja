@@ -33,14 +33,15 @@ func _draw() -> void:
 
 
 func _aviso() -> void:
-	draw_rect(Rect2(Vector2.ZERO, size), Color(Tema.CASA, 0.55))
+	# a arena fica à mostra: o quadro sobe e o boneco de cada um mostra o gesto
+	draw_rect(Rect2(Vector2.ZERO, size), Color(Tema.CASA, 0.25))
 	var larg := 1120.0
 	# mostrar, não contar: o nome, o verbo numa linha e o que se sente na mão
 	# (os glifos). O resto a sala ensina jogando, pelas dicas curtas na raia.
 	var poucos := str(sala.com_poucos())
 	var papel: int = sala.papel_som
 	var alt := 410.0 + (40.0 if poucos != "" else 0.0) + (104.0 if papel >= 0 else 0.0)
-	var r := Rect2(Vector2((size.x - larg) * 0.5, (size.y - alt) * 0.5 - 10), Vector2(larg, alt))
+	var r := Rect2(Vector2((size.x - larg) * 0.5, 176), Vector2(larg, alt))
 	Desenho.moldura(self, r, Color(Tema.PAINEL, 0.97), Tema.LINHA, 2, Tema.RAIO_QUADRO)
 	var x := r.position.x + 48
 	Desenho.texto(self, Vector2(x, r.position.y + 92), str(sala.nome), Tema.fonte(700), Tema.T_TITULO, Tema.FG)
@@ -144,6 +145,11 @@ func _dicas() -> void:
 		if d.is_empty() or not d.has("pos"):
 			continue
 		var partes: Array = d.get("partes", [])
+		if sala.aprendeu(l):
+			# aprendeu: a dica perde as palavras e fica só o glifo; sem glifo, some
+			partes = partes.filter(func(s): return str(s).begins_with("@"))
+			if partes.is_empty():
+				continue
 		var larg := 0.0
 		for parte in partes:
 			var s := str(parte)
@@ -295,45 +301,69 @@ func _tempo() -> void:
 
 
 func _fim() -> void:
-	draw_rect(Rect2(Vector2.ZERO, size), Color(Tema.CASA, 0.7))
+	# o veredito enxuto: uma linha por feature (o glifo e o nome), uma coluna
+	# por lugar; na célula, o selo com ícone e palavra. O porquê só aparece no
+	# que não passou — o resto mora no livro da sessão.
+	draw_rect(Rect2(Vector2.ZERO, size), Color(Tema.CASA, 0.6))
 	var lugares: Array = []
 	for l in 4:
 		if sala.vereditos.has(l):
 			lugares.append(l)
-	var coluna := 380.0
-	var bloco := 178.0
-	var larg := maxf(900.0, 96.0 + coluna * lugares.size())
-	var alt: float = 220.0 + bloco * float(sala.features.size())
+	var col_nome := 440.0
+	var coluna := 300.0
+	var linhas: Array = []  # as features, na ordem da sala, com a altura de cada linha
+	for f in sala.features:
+		var alta := false
+		for l in lugares:
+			var v := _veredito_de(l, f)
+			if not v.is_empty() and int(v.get("resultado", 0)) != Forja.PASSOU:
+				alta = true
+		linhas.append([f, 132.0 if alta else 76.0])
+	var alt := 200.0
+	for li in linhas:
+		alt += li[1]
+	var larg := maxf(900.0, 96.0 + col_nome + coluna * lugares.size())
 	var r := Rect2(Vector2((size.x - larg) * 0.5, (size.y - alt) * 0.5), Vector2(larg, alt))
 	Desenho.moldura(self, r, Color(Tema.PAINEL, 0.97), Tema.LINHA, 2, Tema.RAIO_QUADRO)
 	Desenho.texto(self, r.position + Vector2(48, 84), str(sala.nome), Tema.fonte(700), 52, Tema.FG)
-	Desenho.texto(self, r.position + Vector2(48 + Desenho.largura(str(sala.nome), Tema.fonte(700), 52) + 24, 84),
-		"o veredito", Tema.fonte(500), Tema.T_CORPO, Tema.ROXO)
+	var x0 := r.position.x + 48 + col_nome
 	for i in lugares.size():
 		var l: int = lugares[i]
-		var x := r.position.x + 48 + i * coluna
 		var cor_id := Tema.tom_para_a_borda(Forja.cor_do_lugar(l))
+		var x := x0 + i * coluna
 		Desenho.texto(self, Vector2(x, r.position.y + 150), "P%d" % (l + 1), Tema.fonte(700), Tema.T_CORPO, cor_id)
-		Desenho.texto(self, Vector2(x + 60, r.position.y + 150), "%d pontos" % sala.pontos[l], Tema.mono(500), Tema.T_SELO, Tema.SUAVE)
-		var lista: Array = sala.vereditos[l]
-		var y := r.position.y + 190
-		for v in lista:
-			var res := int(v.get("resultado", 0))
-			var cor: Color = [Tema.MUDO, Tema.VERDE, Tema.VERMELHO][clampi(res, 0, 2)]
-			var palavra: String = ["— NÃO MEDIDO", "✓ PASSOU", "✗ FALHOU"][clampi(res, 0, 2)]
-			# o nome da feature inteiro: a letra encolhe até caber na coluna
-			var nome_f := str(v.get("nome", ""))
-			var tam_nome := Tema.T_SELO
-			while tam_nome > 16 and Desenho.largura(nome_f, Tema.fonte(600), tam_nome) > coluna - 40:
-				tam_nome -= 1
-			Desenho.texto(self, Vector2(x, y + 26), nome_f, Tema.fonte(600), tam_nome, Tema.FG, HORIZONTAL_ALIGNMENT_LEFT, coluna - 40)
-			Desenho.selo(self, Vector2(x, y + 40), palavra, cor, 20)
-			# o que foi medido; se não passou, o porquê (a observação diz)
-			var medido := str(v.get("medido", ""))
-			if res != 1 and str(v.get("obs", "")) != "":
-				medido = str(v.get("obs", ""))
-			medido = Desenho.caber(medido, Tema.fonte(400), 20, coluna - 40, 3)
-			Desenho.paragrafo(self, Vector2(x, y + 102), medido, Tema.fonte(400), 20, Tema.SUAVE, coluna - 40, 3)
-			y += bloco
+		Desenho.texto(self, Vector2(x + 60, r.position.y + 150), "%d" % sala.pontos[l], Tema.mono(500), Tema.T_MONO, Tema.SUAVE)
+	var y := r.position.y + 180
+	for li in linhas:
+		var f: String = li[0]
+		var tex := Desenho.glifo(Desenho.GLIFO_DA_FEATURE.get(f, ""))
+		if tex:
+			draw_texture_rect(tex, Rect2(Vector2(r.position.x + 48, y + 8), Vector2(40, 40)), false, Tema.CIANO)
+		var nome := _nome_da_feature(f)
+		var tam := Tema.T_ROTULO
+		while tam > 20 and Desenho.largura(nome, Tema.fonte(500), tam) > col_nome - 76:
+			tam -= 1
+		Desenho.texto(self, Vector2(r.position.x + 100, y + 40), nome, Tema.fonte(500), tam, Tema.FG)
+		for i in lugares.size():
+			var v := _veredito_de(lugares[i], f)
+			if v.is_empty():
+				continue
+			var x := x0 + i * coluna
+			var res := clampi(int(v.get("resultado", 0)), 0, 2)
+			var cor: Color = [Tema.MUDO, Tema.VERDE, Tema.VERMELHO][res]
+			var palavra: String = ["— NÃO MEDIDO", "✓ PASSOU", "✗ FALHOU"][res]
+			Desenho.selo(self, Vector2(x, y + 10), palavra, cor, Tema.T_SELO)
+			if res != 1:
+				var porque := str(v.get("obs", "")) if str(v.get("obs", "")) != "" else str(v.get("medido", ""))
+				porque = Desenho.caber(porque, Tema.fonte(400), 20, coluna - 24, 2)
+				Desenho.paragrafo(self, Vector2(x, y + 70), porque, Tema.fonte(400), 18, Tema.SUAVE, coluna - 24, 2)
+		y += li[1]
 	if float(sala.t_fase) > 0.8:
 		Desenho.dicas_a_direita(self, Vector2(r.end.x - 48, r.position.y + 84), [["cruz", str(sala.seguir)]], Tema.T_ROTULO)
+
+
+func _veredito_de(l: int, f: String) -> Dictionary:
+	for v in sala.vereditos.get(l, []):
+		if str(v.get("feature", "")) == f:
+			return v
+	return {}

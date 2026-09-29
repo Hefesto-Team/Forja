@@ -372,7 +372,8 @@ func _comecar_a_partida(n: int, sorteada: bool, com_cortina := true) -> void:
 	partida = Partida.nova(n, sorteada, Forja.semente + _partidas, ORDEM_DO_FOGO)
 	_partidas += 1
 	var ids := ", ".join(partida.salas)
-	Forja.registrar("Partida: começou, %d salas%s (%s)" % [partida.salas.size(), ", sorteadas" if sorteada else "", ids])
+	Forja.registrar("Partida: começou, %d salas%s, nível %s (%s)" % [partida.salas.size(), ", sorteadas" if sorteada else "",
+		Forja.NIVEIS[Forja.nivel], ids])
 	Forja.evento("sala", 0, {"evento": "partida", "o": "começou", "salas": ids})
 	_entrar_na_sala(partida.sala_atual(), com_cortina)
 
@@ -760,8 +761,9 @@ func _quadro_overlay() -> void:
 			var dy3 := _passo(qp, true)
 			if dy3 != 0:
 				escolha.navegar(dy3)
-			if _passo(qp, false) != 0:
-				escolha.trocar_ordem()
+			var dx3 := _passo(qp, false)
+			if dx3 != 0:
+				escolha.trocar(dx3)
 			if Forja.apertou(qp, Forja.CRUZ):
 				escolha.confirmar()
 			elif Forja.apertou(qp, Forja.CIRCULO):

@@ -75,6 +75,7 @@ func _init() -> void:
 	id = "prova"
 	nome = "A Prova"
 	acao = "Brasa contra Maré, com tudo ligado."
+	gesto_do_aviso = "holding-right-shoot"
 	objetivo = "Noventa segundos de partida com tudo ligado: o analógico esquerdo anda, o direito e o giroscópio miram (L2 afina, e o gatilho resiste), R2 atira com a parede e o clique da arma. A munição está nas cinco luzinhas; vazia, o gatilho solta e o clique sai no controle — □ recarrega. ✕ corre. O tiro da esquerda treme o motor da esquerda; a luz é a da sua equipe e apaga com a vida. Quando o sino tocar no seu controle, o clique do touchpad solta a martelada. No fim, diga as luzinhas e a cor do controle, sem olhar a tela."
 	features = ["tudo_junto"]
 	cega = true
@@ -627,7 +628,7 @@ func jogar(dt: float) -> void:
 				else:
 					_boneco(i, dt)
 			_mover_tiros(dt)
-			if t_etapa >= PARTIDA_S:
+			if t_etapa >= PARTIDA_S * ritmo_nivel:
 				for t in tiros:
 					var no: Node3D = t.no
 					no.queue_free()
@@ -737,7 +738,7 @@ func progresso() -> String:
 		CONTAGEM:
 			return "a partida começa em %d" % ceili(CONTAGEM_S - t_etapa)
 		PARTIDA:
-			var resta := maxi(0, ceili(PARTIDA_S - t_etapa))
+			var resta := maxi(0, ceili(PARTIDA_S * ritmo_nivel - t_etapa))
 			return "Brasa %d × %d Maré · %d:%02d" % [placar[0], placar[1], resta / 60, resta % 60]
 		LEDS, COR:
 			return "a prova final, às cegas"

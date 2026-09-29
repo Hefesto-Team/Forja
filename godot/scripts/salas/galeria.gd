@@ -50,6 +50,7 @@ func _init() -> void:
 	id = "galeria"
 	nome = "A Galeria"
 	acao = "Sinta o gatilho, diga a arma, atire."
+	gesto_do_aviso = "holding-right-shoot"
 	objetivo = "A arma chega no baú fechado. Aperte R2 e sinta: parede e clique é a pistola, tremor é a metralhadora, peso é o arco, solto é sem arma — diga qual (✕ ○ □ △) e o baú abre. Atire nos alvos com R2 (o analógico esquerdo mira, □ recarrega). No fim, o armeiro recarrega no escuro: conte as luzinhas do controle."
 	features = ["gatilho_resistencia", "gatilho_arma", "gatilho_vibracao", "leds_jogador"]
 	botoes_pedidos = F.mascara([F.CRUZ, F.CIRCULO, F.QUADRADO, F.TRIANGULO])
@@ -318,7 +319,7 @@ func _jogar(l: int, p: ForjaPlayer, e: Dictionary, dt: float) -> void:
 							e.corda = 0.0
 						else:
 							e.corda = 0.0
-			if e.t >= ATIRA:
+			if e.t >= ATIRA * ritmo_nivel:
 				_perguntar_municao(l)
 		MUNICAO:
 			if e.t > 0.5:
