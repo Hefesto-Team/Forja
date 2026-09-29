@@ -23,7 +23,6 @@ resto se decide.
 | o Sprint A inteiro: a rodada no cabo e no rádio, o som de cada controle de verdade, a bancada com aparelho, o `.exe` pela Steam | as provas rodam contra controles simulados; o juiz é a mesa | a noite de teste |
 | ouvir os efeitos | foram escolhidos pelo nome, sem escuta | uma partida com som |
 | a TV de 40" a 3 m e o Steam Deck de verdade | o tamanho do texto e os 60 quadros só se veem no aparelho | a noite de teste |
-| as perguntas e as dicas de cada raia a 30 px, e o clarão d'A Voz abaixo de 20% da tela | os dois parciais do [checklist](docs/CHECKLIST-DO-ESTUDO-02.md): os quatro painéis lado a lado pedem outro desenho (uma coluna de respostas) | ver na TV |
 | mais variações de conteúdo | a noite já sorteia quantos alvos, quantos sinos e os pilares da Prova; o resto das salas repete | depois da noite de teste, se pedirem |
 
 ## Como este arquivo se lê
@@ -284,7 +283,7 @@ números; falta o menu.
 | --- | --- |
 | opções por jogador | gatilho Desligado / Fraco / Forte e vibração de 0 a 100%, por lugar, no lobby e na pausa (como o GT7) — **feito**: △ no lobby (antes de ficar pronto) ou Opções na pausa; a vibração dá um toque na força nova; o recurso desligado nas opções deixa o veredito da feature "não medido", com o porquê, nunca "falhou" |
 | opções da sessão | o volume da TV e o do alto-falante do controle, o tremor da câmera e os flashes desligáveis, tela cheia ou janela, o tamanho do texto — **feito** (o texto: normal ou grande, ×1,15) |
-| o checklist do estudo 02 | os 31 itens conferidos tela por tela: texto de leitura ≥ 30 px, a área segura, um foco só (contorno de 4 px), ✕ confirma e ○ volta, nada de segurar para confirmar, o aviso pulável a partir da segunda vez — **conferido**: [CHECKLIST-DO-ESTUDO-02](docs/CHECKLIST-DO-ESTUDO-02.md), 28 ok, 2 parciais e 1 que falta (o teste na TV e no Deck) |
+| o checklist do estudo 02 | os 31 itens conferidos tela por tela: texto de leitura ≥ 30 px, a área segura, um foco só (contorno de 4 px), ✕ confirma e ○ volta, nada de segurar para confirmar, o aviso pulável a partir da segunda vez — **conferido**: [CHECKLIST-DO-ESTUDO-02](docs/CHECKLIST-DO-ESTUDO-02.md), 30 ok e 1 que falta (o teste na TV e no Deck) |
 | a cor nunca sozinha | as capturas passadas por simulação de protanopia, deuteranopia e tritanopia; o veredito sempre com palavra — **feito**: `scripts/daltonismo.gd` faz as pranchas; a cor de cada lugar é clareada até 3:1 nas quatro visões |
 | as opções guardadas | num arquivo de configuração do usuário (por máquina, nunca por aparelho) — **feito**: `user://opcoes.cfg`; as provas não leem nem gravam |
 

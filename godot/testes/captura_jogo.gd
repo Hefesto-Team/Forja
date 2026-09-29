@@ -10,7 +10,8 @@ extends Node
 ##
 ## SAIDA=<pasta> diz onde gravar os PNG; FOTOS=titulo,lobby,... escolhe quais.
 ## ROTEIRO=salas passa pelas salas que medem (aviso, jogo e veredito de cada
-## uma, com o robô jogando); SALAS=impacto,galeria escolhe quais.
+## uma, com o robô jogando); SALAS=impacto,galeria escolhe quais. SEM_TREMOR=1
+## desliga o tremor da câmera (para medir o clarão d'A Voz).
 ## ROTEIRO=bancada, com -- --experimento=ID, fotografa a bancada do
 ## experimental/. ROTEIRO=partida joga uma partida curta: a placa da bigorna,
 ## a escolha, o placar entre as salas e o pódio. RAPIDO=1 roda numa janela pequena entre as fotos e volta ao
@@ -35,6 +36,10 @@ func _ready() -> void:
 	add_child(jogo)
 	var pedidas := OS.get_environment("FOTOS")
 	_rapido = OS.get_environment("RAPIDO") == "1"
+	# a medida do clarão d'A Voz (scripts/medir_clarao.gd) compara dois quadros
+	# parados: sem o tremor da câmera, o que muda é a luz
+	if OS.get_environment("SEM_TREMOR") == "1":
+		Opcoes.tremor = false
 	if _rapido:
 		_janela(false)
 	match OS.get_environment("ROTEIRO"):
@@ -168,6 +173,9 @@ func _roteiro_das_salas() -> Array:
 						n += 1
 				return sala.estado == SalaVoz.MUDO and n >= 2)],
 			["voz_luz", na_sala.call(func(sala) -> bool: return sala.estado == SalaVoz.LUZ and sala.j[0].fase == SalaVoz.REVELA_LUZ)],
+			["voz_antes_do_susto", na_sala.call(func(sala) -> bool:
+				return sala.estado == SalaVoz.ESPERA and sala.t_estado > SalaVoz.ESPERA_S - 0.5)],
+			["voz_clarao", na_sala.call(func(sala) -> bool: return sala.estado == SalaVoz.SUSTO and sala.t_estado > 0.02)],
 			["voz_susto", na_sala.call(func(sala) -> bool: return sala.estado == SalaVoz.SUSTO and sala.t_estado > 0.3)],
 		],
 	}
