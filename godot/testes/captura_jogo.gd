@@ -44,6 +44,8 @@ func _ready() -> void:
 			roteiro = _roteiro_da_bancada()
 		"partida":
 			roteiro = _roteiro_da_partida()
+		"extras":
+			roteiro = _roteiro_dos_extras()
 		_:
 			roteiro = _roteiro_das_telas()
 	if pedidas != "":
@@ -217,6 +219,19 @@ func _roteiro_da_partida() -> Array:
 		r.append_array([["termina"], ["ate", no_placar], ["foto", "partida_placar_%d" % (i + 1)]])
 	r.append_array([["ate", no_podio], ["foto", "partida_podio"], ["fim"]])
 	return r
+
+
+## O título com os créditos, e as opções pelo lobby (△ de quem não está pronto).
+func _roteiro_dos_extras() -> Array:
+	return [
+		["espera", 70], ["foto", "titulo"],
+		["aperta", 0, Forja.TRIANGULO], ["espera", 70], ["foto", "creditos"],
+		["aperta", 0, Forja.CIRCULO], ["espera", 20],
+		["aperta", 0, Forja.CRUZ], ["espera", 40], ["aperta", 0, Forja.CRUZ], ["aperta", 1, Forja.CRUZ], ["espera", 30],
+		["foto", "lobby"],
+		["aperta", 1, Forja.TRIANGULO], ["espera", 10], ["aperta", 1, Forja.BAIXO], ["espera", 6],
+		["aperta", 1, Forja.ESQUERDA], ["espera", 20], ["foto", "opcoes"], ["fim"],
+	]
 
 
 ## A bancada (--experimento=CHAVE): no meio da medida e no fim.

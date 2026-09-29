@@ -56,6 +56,12 @@ repositório é o [CONTRATO.md](CONTRATO.md).
   </tr>
 </table>
 
+Antes de ficar pronto no lobby, △ abre as **opções** do lugar (o gatilho
+desligado, fraco ou forte e a vibração de 0 a 100%) e as da sessão (volumes,
+tremor da câmera, flashes, tela cheia, texto grande); elas ficam guardadas
+na máquina. A música é synthwave sintetizado pelo próprio jogo, e se cala
+nas salas que pedem silêncio.
+
 O **salão da forja** é o hub: oito portões, um por sala, e a bigorna no meio —
 ✕ nela entra n'A Prova, □ escolhe uma **partida** (3, 5 ou as 9 salas, na
 ordem ou sorteadas, com o placar entre elas e o pódio no fim), △ acende a

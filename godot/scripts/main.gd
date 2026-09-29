@@ -49,8 +49,10 @@ var livro: Livro
 var pausa: Pausa
 var escolha: EscolhaPartida
 var placar: Placar
+var tela_opcoes: TelaOpcoes
+var creditos: TelaCreditos
 var cortina: ColorRect
-var overlay := ""  ## "", "diagnostico", "livro", "pausa", "partida" (a escolha), "placar"
+var overlay := ""  ## "", "diagnostico", "livro", "pausa", "partida" (a escolha), "placar", "opcoes", "creditos"
 var _trocando := false
 var _stick_antes := [Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO]
 var _portao_perto := ""
@@ -126,7 +128,9 @@ func _interface() -> void:
 	pausa = Pausa.new()
 	escolha = EscolhaPartida.new()
 	placar = Placar.new()
-	for c in [titulo, lobby, hud, painel, diagnostico, livro, pausa, escolha, placar]:
+	tela_opcoes = TelaOpcoes.new()
+	creditos = TelaCreditos.new()
+	for c in [titulo, lobby, hud, painel, diagnostico, livro, pausa, escolha, placar, tela_opcoes, creditos]:
 		ui.add_child(c)
 	cortina = ColorRect.new()
 	cortina.color = Color(Tema.CASA, 0.0)
@@ -138,6 +142,9 @@ func _interface() -> void:
 	pausa.visible = false
 	escolha.visible = false
 	placar.visible = false
+	tela_opcoes.visible = false
+	creditos.visible = false
+	tela_opcoes.mudou.connect(func(_c: String) -> void: Forja.aplicar_opcoes())
 
 
 ## `-- --sala=galeria` abre direto na sala, com todo controle já dentro (é o que
@@ -202,6 +209,7 @@ func _todos_entram() -> void:
 
 func _mostrar(qual: String) -> void:
 	estado = qual
+	Musica.tocar(sala_id if qual == "sala" else "salao")
 	titulo.visible = qual == "titulo"
 	lobby.visible = qual == "lobby"
 	hud.visible = _hud_visivel()
@@ -235,13 +243,14 @@ func _trocar(acao: Callable) -> void:
 		return
 	_trocando = true
 	var tw := create_tween()
-	tw.tween_property(cortina, "color:a", 1.0, 0.22).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	# a troca de cena em até 400 ms (o estudo 02, item 26): 150 fechando, 220 abrindo
+	tw.tween_property(cortina, "color:a", 1.0, 0.15).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
 	await tw.finished
 	acao.call()
 	_cam_pos = _pose_da_camera()[0]
 	_cam_olhar = _pose_da_camera()[1]
 	var tw2 := create_tween()
-	tw2.tween_property(cortina, "color:a", 0.0, 0.3).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	tw2.tween_property(cortina, "color:a", 0.0, 0.22).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 	await tw2.finished
 	_trocando = false
 
@@ -520,6 +529,9 @@ func _quadro_titulo() -> void:
 			if Forja.jogar_no_teclado():
 				_trocar(_ir_para_o_lobby)
 		return
+	if _algum_pad_apertou(Forja.TRIANGULO) >= 0:
+		_abrir_overlay("creditos", 0)
+		return
 	if _algum_pad_apertou(Forja.CRUZ) >= 0 or _algum_pad_apertou(Forja.OPTIONS) >= 0:
 		_trocar(_ir_para_o_lobby)
 
@@ -539,6 +551,10 @@ func _quadro_lobby(dt: float) -> void:
 	for l in 4:
 		if not Forja.ocupado(l) or chegou[l]:
 			continue
+		# antes de ficar pronto, △ abre as opções do lugar
+		if not lobby.prontos[l] and Forja.apertou(l, Forja.TRIANGULO):
+			_abrir_overlay("opcoes", l)
+			return
 		# antes de ficar pronto, cada um escolhe o visual: ◀▶ o boneco, ▲▼ o que leva
 		if not lobby.prontos[l]:
 			var dx := _passo(l, false)
@@ -672,6 +688,11 @@ func _abrir_overlay(qual: String, lugar: int) -> void:
 	pausa.visible = qual == "pausa"
 	escolha.visible = qual == "partida"
 	placar.visible = qual == "placar"
+	tela_opcoes.visible = qual == "opcoes"
+	creditos.visible = qual == "creditos"
+	if qual in ["opcoes", "creditos"]:
+		titulo.visible = false
+		lobby.visible = false
 	for p in jogadores:
 		p.controlavel = false
 	hud.visible = false
@@ -686,6 +707,10 @@ func _abrir_overlay(qual: String, lugar: int) -> void:
 		escolha.abrir(lugar, Forja.semente + _partidas, ORDEM_DO_FOGO)
 	if qual == "placar":
 		placar.abrir(partida, false)
+	if qual == "opcoes":
+		tela_opcoes.abrir(lugar)
+	if qual == "creditos":
+		creditos.abrir()
 	get_tree().paused = false
 
 
@@ -702,6 +727,7 @@ func _hud_visivel() -> bool:
 
 
 func _fechar_overlay() -> void:
+	var overlay_antes_de_fechar := overlay
 	overlay = ""
 	hud.visible = _hud_visivel()
 	painel.escondido = false
@@ -713,6 +739,12 @@ func _fechar_overlay() -> void:
 	pausa.visible = false
 	escolha.visible = false
 	placar.visible = false
+	if overlay_antes_de_fechar == "opcoes":
+		Opcoes.gravar(Forja.robo)
+	tela_opcoes.visible = false
+	creditos.visible = false
+	titulo.visible = estado == "titulo"
+	lobby.visible = estado == "lobby"
 	var pode := estado == "salao"
 	for p in jogadores:
 		p.controlavel = pode and p.visible
@@ -768,6 +800,21 @@ func _quadro_overlay() -> void:
 				escolha.confirmar()
 			elif Forja.apertou(qp, Forja.CIRCULO):
 				_fechar_overlay()
+		"opcoes":
+			var qo := tela_opcoes.quem
+			var dyo := _passo(qo, true)
+			if dyo != 0:
+				tela_opcoes.navegar(dyo)
+			var dxo := _passo(qo, false)
+			if dxo != 0:
+				tela_opcoes.trocar(dxo)
+			if Forja.apertou(qo, Forja.CIRCULO) or Forja.apertou(qo, Forja.OPTIONS):
+				_fechar_overlay()
+		"creditos":
+			for p in Forja.pads():
+				if Forja.pad_apertou(int(p.pad), Forja.CIRCULO) or Forja.pad_apertou(int(p.pad), Forja.CRUZ):
+					_fechar_overlay()
+					return
 		"placar":
 			if not placar.pronto():
 				return
@@ -788,6 +835,8 @@ func _na_pausa(acao: String) -> void:
 			_abrir_overlay("diagnostico", pausa.quem)
 		"livro":
 			_abrir_overlay("livro", pausa.quem)
+		"opcoes":
+			_abrir_overlay("opcoes", pausa.quem)
 		"salao":
 			_fechar_overlay()
 			fogo = -1
@@ -846,7 +895,7 @@ func _mover_camera(dt: float) -> void:
 	_cam_olhar = _cam_olhar.lerp(pose[1], k)
 	camera.global_position = _cam_pos
 	camera.look_at(_cam_olhar)
-	if estado == "sala" and sala and sala.tremor > 0.0:
+	if estado == "sala" and sala and sala.tremor > 0.0 and Opcoes.tremor:
 		var k2: float = sala.tremor
 		camera.global_position += Vector3(sin(_t * 71.0), sin(_t * 53.0 + 1.3), 0.0) * 0.12 * k2
 		camera.rotate_object_local(Vector3.BACK, sin(_t * 47.0) * 0.012 * k2)

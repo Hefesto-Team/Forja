@@ -48,12 +48,19 @@ const RAIO_BOTAO := 14
 const RAIO_SELO := 8
 const BORDA := 2
 const MARGEM_X := 96
-const MARGEM_Y := 56
+const MARGEM_Y := 60  ## a área segura da TV (o estudo 02, item 5: y de 60 a 1020)
 
 const _SG := "res://assets/fontes/SpaceGrotesk-wght.ttf"
 const _MONO := "res://assets/fontes/JetBrainsMono-wght.ttf"
 
 static var _fontes := {}
+## O tamanho do texto (as opções: normal ou grande): Desenho e Glifo
+## multiplicam todo tamanho por ele.
+static var escala_texto := 1.0
+
+
+static func t(tam: int) -> int:
+	return int(round(tam * escala_texto))
 static var _tema: Theme
 
 
@@ -126,14 +133,38 @@ static func quadro(fundo := PAINEL, borda := LINHA, raio := RAIO_QUADRO, folga :
 
 
 ## A cor de identidade de um controle como borda: a luz do jogador clareada até
-## ter contraste contra o painel (o `tom_para_a_borda` do app).
+## ter contraste contra o painel (o `tom_para_a_borda` do app) — na visão comum
+## e também na protanopia, na deuteranopia e na tritanopia (Machado 2009): o
+## "P2" vermelho não pode virar um oliva que some no painel.
 static func tom_para_a_borda(c: Color) -> Color:
+	if _borda.has(c):
+		return _borda[c]
 	var r := c
 	for i in 20:
-		if contraste(r, PAINEL) >= 3.0:
+		if _pior_contraste(r) >= 3.0:
 			break
 		r = r.lerp(Color.WHITE, 0.05)
+	_borda[c] = r
 	return r
+
+
+static var _borda := {}
+
+const _DALTONISMO := [
+	[0.152286, 1.052583, -0.204868, 0.114503, 0.786281, 0.099216, -0.003882, -0.048116, 1.051998],
+	[0.367322, 0.860646, -0.227968, 0.280085, 0.672501, 0.047413, -0.011820, 0.042940, 0.968881],
+	[1.255528, -0.076749, -0.178779, -0.078411, 0.930809, 0.147602, 0.004733, 0.691367, 0.303900],
+]
+
+
+static func _pior_contraste(c: Color) -> float:
+	var pior := contraste(c, PAINEL)
+	var lin := c.srgb_to_linear()
+	for m in _DALTONISMO:
+		var s := Color(m[0] * lin.r + m[1] * lin.g + m[2] * lin.b, m[3] * lin.r + m[4] * lin.g + m[5] * lin.b,
+			m[6] * lin.r + m[7] * lin.g + m[8] * lin.b).clamp().linear_to_srgb()
+		pior = minf(pior, contraste(s, PAINEL))
+	return pior
 
 
 static func luminancia(c: Color) -> float:

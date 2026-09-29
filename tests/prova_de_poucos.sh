@@ -29,7 +29,7 @@ rodar() {
   local nome="$1"
   shift
   mkdir -p "$TMP/rel-$nome"
-  "${CAIXA[@]}" "$GODOT" --headless --fixed-fps 60 --path "$RAIZ/godot" res://testes/prova_de_poucos.tscn \
+  timeout 600 "${CAIXA[@]}" "$GODOT" --headless --fixed-fps 60 --path "$RAIZ/godot" res://testes/prova_de_poucos.tscn \
     -- --robo --semente=7 --relatorios="$TMP/rel-$nome" "$@" > "$TMP/$nome.log" 2>&1
   local rc=$?
   grep -E "FAIL|SCRIPT ERROR|prova de poucos ok" "$TMP/$nome.log"
@@ -45,6 +45,8 @@ SALAS=voz rodar mudo-no-sistema --simular=4 --defeitos=mic-surdo & d=$!
 # os ritmos: as janelas de tempo mudam, a medida não
 SALAS=centelha,impacto,galeria,prova rodar rapido --simular=4 --nivel=2 & e=$!
 SALAS=centelha,impacto,galeria,prova rodar primeira-vez --simular=2 --nivel=0 & f=$!
-for p in $d $e $f; do wait "$p" || FALHAS=$((FALHAS + 1)); done
+# as opções do lugar: a vibração do P2 em 0% e o gatilho do P3 desligado
+OPCOES_DE_TESTE=1 SALAS=impacto,galeria,caminhos rodar opcoes --simular=4 & g=$!
+for p in $d $e $f $g; do wait "$p" || FALHAS=$((FALHAS + 1)); done
 [ "$FALHAS" -eq 0 ] || exit 1
 echo "prova de poucos ok — as nove salas com 1, 2 e 3 controles, A Voz com o microfone mudo no sistema e os três ritmos"

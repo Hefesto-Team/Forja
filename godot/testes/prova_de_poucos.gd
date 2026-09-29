@@ -26,7 +26,17 @@ func _quadros(n: int) -> void:
 		await get_tree().process_frame
 
 
+## OPCOES_DE_TESTE=1: a vibração do P2 em 0% e o gatilho do P3 desligado
+## (as opções do lugar), e as contas do gatilho fraco.
+var com_opcoes := false
+
+
 func _ready() -> void:
+	com_opcoes = OS.get_environment("OPCOES_DE_TESTE") == "1"
+	if com_opcoes:
+		_prova_das_contas_das_opcoes()
+		Opcoes.vibracao[1] = 0
+		Opcoes.gatilho[2] = Opcoes.GATILHO_DESLIGADO
 	jogo = load("res://scenes/main.tscn").instantiate()
 	add_child(jogo)
 	await _quadros(10)
@@ -71,6 +81,16 @@ func _joga(id: String, n: int) -> void:
 		var tem: bool = sala.vereditos.has(l) and not Array(sala.vereditos[l]).is_empty()
 		_esperar(tem == (l < n), "%s com %d: P%d %s" % [id, n, l + 1, "tem veredito" if l < n else "vazio, sem veredito"])
 		for v in sala.vereditos.get(l, []):
+			if com_opcoes:
+				var motivo := Opcoes.por_que_nao_mede(l, str(v.get("feature", "")))
+				if motivo != "":
+					_esperar(int(v.get("resultado", -1)) == Forja.NAO_MEDIDO and str(v.get("obs", "")) == motivo,
+						"%s: P%d %s desligado nas opções → não medido" % [id, l + 1, str(v.get("feature", ""))])
+					var gravado := Forja.ultimo_veredito(l, str(v.get("feature", "")))
+					_esperar(int(gravado.get("resultado", -1)) == Forja.NAO_MEDIDO, "%s: P%d e o relatório diz o mesmo" % [id, l + 1])
+				elif l != 1 and l != 2:
+					_esperar(int(v.get("resultado", -1)) == Forja.PASSOU, "%s: P%d %s, com as opções de fábrica, passou" % [
+						id, l + 1, str(v.get("feature", ""))])
 			# faltar gente nunca é defeito: sem vizinho, o isolamento fica «não medido»
 			_esperar(int(v.get("resultado", -1)) != Forja.FALHOU, "%s com %d: P%d %s não falhou (%s)" % [
 				id, n, l + 1, str(v.get("feature", "")), str(v.get("obs", v.get("medido", "")))])
@@ -79,3 +99,16 @@ func _joga(id: String, n: int) -> void:
 		await _quadros(5)
 		q += 5
 	_esperar(jogo.estado == "salao", "%s com %d: de volta ao salão" % [id, n])
+
+
+func _prova_das_contas_das_opcoes() -> void:
+	Opcoes.gatilho[0] = Opcoes.GATILHO_FRACO
+	_esperar(Opcoes.ajustar_gatilho(0, Forja.GATILHO_ARMA, 2, 6, 8) == [Forja.GATILHO_ARMA, 2, 6, 4], "gatilho fraco: a arma com metade da força")
+	_esperar(Opcoes.ajustar_gatilho(0, Forja.GATILHO_RESISTENCIA, 1, 6, 0) == [Forja.GATILHO_RESISTENCIA, 1, 3, 0], "gatilho fraco: a resistência com metade")
+	Opcoes.gatilho[0] = Opcoes.GATILHO_DESLIGADO
+	_esperar(Opcoes.ajustar_gatilho(0, Forja.GATILHO_VIBRACAO, 0, 7, 30) == [Forja.GATILHO_OFF, 0, 0, 0], "gatilho desligado: sempre Off")
+	Opcoes.gatilho[0] = Opcoes.GATILHO_FORTE
+	_esperar(Opcoes.ajustar_gatilho(0, Forja.GATILHO_ARMA, 2, 6, 8) == [Forja.GATILHO_ARMA, 2, 6, 8], "gatilho forte: como a sala mandou")
+	Opcoes.vibracao[0] = 50
+	_esperar(is_equal_approx(Opcoes.escala_vibracao(0), 0.5), "vibração em 50%: metade")
+	Opcoes.vibracao[0] = 100

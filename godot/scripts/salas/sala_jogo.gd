@@ -234,13 +234,30 @@ func terminar() -> void:
 	for p in jogadores:
 		var l: int = p.lugar
 		if jogando[l]:
-			vereditos[l] = dar_vereditos(l)
+			vereditos[l] = _pelas_opcoes(l, dar_vereditos(l))
 		Forja.med_parar(l)
 		Forja.silencio(l)
 	Forja.evento("sala", 0, {"sala": id, "evento": "jogo_terminou"})
 	Forja.gravar_relatorio()
 	Som.tocar("sucesso")
 	ao_terminar()
+
+
+## O recurso desligado nas opções do lugar (a vibração em 0%, o gatilho
+## desligado) não é defeito: o veredito da feature que ele carrega vira "não
+## medido", com o porquê, na tela e no relatório.
+func _pelas_opcoes(l: int, lista: Array) -> Array:
+	for v in lista:
+		var f := str(v.get("feature", ""))
+		var motivo := Opcoes.por_que_nao_mede(l, f)
+		if motivo == "" or int(v.get("resultado", 0)) == Forja.PASSOU:
+			continue
+		v["resultado"] = Forja.NAO_MEDIDO
+		v["rotulo"] = "não medido"
+		v["obs"] = motivo
+		Forja.veredito(l, f, Forja.NAO_MEDIDO, Forja.NIVEL_MONTOU, "a sala pediu, as opções do lugar desligaram",
+			str(v.get("medido", "")), motivo)
+	return lista
 
 
 func ao_terminar() -> void:

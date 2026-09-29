@@ -64,7 +64,8 @@ func _draw() -> void:
 	if Forja.modulo and n == 0:
 		Glifo.dica(self, Vector2(x, yb), "cruz", "jogar no teclado (Enter)", Tema.T_CORPO, Color(Tema.FG, pulso), Tema.FG)
 	else:
-		Glifo.dica(self, Vector2(x, yb), "cruz", "começar", 40, Color(Tema.ROSA, pulso), Tema.FG)
+		var wc := Glifo.dica(self, Vector2(x, yb), "cruz", "começar", 40, Color(Tema.ROSA, pulso), Tema.FG)
+		Glifo.dica(self, Vector2(x + wc + 56, yb), "triangulo", "créditos", Tema.T_ROTULO, Tema.ROSA, Tema.SUAVE)
 
 	# o rodapé
 	var rodape := "FORJA %s  ·  relatórios ao lado do jogo" % Forja.versao()

@@ -257,11 +257,11 @@ números; falta o menu.
 
 | item | detalhe |
 | --- | --- |
-| opções por jogador | gatilho Desligado / Fraco / Forte e vibração de 0 a 100%, por lugar, no lobby e na pausa (como o GT7) |
-| opções da sessão | o volume da TV e o do alto-falante do controle, o tremor da câmera e os flashes desligáveis, tela cheia ou janela, o tamanho do texto |
-| o checklist do estudo 02 | os 31 itens conferidos tela por tela: texto de leitura ≥ 30 px, a área segura, um foco só (contorno de 4 px), ✕ confirma e ○ volta, nada de segurar para confirmar, o aviso pulável a partir da segunda vez |
-| a cor nunca sozinha | as capturas passadas por simulação de protanopia, deuteranopia e tritanopia; o veredito sempre com palavra |
-| as opções guardadas | num arquivo de configuração do usuário (por máquina, nunca por aparelho) |
+| opções por jogador | gatilho Desligado / Fraco / Forte e vibração de 0 a 100%, por lugar, no lobby e na pausa (como o GT7) — **feito**: △ no lobby (antes de ficar pronto) ou Opções na pausa; a vibração dá um toque na força nova; o recurso desligado nas opções deixa o veredito da feature "não medido", com o porquê, nunca "falhou" |
+| opções da sessão | o volume da TV e o do alto-falante do controle, o tremor da câmera e os flashes desligáveis, tela cheia ou janela, o tamanho do texto — **feito** (o texto: normal ou grande, ×1,15) |
+| o checklist do estudo 02 | os 31 itens conferidos tela por tela: texto de leitura ≥ 30 px, a área segura, um foco só (contorno de 4 px), ✕ confirma e ○ volta, nada de segurar para confirmar, o aviso pulável a partir da segunda vez — **conferido**: [CHECKLIST-DO-ESTUDO-02](docs/CHECKLIST-DO-ESTUDO-02.md), 23 ok, 6 parciais, 2 que faltam (o livro a 80 colunas e o teste na TV e no Deck) |
+| a cor nunca sozinha | as capturas passadas por simulação de protanopia, deuteranopia e tritanopia; o veredito sempre com palavra — **feito**: `scripts/daltonismo.gd` faz as pranchas; a cor de cada lugar é clareada até 3:1 nas quatro visões |
+| as opções guardadas | num arquivo de configuração do usuário (por máquina, nunca por aparelho) — **feito**: `user://opcoes.cfg`; as provas não leem nem gravam |
 
 **Pronto quando:** o checklist do estudo 02 passa inteiro numa TV de 40" a 3 m
 e na tela do Steam Deck.
@@ -270,10 +270,10 @@ e na tela do Steam Deck.
 
 | item | detalhe |
 | --- | --- |
-| a música | uma trilha do salão e uma por sala, com o volume do menu; a música se cala quando a sala pede silêncio (A Voz, O Canto) |
+| a música | uma trilha do salão e uma por sala, com o volume do menu; a música se cala quando a sala pede silêncio (A Voz, O Canto) — **feito**: synthwave sintetizado no módulo (`sint_trilha`: pad de serras, baixo em colcheias, arpejo com eco, bateria de máquina), oito compassos em laço sem emenda, com tônica, andamento e energia por sala; cala n'A Voz, n'O Canto e na bancada |
 | o som da TV | os efeitos de hoje são sintetizados (`scripts/som.gd`); gravar ou licenciar os que pedem corpo (o martelo, o golpe, o sino) |
 | a arte das salas | os bonecos reagindo (ao veredito, ao golpe, à vitória), partículas e luz por sala, as transições |
-| o título e os créditos | a tela de título com a bigorna, e os créditos com as licenças (os modelos Kenney, CC0; as fontes, OFL; o SDL, zlib; o Godot e o godot-cpp, MIT; os glifos e o mapa do app Hefesto, MIT) |
+| o título e os créditos | a tela de título com a bigorna, e os créditos com as licenças (os modelos Kenney, CC0; as fontes, OFL; o SDL, zlib; o Godot e o godot-cpp, MIT; os glifos e o mapa do app Hefesto, MIT) — **feito em parte**: △ no título abre os créditos, só "Hefesto Team" sobre o sol do synthwave; as licenças vão com o jogo em `assets/LEIA-ME.md` e nos textos ao lado de cada coisa |
 | o ícone do jogo | o ícone e os metadados do `.exe` (o rcedit pelo Wine na exportação) e o `.desktop` do Linux |
 | o trailer | os 60 s do sprint 5, agora com as salas 3D |
 

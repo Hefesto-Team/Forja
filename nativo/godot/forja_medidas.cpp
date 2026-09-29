@@ -395,6 +395,8 @@ PackedFloat32Array ForjaControles::sintetizar(const String &tipo, const Dictiona
     r = sint_passo(&o, (int)num("chao", 0), semente);
   else if (tipo == "grito")
     r = sint_grito(&o, num("dur", 1.2), semente);
+  else if (tipo == "trilha")
+    r = sint_trilha(&o, num("tonica", 57), num("bpm", 100), (int)num("energia", 1), semente);
   if (r == 0 && o.a && o.n > 0) {
     saida.resize(o.n);
     std::memcpy(saida.ptrw(), o.a, sizeof(float) * (size_t)o.n);

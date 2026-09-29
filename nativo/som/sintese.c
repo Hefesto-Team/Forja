@@ -361,3 +361,151 @@ int sint_grito(Onda *o, float dur, uint32_t semente) {
   normalizar(o, 0.95f);
   return 0;
 }
+
+/* ---------- a trilha: synthwave ----------
+ *
+ * Oito compassos em laço, na progressão que o gênero consagrou (i, VI, III,
+ * VII em menor, dois compassos cada): o pad de serras desafinadas, o baixo em
+ * colcheias, o arpejo de onda quadrada em semicolcheias com eco pontuado, e a
+ * bateria de máquina — o bumbo que cai de tom, a caixa gorda com a cauda
+ * cortada, o chimbal fechado. A energia decide quem toca: 0 é o salão (pad,
+ * baixo em mínimas e o arpejo manso), 1 põe a bateria, 2 o bumbo em todo tempo.
+ *
+ * Tudo é somado com o índice em módulo do tamanho do laço: o que passa do fim
+ * (a cauda do pad, o eco) volta no começo, e o laço não tem emenda. */
+
+static float midi_hz(float m) { return 440.0f * powf(2.0f, (m - 69.0f) / 12.0f); }
+
+static void somar(Onda *o, int i, float v) { o->a[((i % o->n) + o->n) % o->n] += v; }
+
+static float serra(float fase) { return 2.0f * (fase - floorf(fase)) - 1.0f; }
+
+static float quadrada(float fase, float largura) { return (fase - floorf(fase)) < largura ? 1.0f : -1.0f; }
+
+/* uma nota de serra (ou quadrada) com envelope ADR e um passa-baixa de um polo */
+static void nota(Onda *o, int ini, float hz, float dur, float ataque, float queda, float vol, float corte, int forma,
+                 float desafina) {
+  int n = (int)((dur + queda) * SINT_TAXA);
+  float k = 1.0f - expf(-PI2 * corte / SINT_TAXA);
+  float y = 0, fase_a = 0, fase_b = 0.37f;
+  float ha = hz * powf(2.0f, desafina / 1200.0f), hb = hz * powf(2.0f, -desafina / 1200.0f);
+  for (int i = 0; i < n; i++) {
+    float t = (float)i / SINT_TAXA;
+    float env = t < ataque ? t / ataque : (t < dur ? 1.0f : expf(-(t - dur) / (queda * 0.3f + 1e-4f)));
+    fase_a += ha / SINT_TAXA;
+    fase_b += hb / SINT_TAXA;
+    float x = forma == 0 ? 0.5f * (serra(fase_a) + serra(fase_b)) : quadrada(fase_a, 0.3f);
+    y += k * (x - y);
+    somar(o, ini + i, y * env * vol);
+  }
+}
+
+static void bumbo(Onda *o, int ini, float vol) {
+  int n = (int)(0.32f * SINT_TAXA);
+  float fase = 0;
+  for (int i = 0; i < n; i++) {
+    float t = (float)i / SINT_TAXA;
+    float hz = 45.0f + 110.0f * expf(-t / 0.03f);
+    fase += hz / SINT_TAXA;
+    somar(o, ini + i, sinf(PI2 * fase) * expf(-t / 0.11f) * vol);
+  }
+}
+
+static void caixa(Onda *o, int ini, float vol) {
+  int n = (int)(0.34f * SINT_TAXA);
+  float ant = 0, fase = 0;
+  for (int i = 0; i < n; i++) {
+    float t = (float)i / SINT_TAXA;
+    float r = ruido();
+    float agudo = r - ant; /* um passa-alta de pobre */
+    ant = r;
+    /* a cauda "gated" dos anos 80: cheia, e cortada de uma vez */
+    float env = t < 0.26f ? expf(-t / 0.18f) : expf(-0.26f / 0.18f) * expf(-(t - 0.26f) / 0.01f);
+    fase += 190.0f / SINT_TAXA;
+    somar(o, ini + i, (0.75f * agudo + 0.35f * sinf(PI2 * fase) * expf(-t / 0.05f)) * env * vol);
+  }
+}
+
+static void chimbal(Onda *o, int ini, float vol) {
+  int n = (int)(0.05f * SINT_TAXA);
+  float ant = 0;
+  for (int i = 0; i < n; i++) {
+    float r = ruido();
+    somar(o, ini + i, (r - ant) * expf(-((float)i / SINT_TAXA) / 0.012f) * vol);
+    ant = r;
+  }
+}
+
+int sint_trilha(Onda *o, float tonica_midi, float bpm, int energia, uint32_t semente) {
+  if (bpm < 60)
+    bpm = 60;
+  float tempo = 60.0f / bpm;
+  int por_tempo = (int)(tempo * SINT_TAXA);
+  int compassos = 8;
+  o->n = por_tempo * 4 * compassos;
+  o->a = calloc((size_t)o->n, sizeof(float));
+  if (!o->a)
+    return -1;
+  g_lcg = semente * 2654435761u + 1u;
+  /* i, VI, III, VII: a fundamental de cada acorde e se é menor */
+  static const int raiz[4] = {0, -4, 3, -2};
+  static const int menor[4] = {1, 0, 0, 0};
+  float pad_vol = energia == 0 ? 0.16f : 0.12f;
+  for (int c = 0; c < 4; c++) {
+    int ini = c * 2 * 4 * por_tempo;
+    float base = tonica_midi + raiz[c];
+    int terca = menor[c] ? 3 : 4;
+    int acorde[3] = {0, terca, 7};
+    /* o pad: as três notas do acorde, dois compassos, uma oitava acima */
+    for (int k = 0; k < 3; k++)
+      nota(o, ini, midi_hz(base + 12 + acorde[k]), 8 * tempo, 0.5f, 1.2f, pad_vol, 1600.0f, 0, 9.0f);
+    /* o baixo: colcheias (mínimas no salão), uma oitava abaixo */
+    int passo_b = energia == 0 ? 4 : 1; /* em colcheias */
+    for (int q = 0; q < 16; q += passo_b) {
+      float oitava = (energia > 0 && q % 4 == 3) ? 12.0f : 0.0f; /* o salto de oitava do gênero */
+      nota(o, ini + q * por_tempo / 2, midi_hz(base - 12 + oitava), (passo_b * tempo / 2) * 0.8f, 0.004f, 0.08f, 0.30f,
+           energia == 0 ? 320.0f : 520.0f, 0, 4.0f);
+    }
+    /* o arpejo: semicolcheias subindo e descendo pelo acorde (colcheias no salão) */
+    static const int desenho[8] = {0, 1, 2, 3, 2, 1, 0, 1};
+    int passo_a = energia == 0 ? 2 : 1; /* em semicolcheias */
+    for (int s = 0; s < 32; s += passo_a) {
+      int grau = desenho[(s / passo_a) % 8];
+      float m = base + 24 + (grau == 3 ? 12 : acorde[grau]);
+      nota(o, ini + s * por_tempo / 4, midi_hz(m), tempo / 4 * 0.5f, 0.002f, 0.10f, energia == 0 ? 0.06f : 0.08f,
+           3200.0f, 1, 0.0f);
+    }
+  }
+  /* o eco do arpejo e do pad: colcheia pontuada, em laço */
+  {
+    int atraso = (int)(tempo * 0.75f * SINT_TAXA);
+    float *seco = malloc(sizeof(float) * (size_t)o->n);
+    if (seco) {
+      memcpy(seco, o->a, sizeof(float) * (size_t)o->n);
+      for (int volta = 1; volta <= 3; volta++) {
+        float g = powf(0.32f, (float)volta);
+        for (int i = 0; i < o->n; i++)
+          o->a[(i + atraso * volta) % o->n] += seco[i] * g;
+      }
+      free(seco);
+    }
+  }
+  /* a bateria, seca por cima do eco */
+  if (energia > 0) {
+    for (int b = 0; b < compassos * 4; b++) {
+      int ini = b * por_tempo;
+      if (energia >= 2 || b % 2 == 0)
+        bumbo(o, ini, 0.55f);
+      if (b % 2 == 1)
+        caixa(o, ini, 0.32f);
+      chimbal(o, ini + por_tempo / 2, 0.10f);
+      if (energia >= 2)
+        chimbal(o, ini, 0.06f);
+    }
+  }
+  /* a cola: uma saturação macia, e o pico em 0,8 */
+  for (int i = 0; i < o->n; i++)
+    o->a[i] = tanhf(o->a[i] * 1.4f);
+  normalizar(o, 0.8f);
+  return 0;
+}

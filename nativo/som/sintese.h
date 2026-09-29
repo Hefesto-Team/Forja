@@ -40,6 +40,10 @@ int sint_textura(Onda *o, float dur, float aspereza, uint32_t semente);
 int sint_passo(Onda *o, int chao, uint32_t semente);
 /* O grito do susto, para o alto-falante do controle. */
 int sint_grito(Onda *o, float dur, uint32_t semente);
+/* A trilha da TV, synthwave: oito compassos em laço sem emenda, na tônica
+ * (MIDI) e no andamento pedidos; energia 0 (o salão), 1 (com bateria) ou 2
+ * (o bumbo em todo tempo). */
+int sint_trilha(Onda *o, float tonica_midi, float bpm, int energia, uint32_t semente);
 void onda_liberar(Onda *o);
 
 /* Utilidades provadas */
