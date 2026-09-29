@@ -58,14 +58,14 @@ static func tracejado(ci: CanvasItem, r: Rect2, cor: Color, largura := 2.0, trac
 
 static func texto(ci: CanvasItem, pos: Vector2, s: String, f: Font, tam: int, cor: Color,
 		alinhamento := HORIZONTAL_ALIGNMENT_LEFT, largura := -1.0) -> void:
-	ci.draw_string(f, pos, s, alinhamento, largura, tam, cor)
+	ci.draw_string(f, pos, s, alinhamento, largura, Tema.t(tam), cor)
 
 
 ## Um parágrafo que quebra a linha na `largura` (`pos` é a base da primeira
 ## linha). Devolve a altura que ele ocupou.
 static func paragrafo(ci: CanvasItem, pos: Vector2, s: String, f: Font, tam: int, cor: Color, largura: float,
 		max_linhas := -1) -> float:
-	ci.draw_multiline_string(f, pos, s, HORIZONTAL_ALIGNMENT_LEFT, largura, tam, max_linhas, cor)
+	ci.draw_multiline_string(f, pos, s, HORIZONTAL_ALIGNMENT_LEFT, largura, Tema.t(tam), max_linhas, cor)
 	return altura_paragrafo(s, f, tam, largura, max_linhas)
 
 
@@ -75,10 +75,10 @@ static var _cabe := {}
 ## O texto que cabe em `linhas` linhas da `largura`: se não cabe, corta numa
 ## palavra e fecha com reticências.
 static func caber(s: String, f: Font, tam: int, largura: float, linhas: int) -> String:
-	var chave := "%s|%d|%d|%d" % [s, tam, int(largura), linhas]
+	var chave := "%s|%d|%d|%d" % [s, Tema.t(tam), int(largura), linhas]
 	if _cabe.has(chave):
 		return _cabe[chave]
-	var limite := f.get_height(tam) * linhas + 1.0
+	var limite := f.get_height(Tema.t(tam)) * linhas + 1.0
 	var r := s
 	if altura_paragrafo(s, f, tam, largura) > limite:
 		var palavras := s.split(" ")
@@ -92,11 +92,11 @@ static func caber(s: String, f: Font, tam: int, largura: float, linhas: int) -> 
 
 
 static func altura_paragrafo(s: String, f: Font, tam: int, largura: float, max_linhas := -1) -> float:
-	return f.get_multiline_string_size(s, HORIZONTAL_ALIGNMENT_LEFT, largura, tam, max_linhas).y
+	return f.get_multiline_string_size(s, HORIZONTAL_ALIGNMENT_LEFT, largura, Tema.t(tam), max_linhas).y
 
 
 static func largura(s: String, f: Font, tam: int) -> float:
-	return f.get_string_size(s, HORIZONTAL_ALIGNMENT_LEFT, -1, tam).x
+	return f.get_string_size(s, HORIZONTAL_ALIGNMENT_LEFT, -1, Tema.t(tam)).x
 
 
 ## O selo: mono 600 em fundo cheio, texto escuro (texto sobre acento é #21222c).
@@ -106,7 +106,7 @@ static func selo(ci: CanvasItem, pos: Vector2, s: String, cor: Color, tam := Tem
 	var h := tam * 1.45
 	var r := Rect2(pos, Vector2(w, h))
 	moldura(ci, r, cor, cor, 0, Tema.RAIO_SELO)
-	ci.draw_string(f, Vector2(pos.x + tam * 0.45, pos.y + h * 0.5 + tam * 0.36), s, HORIZONTAL_ALIGNMENT_LEFT, -1, tam, Tema.APP)
+	ci.draw_string(f, Vector2(pos.x + tam * 0.45, pos.y + h * 0.5 + tam * 0.36), s, HORIZONTAL_ALIGNMENT_LEFT, -1, Tema.t(tam), Tema.APP)
 	return w
 
 

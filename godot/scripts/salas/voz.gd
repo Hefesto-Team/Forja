@@ -290,7 +290,8 @@ func _susto() -> void:
 		p.gesto("emote-no", 1.2)
 	Som.tocar("grito", GUARDIAO, 0.0)
 	Som.tocar("martelo", GUARDIAO, 2.0)
-	flash = 1.0
+	# o clarão do susto; com os flashes desligados nas opções, só um brilho
+	flash = 1.0 if Opcoes.flashes else 0.2
 	Forja.evento("jogo", 0, {"sala": id, "o": "susto"})
 
 

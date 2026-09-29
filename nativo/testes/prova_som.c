@@ -80,6 +80,17 @@ void provas_som(void) {
   espera(onda_pico(&g) > 0.9f && onda_pico(&g) <= 0.951f, "e grita alto, sem estourar");
   onda_liberar(&g);
 
+  /* ---- a trilha ---- */
+  for (int en = 0; en <= 2; en++) {
+    Onda t = {0};
+    espera(sint_trilha(&t, 57, 100, en, 5) == 0, "a trilha sintetiza");
+    /* oito compassos a 100 bpm: 19,2 s */
+    espera(t.n == (int)(0.6f * SINT_TAXA) * 32, "a trilha tem oito compassos");
+    espera(onda_pico(&t) <= 0.801f && onda_rms(&t) > 0.05f, "a trilha soa, sem estourar");
+    espera(onda_emenda(&t) < 0.25f, "o laço da trilha fecha sem estalo");
+    onda_liberar(&t);
+  }
+
   /* ---- o microfone ---- */
   MedMic m;
   med_mic_iniciar(&m, false);

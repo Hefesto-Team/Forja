@@ -117,6 +117,20 @@ func _ready() -> void:
 			semente = ctl.semente()
 	if not modulo:
 		push_warning("FORJA sem o módulo nativo: só o teclado, e nenhuma saída chega a controle")
+	Opcoes.carregar(robo)
+	aplicar_opcoes()
+
+
+## As opções da sessão no que o Godot controla: o volume da TV (o barramento
+## principal), a janela e o tamanho do texto. As do lugar valem a cada saída.
+func aplicar_opcoes() -> void:
+	AudioServer.set_bus_volume_db(0, linear_to_db(maxf(Opcoes.volume_tv / 100.0, 0.0001)))
+	AudioServer.set_bus_mute(0, Opcoes.volume_tv == 0)
+	Tema.escala_texto = Opcoes.ESCALA_DO_TEXTO[Opcoes.texto]
+	if DisplayServer.get_name() != "headless" and not robo:
+		var modo := DisplayServer.WINDOW_MODE_FULLSCREEN if Opcoes.tela_cheia else DisplayServer.WINDOW_MODE_WINDOWED
+		if DisplayServer.window_get_mode() != modo:
+			DisplayServer.window_set_mode(modo)
 
 
 func _exit_tree() -> void:
@@ -426,8 +440,10 @@ func _teclado_segura(botao: int) -> bool:
 # ---------------------------------------------------------------- as saídas --
 
 ## Os dois motores: forte (esquerda, o contrapeso grande) e fraco (direita).
+## A vibração passa pela escala do lugar (as opções: 0 a 100%).
 func vibrar(l: int, forte: float, fraco: float, ms: int) -> bool:
-	return ctl.vibrar(l, forte, fraco, ms) if modulo else false
+	var k := Opcoes.escala_vibracao(l)
+	return ctl.vibrar(l, forte * k, fraco * k, ms) if modulo else false
 
 
 func luz(l: int, cor: Color) -> bool:
@@ -439,8 +455,10 @@ func luz_do_lugar(l: int) -> bool:
 
 
 ## Um gatilho (lado 0 = L2, 1 = R2) num dos quatro modos oficiais.
+## Pelas opções do lugar: desligado vira Off, fraco tem metade da força.
 func gatilho(l: int, lado: int, modo: int, a := 0, b := 0, c := 0) -> bool:
-	return ctl.gatilho(l, lado, modo, a, b, c) if modulo else false
+	var g := Opcoes.ajustar_gatilho(l, modo, a, b, c)
+	return ctl.gatilho(l, lado, g[0], g[1], g[2], g[3]) if modulo else false
 
 
 func gatilhos_off(l: int) -> bool:
@@ -754,13 +772,15 @@ func som_trocar(l: int, papel: int, direcao: int) -> void:
 
 ## Um som da forja no alto-falante do controle ("sino", "nota", "grito"...).
 func som_falante(l: int, som: String, ganho := 0.9) -> int:
-	return ctl.som_falante(l, som, ganho) if modulo else -1
+	# o volume do alto-falante do controle (as opções da sessão)
+	return ctl.som_falante(l, som, ganho * Opcoes.volume_controle / 100.0) if modulo else -1
 
 
 ## Um som nos atuadores: `esq` no esquerdo, `dir` no direito ("" = nenhum).
 ## "passo:<chão>:<variação>" é o passo dos Caminhos.
 func som_haptica(l: int, esq: String, dir: String, ganho := 1.0) -> int:
-	return ctl.som_haptica(l, esq, dir, ganho) if modulo else -1
+	# a háptica é vibração: a escala do lugar vale nela também
+	return ctl.som_haptica(l, esq, dir, ganho * Opcoes.escala_vibracao(l)) if modulo else -1
 
 
 func som_parar(l: int) -> void:

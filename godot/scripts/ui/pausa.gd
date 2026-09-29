@@ -21,6 +21,7 @@ func abrir(lugar: int, na_sala: bool, com_diagnostico := true) -> void:
 	if com_diagnostico:
 		opcoes.append(["diagnostico", "Diagnóstico"])
 	opcoes.append(["livro", "O livro da sessão"])
+	opcoes.append(["opcoes", "Opções"])
 	if na_sala:
 		opcoes.append(["salao", "Voltar ao salão"])
 	opcoes.append(["lobby", "Voltar ao lobby"])
@@ -54,7 +55,7 @@ func _draw() -> void:
 	for i in opcoes.size():
 		var b := Rect2(r.position + Vector2(40, 110 + i * 84), Vector2(larg - 80, 68))
 		if i == escolhida:
-			Desenho.moldura(self, b, Tema.SEL, Tema.ROXO, 3, Tema.RAIO_BOTAO)
+			Desenho.moldura(self, b, Tema.SEL, Tema.ROXO, 4, Tema.RAIO_BOTAO)
 		else:
 			Desenho.moldura(self, b, Tema.APP, Tema.LINHA, 2, Tema.RAIO_BOTAO)
 		var cor := Tema.FG if i == escolhida else Tema.SUAVE
