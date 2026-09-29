@@ -8,9 +8,10 @@ extends SalaJogo
 ##   1. a travessia: o boneco anda sozinho por uma viga sobre a lava e o vento
 ##      empurra; você o equilibra INCLINANDO o controle para os lados (a
 ##      rolagem) — o equilíbrio dos jogos de plataforma;
-##   2. os sinos: três sinos pendurados no fundo; a mira anda quando você GIRA
-##      o controle (guinada e arfagem), como a mira por giroscópio dos jogos de
-##      tiro; R1 ou ✕ arremessa o martelo, L1 centraliza a mira;
+##   2. os sinos: três sinos (quatro, na variante 1) pendurados no fundo; a
+##      mira anda quando você GIRA o controle (guinada e arfagem), como a mira
+##      por giroscópio dos jogos de tiro; R1 ou ✕ arremessa o martelo, L1
+##      centraliza a mira;
 ##   3. a pedra: uma MARTELADA — sacudir o controle para baixo, um pico no
 ##      acelerômetro — quebra a pedra que guarda o baú.
 ##
@@ -34,6 +35,7 @@ const Z_SINOS := -5.6
 const ROLAGEM_CHEIA := 0.45  ## rad (~26°): a inclinação que vale "tudo"
 const SENSIBILIDADE := 2.2  ## metros da mira por radiano girado
 const N_SINOS := 3
+var n_sinos := N_SINOS
 const G_MARTELADA := 1.8
 const RAIO_ACERTO := 0.32
 ## a área da mira em cada raia: meia largura e a faixa de altura
@@ -63,6 +65,7 @@ func _init() -> void:
 
 
 func montar() -> void:
+	n_sinos = N_SINOS + variante
 	_mat_ouro = Kit.material(Color("#e2b04a"), 0.25, 0.3)
 	_mat_ouro.metallic = 0.8
 	_mat_ferro = Kit.material(Color("#4a4e5e"), 0.0, 0.5)
@@ -88,9 +91,9 @@ func sair() -> void:
 
 func _novo_jogador(l: int) -> Dictionary:
 	var sinos: Array = []
-	for i in N_SINOS:
+	for i in n_sinos:
 		# espalhados na largura e alternando alto e baixo: mirar pede guinada E arfagem
-		var fx := 0.1 + 0.8 * (i + 0.2 + 0.6 * rng.randf()) / N_SINOS
+		var fx := 0.1 + 0.8 * (i + 0.2 + 0.6 * rng.randf()) / n_sinos
 		var fy := (0.72 if i % 2 else 0.12) + 0.16 * rng.randf()
 		sinos.append({"x": -MIRA_X + 2.0 * MIRA_X * fx, "y": MIRA_Y1 - (MIRA_Y1 - MIRA_Y0) * fy,
 			"vivo": true, "balanco": rng.randf() * 6.0})
@@ -194,7 +197,7 @@ func _montar_raia(l: int, p: ForjaPlayer) -> Dictionary:
 		bandeiras.append(b)
 	# os sinos: cada um pendurado por uma corrente, balançando
 	var sinos: Array = []
-	for i in N_SINOS:
+	for i in n_sinos:
 		var s: Dictionary = e.sinos[i]
 		var pivo := Node3D.new()
 		pivo.position = Vector3(x + float(s.x), TETO, Z_SINOS)
@@ -380,7 +383,7 @@ func _sinos(l: int, p: ForjaPlayer, e: Dictionary, dt: float) -> void:
 		e.arremessos += 1
 		var alvo := Vector3(RAIAS[l] + m.x, m.y, Z_SINOS + 0.1)
 		var acertou := -1
-		for i in N_SINOS:
+		for i in n_sinos:
 			var s: Dictionary = e.sinos[i]
 			if s.vivo and Vector2(float(s.x) - m.x, float(s.y) - m.y).length() < RAIO_ACERTO:
 				s.vivo = false
@@ -389,7 +392,7 @@ func _sinos(l: int, p: ForjaPlayer, e: Dictionary, dt: float) -> void:
 				marcar(l, 150 + int(maxf(0.0, 100.0 - e.t * 5.0)))
 				break
 		_arremessar(l, p, alvo, acertou)
-	if e.acertos >= N_SINOS:
+	if e.acertos >= n_sinos:
 		_novo_trecho(l, p, e, PEDRA)
 
 
@@ -411,7 +414,7 @@ func _arremessar(l: int, p: ForjaPlayer, alvo: Vector3, sino: int) -> void:
 		var some := func() -> void:
 			pivo.visible = false
 		var tocou := func() -> void:
-			Som.tocar("sino_viga", alvo, 0.0, [1.0, 0.84, 1.19][sino])
+			Som.tocar("sino_viga", alvo, 0.0, [1.0, 0.84, 1.19, 0.92][sino % 4])
 			Som.no_controle(l, "sino_viga", 0.6)
 			Efeitos.faiscas(self, alvo, Tema.AMARELO, 30, 1.0)
 			Efeitos.anel(self, alvo, Tema.AMARELO, 0.5)
@@ -578,7 +581,7 @@ func _mostrar(l: int, p: ForjaPlayer, dt: float) -> void:
 		var mr: StandardMaterial3D = r.material_override
 		mr.albedo_color = Color(1, 1, 1, 0.55 * (1.0 - absf(ciclo - 0.5) * 2.0))
 	# os sinos balançam
-	for i in N_SINOS:
+	for i in n_sinos:
 		var pivo: Node3D = nos.sinos[i]
 		var s: Dictionary = e.sinos[i]
 		s.balanco = float(s.balanco) + dt * 2.2
@@ -603,7 +606,7 @@ func status(lugar: int) -> String:
 			VIGA:
 				return "1 · viga %d%%" % int(float(e.progresso) * 100.0)
 			SINOS:
-				return "2 · sinos %d de %d" % [e.acertos, N_SINOS]
+				return "2 · sinos %d de %d" % [e.acertos, n_sinos]
 			PEDRA:
 				return "3 · pedra %d de 2" % e.golpes
 	return super(lugar)
@@ -641,7 +644,7 @@ func _robo(l: int, e: Dictionary, dt: float) -> void:
 		SINOS:
 			gz = -2.5 * post.x
 			var alvo := -1
-			for i in N_SINOS:
+			for i in n_sinos:
 				if e.sinos[i].vivo:
 					alvo = i
 					break
@@ -678,7 +681,7 @@ func _robo(l: int, e: Dictionary, dt: float) -> void:
 		Forja.robo_eixo(l, F.LX, clampf(-1.5 * float(e.inclinacao), -1.0, 1.0), 0.06)
 	elif int(e.trecho) == SINOS:
 		var alvo2 := -1
-		for i in N_SINOS:
+		for i in n_sinos:
 			if e.sinos[i].vivo:
 				alvo2 = i
 				break

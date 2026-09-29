@@ -395,6 +395,15 @@ ou encurta (×0,8) as janelas de tempo — a runa d'A Centelha, o escudo d'O
 Impacto, o tiro d'A Galeria, o tempo das salas com relógio e a partida d'A
 Prova — e nunca a quantidade de medidas: o veredito vale nos três.
 
+## A variante
+
+Cada sala sorteia pela semente, e fora do sorteio do jogo, uma de duas
+variantes de conteúdo: A Galeria põe três ou quatro alvos no muro, A Viga
+pendura três ou quatro sinos, e A Prova arma os pilares nos quatro cantos ou
+em cata-vento (sempre simétricos pelo centro: a Brasa e a Maré têm a mesma
+arena). A mesma semente dá a mesma noite; outra semente, outra noite. O que a
+sala mede não muda.
+
 ## A partida — o placar e o pódio
 
 Na bigorna do meio do salão, □ abre a partida: quem apertou escolhe o tamanho

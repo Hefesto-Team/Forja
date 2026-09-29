@@ -49,7 +49,10 @@ scripts/exportar.sh appimage   # dist/FORJA-x86_64.AppImage, a partir do linux
 
 Cada pacote leva o executável, o `forja.pck`, o módulo nativo ao lado, um
 `LEIA-ME.txt` e o `LICENCAS.txt` (os avisos de terceiros); o do Linux leva
-também a regra do udev, o ícone e o `forja.desktop`. A cada tag, o CI publica
+também a regra do udev, o ícone e o `forja.desktop`; o `.exe` sai com o ícone
+(`scripts/forja.ico`) e a versão do projeto, gravados pelo
+`scripts/icone_do_exe.py` depois da exportação — o Godot 4.4 pediria o rcedit
+pelo Wine. A cada tag, o CI publica
 os três pacotes como release no GitHub. O módulo da plataforma
 tem de estar compilado antes. O Godot é o mesmo do `run-local.sh`, e os
 modelos de exportação do Godot entram como o SDL, por versão e por sha256: só

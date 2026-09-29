@@ -23,9 +23,8 @@ resto se decide.
 | o Sprint A inteiro: a rodada no cabo e no rádio, o som de cada controle de verdade, a bancada com aparelho, o `.exe` pela Steam | as provas rodam contra controles simulados; o juiz é a mesa | a noite de teste |
 | ouvir os efeitos | foram escolhidos pelo nome, sem escuta | uma partida com som |
 | a TV de 40" a 3 m e o Steam Deck de verdade | o tamanho do texto e os 60 quadros só se veem no aparelho | a noite de teste |
-| o ícone do `.exe` | pede o rcedit rodando pelo Wine na exportação | uma tarde |
-| os selos e rótulos abaixo de 30 px, o giro do título que não desliga, o livro a 80 colunas | os parciais do [checklist](docs/CHECKLIST-DO-ESTUDO-02.md) | uma tarde |
-| variações de conteúdo por sala (quantos alvos, outra arena) | hoje a variação é o ritmo | depois da noite de teste, se pedirem |
+| as perguntas e as dicas de cada raia a 30 px, e o clarão d'A Voz abaixo de 20% da tela | os dois parciais do [checklist](docs/CHECKLIST-DO-ESTUDO-02.md): os quatro painéis lado a lado pedem outro desenho (uma coluna de respostas) | ver na TV |
+| mais variações de conteúdo | a noite já sorteia quantos alvos, quantos sinos e os pilares da Prova; o resto das salas repete | depois da noite de teste, se pedirem |
 
 ## Como este arquivo se lê
 
@@ -285,7 +284,7 @@ números; falta o menu.
 | --- | --- |
 | opções por jogador | gatilho Desligado / Fraco / Forte e vibração de 0 a 100%, por lugar, no lobby e na pausa (como o GT7) — **feito**: △ no lobby (antes de ficar pronto) ou Opções na pausa; a vibração dá um toque na força nova; o recurso desligado nas opções deixa o veredito da feature "não medido", com o porquê, nunca "falhou" |
 | opções da sessão | o volume da TV e o do alto-falante do controle, o tremor da câmera e os flashes desligáveis, tela cheia ou janela, o tamanho do texto — **feito** (o texto: normal ou grande, ×1,15) |
-| o checklist do estudo 02 | os 31 itens conferidos tela por tela: texto de leitura ≥ 30 px, a área segura, um foco só (contorno de 4 px), ✕ confirma e ○ volta, nada de segurar para confirmar, o aviso pulável a partir da segunda vez — **conferido**: [CHECKLIST-DO-ESTUDO-02](docs/CHECKLIST-DO-ESTUDO-02.md), 24 ok, 5 parciais, 2 que faltam (o livro a 80 colunas e o teste na TV e no Deck) |
+| o checklist do estudo 02 | os 31 itens conferidos tela por tela: texto de leitura ≥ 30 px, a área segura, um foco só (contorno de 4 px), ✕ confirma e ○ volta, nada de segurar para confirmar, o aviso pulável a partir da segunda vez — **conferido**: [CHECKLIST-DO-ESTUDO-02](docs/CHECKLIST-DO-ESTUDO-02.md), 28 ok, 2 parciais e 1 que falta (o teste na TV e no Deck) |
 | a cor nunca sozinha | as capturas passadas por simulação de protanopia, deuteranopia e tritanopia; o veredito sempre com palavra — **feito**: `scripts/daltonismo.gd` faz as pranchas; a cor de cada lugar é clareada até 3:1 nas quatro visões |
 | as opções guardadas | num arquivo de configuração do usuário (por máquina, nunca por aparelho) — **feito**: `user://opcoes.cfg`; as provas não leem nem gravam |
 
@@ -301,7 +300,7 @@ e na tela do Steam Deck.
 | a arte das salas | os bonecos reagindo (ao veredito, ao golpe, à vitória), partículas e luz por sala, as transições — **feito**: no veredito, quem passou em tudo comemora, quem falhou balança a cabeça, e quem fez mais pontos ganha as faíscas na cor do lugar; cada sala tem o seu clima (as partículas do ar, o preenchimento de cor, os neons na parede do fundo) e pulsa a luz no "Valendo!" e no fim; o aviso entra deslizando e a troca de cena tem o seu som |
 | a gincana | a primeira rodada de cada sala é **treino**: não vale ponto, o erro não tira, e acaba quando cada um acertou uma vez (ou em 15 s) — aí o "Valendo!" e o relógio devolve o tempo; o placar entre as salas conta os pontos subindo, troca as linhas de lugar, marca quem lidera e grita a virada; o pódio sobe em blocos pela colocação, com confete, a fanfarra e a faixa de festa — **feito** |
 | o título e os créditos | a tela de título com a bigorna, e os créditos com as licenças (os modelos Kenney, CC0; as fontes, OFL; o SDL, zlib; o Godot e o godot-cpp, MIT; os glifos e o mapa do app Hefesto, MIT) — **feito em parte**: △ no título abre os créditos, só "Hefesto Team" sobre o sol do synthwave; as licenças vão com o jogo em `assets/LEIA-ME.md` e nos textos ao lado de cada coisa |
-| o ícone do jogo | o ícone e os metadados do `.exe` (o rcedit pelo Wine na exportação) e o `.desktop` do Linux — **feito em parte**: o `.desktop` e o ícone no pacote Linux e no AppImage; o `.exe` segue com o ícone do Godot (o rcedit pelo Wine não entrou) |
+| o ícone do jogo | o ícone e os metadados do `.exe` e o `.desktop` do Linux — **feito**: o `.desktop` e o ícone no pacote Linux e no AppImage; o `.exe` ganha o ícone e a versão pelo `scripts/icone_do_exe.py` (Python puro, sem rcedit nem Wine), e a prova da exportação confere os dois |
 | o trailer | os 60 s do sprint 5, agora com as salas 3D — **feito**: `scripts/trailer.sh` grava o jogo rodando pelo Movie Maker do Godot (o título, o lobby, A Galeria, O Impacto, A Viga, O Molde, A Prova, o pódio e os créditos, em 70 s), sem corte nenhum; com um ffmpeg no PATH, sai também o `.mp4` |
 
 **Pronto quando:** o trailer sai sem nenhum corte para esconder tela crua.

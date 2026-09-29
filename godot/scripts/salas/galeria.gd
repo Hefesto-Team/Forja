@@ -27,7 +27,8 @@ const IDENTIFICA_MAX := 14.0
 const REVELA := 1.0
 const ATIRA := 5.5
 const MUNICAO_MAX := 9.0
-const N_ALVOS := 3
+const N_ALVOS := 3  ## na variante 1, um a mais
+var n_alvos := N_ALVOS
 const BALAS := 5
 const BALAS_MG := 30
 const MIRA_LARG := 2.8
@@ -61,6 +62,7 @@ func _init() -> void:
 
 
 func montar() -> void:
+	n_alvos = N_ALVOS + variante
 	Kit.arena(self, 5, 3)
 	# o estande: o synthwave inteiro — poeira roxa e neon ciano
 	atmosfera(Color("#c28bff"), Tema.CIANO, false, 50)
@@ -110,7 +112,7 @@ func _montar_raia(l: int, p: ForjaPlayer) -> Dictionary:
 	add_child(vitrine)
 	# os alvos no muro do fundo
 	var alvos: Array = []
-	for k in N_ALVOS:
+	for k in n_alvos:
 		alvos.append(_alvo_no())
 	# a mira, no plano dos alvos
 	var mira := Node3D.new()
@@ -208,8 +210,8 @@ static func _luzes_da_mg(balas: int) -> int:
 
 func _sortear_alvos(e: Dictionary) -> void:
 	var alvos: Array = []
-	for k in N_ALVOS:
-		alvos.append({"x": rng.randf(), "y": 0.18 + 0.3 * k,
+	for k in n_alvos:
+		alvos.append({"x": rng.randf(), "y": 0.18 + 0.6 * k / (n_alvos - 1),
 			"v": (0.18 + 0.18 * rng.randf()) * (-1.0 if k % 2 else 1.0), "vivo": true, "quebra": 0.0})
 	e.alvos = alvos
 
@@ -578,7 +580,7 @@ func _mostrar(l: int, p: ForjaPlayer) -> void:
 	mira.visible = passo == ATIRAR
 	if mira.visible:
 		mira.position = _no_muro(l, e.mira) + Vector3(0, 0, 0.06)
-	for k in N_ALVOS:
+	for k in n_alvos:
 		var no: Node3D = nos.alvos[k]
 		var dados: Dictionary = e.alvos[k] if k < e.alvos.size() else {}
 		no.visible = passo == ATIRAR and not dados.is_empty() and (dados.vivo or float(dados.quebra) > 0.0)
