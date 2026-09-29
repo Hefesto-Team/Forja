@@ -49,6 +49,8 @@ func _ready() -> void:
 	await _prova_do_percurso()
 	await _prova_do_relatorio()
 	await _prova_de_fogo()
+	_prova_das_contas_da_partida()
+	await _prova_da_partida()
 	if falhas > 0:
 		printerr("%d falha(s)" % falhas)
 		get_tree().quit(1)
@@ -430,3 +432,89 @@ func _prova_o_alto_falante_do_sistema() -> void:
 	print("alto-falante do sistema: ", linha)
 	_esperar(linha.contains(esperado), "o alto-falante do sistema: «%s» (disse «%s»)" % [esperado, linha])
 	af.free()
+
+
+## As contas da partida, sem abrir sala: o roteiro, a colocação com empate e o
+## pódio com o desempate pelas salas vencidas.
+func _prova_das_contas_da_partida() -> void:
+	var ordem: Array = jogo.ORDEM_DO_FOGO
+	_esperar(Partida.roteiro(3, false, 7, ordem) == ["centelha", "galeria", "prova"], "partida: três salas na ordem")
+	_esperar(Partida.roteiro(9, false, 7, ordem) == ordem, "partida: nove salas na ordem são o percurso")
+	var s1 := Partida.roteiro(5, true, 7, ordem)
+	var s2 := Partida.roteiro(5, true, 7, ordem)
+	var unicas := {}
+	for id in s1:
+		unicas[id] = true
+	_esperar(s1 == s2, "partida sorteada: a mesma semente, o mesmo sorteio")
+	_esperar(s1.size() == 5 and unicas.size() == 5 and s1[4] == "prova", "partida sorteada: cinco salas sem repetir, A Prova no fim (%s)" % [s1])
+	var s9 := Partida.roteiro(9, true, 7, ordem)
+	var todas := s9.duplicate()
+	todas.sort()
+	var esperadas := ordem.duplicate()
+	esperadas.sort()
+	_esperar(todas == esperadas and s9 != ordem, "partida sorteada de nove: as nove, noutra ordem")
+	var col := Partida.colocacoes([300, 100, 300, 0], [0, 1, 2, 3])
+	_esperar(col == [1, 3, 1, 4], "partida: o empate divide a colocação de cima (%s)" % [col])
+	_esperar(Partida.colocacoes([50, 0, 90, 0], [0, 2]) == [2, 0, 1, 0], "partida: quem não jogou fica sem colocação")
+	var p := Partida.nova(3, false, 7, ordem)
+	var e := p.registrar("centelha", [300, 100, 300, 0], [0, 1, 2, 3])
+	_esperar(e.ganhos == [4, 2, 4, 1], "partida: 1º 4, 3º 2, 4º 1, e o empate em primeiro dá 4 aos dois")
+	p.registrar("galeria", [0, 10, 20, 30], [0, 1, 2, 3])
+	# P1 4+1=5, P2 2+2=4, P3 4+3=7, P4 1+4=5: P3 primeiro; P1 e P4 empatam em 5,
+	# e P1 venceu uma sala (P4 também): dividem o 2º
+	var podio := p.podio([0, 1, 2, 3])
+	_esperar(int(podio[0].lugar) == 2 and int(podio[0].degrau) == 1, "partida: P3 no topo do pódio")
+	_esperar(int(podio[1].degrau) == 2 and int(podio[2].degrau) == 2 and int(podio[3].lugar) == 1 and int(podio[3].degrau) == 4,
+		"partida: o empate em pontos e em salas vencidas divide o degrau")
+	_esperar(Placar.frase_do_vencedor(podio) == "P3 venceu a noite", "partida: a frase do pódio")
+	p.registrar("prova", [0, 0, 0, 0], [0, 1, 2, 3])
+	_esperar(p.acabou(), "partida: acabou depois da terceira sala")
+
+
+## A partida jogada: três salas, o placar entre elas (o robô aperta ✕), o
+## pódio no salão e ○ de volta ao salão.
+func _prova_da_partida() -> void:
+	jogo._comecar_a_partida(3, false, false)
+	await _quadros(3)
+	var ids := ["centelha", "galeria", "prova"]
+	var pontos := [[10, 40, 30, 20], [0, 50, 10, 20], [5, 60, 0, 0]]
+	for i in ids.size():
+		var q := 0
+		while (not jogo.sala is SalaJogo or jogo.sala.id != ids[i] or jogo._trocando) and q < 900:
+			await _quadros(2)
+			q += 2
+		var sala = jogo.sala
+		_esperar(sala is SalaJogo and sala.id == ids[i] and sala.na_prova_de_fogo == "Partida · sala %d de 3" % (i + 1),
+			"partida: %s é a sala %d de 3" % [ids[i], i + 1])
+		if not sala is SalaJogo:
+			return
+		q = 0
+		while is_instance_valid(sala) and sala.fase == "aviso" and q < 600:
+			await _quadros(1)
+			q += 1
+		for l in 4:
+			sala.pontos[l] = pontos[i][l]
+		sala.terminar()
+		q = 0
+		while jogo.overlay != "placar" and q < 600:
+			await _quadros(2)
+			q += 2
+		_esperar(jogo.overlay == "placar" and jogo.partida.historico.size() == i + 1, "partida: o placar depois d%s" % Placar._contracao(sala.nome))
+	var q := 0
+	while (jogo.estado != "podio" or jogo._trocando) and q < 900:
+		await _quadros(2)
+		q += 2
+	_esperar(jogo.estado == "podio" and jogo.placar.visible and jogo.placar.no_podio, "partida: o pódio no fim")
+	# P2 venceu as três: 12; P3 e P4 empatam em 7 e dividem o 2º; P1 fica com 5
+	var lista: Array = jogo.partida.podio(jogo.partida.presentes())
+	_esperar(int(lista[0].lugar) == 1 and int(lista[0].total) == 12, "partida: P2 venceu a noite com 12 (%s)" % [lista])
+	_esperar(Placar.frase_do_vencedor(lista) == "P2 venceu a noite", "partida: a frase diz quem venceu")
+	for l in 4:
+		_esperar(not jogo.jogadores[l].controlavel, "partida: no pódio, o P%d fica no pedestal" % (l + 1))
+	await _quadros(60)
+	await _aperta(0, Forja.CIRCULO)
+	q = 0
+	while (jogo.estado != "salao" or jogo._trocando) and q < 600:
+		await _quadros(2)
+		q += 2
+	_esperar(jogo.estado == "salao" and jogo.partida == null and not jogo.placar.visible, "partida: ○ no pódio volta ao salão")

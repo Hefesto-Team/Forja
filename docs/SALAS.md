@@ -373,6 +373,25 @@ para a próxima, e no fim abre o livro da sessão. A pausa desiste e volta ao
 salão. `--prova-de-fogo` começa direto nela — é a rodada inteira da validação
 com uma sessão só, e com `--robo` o robô joga as nove.
 
+## A partida — o placar e o pódio
+
+Na bigorna do meio do salão, □ abre a partida: quem apertou escolhe o tamanho
+(▲▼: três salas, cinco ou as nove) e a ordem (◀▶: a do percurso ou sorteada
+pela semente); ✕ começa. Na ordem, a curta é A Centelha, A Galeria e A Prova,
+e a de cinco põe A Viga e O Impacto no meio — nenhuma delas pede o som do
+controle, então jogam em qualquer sala de estar; a de nove é o percurso.
+Sorteada, as salas saem embaralhadas e A Prova fecha sempre.
+
+Cada sala conta pontos na régua dela, então a partida soma a **colocação**, não
+os pontos crus: o primeiro da sala leva 4 pontos da noite, o segundo 3, o
+terceiro 2, o quarto 1, e quem empata divide a colocação de cima. Depois de
+cada veredito, o placar: a colocação na sala, o que ela deu e o total; ✕ segue
+para a próxima. No fim, o pódio no salão, cada boneco no pedestal do seu lugar
+e quem venceu comemorando (o controle dele sente): mais pontos da noite, e no
+empate mais salas vencidas. ✕ joga outra partida do mesmo tamanho (outro
+sorteio), ○ volta ao salão. `--partida=N` (com `--sorteada`) começa direto
+nela, e o relatório registra cada placar e o pódio.
+
 ## Jogar sem controle
 
 `--simular N` pendura N DualSense de mentira (sem controle nenhum, o título

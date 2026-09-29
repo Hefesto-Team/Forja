@@ -223,8 +223,8 @@ Hoje cada sala dá vereditos; um jogo de festa também dá um vencedor.
 
 | item | detalhe |
 | --- | --- |
-| os pontos da noite | cada sala já conta pontos por lugar (runas, alvos, golpes, o chão certo); somá-los numa partida, com o placar entre as salas e o pódio no fim |
-| a partida escolhida | 3, 5 ou as 9 salas; na ordem ou sorteadas (a semente já existe) |
+| os pontos da noite | cada sala já conta pontos por lugar (runas, alvos, golpes, o chão certo); somá-los numa partida, com o placar entre as salas e o pódio no fim — **feito**: a partida soma a colocação (4, 3, 2, 1; o empate divide), não os pontos crus, porque cada sala tem a sua régua; o placar depois de cada veredito, o pódio no salão, e o relatório registra os dois (`scripts/partida.gd`, [SALAS](docs/SALAS.md#a-partida--o-placar-e-o-pódio)) |
+| a partida escolhida | 3, 5 ou as 9 salas; na ordem ou sorteadas (a semente já existe) — **feito**: □ na bigorna; na ordem, as curtas só com salas que não pedem o som do controle; sorteada, A Prova fecha sempre; `--partida=N --sorteada` |
 | variação e dificuldade | cada sala com duas ou três variações (tempo, velocidade, quantos alvos) e um nível para quem joga pela primeira vez |
 | menos de quatro | toda sala jogável com 1, 2 ou 3 (A Prova já faz: com três, dois contra um e um boneco de treino); a sala diz o que muda |
 | a sala sem o recurso | com o microfone mudo, A Voz passa sozinha pela parte que pede voz (como o Astro faz com o sopro); sem alto-falante achado, O Canto diz e segue — o veredito fica "não medido", nunca "falhou" |
