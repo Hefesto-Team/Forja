@@ -17,6 +17,7 @@ const FAIXAS := {
 	"galeria": [59, 104, 1],
 	"caminhos": [53, 94, 0],
 	"prova": [57, 118, 2],
+	"podio": [64, 124, 2],
 	"bancada": [],
 	"voz": [],
 	"canto": [],

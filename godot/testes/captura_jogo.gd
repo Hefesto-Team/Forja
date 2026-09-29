@@ -196,9 +196,11 @@ func _roteiro_da_partida() -> Array:
 	var no_salao := func() -> bool:
 		return jogo.estado == "salao" and not jogo._trocando
 	var jogo_andou := func() -> bool:
-		return jogo.sala is SalaJogo and jogo.sala.fase == "jogo" and jogo.sala.t_fase >= 12.0 and not jogo._trocando
+		return jogo.sala is SalaJogo and jogo.sala.fase == "jogo" and not jogo.sala.treinando and jogo.sala.t_fase >= 9.0 and not jogo._trocando
+	var no_treino := func() -> bool:
+		return jogo.sala is SalaJogo and jogo.sala.fase == "jogo" and jogo.sala.t_fase > 0.4
 	var no_placar := func() -> bool:
-		return jogo.overlay == "placar" and jogo.placar._t > 1.2
+		return jogo.overlay == "placar" and jogo.placar._t > Placar.T_PRONTO + 0.2
 	var no_podio := func() -> bool:
 		return jogo.estado == "podio" and not jogo._trocando and jogo.placar._t > 2.0
 	var r: Array = [
@@ -215,10 +217,13 @@ func _roteiro_da_partida() -> Array:
 		["aperta", 0, Forja.CRUZ],
 	]
 	for i in 3:
+		if i == 0:
+			r.append_array([["ate", no_treino], ["foto", "partida_treino"]])
 		r.append_array([["ate", jogo_andou]])
 		if i == 0:
 			r.append_array([["foto", "partida_sala"]])
-		r.append_array([["termina"], ["ate", no_placar], ["foto", "partida_placar_%d" % (i + 1)]])
+		r.append_array([["termina"], ["ate", func() -> bool: return jogo.overlay == "placar" and jogo.placar._t > 0.9],
+			["foto", "partida_placar_%d_contando" % (i + 1)], ["ate", no_placar], ["foto", "partida_placar_%d" % (i + 1)]])
 	r.append_array([["ate", no_podio], ["foto", "partida_podio"], ["fim"]])
 	return r
 

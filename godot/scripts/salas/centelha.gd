@@ -49,6 +49,8 @@ func _init() -> void:
 
 func montar() -> void:
 	Kit.arena(self, 5, 3)
+	# a forja: brasas subindo, e o neon rosa do Hefesto
+	atmosfera(Color("#ff9a52"), Tema.ROSA, true, 60)
 	luzes([Vector3(-9, 2.5, -4), Vector3(9, 2.5, -4), Vector3(0, 3.0, 4)])
 	for p in jogadores:
 		var l: int = p.lugar
@@ -330,6 +332,8 @@ func _acertou(l: int, p: ForjaPlayer, base: int) -> void:
 	Efeitos.faiscas(self, bigorna_topo, Tema.AMARELO, 26, 1.0)
 	Efeitos.anel(self, runas[l].raiz.global_position, Forja.cor_do_lugar(l), 0.7)
 	Som.tocar("bigorna_aguda" if r != null and r.tipo == "botao" else "bigorna", bigorna_topo, -2.0)
+	Som.tocar("martelo", bigorna_topo, -6.0)
+	Som.no_controle(l, "martelo", 0.55)  # o martelo soa na mão de quem martelou
 	p.gesto("attack-melee-right", 0.45)
 	Forja.vibrar(l, 0.0, 0.2, 50)
 	if r != null and r.tipo == "botao" and e.janela > JANELA_MINIMA * ritmo_nivel:

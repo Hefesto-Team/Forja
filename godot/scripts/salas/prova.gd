@@ -92,6 +92,9 @@ func sair() -> void:
 
 func montar() -> void:
 	Kit.arena(self, 6, 4)
+	# a arena: a Brasa de um lado, a Maré do outro
+	atmosfera(Color("#ffb86c"), Tema.LARANJA, true, 40, 24.0, -8.0)
+	Efeitos.poeira(self, Vector3(0, 1.8, 0), Vector3(24, 3.5, 9), Tema.CIANO, 30)
 	luzes([Vector3(-10, 3.0, -6), Vector3(10, 3.0, -6), Vector3(-10, 3.0, 6), Vector3(10, 3.0, 6)])
 	_montar_chao()
 	for c in PILARES:
@@ -313,8 +316,9 @@ func _atirar(i: int, ang: float) -> void:
 	var pos: Vector3 = e.pos + dir * 0.6 + Vector3(0, 1.0, 0)
 	var bala := Kit.esfera(self, 0.13, pos, Kit.material(LUZ_EQUIPE[e.equipe].lightened(0.35), 3.0))
 	tiros.append({"no": bala, "pos": pos, "vel": dir * TIRO_V, "vida": TIRO_VIDA, "dono": i, "equipe": e.equipe})
-	Som.tocar("bigorna_aguda", pos, -12.0 if e.lugar < 0 else -8.0, 1.6)
+	Som.tocar("tiro", pos, -14.0 if e.lugar < 0 else -10.0)
 	if e.lugar >= 0:
+		Som.no_controle(e.lugar, "tiro", 0.4)
 		var p: ForjaPlayer = e.no
 		p.gesto("holding-right-shoot", 0.22)
 
@@ -322,6 +326,9 @@ func _atirar(i: int, ang: float) -> void:
 func _golpe(alvo: Dictionary, autor: int, vx: float) -> void:
 	alvo.vida = int(alvo.vida) - 1
 	alvo.dano = 1.0
+	Som.tocar("golpe", alvo.pos + Vector3(0, 1.0, 0), -4.0)
+	if alvo.lugar >= 0:
+		Som.no_controle(alvo.lugar, "golpe", 0.7)  # o golpe se ouve na mão de quem apanhou
 	var quem: Dictionary = lut[autor]
 	if quem.lugar >= 0:
 		quem.acertos = int(quem.acertos) + 1

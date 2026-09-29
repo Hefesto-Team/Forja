@@ -51,6 +51,18 @@ var cega := false
 ## Nas salas de som, o papel que o aviso deixa conferir, trocar (◀ ▶) e testar
 ## (△): Forja.PAPEL_ALTO_FALANTE, _HAPTICA ou _MICROFONE; -1 nas outras.
 var papel_som := -1
+## false: a sala não toca efeitos no alto-falante do controle (a bancada)
+var sfx_no_controle := true
+## A rodada de treino: o jogo começa valendo nada. Os acertos ensinam (a dica
+## segue cheia) e não somam, o erro não tira; acaba quando cada um acertou
+## uma vez, ou em TREINO_MAX s — e aí "Valendo!". O relógio da sala devolve o
+## tempo do treino. As medidas seguem contando: uma tentativa de treino também
+## é uma tentativa honesta do controle. false: a sala tem o treino dela.
+var com_treino := true
+var treinando := false
+var valendo_t := 0.0  ## o "Valendo!" na tela (s que faltam)
+var _treino_ok := [false, false, false, false]
+const TREINO_MAX := 15.0
 ## Na Prova de Fogo: "Prova de Fogo · sala 3 de 9" (vazio fora dela), e o que
 ## o ✕ do veredito faz.
 var na_prova_de_fogo := ""
@@ -71,6 +83,9 @@ func entrar(js: Array) -> void:
 	if papel_som >= 0:
 		# o som de cada um, achado como um jogo acha; o aviso mostra e deixa trocar
 		Forja.som_preparar(papel_som)
+	elif sfx_no_controle:
+		# os efeitos no alto-falante de cada controle (o martelo na mão, o tiro)
+		Forja.som_preparar(Forja.PAPEL_ALTO_FALANTE)
 
 
 func sair() -> void:
@@ -79,7 +94,7 @@ func sair() -> void:
 		p.preso = false
 		if _itens.has(p.lugar):
 			p.visual(p.modelo_i, int(_itens[p.lugar]))
-	if papel_som >= 0:
+	if papel_som >= 0 or sfx_no_controle:
 		Forja.som_encerrar()
 	super()
 
@@ -105,6 +120,63 @@ func martelo_na_mao(p: ForjaPlayer) -> void:
 	m.rotation_degrees = Vector3(0, 0, 14)
 
 
+# ------------------------------------------------------------------ o clima --
+
+var _preenchimento: OmniLight3D = null
+var _energia_preenchimento := 0.0
+
+
+## O clima da sala: as partículas do ar (brasas que sobem ou poeira que
+## flutua), um preenchimento de cor por cima e dois neons na parede do fundo
+## (o synthwave da trilha). O ambiente é constante: numa prova às cegas, a luz
+## da sala não diz nada que a mão tenha de descobrir.
+func atmosfera(cor_ar: Color, cor_neon: Color, brasas := false, n := 48, largura := 22.0, fundo := -6.0,
+		preenche := 0.35) -> void:
+	var caixa := Vector3(largura, 3.5, 9.0)
+	if brasas:
+		Efeitos.brasas(self, Vector3(0, 0.2, 0), Vector3(largura, 0.2, 9.0), cor_ar, n)
+	else:
+		Efeitos.poeira(self, Vector3(0, 1.8, 0), caixa, cor_ar, n)
+	_preenchimento = OmniLight3D.new()
+	_preenchimento.position = Vector3(0, 6.5, 1.0)
+	_preenchimento.light_color = cor_ar
+	_preenchimento.light_energy = preenche
+	_preenchimento.omni_range = 24.0
+	add_child(_preenchimento)
+	_energia_preenchimento = _preenchimento.light_energy
+	for lado in [-1.0, 1.0]:
+		var neon := MeshInstance3D.new()
+		var barra := BoxMesh.new()
+		barra.size = Vector3(largura * 0.32, 0.08, 0.08)
+		neon.mesh = barra
+		var mat := StandardMaterial3D.new()
+		mat.albedo_color = cor_neon
+		mat.emission_enabled = true
+		mat.emission = cor_neon
+		mat.emission_energy_multiplier = 3.0
+		neon.material_override = mat
+		neon.position = Vector3(lado * largura * 0.27, 3.6, fundo)
+		add_child(neon)
+		var brilho := OmniLight3D.new()
+		brilho.light_color = cor_neon
+		brilho.light_energy = 0.8
+		brilho.omni_range = 5.0
+		brilho.position = neon.position + Vector3(0, -0.3, 0.6)
+		add_child(brilho)
+
+
+## Um pulso no preenchimento (o "Valendo!", o fim da sala), na cor pedida.
+func pulso_de_luz(cor: Color, forca := 2.2) -> void:
+	if _preenchimento == null or not Opcoes.flashes:
+		return
+	var original := _preenchimento.light_color
+	_preenchimento.light_color = cor
+	_preenchimento.light_energy = _energia_preenchimento + forca
+	var tw := create_tween()
+	tw.tween_property(_preenchimento, "light_energy", _energia_preenchimento, 0.9).set_trans(Tween.TRANS_QUAD)
+	tw.tween_callback(func() -> void: _preenchimento.light_color = original)
+
+
 func congelar(sim: bool) -> void:
 	if congelada == sim:
 		return
@@ -127,6 +199,10 @@ func _process(dt: float) -> void:
 		"aviso":
 			_quadro_aviso()
 		"jogo":
+			if treinando:
+				_quadro_treino()
+			if valendo_t > 0.0:
+				valendo_t -= dt
 			jogar(dt)
 			var todos := true
 			for p in jogadores:
@@ -197,6 +273,8 @@ func _afinar_som(l: int, p: ForjaPlayer) -> void:
 func comecar() -> void:
 	fase = "jogo"
 	t_fase = 0.0
+	treinando = com_treino
+	_treino_ok = [false, false, false, false]
 	for p in jogadores:
 		jogando[p.lugar] = true
 		Forja.med_repouso(p.lugar, false)
@@ -241,6 +319,7 @@ func terminar() -> void:
 	Forja.gravar_relatorio()
 	Som.tocar("sucesso")
 	_reagir_ao_veredito()
+	pulso_de_luz(Tema.AMARELO, 1.6)
 	ao_terminar()
 
 
@@ -305,13 +384,37 @@ func status(lugar: int) -> String:
 		return "%d pontos" % pontos[lugar]
 	if acabou[lugar]:
 		return "terminou · %d" % pontos[lugar]
+	if treinando:
+		return "treino ✓" if _treino_ok[lugar] else "treino"
 	return "%d pontos" % pontos[lugar]
 
 
 func marcar(lugar: int, n: int) -> void:
+	if treinando:
+		# no treino, nada soma nem tira: o acerto só ensina
+		if n > 0 and not _treino_ok[lugar]:
+			_treino_ok[lugar] = true
+			Som.tocar("seleciona")
+		return
 	pontos[lugar] += n
 	if n > 0:
 		acertos[lugar] += 1
+
+
+## O treino acaba quando cada um acertou uma vez (ou no tempo máximo).
+func _quadro_treino() -> void:
+	var todos := true
+	for p in jogadores:
+		if jogando[p.lugar] and Forja.lugar(p.lugar).get("conectado", false) and not _treino_ok[p.lugar]:
+			todos = false
+	if todos or t_fase >= TREINO_MAX * ritmo_nivel:
+		treinando = false
+		valendo_t = 1.4
+		if duracao > 0.0:
+			duracao += t_fase  # o tempo do treino volta para o relógio
+		Som.tocar("especial")
+		pulso_de_luz(Tema.ROSA)
+		Forja.evento("sala", 0, {"sala": id, "evento": "valendo", "treino_s": snappedf(t_fase, 0.1)})
 
 
 ## A dica já foi aprendida: fica só o glifo.

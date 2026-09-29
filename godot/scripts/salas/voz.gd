@@ -69,6 +69,8 @@ func _init() -> void:
 
 func montar() -> void:
 	Kit.arena(self, 5, 3)
+	# a cripta: brasas frias, fantasmas, e o neon verde
+	atmosfera(Color("#7fe8ff"), Tema.VERDE, true, 40, 22.0, -6.0, 0.15)
 	var frio := OmniLight3D.new()
 	frio.position = Vector3(0, 8.0, 4.0)
 	frio.light_color = Color("#5a4f8f")

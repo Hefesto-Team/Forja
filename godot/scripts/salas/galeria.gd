@@ -62,6 +62,8 @@ func _init() -> void:
 
 func montar() -> void:
 	Kit.arena(self, 5, 3)
+	# o estande: o synthwave inteiro — poeira roxa e neon ciano
+	atmosfera(Color("#c28bff"), Tema.CIANO, false, 50)
 	luzes([Vector3(-9, 2.6, -5), Vector3(9, 2.6, -5), Vector3(0, 3.0, 5)])
 	for p in jogadores:
 		var l: int = p.lugar
@@ -367,10 +369,15 @@ func _atirar(l: int, p: ForjaPlayer, e: Dictionary) -> void:
 			e.acertos += 1
 			marcar(l, 50)
 			Efeitos.faiscas(self, _no_muro(l, Vector2(a.x, a.y)), Tema.AMARELO, 18, 0.8)
+			Som.tocar("alvo", _no_muro(l, Vector2(a.x, a.y)), -4.0)
 			break
 	p.gesto("holding-right-shoot", 0.2)
 	_rastro(l, p, _no_muro(l, m))
 	Som.tocar("bigorna_aguda" if acertou else "tique", _no_muro(l, m), -6.0 if acertou else -12.0)
+	# a arma já foi revelada: o tiro soa na mão (a metralhadora só no gatilho)
+	if e.arma != METRALHADORA:
+		Som.tocar("tiro", p.global_position + Vector3(0, 1.2, 0), -10.0)
+		Som.no_controle(l, "tiro", 0.45)
 	if e.arma == METRALHADORA:
 		var antes := _luzes_da_mg(int(e.balas_mg))
 		e.balas_mg -= 1

@@ -12,6 +12,7 @@ binário (`scripts/licencas.gd`).
 | Godot 4.4.1 | godotengine.org | MIT (e as de terceiros no fim) |
 | Space Grotesk, JetBrains Mono | google/fonts | SIL Open Font License 1.1 |
 | Mini Dungeon | Kenney (www.kenney.nl) | CC0 1.0 |
+| Impact Sounds, Interface Sounds, RPG Audio, Digital Audio, Music Jingles | Kenney (www.kenney.nl) | CC0 1.0 |
 | o desenho do DualSense, os glifos e o logo | o app Hefesto | MIT |
 
 ## SDL

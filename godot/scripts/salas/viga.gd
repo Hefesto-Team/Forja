@@ -150,6 +150,8 @@ func _cenario() -> void:
 		add_child(brilho)
 	Efeitos.brasas(self, Vector3(0, -1.2, 0.5), Vector3(22, 0.2, 4.6), Tema.LARANJA, 70)
 	luzes([Vector3(-10, 2.8, -5.4), Vector3(10, 2.8, -5.4), Vector3(0, 3.4, 4.8)])
+	# a lava: o preenchimento vermelho e o neon laranja
+	atmosfera(Color("#ff6a3d"), Tema.LARANJA, false, 30, 22.0, -6.0, 0.3)
 
 
 func _shader_lava() -> Shader:
@@ -409,7 +411,8 @@ func _arremessar(l: int, p: ForjaPlayer, alvo: Vector3, sino: int) -> void:
 		var some := func() -> void:
 			pivo.visible = false
 		var tocou := func() -> void:
-			Som.tocar("sino", alvo, 0.0, [1.0, 0.84, 1.19][sino])
+			Som.tocar("sino_viga", alvo, 0.0, [1.0, 0.84, 1.19][sino])
+			Som.no_controle(l, "sino_viga", 0.6)
 			Efeitos.faiscas(self, alvo, Tema.AMARELO, 30, 1.0)
 			Efeitos.anel(self, alvo, Tema.AMARELO, 0.5)
 			Forja.vibrar(l, 0.0, 0.35, 70)
@@ -448,6 +451,7 @@ func _pedra(l: int, p: ForjaPlayer, e: Dictionary, dt: float) -> void:
 	p.gesto("attack-melee-right", 0.45)
 	Efeitos.faiscas(self, ponto, Tema.LARANJA, 34, 1.1)
 	Som.tocar("martelo", ponto, 0.0)
+	Som.no_controle(l, "pedra" if e.golpes >= 2 else "martelo", 0.7)
 	Forja.vibrar(l, 0.8, 0.4, 120)
 	var nos: Dictionary = n[l]
 	nos.racha.visible = true
