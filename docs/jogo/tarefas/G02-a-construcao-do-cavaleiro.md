@@ -405,6 +405,10 @@ passa a `["Humano", "Orc"]`.
   em degraus de ~17 ms; as tolerâncias da prova já contam com isso.
 - **O `_segurar()` de hoje apaga as peças:** se o elmo some quando se troca
   o item, o filtro por `"Peca"` não pegou.
+- **Nomes de irmãos:** os `BoneAttachment3D` são todos filhos do
+  `Skeleton3D`; dois com o mesmo nome fazem o Godot gerar um nome que não
+  começa com `"Peca"`. Dê nomes únicos: `"Peca"`, e na ombreira
+  `"Peca_esq"` e `"Peca_dir"`.
 - **Os roteiros da captura sem robô** precisam montar os cavaleiros: o passo
   novo `["ate_pronto", sim]` (ver Provas).
 
