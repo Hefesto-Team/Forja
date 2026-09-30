@@ -42,6 +42,11 @@ godot/assets/kenney/
 
 - `Kit.peca(pai, "castle-kit/tower-base", ...)`: o pacote antes da barra;
   sem barra, vale `mini-dungeon` (as salas de hoje não mudam uma linha).
+- `const ESCALA_DO_PACOTE := {"castle-kit": 1.4, "survival-kit": 1.4, "factory-kit": 0.5, "building-kit": 0.35, "pirate-kit": 0.4, "cube-pets": 0.4, "blaster-kit": 0.3, "modular-dungeon-kit": 0.25, "modular-cave-kit": 0.25, "modular-space-kit": 0.25}`
+  em `kit.gd`: `Kit.peca` multiplica a escala pedida pelo fator do pacote
+  (os outros, 1×). Os valores vêm das medidas do
+  [14](../14-os-assets-kenney.md#a-escala-de-cada-kit) e se ajustam olhando
+  a prancha ao lado de um boneco.
 - `Kit.caminho(nome) -> String` numa função só, usada pelos quatro scripts.
 - `scripts/importar_kenney.py`:
 
@@ -50,15 +55,18 @@ godot/assets/kenney/
   python3 scripts/importar_kenney.py --lista          # o que a curadoria aceita
   ```
 
-  - `APROVADOS` = os da coluna "entra" do [14](../14-os-assets-kenney.md#a-curadoria),
-    com o nome da pasta no zip e o nome da pasta de destino;
+  - `APROVADOS` = os da coluna "entra" do [14](../14-os-assets-kenney.md#a-curadoria)
+    (os 39 kits com colormap, a série Mini, a interface e o áudio), com o
+    nome da pasta no zip e o nome da pasta de destino em minúsculas com
+    hífen (`castle-kit`, `graveyard-kit`, `mini-characters`…);
   - acha a pasta do pacote dentro do zip ou da pasta (os nomes do All-in-1
     têm a categoria na frente, como `3D assets/Mini Characters/`);
   - copia só `Models/GLB format/*.glb` e a pasta `Textures/` (ou onde o
     pacote os tiver — o script procura o `.glb` e a `Textures/` irmã) e o
     `License.txt`;
-  - em pacote de personagem, roda `conferir_bonecos.py` em cada `.glb` e
-    **não copia** o que reprova;
+  - em pacote de personagem (a série Mini e os `character-*` do Graveyard
+    Kit), roda `conferir_bonecos.py` em cada `.glb` de personagem e **não
+    copia** o que reprova;
   - em pacote de áudio, converte `.ogg` para WAV 48 kHz mono em
     `godot/assets/sons/<pacote>/` (com `ffmpeg` se houver; se não houver, diz
     como instalar e para);
@@ -90,8 +98,10 @@ godot/assets/kenney/
    G08), cada um com nome em português ("Ferreira", "Mestre", "Aprendiz"…) e
    um pio próprio (`Som.pio`).
 6. **Os kits de cenário** entram quando a primeira ficha de minigame pedir
-   (a ficha diz `castle-kit/…`); esta ficha só importa o Castle Kit e o
-   Tower Defense Kit e confere que uma peça de cada abre no Godot.
+   (a tabela dos 45 no [14](../14-os-assets-kenney.md#os-kits-nos-45-minigames)
+   diz qual); esta ficha importa só o Castle Kit, o Factory Kit e o
+   Graveyard Kit (os três mais usados na tabela) e confere que uma peça de
+   cada abre no Godot, na escala certa ao lado de um boneco.
 7. **A parte B da G08** passa a ser "rodar esta ficha": atualizar a G08 para
    apontar para cá.
 8. Atualizar `docs/jogo/13-arquitetura.md` (`Kit.caminho`, a pasta por
