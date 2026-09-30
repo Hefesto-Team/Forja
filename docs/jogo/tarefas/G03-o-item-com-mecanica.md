@@ -1,6 +1,6 @@
 # G03 — O item com mecânica
 
-**Sprint:** G · **Tamanho:** M · **Modelo:** Opus · **Estimativa:** US$ 3,0 · **Depende de:** F00, F05, F06, G02 · **Usado por:** H04 (o kit chama o `Itens` no julgamento)
+**Sprint:** G · **Tamanho:** M · **Modelo:** Opus · **Estimativa:** US$ 3,0 · **Depende de:** F00, F05, F06, G02, F09 · **Usado por:** H04 (o kit chama o `Itens` no julgamento)
 
 ## Por quê
 
@@ -215,6 +215,7 @@ Rodar `bash tests/prova_do_jogo.sh` depois dos passos 3, 5 e 6.
 - **O robô:** nenhum `Forja.robo` aqui.
 - **As peças 3D** passam pelo [checklist](../11-arte-e-personagens.md#o-checklist-de-aprovação):
   foscas, em blocos; o único brilho é a chama da Lanterna.
+- **Os temperamentos e os casos que quebram:** o fluxo tem de aguentar `--robo=bom|medio|ruim` (o ruim demora e às vezes não aperta), partidas com 1 e 2 jogadores e um controle que desconecta e volta (`simulador_cabo`). Com o `--robo=ruim`, o Escudo quebra de verdade na Centelha: a linha do tempo da prova visual deve ter `item` / `absorveu`; com 1 jogador, `Itens.escolhido` dos lugares vazios é `NENHUM` e nada age neles; o lugar que desconecta não perde o Escudo (o erro só conta com controle).
 
 ## Não fazer
 
@@ -232,9 +233,13 @@ Cada um dos seis itens tem a peça nas costas e o efeito da tabela na classe
 L2 enquanto inteiro; o registro mostra o item de cada lugar ao entrar numa
 sala e cada vez que o Escudo agiu.
 
+E só fecha com `bash tests/prova_visual.sh` passando (a passada com `--fixed-fps 60`, na sessão) e a prancha olhada; foto de `tests/telas.sh` não é prova ([a prova visual](../13-arquitetura.md#a-prova-visual--f09)). A aparência (luz, cor, brilho, névoa, arte) só se aprova na máquina do André, com placa de vídeo, sem `--fixed-fps`.
+
 ## Provas
 
 **Na sessão:** `bash tests/prova_do_jogo.sh`.
+
+**A prova visual (F09):** `bash tests/prova_visual.sh` — as quatro partidas (4 jogadores bom e ruim, 2 jogadores, 1 jogador com o controle caindo) passando pelas telas desta ficha; na prancha: a peça de cada item nas costas na construção e nas salas, sem atravessar o corpo.
 
 Em `godot/testes/prova_do_jogo.gd`, uma função nova chamada no `_ready()`
 logo depois de `_prova_das_contas_da_partida()`:
@@ -307,9 +312,9 @@ e `_esperar(absorveu >= 1, "o registro tem o Escudo agindo")`.
 
 ## Para o André (local)
 
-1. `bash tests/telas.sh fotos /tmp/fotos-g03`: os seis itens nas costas na
-   foto da construção (troque o item dos cartões à mão numa rodada
-   `./run-local.sh` se a foto só mostrar quatro).
+1. `bash tests/prova_visual.sh` sem `--fixed-fps`, com a placa de vídeo:
+   as peças nas costas nas pranchas (a aparência só se aprova aqui); numa
+   rodada `./run-local.sh`, passar pelos seis itens na construção.
 2. Na construção, com um DualSense: passar pelos itens — o L2 fica firme no
    Escudo, pesa pouco na Âncora, solta nos outros.
 3. Uma Centelha com o Escudo: errar uma vez (nada acontece, o escudo quebra

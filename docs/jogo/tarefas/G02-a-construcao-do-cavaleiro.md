@@ -1,6 +1,6 @@
 # G02 — A construção do cavaleiro
 
-**Sprint:** G · **Tamanho:** G · **Modelo:** Opus · **Estimativa:** US$ 4,0 · **Depende de:** F00, F04, F05, F06, F07, F08, G01 · **H01:** opcional (sem ele, o relógio local e o gancho descrito abaixo)
+**Sprint:** G · **Tamanho:** G · **Modelo:** Opus · **Estimativa:** US$ 4,0 · **Depende de:** F00, F04, F05, F06, F07, F08, G01, F09 · **H01:** opcional (sem ele, o relógio local e o gancho descrito abaixo)
 
 ## Por quê
 
@@ -128,7 +128,8 @@ O sorteio usa um `RandomNumberGenerator` com `seed = Forja.semente * 31 + l`.
   var ritmo := get_node_or_null("/root/Ritmo")   # H01 feito: o julgamento passa a descontar
   if ritmo:
   	ritmo.desvio[l] = desvio[l]
-  Forja.evento("calibracao", l + 1, {"desvio_ms": ms, "amostras": golpes[l].size()})
+  var transporte := str(Forja.pad(Forja.pad_do_lugar(l)).get("transporte", "desconhecido"))  # a F06 põe o transporte no pad
+  Forja.evento("calibracao", l + 1, {"desvio_ms": ms, "amostras": golpes[l].size(), "transporte": transporte})
   Forja.evento("cavaleiro", l + 1, jogadores[l].cavaleiro())
   Forja.registrar("P%d forjou o cavaleiro: desvio %d ms" % [l + 1, ms])
   ```
@@ -300,17 +301,20 @@ func robo(l: int, dt: float) -> void:
 		return
 	_robo_espera[l] -= dt
 	if Forja.ocupado(l) and passo[l] == FORJAR:
-		if _agora() >= _robo_batida[l] * periodo() + ROBO_ATRASO_S * l:
+		# o temperamento (F09): quem não acerta martela 0,12 s atrasado
+		if _agora() >= _robo_batida[l] * periodo() + ROBO_ATRASO_S * l + _robo_erro[l]:
 			Forja.robo_apertar(l, Forja.CRUZ)
 			_robo_batida[l] += 1
+			_robo_erro[l] = 0.0 if Forja.robo_acerta() else 0.12
 		return
 	if _robo_espera[l] > 0.0 or prontos[l]:
 		return
 	Forja.robo_apertar(l, Forja.CRUZ)
-	_robo_espera[l] = 0.9 + 0.1 * l
+	# quem não acerta hesita: 1,5 s a mais antes do próximo ✕
+	_robo_espera[l] = 0.9 + 0.1 * l + (0.0 if Forja.robo_acerta() else 1.5)
 ```
 
-Ao entrar em FORJAR: `_robo_batida[l] = floori(_agora() / periodo()) + 1`.
+Ao entrar em FORJAR: `_robo_batida[l] = floori(_agora() / periodo()) + 1` e `_robo_erro[l] = 0.0` (`var _robo_erro := [0.0, 0.0, 0.0, 0.0]`). A prova do jogo roda com `--robo` (o `bom`, 95%): uma ou duas marteladas atrasadas não mexem na mediana das oito.
 
 ## Passos
 
@@ -357,7 +361,8 @@ Rodar `bash tests/prova_do_jogo.sh` depois dos passos 3, 6 e 8.
      `var dx := [0, 0, 0, 0]`, `dx[l] = _passo(l, false)` para os quatro,
      `lobby.quadro(dt, dx)`; se `lobby.pediu_opcoes >= 0`, abrir
      `"opcoes"` para esse lugar, zerar `pediu_opcoes` e `return`. A contagem
-     de 1,6 s continua igual. Se a F04 pôs o "◻ segurado passa o lugar"
+     de 1,6 s continua, contando só os lugares ocupados **e** com controle
+     conectado (`Forja.lugar(l).get("conectado", false)`). Se a F04 pôs o "◻ segurado passa o lugar"
      aqui, ele fica;
    - `_robo(dt)`, ramo `"lobby"`: `for l in 4: lobby.robo(l, dt)` a cada
      quadro, sem a espera de 0,6 s da G01;
@@ -411,6 +416,7 @@ passa a `["Humano", "Orc"]`.
   `"Peca_esq"` e `"Peca_dir"`.
 - **Os roteiros da captura sem robô** precisam montar os cavaleiros: o passo
   novo `["ate_pronto", sim]` (ver Provas).
+- **Os temperamentos e os casos que quebram:** o fluxo tem de aguentar `--robo=bom|medio|ruim` (o ruim demora e às vezes não aperta), partidas com 1 e 2 jogadores e um controle que desconecta e volta (`simulador_cabo`). Na construção: `TelaLobby.robo` consulta `Forja.robo_acerta()` (F09) — quando não acerta, espera 1,5 s a mais antes do ✕ do passo, ou martela 0,12 s atrasado (a mediana absorve); a contagem só conta lugares **ocupados e com controle conectado** (quem cai não segura os outros); o lugar que perde o controle guarda o passo e as marteladas e o cartão mostra "Sem controle" (tracejado `Tema.LARANJA`); quando volta, continua de onde parou. Com 1 jogador, a contagem começa assim que ele forja.
 
 ## Não fazer
 
@@ -428,9 +434,13 @@ linha do tempo tem uma linha `calibracao` por lugar; quem volta ao lobby
 pela pausa acha o seu cavaleiro pronto para confirmar; e o robô constrói os
 quatro sozinho, só apertando botões.
 
+E só fecha com `bash tests/prova_visual.sh` passando (a passada com `--fixed-fps 60`, na sessão) e a prancha olhada; foto de `tests/telas.sh` não é prova ([a prova visual](../13-arquitetura.md#a-prova-visual--f09)). A aparência (luz, cor, brilho, névoa, arte) só se aprova na máquina do André, com placa de vídeo, sem `--fixed-fps`.
+
 ## Provas
 
 **Na sessão:** `bash tests/prova_do_jogo.sh`.
+
+**A prova visual (F09):** `bash tests/prova_visual.sh` — as quatro partidas (4 jogadores bom e ruim, 2 jogadores, 1 jogador com o controle caindo) passando pelas telas desta ficha; na prancha: os cartões de 1, 2 e 4 lugares sem texto encostando, a armadura cinza ficando na cor a cada martelada, e a partida em que um controle cai seguindo até o salão.
 
 Em `godot/testes/prova_do_jogo.gd`, `_prova_do_percurso()`: depois de
 `_esperar(jogo.estado == "lobby", …)` e das checagens por lugar da F04,
@@ -487,7 +497,7 @@ Em `_prova_do_relatorio()`, depois de `_esperar(json != "", …)`:
 	_esperar(calibracoes == 4, "a linha do tempo tem a calibração dos quatro (%d)" % calibracoes)
 ```
 
-Em `godot/testes/captura_jogo.gd`: um passo novo no `match` de `_rodar()`,
+Em `godot/testes/captura_jogo.gd` (fotos de divulgação, não prova): um passo novo no `match` de `_rodar()`,
 
 ```gdscript
 			"ate_pronto":
@@ -513,9 +523,9 @@ O `_roteiro_dos_extras` continua (△ no BONECO abre as opções).
 
 ## Para o André (local)
 
-1. `bash tests/telas.sh fotos /tmp/fotos-g02`: olhar `construcao.png` e
-   `construcao_forjar.png` (cartões sem texto encostando; a armadura cinza
-   ficando colorida; o elmo, a capa e a ombreira no lugar).
+1. `bash tests/prova_visual.sh` sem `--fixed-fps`, com a placa de vídeo:
+   olhar a construção nas pranchas (cartões, a armadura ficando colorida, o
+   elmo, a capa e a ombreira no lugar — a aparência só se aprova aqui).
 2. Quatro DualSense (dois no cabo, dois no rádio): construir os quatro em
    menos de dois minutos; cada pio sai do seu controle.
 3. Depois, no `relatorios/linha-do-tempo-*.jsonl`, as quatro linhas

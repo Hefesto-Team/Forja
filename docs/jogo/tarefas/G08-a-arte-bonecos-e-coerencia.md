@@ -1,6 +1,6 @@
 # G08 — A arte: bonecos e coerência
 
-**Sprint:** G · **Tamanho:** G · **Modelo:** Sonnet · **Estimativa:** US$ 3,5 · **Depende de:** F00, G01, G02 · **Parte B depende de:** os pacotes Kenney que o André baixa e commita
+**Sprint:** G · **Tamanho:** G · **Modelo:** Sonnet · **Estimativa:** US$ 3,5 · **Depende de:** F00, G01, G02, F09 · **Parte B depende de:** os pacotes Kenney que o André baixa e commita
 
 ## Por quê
 
@@ -352,6 +352,7 @@ Rodar `bash tests/prova_do_jogo.sh` depois dos passos 2, 4 e 6.
 - **A luz da casa não muda:** a Parte A só troca geometria e `metallic`;
   tocha, lilás e névoa ficam.
 - **O robô:** nada aqui.
+- **Os temperamentos e os casos que quebram:** o fluxo tem de aguentar `--robo=bom|medio|ruim` (o ruim demora e às vezes não aperta), partidas com 1 e 2 jogadores e um controle que desconecta e volta (`simulador_cabo`). Os bonecos novos têm de fazer todas as animações que o robô provoca errando (`emote-no`, `die`, `fall`): por isso o conferidor exige a lista inteira.
 
 ## Não fazer
 
@@ -368,12 +369,17 @@ A construção oferece pelo menos doze silhuetas diferentes (bonecos × peças);
 o conferidor passa os bonecos registrados e morde um boneco quebrado; a
 prova do jogo não acha, em nenhuma sala, curva lisa nem `metallic` acima de
 0,2; o guardião d'A Voz é de pedra em blocos, com a mesma animação; e as
-fotos de todas as salas passam no checklist de 11.
+pranchas da prova visual rodada pelo André, com placa de vídeo e sem
+`--fixed-fps`, passam no checklist de 11 (a nuvem não aprova aparência).
+
+E só fecha com `bash tests/prova_visual.sh` passando (a passada com `--fixed-fps 60`, na sessão) e a prancha olhada; foto de `tests/telas.sh` não é prova ([a prova visual](../13-arquitetura.md#a-prova-visual--f09)).
 
 ## Provas
 
 **Na sessão:** `bash tests/prova_do_jogo.sh` (com a linha do conferidor do
 passo 7).
+
+**A prova visual (F09):** `bash tests/prova_visual.sh` — as quatro partidas (4 jogadores bom e ruim, 2 jogadores, 1 jogador com o controle caindo) passando pelas telas desta ficha; na prancha da nuvem só a **disposição** (os bonecos, as peças e o guardião no lugar, nada cortado); a aparência (fosco, brilho, cor, a luz da casa, o checklist de 11) só se aprova na máquina do André, com placa de vídeo, sem `--fixed-fps`.
 
 Em `godot/testes/prova_do_jogo.gd`:
 
@@ -451,10 +457,12 @@ E n'A Voz (onde a prova já joga a sala), depois de abrir:
 
 ## Para o André (local)
 
-1. `bash tests/telas.sh fotos /tmp/fotos-g08` e olhar lado a lado com as de
-   antes: A Voz (o guardião de pedra), a Galeria (alvos de 8 lados), O Molde
-   (ouro fosco), as bordas das raias; passar cada foto no
-   [checklist](../11-arte-e-personagens.md#o-checklist-de-aprovação).
+1. **A aprovação da arte é aqui:** `bash tests/prova_visual.sh` sem
+   `--fixed-fps`, com a placa de vídeo; nas pranchas, A Voz (o guardião de
+   pedra), a Galeria (alvos de 8 lados), O Molde (ouro fosco), as bordas das
+   raias; passar cada uma no
+   [checklist](../11-arte-e-personagens.md#o-checklist-de-aprovação) e anotar no
+   diário o que destoar.
 2. Na construção, passar pelos quatro bonecos e as oito peças: cada pio é
    diferente, nenhuma peça atravessa a cabeça.
 3. **Parte B:** baixar os pacotes, `python3 scripts/conferir_bonecos.py

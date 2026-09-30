@@ -174,6 +174,9 @@ são gravados como texto.
 - `jogador` continua 1..4 para não quebrar leitores, e `lugar` (0..3) vai
   **junto** dele. Linha da mesa (`jogador` 0) não tem `lugar`.
 - `Array` do GDScript vira array JSON.
+- O transporte e o firmware de cada controle ficam também no dicionário do
+  pad (`Forja.pad(i)["transporte"]`, `["firmware"]`), para o jogo repetir
+  o transporte onde o cruzamento precisa (a `calibracao`).
 
 Os tipos, e quem os escreve:
 

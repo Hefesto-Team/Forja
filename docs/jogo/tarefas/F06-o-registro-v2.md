@@ -157,6 +157,11 @@ func t_musica(s: float) -> void        # ctl.t_musica: a H01 chama a cada quadro
    ```
    E o mesmo no `reg_linha` de `:295` (`" · transporte %s"`). Se a F05 não pôs
    `firmware` aqui, ponha agora (`"0x%04x"`).
+   E o dicionário que `ForjaControles::pads()` devolve para cada pad
+   (`nativo/godot/forja_controles.cpp`) ganha as chaves `"transporte"` (a
+   mesma palavra) e `"firmware"` (`"0x%04x"`), para o jogo ler com
+   `Forja.pad(i)["transporte"]` — a G02 repete o transporte na linha
+   `calibracao` ([arquitetura](../13-arquitetura.md#o-registro-v2--f06-h01-h02-g02-h07)).
 5. **As ligações** (`nativo/godot/forja_controles.cpp` e `.h`):
    - `ForjaControles::evento()` (`:481-507`): `case Variant::ARRAY:` e os
      `PACKED_*_ARRAY` → se todos os itens são `INT`, `ev_ints`; se são números,

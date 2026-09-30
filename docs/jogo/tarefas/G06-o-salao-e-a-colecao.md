@@ -1,6 +1,6 @@
 # G06 — O salão e a coleção
 
-**Sprint:** G · **Tamanho:** M · **Modelo:** Sonnet · **Estimativa:** US$ 2,5 · **Depende de:** F00, G02
+**Sprint:** G · **Tamanho:** M · **Modelo:** Sonnet · **Estimativa:** US$ 2,5 · **Depende de:** F00, G02, F09
 
 ## Por quê
 
@@ -219,6 +219,7 @@ Rodar `bash tests/prova_do_jogo.sh` depois dos passos 3 e 5.
 - **A bigorna ("A Prova") não é portão:** `minigames_da_secao("prova")` só
   vale quando houver o portão dela; hoje A Prova conta pela vitória, sem
   arco.
+- **Os temperamentos e os casos que quebram:** o fluxo tem de aguentar `--robo=bom|medio|ruim` (o ruim demora e às vezes não aperta), partidas com 1 e 2 jogadores e um controle que desconecta e volta (`simulador_cabo`). Com 1 jogador a coleção também registra (o vencedor é ele, se pontuou); com o `--robo=ruim`, uma sala pode acabar sem ninguém pontuar — sem troféu, sem erro; um controle que cai no meio da sala não tira a vitória de quem venceu.
 
 ## Não fazer
 
@@ -234,9 +235,13 @@ Depois de uma partida de três, o salão mostra os troféus na vitrine, o arco
 d'A Centelha aceso, e a construção oferece o Dourado; outra noite começa com
 a coleção vazia.
 
+E só fecha com `bash tests/prova_visual.sh` passando (a passada com `--fixed-fps 60`, na sessão) e a prancha olhada; foto de `tests/telas.sh` não é prova ([a prova visual](../13-arquitetura.md#a-prova-visual--f09)). A aparência (luz, cor, brilho, névoa, arte) só se aprova na máquina do André, com placa de vídeo, sem `--fixed-fps`.
+
 ## Provas
 
 **Na sessão:** `bash tests/prova_do_jogo.sh`.
+
+**A prova visual (F09):** `bash tests/prova_visual.sh` — as quatro partidas (4 jogadores bom e ruim, 2 jogadores, 1 jogador com o controle caindo) passando pelas telas desta ficha; na prancha: o salão depois de cada partida com o arco aceso e a vitrine crescendo.
 
 Em `godot/testes/prova_do_jogo.gd`, uma função pura, chamada no `_ready()`
 depois de `_prova_das_contas_da_partida()` — ela guarda e devolve o estado:
@@ -283,7 +288,9 @@ E no fim de `_prova_da_partida()`, depois de voltar ao salão:
 3. Fechar e abrir na mesma noite: a vitrine continua; mudar a data do
    sistema (ou apagar `colecao.cfg` da pasta de dados do Godot) e ver a
    coleção vazia.
-4. `bash tests/telas.sh fotos /tmp/fotos-g06` e olhar `salao_depois.png`.
+4. `bash tests/prova_visual.sh` sem `--fixed-fps`, com a placa de vídeo:
+   o salão nas pranchas (o rosa do arco e a vitrine — a aparência só se
+   aprova aqui).
 
 ## Ao terminar
 
