@@ -90,7 +90,7 @@ das telas (`tests/telas.sh`) não mostram colisão em nenhuma escala.
 
 ### Sprint H — o ritmo, o som e o kit do minigame
 
-Fichas: H01 a H07, no [quadro](docs/jogo/tarefas/README.md).
+Fichas: H01 a H09, no [quadro](docs/jogo/tarefas/README.md).
 
 | item | detalhe |
 | --- | --- |
@@ -98,6 +98,7 @@ Fichas: H01 a H07, no [quadro](docs/jogo/tarefas/README.md).
 | as janelas | perfeito −40/+60 ms, ótimo ±90, bom ±140, erro; a ajuda escondida para quem está atrás ([04](docs/jogo/04-ritmo-e-audio.md#as-janelas)) |
 | a calibração | o desvio de cada controle pelas marteladas, ajustável nas opções do lugar ([04](docs/jogo/04-ritmo-e-audio.md#a-calibração-que-ninguém-vê)) |
 | as 45 faixas | slots `MUS_Sxx_Jyy`, o mapa de batidas de cada uma, as quatro faixas novas, as faixas das telas; tudo dentro do git, em `godot/assets/ost/` ([04](docs/jogo/04-ritmo-e-audio.md#as-45-faixas)) |
+| o gerador da trilha | `scripts/gerar_trilha.py` com o ACE-Step 1.5 (modelo aberto) no desktop do André: candidatas por faixa, o andamento conferido, a página de escuta ([H09](docs/jogo/tarefas/H09-o-gerador-da-trilha.md)) |
 | os jingles | apito, vitória, vitória coop, derrota, empate, recorde, entrada, virada ([04](docs/jogo/04-ritmo-e-audio.md#as-telas-e-os-jingles)) |
 | a música que reage | filtro no erro, brilho no combo, rampas de 15 a 30 ms, e as camadas quando houver stems ([04](docs/jogo/04-ritmo-e-audio.md#a-música-que-reage)) |
 | o som no controle em todo evento | a placa de áudio de cada controle aberta na entrada do lugar; a agenda do alto-falante; a háptica por material ([05](docs/jogo/05-haptica-e-controle.md#a-agenda-do-alto-falante)) |

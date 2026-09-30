@@ -1,0 +1,340 @@
+{
+ "_leia": "Os prompts da trilha, um por slot (docs/jogo/04-ritmo-e-audio.md#as-45-faixas). O scripts/gerar_trilha.py (ficha H09) lê este arquivo. O bpm e o tom vão como parâmetro do motor; duracao_s é o tamanho pedido; corte_s (só nos jingles) é onde a faixa é cortada, no fim de um compasso. JIN_APITO, JIN_COOP_VITORIA, JIN_ENTRADA e JIN_VIRADA não estão aqui: saem da H06.",
+ "sufixo": "steady tempo, strict grid, hard start on the downbeat, no fade-in, ends with a hard stop, no fade-out.",
+ "faixas": {
+  "MUS_S01_J01": {
+   "bpm": 122,
+   "tom": "F minor",
+   "duracao_s": 150,
+   "prompt": "instrumental, upbeat chiptune synthwave, 122 BPM, F minor. Friendly party game track. Bouncy staccato analog bassline, bright digital bell synths, metallic anvil strike percussions on the off-beat. Steady danceable rhythm. [Pre-Chorus] fast rising arpeggio. [Chorus] heroic and uplifting 8-bit melody, heavy sidechain compression on everything. Cyberpunk neon vibe."
+  },
+  "MUS_S01_J02": {
+   "bpm": 110,
+   "tom": "E minor",
+   "duracao_s": 150,
+   "prompt": "instrumental, minimalist chiptune synthwave, 110 BPM, E minor. Tutorial rhythm game track. Extremely clear and quantized 8-bit drums, loud kick and noise snare. [Verse] sparse Moog sub-bass on the downbeat, lots of empty space and strategic silence. [Pause] complete silence for 2 beats. [Drop] syncopated triangle wave melody. Educational, instructional, robotic, precise timing."
+  },
+  "MUS_S01_J03": {
+   "bpm": 135,
+   "tom": "B minor",
+   "duracao_s": 150,
+   "prompt": "instrumental, fast outrun synthwave, chiptune infusion, 135 BPM, B minor. High-speed conveyor belt chase scene. Fast continuous 16th-note analog bass sequencer. Pounding four-on-the-floor drum machine beat. [Breakdown] drums drop out, filter sweep on bass. [Drop] screaming retro synth lead, laser zap sound effects. Urgent, adrenaline-pumping, neon cyberpunk style."
+  },
+  "MUS_S01_J04": {
+   "bpm": 115,
+   "tom": "G minor",
+   "duracao_s": 150,
+   "prompt": "instrumental, progressive synthwave, chiptune, 115 BPM, G minor. Long sustaining analog synthesizer pads with opening low-pass filters. Heavy sidechain pumping. Driving 8-bit drum machine, precise hi-hat sixteenth notes. [Build] filter sweep going up. [Drop] bright neon square wave lead holding long sustained notes. Futuristic knight aesthetic, technological, steady rhythm."
+  },
+  "MUS_S01_J05": {
+   "bpm": 125,
+   "tom": "G minor",
+   "duracao_s": 150,
+   "prompt": "instrumental, industrial synthwave, mechanical chiptune, 125 BPM, G minor. Factory assembly line. Rhythm track includes metallic anvil hits and pneumatic air release sounds. Rigid quantized analog bassline. [Chorus] robotic vocoder repeating \"ASSEMBLE\" rhythmically. Driving 4/4 beat, heavy sidechain compression. Cybernetic factory aesthetic."
+  },
+  "MUS_S02_J06": {
+   "bpm": 115,
+   "tom": "A minor",
+   "duracao_s": 150,
+   "prompt": "instrumental, chill synthwave, 8-bit ambient, 115 BPM, A minor. Cold icy atmosphere. Crystalline DX7 FM electric piano, ping-pong delay effects. Smooth analog bassline with gentle sidechain ducking. Light electronic drum beat, crisp 8-bit hi-hats. [Verse] sparse arrangement. [Chorus] soaring emotional retro lead synth. Winter digital landscape, melancholic but groovy."
+  },
+  "MUS_S02_J07": {
+   "bpm": 130,
+   "tom": "D minor",
+   "duracao_s": 150,
+   "prompt": "instrumental, progressive darksynth, intense chiptune, 130 BPM, D minor. Survival battle royale. Starts minimal with just a ticking electronic hi-hat and deep sub-bass. [Build] gradually adding layers of distorted analog synths and 8-bit arpeggios over 16 bars. [Drop] massive aggressive rhythm, heavy kick drum, chaotic and menacing retro-futuristic atmosphere."
+  },
+  "MUS_S02_J08": {
+   "bpm": 128,
+   "tom": "D minor",
+   "duracao_s": 150,
+   "prompt": "instrumental, smooth synthwave, outrun, 8-bit fusion, 128 BPM, D minor. Gliding motion. Lush analog synthesizer pads with portamento glides. Deep rolling Moog bassline, steady driving electronic drum beat, moderate sidechain. [Chorus] beautiful melancholic chiptune melody layered with analog synths. Hypnotic, continuous flow, cyber-tundra aesthetic."
+  },
+  "MUS_S02_J09": {
+   "bpm": 128,
+   "tom": "F minor",
+   "duracao_s": 150,
+   "prompt": "instrumental, nu-disco synthwave, retro 8-bit, 128 BPM, F minor. Funky and colorful. Extremely groovy slap-style analog bassline. Punchy 4/4 house beat with open hi-hats on the up-beat. Fast rhythmic vocoder chops. [Drop] catchy neon chiptune melody, heavy sidechain pumping. Upbeat party game music, highly danceable."
+  },
+  "MUS_S02_J10": {
+   "bpm": 115,
+   "tom": "A minor",
+   "duracao_s": 150,
+   "prompt": "instrumental, retro synthwave trap, chill chiptune, 115 BPM, A minor. Precision aiming. Deep TR-808 style kick drums, crisp hi-hat triplets, snappy noise snare. Smooth analog synth pads, heavy sidechain compression. [Verse] sparse arrangement for focus. [Chorus] cool, stylish 8-bit triangle wave melody. Neon futuristic knight vibe."
+  },
+  "MUS_S03_J11": {
+   "bpm": 122,
+   "tom": "C minor",
+   "duracao_s": 150,
+   "prompt": "instrumental, minimal synthwave, precise chiptune, 122 BPM, C minor. Quality control memory game. Clear distinction between high-pitched bright digital plucks and low deep analog bass notes. Crisp 8-bit drum machine, moderate sidechain. [Verse] sparse and methodical. [Chorus] catchy, orderly retro-futuristic melody. Clean, structured, mechanical flow."
+  },
+  "MUS_S03_J12": {
+   "bpm": 130,
+   "tom": "F# minor",
+   "duracao_s": 150,
+   "prompt": "instrumental, upbeat electro synthwave, chiptune, 130 BPM, F# minor. Breaking ice blocks. Punchy 4/4 house kick drum, synthesized glass shatter sound effects on the off-beat. Bouncy analog bass. [Build] fast repeating 16th notes. [Drop] energetic dance groove, bright neon arpeggios, heavy sidechain pumping. Fun, competitive party game vibe."
+  },
+  "MUS_S03_J13": {
+   "bpm": 140,
+   "tom": "G minor",
+   "duracao_s": 150,
+   "prompt": "instrumental, frantic outrun synthwave, fast chiptune, 140 BPM, G minor. Rapid drilling. Extremely fast 32nd-note analog synthesizer arpeggios. Driving intense drum machine beat, heavy kick and snare. Distorted rolling bassline. [Build] rising pitch and tension. [Drop] explosive high-speed dance groove, neon retro-futuristic aesthetic."
+  },
+  "MUS_S03_J14": {
+   "bpm": 118,
+   "tom": "B minor",
+   "duracao_s": 150,
+   "prompt": "instrumental, underground darksynth, dirty chiptune, 118 BPM, B minor. Deep mining atmosphere. Massive sub-bass frequencies, heavy sidechain ducking. Lo-fi bitcrushed 8-bit drum samples, gritty noise channel percussion. [Verse] mysterious echoing triangle wave melody. [Drop] heavy stomping rhythm, dark cyberpunk cavern vibe, mechanical digging groove."
+  },
+  "MUS_S03_J15": {
+   "bpm": 128,
+   "tom": "C# minor",
+   "duracao_s": 150,
+   "prompt": "instrumental, retro-futuristic dark synthwave, 128 BPM, C# minor. Rhythm game track focused on strong downbeats. Massive booming kick drum on beats 1 and 3, heavy noise channel snare on beats 2 and 4. Minimalist hi-hats. Deep growling sub-bass ducking heavily via sidechain. [Pause] full stop for 1 beat. [Drop] explosive 8-bit arpeggios, intense heat vibe, mechanical and precise."
+  },
+  "MUS_S04_J16": {
+   "bpm": 140,
+   "tom": "C minor",
+   "duracao_s": 150,
+   "prompt": "instrumental, epic synthwave, high-energy chiptune, 140 BPM, C minor. PvP arena battle. Huge 1980s analog synth brass chords, fast driving 16th-note bassline. Pounding heavy drum machine, extreme sidechain compression. White noise sweeps simulating a cheering crowd. [Drop] heroic and aggressive 8-bit square wave melody. Competitive, adrenaline-fueled, stadium vibe."
+  },
+  "MUS_S04_J17": {
+   "bpm": 145,
+   "tom": "E minor",
+   "duracao_s": 150,
+   "prompt": "instrumental, epic darksynth boss theme, aggressive 8-bit, 145 BPM, E minor. Escaping a giant cyber worm. Intense, fast-paced pounding drums, heavy distorted analog bass sequencer. [Time Signature] occasional glitchy time signature changes to 7/8. Fast robotic vocoder saying \"WARNING\". [Drop] massive wall of heavy synth sound, extreme sidechain, chaotic retro-futuristic energy."
+  },
+  "MUS_S04_J18": {
+   "bpm": 160,
+   "tom": "C minor",
+   "duracao_s": 150,
+   "prompt": "instrumental, frantic darksynth, speed chiptune, 160 BPM, C minor. Passing a ticking bomb. Extremely fast pounding four-on-the-floor kick drum. Distorted aggressive Moog bassline. Synthesized alarm sirens ringing in time with the beat. Heavy sidechain. [Build] constantly rising pitch creating intense panic. [Drop] chaotic neon cyber explosion, maximum energy."
+  },
+  "MUS_S04_J19": {
+   "bpm": 130,
+   "tom": "D minor",
+   "duracao_s": 150,
+   "prompt": "instrumental, darksynth, aggressive chiptune, 130 BPM, D minor. Heavy industrial forge atmosphere. Distorted PWM analog bass synthesizer, heavy sidechain compression. Gritty 8-bit drum samples, huge punchy 808 kick. [Intro] rhythmic metallic clanging. [Drop] aggressive square wave lead, fast robotic vocoder chanting rhythmic syllables. Menacing, fiery, high energy, retro-futuristic."
+  },
+  "MUS_S04_J20": {
+   "bpm": 120,
+   "tom": "Eb minor",
+   "duracao_s": 150,
+   "prompt": "instrumental, heavy darksynth, mid-tempo chiptune, 120 BPM, Eb minor. Avoiding giant crushers. Massive distorted bass impact on beat 1 of every measure. Heavy stomping 8-bit drum groove. Nasty Moog bass synthesizer. [Build] mechanical ticking winding up. [Drop] brutal, heavy synthwave groove, extreme sidechain ducking. Menacing industrial vibe."
+  },
+  "MUS_S05_J21": {
+   "bpm": 130,
+   "tom": "D minor",
+   "duracao_s": 150,
+   "prompt": "instrumental, bright synthwave, upbeat chiptune, 130 BPM, D minor. Bouncing lasers. Lush Roland Juno-60 chords with heavy chorus effect. Driving tight electronic drums, bouncy square wave bassline. [Pre-Chorus] rapid filter sweep. [Chorus] soaring, highly melodic 8-bit lead, heavy sidechain ducking. Energetic, neon glowing aesthetic."
+  },
+  "MUS_S05_J22": {
+   "bpm": 135,
+   "tom": "B minor",
+   "duracao_s": 150,
+   "prompt": "instrumental, fast outrun synthwave, action chiptune, 135 BPM, B minor. Dodging laser beams. Fast rolling 16th-note analog bass. 8-bit laser zap sound effects used as percussion. Pounding four-on-the-floor kick drum. [Build] snare roll and rising synth pitch. [Drop] high-energy frantic square wave lead. Cyberpunk action scene, urgent rhythm."
+  },
+  "MUS_S05_J23": {
+   "bpm": 155,
+   "tom": "F minor",
+   "duracao_s": 150,
+   "prompt": "instrumental, rigid electro synthwave, fast chiptune, 155 BPM, F minor. High precision timing. Extremely dry and short staccato synth plucks, no reverb tails. Tight, punchy electronic kick and noise snare. Deep rolling sub-bass. [Verse] highly quantized and robotic. [Chorus] intense, fast-paced 8-bit arpeggios. Stressful, high-stakes, strict mechanical rhythm."
+  },
+  "MUS_S05_J24": {
+   "bpm": 142,
+   "tom": "C# minor",
+   "duracao_s": 150,
+   "prompt": "instrumental, neo-classical darksynth, epic 8-bit chiptune, 142 BPM, C# minor. Boss battle. Fast baroque-style arpeggios played on analog synths and square waves. Pounding aggressive drum machine, heavy sidechain. [Break] sudden drop to a single fragile FM bell melody. [Drop] massive orchestral synthwave explosion, intense driving rhythm, high stakes."
+  },
+  "MUS_S05_J25": {
+   "bpm": 135,
+   "tom": "A minor",
+   "duracao_s": 150,
+   "prompt": "instrumental, electro-house synthwave, bouncy chiptune, 135 BPM, A minor. Fast-paced dodgeball game. Funky syncopated Moog bass, tight punchy 808 drums. [Verse] stripped back, drum and bass only. [Build] rising riser and snare roll. [Drop] explosive catchy neon 8-bit lead, heavy sidechain pumping. Highly danceable, competitive and fun."
+  },
+  "MUS_S06_J26": {
+   "bpm": 110,
+   "tom": "C minor",
+   "duracao_s": 150,
+   "prompt": "instrumental, ambient synthwave, spacious chiptune, 110 BPM, C minor. Call and response memory game. Huge cavernous reverb on isolated 8-bit square wave notes. Slow, steady, deep Moog bass pulse. [Break] total silence allowing echoes to fade. Minimalist drum beat. Mysterious, atmospheric, digital underground."
+  },
+  "MUS_S06_J27": {
+   "bpm": 135,
+   "tom": "Eb minor",
+   "duracao_s": 150,
+   "prompt": "instrumental, cinematic darksynth, intense chiptune, 135 BPM, Eb minor. Boss battle in a frozen cyber world. Cold FM bell synths, aggressive distorted square wave bass. Pounding drums. Fast whispered robotic vocoder chops. [Pre-Drop] sudden silence, single digital ice crack sound. [Drop] massive heavy synthwave groove, sweeping filters, extremely tight quantization."
+  },
+  "MUS_S06_J28": {
+   "bpm": 138,
+   "tom": "F minor",
+   "duracao_s": 150,
+   "prompt": "instrumental, epic industrial darksynth, heavy chiptune, 138 BPM, F minor. Giant robot boss battle. Pounding mechanical march rhythm, aggressive distorted analog bass, heavy sidechain. Deep pitch-shifted demonic robotic vocoder chanting. [Pre-Drop] silence with a single loud metallic clang. [Drop] overwhelming wall of synthwave sound, fast 8-bit arpeggios, intense."
+  },
+  "MUS_S06_J29": {
+   "bpm": 140,
+   "tom": "Eb minor",
+   "duracao_s": 150,
+   "prompt": "instrumental, complex synthwave, intricate chiptune, 140 BPM, Eb minor. High speed puzzle solving. Straight 4/4 heavy kick drum anchoring complex polyrhythmic 8-bit arpeggios (3 over 4 timing). Lush analog pads in the background. Heavy sidechain ducking. [Chorus] epic, focused retro-futuristic melody. Technical, urgent, cybernetic flow."
+  },
+  "MUS_S06_J30": {
+   "bpm": 125,
+   "tom": "A minor",
+   "duracao_s": 150,
+   "prompt": "instrumental, electro synthwave, 8-bit groove, 125 BPM, A minor. Jumping over lasers. Syncopated funky analog bassline. 4/4 dance beat with synthesized electric zap sounds as percussion. Heavy sidechain compression. [Chorus] catchy, bouncy chiptune lead melody. Energetic, playful party game track, cybernetic underground vibe."
+  },
+  "MUS_S07_J31": {
+   "bpm": 120,
+   "tom": "G minor",
+   "duracao_s": 150,
+   "prompt": "instrumental, dark synthwave, mid-tempo chiptune trap, 120 BPM, G minor. Heavy half-time groove. Huge distorted 808 kick and massive snare. Nasty aggressive Moog bassline with extreme sidechain pumping. Rhythmic metallic percussion, anvil hits. [Build] rising snare roll. [Drop] heavy syncopated rhythm, sinister 8-bit melody. Industrial forge aesthetic, mechanical."
+  },
+  "MUS_S07_J32": {
+   "bpm": 100,
+   "tom": "Bb minor",
+   "duracao_s": 150,
+   "prompt": "instrumental, dark ambient synthwave, horror chiptune, 100 BPM, Bb minor. Thick digital fog. Sparse heartbeat-like sub-bass pulse on every beat, distant detuned 8-bit bells, no snare. [Verse] almost silent, only the pulse and wind noise. [Build] slow rising filtered drone. [Drop] a single heavy kick every bar, cold square wave melody. Tense, suspenseful, clean mix, no vocals."
+  },
+  "MUS_S07_J33": {
+   "bpm": 150,
+   "tom": "B minor",
+   "duracao_s": 150,
+   "prompt": "instrumental, high-speed synthwave, drum and bass chiptune, 150 BPM, B minor. Frantic infinite runner. Fast breakbeat 8-bit drum loops, relentless 16th-note analog bass sequencer. Heavy sidechain ducking. [Drop] screaming high-pitched square wave melody, urgent and chaotic. Cyberpunk system crashing aesthetic, adrenaline overdrive."
+  },
+  "MUS_S07_J34": {
+   "bpm": 140,
+   "tom": "E minor",
+   "duracao_s": 150,
+   "prompt": "instrumental, epic boss battle darksynth, retro chiptune, 140 BPM, E minor. Imposing synthwave score. Vintage synth choirs, fast aggressive 8-bit arpeggiators, driving double-kick drum patterns. Extreme sidechain compression. [Pre-Drop] total silence for 1 beat. [Drop] massive wall of sound, shredding analog synth solo, fast rhythmic vocoder. High stakes, final boss energy, Future Knight aesthetic."
+  },
+  "MUS_S07_J35": {
+   "bpm": 130,
+   "tom": "E minor",
+   "duracao_s": 150,
+   "prompt": "instrumental, glitchy synthwave, broken chiptune, 130 BPM, E minor. Malfunctioning machinery. Stuttering analog synths, bitcrushed 8-bit drums. [Glitch] simulated tape stop effect or skipping CD effect in the rhythm. Pounding steady 4/4 kick drum anchoring the chaotic glitching square waves. Unpredictable but danceable, cyberpunk factory."
+  },
+  "MUS_S08_J36": {
+   "bpm": 105,
+   "tom": "D minor",
+   "duracao_s": 150,
+   "prompt": "instrumental, chill synthwave, breathy ambient chiptune, 105 BPM, D minor. Sleeping forge guardian. Soft analog pads, gentle Moog bass, light 8-bit hi-hats, lots of empty space in the mids for a human voice. [Verse] sparse. [Chorus] warm rising square wave melody. [Break] 2 beats of silence. Calm but rhythmic, no vocals."
+  },
+  "MUS_S08_J37": {
+   "bpm": 112,
+   "tom": "G minor",
+   "duracao_s": 150,
+   "prompt": "instrumental, progressive synthwave, chiptune, 112 BPM, G minor. Long sustained analog notes that stop dead exactly on the beat, bellows-like filter swells, steady four-on-the-floor kick, heavy sidechain. [Build] filter opening. [Drop] long held square wave notes with hard stops. Mechanical, breathing, precise."
+  },
+  "MUS_S08_J38": {
+   "bpm": 120,
+   "tom": "C minor",
+   "duracao_s": 150,
+   "prompt": "instrumental, staccato chiptune, rigid synthwave, 120 BPM, C minor. Stop-and-go mechanics. Very short, dry synth plucks. Tight 80s drum machine beat. [Break] sudden complete silence for exactly 4 beats. [Drop] beat resumes with heavy sidechain bass and sharp square wave melody. Cold, calculating, robotic precision."
+  },
+  "MUS_S08_J39": {
+   "bpm": 135,
+   "tom": "B minor",
+   "duracao_s": 150,
+   "prompt": "instrumental, aggressive outrun darksynth, epic chiptune, 135 BPM, B minor. Final boss phase 2. Relentless distorted sawtooth analog bassline. Pounding four-on-the-floor kick drum, heavy noise channel snare. Fast, menacing 8-bit arpeggios. Robotic vocoder laughing rhythmically. [Break] sudden 1 measure silence. [Drop] explosive, chaotic retro-futuristic combat groove."
+  },
+  "MUS_S08_J40": {
+   "bpm": 118,
+   "tom": "A minor",
+   "duracao_s": 150,
+   "prompt": "instrumental, upbeat synthpop, festive chiptune, 118 BPM, A minor. Party at the forge. Loud handclaps on beats 2 and 4, bouncy analog bass, bright anvil hits, four-on-the-floor kick. [Build] clap roll. [Chorus] catchy 8-bit lead with call and response phrases. Joyful, simple, easy to clap along, no vocals."
+  },
+  "MUS_S09_J41": {
+   "bpm": 145,
+   "tom": "E minor",
+   "duracao_s": 150,
+   "prompt": "instrumental, frantic outrun synthwave, epic 8-bit chiptune, 145 BPM, E minor. Final arena champion battle. Extremely fast and virtuosic analog synthesizer soloing. Driving double-kick drum rhythm, heavy sidechain compression. Fast robotic vocoder chops. [Break] sudden 1 beat silence. [Drop] overwhelming energetic stadium synthwave, high-octane retro gaming action."
+  },
+  "MUS_S09_J42": {
+   "bpm": 138,
+   "tom": "G minor",
+   "duracao_s": 150,
+   "prompt": "instrumental, outrun synthwave, spy chiptune, 138 BPM, G minor. Cyber espionage team battle. Sneaky but fast analog bass groove, tight electronic drums, heavy sidechain. Mysterious FM synth chords. [Pre-Chorus] rapid 8-bit sequences. [Chorus] heroic, fast-paced neon lead melody. Energetic, tactical, futuristic knight aesthetic."
+  },
+  "MUS_S09_J43": {
+   "bpm": 145,
+   "tom": "G minor",
+   "duracao_s": 150,
+   "prompt": "instrumental, epic progressive outrun synthwave, heavy chiptune, 145 BPM, G minor. Final gauntlet challenge. Rapidly shifting textures, from heavy distorted bass to crystalline FM synth arpeggios. Pounding driving drum machine, massive sidechain compression. Fast robotic vocoder saying \"ACCESS DENIED\". [Drop] monumental heroic retro-gaming anthem, extreme tension and climax."
+  },
+  "MUS_S09_J44": {
+   "bpm": 120,
+   "tom": "D minor",
+   "duracao_s": 150,
+   "prompt": "instrumental, epic darksynth, gothic chiptune, 120 BPM, D minor. Final boss phase 1. Massive synthesized pipe organ playing imposing chords. Heavy stomping 8-bit drum machine groove. Deep growling analog sub-bass, extreme sidechain compression. [Verse] slow and menacing. [Drop] heavy, overwhelming wall of synth sound. Cyberpunk dark lord aesthetic."
+  },
+  "MUS_S09_J45": {
+   "bpm": 150,
+   "tom": "E minor",
+   "duracao_s": 150,
+   "prompt": "instrumental, epic heroic synthwave, fast chiptune, 150 BPM, E minor. Final boss climax. Soaring majestic analog synth choir pads, frantic fast-paced 8-bit square wave melodies. Pounding double-kick drum rhythm, massive sidechain ducking. [Build] extremely long rising riser and snare roll. [Drop] ultimate heroic retro-gaming anthem, shredding synth solo, emotional and triumphant."
+  },
+  "MUS_TELA_TITULO": {
+   "bpm": 115,
+   "tom": "C minor",
+   "duracao_s": 150,
+   "prompt": "instrumental, synthwave, 8-bit chiptune, 115 BPM, C minor. Menu screen background music for a retro-futuristic rhythm game. Warm analog Juno-60 chords, deep moog bass pulse with heavy sidechain compression, 8-bit square wave arpeggio. [Intro] ambient digital noise. [Beat] steady 4/4 chiptune drum groove, crisp noise channel snare. Groovy, neon cyberpunk aesthetic. [Break] brief silence for 1 beat. [Drop] catchy melodic chip lead. Clean mix, no vocals."
+  },
+  "MUS_TELA_CONSTRUCAO": {
+   "bpm": 120,
+   "tom": "A minor",
+   "duracao_s": 150,
+   "prompt": "instrumental, upbeat synthpop, chiptune fusion, 120 BPM, A minor. Multiplayer lobby music. Funky synthesized slap bass, DX7 FM electric piano staccato chords. [Rhythm] driving four-on-the-floor 808 kick drum, heavy sidechain ducking. Fast robotic vocoder saying \"CHOOSE YOUR FORGE\" rhythmically in the background. [Build] rising snare roll. [Chorus] heroic retro-futuristic lead melody. Energetic, punchy, continuous dance groove."
+  },
+  "MUS_TELA_SALAO": {
+   "bpm": 110,
+   "tom": "C minor",
+   "duracao_s": 150,
+   "prompt": "instrumental, ambient synthwave, 8-bit chiptune, 110 BPM, C minor. Hub room music for a retro-futuristic rhythm game, the same harmony as the menu theme. Warm analog Juno-60 chords, soft Moog bass pulse, gentle 8-bit square wave arpeggio, no drums. [Intro] ambient digital noise. [Verse] slow evolving pads. [Chorus] soft melodic chip lead. Calm, welcoming, clean mix, no vocals."
+  },
+  "MUS_TELA_PODIO": {
+   "bpm": 130,
+   "tom": "C major",
+   "duracao_s": 150,
+   "prompt": "instrumental, triumphant synthwave, 8-bit chiptune, 130 BPM, C major. Podium celebration, the menu theme in a major key. Bright analog brass synths, bouncy Moog bass, four-on-the-floor drums, sparkling 8-bit arpeggios. [Intro] fanfare hit on the downbeat. [Chorus] heroic uplifting chip lead. Joyful, clean mix, no vocals."
+  },
+  "MUS_TELA_CREDITOS": {
+   "bpm": 90,
+   "tom": "A minor",
+   "duracao_s": 180,
+   "prompt": "instrumental, chill synthwave, nostalgic 8-bit ballad, 90 BPM, A minor. End credits theme. Slow, emotional, atmospheric. Lush analog Juno-60 pads, deep warm Moog bass. Huge 1980s gated reverb snare drum. Beautiful, melancholic chiptune lead melody. [Chorus] uplifting, resolving, triumphant yet peaceful. \"Future Knight\" saving the digital world aesthetic. Clean, cinematic."
+  },
+  "MUS_RELAMPAGO": {
+   "bpm": 160,
+   "tom": "C minor",
+   "duracao_s": 120,
+   "prompt": "instrumental, frantic speed darksynth, action chiptune, 160 BPM, C minor. Base exploding escape sequence. Extremely fast rolling analog bass. Intense, pounding 808 drum machine. Distorted 8-bit siren sounds ringing on the beat. Extreme sidechain. [Drop] high-octane, chaotic, adrenaline-fueled cyberpunk chase rhythm. Urgent, no time to rest."
+  },
+  "JIN_VITORIA": {
+   "bpm": 130,
+   "tom": "E minor",
+   "duracao_s": 10,
+   "corte_s": 7,
+   "prompt": "instrumental, heroic synthwave, 8-bit chiptune, 130 BPM, E minor, 10 seconds long. Short victory fanfare. [Bold Entry] sudden loud explosive 8-bit arpeggio going up, supported by massive analog brass synths and a heavy kick drum. Triumphant, epic, resolving. [Outro] hard stop on a sustained powerful major chord, no fade out."
+  },
+  "JIN_DERROTA": {
+   "bpm": 90,
+   "tom": "C minor",
+   "duracao_s": 10,
+   "corte_s": 5,
+   "prompt": "instrumental, dark synthwave, glitchy chiptune, 90 BPM, C minor, 8 seconds long. Short game over fail jingle. [Bold Entry] descending distorted analog bassline, slowing down in pitch like a tape stop effect. Sad, defeated 8-bit square wave melody. [Outro] hard stop with a digital error crunch sound, no fade out."
+  },
+  "JIN_EMPATE": {
+   "bpm": 110,
+   "tom": "A minor",
+   "duracao_s": 10,
+   "corte_s": 5,
+   "prompt": "instrumental, neutral ambient synthwave, 8-bit, 110 BPM, A minor, 10 seconds long. Short draw/tie jingle. [Bold Entry] steady rhythmic pulse with an unresolved, floating DX7 FM synth chord. Quirky, ambiguous 8-bit melody that doesn't sound happy or sad. [Outro] stops abruptly on a suspenseful note, no fade out."
+  },
+  "JIN_RECORDE": {
+   "bpm": 140,
+   "tom": "G major",
+   "duracao_s": 10,
+   "corte_s": 3,
+   "prompt": "instrumental, bright synthwave, shiny chiptune, 140 BPM, G major, 5 seconds long. Short achievement unlocked jingle. [Bold Entry] extremely fast ascending 8-bit arpeggio, shimmering analog synth bells, loud punchy kick drum hit. Satisfying, rewarding, neon glowing vibe. [Outro] hard stop with a long reverb tail, no fade out."
+  }
+ }
+}

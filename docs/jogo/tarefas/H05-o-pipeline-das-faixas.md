@@ -789,10 +789,10 @@ se os dois discordarem, vale o `ffprobe`, e o script está errado.
    reescrever o resto — o texto é do André. Na tabela de
    `godot/assets/LEIA-ME.md`, a linha da pasta `ost/`: "a trilha: as 45
    faixas, as telas e os jingles, em OGG Vorbis 48 kHz estéreo, e os mapas
-   de batidas". A origem e a licença já estão decididas (30/09): o Suno,
-   no plano pago, com a licença de uso dele; copie da seção "A origem e o
-   uso" do LEIA-ME da trilha e da linha de `LICENCAS-DE-TERCEIROS.md`, sem
-   inventar nada além.
+   de batidas". A origem já está decidida (30/09): o ACE-Step 1.5, na
+   máquina do André, pelo gerador da [H09](H09-o-gerador-da-trilha.md);
+   copie da seção "A origem e o uso" do LEIA-ME da trilha, sem inventar nada
+   além.
 10. **`godot/testes/prova_do_jogo.gd`**: `_prova_das_faixas()` (em
     "Provas"), chamada logo depois de `await _prova_do_relogio()`.
     **(prova)** E o metrônomo da H01 (`godot/testes/metronomo.gd`) passa a
@@ -958,9 +958,9 @@ func _prova_das_faixas() -> void:
 ## Para o André (local)
 
 Com três faixas aprovadas — por exemplo `MUS_S01_J01` (122 bpm),
-`MUS_S02_J06` (115 bpm) e `MUS_TELA_SALAO` (110 bpm) —, geradas no Suno
-com o molde de [Como gerar](../../../godot/assets/ost/LEIA-ME.md#como-gerar)
-e baixadas em WAV:
+`MUS_S02_J06` (115 bpm) e `MUS_TELA_SALAO` (110 bpm) —, em WAV. Com a
+[H09](H09-o-gerador-da-trilha.md) pronta, o `gerar_trilha.py escolher` já faz
+os passos 1 e 2; sem ela, qualquer WAV de teste serve:
 
 ```bash
 # 1. converter para OGG Vorbis 48 kHz estéreo, com o nome do slot, na pasta dele
