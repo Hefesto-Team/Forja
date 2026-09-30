@@ -1,6 +1,6 @@
 # P1 — A Voz
 
-**Sprint:** P · **Slot:** S08_J36 · **Tamanho:** G · **Estimativa:** US$ 2,0 · **Depende de:** H04, F09, F01, H07, G08, O1
+**Sprint:** P · **Slot:** S08_J36 · **Tamanho:** G · **Estimativa:** US$ 2,0 · **Depende de:** H04, H08, F09, F01, H07, G08
 
 ## Por quê
 
@@ -15,7 +15,7 @@ no Modo bancada.
 ## Ler antes
 
 - [O molde de minigame](molde-de-minigame.md) e [o kit, no 13](../13-arquitetura.md#o-kit-do-minigame--h04)
-- [A ficha-mãe da seção](P-a-voz.md) e a [O1](O1-os-caminhos.md) (as linhas `troca`/`pista` no 13)
+- [A ficha-mãe da seção](P-a-voz.md) e [as decisões comuns do 13](../13-arquitetura.md#as-decisões-comuns-dos-minigames--h08) (as linhas `voz`, `troca` e `pista`, o fim em tempo de música)
 - `godot/scripts/salas/voz.gd` inteiro (é o que sai), em especial
   `_montar_guardiao` (já em blocos pela G08), `_montar_raia` (o braseiro),
   `_medir`, `dar_vereditos` e `_robo`
@@ -29,15 +29,16 @@ const FICHA := {
 	"titulo": "A Voz",
 	"verbo": "Chame a forja!",
 	"genero": "coop",
-	"icone": "microfone",
+	"icone": "mic",
 	"entradas": [Forja.MICROFONE],
 	"camera": "fixa",
 	"faixa": "MUS_S08_J36",
-	"duracao": 0.0,
+	"duracao": 80.0,
 	"fim": "meta_coletiva",
 	"sensacoes": ["acerto", "perfeito", "erro", "golpe", "explosao"],
 	"material": "pedra",
 	"microjogo": {"verbo": "Sopre!", "segundos": 6.0},
+	"papel_som": Forja.PAPEL_MICROFONE,  # o kit abre este papel de som no entrar() (H08)
 	# a bancada: o microfone, o botão do mudo e a luz dele
 	"features": ["microfone", "microfone_mudo", "led_microfone"],
 	"botoes_medidos": [Forja.MICROFONE, Forja.CRUZ, Forja.CIRCULO, Forja.QUADRADO],
@@ -46,13 +47,14 @@ const FICHA := {
 }
 ```
 
-`duracao` 0: A Voz acaba pela música (o susto tem de acontecer, também na
-prova, onde o jogo anda 16 vezes mais depressa que a música). Sem treino: o
-chamado ensina.
+`duracao` 80: o teto, contado pelo kit em tempo de música (H08). A Voz
+acaba antes, pela partitura — o susto na batida `S0 + 8` (uns 52 s de
+música com quatro, a 105 bpm) —, e o susto acontece também na prova, onde o
+jogo anda 16 vezes mais depressa que a música. Sem treino: o chamado ensina.
 
 ## Como se joga
 
-A faixa é `MUS_S08_J36`, 105 bpm (uma batida ≈ 0,57 s). `ENTRADA := 4`. Com
+A faixa é `MUS_S08_J36`, 105 bpm (uma batida ≈ 0,57 s). `BATIDA_DA_PRIMEIRA_NOTA` (4, do kit: H08). Com
 `np` lugares em `presentes()`:
 
 | trecho | batidas | o que acontece |
@@ -137,7 +139,7 @@ func _ouvir(dt: float) -> void:
 ```
 
 **Sem microfone:** no `iniciar_jogo()`, `_sem_mic[l] = not Forja.som_tem(l, Forja.PAPEL_MICROFONE)`
-(`troca`, motivo `sem_microfone`); na batida `ENTRADA`, quem tem
+(`troca` `de` `microfone` `para` `sem_microfone`); na batida `BATIDA_DA_PRIMEIRA_NOTA`, quem tem
 `_maior_nivel[l] <= 0.001` passa a `_sem_mic` (motivo `mudo_no_sistema`).
 **O mudo fora da hora** (o Botão do microfone antes do susto) liga e desliga
 `_mudo[l]` e a luz (`Forja.led_mic(l, 1 / 0)`), com a `troca` `mudo_no_jogo`
@@ -208,9 +210,10 @@ HID: passa pela ponte, e o escudo do susto funciona igual.
 
 ## O fim e o vencedor
 
-Na batida `S0 + 8` (sem a bancada), todos acabam. `coop = true` no `montar()`;
-`coop_venceu = _chama >= 1.0`, posto na batida `S0 + 8`. `vencedor()`: o
-destaque — "o pulmão mais afinado" — pelos pontos (no empate, o lugar menor).
+Na batida `S0 + 8` (sem a bancada), todos acabam. O `coop` vem do gênero da
+FICHA (H08); `coop_venceu = _chama >= 1.0`, posto na batida `S0 + 8`. O
+registro grava `vencedor` −1 (coop); `destaque()`: "o pulmão mais afinado",
+pelos pontos (no empate, o lugar menor).
 
 ## Com menos de quatro
 
@@ -309,7 +312,6 @@ extends Minigame
 
 const FICHA := { ... }
 
-const ENTRADA := 4
 const SOPRO_COMPASSOS := 16
 const PICO_DE := 6          ## o pico: os compassos 6 a 9 do sopro
 const PICO_ATE := 10
@@ -348,8 +350,6 @@ var _robo_mira_mudo := [-9.0, -9.0, -9.0, -9.0]
 
 
 func montar() -> void:
-	papel_som = Forja.PAPEL_MICROFONE
-	coop = true
 	camera_pos = Vector3(0, 5.4, 10.8)
 	camera_olhar = Vector3(0, 1.7, -1.2)
 	# a cripta, as velas, o guardião (G08), a forja do guardião; cada raia; gatilhos_off
@@ -358,10 +358,10 @@ func montar() -> void:
 func iniciar_jogo() -> void:
 	var ordem := presentes()
 	for i in ordem.size():
-		_vez[ordem[i]] = float(ENTRADA + 4 * i)
+		_vez[ordem[i]] = float(BATIDA_DA_PRIMEIRA_NOTA + 4 * i)
 		Forja.led_mic(ordem[i], 0)
 		# sem microfone: _sem_mic e a troca
-	_c0 = float(ENTRADA + 4 * ordem.size())
+	_c0 = float(BATIDA_DA_PRIMEIRA_NOTA + 4 * ordem.size())
 	_s0 = _c0 + 4.0 * SOPRO_COMPASSOS
 	_denominador = 0.6 * 40.0 * maxi(1, ordem.size())
 
@@ -418,10 +418,11 @@ func falha(l: int) -> void:
 	jogador(l).gesto("emote-no", 0.4)   # a cinza, a nota que passou, o mudo fora de hora
 
 
-func vencedor() -> Array:
+## Coop: o kit grava vencedor −1 (H08); o destaque é o pulmão mais afinado.
+func destaque() -> int:
 	var lista := presentes()
 	lista.sort_custom(func(a, b): return pontos[a] > pontos[b] or (pontos[a] == pontos[b] and a < b))
-	return lista
+	return int(lista[0]) if not lista.is_empty() else -1
 
 
 func pergunta(l: int) -> Dictionary:
@@ -469,15 +470,11 @@ mais. `status(l)`: `"%d pontos" % pontos[l]`; `progresso()`: `""`.
 - `nota` e `toque` de cada chamado, sopro e do mudo do susto (o desvio da voz
   no tempo pedido);
 - `saida` `led_microfone` (o mudo, com `seq` e `ok`) e o botão pelas medidas;
-- `troca` para "sozinho"; os três vereditos na bancada.
+- `troca` `de` `microfone` `para` `sem_microfone`; os três vereditos na bancada.
 
-**A linha nova no 13.** Se a tabela "Os tipos, e quem os escreve" do
-[13](../13-arquitetura.md#o-registro-v2--f06-h01-h02-g02-h07) ainda não tem
-`voz`, acrescente, no mesmo commit:
-
-```markdown
-| `voz` | `slot`, `evento` (`comecou`/`parou`), `nivel` (no começo; o pico no `parou`), `piso` | os minigames d'A Voz (S08) e as estações de voz dos medleys |
-```
+A linha `voz` é a do [13](../13-arquitetura.md#as-decisões-comuns-dos-minigames--h08)
+(H08): `slot`, `evento` (`comecou`/`parou`), `nivel` (no começo; o pico no
+`parou`) e o `piso` (o limiar).
 
 ## Armadilhas
 
@@ -500,7 +497,6 @@ mais. `status(l)`: `"%d pontos" % pontos[l]`; `progresso()`: `""`.
 - **O `dt` no `_ouvir`** é o piso andando (uma medida), não o mundo; o mundo
   (o guardião, a chama) anda pela batida.
 - **Não chame `Forja.vibrar`** (o susto de hoje chamava): `sentir`.
-- **`ENTRADA`**: se o kit tiver `BATIDA_DA_PRIMEIRA_NOTA`, use-a.
 
 ## Pronto quando
 

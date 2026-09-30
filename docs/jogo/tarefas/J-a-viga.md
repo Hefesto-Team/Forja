@@ -27,7 +27,7 @@ Um arquivo só, criado pela J1 e usado pelos cinco:
 | `SECAO.guinada(l)` | a velocidade de giro de volante, rad/s (positivo = para a esquerda); sem giroscópio, o analógico direito × 3 |
 | `SECAO.forca_g(l)` | o acelerômetro em g; sem acelerômetro, 2,0 no quadro em que ✕ foi apertado, senão 1,0 |
 | `SECAO.giro_para(l, rolagem, arfagem, guinada := 0.0) -> Vector3` | a conta do robô: o giro que leva o controle da inclinação de agora até a pedida. Só conta; quem manda é o `robo()` do minigame: `Forja.robo_girar(l, SECAO.giro_para(...), 0.06)` |
-| `SECAO.piscar(sala, l, j)`, `SECAO.voltar_a_luz(sala)` | a barra de luz, igual à da seção A Centelha |
+| `SECAO.anotar_troca(sala, l)` | sem giroscópio ou sem acelerômetro: a linha `troca` do registro (`de`, `para`), uma vez por minigame, no `iniciar_jogo()` |
 
 O código inteiro está na [J1](J1-a-viga.md#o-cenário).
 
@@ -43,8 +43,11 @@ O código inteiro está na [J1](J1-a-viga.md#o-cenário).
   pico passou de 1,8 g) **fica verdadeira**, dentro da janela que abre meio
   tempo antes da nota. Já verdadeira ao abrir: julga ali (adiantado).
 - **Sem giroscópio, o jogo segue** mais fraco (a gravidade, o analógico), e o
-  registro anota: `Forja.evento("entrada", l + 1, {"o": "sensores", "giro": ..., "acel": ...})`
-  uma vez por minigame, no `iniciar_jogo()`.
+  registro anota a troca de canal (13, H08): `SECAO.anotar_troca(self, l)`
+  grava `{"tipo": "troca", "de": "giroscopio", "para": "gravidade"}` (ou
+  `"analogico"`; sem acelerômetro, `"acelerometro"` → `"botao"`) uma vez por
+  minigame, no `iniciar_jogo()`. A linha `entrada` fica só para o que o
+  jogador fez.
 - **A contagem, o pico, a barra de luz, o alto-falante, a `contagem` para a
   prova e o R2 (do minigame; o L2 é do item):** como na
   [seção A Centelha](I-a-centelha.md#as-convenções-da-seção).
@@ -75,10 +78,10 @@ ficam **só** na J1, como hoje; os outros quatro gravam na linha `entrada` o
 que o movimento fez (o ângulo, a velocidade, o pico em g) e o kit grava o
 atraso (o `toque`).
 
-## Antes de começar: o que ainda falta na base
+## Antes de começar: o que vem da base
 
 - **O sorteio dentro da seção** e **o ícone**: os mesmos avisos do
-  [índice da seção A Centelha](I-a-centelha.md#antes-de-começar-o-que-ainda-falta-na-base).
+  [índice da seção A Centelha](I-a-centelha.md#antes-de-começar-o-que-vem-da-base).
 - **O robô fora do gancho:** o `secao.gd` não chama `Forja.robo_*` nem lê
   `Forja.robo` (a checagem da F08 reprovaria); ele só faz a conta
   (`giro_para`), e o `robo()` de cada minigame manda.

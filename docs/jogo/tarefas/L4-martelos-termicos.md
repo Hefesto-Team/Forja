@@ -1,6 +1,6 @@
 # L4 — Martelos Térmicos
 
-**Sprint:** L · **Slot:** S04_J19 · **Tamanho:** M · **Estimativa:** US$ 1,5 · **Depende de:** H04, F09, L1, G08
+**Sprint:** L · **Slot:** S04_J19 · **Tamanho:** M · **Estimativa:** US$ 1,5 · **Depende de:** H04, H08, F09, L1, G08
 
 ## Por quê
 
@@ -30,7 +30,7 @@ extends Minigame
 ## as duas são quentes (os dois motores, forte): L1 e R1 juntos.
 ##
 ## A falha: martela a fria (ela afunda oca) e a quente queima a mão — um
-## tremor longo, a barra de luz vermelha, o cavaleiro sacode a mão.
+## tremor longo, a barra de luz escurece (o kit), o cavaleiro sacode a mão.
 ## O vencedor: mais toupeiras quentes marteladas; no empate, mais pontos.
 ## O alto-falante do dono: o martelo no metal ("martelo"); a queimadura ("golpe").
 ## O registro mede: cada pista (lado, ok) e o lado martelado; o martelo sem
@@ -46,7 +46,7 @@ const FICHA := {
 	"titulo": "Martelos Térmicos",
 	"verbo": "Acerte o lado!",
 	"genero": "tct",
-	"icone": "vibracao",
+	"icone": "rumble_esquerdo",
 	"entradas": [Forja.L1, Forja.R1],
 	"camera": "fixa",
 	"faixa": "MUS_S04_J19",
@@ -62,7 +62,6 @@ const DUPLA := 150  ## as duas quentes marteladas juntas
 const FANTASMA := -20
 const JUNTOS_S := 0.12  ## L1 e R1 a até isto um do outro valem "juntos"
 const QUEIMA_MS := 300  ## o tremor longo da queimadura
-const PISCA_QUEIMA := 0.4
 ## Por parte (entrada 0-25 s, pico 25-50 s, saída 50-75 s): a chance de
 ## toupeira na batida do dono e a chance de as duas serem quentes.
 const DENSIDADE := [0.6, 1.0, 0.8]
@@ -87,7 +86,7 @@ com `nova_nota(l, b, t)`. `quente` é `AMBAS` com a chance da parte
 - `ESQ` → `Forja.sentir(l, "golpe_esq", ms)`; `DIR` → `"golpe_dir"`;
   `AMBAS` → `"explosao"` (os dois motores inteiros: é a única pista com o
   fraco acima de 0,9); `ms = int(60000.0 / Ritmo.bpm * 0.4)`;
-- `Forja.evento("jogo", l + 1, {"slot": id, "o": "lado", "n": b, "lado": "esq"/"dir"/"ambos", "ok": ok})`.
+- `Forja.evento("pista", l + 1, {"slot": id, "n": b, "evento": "mandou", "via": "rumble", "o_que": "esq"/"dir"/"ambos", "ok": ok})`.
 
 **As toupeiras sobem** de `b − 1` a `b − 0,25` (`y` de −0,6 a 0, pela
 batida) e descem de `b + 0,5` a `b + 1`. As duas têm o mesmo brilho laranja
@@ -98,18 +97,18 @@ a até `Ritmo.JANELA_BOM` do tempo dela:
 
 - nota `ESQ`/`DIR`, lado certo → `julgar_toque(l, t, n)`; lado errado →
   `nota_perdida(l, n)` (a falha); grave
-  `{"o": "resposta", "n": b, "lado_pedido": ..., "lado_feito": ...}`;
+  a linha `entrada` `{"o": "resposta", "n": b, "lado_pedido": ..., "lado_feito": ...}`;
 - nota `AMBAS` → o primeiro martelo chama `julgar_toque(l, t, n)` e guarda
   `nt.feito` (o lado); se o outro lado vier a até `JUNTOS_S`, é a dupla
   (`marcar(l, DUPLA)`, as duas esmagadas); se não vier, a toupeira que
   ficou queima a mão (`_queimar(l)` sem novo erro no registro: o julgamento
   já foi feito);
 - sem nota perto → o fantasma (como no Cerco: `marcar(l, FANTASMA)` e o
-  `jogo` `fantasma` com o dono da nota mais perto).
+  `entrada` `fantasma` com o dono da nota mais perto).
 
-A nota que passa de `t + JANELA_BOM` sem martelo é `nota_perdida(l, n)`.
+A nota que passa de `t + FOLGA_PERDIDA` (o kit) sem martelo é `nota_perdida(l, n)`.
 
-**Os pontos:** `marcar(l, Itens.pontos_do_acerto(l, PONTOS[j], j, b % 4 == 0))`
+**Os pontos:** `marcar(l, PONTOS[julgamento])` (o item, `Itens.pontos_do_acerto`, o kit já aplica no `julgar_toque`: H08)
 e `toupeiras[l] += 1` (dupla: `+= 2`).
 
 **Os 75 segundos:** entrada (0–25 s) uma quente por vez, chance 0,6; **pico**
@@ -146,8 +145,7 @@ saída (50–75 s) chance 0,8 e 15% duplas.
 | vibração | `acerto` / `perfeito` / `erro` (o kit) | no martelo julgado |
 | vibração | `golpe` por `QUEIMA_MS` (300 ms) | a queimadura (a falha) |
 | barra de luz | a cor do lugar, 100% | sempre |
-| barra de luz | branco 0,1 s | no perfeito |
-| barra de luz | vermelho por `PISCA_QUEIMA` (0,4 s), depois a cor | na queimadura |
+| barra de luz | o kit (`_reagir`, H08): branco no perfeito, a cor do lugar escurecida no erro | no toque julgado |
 | luzinhas de jogador | o número, sempre | — |
 | alto-falante do dono | `Som.no_controle(l, "martelo", 0.7)` | no martelo BOM ou ÓTIMO (no perfeito, o kit toca a nota) |
 | alto-falante do dono | `Som.no_controle(l, "golpe", 0.7)` | na queimadura |
@@ -164,14 +162,14 @@ saída (50–75 s) chance 0,8 e 15% duplas.
 - **Não martelou:** a quente assobia (`Som.tocar("sopro", pos, -4.0)`) e
   queima a mão do mesmo jeito.
 - **A queimadura** (`_queimar(l)`): `Forja.sentir(l, "golpe", QUEIMA_MS)`,
-  vermelho na barra de luz por 0,4 s, `Som.no_controle(l, "golpe", 0.7)`,
+  a barra de luz escurece (o kit, H08), `Som.no_controle(l, "golpe", 0.7)`,
   o cavaleiro sacode a mão (`gesto("emote-no", 0.5)`).
 - **A recuperação:** a próxima toupeira do lugar é pelo menos duas batidas
   depois (o hoqueto); nada se perde além do ponto.
 
 ## O fim e o vencedor
 
-75 s de `t_jogo`, pelo kit.
+75 s de música, pelo kit (H08).
 
 ```gdscript
 func vencedor() -> Array:
@@ -264,13 +262,12 @@ func montar() -> void:
 		Forja.gatilho(l, 1, Forja.GATILHO_OFF)
 
 
-func jogar(dt: float) -> void:
+func jogar(_dt: float) -> void:
 	while _gerado <= int(floor(Ritmo.batida() / 4.0)) + 1:
 		_gerar_compasso(_gerado)
 		_gerado += 1
 	var agora := Ritmo.t_musica()
 	for l in presentes():
-		_piscar(l, dt)
 		if not conectado(l):
 			_fora[l] = true
 			continue
@@ -287,23 +284,22 @@ func jogar(dt: float) -> void:
 		if r1:
 			_martelar(l, DIR)
 		_conferir_a_dupla(l, agora)  # a segunda mão da AMBAS, ou a queimadura quando passou de JUNTOS_S
-		while not _notas[l].is_empty() and agora > float(_notas[l][0].t) + Ritmo.JANELA_BOM and int(_notas[l][0].feito) < 0:
+		while not _notas[l].is_empty() and agora > float(_notas[l][0].t) + FOLGA_PERDIDA and int(_notas[l][0].feito) < 0:
 			var nt: Dictionary = _notas[l].pop_front()
 			_ultima[l] = nt
 			nota_perdida(l, int(nt.n))
 		_mover_as_toupeiras(l)  # sobe/desce pela batida da nota mais perto
-	_fornalha.light_energy = clampf((t_jogo - 25.0) / 2.0, 0.0, 1.0) * 2.5 if t_jogo < 50.0 else maxf(0.0, 2.5 - (t_jogo - 50.0))
+	var s := progresso() * duracao  # os segundos de música do jogo valendo (o kit, H08)
+	_fornalha.light_energy = clampf((s - 25.0) / 2.0, 0.0, 1.0) * 2.5 if s < 50.0 else maxf(0.0, 2.5 - (s - 50.0))
 
 
 func toque(l: int, julgamento: int) -> void:
 	var nt: Dictionary = _ultima[l]
-	marcar(l, Itens.pontos_do_acerto(l, PONTOS[julgamento], julgamento, int(nt.b) % 4 == 0))
+	marcar(l, PONTOS[julgamento])  # o item, o kit já aplicou (H08)
 	toupeiras[l] += 1
 	jogador(l).gesto("attack-melee-left" if int(nt.feito) == ESQ else "attack-melee-right", 0.3)
 	_esmagar(l, int(nt.feito))
-	if julgamento == Ritmo.PERFEITO:
-		_piscar_cor(l, Color.WHITE, 0.1)
-	else:
+	if julgamento != Ritmo.PERFEITO:  # no perfeito, o kit pisca a barra e toca a nota
 		Som.no_controle(l, "martelo", 0.7)
 
 
@@ -319,7 +315,7 @@ func falha(l: int) -> void:
 certo → `julgar_toque`; errado → `nota_perdida`; `AMBAS` → o primeiro julga
 e marca `nt.t_primeiro = agora`, o segundo vira a dupla). Tire a nota da
 lista depois de resolvida (na `AMBAS`, depois da dupla ou da queimadura).
-`_piscar_cor`/`_piscar` como na L1.
+A barra de luz fica na cor do lugar; o piscar e o escurecer são do kit (H08).
 
 Catálogo: `"S04_J19"` em `MINIGAMES` e na lista da seção `S04`. O `.uid`.
 Traduções: `"Martelos Térmicos": "Thermal Hammers"`, `"Acerte o lado!": "Hit the side!"`,
@@ -329,7 +325,7 @@ com `na_raia(l)` e `not aprendeu(l)`.
 ## O que o registro mede
 
 - `sensacao` `golpe_esq` / `golpe_dir` / `explosao` e a `saida` de vibração.
-- `jogo` `lado` na pista e `jogo` `resposta` com o lado martelado; o `toque` do kit.
+- `pista` (`via` `rumble`) na pista e `entrada` `resposta` com o lado martelado; o `toque` do kit.
 - O fantasma (o martelo sem pista, com o dono da pista mais perto).
 - A dupla: `{"o": "dupla", "n": b, "juntos_ms": <a distância entre os dois martelos>}`.
 
@@ -343,7 +339,8 @@ com `na_raia(l)` e `not aprendeu(l)`.
 - **A dupla:** o julgamento é o do primeiro martelo; o segundo só decide a
   dupla. Não chame `julgar_toque` duas vezes na mesma nota.
 - **As toupeiras sobem pela batida**, nunca por `dt`.
-- **Os pontos e o item:** se o kit já aplica `Itens.pontos_do_acerto`, marque cru.
+- **Os pontos e o item:** o kit aplica `Itens.pontos_do_acerto` no `julgar_toque`
+  (H08); marque cru.
 
 ## Pronto quando
 
@@ -351,8 +348,7 @@ Os Martelos Térmicos jogam do aviso ao resultado com 4, 3, 2 e 1 jogador e
 com o robô nos três temperamentos (o bom faz duplas no pico); aguentam o cabo
 que cai e volta; fecham com vencedor; a prova do jogo passa; e
 `bash tests/prova_visual.sh` passa com a **prancha olhada** com os Martelos
-nela (na cópia de trabalho, sem commitar, `"S04_J19"` em primeiro na lista
-da seção `S04`; depois volte a ordem).
+nela (o `Catalogo.sortear` da H08 põe o `S04_J19` na noite: rode a prova visual com a semente que o sorteia, `--semente=N`).
 
 ## Provas
 
@@ -374,18 +370,19 @@ func _prova_dos_martelos() -> void:
 				viu["ambas"] = true
 			elif (forte > 0.3 and fraco < 0.05) or (fraco > 0.3 and forte < 0.05):
 				viu["um_lado"] = true
-	var mg := await _joga_o_minigame("S04_J19", 60.0, olhar)
+	var mg = await _joga_o_minigame("S04_J19", 115.0, olhar)
 	if mg == null:
 		return
 	_esperar(viu.has("um_lado"), "Martelos: a pista de um lado só chegou (%s)" % [viu.keys()])
 	var v := mg.vencedor()
 	_esperar(not v.is_empty() and int(mg.toupeiras[v[0]]) == v.map(func(l): return int(mg.toupeiras[l])).max(), "Martelos: vence quem martelou mais")
-	var resp := _linha_do_tempo().filter(func(e): return e.get("tipo") == "jogo" and e.get("slot") == "S04_J19" and e.get("o") == "resposta")
+	var resp := _linha_do_tempo().filter(func(e): return e.get("tipo") == "entrada" and e.get("slot") == "S04_J19" and e.get("o") == "resposta")
 	_esperar(resp.size() >= 1, "Martelos: %d respostas com o lado no registro" % resp.size())
 ```
 
-(As duas quentes só aparecem no pico; com `--fixed-fps 60` a prova pode não
-chegar lá — por isso o `"ambas"` não é exigido. A dupla se prova com o André.)
+(O fim conta em tempo de música (H08): a prova chega ao pico. As duas
+quentes dependem do sorteio e do temperamento do robô, por isso o `"ambas"`
+não é exigido. A dupla se prova com o André.)
 
 **O que o André joga e sente** (`./run-local.sh -- --sala=S04_J19`):
 

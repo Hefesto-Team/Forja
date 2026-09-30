@@ -24,7 +24,7 @@ const FICHA := {
 	"titulo": "Passo no Fosso",
 	"verbo": "Pise no contratempo!",
 	"genero": "corrida",
-	"icone": "haptica",
+	"icone": "rumble_direito",
 	"entradas": [Forja.CRUZ],
 	"camera": "fixa",
 	"faixa": "MUS_S07_J33",
@@ -33,6 +33,7 @@ const FICHA := {
 	"sensacoes": ["acerto", "perfeito", "erro", "golpe"],
 	"material": "grama",
 	"microjogo": {"verbo": "Pise!", "segundos": 6.0},
+	"papel_som": Forja.PAPEL_HAPTICA,  # o kit abre este papel de som no entrar() (H08)
 	"gesto": "jump",
 }
 ```
@@ -42,20 +43,20 @@ com o pulso da placa, que é `material:metal` (o clique seco).
 
 ## Como se joga
 
-A faixa é `MUS_S07_J33`, 150 bpm (uma batida = 0,4 s). `ENTRADA := 4`.
+A faixa é `MUS_S07_J33`, 150 bpm (uma batida = 0,4 s). `BATIDA_DA_PRIMEIRA_NOTA` (4, do kit: H08).
 
 - **As placas (de todos, à vista):** afundam em cada batida inteira e sobem
   em cada contratempo. A altura de toda placa é função da batida:
   `y = -0.35 * (0.5 + 0.5 * cos(TAU * fposmod(b, 1.0)))` — no fundo em
   `b` inteiro, no alto em `b + 0.5`.
-- **O pulso na mão:** em **todo** contratempo `k + 0.5` (para `k >= ENTRADA - 1`),
+- **O pulso na mão:** em **todo** contratempo `k + 0.5` (para `k >= BATIDA_DA_PRIMEIRA_NOTA - 1`),
   cada lugar em jogo recebe `material:metal` nos dois atuadores, ganho 0,7
   (`Forja.som_haptica` direto, sem o `_pista`: é metrônomo, não informação).
   No contratempo **da nota dele** o pulso vai pelo `_pista` com ganho 1,0
   (`o_que` = `"contratempo"`), e isso vai para o registro.
 - **As notas (o hoqueto):** cada um pisa a cada 2 batidas: o lugar na
   posição `i` de `presentes()` pisa nos contratempos `k + 0.5` com
-  `(k - ENTRADA - i) % 2 == 0`. Com quatro, P1 e P3 pisam no "e" do 1 e do 3,
+  `(k - BATIDA_DA_PRIMEIRA_NOTA - i) % 2 == 0`. Com quatro, P1 e P3 pisam no "e" do 1 e do 3,
   P2 e P4 no "e" do 2 e do 4 — a frase de passos só fica inteira com todos. A
   nota `n` (contada por lugar) tem alvo `Ritmo.t_da_batida(k + 0.5)` e é
   aberta com `nova_nota` na batida `k`.
@@ -68,9 +69,9 @@ A faixa é `MUS_S07_J33`, 150 bpm (uma batida = 0,4 s). `ENTRADA := 4`.
   `_respondeu(l, n, "certo")`.
 - **A meta:** `META := 30` placas.
 - **A partitura simples** (`Ritmo.simples[l]`): o lugar pisa a cada 4
-  batidas (só os `k` com `(k - ENTRADA - i) % 4 == 0`).
+  batidas (só os `k` com `(k - BATIDA_DA_PRIMEIRA_NOTA - i) % 4 == 0`).
 - **O pico — o vapor:** 16 batidas a partir de
-  `_pico_b := ENTRADA + floor((duracao / _t_batida() - ENTRADA) / 2)`: um
+  `_pico_b := BATIDA_DA_PRIMEIRA_NOTA + floor((duracao / _t_batida() - BATIDA_DA_PRIMEIRA_NOTA) / 2)`: um
   vapor branco cobre as placas (a malha `vapor` de cada raia aparece e as
   placas ficam `visible = false`); só o pulso na mão marca o contratempo.
   A TV: `Som.tocar("vento", null, -6.0)` na entrada do pico.
@@ -192,7 +193,6 @@ extends Minigame
 
 const FICHA := { ... }
 
-const ENTRADA := 4
 const META := 30
 const PASSO := 1.1
 const PONTOS := [0, 50, 75, 100]
@@ -222,14 +222,13 @@ var _robo_mira := [0.0, 0.0, 0.0, 0.0]
 
 
 func montar() -> void:
-	papel_som = Forja.PAPEL_HAPTICA
 	camera_pos = Vector3(0, 7.0, 10.0)
 	camera_olhar = Vector3(0, 0.0, -2.5)
 	# o cenário de cima; para cada jogador: _nos[l] = _montar_raia(l); Forja.gatilhos_off(l)
 
 
 func iniciar_jogo() -> void:
-	_pico_b = ENTRADA + floor((duracao / _t_batida() - ENTRADA) / 2.0)
+	_pico_b = BATIDA_DA_PRIMEIRA_NOTA + floor((duracao / _t_batida() - BATIDA_DA_PRIMEIRA_NOTA) / 2.0)
 	var ordem := presentes()
 	for i in ordem.size():
 		_ordem[ordem[i]] = i
@@ -240,7 +239,7 @@ func jogar(_dt: float) -> void:
 	var b := Ritmo.batida()
 	var k := int(floor(b))
 	# o pulso de todo contratempo (uma vez por contratempo, para todos)
-	if b >= k + 0.5 and _pulso_feito < k and k >= ENTRADA - 1:
+	if b >= k + 0.5 and _pulso_feito < k and k >= BATIDA_DA_PRIMEIRA_NOTA - 1:
 		_pulso_feito = k
 		_pulsar(k)
 	for l in presentes():
@@ -259,7 +258,7 @@ func jogar(_dt: float) -> void:
 				var n: int = _nota[l]
 				_nota[l] = -1
 				julgar_toque(l, float(_alvo[l]), n, true)
-			elif Ritmo.t_musica() > float(_alvo[l]) + Ritmo.JANELA_BOM:
+			elif Ritmo.t_musica() > float(_alvo[l]) + FOLGA_PERDIDA:
 				var n2: int = _nota[l]
 				_nota[l] = -1
 				_respondeu(l, n2, "nenhuma")
@@ -287,8 +286,8 @@ func vencedor() -> Array:
 ```
 
 `_abrir_nota(l, k)`: se `_k_feito[l] < k`, `_k_feito[l] = k`; se é a vez dele
-(`(k - ENTRADA - _ordem[l]) % 2 == 0`, ou `% 4` com `Ritmo.simples[l]`),
-`b >= _subindo_ate[l]` e `k >= ENTRADA`: `_nota[l] = _n[l]`, `_n[l] += 1`,
+(`(k - BATIDA_DA_PRIMEIRA_NOTA - _ordem[l]) % 2 == 0`, ou `% 4` com `Ritmo.simples[l]`),
+`b >= _subindo_ate[l]` e `k >= BATIDA_DA_PRIMEIRA_NOTA`: `_nota[l] = _n[l]`, `_n[l] += 1`,
 `_alvo[l] = Ritmo.t_da_batida(k + 0.5)`, `nova_nota(l, _nota[l], _alvo[l])`.
 `_pulsar(k)`: para cada lugar em jogo e conectado, `_pista(...)` se a nota
 aberta dele tem alvo em `k + 0.5` (no rádio, o pulso da nota sai no
@@ -327,7 +326,6 @@ Catálogo: `"S07_J33"` em `MINIGAMES` e na seção `S07`. Traduções:
 - **150 bpm:** com o `JANELA_BOM` de 140 ms, o passo na batida (200 ms antes
   ou depois do contratempo) é erro — é a regra, não mude a janela.
 - **Na prova o pico não chega** (o fim é pelo `duracao`, em tempo de jogo).
-- **`ENTRADA`**: se o kit tiver `BATIDA_DA_PRIMEIRA_NOTA`, use-a.
 
 ## Pronto quando
 
@@ -344,22 +342,18 @@ Em `godot/testes/prova_do_jogo.gd`, uma `_prova_passo_no_fosso()`:
 ## S07_J33: o pulso do contratempo chega à placa virtual de todos, o robô
 ## pisa, e os desvios dos toques ficam dentro da janela no robô bom.
 func _prova_passo_no_fosso() -> void:
-	var sala = await _comeca_a_sala("S07_J33")
-	if sala == null:
-		return
+	# a espera é a do `_joga_o_minigame` da H08: o aviso em quadros, o jogo pelo relógio de parede (90 s de música e o treino)
 	var sentiu := [false, false, false, false]
-	var q := 0
-	while is_instance_valid(sala) and sala.fase == "jogo" and q < 12000:
+	var olhar := func(_s) -> void:
 		for l in 4:
 			if float(Forja.som_virtual(l).get("dir", 0.0)) > 0.05:
 				sentiu[l] = true
-		await _quadros(1)
-		q += 1
+	var sala = await _joga_o_minigame("S07_J33", 130.0, olhar)
+	if sala == null:
+		return
 	_esperar(sentiu.all(func(s): return s), "fosso: o pulso chegou à mão dos quatro %s" % [sentiu])
-	_esperar(is_instance_valid(sala) and sala.fase == "fim", "fosso: fechou")
-	if is_instance_valid(sala):
-		_esperar(sala._dist.max() >= 1, "fosso: alguém pisou (%s)" % [sala._dist])
-		_esperar(sala.colocacao.size() == 4, "fosso: a colocação tem os quatro")
+	_esperar(sala._dist.max() >= 1, "fosso: alguém pisou (%s)" % [sala._dist])
+	_esperar(sala.colocacao().size() == 4, "fosso: a colocação tem os quatro")
 ```
 
 No `_prova_do_relatorio()`: os `toque` do `S07_J33` com `julgamento != "erro"`

@@ -1,6 +1,6 @@
 # M2 — Arco de Néon
 
-**Sprint:** M · **Slot:** S05_J22 · **Tamanho:** M · **Estimativa:** US$ 1,5 · **Depende de:** H04, F09, M1
+**Sprint:** M · **Slot:** S05_J22 · **Tamanho:** M · **Estimativa:** US$ 1,5 · **Depende de:** H04, H08, F09, M1
 
 ## Por quê
 
@@ -45,7 +45,7 @@ const FICHA := {
 	"titulo": "Arco de Néon",
 	"verbo": "Puxe e solte!",
 	"genero": "tct",
-	"icone": "gatilho_adaptativo",
+	"icone": "r2",
 	"entradas": [],
 	"camera": "fixa",
 	"faixa": "MUS_S05_J22",
@@ -105,18 +105,18 @@ O arco endurece: o dedo conta a nota longa.
 **Soltar:** o R2 caindo abaixo de `CenarioDaGaleria.R2_SOLTA` (0,2) — ou
 abaixo de `SEGURA` (0,35) no meio da nota — casa com a nota `solta` →
 `julgar_toque(l, t, n)` (cedo demais é ERRO pelo próprio julgamento). A
-nota `solta` que passa de `t + JANELA_BOM` com o R2 ainda puxado é
+nota `solta` que passa de `t + FOLGA_PERDIDA` (o kit) com o R2 ainda puxado é
 `nota_perdida(l, n)` (o braço cansou). Depois da soltura, o arco volta a
 `(2, FORCA_PARADO)`.
 
 **A flecha** voa em 0,25 batida (tween pela batida) e acerta o alvo:
-`marcar(l, Itens.pontos_do_acerto(l, PONTOS[j_puxa] + PONTOS[j_solta] + (FOGO if fogo else 0), j_solta, fmod(b, 4.0) == 0.0))`
+`marcar(l, PONTOS[j_puxa] + PONTOS[j_solta] + (FOGO if fogo else 0))` (o item, `Itens.pontos_do_acerto`, o kit aplica no `julgar_toque`: H08)
 e `alvos[l] += 1`. **Fogo:** no pico, se o maior R2 entre a puxada e a
 soltura passou de `FUNDO` (0,9), a flecha sai em chamas (o rastro laranja
 e `Efeitos.faiscas` `Tema.LARANJA`).
 
 Cada puxada e cada soltura gravam
-`Forja.evento("jogo", l + 1, {"slot": id, "o": "disparo", "n": n, "modo": "resistencia", "curso": r2, "curso_max": <o maior R2 da nota>})`.
+`Forja.evento("entrada", l + 1, {"slot": id, "o": "disparo", "n": n, "modo": "resistencia", "curso": r2, "curso_max": <o maior R2 da nota>})`.
 
 **Os 80 segundos:** entrada (0–27 s) chance 0,5, notas de 2 batidas; **pico**
 (27–54 s) toda batida do dono livre tem flecha, e a de fogo vale (aos 27 s
@@ -151,7 +151,7 @@ ler o comprimento pelo peso.
 | gatilho | R2 `GATILHO_RESISTENCIA` (2, 2): o arco parado | fora da nota, e ao começar |
 | vibração | `acerto` / `perfeito` / `erro` (o kit) | na puxada e na soltura julgadas |
 | vibração | `toque` | a flecha no alvo |
-| barra de luz | a cor do lugar, 100%; branco 0,1 s | na flecha que acerta |
+| barra de luz | o kit (`_reagir`, H08): branco no perfeito, a cor do lugar escurecida no erro | no toque julgado |
 | luzinhas de jogador | o número, sempre | — |
 | alto-falante do dono | `Forja.som_falante(l, "clique", 0.5)` | na puxada BOM ou ÓTIMO (no perfeito, o kit toca a nota) |
 | alto-falante do dono | `Forja.som_falante(l, "coleta", 0.7)` | a flecha no alvo (0,25 batida depois da soltura) |
@@ -171,7 +171,7 @@ ler o comprimento pelo peso.
 
 ## O fim e o vencedor
 
-80 s de `t_jogo`, pelo kit. `vencedor()`: por `alvos` e, no empate, por
+80 s de música, pelo kit (H08). `vencedor()`: por `alvos` e, no empate, por
 `pontos` (o mesmo código da M1, com `alvos`).
 
 ## Com menos de quatro
@@ -267,7 +267,7 @@ func jogar(_dt: float) -> void:
 			_puxado[l] = false
 			_soltar(l, r2)
 		_endurecer(l)  # a força pela batida desde a puxada
-		while not _notas[l].is_empty() and agora > float(_notas[l][0].t) + Ritmo.JANELA_BOM:
+		while not _notas[l].is_empty() and agora > float(_notas[l][0].t) + FOLGA_PERDIDA:
 			var nt: Dictionary = _notas[l].pop_front()
 			_ultima[l] = nt
 			nota_perdida(l, int(nt.n))
@@ -285,11 +285,11 @@ func toque(l: int, julgamento: int) -> void:
 			Forja.som_falante(l, "clique", 0.5)
 		return
 	var fogo := _parte() == 1 and float(_maior[l]) >= FUNDO and not Ritmo.simples[l]
-	marcar(l, Itens.pontos_do_acerto(l, PONTOS[_j_puxa[l]] + PONTOS[julgamento] + (FOGO if fogo else 0), julgamento, fmod(float(nt.b), 4.0) == 0.0))
+	marcar(l, PONTOS[_j_puxa[l]] + PONTOS[julgamento] + (FOGO if fogo else 0))  # o item, o kit já aplicou (H08)
 	alvos[l] += 1
 	_arco(l, FORCA_PARADO)
 	_livre_em[l] = float(nt.b) + 1.0
-	_voar(l, fogo)  # a flecha, o alvo, "coleta" no alto-falante e branco na barra de luz ao chegar
+	_voar(l, fogo)  # a flecha, o alvo, "coleta" no alto-falante ao chegar (a barra de luz é do kit)
 
 
 func falha(l: int) -> void:
@@ -315,7 +315,7 @@ func _arco(l: int, forca: int) -> void:
 lista e chamam `julgar_toque`; puxada sem nota perto não faz nada (o arco
 tensiona à toa); soltura sem nota perto também não. `_segurando(l)`: há uma
 nota `solta` na lista (a nota longa está correndo). `_parte()`: 0, 1 ou 2
-por `t_jogo` (27 e 54 s).
+pelo `progresso()` do kit (um terço e dois terços da duração, em tempo de música: H08).
 
 Catálogo: `"S05_J22"` em `MINIGAMES` e na lista da seção `S05`. O `.uid`.
 Traduções: `"Arco de Néon": "Neon Bow"`, `"Puxe e solte!": "Draw and release!"`,
@@ -325,7 +325,7 @@ com `na_raia(l)` e `not aprendeu(l)` (`"Puxe e solte": "Draw and release"`).
 ## O que o registro mede
 
 - A `saida` de gatilho: cada Feedback (posição 2, força 2 a 8, `seq`, `ok`).
-- `jogo` `disparo` na puxada e na soltura (curso e curso máximo) e o `toque`
+- `entrada` `disparo` na puxada e na soltura (curso e curso máximo) e o `toque`
   do kit. O cruzamento: com o Feedback mandado e `ok`, as solturas no tempo
   dizem que o peso chegou; o mesmo lugar soltando cedo, sempre, com o curso
   máximo baixo, é o arco que não resistiu.
@@ -339,15 +339,15 @@ com `na_raia(l)` e `not aprendeu(l)` (`"Puxe e solte": "Draw and release"`).
 - **A força só sobe, e só durante a nota;** mande o Feedback só quando
   muda (`_arco`), senão a `saida` inunda o registro.
 - **O L2 é do item:** o arco é só o R2.
-- **Os pontos e o item:** se o kit já aplica `Itens.pontos_do_acerto`, marque cru.
+- **Os pontos e o item:** o kit aplica `Itens.pontos_do_acerto` no `julgar_toque`
+  (H08); marque cru.
 
 ## Pronto quando
 
 O Arco de Néon joga do aviso ao resultado com 4, 3, 2 e 1 jogador e com o
 robô nos três temperamentos; aguenta o cabo que cai no meio de uma nota
 longa; fecha com vencedor; a prova do jogo passa; e `bash tests/prova_visual.sh`
-passa com a **prancha olhada** com o Arco nela (na cópia de trabalho, sem
-commitar, `"S05_J22"` em primeiro na lista da seção `S05`; depois volte a ordem).
+passa com a **prancha olhada** com o Arco nela (o `Catalogo.sortear` da H08 põe o `S05_J22` na noite: rode a prova visual com a semente que o sorteia, `--semente=N`).
 
 ## Provas
 
@@ -364,7 +364,7 @@ func _prova_do_arco() -> void:
 		for l in m.presentes():
 			if int(Forja.percepcao(l).get("gatilho_dir", 0)) == 0x21:
 				feedback[0] = true
-	var mg := await _joga_o_minigame("S05_J22", 60.0, olhar)
+	var mg = await _joga_o_minigame("S05_J22", 120.0, olhar)
 	if mg == null:
 		return
 	_esperar(feedback[0], "Arco: o Feedback chegou ao R2")
@@ -373,7 +373,7 @@ func _prova_do_arco() -> void:
 		if e.get("tipo") == "saida" and e.get("o") == "gatilho" and e.get("lado") == "R2" and e.get("modo") == "resistencia":
 			forcas[str(e.get("params", []))] = true
 	_esperar(forcas.size() >= 2, "Arco: a força do arco mudou durante o jogo (%s)" % [forcas.keys()])
-	var disparos := _linha_do_tempo().filter(func(e): return e.get("tipo") == "jogo" and e.get("slot") == "S05_J22" and e.get("o") == "disparo")
+	var disparos := _linha_do_tempo().filter(func(e): return e.get("tipo") == "entrada" and e.get("slot") == "S05_J22" and e.get("o") == "disparo")
 	_esperar(disparos.size() >= 2, "Arco: %d puxadas e solturas no registro" % disparos.size())
 ```
 

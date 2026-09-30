@@ -1,6 +1,6 @@
 # J4 — O Balão dos Foles
 
-**Sprint:** J · **Slot:** S02_J09 · **Tamanho:** M · **Estimativa:** US$ 1,5 · **Depende de:** H04, F09, F03, H07, J1 (o `secao.gd`), e o sorteio dentro da seção ([o índice](I-a-centelha.md#antes-de-começar-o-que-ainda-falta-na-base))
+**Sprint:** J · **Slot:** S02_J09 · **Tamanho:** M · **Estimativa:** US$ 1,5 · **Depende de:** H04, H08, F09, F03, H07, J1 (o `secao.gd`)
 
 ## Por quê
 
@@ -39,18 +39,24 @@ const FICHA := {
 
 - **A faixa:** `MUS_S02_J09` — até a H05, a sintetizada a 96 bpm; com a
   gerada, 128 bpm ("nu-disco, baixo slap").
-- **As duplas:** a Brasa (o balão laranja, à esquerda) e a Maré (o ciano, à
-  direita) — os nomes d'A Prova. Com quatro ou três presentes, os dois
-  primeiros (pela ordem do lugar) são a Brasa e os outros a Maré; com dois,
-  um em cada; com um, só a Brasa. A cor da dupla está no balão, nunca na
-  barra de luz (que fica na cor do lugar).
+- **As duplas** são as equipes do [13](../13-arquitetura.md#as-decisões-comuns-dos-minigames--h08):
+  a **Brasa** (âmbar `#e8a33c`, à esquerda) e a **Maré** (turquesa
+  `#2fb3b3`, à direita). A cor da equipe vai no mundo — o balão, o disco sob
+  o cesto e a armadura dos tripulantes —, nunca na barra de luz (que fica
+  na cor do lugar). Com quatro, os dois primeiros (pela ordem do lugar) são
+  a Brasa e os outros a Maré; falta gente, **o Aprendiz** completa, pela
+  regra de [Q](Q-a-prova.md#o-cenário-comum): com três, a Maré é o 3º e o
+  Aprendiz; com dois, cada um com um Aprendiz; com um, ele e o Aprendiz
+  contra dois Aprendizes.
 - **O tempo e o contratempo:** na dupla, o de lugar menor chacoalha nas
   batidas `4c` e `4c + 2` (o tempo); o outro, em `4c + 1` e `4c + 3` (o
-  contratempo). Quem está sozinho na dupla faz os dois: uma nota por tempo.
+  contratempo). O Aprendiz faz a parte que falta: acerta
+  `ACERTO_APRENDIZ` (0,8) das vezes, sempre como BOM, sorteado com o `rng`
+  do kit; não é lugar, não pontua, não tem nota no registro, e não é robô.
   `Ritmo.simples[l]`: só a primeira das duas notas dele no compasso.
 - **A nota:** uma sacudida — o acelerômetro passa de 1,8 g vindo de menos de
   1,3 g (`SECAO.forca_g(l)`; sem acelerômetro, o ✕) — dentro da janela que
-  abre meio tempo antes → `julgar_toque`. Nada até `JANELA_BOM + 0,05 s` →
+  abre meio tempo antes → `julgar_toque`. Nada até `FOLGA_PERDIDA`, o do kit →
   nota perdida.
 - **O balão sobe** (em metros, a altura da dupla): PERFEITO +0,25, ÓTIMO
   +0,18, BOM +0,10; o erro −0,4. **O sopro duplo:** o compasso em que todas
@@ -59,7 +65,7 @@ const FICHA := {
 - **Os pontos são da dupla:** cada acerto marca os pontos nos dois da dupla
   (`[0, 20, 35, 50]` por julgamento; o sopro duplo +30 nos dois). Assim o
   fechamento põe a dupla junta na colocação.
-- **A progressão:** `p = t_jogo / duracao`. De 0 a 1/3, normal. **O pico (1/3
+- **A progressão:** `progresso()` do kit (em tempo de música, H08). De 0 a 1/3, normal. **O pico (1/3
   a 2/3), a corrente de ar:** cada acerto vale 1,5 vez, e as nuvens se abrem
   (a luz sobe). De 2/3 em diante, normal. Uma dupla que acerta tudo chega
   às nuvens entre 55 s (128 bpm) e 80 s (96 bpm).
@@ -70,10 +76,11 @@ const FICHA := {
 
 | o quê | peça | onde (m) |
 | --- | --- | --- |
-| o balão | `SphereMesh` de raio 1,3 com **8 lados e 6 anéis** (`radial_segments = 8`, `rings = 6`), `Kit.material(cor, 0.0, 0.85)` — Brasa `Tema.LARANJA`, Maré `Tema.CIANO` | cesto + `(0, 3.0, 0)` |
+| o balão | `SphereMesh` de raio 1,3 com **8 lados e 6 anéis** (`radial_segments = 8`, `rings = 6`), `Kit.material(cor, 0.0, 0.85)` — Brasa `#e8a33c`, Maré `#2fb3b3` | cesto + `(0, 3.0, 0)` |
+| o chão da equipe | um disco `Kit.cilindro` de raio 1,6, fosco, na cor da equipe escurecida 25% | sob o cesto, `(±4.0, 0.02, 3.8)` |
 | o cesto | `Kit.caixa(1.8, 0.8, 1.2)`, `#8a5a33`; quatro cordas `Kit.caixa(0.04, 1.6, 0.04)`, `#c8b89a` | `(±4.0, y, 3.8)`, `y = 0.4 + 0.18 × altura` |
 | o fole | em cada cesto, `Kit.caixa(0.6, 0.3, 0.4)`, couro `#4a3a44`, que encolhe (`scale.y`) em cada sacudida | cesto + `(0, 0.6, −0.5)` |
-| os tripulantes | os bonecos da dupla, dentro do cesto, de frente para a câmera | cesto + `(±0.45, 0.2, 0)` |
+| os tripulantes | os bonecos da dupla, dentro do cesto, de frente para a câmera, com a armadura na cor da equipe; o Aprendiz (o `character-orc.glb` tingido de `#b9a98a`, como em [Q](Q-a-prova.md#o-cenário-comum)) no lugar de quem falta | cesto + `(±0.45, 0.2, 0)` |
 | as nuvens | seis `Kit.caixa` achatadas (`3 × 0.4 × 2`), `Kit.material(Color("#cfc8e8"), 0.0, 1.0)` | `y` de 8,8 a 9,3, espalhadas em `x` de −9 a 9 |
 
 Câmera: `camera_pos = Vector3(0, 5.0, 17.0)`, `camera_olhar = Vector3(0, 4.4, 1.0)`.
@@ -85,7 +92,7 @@ O balão é facetado e fosco; as cores das duplas não são as dos lugares.
 | --- | --- |
 | **acelerômetro (a feature)** | a sacudida é o sopro, pelo pico em g |
 | vibração | o kit por nota; o sopro duplo: `Forja.sentir(l, "acerto")` nos dois; as nuvens: `explosao` na dupla que chegou |
-| barra de luz | `SECAO.piscar` no `toque` e na `falha` (a cor do lugar, nunca a da dupla) |
+| barra de luz | o kit (`_reagir`, H08): branco no perfeito, a cor do lugar escurecida no erro (a cor do lugar, nunca a da dupla) |
 | alto-falante do dono | perfeito: a nota (o kit); ótimo e bom: `Forja.som_falante(l, "pulso", 0.5)`; erro: a nota quebrada (o kit) |
 | gatilho | livre (o R2 Off) |
 | háptica por material | `madeira`, pelo kit |
@@ -99,15 +106,16 @@ desce 0,4 m (a descida se vê: o cesto anda até a altura nova em 0,3 s).
 
 ## O fim e o vencedor
 
-A primeira dupla a 40 m: todos acabam (a F03 fecha). Sem nuvem até os 90 s,
-a dupla mais alta vence. `vencedor()`: os da dupla vencedora primeiro (pelo
-lugar), depois os outros; com as alturas iguais, pelos pontos.
+A primeira dupla a 40 m: todos acabam (a F03 fecha). Sem nuvem até os 90 s
+de música, a dupla mais alta vence. `vencedor()`: os da dupla vencedora
+primeiro (pelo lugar), depois os outros; com as alturas iguais, pelos
+pontos. Os pontos da equipe vão para os dois da dupla, e a tela diz
+"A Brasa venceu!" ou "A Maré venceu!" (H08).
 
 ## Com menos de quatro
 
-`com_poucos()` diz no aviso: com três, `"Quem está sozinho faz os dois tempos"`;
-com dois, `"Um contra um: cada um faz os dois tempos"`; com um,
-`"Sozinho até as nuvens"`. **O controle que cai:** as notas dele param (sem
+`com_poucos()` diz no aviso: com três ou dois, `"Com o Aprendiz"`; com um,
+`"Você e o Aprendiz contra 2"` (as frases da Q1). **O controle que cai:** as notas dele param (sem
 erro); o parceiro segue com as dele; o sopro duplo não conta naquele
 compasso; ao voltar, a nota é o próximo tempo dele.
 
@@ -147,8 +155,7 @@ extends Minigame
 ## O registro mede: o pico em g de cada sacudida (a linha `entrada`) e o
 ## atraso entre o pulso e o movimento (o kit).
 ## O robô: sacode a 2,6 g na nota (ou 200 ms atrasado).
-## Com menos de quatro: quem está sozinho na dupla faz os dois tempos; com um,
-## só a Brasa, contra as nuvens.
+## Com menos de quatro: o Aprendiz completa a dupla (a regra de Q-a-prova.md).
 ## A régua: "Chacoalhe!" e o acelerômetro bastam; sem a tela, a nota de cada
 ## um e o pulso no controle dizem o tempo; nada pergunta pelo controle.
 
@@ -156,8 +163,8 @@ const SECAO := preload("res://scripts/minigames/s02/secao.gd")
 
 # (a FICHA vem aqui)
 
-const BATIDA_DA_PRIMEIRA_NOTA := 4.0
-const COR_DA_DUPLA := [Tema.LARANJA, Tema.CIANO]
+const COR_DA_DUPLA := [Color("#e8a33c"), Color("#2fb3b3")]  ## a Brasa e a Maré (13, H08)
+const ACERTO_APRENDIZ := 0.8  ## a regra do Aprendiz (Q-a-prova.md)
 const X_DA_DUPLA := [-4.0, 4.0]
 const Z_BALAO := 3.8
 const META := 40.0
@@ -167,10 +174,11 @@ const PONTOS := [0, 20, 35, 50]
 const PONTOS_DUPLO := 30
 const PANCADA := 1.8
 const SOLTA := 1.3
-const FOLGA_PERDIDA := 0.05
 
 var j := {}
 var dupla := [[], []]  ## os lugares da Brasa e da Maré
+var aprendiz := [0, 0]  ## quantas partes da dupla o Aprendiz faz (0, 1 ou 2)
+var _aprendiz_b := -1.0  ## a última batida em que os Aprendizes sopraram
 var altura := [0.0, 0.0]
 var chegou := -1  ## a dupla que chegou às nuvens (-1: nenhuma)
 var _cesto: Array = []
@@ -189,8 +197,10 @@ func montar() -> void:
 		lugares.append(p.lugar)
 	lugares.sort()
 	for i in lugares.size():
-		var d := (0 if i < 2 else 1) if lugares.size() >= 3 else i % 2
+		var d := (0 if i < 2 else 1) if lugares.size() >= 3 else (0 if i == 0 else 1)
 		dupla[d].append(lugares[i])
+	for d in 2:
+		aprendiz[d] = 2 - dupla[d].size()  # o boneco do Aprendiz entra no cesto, no lugar de quem falta
 	var madeira := Kit.material(Color("#8a5a33"), 0.0, 0.85)
 	var corda := Kit.material(Color("#c8b89a"), 0.0, 0.9)
 	for d in 2:
@@ -210,8 +220,8 @@ func montar() -> void:
 		bola.position = Vector3(0, 3.0, 0)
 		bola.material_override = Kit.material(COR_DA_DUPLA[d], 0.0, 0.85)
 		cesto.add_child(bola)
+		Kit.cilindro(self, 1.6, 0.03, Vector3(X_DA_DUPLA[d], 0.02, Z_BALAO), Kit.material(COR_DA_DUPLA[d].darkened(0.25), 0.0, 0.9))
 		_fole.append(Kit.caixa(cesto, Vector3(0.6, 0.3, 0.4), Vector3(0, 0.6, -0.5), Kit.material(Color("#4a3a44"), 0.0, 0.9)))
-		cesto.visible = not dupla[d].is_empty()
 		_cesto.append(cesto)
 	var nuvem := Kit.material(Color("#cfc8e8"), 0.0, 1.0)
 	for k in 6:
@@ -235,26 +245,17 @@ func _dupla_de(l: int) -> int:
 
 func com_poucos() -> String:
 	match jogadores.size():
-		3:
-			return "Quem está sozinho faz os dois tempos"
-		2:
-			return "Um contra um: cada um faz os dois tempos"
+		3, 2:
+			return "Com o Aprendiz"
 		1:
-			return "Sozinho até as nuvens"
+			return "Você e o Aprendiz contra 2"
 	return ""
 
 
-func _no_pico() -> bool:
-	var p := t_jogo / maxf(duracao, 1.0)
-	return p >= 1.0 / 3.0 and p < 2.0 / 3.0
-
-
-## As batidas do lugar no compasso: o tempo (0 e 2) ou o contratempo (1 e 3);
-## sozinho na dupla, as quatro.
+## As batidas do lugar no compasso: o tempo (0 e 2) ou o contratempo (1 e 3).
+## Quem está com o Aprendiz faz o tempo; o Aprendiz, o contratempo.
 func _batidas(l: int) -> Array:
 	var d: int = j[l].dupla
-	if dupla[d].size() == 1:
-		return [0.0, 1.0, 2.0, 3.0] if not Ritmo.simples[l] else [0.0, 2.0]
 	var contra: bool = dupla[d].find(l) == 1
 	var r := [1.0, 3.0] if contra else [0.0, 2.0]
 	return r if not Ritmo.simples[l] else [r[0]]
@@ -279,13 +280,11 @@ func _proxima(l: int, desde: float) -> void:
 
 func iniciar_jogo() -> void:
 	for l in presentes():
-		Forja.evento("entrada", l + 1, {"o": "sensores", "giro": Forja.capacidade(l, "giro"),
-			"acel": Forja.capacidade(l, "acel")})
+		SECAO.anotar_troca(self, l)  # sem giroscópio ou acelerômetro: a linha `troca` (H08)
 		_proxima(l, BATIDA_DA_PRIMEIRA_NOTA - 0.01)
 
 
 func jogar(_dt: float) -> void:
-	SECAO.voltar_a_luz(self)
 	var agora := Ritmo.t_musica()
 	var c := int(floor(Ritmo.batida() / 4.0))
 	if c > _compasso_visto:
@@ -304,6 +303,7 @@ func jogar(_dt: float) -> void:
 			e.fora = false
 			_proxima(l, Ritmo.batida())
 		_nota(l, e, agora)
+	_aprendizes_sopram()
 	for d in 2:
 		if chegou < 0 and altura[d] >= META:
 			_nas_nuvens(d)
@@ -327,7 +327,7 @@ func _nota(l: int, e: Dictionary, agora: float) -> void:
 		e.armado = false
 		Forja.evento("entrada", l + 1, {"o": "acelerometro", "pico_g": snappedf(float(e.pico), 0.01), "n": int(e.n)})
 		julgar_toque(l, alvo, int(e.n))
-	elif agora > alvo + Ritmo.JANELA_BOM + FOLGA_PERDIDA:
+	elif agora > alvo + FOLGA_PERDIDA:
 		nota_perdida(l, int(e.n))
 
 
@@ -341,7 +341,7 @@ func toque(l: int, julgamento: int) -> void:
 	contagem[l][julgamento] += 1
 	var e: Dictionary = j[l]
 	var d: int = e.dupla
-	var vale := 1.5 if _no_pico() else 1.0
+	var vale := 1.5 if no_pico() else 1.0
 	_marcar_dupla(d, int(PONTOS[julgamento] * vale))
 	if not treinando:
 		altura[d] = maxf(0.0, altura[d] + SOBE[julgamento] * vale)
@@ -355,7 +355,6 @@ func toque(l: int, julgamento: int) -> void:
 	var p := jogador(l)
 	if p:
 		p.gesto("attack-melee-right", 0.3)
-	SECAO.piscar(self, l, julgamento)
 	_proxima(l, float(e.b))
 
 
@@ -372,7 +371,6 @@ func falha(l: int) -> void:
 	var p := jogador(l)
 	if p:
 		p.gesto("emote-no", 0.5)
-	SECAO.piscar(self, l, Ritmo.ERRO)
 	_proxima(l, float(e.b))
 
 
@@ -389,6 +387,25 @@ func _sopro_duplo(c: int) -> void:
 		for o in dupla[d]:
 			Forja.sentir(o, "acerto")
 		Efeitos.faiscas(self, (_cesto[d] as Node3D).global_position + Vector3(0, 3.0, 0), COR_DA_DUPLA[d], 20, 0.8)
+
+
+## O Aprendiz (Q-a-prova.md): um boneco do jogo, não um lugar nem um robô. Sopra
+## a parte que falta à dupla (o contratempo; com dois Aprendizes, as duas) e
+## acerta ACERTO_APRENDIZ das vezes, sempre BOM — por isso o compasso dele não
+## tem sopro duplo.
+func _aprendizes_sopram() -> void:
+	var b := floorf(Ritmo.batida())
+	if b <= _aprendiz_b or b < BATIDA_DA_PRIMEIRA_NOTA:
+		return
+	_aprendiz_b = b
+	var contra := int(b) % 2 == 1
+	for d in 2:
+		if aprendiz[d] == 0 or (aprendiz[d] == 1 and not contra):
+			continue
+		_ok_no_compasso["%d:%d" % [d, int(b / 4.0)]] = false
+		if not treinando and chegou < 0 and rng.randf() < ACERTO_APRENDIZ:
+			altura[d] += SOBE[Ritmo.BOM]
+			Som.tocar("sopro", (_cesto[d] as Node3D).global_position, -10.0)
 
 
 func _nas_nuvens(d: int) -> void:
@@ -482,27 +499,15 @@ Em `godot/testes/prova_do_jogo.gd`:
 ## (P3, P4); a sacudida simulada de cada um sobe o balão da dupla; o fim põe
 ## a dupla junta.
 func _prova_do_balao() -> void:
-	jogo._entrar_na_sala("S02_J09", false)
-	await _quadros(2)
-	var mg = jogo.sala
-	_esperar(mg is Minigame and mg.id == "S02_J09", "S02_J09: abriu pelo catálogo")
-	if not mg is Minigame:
+	# a espera é a da H08: o aviso em quadros, o jogo pelo relógio de parede (90 s de música e o treino)
+	var mg = await _joga_o_minigame("S02_J09", 130.0)
+	if mg == null:
 		return
-	_esperar(mg.dupla == [[0, 1], [2, 3]], "S02_J09: as duplas pela ordem dos lugares (%s)" % [mg.dupla])
-	var q := 0
-	while is_instance_valid(mg) and mg.fase == "aviso" and q < 900:
-		await _quadros(1)
-		q += 1
-	var inicio := Time.get_ticks_usec()
-	while is_instance_valid(mg) and mg.fase == "jogo" and Time.get_ticks_usec() - inicio < 40000000:
-		await _quadros(1)
-	_esperar(is_instance_valid(mg) and mg.fase == "fim", "S02_J09: fechou")
-	if not is_instance_valid(mg):
-		return
+	_esperar(mg.dupla == [[0, 1], [2, 3]] and mg.aprendiz == [0, 0], "S02_J09: as duplas pela ordem dos lugares, sem Aprendiz com quatro (%s)" % [mg.dupla])
 	_esperar(mg.altura[0] > 0.0 and mg.altura[1] > 0.0, "S02_J09: os dois balões subiram (%s)" % [mg.altura])
 	var v: Array = mg.vencedor()
 	_esperar(int(mg.j[v[0]].dupla) == int(mg.j[v[1]].dupla), "S02_J09: a dupla vencedora vem junta (%s)" % [v])
-	q = 0
+	var q := 0
 	while (jogo.estado != "salao" or jogo._trocando) and q < 900:
 		await _quadros(5)
 		q += 5

@@ -1,6 +1,6 @@
 # K3 — Hackeando o Terminal
 
-**Sprint:** K · **Slot:** S03_J13 · **Tamanho:** M · **Estimativa:** US$ 1,5 · **Depende de:** H04, F09, F03, H07, K1 (o `secao.gd`), e o sorteio dentro da seção ([o índice](I-a-centelha.md#antes-de-começar-o-que-ainda-falta-na-base))
+**Sprint:** K · **Slot:** S03_J13 · **Tamanho:** M · **Estimativa:** US$ 1,5 · **Depende de:** H04, H08, F09, F03, H07, K1 (o `secao.gd`)
 
 ## Por quê
 
@@ -63,7 +63,7 @@ const FICHA := {
   resposta.
 - **Os pontos por julgamento** (os do hacker, para o destaque):
   `[0, 20, 35, 50]`.
-- **A progressão:** `p = t_jogo / duracao`, decidida no começo de cada senha.
+- **A progressão:** `progresso()` do kit (em tempo de música, H08), decidida no começo de cada senha.
   De 0 a 1/3, a senha de 4 notas. **O pico (1/3 a 2/3), a senha longa:** 8
   notas (chamada em 2 compassos, resposta em 2), e vale 2 travas. De 2/3 em
   diante, 4 notas. `Ritmo.simples[l]` não muda a senha (é coop): quem está
@@ -94,7 +94,7 @@ A cor de cada lugar aparece só nas notas dele. Nada liso.
 | --- | --- |
 | **touchpad (a feature)** | encostar no quadrante certo, na sua vez |
 | vibração | o kit por nota; o apito: `Forja.sentir(l, "golpe")` em todos; a trava que abre: `acerto` em todos; a porta: `explosao` em todos |
-| barra de luz | `SECAO.piscar` no `toque` e na `falha` |
+| barra de luz | o kit (`_reagir`, H08): branco no perfeito, a cor do lugar escurecida no erro |
 | alto-falante do dono | **na chamada, a nota dele** (`Forja.som_falante(l, "nota:%d" % l, 0.6)`: o segredo); perfeito: a nota (o kit); ótimo e bom: `Forja.som_falante(l, "clique", 0.4)`; erro: a nota quebrada (o kit) |
 | háptica por material | `metal`, pelo kit |
 | gatilho | livre (o R2 Off) |
@@ -109,9 +109,10 @@ terminal na hora do erro.
 
 ## O fim e o vencedor
 
-`coop = true` no `montar()`. A oitava trava → `coop_venceu = true`, a porta
-sobe e todos acabam. Os 90 s sem a porta → não venceram. `vencedor()` é o
-destaque: menos erros; empate pelos pontos, depois pelo lugar (nunca vazio).
+O `coop` vem do gênero da FICHA (o kit, H08). A oitava trava →
+`coop_venceu = true`, a porta sobe e todos acabam. Os 90 s de música sem a
+porta → não venceram. O registro grava `vencedor` −1 (coop); `destaque()` é
+quem errou menos, empate pelos pontos, depois pelo lugar.
 
 ## Com menos de quatro
 
@@ -168,11 +169,9 @@ const SECAO := preload("res://scripts/minigames/s03/secao.gd")
 
 # (a FICHA vem aqui)
 
-const BATIDA_DA_PRIMEIRA_NOTA := 4.0
 const META := 8
 const QUADRANTES := [Vector2(0.25, 0.25), Vector2(0.75, 0.25), Vector2(0.25, 0.75), Vector2(0.75, 0.75)]
 const PONTOS := [0, 20, 35, 50]
-const FOLGA_PERDIDA := 0.05
 
 var j := {}
 var senha: Array = []  ## {dono, q, bc (a chamada), b (a resposta), n, estado: "chamando", "esperando", "feito", "errou", "fora"}
@@ -190,7 +189,6 @@ var contagem := [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]
 
 
 func montar() -> void:
-	coop = true
 	camera_pos = Vector3(0, 8.0, 13.0)
 	camera_olhar = Vector3(0, 1.4, -2.0)
 	SECAO.montar(self)
@@ -223,15 +221,10 @@ func montar() -> void:
 		Forja.gatilho(l, 1, Forja.GATILHO_OFF)
 
 
-func _no_pico() -> bool:
-	var p := t_jogo / maxf(duracao, 1.0)
-	return p >= 1.0 / 3.0 and p < 2.0 / 3.0
-
-
 ## Uma senha nova começando no compasso da batida `c`.
 func _nova_senha(c: float) -> void:
 	senha.clear()
-	var longa := _no_pico()
+	var longa := no_pico()
 	var n_notas := 8 if longa else 4
 	_vale = 2 if longa else 1
 	var donos: Array = []
@@ -265,13 +258,12 @@ func _nova_senha(c: float) -> void:
 func iniciar_jogo() -> void:
 	for l in presentes():
 		if not Forja.capacidade(l, "toque"):
-			Forja.evento("entrada", l + 1, {"o": "sensores", "toque": false})
+			Forja.evento("troca", l + 1, {"slot": id, "de": "touchpad", "para": "sem_touchpad"})
 			acabou[l] = true
 	_nova_senha(BATIDA_DA_PRIMEIRA_NOTA)
 
 
 func jogar(_dt: float) -> void:
-	SECAO.voltar_a_luz(self)
 	var agora := Ritmo.t_musica()
 	var agora_b := Ritmo.batida()
 	for l in presentes():
@@ -294,7 +286,7 @@ func jogar(_dt: float) -> void:
 			_resposta(l, tocou, agora)
 	# as notas que passaram
 	for nota in senha:
-		if str(nota.estado) == "esperando" and agora > Ritmo.t_da_batida(float(nota.b)) + Ritmo.JANELA_BOM + FOLGA_PERDIDA:
+		if str(nota.estado) == "esperando" and agora > Ritmo.t_da_batida(float(nota.b)) + FOLGA_PERDIDA:
 			_nota = nota
 			nota_perdida(int(nota.dono), int(nota.n))
 	if _fim_da_senha >= 0.0 and agora_b >= _fim_da_senha:
@@ -359,7 +351,6 @@ func toque(l: int, julgamento: int) -> void:
 	var p := jogador(l)
 	if p:
 		p.gesto("interact-right", 0.3)
-	SECAO.piscar(self, l, julgamento)
 
 
 func falha(l: int) -> void:
@@ -370,7 +361,6 @@ func falha(l: int) -> void:
 	var m: StandardMaterial3D = (_telas[int(_nota.q)] as MeshInstance3D).material_override
 	m.emission = Tema.VERMELHO
 	m.emission_energy_multiplier = 2.0
-	SECAO.piscar(self, l, Ritmo.ERRO)
 
 
 ## A resposta acabou: a senha abre uma trava (ou duas, a longa), ou o terminal apita.
@@ -446,10 +436,11 @@ func _mostrar(agora_b: float) -> void:
 				break
 
 
-func vencedor() -> Array:
+## Coop: o kit grava vencedor −1 (H08); o destaque é quem errou menos.
+func destaque() -> int:
 	var lista := presentes()
 	lista.sort_custom(_antes)
-	return lista
+	return int(lista[0]) if not lista.is_empty() else -1
 
 
 func _antes(a: int, b: int) -> bool:
@@ -494,7 +485,8 @@ func status(lugar: int) -> String:
 
 O terminal joga do aviso ao resultado com 4, 3, 2 e 1 jogador e com o robô
 nos três temperamentos (o bom abre a porta, o ruim faz apitar); o cabo que
-cai e volta não quebra a senha; o fim tem sempre o destaque;
+cai e volta não quebra a senha; o fim tem sempre o destaque (e `vencedor` −1
+no registro);
 `bash tests/prova_do_jogo.sh` passa; e `bash tests/prova_visual.sh` passa
 com a prancha **olhada**.
 
@@ -506,41 +498,32 @@ Em `godot/testes/prova_do_jogo.gd`:
 ## S03_J13 (K3): o terminal abre pelo catálogo; a senha chama cada dono; a
 ## resposta do robô chega pelo toque simulado; o fim é coop, com destaque.
 func _prova_do_terminal() -> void:
-	jogo._entrar_na_sala("S03_J13", false)
-	await _quadros(2)
-	var mg = jogo.sala
-	_esperar(mg is Minigame and mg.id == "S03_J13", "S03_J13: abriu pelo catálogo")
-	if not mg is Minigame:
-		return
-	var q := 0
-	while is_instance_valid(mg) and mg.fase == "aviso" and q < 900:
-		await _quadros(1)
-		q += 1
 	var donos := {}
-	for nota in mg.senha:
-		donos[int(nota.dono)] = true
-	_esperar(donos.size() == 4, "S03_J13: a primeira senha tem uma nota de cada um (%s)" % [donos.keys()])
-	var inicio := Time.get_ticks_usec()
-	while is_instance_valid(mg) and mg.fase == "jogo" and Time.get_ticks_usec() - inicio < 40000000:
-		await _quadros(1)
-	_esperar(is_instance_valid(mg) and mg.fase == "fim" and mg.coop, "S03_J13: fechou como coop")
-	if not is_instance_valid(mg):
+	var olhar := func(m) -> void:
+		if donos.is_empty():  # o primeiro quadro da fase jogo: a primeira senha
+			for nota in m.senha:
+				donos[int(nota.dono)] = true
+	# a espera é a da H08: o aviso em quadros, o jogo pelo relógio de parede (90 s de música e o treino)
+	var mg = await _joga_o_minigame("S03_J13", 130.0, olhar)
+	if mg == null:
 		return
+	_esperar(donos.size() == 4, "S03_J13: a primeira senha tem uma nota de cada um (%s)" % [donos.keys()])
+	_esperar(mg.coop, "S03_J13: fechou como coop")
 	var respostas := 0
 	for l in 4:
 		respostas += int(mg.contagem[l][1]) + int(mg.contagem[l][2]) + int(mg.contagem[l][3])
 	_esperar(respostas >= 2, "S03_J13: o robô respondeu a senha (%d respostas)" % respostas)
-	_esperar(mg.vencedor().size() == 4, "S03_J13: o destaque ordena os quatro")
-	q = 0
+	_esperar(mg.destaque() >= 0, "S03_J13: o fim tem o destaque")
+	var q := 0
 	while (jogo.estado != "salao" or jogo._trocando) and q < 900:
 		await _quadros(5)
 		q += 5
 	_esperar(jogo.estado == "salao", "S03_J13: de volta ao salão")
 ```
 
-(Na prova sem janela, o tempo de jogo anda ~16 vezes mais depressa que a
-música: o minigame fecha logo depois da primeira resposta. Por isso a
-checagem pede duas respostas, não a porta.)
+(O fim conta em tempo de música (H08): a prova joga os 90 s inteiros. A
+checagem pede respostas, não a porta: quem abre ou não é o temperamento do
+robô.)
 
 **Na sessão:** `bash tests/prova_do_jogo.sh` e `bash tests/prova_visual.sh`.
 

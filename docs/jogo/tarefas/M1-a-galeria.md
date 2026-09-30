@@ -1,6 +1,6 @@
 # M1 — A Galeria
 
-**Sprint:** M · **Slot:** S05_J21 · **Tamanho:** G · **Estimativa:** US$ 2,0 · **Depende de:** H04, F09, F01, F04, F05, F06, H06, H07, G03, G08
+**Sprint:** M · **Slot:** S05_J21 · **Tamanho:** G · **Estimativa:** US$ 2,0 · **Depende de:** H04, H08, F09, F01, F04, F05, F06, H06, H07, G03, G08
 
 ## Por quê
 
@@ -52,7 +52,7 @@ const FICHA := {
 	"titulo": "A Galeria",
 	"verbo": "Atire!",
 	"genero": "tct",
-	"icone": "gatilho_adaptativo",
+	"icone": "r2",
 	"entradas": [Forja.QUADRADO],
 	"camera": "fixa",
 	"faixa": "MUS_S05_J21",
@@ -117,7 +117,7 @@ a até `Ritmo.JANELA_BOM`:
 - sem nota perto → o tiro à toa: faísca no muro, `Forja.sentir(l, "toque")`,
   nada de ponto nem de erro.
 
-Todo tiro grava `Forja.evento("jogo", l + 1, {"slot": id, "o": "disparo", "n": n, "modo": "arma", "curso": r2, "curso_max": <o maior R2 até soltar>})`
+Todo tiro grava `Forja.evento("entrada", l + 1, {"slot": id, "o": "disparo", "n": n, "modo": "arma", "curso": r2, "curso_max": <o maior R2 até soltar>})`
 (o `curso_max` se grava ao soltar; guarde o evento até lá).
 
 **A munição:** `balas[l]` começa em `BALAS`. Chegou a 0 →
@@ -128,7 +128,7 @@ dono é uma **recarga** no lugar do alvo:
 (`balas = BALAS`, a Weapon volta: `Forja.gatilho(l, 1, Forja.GATILHO_ARMA, 2, 6, 8)`);
 ERRO ou perdida → continua vazio e a próxima nota dele é recarga de novo.
 
-**Os pontos:** `marcar(l, Itens.pontos_do_acerto(l, PONTOS[j] * (DOURADO if dourado else 1), j, fmod(b, 4.0) == 0.0))`
+**Os pontos:** `marcar(l, PONTOS[j] * (DOURADO if dourado else 1))` (o item, `Itens.pontos_do_acerto`, o kit aplica no `julgar_toque`: H08)
 e `alvos[l] += 1` no alvo (a recarga dá `PONTOS[j] / 2` e não conta alvo).
 
 **Os 90 segundos:** entrada (0–30 s) chance 0,6; **pico** (30–60 s) todo
@@ -199,8 +199,9 @@ const MIRA_Y1 := 2.7
 const R2_CLIQUE := 0.62
 const R2_APERTA := 0.5
 const R2_SOLTA := 0.2
-## As cores das duplas: no mundo (bandeira, castelo), nunca na barra de luz.
-const EQUIPE := [Color(1.0, 0.59, 0.0), Color(0.0, 0.82, 1.0)]
+## As equipes (13, H08): A Brasa (âmbar) e A Maré (turquesa). No mundo (o chão,
+## a armadura, a bandeira, o castelo), nunca na barra de luz.
+const EQUIPE := [Color("#e8a33c"), Color("#2fb3b3")]
 
 
 static func montar(sala: SalaJogo) -> void:
@@ -244,7 +245,7 @@ e vira `#c0392b` fosco.
 | vibração | `acerto` / `perfeito` / `erro` (o kit): o recuo | no tiro julgado |
 | vibração | `toque` | no tiro à toa |
 | barra de luz | a cor do lugar, 100% | sempre |
-| barra de luz | branco 0,1 s | em todo alvo estourado (BOM ou melhor) |
+| barra de luz | o kit (`_reagir`, H08): branco no perfeito, a cor do lugar escurecida no erro | no toque julgado |
 | luzinhas de jogador | o número do lugar, sempre | só a pergunta da bancada mexe nelas |
 | alto-falante do dono | `Som.no_controle(l, "tiro", 0.45)` | em todo tiro, menos o perfeito (aí o kit toca a nota do jogador) |
 | alto-falante do dono | `Som.no_controle(l, "recarga", 0.6)` | na recarga boa |
@@ -266,7 +267,7 @@ e vira `#c0392b` fosco.
 
 ## O fim e o vencedor
 
-90 s de `t_jogo`, pelo kit.
+90 s de música, pelo kit (H08).
 
 ```gdscript
 func vencedor() -> Array:
@@ -407,7 +408,7 @@ func jogar(dt: float) -> void:
 			_disparo[l]["curso_max"] = maxf(float(_disparo[l].get("curso_max", 0.0)), r2)
 		if Forja.apertou(l, Forja.QUADRADO):
 			_recarregar(l)
-		while not _notas[l].is_empty() and agora > float(_notas[l][0].t) + Ritmo.JANELA_BOM:
+		while not _notas[l].is_empty() and agora > float(_notas[l][0].t) + FOLGA_PERDIDA:
 			var nt: Dictionary = _notas[l].pop_front()
 			_ultima[l] = nt
 			nota_perdida(l, int(nt.n))
@@ -418,18 +419,16 @@ func toque(l: int, julgamento: int) -> void:
 	var nt: Dictionary = _ultima[l]
 	var forte := fmod(float(nt.b), 4.0) == 0.0
 	if nt.tipo == "recarga":
-		marcar(l, Itens.pontos_do_acerto(l, PONTOS[julgamento] / 2, julgamento, forte))
+		marcar(l, PONTOS[julgamento] / 2)  # o item, o kit já aplicou (H08)
 		balas[l] = BALAS
 		Forja.gatilho(l, 1, Forja.GATILHO_ARMA, 2, 6, 8)
 		Som.no_controle(l, "recarga", 0.6)
 		if Forja.bancada:
 			_perguntar_municao(l)
 		return
-	marcar(l, Itens.pontos_do_acerto(l, PONTOS[julgamento] * (DOURADO if nt.dourado else 1), julgamento, forte))
+	marcar(l, PONTOS[julgamento] * (DOURADO if nt.dourado else 1))  # o item, o kit já aplicou (H08)
 	alvos[l] += 1
-	_estourar_o_alvo(l, nt)  # faíscas, "alvo" na TV
-	Forja.luz(l, Color.WHITE)
-	_volta_da_luz[l] = 0.1  # e em _mostrar: ao chegar a 0, Forja.luz_do_lugar(l)
+	_estourar_o_alvo(l, nt)  # faíscas, "alvo" na TV (o piscar da barra de luz é do kit: H08)
 
 
 func falha(l: int) -> void:
@@ -440,8 +439,7 @@ func falha(l: int) -> void:
 		_espirrar(l, nt)
 ```
 
-(Com `var _volta_da_luz := [0.0, 0.0, 0.0, 0.0]`, descontado por `dt` no
-`_mostrar`.) `_atirar(l, r2)` gasta a bala, mostra o rastro, toca o tiro
+`_atirar(l, r2)` gasta a bala, mostra o rastro, toca o tiro
 (menos no perfeito: decida depois do julgamento), acha a nota e decide pelo
 "Como se joga", e começa `_disparo[l]`; ao chegar a 0 balas, o Off e a
 próxima nota vira recarga. `_recarregar(l)` casa o □ com a nota `recarga`.
@@ -456,12 +454,10 @@ Traduções (as que ainda não existirem): `"Atire!": "Shoot!"`, `"Mira": "Aim"`
 ## O que o registro mede
 
 - A `saida` de gatilho (Weapon 2, 6, 8 e Off, com `seq` e `ok`).
-- `jogo` `disparo` (n, modo `"arma"`, `curso`, `curso_max`) em todo tiro, e
+- `entrada` `disparo` (n, modo `"arma"`, `curso`, `curso_max`) em todo tiro, e
   o `toque` do kit: o curso no disparo mostra o clique no ponto certo.
 - Na bancada, a `pergunta` (`"arma"`, `"leds"`), as respostas de hoje
   (`resposta_arma`, `resposta_municao`) e os quatro vereditos.
-- **O tipo `jogo` na tabela do 13:** se ainda não estiver lá, acrescente a
-  linha (o texto está na [L1](L1-o-cerco.md#o-que-o-registro-mede)).
 
 ## Armadilhas
 
@@ -476,9 +472,10 @@ Traduções (as que ainda não existirem): `"Atire!": "Shoot!"`, `"Mira": "Aim"`
 - **A bancada não muda a regra do jogo** ([paridade](../13-arquitetura.md#a-paridade-entre-a-prova-e-o-jogo--f08)):
   ela acrescenta a prateleira antes e a contagem depois da recarga; o resto
   é o mesmo jogo.
-- **A barra de luz:** o branco do acerto dura 0,1 s e volta com
-  `Forja.luz_do_lugar(l)`.
-- **Os pontos e o item:** se o kit já aplica `Itens.pontos_do_acerto`, marque cru.
+- **A barra de luz:** o piscar do perfeito e o escurecer do erro são do kit
+  (`_reagir`, H08); o minigame não mexe nela.
+- **Os pontos e o item:** o kit aplica `Itens.pontos_do_acerto` no `julgar_toque`
+  (H08); marque cru.
 
 ## Pronto quando
 
@@ -511,14 +508,14 @@ func _prova_da_galeria() -> void:
 				arma[0] = true
 			if not Forja.bancada and int(pc.get("leds_jogador", 0)) != Forja.LEDS_DO_LUGAR[l]:
 				leds_ok[0] = false
-	var mg := await _joga_o_minigame("galeria", 60.0, olhar)
+	var mg = await _joga_o_minigame("galeria", 130.0, olhar)
 	if mg == null:
 		return
 	_esperar(mg.id == "S05_J21", "Galeria: --sala=galeria abre o S05_J21")
 	if not Forja.bancada:
 		_esperar(arma[0], "Galeria: a Weapon chegou ao R2")
 		_esperar(leds_ok[0], "Galeria: as luzinhas mostraram o número do jogador o tempo todo")
-		var disparos := _linha_do_tempo().filter(func(e): return e.get("tipo") == "jogo" and e.get("slot") == "S05_J21" and e.get("o") == "disparo")
+		var disparos := _linha_do_tempo().filter(func(e): return e.get("tipo") == "entrada" and e.get("slot") == "S05_J21" and e.get("o") == "disparo")
 		_esperar(disparos.size() >= 1 and disparos.all(func(e): return float(e.get("curso", 0.0)) >= 0.62), "Galeria: %d disparos, todos depois do clique" % disparos.size())
 	var v := mg.vencedor()
 	_esperar(not v.is_empty() and int(mg.alvos[v[0]]) == v.map(func(l): return int(mg.alvos[l])).max(), "Galeria: vence quem estourou mais alvos")
@@ -532,7 +529,7 @@ o L2 solto da G03) passam a olhar pelo apelido (`_e_a_sala` da H04).
 - o tiro só sai no clique, e o clique no tempo é gostoso;
 - o tambor esvazia na mesa e o R2 fica mole — e a recarga no tempo devolve a parede;
 - no pico, dois alvos por batida pedem o dedo rápido;
-- as luzinhas ficam no número o tempo todo; a barra de luz pisca branco no acerto;
+- as luzinhas ficam no número o tempo todo; a barra de luz pisca branco no perfeito (o kit);
 - com `--bancada`, a prateleira e a contagem das luzinhas como antes.
 
 ## Ao terminar

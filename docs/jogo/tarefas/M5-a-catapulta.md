@@ -1,6 +1,6 @@
 # M5 — A Catapulta
 
-**Sprint:** M · **Slot:** S05_J25 · **Tamanho:** M · **Estimativa:** US$ 1,5 · **Depende de:** H04, F09, M1
+**Sprint:** M · **Slot:** S05_J25 · **Tamanho:** M · **Estimativa:** US$ 1,5 · **Depende de:** H04, H08, F09, M1
 
 ## Por quê
 
@@ -13,13 +13,14 @@ em dois gatilhos diferentes.
 
 **Adaptado do [03](../03-os-45-minigames.md#s5--a-galeria--gatilho-adaptativo-e-luzinhas-de-jogador):**
 a munição (as pedras) está no monte ao lado da catapulta e no peso do
-gatilho; a equipe está na cor do castelo e da bandeira, nunca na barra de
-luz nem nas luzinhas.
+gatilho; a equipe (**A Brasa**, âmbar, e **A Maré**, turquesa: H08) está no
+chão, na armadura, no castelo e na bandeira, nunca na barra de luz nem nas
+luzinhas.
 
 ## Ler antes
 
 - [O índice da seção](M-a-galeria.md) e a [M1](M1-a-galeria.md) (o cenário comum, as cores das duplas, o `_joga_o_minigame`)
-- A [M4](M4-espada-de-fita.md) (as duplas pela metade e o sozinho)
+- A [M4](M4-espada-de-fita.md) (as duplas pela metade, A Brasa e A Maré, o Aprendiz)
 - [O molde de minigame](molde-de-minigame.md) e o [kit](../13-arquitetura.md#o-kit-do-minigame--h04)
 
 ## A ficha de dados
@@ -58,7 +59,7 @@ const FICHA := {
 	"titulo": "A Catapulta",
 	"verbo": "Carregue e lance!",
 	"genero": "2v2",
-	"icone": "gatilho_adaptativo",
+	"icone": "r2",
 	"entradas": [],
 	"camera": "fixa",
 	"faixa": "MUS_S05_J25",
@@ -72,6 +73,7 @@ const FICHA := {
 const PONTOS := [0, 40, 70, 100]  ## o placar de cada um, por nota
 const DANO := [0, 1, 2, 3]  ## o que cada nota põe na pedra
 const CONTRAPESO := 2  ## a trava automática do sozinho vale ÓTIMO em cada nota dela
+const ACERTO_APRENDIZ := 0.8  ## com três jogadores, o Aprendiz trava na Maré (Q-a-prova.md)
 const PROPRIO_MURO := 4  ## a pedra que cai no próprio muro
 const VIDA_DO_CASTELO := 150
 const TROCA_A_CADA := 8  ## compassos até os dois trocarem de posto
@@ -87,7 +89,8 @@ const TEMPOS := [[0.0, 1.5, 2.0, 3.0], [0.0, 2.5, 3.0, 3.5], [0.0, 1.5, 2.0, 3.0
 ## Como se joga
 
 **As duplas** são as da M4 (`presentes()` em ordem, a primeira metade é a
-dupla 0). **Os postos:** em cada dupla de dois, o de lugar menor é o
+dupla 0, **A Brasa**; a segunda, **A Maré**); os pontos da equipe vão para os
+dois da dupla, e a tela diz "A Brasa venceu!" ou "A Maré venceu!" (H08). **Os postos:** em cada dupla de dois, o de lugar menor é o
 **puxador** e o outro o **travador** nos compassos 1 a 8; trocam a cada
 `TROCA_A_CADA` compassos (no compasso da troca, sem notas: os dois correm
 um para o lugar do outro, e o sino toca na TV, `Som.tocar("sino_viga", null, -6.0)`).
@@ -124,9 +127,9 @@ contrapeso vale `CONTRAPESO` em cada uma das duas dele), no castelo da
 outra dupla, quando a pedra cai — em `b0 + T[3] + 1,5` (o arco do voo, pela
 batida). Castelo em 0 → todos `acabou`.
 
-**Os pontos** de cada um: `marcar(l, Itens.pontos_do_acerto(l, PONTOS[j], j, fmod(b, 4.0) == 0.0))`.
+**Os pontos** de cada um: `marcar(l, PONTOS[julgamento])` (o item, `Itens.pontos_do_acerto`, o kit já aplica no `julgar_toque`: H08).
 
-Cada aperto e soltura gravam o `jogo` `disparo` (modo `"resistencia"` do
+Cada aperto e soltura gravam o `entrada` `disparo` (modo `"resistencia"` do
 puxador ou `"arma"` do travador, curso, curso máximo); cada lançamento grava
 `Forja.evento("jogo", 0, {"slot": id, "o": "lancamento", "dupla": d, "dano": dano})`.
 
@@ -154,7 +157,9 @@ puxador ou `"arma"` do travador, curso, curso máximo); cada lançamento grava
   `(6.5, 0, -6.0)`: três andares de `Kit.peca(self, "wall", ..., 0.0, 2.0)`
   (quatro peças por andar, em quadrado) e as ameias de `wall-half`; a
   bandeira `Kit.peca(self, "banner", topo, 0.0, 2.0)` com o pano na cor
-  `CenarioDaGaleria.EQUIPE[d]` (fosco). A cada 25% de vida perdida, uma
+  `CenarioDaGaleria.EQUIPE[d]` (fosco); a mesma cor, fosca, no chão das
+  duas raias da dupla (`Kit.caixa(Vector3(1.6, 0.02, 1.6))`, como na M4) e
+  na armadura dos dois. A cada 25% de vida perdida, uma
   peça de cima cai (tween para o chão e some); em 0, o castelo desaba
   (todas as peças caem em uma batida) com `explosao` nos dois da dupla dele.
 - **A pedra que voa:** `Kit.peca(self, "rocks", ..., 0.0, 0.6)` em arco da
@@ -171,7 +176,7 @@ puxador ou `"arma"` do travador, curso, curso máximo); cada lançamento grava
 | vibração | `acerto` / `perfeito` / `erro` (o kit) | nas quatro notas |
 | vibração | `golpe` | nos dois da dupla cujo castelo leva a pedra (e no próprio muro) |
 | vibração | `explosao` | nos dois da dupla cujo castelo desaba |
-| barra de luz | a cor do lugar, 100%; branco 0,1 s | no lançamento com as quatro notas boas, nos dois |
+| barra de luz | o kit (`_reagir`, H08): branco no perfeito, a cor do lugar escurecida no erro | no toque julgado |
 | luzinhas de jogador | o número, sempre | — |
 | alto-falante do dono | `Forja.som_falante(l, "clique", 0.7)` | no travador, na trava BOM ou ÓTIMO (no perfeito, a nota do kit) |
 | alto-falante do dono | `Forja.som_falante(l, "coleta", 0.7)` | nos dois, quando a pedra deles cai no castelo rival |
@@ -194,7 +199,7 @@ puxador ou `"arma"` do travador, curso, curso máximo); cada lançamento grava
 
 ## O fim e o vencedor
 
-Castelo derrubado (todos `acabou`) ou 90 s de `t_jogo`. A dupla na frente
+Castelo derrubado (todos `acabou`) ou 90 s de música (H08). A dupla na frente
 é a de castelo de pé (se um caiu) ou a de mais dano dado
 (`VIDA_DO_CASTELO - vida[outra]`); dentro dela, mais pontos. O
 `vencedor()` é o da M4 com `_dupla_na_frente()` assim:
@@ -208,9 +213,12 @@ func _dupla_na_frente() -> int:
 
 ## Com menos de quatro
 
-- **Três:** o sozinho é sempre o puxador; a trava da catapulta dele é o
-  contrapeso (um peso de pedra que desce sozinho no contratempo: sem nota,
-  vale `CONTRAPESO` duas vezes). `com_poucos()`: `"Dois contra um"`.
+- **Três:** o sozinho da Maré é sempre o puxador, e **o Aprendiz** é o
+  travador (a regra de [Q](Q-a-prova.md#o-cenário-comum): um boneco do jogo,
+  não um lugar nem um robô; trava e lança acertando `ACERTO_APRENDIZ` (0,8)
+  das vezes, sempre BOM, sorteado com o `rng` do kit; quando erra, a corda
+  escapa como no `trava` ERRO). Os postos não trocam na Maré. `com_poucos()`:
+  `"Com o Aprendiz"`.
 - **Dois:** os dois puxam, cada um com o contrapeso. `com_poucos()`: `"Um contra um"`.
 - **Um:** ele puxa; o castelo rival não tem ninguém, e o minigame acaba ao
   derrubá-lo ou aos 90 s. `com_poucos()`: `"Derrube o castelo"`.
@@ -303,7 +311,7 @@ func jogar(_dt: float) -> void:
 			_apertado[l] = false
 			_soltar(l, r2)
 		_puxar_a_corda(l)  # o Feedback sobe 1 a cada meia batida desde a puxada boa
-		while not _notas[l].is_empty() and agora > float(_notas[l][0].t) + Ritmo.JANELA_BOM:
+		while not _notas[l].is_empty() and agora > float(_notas[l][0].t) + FOLGA_PERDIDA:
 			var nt: Dictionary = _notas[l].pop_front()
 			_ultima[l] = nt
 			nota_perdida(l, int(nt.n))
@@ -312,7 +320,7 @@ func jogar(_dt: float) -> void:
 
 func toque(l: int, julgamento: int) -> void:
 	var nt: Dictionary = _ultima[l]
-	marcar(l, Itens.pontos_do_acerto(l, PONTOS[julgamento], julgamento, fmod(float(nt.b), 4.0) == 0.0))
+	marcar(l, PONTOS[julgamento])  # o item, o kit já aplicou (H08)
 	_somar_no_lancamento(l, nt, DANO[julgamento])
 	match nt.tipo:
 		"puxa":
@@ -357,7 +365,7 @@ Feedback ao puxador e a Weapon ao travador.
 
 Catálogo: `"S05_J25"` em `MINIGAMES` e na lista da seção `S05`. O `.uid`.
 Traduções: `"A Catapulta": "The Catapult"`, `"Carregue e lance!": "Load and launch!"`,
-`"Lance!": "Launch!"`, `"Derrube o castelo": "Knock the castle down"`, e as
+`"Lance!": "Launch!"`, `"Derrube o castelo": "Knock the castle down"`, `"Com o Aprendiz": "With the Apprentice"`, e as
 da M4 que ainda não existirem; `dica(l)`: `{"partes": ["@r2", "Puxe a corda"], ...}`
 para o puxador e `{"partes": ["@r2", "Trave e lance"], ...}` para o
 travador, com `na_raia(l)` e `not aprendeu(l)` (`"Puxe a corda": "Pull the rope"`,
@@ -367,7 +375,7 @@ travador, com `na_raia(l)` e `not aprendeu(l)` (`"Puxe a corda": "Pull the rope"
 
 - A `saida` de gatilho: o Feedback da corda (os degraus) e a Weapon da trava
   (`params` `[2, 6, 7]`), `seq`, `ok`, e a troca de posto (o modo muda).
-- `jogo` `disparo` nas quatro notas (curso: a trava sai logo acima de 0,62
+- `entrada` `disparo` nas quatro notas (curso: a trava sai logo acima de 0,62
   quando o clique existe), o `toque` do kit e o `jogo` `lancamento`.
 
 ## Armadilhas
@@ -380,7 +388,8 @@ travador, com `na_raia(l)` e `not aprendeu(l)` (`"Puxe a corda": "Pull the rope"
   mande a Weapon a um e o Feedback ao outro no começo desse compasso.
 - **O L2 é do item** (G03): tudo aqui é R2.
 - **A cor da dupla nunca na barra de luz** (F04).
-- **Os pontos e o item:** se o kit já aplica `Itens.pontos_do_acerto`, marque cru.
+- **Os pontos e o item:** o kit aplica `Itens.pontos_do_acerto` no `julgar_toque`
+  (H08); marque cru.
 
 ## Pronto quando
 
@@ -388,8 +397,7 @@ A Catapulta joga do aviso ao resultado com 4, 3, 2 e 1 jogador e com o robô
 nos três temperamentos; troca os postos a cada oito compassos; aguenta o
 cabo que cai (o contrapeso entra); fecha com vencedor (a dupla de castelo
 de pé ou de mais dano); a prova do jogo passa; e `bash tests/prova_visual.sh`
-passa com a **prancha olhada** com a Catapulta nela (na cópia de trabalho,
-sem commitar, `"S05_J25"` em primeiro na lista da seção `S05`; depois volte a ordem).
+passa com a **prancha olhada** com a Catapulta nela (o `Catalogo.sortear` da H08 põe o `S05_J25` na noite: rode a prova visual com a semente que o sorteia, `--semente=N`).
 
 ## Provas
 
@@ -411,7 +419,7 @@ func _prova_da_catapulta() -> void:
 				if (a == 0x21 and b == 0x25) or (a == 0x25 and b == 0x21):
 					postos_ok[0] = true
 		vidas.append([int(m.vida[0]), int(m.vida[1])])
-	var mg := await _joga_o_minigame("S05_J25", 60.0, olhar)
+	var mg = await _joga_o_minigame("S05_J25", 130.0, olhar)
 	if mg == null:
 		return
 	if mg.presentes().size() >= 3:
@@ -433,7 +441,7 @@ func _prova_da_catapulta() -> void:
 - a trava tem a parede e o clique, no contratempo — o do pico é difícil e bom;
 - o lançamento é dos dois: quando sai inteiro, a pedra é grande;
 - a troca de posto a cada oito compassos refresca a mão;
-- a cor da dupla está no castelo e na bandeira; a barra de luz é de cada um.
+- a cor da equipe está no chão, na armadura, no castelo e na bandeira; a barra de luz é de cada um.
 
 ## Ao terminar
 

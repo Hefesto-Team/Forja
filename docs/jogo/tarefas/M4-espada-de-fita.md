@@ -1,6 +1,6 @@
 # M4 — Espada de Fita
 
-**Sprint:** M · **Slot:** S05_J24 · **Tamanho:** M · **Estimativa:** US$ 1,5 · **Depende de:** H04, F09, M1
+**Sprint:** M · **Slot:** S05_J24 · **Tamanho:** M · **Estimativa:** US$ 1,5 · **Depende de:** H04, H08, F09, M1
 
 ## Por quê
 
@@ -48,7 +48,7 @@ const FICHA := {
 	"titulo": "Espada de Fita",
 	"verbo": "Solte no pico!",
 	"genero": "2v2",
-	"icone": "gatilho_adaptativo",
+	"icone": "r2",
 	"entradas": [],
 	"camera": "fixa",
 	"faixa": "MUS_S05_J24",
@@ -65,6 +65,7 @@ const VALOR := [0, 1, 2, 3]  ## o que cada nota vale para a dupla no compasso
 const ACORDE := 2  ## os dois da dupla soltaram perfeito: o acorde fecha
 const SOZINHO := 2  ## a dupla de um só vale dobrado
 const ESPANTALHO := 8  ## com um jogador, o valor fixo do espantalho por estocada
+const ACERTO_APRENDIZ := 0.8  ## com três jogadores, o Aprendiz na Maré (Q-a-prova.md)
 const CORTES_POR_RODADA := 3
 const RODADAS_PARA_GANHAR := 2
 ## O peso da fita: a força do Feedback em cada batida desde a puxada (posição 2).
@@ -74,19 +75,26 @@ const PESO_PARADO := 1
 
 ## Como se joga
 
-**As duplas:** `lista = presentes()` em ordem; a dupla 0 é a primeira
-metade (`lista.slice(0, (k + 1) / 2)`), a dupla 1 a segunda. Com quatro:
-P1+P2 contra P3+P4; com três: os dois primeiros contra o terceiro; com dois:
-um contra um; com um: ele contra o espantalho. A dupla 0 fica nas raias da
-esquerda olhando para a direita, a dupla 1 nas da direita olhando para a
-esquerda. **A cor da dupla está no mundo** (a bandeira atrás e o chão da
-raia): `CenarioDaGaleria.EQUIPE[d]`; a barra de luz continua a cor do lugar.
+**As duplas** são as equipes do [13](../13-arquitetura.md#as-decisões-comuns-dos-minigames--h08):
+a dupla 0 é **A Brasa** (âmbar), a 1 **A Maré** (turquesa). `lista =
+presentes()` em ordem; a Brasa é a primeira metade (`lista.slice(0, (k + 1) / 2)`),
+a Maré a segunda. Com quatro: P1+P2 contra P3+P4; com três: os dois
+primeiros contra o terceiro **e o Aprendiz** (a regra de
+[Q](Q-a-prova.md#o-cenário-comum): um boneco do jogo, não um lugar nem um
+robô, que puxa e solta com a dupla e acerta `ACERTO_APRENDIZ` (0,8) das
+vezes, sempre BOM, sorteado com o `rng` do kit); com dois: um contra um; com
+um: ele contra o espantalho. A Brasa fica nas raias da esquerda olhando para
+a direita, a Maré nas da direita olhando para a esquerda. **A cor da equipe
+está no mundo** (a bandeira atrás, o chão da raia e a armadura):
+`CenarioDaGaleria.EQUIPE[d]`; a barra de luz continua a cor do lugar. Os
+pontos da equipe vão para os dois da dupla, e a tela diz "A Brasa venceu!"
+ou "A Maré venceu!" (H08).
 
 **A estocada** (todos juntos: a dupla divide o acorde, cada um com a sua
 nota): no compasso `c` (a partir de 1, fora das pausas entre rodadas),
 para cada presente:
 
-| parte | `t_jogo` | a puxada | a soltura (o pico) | o peso (Feedback posição 2) |
+| parte | música (`progresso()` do kit) | a puxada | a soltura (o pico) | o peso (Feedback posição 2) |
 | --- | --- | --- | --- | --- |
 | entrada | 0–30 s | `4c` | `4c + 3` | `PESO[0..3]` em `4c`, `4c+1`, `4c+2`, `4c+2,5` |
 | **pico** | 30–60 s | `4c` e `4c + 2` | `4c + 1,5` e `4c + 3,5` (duas estocadas curtas) | `4` na puxada, `8` meia batida depois |
@@ -112,16 +120,17 @@ volta a `(2, PESO_PARADO)`.
 **O corte:** quando todas as `solta` da estocada estão resolvidas (ou a
 batida passou de `b_solta + 0,5`), cada dupla soma
 `VALOR[j_puxa] + VALOR[j_solta]` de cada membro, `+ ACORDE` se os dois
-soltaram perfeito, `× SOZINHO` se a dupla tem um só (com um jogador, o
+soltaram perfeito (o Aprendiz entra com `VALOR[BOM]` nas notas que acerta),
+`× SOZINHO` se a dupla tem um só sem o Aprendiz (com um jogador, o
 espantalho vale `ESPANTALHO`). A maior corta a outra: `cortes[d] += 1`; no
 empate, as espadas batem e ninguém corta (faíscas no meio). Três cortes →
 `rodadas[d] += 1`, um compasso de pausa (sem notas), as fitas voltam.
 Duas rodadas → todos `acabou`.
 
-**Os pontos** de cada um: `marcar(l, Itens.pontos_do_acerto(l, PONTOS[j], j, fmod(b, 4.0) == 0.0))`
+**Os pontos** de cada um: `marcar(l, PONTOS[julgamento])` (o item, `Itens.pontos_do_acerto`, o kit já aplica no `julgar_toque`: H08)
 em cada nota boa.
 
-Cada puxada e soltura gravam o `jogo` `disparo` (modo `"resistencia"`,
+Cada puxada e soltura gravam o `entrada` `disparo` (modo `"resistencia"`,
 curso, curso máximo); cada corte grava
 `Forja.evento("jogo", 0, {"slot": id, "o": "corte", "dupla": d, "valores": "%d,%d" % [v0, v1]})`.
 
@@ -157,7 +166,7 @@ curso, curso máximo); cada corte grava
 | gatilho | R2 `GATILHO_RESISTENCIA` (2, 1): a fita frouxa | fora da estocada |
 | vibração | `acerto` / `perfeito` / `erro` (o kit) | na puxada e na soltura |
 | vibração | `golpe` | em quem leva o corte |
-| barra de luz | a cor do lugar, 100%; branco 0,1 s | na soltura perfeita |
+| barra de luz | o kit (`_reagir`, H08): branco no perfeito, a cor do lugar escurecida no erro | no toque julgado |
 | luzinhas de jogador | o número, sempre | — |
 | alto-falante do dono | `Forja.som_falante(l, "coleta", 0.7)` | nos dois da dupla que cortou |
 | alto-falante do dono | `Som.no_controle(l, "golpe", 0.7)` | nos dois da dupla que levou o corte |
@@ -178,7 +187,7 @@ curso, curso máximo); cada corte grava
 
 ## O fim e o vencedor
 
-Acaba com duas rodadas ganhas (todos `acabou`) ou aos 90 s de `t_jogo`.
+Acaba com duas rodadas ganhas (todos `acabou`) ou aos 90 s de música (H08).
 
 ```gdscript
 ## A dupla na frente: mais rodadas, depois mais cortes na rodada, depois mais pontos somados.
@@ -205,8 +214,8 @@ senão, vem sozinho na lista mesmo assim — o fechamento mostra o placar.)
 
 ## Com menos de quatro
 
-- **Três:** 2 contra 1; a dupla do sozinho vale `× SOZINHO`. `com_poucos()`:
-  `"Dois contra um"`.
+- **Três:** o Aprendiz completa a Maré (a regra de [Q](Q-a-prova.md#o-cenário-comum)).
+  `com_poucos()`: `"Com o Aprendiz"`.
 - **Dois:** 1 contra 1, os dois `× SOZINHO` (o mesmo peso). `com_poucos()`: `"Um contra um"`.
 - **Um:** contra o espantalho (`ESPANTALHO` por estocada). `com_poucos()`: `"Contra o espantalho"`.
 - **O controle que cai:** as notas dele somem sem erro; a dupla dele passa a
@@ -251,6 +260,7 @@ var duplas := [[], []]
 var cortes := [0, 0]
 var rodadas := [0, 0]
 var _pausa_ate := 0.0  ## a batida em que a pausa entre rodadas acaba
+var _com_aprendiz := false  ## três jogadores: o Aprendiz puxa e solta com a Maré
 
 
 func montar() -> void:
@@ -261,6 +271,7 @@ func montar() -> void:
 	lista.sort()
 	var meio := (lista.size() + 1) / 2
 	duplas = [lista.slice(0, meio), lista.slice(meio)]
+	_com_aprendiz = lista.size() == 3  # o boneco do Aprendiz entra na raia vazia da Maré
 	for p in jogadores:
 		var l: int = p.lugar
 		raia(l)
@@ -294,7 +305,7 @@ func jogar(_dt: float) -> void:
 			_puxado[l] = false
 			_soltar(l, r2)
 		_pesar(l)  # o degrau do Feedback pela batida desde a puxada
-		while not _notas[l].is_empty() and agora > float(_notas[l][0].t) + Ritmo.JANELA_BOM:
+		while not _notas[l].is_empty() and agora > float(_notas[l][0].t) + FOLGA_PERDIDA:
 			var nt: Dictionary = _notas[l].pop_front()
 			_ultima[l] = nt
 			nota_perdida(l, int(nt.n))
@@ -304,13 +315,10 @@ func jogar(_dt: float) -> void:
 
 func toque(l: int, julgamento: int) -> void:
 	var nt: Dictionary = _ultima[l]
-	marcar(l, Itens.pontos_do_acerto(l, PONTOS[julgamento], julgamento, fmod(float(nt.b), 4.0) == 0.0))
+	marcar(l, PONTOS[julgamento])  # o item, o kit já aplicou (H08)
 	_guardar_o_valor(l, nt, julgamento)
 	if nt.tipo == "solta":
-		Forja.gatilho(l, 1, Forja.GATILHO_RESISTENCIA, 2, PESO_PARADO)
-		if julgamento == Ritmo.PERFEITO:
-			Forja.luz(l, Color.WHITE)
-			_volta_da_luz[l] = 0.1
+		Forja.gatilho(l, 1, Forja.GATILHO_RESISTENCIA, 2, PESO_PARADO)  # o piscar do perfeito é do kit (H08)
 
 
 func falha(l: int) -> void:
@@ -324,13 +332,18 @@ func falha(l: int) -> void:
 		_fita_afrouxa(l)
 ```
 
-(Com `var _volta_da_luz := [0.0, 0.0, 0.0, 0.0]`, como na M1.) `_pesar(l)`
+`_pesar(l)`
 manda o Feedback só quando o degrau muda (guarde o último por lugar).
 `_resolver_as_estocadas()` segue "O corte"; na pausa, `_pausa_ate = (floor(Ritmo.batida() / 4.0) + 2.0) * 4.0`.
+Com `_com_aprendiz`, em cada estocada o `_resolver_as_estocadas()` sorteia a
+puxada e a soltura do Aprendiz com `rng.randf() < ACERTO_APRENDIZ` (sempre
+BOM) e as soma à Maré; o boneco dele (o `character-orc.glb` tingido de
+`#b9a98a`, como em [Q](Q-a-prova.md#o-cenário-comum)) fica na raia vazia da
+Maré, com a espada.
 
 Catálogo: `"S05_J24"` em `MINIGAMES` e na lista da seção `S05`. O `.uid`.
 Traduções: `"Espada de Fita": "Tape Sword"`, `"Solte no pico!": "Release at the peak!"`,
-`"Solte!": "Release!"`, `"Dois contra um": "Two against one"`,
+`"Solte!": "Release!"`, `"Com o Aprendiz": "With the Apprentice"` (se a Q1 ou a O5 já não pôs),
 `"Um contra um": "One on one"`, `"Contra o espantalho": "Against the scarecrow"`;
 `dica(l)`: `{"partes": ["@r2", "Solte no pico"], ...}` com `na_raia(l)` e
 `not aprendeu(l)` (`"Solte no pico": "Release at the peak"`).
@@ -339,7 +352,7 @@ Traduções: `"Espada de Fita": "Tape Sword"`, `"Solte no pico!": "Release at th
 
 - A `saida` de gatilho: os degraus do Feedback (`params` `[2, 3, 0]`,
   `[2, 5, 0]`, `[2, 7, 0]`, `[2, 8, 0]`, `[2, 1, 0]`), `seq`, `ok`.
-- `jogo` `disparo` (a soltura com o curso), o `toque` do kit e o `jogo`
+- `entrada` `disparo` (a soltura com o curso), o `toque` do kit e o `jogo`
   `corte`. O cruzamento: soltura no tempo com os degraus `ok` é o peso que
   contou as batidas; o mesmo lugar soltando cedo com os degraus `ok` e o
   curso máximo alto é o Feedback que não pesou.
@@ -352,7 +365,8 @@ Traduções: `"Espada de Fita": "Tape Sword"`, `"Solte no pico!": "Release at th
 - **O peso é o relógio:** os degraus têm de sair na batida certa (pela
   `Ritmo.batida()`); mande só quando o degrau muda.
 - **A estocada se resolve uma vez:** marque `resolvida` e não conte de novo.
-- **Os pontos e o item:** se o kit já aplica `Itens.pontos_do_acerto`, marque cru.
+- **Os pontos e o item:** o kit aplica `Itens.pontos_do_acerto` no `julgar_toque`
+  (H08); marque cru.
 
 ## Pronto quando
 
@@ -360,8 +374,7 @@ A Espada de Fita joga do aviso ao resultado com 4 (2 contra 2), 3 (2 contra
 1), 2 (1 contra 1) e 1 jogador (contra o espantalho) e com o robô nos três
 temperamentos; aguenta o cabo que cai; fecha com vencedor (a dupla na
 frente primeiro); a prova do jogo passa; e `bash tests/prova_visual.sh`
-passa com a **prancha olhada** com a Espada nela (na cópia de trabalho, sem
-commitar, `"S05_J24"` em primeiro na lista da seção `S05`; depois volte a ordem).
+passa com a **prancha olhada** com a Espada nela (o `Catalogo.sortear` da H08 põe o `S05_J24` na noite: rode a prova visual com a semente que o sorteia, `--semente=N`).
 
 ## Provas
 
@@ -373,7 +386,7 @@ Em `godot/testes/prova_do_jogo.gd`, depois das outras da seção:
 ## Espada de Fita (S05_J24): as duplas pela metade, o peso subindo em
 ## degraus no R2, e o vencedor da dupla na frente.
 func _prova_da_espada() -> void:
-	var mg := await _joga_o_minigame("S05_J24", 60.0)
+	var mg = await _joga_o_minigame("S05_J24", 130.0)
 	if mg == null:
 		return
 	var k := mg.presentes().size()

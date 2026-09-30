@@ -1,6 +1,6 @@
 # K5 — O Carimbo
 
-**Sprint:** K · **Slot:** S03_J15 · **Tamanho:** M · **Estimativa:** US$ 1,5 · **Depende de:** H04, F09, F03, H07, K1 (o `secao.gd`), e o sorteio dentro da seção ([o índice](I-a-centelha.md#antes-de-começar-o-que-ainda-falta-na-base))
+**Sprint:** K · **Slot:** S03_J15 · **Tamanho:** M · **Estimativa:** US$ 1,5 · **Depende de:** H04, H08, F09, F03, H07, K1 (o `secao.gd`)
 
 ## Por quê
 
@@ -46,7 +46,7 @@ const FICHA := {
   controle, em rodízio (`k % n`). O lingote tem a moldura na cor do dono e a
   raia dele acende. `Ritmo.simples[dono]`: a síncope dele fica **sem dono**
   (qualquer um pode carimbar).
-- **O clique:** `Forja.TOUCHPAD`, a no máximo `JANELA_BOM + 0,05 s` da
+- **O clique:** `Forja.TOUCHPAD`, a no máximo `FOLGA_PERDIDA`, o do kit da
   síncope; um clique por jogador por síncope.
   - **O dono** → `julgar_toque`: o selo dele no lingote, com o julgamento.
   - **Os outros:** o julgamento do clique (`Ritmo.julgar`, sem folga) — se
@@ -60,7 +60,7 @@ const FICHA := {
 - **Os pontos por julgamento** (ERRO, BOM, ÓTIMO, PERFEITO), do dono:
   `[0, 20, 35, 50]`; o selo por cima de outro: +30. Cada lingote na pilha
   conta 1.
-- **A progressão:** `p = t_jogo / duracao`. De 0 a 1/3, duas síncopes por
+- **A progressão:** `progresso()` do kit (em tempo de música, H08). De 0 a 1/3, duas síncopes por
   compasso. **O pico (1/3 a 2/3), a prensa corre:** toda colcheia fraca é
   síncope (`4c + 0,5`, `1,5`, `2,5`, `3,5`) — o rodízio anda duas vezes mais
   depressa. De 2/3 em diante, duas por compasso. Síncopes de cada um em 90 s:
@@ -90,7 +90,7 @@ moldura na vez dele, a raia).
 | --- | --- |
 | **touchpad (o clique, a feature)** | o carimbo, na síncope |
 | vibração | o kit nas notas do dono; o selo por cima: `Forja.sentir(l, "perfeito")` no ladrão e `Forja.sentir(dono, "golpe")` no roubado; o borrão: `Forja.sentir(l, "erro")` |
-| barra de luz | `SECAO.piscar` no `toque` e na `falha` do dono |
+| barra de luz | o kit (`_reagir`, H08): branco no perfeito, a cor do lugar escurecida no erro do dono |
 | alto-falante do dono | **o clique carimba**: `Som.no_controle(l, "carimbo", 0.6)` em todo clique que carimba (o do dono no ótimo e no bom; o do ladrão sempre); perfeito do dono: a nota (o kit); erro: a nota quebrada (o kit) |
 | háptica por material | `madeira`, pelo kit |
 | gatilho | livre (o R2 Off) |
@@ -123,22 +123,31 @@ sempre borra: o robô aprende o preço do roubo.
 
 ```gdscript
 # O kit chama robo(l, dt) antes de jogar(dt), a cada quadro, de quem ainda joga.
+# O robô guarda o que decidiu nos arrays dele: nunca mexe no estado do minigame.
+var _robo_k := [-1, -1, -1, -1]  ## a síncope que o robô já resolveu
+var _robo_mira_k := [-1, -1, -1, -1]
+var _robo_mira := [0.0, 0.0, 0.0, 0.0]
+
+
 func robo(l: int, _dt: float) -> void:
-	if not Forja.robo or _sinc.is_empty() or bool(_sinc.get("robo_%d" % l, false)):
+	if not Forja.robo:
+		return
+	if _sinc.is_empty() or int(_sinc.k) == int(_robo_k[l]):
 		return
 	var alvo := Ritmo.t_da_batida(float(_sinc.b))
 	var agora := Ritmo.t_musica()
 	if int(_sinc.dono) == l:
-		if not _sinc.has("mira"):
+		if int(_robo_mira_k[l]) != int(_sinc.k):
 			# o temperamento (--robo=bom|medio|ruim): quando não acerta, 200 ms atrasado
-			_sinc["mira"] = 0.0 if Forja.robo_acerta() else 0.20
-		if agora >= alvo + float(_sinc.mira):
+			_robo_mira_k[l] = int(_sinc.k)
+			_robo_mira[l] = 0.0 if Forja.robo_acerta() else 0.20
+		if agora >= alvo + float(_robo_mira[l]):
 			Forja.robo_apertar(l, Forja.TOUCHPAD, 0.05)
-			_sinc["robo_%d" % l] = true
+			_robo_k[l] = int(_sinc.k)
 	elif (int(_sinc.k) + l) % 7 == 0 and agora >= alvo + 0.03:
 		if Forja.robo_acerta():
 			Forja.robo_apertar(l, Forja.TOUCHPAD, 0.05)
-		_sinc["robo_%d" % l] = true
+		_robo_k[l] = int(_sinc.k)
 ```
 
 ## Os ganchos
@@ -168,7 +177,6 @@ const SECAO := preload("res://scripts/minigames/s03/secao.gd")
 
 # (a FICHA vem aqui)
 
-const BATIDA_DA_PRIMEIRA_NOTA := 4.0
 const PONTOS := [0, 20, 35, 50]
 const POR_CIMA := 30
 const FOLGA := 0.05
@@ -210,14 +218,9 @@ func montar() -> void:
 		Forja.gatilho(l, 1, Forja.GATILHO_OFF)
 
 
-func _no_pico() -> bool:
-	var p := t_jogo / maxf(duracao, 1.0)
-	return p >= 1.0 / 3.0 and p < 2.0 / 3.0
-
-
 ## A próxima síncope depois da batida `desde`.
 func _proxima_sincope(desde: float) -> float:
-	var passo := 1.0 if _no_pico() else 2.0
+	var passo := 1.0 if no_pico() else 2.0
 	var k := floorf((desde - 1.5) / passo) + 1.0
 	return maxf(k * passo + 1.5, BATIDA_DA_PRIMEIRA_NOTA + 1.5)
 
@@ -258,13 +261,12 @@ func _nova_sincope(desde: float) -> void:
 func iniciar_jogo() -> void:
 	for l in presentes():
 		if not Forja.capacidade(l, "toque"):
-			Forja.evento("entrada", l + 1, {"o": "sensores", "toque": false})
+			Forja.evento("troca", l + 1, {"slot": id, "de": "touchpad", "para": "sem_touchpad"})
 			acabou[l] = true
 	_nova_sincope(BATIDA_DA_PRIMEIRA_NOTA)
 
 
 func jogar(_dt: float) -> void:
-	SECAO.voltar_a_luz(self)
 	if _sinc.is_empty():
 		return
 	var agora := Ritmo.t_musica()
@@ -339,7 +341,6 @@ func toque(l: int, julgamento: int) -> void:
 		_selar(l, julgamento)
 	if julgamento != Ritmo.PERFEITO:
 		Som.no_controle(l, "carimbo", 0.6)
-	SECAO.piscar(self, l, julgamento)
 
 
 func falha(l: int) -> void:
@@ -352,7 +353,6 @@ func falha(l: int) -> void:
 	var p := jogador(l)
 	if p:
 		p.gesto("emote-no", 0.5)
-	SECAO.piscar(self, l, Ritmo.ERRO)
 
 
 ## A janela fechou: o lingote vai para a pilha de quem está por cima (ou para a escória).
@@ -436,39 +436,30 @@ Em `godot/testes/prova_do_jogo.gd`:
 ## S03_J15 (K5): o Carimbo abre pelo catálogo; o rodízio dá a vez a cada um;
 ## o clique simulado do dono chega julgado; os lingotes vão para as pilhas.
 func _prova_do_carimbo() -> void:
-	jogo._entrar_na_sala("S03_J15", false)
-	await _quadros(2)
-	var mg = jogo.sala
-	_esperar(mg is Minigame and mg.id == "S03_J15", "S03_J15: abriu pelo catálogo")
-	if not mg is Minigame:
+	var primeira := [-9]
+	var olhar := func(m) -> void:
+		if primeira[0] == -9:  # o primeiro quadro da fase jogo
+			primeira[0] = int(m._sinc.get("dono", -9))
+	# a espera é a da H08: o aviso em quadros, o jogo pelo relógio de parede (90 s de música e o treino)
+	var mg = await _joga_o_minigame("S03_J15", 130.0, olhar)
+	if mg == null:
 		return
-	var q := 0
-	while is_instance_valid(mg) and mg.fase == "aviso" and q < 900:
-		await _quadros(1)
-		q += 1
-	_esperar(int(mg._sinc.get("dono", -9)) == 0, "S03_J15: a primeira síncope é do P1")
-	var inicio := Time.get_ticks_usec()
-	while is_instance_valid(mg) and mg.fase == "jogo" and Time.get_ticks_usec() - inicio < 40000000:
-		await _quadros(1)
-	_esperar(is_instance_valid(mg) and mg.fase == "fim", "S03_J15: fechou")
-	if not is_instance_valid(mg):
-		return
+	_esperar(primeira[0] == 0, "S03_J15: a primeira síncope é do P1")
 	var donos := 0
 	var pilhas := 0
 	for l in 4:
 		donos += int(mg.contagem[l][2]) + int(mg.contagem[l][3])
 		pilhas += int(mg.j[l].lingotes)
 	_esperar(donos >= 2 and pilhas >= 1, "S03_J15: os donos carimbaram (%d) e os lingotes foram às pilhas (%d)" % [donos, pilhas])
-	q = 0
+	var q := 0
 	while (jogo.estado != "salao" or jogo._trocando) and q < 900:
 		await _quadros(5)
 		q += 5
 	_esperar(jogo.estado == "salao", "S03_J15: de volta ao salão")
 ```
 
-(Na prova sem janela, o tempo de jogo anda ~16 vezes mais depressa que a
-música: cabem umas quatro síncopes. Por isso a checagem pede dois donos,
-não os quatro.)
+(O fim conta em tempo de música (H08): a prova joga os 90 s inteiros. A
+checagem pede dois donos, não os quatro: o robô médio e o ruim erram.)
 
 **Na sessão:** `bash tests/prova_do_jogo.sh` e `bash tests/prova_visual.sh`.
 

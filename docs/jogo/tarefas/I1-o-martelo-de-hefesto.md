@@ -1,6 +1,6 @@
 # I1 — O Martelo de Hefesto
 
-**Sprint:** I · **Slot:** S01_J01 · **Tamanho:** G · **Estimativa:** US$ 2,0 · **Depende de:** H04, F09, F03, F05, H07, G05
+**Sprint:** I · **Slot:** S01_J01 · **Tamanho:** G · **Estimativa:** US$ 2,0 · **Depende de:** H04, H08, F09, F03, F05, H07, G05
 
 ## Por quê
 
@@ -33,20 +33,20 @@ O que muda, em resumo:
 | --- | --- |
 | a runa fecha em `e.t` (soma de `dt`) | a runa acende 2 tempos antes da nota do lugar e o anel fecha na batida da nota (`Ritmo.batida()`) |
 | `_acertou`/`_perdeu` com pontos por rapidez | `julgar_toque` do kit; `toque()` e `falha()` |
-| uma fila e acabou | a fila se repete; a primeira volta é a da bancada; o fim é aos 90 s de jogo **e** com a primeira volta feita |
+| uma fila e acabou | a fila se repete; a primeira volta é a da bancada; o fim é aos 90 s de música (o kit, H08) |
 | pontos | espadas: seis golpes forjam uma espada, pendurada na estante |
 | — | o pico: no meio, a espada em brasa (cada runa pede dois golpes) |
 | `Forja.gatilhos_off` | só o R2 (o L2 é do item) |
 | anel liso, marcas em esfera | anel facetado (8 lados), marcas em caixa |
 | o robô por `rng` | o robô pelo relógio da música, com `Forja.robo_acerta()` |
 
-**Por que a FICHA diz `"duracao": 0.0`:** com `--fixed-fps 60` sem janela, o
-tempo de jogo anda ~16 vezes mais depressa que a música (13, o relógio). Um
-fim só por tempo de jogo acabaria na prova depois de uns 10 tempos de
-música, sem pedir os treze botões — e a bancada perderia os vereditos. O fim
-fica com o minigame: cada lugar acaba quando **os 90 s de jogo passaram e a
-primeira volta da fila terminou**. No sofá os dois chegam juntos em 90 s (a
-primeira volta leva uns 30 s); na prova, a volta manda (uns 30 s de relógio).
+**O fim em tempo de música** ([13, H08](../13-arquitetura.md#as-decisões-comuns-dos-minigames--h08)):
+a FICHA diz `"duracao": 90.0` e o kit conta os 90 s em `Ritmo.t_musica()`,
+não em tempo de jogo — com `--fixed-fps 60` o jogo anda ~16 vezes mais
+depressa que a música, e um fim por `t_fase` acabaria antes de a fila pedir
+os treze botões. A primeira volta da fila (17 notas por lugar, uns 20 a 35 s
+de música) cabe folgada nos 90 s: os vereditos da bancada saem dela. Na
+prova, o Martelo leva 90 s de relógio.
 
 ## A ficha de dados
 
@@ -60,7 +60,7 @@ const FICHA := {
 	"entradas": BOTOES,
 	"camera": "fixa",
 	"faixa": "MUS_S01_J01",
-	"duracao": 0.0,
+	"duracao": 90.0,
 	"fim": "tempo",
 	"sensacoes": ["acerto", "perfeito", "erro", "golpe"],
 	"material": "metal",
@@ -82,15 +82,15 @@ treze botões que um jogo usa), como a H04 deixou.
 - **A contagem:** batidas 0 a 3; a primeira nota de cada lugar é a batida
   `4 + 0,5·l`.
 - **O hoqueto em colcheias:** a nota do lugar `l` cai nas batidas
-  `2k + 0,5·l` (P1 no 1 e no 3 do compasso, P2 no "e" do 1 e do 3, P3 no 2 e
+  `2k + 0,5·l` (a `proxima_batida` do kit; P1 no 1 e no 3 do compasso, P2 no "e" do 1 e do 3, P3 no 2 e
   no 4, P4 no "e" do 2 e do 4). Uma nota a cada 2 tempos por lugar; os
   quatro juntos fazem colcheias seguidas. `Ritmo.simples[l]`: uma a cada 4
   tempos.
 - **A runa de botão:** acende 2 tempos antes da nota, com o glifo do botão e
   o anel na cor do lugar; o anel fecha até a batida da nota. O botão certo
   → `julgar_toque`. Outro botão da lista, com a runa acesa → erro (a linha
-  `entrada` diz qual chegou). Nada até `JANELA_BOM + 0,05 s` depois da nota
-  → nota perdida.
+  `entrada` diz qual chegou). Nada até `FOLGA_PERDIDA` (o kit, 0,14 s)
+  depois da nota → nota perdida.
 - **A runa do círculo** (um analógico): acende já; o lugar gira o analógico
   até a borda (0,85) pelas oito direções — as marcas acendem uma a uma. Com
   as oito, a runa troca para o glifo do analógico e marca a nota na próxima
@@ -114,11 +114,11 @@ treze botões que um jogo usa), como a H04 deixou.
 - **As espadas:** cada acerto é um golpe (a nota especial, dois); seis
   golpes forjam uma espada, que aparece na estante atrás da bigorna. O erro
   racha a espada em curso: menos dois golpes.
-- **A progressão:** `p = t_jogo / (90 × ritmo_nivel)`. De 0 a 1/3, uma runa
+- **A progressão:** `progresso()` do kit (0..1 dos 90 s de música). De 0 a 1/3, uma runa
   a cada 2 tempos. **O pico (1/3 a 2/3), a espada em brasa:** toda runa de
   botão acertada pede um segundo golpe um tempo depois, com o mesmo botão —
   cada lugar bate em todo tempo, e os quatro fazem semicolcheias; a luz da
-  forja sobe. De 2/3 em diante, de novo uma a cada 2 tempos. Quantas notas
+  forja sobe (`no_pico()` do kit). De 2/3 em diante, de novo uma a cada 2 tempos. Quantas notas
   por lugar em 90 s: ~75 a 108 bpm, ~85 a 122 bpm.
 
 ## O cenário
@@ -143,13 +143,9 @@ lugar.
 ```gdscript
 extends RefCounted
 ## A seção A Centelha (S01): o que os cinco minigames têm em comum — a forja
-## (o cenário) e a barra de luz que pisca no julgamento (docs/jogo/02#2).
+## (o cenário). A barra de luz que pisca no julgamento é do kit (H08).
 ## Sem class_name: quem usa carrega pelo caminho,
 ## const SECAO := preload("res://scripts/minigames/s01/secao.gd").
-
-## Até quando (no `t` da sala) a barra de luz de cada lugar fica piscada (0: está na cor).
-static var _luz_ate := [0.0, 0.0, 0.0, 0.0]
-
 
 ## A forja: o chão e as paredes do kit, as brasas subindo, o neon rosa, as
 ## tochas, e o fundo (colunas, estandartes, a lenha, barris). O minigame põe
@@ -174,26 +170,6 @@ static func montar(sala: SalaJogo) -> void:
 	fornalha.light_energy = 1.4
 	fornalha.omni_range = 8.0
 	sala.add_child(fornalha)
-
-
-## A barra de luz do lugar pelo julgamento: branco por 0,12 s no perfeito; a
-## cor do lugar a 40% por 0,5 s no erro (F04: nunca abaixo de 30%, nunca mais
-## de 0,5 s fora da cor). Nos outros julgamentos, nada.
-static func piscar(sala: SalaJogo, l: int, julgamento: int) -> void:
-	if julgamento == Ritmo.PERFEITO:
-		Forja.luz(l, Color.WHITE)
-		_luz_ate[l] = sala.t + 0.12
-	elif julgamento == Ritmo.ERRO:
-		Forja.luz(l, Forja.cor_do_lugar(l).darkened(0.6))
-		_luz_ate[l] = sala.t + 0.5
-
-
-## A cor do lugar volta quando o piscar acabou. A primeira linha de todo jogar().
-static func voltar_a_luz(sala: SalaJogo) -> void:
-	for l in 4:
-		if _luz_ate[l] > 0.0 and sala.t >= _luz_ate[l]:
-			_luz_ate[l] = 0.0
-			Forja.luz_do_lugar(l)
 ```
 
 ## O repertório
@@ -202,7 +178,7 @@ static func voltar_a_luz(sala: SalaJogo) -> void:
 | --- | --- |
 | **botões, analógicos, gatilhos (a feature)** | a runa pede; a mão responde na nota |
 | vibração | o kit: `acerto`/`perfeito` (ou a textura `metal` no cabo, H07) em todo acerto, `erro` no erro; a espada forjada: `Forja.sentir(l, "golpe")` |
-| barra de luz | `SECAO.piscar` no `toque` e na `falha` |
+| barra de luz | o kit (`_reagir`, H08): branco no perfeito, a cor do lugar escurecida no erro; a ficha não mexe |
 | alto-falante do dono | perfeito: a nota do lugar (o kit); ótimo e bom: `Som.no_controle(l, "martelo", 0.55)`; erro: a nota quebrada (o kit); a espada forjada: `Forja.som_falante(l, "coleta", 0.7)` |
 | gatilho | R2: Feedback (3, 4) enquanto a runa do fole do R2 está acesa; `GATILHO_OFF` no R2 quando ela acaba; o L2 nunca (é do item) |
 | háptica por material | `metal`, pelo kit |
@@ -217,9 +193,9 @@ fila. Recuperação: a próxima runa acende no tempo de sempre.
 
 ## O fim e o vencedor
 
-Cada lugar acaba quando `e.voltas >= 1` **e** `t_jogo >= 90 × ritmo_nivel`;
-o boneco faz `emote-yes` e a runa some. Todos acabaram → o kit fecha (F03).
-`vencedor()`: mais espadas; no empate, mais pontos; depois, o lugar menor.
+O kit fecha aos 90 s de música (`"fim": "tempo"`, F03 e H08); a runa some
+com a fase. `vencedor()`: mais espadas; no empate, mais pontos; depois, o
+lugar menor.
 
 ## Com menos de quatro
 
@@ -324,8 +300,6 @@ const GLIFO := {
 	Forja.L1: "l1", Forja.R1: "r1", Forja.L3: "stick_l", Forja.R3: "stick_r", Forja.CIMA: "dpad_up",
 	Forja.BAIXO: "dpad_down", Forja.ESQUERDA: "dpad_left", Forja.DIREITA: "dpad_right", Forja.CREATE: "share",
 }
-const BATIDA_DA_PRIMEIRA_NOTA := 4.0
-const DURACAO_S := 90.0  ## o jogo que vale (o fim é deste minigame: a FICHA diz 0)
 const ANTES := 2.0  ## a runa de botão acende tantos tempos antes da nota
 const JANELA_ESPECIAL := 8.0  ## tempos para fechar o círculo ou encher o fole
 const BORDA := 0.85
@@ -335,7 +309,7 @@ const MAX_TENTATIVAS := 3
 const GOLPES_POR_ESPADA := 6
 const PONTOS := [0, 60, 80, 100]  ## ERRO, BOM, OTIMO, PERFEITO
 const ESPECIAL := 2.5  ## a nota do círculo e a do fole valem mais
-const FOLGA_PERDIDA := 0.05  ## s depois da janela BOM: a nota passou
+# BATIDA_DA_PRIMEIRA_NOTA, FOLGA_PERDIDA, proxima_batida, no_pico e progresso: do kit (H08)
 
 var j := {}  ## lugar -> o estado do jogador
 var runas := {}  ## lugar -> os nós da runa
@@ -404,17 +378,9 @@ func _runa(l: int) -> Variant:
 	return e.fila[e.atual] if int(e.atual) < e.fila.size() else null
 
 
-## A próxima batida do lugar a partir de `desde` (o hoqueto em colcheias).
+## A próxima batida do lugar a partir de `desde` (o hoqueto em colcheias, pelo kit).
 func _proxima_batida(l: int, desde: float) -> float:
-	var passo := 4.0 if Ritmo.simples[l] else 2.0
-	var desloc := 0.5 * l
-	var k := ceilf((desde - desloc) / passo)
-	return maxf(k * passo + desloc, BATIDA_DA_PRIMEIRA_NOTA + desloc)
-
-
-func _no_pico() -> bool:
-	var p := t_jogo / (DURACAO_S * ritmo_nivel)
-	return p >= 1.0 / 3.0 and p < 2.0 / 3.0
+	return proxima_batida(l, desde, 4.0 if Ritmo.simples[l] else 2.0, 0.5 * l)
 
 
 func iniciar_jogo() -> void:
@@ -446,7 +412,6 @@ func _acender(l: int, desde: float) -> void:
 
 
 func jogar(dt: float) -> void:
-	SECAO.voltar_a_luz(self)
 	for p in jogadores:
 		var l: int = p.lugar
 		var e: Dictionary = j[l]
@@ -464,8 +429,6 @@ func jogar(dt: float) -> void:
 			e.fora = false
 			_acender(l, Ritmo.batida())
 		_jogar(l)
-		if int(e.voltas) >= 1 and t_jogo >= DURACAO_S * ritmo_nivel:
-			_acabar(l)
 
 
 func _jogar(l: int) -> void:
@@ -489,7 +452,7 @@ func _jogar(l: int) -> void:
 						"n": int(e.n)})
 					nota_perdida(l, int(e.n))
 				return
-			if Ritmo.t_musica() > Ritmo.t_da_batida(float(e.b_nota)) + Ritmo.JANELA_BOM + FOLGA_PERDIDA:
+			if Ritmo.t_musica() > Ritmo.t_da_batida(float(e.b_nota)) + FOLGA_PERDIDA:
 				nota_perdida(l, int(e.n))
 		"analogico":
 			_circulo(l, e, r)
@@ -521,7 +484,7 @@ func _circulo(l: int, e: Dictionary, r: Dictionary) -> void:
 	Forja.med_pedido(l, crave)
 	if Forja.apertou(l, crave):
 		julgar_toque(l, Ritmo.t_da_batida(float(e.b_nota)), int(e.n))
-	elif Ritmo.t_musica() > Ritmo.t_da_batida(float(e.b_nota)) + Ritmo.JANELA_BOM + FOLGA_PERDIDA:
+	elif Ritmo.t_musica() > Ritmo.t_da_batida(float(e.b_nota)) + FOLGA_PERDIDA:
 		nota_perdida(l, int(e.n))
 
 
@@ -551,7 +514,7 @@ func _fole(l: int, e: Dictionary, r: Dictionary) -> void:
 	if cruzou:
 		Forja.evento("entrada", l + 1, {"o": "gatilho", "detalhe": ("R2" if direito else "L2") + ": meio e fundo"})
 		julgar_toque(l, Ritmo.t_da_batida(float(e.b_nota)), int(e.n))
-	elif agora > Ritmo.t_da_batida(float(e.b_nota)) + Ritmo.JANELA_BOM + FOLGA_PERDIDA:
+	elif agora > Ritmo.t_da_batida(float(e.b_nota)) + FOLGA_PERDIDA:
 		nota_perdida(l, int(e.n))
 
 
@@ -596,7 +559,6 @@ func toque(l: int, julgamento: int) -> void:
 	var p := jogador(l)
 	if p:
 		p.gesto("attack-melee-right", 0.45)
-	SECAO.piscar(self, l, julgamento)
 	_avancar(l, true)
 
 
@@ -611,7 +573,6 @@ func falha(l: int) -> void:
 	var p := jogador(l)
 	if p:
 		p.gesto("emote-no", 0.6)
-	SECAO.piscar(self, l, Ritmo.ERRO)
 	var r = _runa(l)
 	if r != null:
 		r.tentativas = int(r.tentativas) + 1
@@ -631,7 +592,7 @@ func _avancar(l: int, acertou: bool) -> void:
 	e.n = int(e.n) + 1
 	if r != null and str(r.tipo) == "gatilho" and int(r.alvo) == 1:
 		Forja.gatilho(l, 1, Forja.GATILHO_OFF)
-	if acertou and r != null and str(r.tipo) == "botao" and _no_pico() and not bool(e.segundo) and not Ritmo.simples[l]:
+	if acertou and r != null and str(r.tipo) == "botao" and no_pico() and not bool(e.segundo) and not Ritmo.simples[l]:
 		e.segundo = true
 		e.b_nota = anterior + 1.0
 		nova_nota(l, int(e.n), Ritmo.t_da_batida(float(e.b_nota)))
@@ -642,16 +603,6 @@ func _avancar(l: int, acertou: bool) -> void:
 		e.fila = _nova_fila()
 		e.atual = 0
 	_acender(l, anterior if anterior >= 0.0 else Ritmo.batida())
-
-
-func _acabar(l: int) -> void:
-	acabou[l] = true
-	Forja.med_pedido(l, -1)
-	Forja.gatilho(l, 1, Forja.GATILHO_OFF)
-	(runas[l].raiz as Node3D).visible = false
-	var p := jogador(l)
-	if p:
-		p.gesto("emote-yes", 1.5)
 
 
 func _pendurar_espada(l: int, k: int) -> void:
@@ -766,9 +717,10 @@ quadro.)
 - **O treino** julga e não soma: as espadas só com `not treinando`.
 - **`class_name`, `_init()` e `RAIAS`**: nenhum (o kit); o `class_name
   SalaCentelha` já saiu na H04.
-- **As esperas da prova passam a ser pelo relógio.** O Martelo agora leva
-  uns 30 s de relógio na prova (a primeira volta, no tempo da música). Os
-  laços que esperavam a fase `fim` só em quadros não chegam lá (veja Provas).
+- **O fim é do kit, em tempo de música** (H08): nada de `"duracao": 0.0`,
+  de `t_jogo` ou de `t_fase` na ficha. O Martelo leva 90 s de relógio na
+  prova; a espera é a do `_joga_o_minigame` da H08, pelo relógio de parede
+  (veja Provas).
 - **A resistência do R2 pelas opções:** `Forja.gatilho` já passa pelas
   opções do lugar (gatilho desligado vira Off); não confira de novo.
 - **Kit.material a cada quadro** nas marcas: se a prancha mostrar menos de
@@ -790,16 +742,10 @@ com o cabo que cai.
 
 **`godot/testes/prova_do_jogo.gd`:**
 
-1. `_termina_a_sala()`: a espera da fase `fim` passa a aceitar o relógio de
-   parede (as salas de hoje continuam cabendo nos 12000 quadros):
-
-   ```gdscript
-   	var q := 0
-   	var inicio := Time.get_ticks_usec()
-   	while is_instance_valid(sala) and sala.fase != "fim" and (q < 12000 or Time.get_ticks_usec() - inicio < 90000000):
-   		await _quadros(10)
-   		q += 10
-   ```
+1. O Martelo joga pelo `_joga_o_minigame("S01_J01", 150.0, ...)` da H08,
+   que espera a fase `fim` pelo relógio de parede (90 s de música, mais o
+   aviso e o fechamento). As esperas de `_termina_a_sala()` e da prova de
+   poucos já são as da H08: esta ficha não mexe nelas.
 
 2. Em `_prova_do_relatorio()`, no laço da linha do tempo que a H04 pôs,
    conte as notas julgadas do Martelo por lugar:
@@ -813,10 +759,6 @@ com o cabo que cai.
    	for l in 4:
    		_esperar(martelo[l] >= 17, "S01_J01 P%d: a primeira volta inteira julgada (%d notas)" % [l + 1, martelo[l]])
    ```
-
-**`godot/testes/prova_de_poucos.gd`**, em `_joga()`, a mesma troca da espera:
-`while ... and (q < 20000 or Time.get_ticks_usec() - inicio < 90000000):`,
-com `var inicio := Time.get_ticks_usec()` antes do laço.
 
 **`godot/testes/captura_jogo.gd`** (as fotos): os momentos de `"centelha"`
 leem o estado de antes. Troque os dois últimos por:
@@ -833,7 +775,7 @@ leem o estado de antes. Troque os dois últimos por:
 **Na sessão:** `bash tests/prova_do_jogo.sh` e `bash tests/prova_visual.sh`.
 
 **O André (local):** `scripts/gauntlet.sh` e `bash tests/prova_de_poucos.sh`
-(a prova de poucos agora leva uns 2 minutos a mais); depois
+(com o fim em tempo de música, cada Martelo leva 90 s de relógio); depois
 `./run-local.sh -- --sala=centelha` com quatro controles: a runa acende no
 tempo de cada um, a bigorna soa a nota de cada um, o R2 pesa no meio do fole,
 o pico no meio se sente, e as espadas aparecem na estante. As três perguntas

@@ -26,8 +26,7 @@ Um arquivo só, criado pela K1 e usado pelos cinco:
 | `SECAO.distancia(a, b) -> float` | a distância entre dois toques em larguras do touchpad (como o núcleo mede) |
 | `SECAO.mostrar_dedos(sala, l, nos)` | os dois dedos na placa (discos de 8 lados na cor do lugar) e a ligação entre eles |
 | `SECAO.disco8(pai, raio, altura, pos, mat)`, `SECAO.anel8(pai, raio, pos, mat)` | disco e anel facetados (8 lados), no lugar das esferas e dos toros lisos (11) |
-| `SECAO.textura(sala, l, material)` | a textura sob o dedo: `Forja.tocar_material(l, material, "toque", 0.4)` no máximo a cada quarto de tempo |
-| `SECAO.piscar(sala, l, j)`, `SECAO.voltar_a_luz(sala)` | a barra de luz, igual à das outras seções |
+| `SECAO.textura(l, material)` | a textura sob o dedo, só na háptica: `Forja.textura(l, material)` (H08) no máximo a cada quarto de tempo; no rádio, nada |
 
 O código inteiro está na [K1](K1-o-molde.md#o-cenário).
 
@@ -43,7 +42,9 @@ O código inteiro está na [K1](K1-o-molde.md#o-cenário).
   dedo encostado. O clique é o botão `Forja.TOUCHPAD`.
 - **Sem touchpad** (`Forja.capacidade(l, "toque")` falso): o lugar não tem o
   que pedir. O minigame o põe como acabado no `iniciar_jogo()` (sem erro) e
-  grava `Forja.evento("entrada", l + 1, {"o": "sensores", "toque": false})`.
+  grava a troca de canal (13, H08): `Forja.evento("troca", l + 1, {"slot": id,
+  "de": "touchpad", "para": "sem_touchpad"})`. A linha `entrada` fica só para
+  o que o jogador fez.
 - **A contagem, o pico, a barra de luz, o alto-falante, a `contagem` para a
   prova e o R2 (livre; o L2 é do item):** como na
   [seção A Centelha](I-a-centelha.md#as-convenções-da-seção).
@@ -74,7 +75,7 @@ na K1, como hoje; os outros quatro gravam na linha `entrada` o que o dedo fez
 (onde tocou, quanto andou, quantos dedos, se um se perdeu) e o kit grava o
 tempo (o `toque`).
 
-## Antes de começar: o que ainda falta na base
+## Antes de começar: o que vem da base
 
-Os mesmos avisos do [índice da seção A Centelha](I-a-centelha.md#antes-de-começar-o-que-ainda-falta-na-base):
-o sorteio dentro da seção e o ícone.
+O mesmo do [índice da seção A Centelha](I-a-centelha.md#antes-de-começar-o-que-vem-da-base):
+o sorteio dentro da seção e o ícone são da H08.

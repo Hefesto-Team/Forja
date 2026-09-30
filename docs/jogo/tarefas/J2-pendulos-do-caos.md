@@ -1,6 +1,6 @@
 # J2 — Pêndulos do Caos
 
-**Sprint:** J · **Slot:** S02_J07 · **Tamanho:** M · **Estimativa:** US$ 1,5 · **Depende de:** H04, F09, F03, H07, J1 (o `secao.gd`), e o sorteio dentro da seção ([o índice](I-a-centelha.md#antes-de-começar-o-que-ainda-falta-na-base))
+**Sprint:** J · **Slot:** S02_J07 · **Tamanho:** M · **Estimativa:** US$ 1,5 · **Depende de:** H04, H08, F09, F03, H07, J1 (o `secao.gd`)
 
 ## Por quê
 
@@ -47,7 +47,7 @@ const FICHA := {
   centro); no alto à esquerda, para a direita. O toque é o quadro em que a
   velocidade de rolagem passa de **2,5 rad/s** para o lado pedido
   (`-Forja.giro(l).z` é a velocidade para a direita), dentro da janela que
-  abre meio tempo antes. Nada até `JANELA_BOM + 0,05 s` → nota perdida.
+  abre meio tempo antes. Nada até `FOLGA_PERDIDA`, o do kit → nota perdida.
   Perigo físico: `julgar_toque(l, alvo, n, true)`.
 - **O perigo:** o erro soma 1; PERFEITO e ÓTIMO tiram 1. **No 2, o pêndulo
   trava e arremessa o cavaleiro:** ele voa para a lava, e volta ao disco 8
@@ -60,7 +60,7 @@ const FICHA := {
   (`Forja.sentir(lider, "aviso", ms)`); não muda janela nenhuma.
 - **Os pontos por julgamento** (ERRO, BOM, ÓTIMO, PERFEITO): `[0, 20, 35, 50]`;
   o fantasma ganha 10 por sopro (desempate entre fantasmas).
-- **A progressão:** `p = t_jogo / duracao`. De 0 a 1/3, o balanço de 4
+- **A progressão:** `progresso()` do kit (em tempo de música, H08). De 0 a 1/3, o balanço de 4
   tempos. **O pico (1/3 a 2/3), o bolero cresce:** o balanço de 2 tempos
   (`φ = A · cos(π · (batida − 0,25·l))`, um ápice por tempo, em `k + 0,25·l`)
   e `A = 0,75`. De 2/3 em diante, 4 tempos de novo. `Ritmo.simples[l]`: o
@@ -87,7 +87,7 @@ aro do boneco.
 | --- | --- |
 | **giroscópio (a feature)** | a velocidade do giro, no ápice |
 | vibração | o kit por nota; o arremesso: `golpe`; virar fantasma: `explosao`; o vento chegando no líder: `aviso` |
-| barra de luz | `SECAO.piscar` no `toque` e na `falha` |
+| barra de luz | o kit (`_reagir`, H08): branco no perfeito, a cor do lugar escurecida no erro |
 | alto-falante do dono | perfeito: a nota (o kit); ótimo e bom: `Forja.som_falante(l, "clique", 0.4)`; erro: a nota quebrada (o kit); **o metal rangendo** (`"material:metal"`, 0,6) meio tempo antes de cada ápice com `perigo == 1` |
 | gatilho | R2: `GATILHO_RESISTENCIA (0, 6)` com `perigo == 1`, Off com 0 — a mão sente que o pêndulo pesa |
 | háptica por material | `metal`, pelo kit |
@@ -164,7 +164,6 @@ const SECAO := preload("res://scripts/minigames/s02/secao.gd")
 
 # (a FICHA vem aqui)
 
-const BATIDA_DA_PRIMEIRA_NOTA := 4.0
 const AMPLITUDE := 0.6
 const AMPLITUDE_PICO := 0.75
 const CORDA := 4.2
@@ -178,7 +177,6 @@ const VIDAS := 3
 const FORA := 8.0
 const PONTOS := [0, 20, 35, 50]
 const SOPRO := 10
-const FOLGA_PERDIDA := 0.05
 
 var j := {}
 var contagem := [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]
@@ -227,18 +225,13 @@ func montar() -> void:
 		_mostrar(l)
 
 
-func _no_pico() -> bool:
-	var p := t_jogo / maxf(duracao, 1.0)
-	return p >= 1.0 / 3.0 and p < 2.0 / 3.0
-
-
 ## O ângulo do pêndulo do lugar agora (a batida manda; o tranco segura meio tempo).
 func _fi(l: int) -> float:
 	var b := Ritmo.batida()
 	var e: Dictionary = j[l]
 	if b - float(e.trava_b) < 0.5:
 		b = float(e.trava_b)
-	if _no_pico():
+	if no_pico():
 		return AMPLITUDE_PICO * cos(PI * (b - 0.25 * l))
 	return AMPLITUDE * cos(PI * (b - 0.5 * l) / 2.0)
 
@@ -246,8 +239,8 @@ func _fi(l: int) -> float:
 ## O próximo ápice do lugar depois de `desde`, e para que lado ele vira.
 func _proxima(l: int, desde: float) -> void:
 	var e: Dictionary = j[l]
-	var passo := 1.0 if _no_pico() else 2.0
-	var desloc := 0.25 * l if _no_pico() else 0.5 * l
+	var passo := 1.0 if no_pico() else 2.0
+	var desloc := 0.25 * l if no_pico() else 0.5 * l
 	var k := floorf((desde - desloc) / passo) + 1.0
 	if Ritmo.simples[l] and int(k) % 2 == 1:
 		k += 1.0
@@ -263,8 +256,7 @@ func _proxima(l: int, desde: float) -> void:
 
 func iniciar_jogo() -> void:
 	for l in presentes():
-		Forja.evento("entrada", l + 1, {"o": "sensores", "giro": Forja.capacidade(l, "giro"),
-			"acel": Forja.capacidade(l, "acel")})
+		SECAO.anotar_troca(self, l)  # sem giroscópio ou acelerômetro: a linha `troca` (H08)
 		_proxima(l, BATIDA_DA_PRIMEIRA_NOTA - 0.01)
 
 
@@ -282,7 +274,6 @@ func _virando(l: int) -> float:
 
 
 func jogar(_dt: float) -> void:
-	SECAO.voltar_a_luz(self)
 	var agora := Ritmo.t_musica()
 	var vivos := 0
 	for l in presentes():
@@ -329,7 +320,7 @@ func _nota(l: int, e: Dictionary, agora: float) -> void:
 		Forja.evento("entrada", l + 1, {"o": "giro", "pedido": int(e.pedido), "pico": snappedf(float(e.pico), 0.1),
 			"limiar": limiar, "n": int(e.n)})
 		julgar_toque(l, alvo, int(e.n), true)
-	elif agora > alvo + Ritmo.JANELA_BOM + FOLGA_PERDIDA:
+	elif agora > alvo + FOLGA_PERDIDA:
 		nota_perdida(l, int(e.n))
 
 
@@ -346,14 +337,12 @@ func toque(l: int, julgamento: int) -> void:
 		_perigo(l, int(e.perigo) - 1)
 	if julgamento != Ritmo.PERFEITO:
 		Forja.som_falante(l, "clique", 0.4)
-	SECAO.piscar(self, l, julgamento)
 	_proxima(l, float(e.b))
 
 
 func falha(l: int) -> void:
 	contagem[l][Ritmo.ERRO] += 1
 	var e: Dictionary = j[l]
-	SECAO.piscar(self, l, Ritmo.ERRO)
 	if bool(e.fantasma):
 		_proxima(l, float(e.b))
 		return
@@ -512,27 +501,15 @@ Em `godot/testes/prova_do_jogo.gd`:
 ## S02_J07 (J2): os pêndulos abrem pelo catálogo; a virada do robô chega pelo
 ## giroscópio simulado de cada um; o fim tem vencedor.
 func _prova_dos_pendulos() -> void:
-	jogo._entrar_na_sala("S02_J07", false)
-	await _quadros(2)
-	var mg = jogo.sala
-	_esperar(mg is Minigame and mg.id == "S02_J07", "S02_J07: abriu pelo catálogo")
-	if not mg is Minigame:
-		return
-	var q := 0
-	while is_instance_valid(mg) and mg.fase == "aviso" and q < 900:
-		await _quadros(1)
-		q += 1
-	var inicio := Time.get_ticks_usec()
-	while is_instance_valid(mg) and mg.fase == "jogo" and Time.get_ticks_usec() - inicio < 40000000:
-		await _quadros(1)
-	_esperar(is_instance_valid(mg) and mg.fase == "fim", "S02_J07: fechou")
-	if not is_instance_valid(mg):
+	# a espera é a da H08: o aviso em quadros, o jogo pelo relógio de parede (90 s de música e o treino)
+	var mg = await _joga_o_minigame("S02_J07", 130.0)
+	if mg == null:
 		return
 	for l in 4:
 		var c: Array = mg.contagem[l]
 		_esperar(int(c[2]) + int(c[3]) >= 1, "S02_J07 P%d: virou no alto %s" % [l + 1, c])
 	_esperar(mg.vencedor().size() == 4, "S02_J07: a colocação tem os quatro")
-	q = 0
+	var q := 0
 	while (jogo.estado != "salao" or jogo._trocando) and q < 900:
 		await _quadros(5)
 		q += 5

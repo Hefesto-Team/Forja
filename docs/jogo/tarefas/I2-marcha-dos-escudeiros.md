@@ -1,6 +1,6 @@
 # I2 — Marcha dos Escudeiros
 
-**Sprint:** I · **Slot:** S01_J02 · **Tamanho:** M · **Estimativa:** US$ 1,5 · **Depende de:** H04, F09, F03, H07, I1 (o `secao.gd`), e o sorteio dentro da seção ([o índice](I-a-centelha.md#antes-de-começar-o-que-ainda-falta-na-base))
+**Sprint:** I · **Slot:** S01_J02 · **Tamanho:** M · **Estimativa:** US$ 1,5 · **Depende de:** H04, H08, F09, F03, H07, I1 (o `secao.gd`)
 
 ## Por quê
 
@@ -50,14 +50,14 @@ const FICHA := {
 - **O passo:** o analógico pedido cruza −0,8 no eixo Y (para a frente) vindo
   de acima de −0,5 — o instante do cruzamento é o toque (`julgar_toque`). O
   outro analógico cruzar −0,8 a menos de `JANELA_BOM` da nota é **trocar o
-  pé**: erro. A nota passou sem passo (`JANELA_BOM + 0,05 s`): nota perdida.
+  pé**: erro. A nota passou sem passo (`FOLGA_PERDIDA`, o do kit): nota perdida.
 - **O avanço** (metros, na distância `d` do lugar): PERFEITO +0,55, ÓTIMO
   +0,45, BOM +0,25. A esteira puxa para trás a cada tempo inteiro que passa:
   −0,10 m (−0,25 m no pico). O erro: −1,5 m, e o passo seguinte não conta
   (ele está no chão). A meta: 48 m.
 - **Os pontos por julgamento** (ERRO, BOM, ÓTIMO, PERFEITO): `[0, 20, 35, 50]`;
   o primeiro a chegar +300, o segundo +200, o terceiro +100.
-- **A progressão:** `p = t_jogo / duracao`. De 0 a 1/3, a esteira normal.
+- **A progressão:** `progresso()` do kit (em tempo de música, H08). De 0 a 1/3, a esteira normal.
   **O pico (1/3 a 2/3), a ladeira:** a esteira puxa 2,5 vezes mais, as
   engrenagens do chão giram e soltam faísca. De 2/3 em diante, normal.
   Quem acerta tudo chega perto do tempo 120 (~67 s a 108 bpm); quem erra um
@@ -91,7 +91,7 @@ batida. Nada liso: tudo caixa. A cor do lugar só na borda da raia do kit.
 | --- | --- |
 | **analógicos (a feature)** | o passo é o analógico até o fim, alternado, no bumbo |
 | vibração | o kit no acerto e no erro; o tropeço: `Forja.sentir(l, "golpe")`; cruzar a meta: `Forja.sentir(l, "explosao")` |
-| barra de luz | `SECAO.piscar` no `toque` e na `falha` |
+| barra de luz | o kit (`_reagir`, H08): branco no perfeito, a cor do lugar escurecida no erro |
 | alto-falante do dono | perfeito: a nota do lugar (o kit); ótimo e bom: `Forja.som_falante(l, "passo:metal:%d" % (k % 3), 0.5)`; erro: a nota quebrada (o kit); cruzar a meta: `Forja.som_falante(l, "coleta", 0.8)` |
 | gatilho | livre: não há o que segurar (o R2 fica Off) |
 | háptica por material | `metal`, pelo kit |
@@ -165,7 +165,6 @@ const SECAO := preload("res://scripts/minigames/s01/secao.gd")
 
 # (a FICHA vem aqui)
 
-const BATIDA_DA_PRIMEIRA_NOTA := 4.0
 const META := 48.0
 const AVANCO := [0.0, 0.25, 0.45, 0.55]  ## ERRO, BOM, OTIMO, PERFEITO
 const PONTOS := [0, 20, 35, 50]
@@ -178,7 +177,6 @@ const SOLTO := -0.5
 const RETA_FINAL := 16.0
 const Z_LARGADA := 4.5
 const Z_CHEGADA := -5.8
-const FOLGA_PERDIDA := 0.05
 
 var j := {}  ## lugar -> o estado
 var n_nos := {}  ## lugar -> os nós (engrenagens)
@@ -215,10 +213,9 @@ func montar() -> void:
 		Forja.gatilho(l, 1, Forja.GATILHO_OFF)
 
 
-## A próxima batida de passo do lugar que ainda não passou.
+## A próxima batida de passo do lugar que ainda não passou (a `proxima_batida` do kit).
 func _passo_da_vez(l: int) -> float:
-	var passo := 2.0 if Ritmo.simples[l] else 1.0
-	return BATIDA_DA_PRIMEIRA_NOTA + ceilf(maxf(Ritmo.batida() - BATIDA_DA_PRIMEIRA_NOTA, 0.0) / passo) * passo
+	return proxima_batida(l, Ritmo.batida(), 2.0 if Ritmo.simples[l] else 1.0)
 
 
 func _marcar_nota(l: int, b: float) -> void:
@@ -228,11 +225,6 @@ func _marcar_nota(l: int, b: float) -> void:
 	nova_nota(l, int(e.n), Ritmo.t_da_batida(b))
 
 
-func _no_pico() -> bool:
-	var p := t_jogo / maxf(duracao, 1.0)
-	return p >= 1.0 / 3.0 and p < 2.0 / 3.0
-
-
 func iniciar_jogo() -> void:
 	for l in presentes():
 		j[l].batida_puxada = int(BATIDA_DA_PRIMEIRA_NOTA)
@@ -240,7 +232,6 @@ func iniciar_jogo() -> void:
 
 
 func jogar(_dt: float) -> void:
-	SECAO.voltar_a_luz(self)
 	for l in presentes():
 		var e: Dictionary = j[l]
 		_mostrar(l)
@@ -257,7 +248,7 @@ func jogar(_dt: float) -> void:
 		while int(e.batida_puxada) < int(floor(Ritmo.batida())):
 			e.batida_puxada = int(e.batida_puxada) + 1
 			if not treinando:
-				e.d = maxf(0.0, float(e.d) - (PUXA_LADEIRA if _no_pico() else PUXA))
+				e.d = maxf(0.0, float(e.d) - (PUXA_LADEIRA if no_pico() else PUXA))
 		_passo(l, e)
 	if _fim_da_reta >= 0.0 and Ritmo.batida() >= _fim_da_reta:
 		for l in presentes():
@@ -277,7 +268,7 @@ func _passo(l: int, e: Dictionary) -> void:
 	e.curso = maxf(float(e.curso), -y_pedido)
 	if Ritmo.batida() < float(e.caido_ate):
 		# no chão: o passo desta nota não conta
-		if agora > alvo + Ritmo.JANELA_BOM + FOLGA_PERDIDA:
+		if agora > alvo + FOLGA_PERDIDA:
 			_seguinte(l)
 		return
 	var perto := absf(agora - alvo) <= Ritmo.JANELA_BOM
@@ -290,7 +281,7 @@ func _passo(l: int, e: Dictionary) -> void:
 		Forja.evento("entrada", l + 1, {"o": "analogico", "lado": "esquerdo" if esquerdo else "direito",
 			"curso": snappedf(float(e.curso), 0.01), "n": int(e.n)})
 		julgar_toque(l, alvo, int(e.n))
-	elif agora > alvo + Ritmo.JANELA_BOM + FOLGA_PERDIDA:
+	elif agora > alvo + FOLGA_PERDIDA:
 		nota_perdida(l, int(e.n))
 
 
@@ -310,7 +301,6 @@ func toque(l: int, julgamento: int) -> void:
 		e.d = float(e.d) + AVANCO[julgamento]
 	if julgamento != Ritmo.PERFEITO:
 		Forja.som_falante(l, "passo:metal:%d" % (int(e.k) % 3), 0.5)
-	SECAO.piscar(self, l, julgamento)
 	if float(e.d) >= META and not (l in chegada):
 		_chegou(l)
 		return
@@ -329,7 +319,6 @@ func falha(l: int) -> void:
 		Efeitos.faiscas(self, p.global_position + Vector3(0, 0.2, 0), Tema.LARANJA, 18, 0.8)
 		_engrenagem_salta(p.global_position)
 	Forja.sentir(l, "golpe")
-	SECAO.piscar(self, l, Ritmo.ERRO)
 	_seguinte(l)
 
 
@@ -374,12 +363,12 @@ func _mostrar(l: int) -> void:
 		p.animar("walk", 1.0)
 	else:
 		p.animar("idle")
-	var puxa := PUXA_LADEIRA if _no_pico() else PUXA
+	var puxa := PUXA_LADEIRA if no_pico() else PUXA
 	var dentes: Array = n_nos[l]
 	for i in dentes.size():
 		var d: MeshInstance3D = dentes[i]
 		d.position.z = 5.0 - fposmod(Ritmo.batida() * puxa * 4.0 + 1.1 * i, 11.0)
-		d.rotation.x = fmod(Ritmo.batida(), 1.0) * TAU if _no_pico() else 0.0
+		d.rotation.x = fmod(Ritmo.batida(), 1.0) * TAU if no_pico() else 0.0
 
 
 func vencedor() -> Array:
@@ -451,27 +440,15 @@ depois de `await _prova_do_kit()`:
 ## S01_J02 (I2): a Marcha abre pelo catálogo, o robô marcha pelo analógico
 ## simulado, cada lugar tem passo julgado e a corrida fecha com vencedor.
 func _prova_da_marcha() -> void:
-	jogo._entrar_na_sala("S01_J02", false)
-	await _quadros(2)
-	var mg = jogo.sala
-	_esperar(mg is Minigame and mg.id == "S01_J02", "S01_J02: abriu pelo catálogo")
-	if not mg is Minigame:
-		return
-	var q := 0
-	while is_instance_valid(mg) and mg.fase == "aviso" and q < 900:
-		await _quadros(1)
-		q += 1
-	var inicio := Time.get_ticks_usec()
-	while is_instance_valid(mg) and mg.fase == "jogo" and Time.get_ticks_usec() - inicio < 40000000:
-		await _quadros(1)
-	_esperar(is_instance_valid(mg) and mg.fase == "fim", "S01_J02: a marcha fechou (%.1f s)" % ((Time.get_ticks_usec() - inicio) / 1e6))
-	if not is_instance_valid(mg):
+	# a espera é a da H08: o aviso em quadros, o jogo pelo relógio de parede (90 s de música e o treino)
+	var mg = await _joga_o_minigame("S01_J02", 130.0)
+	if mg == null:
 		return
 	for l in 4:
 		var c: Array = mg.contagem[l]
 		_esperar(int(c[1]) + int(c[2]) + int(c[3]) >= 1, "S01_J02 P%d: passos julgados %s" % [l + 1, c])
 	_esperar(mg.vencedor().size() == 4, "S01_J02: a colocação tem os quatro")
-	q = 0
+	var q := 0
 	while (jogo.estado != "salao" or jogo._trocando) and q < 900:
 		await _quadros(5)
 		q += 5

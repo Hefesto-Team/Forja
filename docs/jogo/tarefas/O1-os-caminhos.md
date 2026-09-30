@@ -1,6 +1,6 @@
 # O1 — Os Caminhos
 
-**Sprint:** O · **Slot:** S07_J31 · **Tamanho:** G · **Estimativa:** US$ 2,0 · **Depende de:** H04, F09, F01, H07, G08
+**Sprint:** O · **Slot:** S07_J31 · **Tamanho:** G · **Estimativa:** US$ 2,0 · **Depende de:** H04, H08, F09, F01, H07, G08
 
 ## Por quê
 
@@ -29,15 +29,16 @@ const FICHA := {
 	"titulo": "Os Caminhos",
 	"verbo": "Sinta o chão!",
 	"genero": "corrida",
-	"icone": "haptica",
+	"icone": "rumble_direito",
 	"entradas": [Forja.ESQUERDA, Forja.CIMA, Forja.DIREITA],
 	"camera": "fixa",
 	"faixa": "MUS_S07_J31",
-	"duracao": 0.0,
+	"duracao": 100.0,
 	"fim": "primeiro_a_chegar",
 	"sensacoes": ["acerto", "perfeito", "erro", "golpe"],
 	"material": "pedra",
 	"microjogo": {"verbo": "Sinta!", "segundos": 7.0},
+	"papel_som": Forja.PAPEL_HAPTICA,  # o kit abre este papel de som no entrar() (H08)
 	# a bancada: o veredito da háptica sai das trilhas escolhidas
 	"features": ["haptica_audio"],
 	"botoes_medidos": [Forja.ESQUERDA, Forja.CIMA, Forja.DIREITA, Forja.TOUCHPAD],
@@ -48,7 +49,7 @@ const FICHA := {
 ## Como se joga
 
 A faixa é `MUS_S07_J31`, 120 bpm (uma batida = 0,5 s). As quatro primeiras
-batidas são a contagem de entrada (`ENTRADA := 4`).
+batidas são a contagem de entrada (`BATIDA_DA_PRIMEIRA_NOTA` (4, do kit: H08)).
 
 **Uma bifurcação** dura `CICLO := 8` batidas. Para o lugar `l`, a bifurcação
 `k` começa na batida `b0`:
@@ -62,7 +63,7 @@ batidas são a contagem de entrada (`ENTRADA := 4`).
 | `b0 + 6` a `b0 + 8` | o boneco anda para a trilha escolhida (o mundo desliza pela batida) |
 
 - **O hoqueto:** a primeira bifurcação de cada um começa em
-  `ENTRADA + 2 * i`, onde `i` é a posição do lugar em `presentes()`. Com
+  `BATIDA_DA_PRIMEIRA_NOTA + 2 * i`, onde `i` é a posição do lugar em `presentes()`. Com
   quatro, as escolhas caem nas batidas 2, 4, 6 e 8 de cada ciclo, uma por
   jogador, e a nota de cada um soa na TV (`TOM_DO_LUGAR` do kit) — a frase só
   fica inteira se os quatro escolhem no tempo.
@@ -79,13 +80,13 @@ batidas são a contagem de entrada (`ENTRADA := 4`).
 - **A partitura simples** (`Ritmo.simples[l]`): as bifurcações de `k` ímpar
   (fora do pico) viram corredor reto — sem senha, sem nota; o boneco anda
   0,5 trecho sozinho na batida `b0 + 6`.
-- **O relógio da corrida:** a `duracao` da ficha é `0.0` — Os Caminhos
-  acabam pela música, não pelo relógio do jogo (a bancada precisa das
+- **O relógio da corrida:** a `duracao` da FICHA é 100 s, e o kit os conta
+  em tempo de música (H08), não pelo relógio do jogo — a bancada precisa das
   bifurcações todas, também na prova, onde o jogo anda 16 vezes mais
-  depressa que a música). O teto é `FIM_BATIDA := ENTRADA + 196` (100 s de
-  música).
+  depressa que a música. `FIM_BATIDA := BATIDA_DA_PRIMEIRA_NOTA + 196` (os
+  mesmos 100 s, em batidas a 120 bpm) só serve para prever as bifurcações.
 - **O pico no meio — a descida:** `_pico_k` é a metade das bifurcações
-  previstas (`floor((FIM_BATIDA - ENTRADA) / CICLO / 2)` = 12). As
+  previstas (`floor((FIM_BATIDA - BATIDA_DA_PRIMEIRA_NOTA) / CICLO / 2)` = 12). As
   bifurcações `_pico_k` a `_pico_k + 3` vêm no dobro (`CICLO_PICO := 4`): só o
   1º passo da senha em `b0`, as trilhas em `b0 + 2`, a escolha em `b0 + 2`
   (a nota), e o avanço vale 1,5 vez. A TV marca a descida: `Som.tocar("sobe")`
@@ -166,8 +167,8 @@ no treino), e a linha `troca` é gravada uma vez. O microfone não é usado.
 Quem passa do `META` chega: `_chegada.append(l)`, `acabou[l] = true`,
 `p.gesto("emote-yes", 1.2)`. Na primeira chegada, `_fim_batida = b + CORTESIA`
 (`CORTESIA := 8`): os outros ainda correm dois compassos, e então todos
-acabam (`acabou[l] = true`) e o kit fecha. Sem chegada, todos acabam na
-batida `FIM_BATIDA`. `vencedor()`: a ordem de `_chegada`, depois os outros pela
+acabam (`acabou[l] = true`) e o kit fecha. Sem chegada, o kit fecha aos 100 s
+de música (H08). `vencedor()`: a ordem de `_chegada`, depois os outros pela
 distância (e pelos pontos no empate).
 
 ## Com menos de quatro
@@ -265,8 +266,7 @@ extends Minigame
 
 const FICHA := { ... }   # a de cima
 
-const ENTRADA := 4  ## a contagem de entrada (H06): a primeira bifurcação começa na batida 4
-const FIM_BATIDA := ENTRADA + 196  ## o teto da corrida: 100 s de música
+const FIM_BATIDA := BATIDA_DA_PRIMEIRA_NOTA + 196  ## os 100 s de música em batidas: só para prever as bifurcações (o fim é do kit, H08)
 const CICLO := 8
 const CICLO_PICO := 4
 const PICO_BIFURCACOES := 4
@@ -316,7 +316,6 @@ var _robo_votos := [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]
 
 
 func montar() -> void:
-	papel_som = Forja.PAPEL_HAPTICA   # antes do som_preparar da SalaJogo.entrar
 	camera_pos = Vector3(0, 7.2, 10.6)
 	camera_olhar = Vector3(0, 0.4, -1.8)
 	Kit.arena(self, 5, 3)
@@ -331,7 +330,7 @@ func montar() -> void:
 
 
 func iniciar_jogo() -> void:
-	_pico_k = int(floor(float(FIM_BATIDA - ENTRADA) / CICLO / 2.0))
+	_pico_k = int(floor(float(FIM_BATIDA - BATIDA_DA_PRIMEIRA_NOTA) / CICLO / 2.0))
 	var ordem := presentes()
 	for i in ordem.size():
 		var l: int = ordem[i]
@@ -340,8 +339,8 @@ func iniciar_jogo() -> void:
 		_rng[l] = r
 		_rumble[l] = not Forja.som_tem(l, Forja.PAPEL_HAPTICA)
 		if _rumble[l]:
-			Forja.evento("troca", l + 1, {"slot": id, "recurso": "haptica", "para": "rumble", "motivo": "sem_placa"})
-		_b0[l] = float(ENTRADA + 2 * i)
+			Forja.evento("troca", l + 1, {"slot": id, "de": "haptica", "para": "rumble", "motivo": "sem_placa"})
+		_b0[l] = float(BATIDA_DA_PRIMEIRA_NOTA + 2 * i)
 		_nova_bifurcacao(l)
 
 
@@ -375,7 +374,7 @@ func jogar(_dt: float) -> void:
 				_respondeu(l, k, "nenhuma")
 				_motivo[l] = "parou"
 				nota_perdida(l, k)
-			elif Ritmo.t_musica() > alvo + Ritmo.JANELA_BOM:
+			elif Ritmo.t_musica() > alvo + FOLGA_PERDIDA:
 				_escolheu[l] = 3
 				Cega.perdido(_chao[l])
 				_respondeu(l, k, "nenhuma")
@@ -385,7 +384,7 @@ func jogar(_dt: float) -> void:
 			_b0[l] += _ciclo(k)
 			_k[l] = k + 1
 			_nova_bifurcacao(l)
-	if (_fim_batida > 0.0 and b >= _fim_batida) or b >= FIM_BATIDA:
+	if _fim_batida > 0.0 and b >= _fim_batida:  # sem chegada, o kit fecha aos 100 s de música (H08)
 		for l in presentes():
 			acabou[l] = true
 	_mostrar(b)
@@ -486,14 +485,10 @@ ou `"Chegou"`. Nenhuma frase fala de chão, de háptica ou de controle.
 - `som_controle` de cada passo (a H07, com `placa`), `nota` e `toque` (o kit);
 - o veredito `haptica_audio` (a bancada), calculado nos dois modos.
 
-**As duas linhas novas no 13.** Se a tabela "Os tipos, e quem os escreve"
-do [13](../13-arquitetura.md#o-registro-v2--f06-h01-h02-g02-h07) ainda não
-tem `pista` e `troca`, acrescente, no mesmo commit:
-
-```markdown
-| `pista` | `slot`, `n`, `evento` (`mandou`/`respondeu`); no `mandou`: `via` (`haptica`, `rumble`, `alto_falante`), `o_que`; no `respondeu`: `resposta` (`certo`, `errado`, `nenhuma`) | os minigames cuja pista é só do controle (S04, S06, S07, S09) |
-| `troca` | `slot`, `recurso` (`haptica`, `microfone`, `alto_falante`), `para` (`rumble`, `sozinho`), `motivo` (`sem_placa`, `sem_estereo`, `sem_microfone`, `mudo_no_sistema`, `mudo_no_jogo`) | o minigame, uma vez por lugar, quando o recurso falta e ele segue pelo outro caminho |
-```
+As linhas `pista` e `troca` são as do [13](../13-arquitetura.md#as-decisões-comuns-dos-minigames--h08)
+(H08): a `pista` com `n`, `evento` (`mandou`/`respondeu`), `via` e `o_que`;
+a `troca` com `de` e `para` (`haptica` → `rumble`) e o `motivo` junto
+(`sem_placa`, `sem_estereo`).
 
 ## Armadilhas
 
@@ -513,8 +508,8 @@ tem `pista` e `troca`, acrescente, no mesmo commit:
   de `ENV_MAX` (a placa virtual anda pelo relógio de parede), feche o
   envelope por tempo de música (0,2 s de `Ritmo.t_musica()`) em vez de 12
   quadros. Anote na ficha o que mediu.
-- **A prova fica mais longa.** Como o fim é pela música, a corrida inteira
-  roda na prova (uns 40 s de relógio com o robô bom, nas duas rodadas). É o
+- **A prova fica mais longa.** Como o fim é pela música (H08), a corrida
+  inteira roda na prova (até 100 s de relógio, nas duas rodadas). É o
   preço de o `haptica_audio` sair medido; se o `timeout 1200` do
   `tests/prova_do_jogo.sh` apertar, anote e avise — não encurte a corrida
   (a regra 7 da paridade).
@@ -523,8 +518,6 @@ tem `pista` e `troca`, acrescente, no mesmo commit:
   muda de uma rodada para outra.
 - **Não chame `errou()`** nem `Forja.vibrar`: o Escudo e as sensações são do
   kit.
-- **`ENTRADA`**: se o kit já tiver `BATIDA_DA_PRIMEIRA_NOTA`, use-a e apague a
-  constante (redeclarar dá erro de análise).
 - **As provas que falam `caminhos`**: `--sala=caminhos` continua abrindo (o
   apelido); `_joga_a_sala("caminhos", ["haptica_audio"])` da prova passa a
   abrir o `S07_J31` (`_e_a_sala`, H04).
@@ -544,16 +537,9 @@ que cai: as placas acesas, o boneco andando, o portão).
 
 Em `godot/testes/prova_do_jogo.gd`:
 
-1. **`_termina_a_sala` espera pelo relógio de parede.** Hoje ela espera o fim
-   por quadros (`q < 12000`, uns 12 s de relógio a 16×); Os Caminhos acabam
-   pela música (uns 40 s). Troque o laço por:
-
-   ```gdscript
-   	var inicio := Time.get_ticks_usec()
-   	while is_instance_valid(sala) and sala.fase != "fim" and Time.get_ticks_usec() - inicio < 180000000:
-   		await _quadros(10)
-   	_esperar(is_instance_valid(sala) and sala.fase == "fim", "%s: o robô jogou até o fim (%.0f s)" % [id, (Time.get_ticks_usec() - inicio) / 1e6])
-   ```
+1. **A espera pelo relógio de parede** é a da H08 (o `_joga_o_minigame`, e o
+   `_termina_a_sala` e a prova de poucos com a mesma espera): Os Caminhos
+   acabam pela música (até 100 s). Esta ficha não mexe nelas.
 
 2. **`_prova_os_caminhos()`**, no lugar do bloco "Os Caminhos, às cegas"
    (o tropeço saiu):

@@ -1,6 +1,6 @@
 # J3 — Patinação de Dados
 
-**Sprint:** J · **Slot:** S02_J08 · **Tamanho:** M · **Estimativa:** US$ 1,5 · **Depende de:** H04, F09, F03, H07, J1 (o `secao.gd`), e o sorteio dentro da seção ([o índice](I-a-centelha.md#antes-de-começar-o-que-ainda-falta-na-base))
+**Sprint:** J · **Slot:** S02_J08 · **Tamanho:** M · **Estimativa:** US$ 1,5 · **Depende de:** H04, H08, F09, F03, H07, J1 (o `secao.gd`)
 
 ## Por quê
 
@@ -53,10 +53,10 @@ const FICHA := {
 - **A nota:** o patinador **entra** na trilha do dado (fica a menos de
   0,35 m dela) dentro da janela que abre meio tempo antes → `julgar_toque`.
   Já estava lá quando a janela abriu: julga ali (adiantado — chegar cedo é
-  passar da nota). Não chegou até `JANELA_BOM + 0,05 s` depois → nota perdida.
+  passar da nota). Não chegou até `FOLGA_PERDIDA`, o do kit depois → nota perdida.
 - **Os pontos por julgamento** (ERRO, BOM, ÓTIMO, PERFEITO): `[0, 20, 35, 50]`.
   Cada dado com julgamento BOM ou melhor é **coletado**.
-- **A progressão:** `p = t_jogo / duracao`. De 0 a 1/3, um dado a cada 2
+- **A progressão:** `progresso()` do kit (em tempo de música, H08). De 0 a 1/3, um dado a cada 2
   tempos. **O pico (1/3 a 2/3), a descida:** um dado por tempo (`k + 0,25·l`)
   e os dados vêm 3 m por tempo. De 2/3 em diante, a cada 2 tempos.
   Dados de cada um em 90 s: ~55 a 96 bpm, ~72 a 128 bpm.
@@ -83,7 +83,7 @@ no aro.
 | --- | --- |
 | **giroscópio e acelerômetro (a feature)** | a inclinação contínua dirige |
 | vibração | o kit por nota (a textura `gelo` no cabo: fina, de um atuador só) |
-| barra de luz | `SECAO.piscar` no `toque` e na `falha` |
+| barra de luz | o kit (`_reagir`, H08): branco no perfeito, a cor do lugar escurecida no erro |
 | alto-falante do dono | perfeito: a nota (o kit); ótimo e bom: `Forja.som_falante(l, "coleta", 0.5)`; erro: a nota quebrada (o kit) |
 | gatilho | livre (o R2 Off) |
 | háptica por material | `gelo`, pelo kit |
@@ -154,7 +154,6 @@ const SECAO := preload("res://scripts/minigames/s02/secao.gd")
 
 # (a FICHA vem aqui)
 
-const BATIDA_DA_PRIMEIRA_NOTA := 4.0
 const TRILHAS := [-1.1, 0.0, 1.1]
 const ROLAGEM_CHEIA := 0.35
 const NA_TRILHA := 0.35
@@ -163,7 +162,6 @@ const VELOCIDADE_PICO := 3.0
 const DESLIZE := 12.0  ## por segundo de música
 const N_DADOS := 6
 const PONTOS := [0, 20, 35, 50]
-const FOLGA_PERDIDA := 0.05
 
 var j := {}
 var contagem := [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]
@@ -198,21 +196,15 @@ func montar() -> void:
 		Forja.gatilho(l, 1, Forja.GATILHO_OFF)
 
 
-func _no_pico() -> bool:
-	var p := t_jogo / maxf(duracao, 1.0)
-	return p >= 1.0 / 3.0 and p < 2.0 / 3.0
-
-
 func _proxima_batida(l: int, b: float) -> float:
 	var passo := 2.0
 	var desloc := 0.5 * l
 	if Ritmo.simples[l]:
 		passo = 4.0
-	elif _no_pico():
+	elif no_pico():
 		passo = 1.0
 		desloc = 0.25 * l
-	var k := floorf((b - desloc) / passo) + 1.0
-	return maxf(k * passo + desloc, BATIDA_DA_PRIMEIRA_NOTA + desloc)
+	return proxima_batida(l, b + 0.001, passo, desloc)  # o kit; estritamente depois de b
 
 
 ## Os dados nascem 6 tempos antes da batida deles; a trilha nunca repete a anterior.
@@ -222,7 +214,7 @@ func _nascer(l: int) -> void:
 		var t := int(e.trilha)
 		var nova := (t + 1 + rng.randi_range(0, 1)) % 3
 		e.trilha = nova
-		var d := {"n": int(e.n_prox), "b": float(e.b_prox), "x": TRILHAS[nova], "vel": VELOCIDADE_PICO if _no_pico() else VELOCIDADE}
+		var d := {"n": int(e.n_prox), "b": float(e.b_prox), "x": TRILHAS[nova], "vel": VELOCIDADE_PICO if no_pico() else VELOCIDADE}
 		e.dados.append(d)
 		nova_nota(l, int(d.n), Ritmo.t_da_batida(float(d.b)))
 		e.n_prox = int(e.n_prox) + 1
@@ -231,14 +223,12 @@ func _nascer(l: int) -> void:
 
 func iniciar_jogo() -> void:
 	for l in presentes():
-		Forja.evento("entrada", l + 1, {"o": "sensores", "giro": Forja.capacidade(l, "giro"),
-			"acel": Forja.capacidade(l, "acel")})
+		SECAO.anotar_troca(self, l)  # sem giroscópio ou acelerômetro: a linha `troca` (H08)
 		j[l].t_antes = Ritmo.t_musica()
 		j[l].b_prox = _proxima_batida(l, BATIDA_DA_PRIMEIRA_NOTA - 0.01)
 
 
 func jogar(_dt: float) -> void:
-	SECAO.voltar_a_luz(self)
 	var agora := Ritmo.t_musica()
 	for l in presentes():
 		var e: Dictionary = j[l]
@@ -284,7 +274,7 @@ func _nota(l: int, e: Dictionary, agora: float) -> void:
 		Forja.evento("entrada", l + 1, {"o": "rolagem", "pedido_x": d.x, "feito_x": snappedf(float(e.x), 0.01),
 			"rolagem": snappedf(SECAO.rolagem(l), 0.01), "n": int(d.n)})
 		julgar_toque(l, alvo, int(d.n))
-	elif agora > alvo + Ritmo.JANELA_BOM + FOLGA_PERDIDA:
+	elif agora > alvo + FOLGA_PERDIDA:
 		nota_perdida(l, int(d.n))
 
 
@@ -307,7 +297,6 @@ func toque(l: int, julgamento: int) -> void:
 	if p:
 		Som.tocar("tique", p.global_position + Vector3(0, 0.5, 0), -4.0, 1.4)
 		Efeitos.faiscas(self, p.global_position + Vector3(0, 0.5, 0), Tema.CIANO, 16, 0.7)
-	SECAO.piscar(self, l, julgamento)
 	_seguinte(l)
 
 
@@ -318,7 +307,6 @@ func falha(l: int) -> void:
 	var p := jogador(l)
 	if p:
 		Som.tocar("vento", p.global_position, -12.0)
-	SECAO.piscar(self, l, Ritmo.ERRO)
 	_seguinte(l)
 
 
@@ -407,26 +395,14 @@ Em `godot/testes/prova_do_jogo.gd`:
 ## S02_J08 (J3): a patinação abre pelo catálogo; o patinador de cada um chega
 ## às trilhas pela inclinação simulada; o fim tem vencedor.
 func _prova_da_patinacao() -> void:
-	jogo._entrar_na_sala("S02_J08", false)
-	await _quadros(2)
-	var mg = jogo.sala
-	_esperar(mg is Minigame and mg.id == "S02_J08", "S02_J08: abriu pelo catálogo")
-	if not mg is Minigame:
-		return
-	var q := 0
-	while is_instance_valid(mg) and mg.fase == "aviso" and q < 900:
-		await _quadros(1)
-		q += 1
-	var inicio := Time.get_ticks_usec()
-	while is_instance_valid(mg) and mg.fase == "jogo" and Time.get_ticks_usec() - inicio < 40000000:
-		await _quadros(1)
-	_esperar(is_instance_valid(mg) and mg.fase == "fim", "S02_J08: fechou")
-	if not is_instance_valid(mg):
+	# a espera é a da H08: o aviso em quadros, o jogo pelo relógio de parede (90 s de música e o treino)
+	var mg = await _joga_o_minigame("S02_J08", 130.0)
+	if mg == null:
 		return
 	for l in 4:
 		var c: Array = mg.contagem[l]
 		_esperar(int(c[2]) + int(c[3]) >= 1, "S02_J08 P%d: chegou ao dado no tempo %s" % [l + 1, c])
-	q = 0
+	var q := 0
 	while (jogo.estado != "salao" or jogo._trocando) and q < 900:
 		await _quadros(5)
 		q += 5

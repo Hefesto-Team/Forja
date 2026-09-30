@@ -1,6 +1,6 @@
 # N4 — Código do Dragão
 
-**Sprint:** N · **Slot:** S06_J29 · **Tamanho:** M · **Estimativa:** US$ 1,5 · **Depende de:** H04, F09, N1, H07
+**Sprint:** N · **Slot:** S06_J29 · **Tamanho:** M · **Estimativa:** US$ 1,5 · **Depende de:** H04, H08, F09, N1, H07
 
 ## Por quê
 
@@ -37,7 +37,7 @@ extends Minigame
 ## O registro mede: cada nota da senha (o som, se foi ao controle) e a
 ## resposta dela (o toque do kit com o mesmo n).
 ## O robô: conta os ataques que ouviu no alto-falante simulado; repete, no
-## tempo, só as notas que ouviu, com a altura da partitura; quando não acerta,
+## tempo, só as notas que ouviu, com a altura que ouviu (H08); quando não acerta,
 ## 250 ms tarde.
 ## Com menos de quatro: nada muda (cada um tem a sua senha e o seu tempo).
 ## A régua: (1) "Decore!" com o dragão olhando para cada um; (2) sim: a senha
@@ -48,7 +48,7 @@ const FICHA := {
 	"titulo": "Código do Dragão",
 	"verbo": "Decore!",
 	"genero": "tct",
-	"icone": "alto_falante",
+	"icone": "alto-falante",
 	"entradas": [Forja.CRUZ, Forja.CIRCULO, Forja.TRIANGULO],
 	"camera": "fixa",
 	"faixa": "MUS_S06_J29",
@@ -57,6 +57,7 @@ const FICHA := {
 	"sensacoes": ["toque", "acerto", "perfeito", "erro", "golpe"],
 	"material": "pedra",
 	"microjogo": {"verbo": "Decore!", "segundos": 6.0},
+	"nota_no_falante": false,  # o alto-falante é a pista: o kit não toca a nota do perfeito nele (H08)
 }
 
 const PONTOS := [0, 10, 20, 30]  ## por nota da resposta
@@ -80,7 +81,7 @@ compasso `S` (a primeira é a batida 4, depois da contagem):
    `p = 0,5` (o **pico**, 33–66 s; quem está com `Ritmo.simples[l]` fica em
    `p = 1`). A nota `i` é `senha[l][i]` (0, 1 ou 2), tocada com
    `var foi := CenarioDoCanto.falante(self, l, SOM[senha[l][i]], 0.9)` e
-   `Forja.evento("jogo", l + 1, {"slot": id, "o": "chamada", "n": <n da resposta i>, "som": SOM[...], "no_controle": foi})`.
+   `Forja.evento("pista", l + 1, {"slot": id, "n": <n da resposta i>, "evento": "mandou", "via": "alto_falante" if foi else "tv", "o_que": SOM[...], "no_controle": foi})`.
 2. **Uma batida de silêncio:** a resposta começa em
    `A = ceilf(S + L * p) + 1`.
 3. **A resposta:** `L` notas nas batidas `A + i`:
@@ -99,7 +100,7 @@ compasso `S` (a primeira é a batida 4, depois da contagem):
 A senha é sorteada pelo `rng` (da semente), uma por lugar: com quatro, são
 quatro senhas diferentes, cada uma no seu controle.
 
-**Os pontos** de cada nota: `marcar(l, Itens.pontos_do_acerto(l, PONTOS[j], j, fmod(b, 4.0) == 0.0))`.
+**Os pontos** de cada nota: `marcar(l, PONTOS[julgamento])` (o item, `Itens.pontos_do_acerto`, o kit já aplica no `julgar_toque`: H08).
 
 **O compasso na mão:** `Forja.sentir(l, "toque")` no começo de cada compasso
 e `CenarioDoCanto.tempo_forte()`.
@@ -161,7 +162,7 @@ longas de quem chegou lá.
 
 ## O fim e o vencedor
 
-100 s de `t_jogo`, pelo kit.
+100 s de música, pelo kit (H08).
 
 ```gdscript
 func vencedor() -> Array:
@@ -186,11 +187,12 @@ func vencedor() -> Array:
 ```gdscript
 # O robô conta os ataques que ouve no alto-falante simulado durante o canto
 # (a lógica de ataque da N1) e responde só as notas que ouviu, com a altura
-# da partitura (a placa virtual dá o nível, não a altura), no tempo de cada
-# uma. Quando não acerta, 250 ms tarde.
+# que ouviu (`Forja.som_virtual` dá o nome do último som: H08), no tempo de
+# cada uma. Quando não acerta, 250 ms tarde.
 var _robo_vale := [1.0, 1.0, 1.0, 1.0]
 var _robo_desde := [0.0, 0.0, 0.0, 0.0]
 var _robo_ouvidas := [0, 0, 0, 0]  ## os ataques ouvidos no canto do ciclo de agora
+var _robo_sons := [[], [], [], []]  ## o som de cada ataque ouvido, na ordem
 var _robo_ciclo := [-1.0, -1.0, -1.0, -1.0]
 var _robo_nota := [-1, -1, -1, -1]
 var _robo_atraso := [0.0, 0.0, 0.0, 0.0]
@@ -204,6 +206,7 @@ func robo(l: int, _dt: float) -> void:
 	if float(_ciclo[l].S) != _robo_ciclo[l]:
 		_robo_ciclo[l] = float(_ciclo[l].S)
 		_robo_ouvidas[l] = 0
+		_robo_sons[l] = []
 	var nivel := float(Forja.som_virtual(l).get("falante", 0.0))
 	var agora := Ritmo.t_musica()
 	if nivel > 0.12 and nivel - float(_robo_vale[l]) > 0.10 and agora - float(_robo_desde[l]) > 0.08:
@@ -211,6 +214,7 @@ func robo(l: int, _dt: float) -> void:
 		_robo_desde[l] = agora
 		if Ritmo.batida() < float(_ciclo[l].A):
 			_robo_ouvidas[l] += 1
+			_robo_sons[l].append(str(Forja.som_virtual(l).get("som", "")))  # o nome do último som (H08)
 	else:
 		_robo_vale[l] = minf(float(_robo_vale[l]), nivel)
 	if _notas[l].is_empty():
@@ -221,13 +225,13 @@ func robo(l: int, _dt: float) -> void:
 		# o temperamento (--robo=bom|medio|ruim): quando não acerta, 250 ms tarde
 		_robo_atraso[l] = 0.0 if Forja.robo_acerta() else 0.25
 	if int(nt.i) < _robo_ouvidas[l] and agora >= float(nt.t) + float(_robo_atraso[l]):
-		Forja.robo_apertar(l, BOTAO[int(nt.altura)], 0.06)
+		Forja.robo_apertar(l, BOTAO[maxi(SOM.find(str(_robo_sons[l][int(nt.i)])), 0)], 0.06)  # a altura que ouviu
 		_robo_nota[l] = 99999
 ```
 
 (No pico, as notas do canto vêm em colcheias: o "desde" mínimo é 0,08 s
-para o robô não juntar duas. Com `--fixed-fps 60`, o jogo corre mais que a
-música, mas o robô mede pelo tempo de música.)
+para o robô não juntar duas. O robô mede pelo tempo de música, como o fim
+do minigame: H08.)
 
 ## Os ganchos
 
@@ -285,7 +289,7 @@ func jogar(dt: float) -> void:
 		for k in 3:
 			if Forja.apertou(l, BOTAO[k]):
 				_responder(l, k)
-		while not _notas[l].is_empty() and agora > float(_notas[l][0].t) + Ritmo.JANELA_BOM:
+		while not _notas[l].is_empty() and agora > float(_notas[l][0].t) + FOLGA_PERDIDA:
 			var nt: Dictionary = _notas[l].pop_front()
 			_ultima[l] = nt
 			nota_perdida(l, int(nt.n))
@@ -295,7 +299,7 @@ func jogar(dt: float) -> void:
 
 func toque(l: int, julgamento: int) -> void:
 	var nt: Dictionary = _ultima[l]
-	marcar(l, Itens.pontos_do_acerto(l, PONTOS[julgamento], julgamento, fmod(float(nt.b), 4.0) == 0.0))
+	marcar(l, PONTOS[julgamento])  # o item, o kit já aplicou (H08)
 	CenarioDoCanto.luz_da_nota(l, 0.6)
 	_pulso[l] = PULSO_S
 
@@ -326,7 +330,7 @@ com `na_raia(l)` e `not aprendeu(l)` (`"Média": "Middle"`); `status(l)`:
 
 ## O que o registro mede
 
-- `som_controle` (H07) de cada nota da senha e o `jogo` `chamada` (n da
+- `som_controle` (H07) de cada nota da senha e o `pista` (`via` `alto_falante`) (n da
   resposta, som, `no_controle`).
 - O `toque` do kit em cada nota da resposta. O cruzamento: senha inteira
   cantada com `placa` e resposta que para sempre na mesma posição num
@@ -345,7 +349,8 @@ com `na_raia(l)` e `not aprendeu(l)` (`"Média": "Middle"`); `status(l)`:
   arredondado para cima e mais uma batida de silêncio.
 - **O dragão olha, a tela não conta a senha:** as pedrinhas mostram o
   recorde, nunca as notas.
-- **Os pontos e o item:** se o kit já aplica `Itens.pontos_do_acerto`, marque cru.
+- **Os pontos e o item:** o kit aplica `Itens.pontos_do_acerto` no `julgar_toque`
+  (H08); marque cru.
 
 ## Pronto quando
 
@@ -353,9 +358,7 @@ O Código do Dragão joga do aviso ao resultado com 4, 3, 2 e 1 jogador e com
 o robô nos três temperamentos (o bom chega a senhas longas); aguenta o cabo
 que cai e volta; fecha com vencedor (a senha mais longa); a prova do jogo
 passa; e `bash tests/prova_visual.sh` passa com a **prancha olhada** com o
-Dragão nela (na cópia de trabalho, sem commitar: `"S06_J29"` em primeiro na
-lista da seção `S06` e `"canto"` no lugar de `"viga"` em `Partida.NA_ORDEM[5]`;
-depois volte os dois arquivos).
+Dragão nela (o `Catalogo.sortear` da H08 põe o `S06_J29` na noite: rode a prova visual com a semente que o sorteia, `--semente=N`).
 
 ## Provas
 
@@ -373,13 +376,13 @@ func _prova_do_dragao() -> void:
 			var n := (m.senha[l] as Array).size()
 			if n < m.INICIO or n > m.MAXIMO:
 				fora[0] += 1
-	var mg := await _joga_o_minigame("S06_J29", 60.0, olhar)
+	var mg = await _joga_o_minigame("S06_J29", 140.0, olhar)
 	if mg == null:
 		return
 	_esperar(fora[0] == 0, "Dragão: a senha sempre entre 3 e 12 notas")
 	var v := mg.vencedor()
 	_esperar(not v.is_empty() and int(mg.recorde[v[0]]) == v.map(func(l): return int(mg.recorde[l])).max(), "Dragão: vence a senha mais longa")
-	var canto := _linha_do_tempo().filter(func(e): return e.get("tipo") == "jogo" and e.get("slot") == "S06_J29" and e.get("o") == "chamada")
+	var canto := _linha_do_tempo().filter(func(e): return e.get("tipo") == "pista" and e.get("slot") == "S06_J29" and e.get("evento") == "mandou")
 	_esperar(canto.size() >= 3, "Dragão: %d notas de senha cantadas" % canto.size())
 ```
 

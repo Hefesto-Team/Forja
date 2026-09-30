@@ -1,6 +1,6 @@
 # J5 — Mira Óptica
 
-**Sprint:** J · **Slot:** S02_J10 · **Tamanho:** M · **Estimativa:** US$ 1,5 · **Depende de:** H04, F09, F03, H07, G03 (o L2 é do item), J1 (o `secao.gd`), e o sorteio dentro da seção ([o índice](I-a-centelha.md#antes-de-começar-o-que-ainda-falta-na-base))
+**Sprint:** J · **Slot:** S02_J10 · **Tamanho:** M · **Estimativa:** US$ 1,5 · **Depende de:** H04, H08, F09, F03, H07, G03 (o L2 é do item), J1 (o `secao.gd`)
 
 ## Por quê
 
@@ -57,10 +57,10 @@ const FICHA := {
   o clique fica ali). Com a janela da nota aberta (meio tempo antes):
   a mira a menos de 0,35 m do escudo aceso → `julgar_toque`; longe dele →
   erro (ricochete). Tiro antes da janela: ricochete sem nota (a mira
-  embaça). A nota passou sem tiro (`JANELA_BOM + 0,05 s`) → perdida.
+  embaça). A nota passou sem tiro (`FOLGA_PERDIDA`, o do kit) → perdida.
 - **Os pontos por julgamento** (ERRO, BOM, ÓTIMO, PERFEITO): `[0, 20, 35, 50]`.
   Cada acerto derruba o escudo (ele gira e volta no próximo acender).
-- **A progressão:** `p = t_jogo / duracao`. De 0 a 1/3, um alvo a cada 2
+- **A progressão:** `progresso()` do kit (em tempo de música, H08). De 0 a 1/3, um alvo a cada 2
   tempos. **O pico (1/3 a 2/3), o tiroteio:** um alvo por tempo
   (`k + 0,25·l`) e os escudos balançam ±0,3 m na batida. De 2/3 em diante,
   a cada 2 tempos. Alvos de cada um em 75 s: ~45 a 96 bpm, ~55 a 115 bpm.
@@ -89,7 +89,7 @@ jogador). O brilho só na moldura do alvo e no disparo.
 | --- | --- |
 | **giroscópio (a feature)** | a guinada e a arfagem levam a mira |
 | vibração | o kit por nota |
-| barra de luz | `SECAO.piscar` no `toque` e na `falha` |
+| barra de luz | o kit (`_reagir`, H08): branco no perfeito, a cor do lugar escurecida no erro |
 | alto-falante do dono | perfeito: a nota (o kit); ótimo e bom: `Som.no_controle(l, "alvo", 0.6)`; erro: a nota quebrada (o kit) |
 | gatilho | R2 com a arma (Weapon `2, 6, 8`: a parede e o clique) do começo ao fim — o disparo se sente |
 | háptica por material | `metal`, pelo kit |
@@ -168,7 +168,6 @@ const SECAO := preload("res://scripts/minigames/s02/secao.gd")
 
 # (a FICHA vem aqui)
 
-const BATIDA_DA_PRIMEIRA_NOTA := 4.0
 const POSICOES := [Vector2(-1.0, 1.5), Vector2(0.0, 1.5), Vector2(1.0, 1.5),
 	Vector2(-1.0, 2.3), Vector2(0.0, 2.3), Vector2(1.0, 2.3)]
 const MIRA_X := 1.45
@@ -180,7 +179,6 @@ const Z_PAINEL := -5.6
 const DISPARA := 0.75
 const SOLTO := 0.5
 const PONTOS := [0, 20, 35, 50]
-const FOLGA_PERDIDA := 0.05
 
 var j := {}
 var contagem := [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]
@@ -219,22 +217,16 @@ static func _centro() -> Vector2:
 	return Vector2(0.0, (MIRA_Y0 + MIRA_Y1) * 0.5)
 
 
-func _no_pico() -> bool:
-	var p := t_jogo / maxf(duracao, 1.0)
-	return p >= 1.0 / 3.0 and p < 2.0 / 3.0
-
-
 func _proxima(l: int, desde: float) -> void:
 	var e: Dictionary = j[l]
 	var passo := 2.0
 	var desloc := 0.5 * l
 	if Ritmo.simples[l]:
 		passo = 4.0
-	elif _no_pico():
+	elif no_pico():
 		passo = 1.0
 		desloc = 0.25 * l
-	var k := floorf((desde - desloc) / passo) + 1.0
-	e.b = maxf(k * passo + desloc, BATIDA_DA_PRIMEIRA_NOTA + desloc)
+	e.b = proxima_batida(l, desde + 0.001, passo, desloc)  # o kit; estritamente depois de desde
 	var novo := rng.randi_range(0, POSICOES.size() - 2)
 	if novo >= int(e.alvo) and int(e.alvo) >= 0:
 		novo += 1
@@ -244,8 +236,7 @@ func _proxima(l: int, desde: float) -> void:
 
 func iniciar_jogo() -> void:
 	for l in presentes():
-		Forja.evento("entrada", l + 1, {"o": "sensores", "giro": Forja.capacidade(l, "giro"),
-			"acel": Forja.capacidade(l, "acel")})
+		SECAO.anotar_troca(self, l)  # sem giroscópio ou acelerômetro: a linha `troca` (H08)
 		Forja.gatilho(l, 1, Forja.GATILHO_ARMA, 2, 6, 8)
 		_proxima(l, BATIDA_DA_PRIMEIRA_NOTA - 0.01)
 
@@ -253,13 +244,12 @@ func iniciar_jogo() -> void:
 ## A posição do escudo agora (no pico, eles balançam na batida).
 func _pos_do_alvo(i: int) -> Vector2:
 	var pos: Vector2 = POSICOES[i]
-	if _no_pico():
+	if no_pico():
 		pos.x += 0.3 * sin(Ritmo.batida() * PI)
 	return pos
 
 
 func jogar(dt: float) -> void:
-	SECAO.voltar_a_luz(self)
 	for l in presentes():
 		var e: Dictionary = j[l]
 		_mostrar(l)
@@ -315,7 +305,7 @@ func _atirar(l: int, e: Dictionary) -> void:
 		else:
 			_ricochete(l, m)
 			nota_perdida(l, int(e.n))
-	elif agora > alvo + Ritmo.JANELA_BOM + FOLGA_PERDIDA:
+	elif agora > alvo + FOLGA_PERDIDA:
 		nota_perdida(l, int(e.n))
 
 
@@ -354,13 +344,11 @@ func toque(l: int, julgamento: int) -> void:
 	var tw := escudo.create_tween()
 	tw.tween_property(escudo, "rotation:x", -PI * 0.5, 0.12)
 	tw.tween_property(escudo, "rotation:x", 0.0, 0.3).set_delay(0.3)
-	SECAO.piscar(self, l, julgamento)
 	_proxima(l, float(e.b))
 
 
 func falha(l: int) -> void:
 	contagem[l][Ritmo.ERRO] += 1
-	SECAO.piscar(self, l, Ritmo.ERRO)
 	_proxima(l, float(j[l].b))
 
 
@@ -438,28 +426,20 @@ Em `godot/testes/prova_do_jogo.gd`:
 ## S02_J10 (J5): a mira abre pelo catálogo; o R2 de cada controle recebe a
 ## arma; o robô derruba escudos mirando pelo giroscópio simulado.
 func _prova_da_mira() -> void:
-	jogo._entrar_na_sala("S02_J10", false)
-	await _quadros(2)
-	var mg = jogo.sala
-	_esperar(mg is Minigame and mg.id == "S02_J10", "S02_J10: abriu pelo catálogo")
-	if not mg is Minigame:
+	var arma := [false, false, false, false]
+	var olhar := func(_mg: Minigame) -> void:
+		for l in 4:
+			if int(_perc(l).get("gatilho_dir", 0)) == 0x25:
+				arma[l] = true
+	# a espera é a da H08: o aviso em quadros, o jogo pelo relógio de parede (75 s de música e o treino)
+	var mg = await _joga_o_minigame("S02_J10", 115.0, olhar)
+	if mg == null:
 		return
-	var q := 0
-	while is_instance_valid(mg) and mg.fase == "aviso" and q < 900:
-		await _quadros(1)
-		q += 1
-	await _quadros(5)
 	for l in 4:
-		_esperar(int(_perc(l).get("gatilho_dir", 0)) == 0x25, "S02_J10 P%d: o R2 com a arma" % (l + 1))
-	var inicio := Time.get_ticks_usec()
-	while is_instance_valid(mg) and mg.fase == "jogo" and Time.get_ticks_usec() - inicio < 40000000:
-		await _quadros(1)
-	_esperar(is_instance_valid(mg) and mg.fase == "fim", "S02_J10: fechou")
-	if not is_instance_valid(mg):
-		return
+		_esperar(arma[l], "S02_J10 P%d: o R2 com a arma" % (l + 1))
 	for l in 4:
 		_esperar(int(mg.j[l].derrubados) >= 1, "S02_J10 P%d: derrubou um escudo %s" % [l + 1, mg.contagem[l]])
-	q = 0
+	var q := 0
 	while (jogo.estado != "salao" or jogo._trocando) and q < 900:
 		await _quadros(5)
 		q += 5

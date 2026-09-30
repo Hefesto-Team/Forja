@@ -1,6 +1,6 @@
 # M — S5 — A Galeria: os cinco minigames
 
-**Sprint:** M · **Tamanho:** G (a seção, em cinco fichas) · **Estimativa:** US$ 8,0 (a soma das cinco) · **Depende de:** H04, F09
+**Sprint:** M · **Tamanho:** G (a seção, em cinco fichas) · **Estimativa:** US$ 8,0 (a soma das cinco) · **Depende de:** H04, H08, F09
 
 Esta ficha é o índice da seção. O trabalho está nas cinco fichas abaixo,
 uma por sessão, e cada uma se basta.
@@ -25,11 +25,12 @@ o curso do R2 é o mesmo, só falta o peso (a saída silenciosa de
 [10](../10-a-regua-astro-bot.md), lição 16).
 
 Os coadjuvantes: vibração de recuo (o `acerto` do kit), o som do disparo no
-alto-falante do dono (`Som.no_controle(l, "tiro")`), a barra de luz que
-pisca branco no acerto (0,1 s) e volta à cor do lugar. **As luzinhas de
+alto-falante do dono (`Som.no_controle(l, "tiro")`), a barra de luz na cor
+do lugar, que o kit pisca branco no perfeito e escurece no erro (`_reagir`,
+H08; nenhuma ficha a pisca à mão). **As luzinhas de
 jogador mostram sempre o número do jogador:** a munição, a bomba e a equipe
-ficam no mundo (o tambor na mesa, o monte de pedras, a bandeira) e no peso
-do gatilho, nunca nas luzinhas nem na barra de luz. Só o Modo bancada mexe
+ficam no mundo (o tambor na mesa, o monte de pedras, o chão e a armadura
+da equipe) e no peso do gatilho, nunca nas luzinhas nem na barra de luz. Só o Modo bancada mexe
 nas luzinhas, na pergunta que mede o `leds_jogador` (M1).
 
 ## O cenário comum
@@ -49,7 +50,7 @@ outras quatro o usam:
 | `rastro(sala, de, ate)` | o risco do tiro (`galeria.gd:404-421`) |
 | `Z_ALVOS` −6,4, `MIRA_LARG` 2,8, `MIRA_Y0` 0,8, `MIRA_Y1` 2,7 | o muro |
 | `R2_CLIQUE` 0,62, `R2_APERTA` 0,5, `R2_SOLTA` 0,2 | o curso do R2: o clique da Weapon, o apertar e o soltar |
-| `EQUIPE := [Color(1.0, 0.59, 0.0), Color(0.0, 0.82, 1.0)]` | as cores das duplas (âmbar e ciano, longe das cores dos lugares): no mundo, nunca na barra de luz |
+| `EQUIPE := [Color("#e8a33c"), Color("#2fb3b3")]` | as equipes do [13](../13-arquitetura.md#as-decisões-comuns-dos-minigames--h08): **A Brasa** (âmbar) e **A Maré** (turquesa), longe das cores dos lugares; no chão e na armadura, nunca na barra de luz. Com 3 jogadores, **o Aprendiz** completa a equipe (a regra de [Q](Q-a-prova.md#o-cenário-comum)) |
 
 A câmera é `"fixa"` em (0, 7,5, 11,0) olhando para (0, 0,2, −2,2), a d'A
 Galeria de hoje; as raias em x = −6, −2, 2, 6, o boneco em `Z_JOGADOR`
@@ -84,9 +85,11 @@ sua parte, soltar no ponto do peso, e revezar a carga em dupla.
 
 - **O que foi mandado:** cada `saida` de gatilho (`lado`, `modo`, `params` = `[a, b, c]`,
   `seq`, `ok`), gravada pelo `Forja` (F06).
-- **O que o minigame acrescenta** (o tipo `jogo`, com `slot`), a cada
-  aperto ou soltura julgados: `{"o": "disparo", "n": <nota>, "modo": "arma" | "resistencia" | "vibracao" | "off", "curso": <o R2 no quadro em que cruzou o limiar>, "curso_max": <o maior R2 desde o aperto>}`;
-  e o `toque` do kit (julgamento, desvio).
+- **O que o minigame acrescenta** (os tipos do [13](../13-arquitetura.md#as-decisões-comuns-dos-minigames--h08),
+  com `slot`): a cada aperto ou soltura julgados, a linha `entrada` (o que o
+  dedo fez) `{"o": "disparo", "n": <nota>, "modo": "arma" | "resistencia" | "vibracao" | "off", "curso": <o R2 no quadro em que cruzou o limiar>, "curso_max": <o maior R2 desde o aperto>}`;
+  e o `toque` do kit (julgamento, desvio). O que o minigame fez no mundo (a
+  arma que superaqueceu, o corte, o lançamento) é a linha `jogo`.
 - **O cruzamento da noite:** o curso do disparo na Weapon mostra o clique no
   ponto certo (o disparo sai logo depois de 0,62 quando a parede existe); a
   soltura no tempo com a resistência mandada e `ok` é o peso que chegou; o
@@ -96,14 +99,11 @@ sua parte, soltar no ponto do peso, e revezar a carga em dupla.
   (`gatilho_resistencia`, `gatilho_arma`, `gatilho_vibracao`, `leds_jogador`)
   com a identificação da arma no baú e a contagem das luzinhas.
 
-(O tipo `jogo` entra na tabela do registro v2 do 13 pela primeira ficha que
-o usar, como manda o [molde](molde-de-minigame.md#o-registro).)
-
 ## O que fica fora destas fichas
 
-- **O sorteio entre os cinco:** é da base (o catálogo e a partida). Até lá,
-  os novos se jogam por `--sala=S05_J22` (etc.) e entram na prova visual
-  pelo passo de "Pronto quando" de cada ficha.
+- **O sorteio entre os cinco** é da H08 (`Catalogo.sortear`): cada ficha só
+  põe o seu slot no catálogo. Os novos também se jogam por `--sala=S05_J22`
+  (etc.).
 - **A faixa gerada:** enquanto `MUS_S05_J2x` não existe (H05), toca a
   trilha sintetizada d'A Galeria (104 bpm). Tudo está em batidas.
 

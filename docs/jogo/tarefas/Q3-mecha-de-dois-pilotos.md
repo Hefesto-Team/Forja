@@ -23,7 +23,7 @@ const FICHA := {
 	"titulo": "Mecha de Dois Pilotos",
 	"verbo": "Pilote juntos!",
 	"genero": "2v2",
-	"icone": "gatilho_adaptativo",
+	"icone": "r2",
 	"entradas": [Forja.CRUZ],
 	"camera": "fixa",
 	"faixa": "MUS_S09_J43",
@@ -32,6 +32,7 @@ const FICHA := {
 	"sensacoes": ["acerto", "perfeito", "erro", "golpe", "explosao"],
 	"material": "metal",
 	"microjogo": {"verbo": "Pilotem!", "segundos": 7.0},
+	"papel_som": Forja.PAPEL_HAPTICA,  # o kit abre este papel de som no entrar() (H08)
 	"gesto": "attack-melee-right",
 }
 ```
@@ -40,13 +41,13 @@ const FICHA := {
 
 ## Como se joga
 
-A faixa é `MUS_S09_J43`, 145 bpm (uma batida ≈ 0,41 s). `ENTRADA := 4`.
+A faixa é `MUS_S09_J43`, 145 bpm (uma batida ≈ 0,41 s). `BATIDA_DA_PRIMEIRA_NOTA` (4, do kit: H08).
 
 - **As equipes:** a regra da ficha-mãe (com o Aprendiz). Em cada equipe, o
   primeiro é a **perna esquerda** (E), o segundo a **direita** (D).
 - **Os mechas** frente a frente: o da Brasa começa em `x = -4`, o da Maré em
   `x = 4`; a distância entre eles é `_dist` (começa em 8 m; mínimo 2,2).
-- **O ciclo** tem 8 batidas (dois compassos), a partir de `g0 = ENTRADA + 8k`:
+- **O ciclo** tem 8 batidas (dois compassos), a partir de `g0 = BATIDA_DA_PRIMEIRA_NOTA + 8k`:
 
   | batida | E | D |
   | --- | --- | --- |
@@ -90,7 +91,7 @@ A faixa é `MUS_S09_J43`, 145 bpm (uma batida ≈ 0,41 s). `ENTRADA := 4`.
   (`_pico_k := floor(ciclos_previstos / 2)`), os dois mechas são puxados para
   3 m (o alcance) e há gongo também em `g0 + 4` (dois socos no ciclo).
 
-`ciclos_previstos = floor((duracao / _t_batida() - ENTRADA) / 8)`.
+`ciclos_previstos = floor((duracao / _t_batida() - BATIDA_DA_PRIMEIRA_NOTA) / 8)`.
 
 ## O cenário
 
@@ -205,7 +206,6 @@ extends Minigame
 
 const FICHA := { ... }
 
-const ENTRADA := 4
 const CICLO := 8
 const DIST_INICIAL := 8.0
 const DIST_MIN := 2.2
@@ -245,7 +245,6 @@ var _robo_mira := [0.0, 0.0, 0.0, 0.0]
 
 
 func montar() -> void:
-	papel_som = Forja.PAPEL_HAPTICA
 	usa_gatilho = true
 	camera_pos = Vector3(0, 7.5, 13.0)
 	camera_olhar = Vector3(0, 3.0, 0)
@@ -353,7 +352,6 @@ no empate).
 - **O Aprendiz não é robô** (é regra do jogo, com o `rng` do kit).
 - **`usa_gatilho = true`** e o R2 em `ARMA` a partida inteira; o L2 é do item.
 - **Na prova o pico não chega** (o fim é pelo `duracao`).
-- **`ENTRADA`**: se o kit tiver `BATIDA_DA_PRIMEIRA_NOTA`, use-a.
 
 ## Pronto quando
 
@@ -371,27 +369,25 @@ Em `godot/testes/prova_do_jogo.gd`, uma `_prova_mecha()`:
 ## S09_J43: o R2 de cada um em arma; a perna de cada piloto treme só o
 ## atuador do lado dela; os mechas se aproximam; fecha com vencedor.
 func _prova_mecha() -> void:
-	var sala = await _comeca_a_sala("S09_J43")
+	# a espera é a do `_joga_o_minigame` da H08: o aviso em quadros, o jogo pelo relógio de parede (100 s de música e o treino)
+	var arma := [false, false, false, false]
+	var viu_pe := [false]
+	var olhar := func(s) -> void:
+		for l in 4:
+			if int(_perc(l).get("gatilho_dir", 0)) == 0x25:
+				arma[l] = true
+			var v := Forja.som_virtual(l)
+			var meu := float(v.get("esq" if s._perna[l] == 0 else "dir", 0.0))
+			var outro := float(v.get("dir" if s._perna[l] == 0 else "esq", 1.0))
+			if meu > 0.05 and outro < 0.02:
+				viu_pe[0] = true
+	var sala = await _joga_o_minigame("S09_J43", 140.0, olhar)
 	if sala == null:
 		return
-	await _quadros(4)
 	for l in 4:
-		_esperar(int(_perc(l).get("gatilho_dir", 0)) == 0x25, "mecha P%d: o R2 em arma (0x25)" % (l + 1))
-	var viu_pe := false
-	var q := 0
-	while is_instance_valid(sala) and sala.fase == "jogo" and q < 12000:
-		for l in 4:
-			var v := Forja.som_virtual(l)
-			var meu := float(v.get("esq" if sala._perna[l] == 0 else "dir", 0.0))
-			var outro := float(v.get("dir" if sala._perna[l] == 0 else "esq", 1.0))
-			if meu > 0.05 and outro < 0.02:
-				viu_pe = true
-		await _quadros(1)
-		q += 1
-	_esperar(viu_pe, "mecha: a perna treme só o atuador do lado dela")
-	_esperar(is_instance_valid(sala) and sala.fase == "fim", "mecha: fechou")
-	if is_instance_valid(sala):
-		_esperar(sala._dist < sala.DIST_INICIAL, "mecha: os mechas andaram (%.1f m)" % sala._dist)
+		_esperar(arma[l], "mecha P%d: o R2 em arma (0x25)" % (l + 1))
+	_esperar(viu_pe[0], "mecha: a perna treme só o atuador do lado dela")
+	_esperar(sala._dist < sala.DIST_INICIAL, "mecha: os mechas andaram (%.1f m)" % sala._dist)
 ```
 
 `bash tests/prova_do_jogo.sh` e `bash tests/prova_visual.sh`.

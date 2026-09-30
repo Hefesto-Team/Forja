@@ -1,6 +1,6 @@
 # N5 — Corta-Fio
 
-**Sprint:** N · **Slot:** S06_J30 · **Tamanho:** M · **Estimativa:** US$ 1,5 · **Depende de:** H04, F09, N1, H07
+**Sprint:** N · **Slot:** S06_J30 · **Tamanho:** M · **Estimativa:** US$ 1,5 · **Depende de:** H04, H08, F09, N1, H07
 
 ## Por quê
 
@@ -43,7 +43,7 @@ extends Minigame
 ## dele: cortar depois do estalo com a placa é ouvido que não distinguiu;
 ## não cortar depois do certo com a placa, sempre, é o alto-falante mudo.
 ## O robô: ouve o ataque do bipe no alto-falante simulado e corta na batida
-## seguinte se o bipe era o certo (pela partitura); quando não acerta, corta
+## seguinte se o bipe que ouviu era o certo (o nome do som, H08); quando não acerta, corta
 ## tarde ou corta o falso. Manda o bipe falso logo que ganha.
 ## Com menos de quatro: as batidas se dividem; sozinho, só as pares e sem
 ## bipe falso.
@@ -55,7 +55,7 @@ const FICHA := {
 	"titulo": "Corta-Fio",
 	"verbo": "Corte!",
 	"genero": "sabotagem",
-	"icone": "alto_falante",
+	"icone": "alto-falante",
 	"entradas": [Forja.CRUZ, Forja.TRIANGULO],
 	"camera": "fixa",
 	"faixa": "MUS_S06_J30",
@@ -64,6 +64,7 @@ const FICHA := {
 	"sensacoes": ["toque", "acerto", "perfeito", "erro", "explosao"],
 	"material": "metal",
 	"microjogo": {"verbo": "Corte!", "segundos": 6.0},
+	"nota_no_falante": false,  # o alto-falante é a pista: o kit não toca a nota do perfeito nele (H08)
 }
 
 const PONTOS := [0, 40, 70, 100]  ## ERRO, BOM, OTIMO, PERFEITO
@@ -74,7 +75,6 @@ const FALSO := 2
 const BIPE := ["pronto", "clique", "nota_alta"]  ## CERTO, ERRADO, FALSO
 ## A chance de o bipe ser o certo, por parte (entrada 0-30 s, pico 30-60 s, saída 60-90 s).
 const CHANCE_CERTO := [0.5, 0.35, 0.4]
-const PISCA_ESTOURO := 0.4
 const PULSO_S := 0.12
 ## As cores do confete e dos fios: longe das cores dos lugares (docs/jogo/11, regra 6).
 const CONFETE := [Color("#e8b44c"), Color("#6fd3c8"), Color("#c28bff"), Color("#e9e7f2")]
@@ -93,7 +93,7 @@ pendência acaba. No **pico** (30–60 s), a batida do dono tem dois bipes, em
 `b` e `b + 0,5` (quem está com `Ritmo.simples[l]` fica com um). Na hora
 (`Ritmo.t_musica() >= Ritmo.t_da_batida(b)`):
 `var foi := CenarioDoCanto.falante(self, l, BIPE[tipo], 0.9)` e
-`Forja.evento("jogo", l + 1, {"slot": id, "o": "chamada", "n": int(round((b + 1) * 2)), "som": BIPE[tipo], "no_controle": foi, "tipo": ["certo", "errado", "falso"][tipo]})`.
+`Forja.evento("pista", l + 1, {"slot": id, "n": int(round((b + 1) * 2)), "evento": "mandou", "via": "alto_falante" if foi else "tv", "o_que": BIPE[tipo], "no_controle": foi, "tipo": ["certo", "errado", "falso"][tipo]})`.
 Na tela, a bomba do peito pisca igual nos três (a luzinha da bomba é a
 mesma): a tela diz **quando** bipou, não **qual**.
 
@@ -117,11 +117,11 @@ pontos, que não seja ele mesmo (se ele é o da frente, vai para o segundo):
 `_falso_para[alvo] = true`, `carga[l] = false`, `Som.tocar("especial", null, -10.0)`
 na TV (todos ouvem que alguém sabotou; ninguém ouve quem), o cavaleiro de
 quem mandou dá um chute no ar (`gesto("attack-kick-right", 0.4)`), e
-`Forja.evento("jogo", l + 1, {"slot": id, "o": "sabotagem", "para": alvo + 1})`.
+`Forja.evento("entrada", l + 1, {"slot": id, "o": "sabotagem", "para": alvo + 1})`.
 O falso é `"nota_alta"` (1175 Hz); o certo é `"pronto"` (1568 Hz, mais
 claro): quem conhece o certo distingue.
 
-**Os pontos:** `marcar(l, Itens.pontos_do_acerto(l, PONTOS[j], j, fmod(b, 4.0) == 0.0))`
+**Os pontos:** `marcar(l, PONTOS[julgamento])` (o item, `Itens.pontos_do_acerto`, o kit já aplica no `julgar_toque`: H08)
 no corte; `marcar(l, 150)` na bomba desarmada.
 
 **O compasso na mão:** `Forja.sentir(l, "toque")` no começo de cada compasso
@@ -160,7 +160,6 @@ saída (60–90 s) um bipe por vez, 40% certos.
 | vibração | `acerto` / `perfeito` / `erro` (o kit) | no corte julgado |
 | vibração | `explosao` | a bomba estoura |
 | barra de luz | `CenarioDoCanto.luz_da_nota(l, 0.6)` por `PULSO_S`, e volta a 1,0 | no corte bom — nunca no bipe |
-| barra de luz | laranja `Color(1.0, 0.45, 0.0)` por `PISCA_ESTOURO` (0,4 s), e volta à cor | no estouro |
 | luzinhas de jogador | o número, sempre | — |
 | háptica por material | `"metal"` (o kit, no cabo) | — |
 | gatilho | `Forja.gatilho(l, 1, Forja.GATILHO_OFF)` no `montar` | nada a segurar |
@@ -170,7 +169,8 @@ saída (60–90 s) um bipe por vez, 40% certos.
 
 - **O estouro** (cortar depois do estalo ou do falso, ou cortar fora do
   tempo): confete das quatro cores (`Efeitos.faiscas(self, pos_do_peito, CONFETE[k], 20, 1.2)`
-  para cada `k`), `Forja.sentir(l, "explosao")`, laranja na barra de luz,
+  para cada `k`), `Forja.sentir(l, "explosao")` (a bomba está no peito, no
+  mundo: a barra de luz não muda),
   `Som.no_controle(l, "golpe", 0.7)`, o cavaleiro cai sentado coberto de
   confete (`gesto("fall", 0.8)`); `fios[l] = 0` e os três fios da bomba
   voltam (a bomba está inteira de novo).
@@ -181,7 +181,7 @@ saída (60–90 s) um bipe por vez, 40% certos.
 
 ## O fim e o vencedor
 
-90 s de `t_jogo`, pelo kit.
+90 s de música, pelo kit (H08).
 
 ```gdscript
 func vencedor() -> Array:
@@ -209,12 +209,12 @@ func vencedor() -> Array:
 
 ```gdscript
 # O robô ouve o ataque do bipe no alto-falante simulado (a lógica de ataque
-# da N1) e, se ouviu, corta na batida seguinte quando o bipe era o certo (pela
-# partitura: a placa virtual dá o nível, não a altura). Quando não acerta,
+# da N1) e, se ouviu, corta na batida seguinte quando o bipe que ouviu era o
+# certo (`Forja.som_virtual` dá o nome do último som: H08). Quando não acerta,
 # corta 250 ms tarde — ou corta a armadilha. Manda o falso logo que ganha.
 var _robo_vale := [1.0, 1.0, 1.0, 1.0]
 var _robo_desde := [0.0, 0.0, 0.0, 0.0]
-var _robo_ouviu := [{}, {}, {}, {}]  ## meia batida do ataque -> true
+var _robo_ouviu := [{}, {}, {}, {}]  ## meia batida do ataque -> o som ouvido
 var _robo_alvo := [-1.0, -1.0, -1.0, -1.0]
 var _robo_decidiu := [-1.0, -1.0, -1.0, -1.0]
 
@@ -227,7 +227,7 @@ func robo(l: int, _dt: float) -> void:
 	if nivel > 0.12 and nivel - float(_robo_vale[l]) > 0.10 and agora - float(_robo_desde[l]) > 0.08:
 		_robo_vale[l] = nivel
 		_robo_desde[l] = agora
-		_robo_ouviu[l][int(round(Ritmo.batida() * 2.0))] = true
+		_robo_ouviu[l][int(round(Ritmo.batida() * 2.0))] = str(Forja.som_virtual(l).get("som", ""))  # o nome do último som (H08)
 	else:
 		_robo_vale[l] = minf(float(_robo_vale[l]), nivel)
 	if carga[l]:
@@ -241,7 +241,8 @@ func robo(l: int, _dt: float) -> void:
 		_robo_decidiu[l] = float(bp.b)
 		# o temperamento (--robo=bom|medio|ruim): quando não acerta, erra de um jeito ou de outro
 		var acerta := Forja.robo_acerta()
-		if int(bp.tipo) == CERTO:
+		var som := str(_robo_ouviu[l].get(meia, _robo_ouviu[l].get(meia + 1, "")))
+		if BIPE.find(som) == CERTO:  # o bipe que ouviu, não o da partitura
 			_robo_alvo[l] = float(bp.b) + 1.0 + (0.0 if acerta else 0.25 / (60.0 / Ritmo.bpm))
 		elif not acerta:
 			_robo_alvo[l] = float(bp.b) + 1.0  # cai na armadilha
@@ -270,7 +271,6 @@ var bombas := [0, 0, 0, 0]
 var carga := [false, false, false, false]
 var _falso_para := [false, false, false, false]
 var _pulso := [0.0, 0.0, 0.0, 0.0]
-var _pisca := [0.0, 0.0, 0.0, 0.0]
 
 
 func montar() -> void:
@@ -300,7 +300,7 @@ func jogar(dt: float) -> void:
 	var agora := Ritmo.t_musica()
 	_tocar_os_bipes(agora)  # CenarioDoCanto.falante, a chamada, a luzinha da bomba; a nota ou a armadilha
 	for l in presentes():
-		_apagar_o_pulso_e_o_pisca(l, dt)
+		_apagar_o_pulso(l, dt)
 		if not conectado(l):
 			_fora[l] = true
 			continue
@@ -312,7 +312,7 @@ func jogar(dt: float) -> void:
 			_cortar(l)
 		if Forja.apertou(l, Forja.TRIANGULO) and carga[l]:
 			_sabotar(l)
-		while not _notas[l].is_empty() and agora > float(_notas[l][0].t) + Ritmo.JANELA_BOM:
+		while not _notas[l].is_empty() and agora > float(_notas[l][0].t) + FOLGA_PERDIDA:
 			var nt: Dictionary = _notas[l].pop_front()
 			_ultima[l] = nt
 			nota_perdida(l, int(nt.n))  # o fio escapa
@@ -321,7 +321,7 @@ func jogar(dt: float) -> void:
 
 func toque(l: int, julgamento: int) -> void:
 	var nt: Dictionary = _ultima[l]
-	marcar(l, Itens.pontos_do_acerto(l, PONTOS[julgamento], julgamento, fmod(float(nt.b), 4.0) == 0.0))
+	marcar(l, PONTOS[julgamento])  # o item, o kit já aplicou (H08)
 	_cortar_o_fio(l)  # fios, bomba desarmada, bomba nova
 	if julgamento == Ritmo.PERFEITO and presentes().size() > 1:
 		carga[l] = true
@@ -340,7 +340,7 @@ func falha(l: int) -> void:
 `_cortar(l)`: a nota certa a até `JANELA_BOM` → `nt.cortou = true`,
 `_ultima[l] = nt`, tira da lista, `julgar_toque`; senão, a armadilha a até
 `JANELA_BOM` → `_estourar(l)` e o evento `armadilha`; senão, nada.
-`_estourar(l)`: o confete, `explosao`, o laranja (`_pisca[l] = PISCA_ESTOURO`),
+`_estourar(l)`: o confete, `explosao`,
 `"golpe"` no alto-falante, `fios[l] = 0`. `_sabotar(l)`: o falso para
 `_na_frente(l)`.
 
@@ -353,7 +353,7 @@ Traduções: `"Corta-Fio": "Wire Cutter"`, `"Corte!": "Cut!"`,
 
 ## O que o registro mede
 
-- `som_controle` (H07) de cada bipe; o `jogo` `chamada` com o `tipo`
+- `som_controle` (H07) de cada bipe; o `pista` (`via` `alto_falante`) com o `tipo`
   (certo, errado, falso) e `no_controle`.
 - O `toque` do kit no corte certo (e o perdido: o fio que escapou); o `jogo`
   `armadilha` (cortou depois do estalo ou do falso); o `jogo` `sabotagem`.
@@ -371,16 +371,15 @@ Traduções: `"Corta-Fio": "Wire Cutter"`, `"Corte!": "Cut!"`,
   jogador, não existe.
 - **Um som por vez no controle** (H07): o bipe seguinte do mesmo lugar vem
   pelo menos meia batida depois; o bipe corta a nota do kit se encostar.
-- **Os pontos e o item:** se o kit já aplica `Itens.pontos_do_acerto`, marque cru.
+- **Os pontos e o item:** o kit aplica `Itens.pontos_do_acerto` no `julgar_toque`
+  (H08); marque cru.
 
 ## Pronto quando
 
 O Corta-Fio joga do aviso ao resultado com 4, 3, 2 e 1 jogador e com o robô
 nos três temperamentos (o ruim estoura); aguenta o cabo que cai e volta;
 fecha com vencedor; a prova do jogo passa; e `bash tests/prova_visual.sh`
-passa com a **prancha olhada** com o Corta-Fio nela (na cópia de trabalho,
-sem commitar: `"S06_J30"` em primeiro na lista da seção `S06` e `"canto"` no
-lugar de `"viga"` em `Partida.NA_ORDEM[5]`; depois volte os dois arquivos).
+passa com a **prancha olhada** com o Corta-Fio nela (o `Catalogo.sortear` da H08 põe o `S06_J30` na noite: rode a prova visual com a semente que o sorteia, `--semente=N`).
 
 ## Provas
 
@@ -392,15 +391,15 @@ Em `godot/testes/prova_do_jogo.gd`, depois das outras da seção:
 ## Corta-Fio (S06_J30): os bipes chegam ao alto-falante, os três tipos no
 ## registro, e o falso nunca vai para quem mandou.
 func _prova_do_corta_fio() -> void:
-	var mg := await _joga_o_minigame("S06_J30", 60.0)
+	var mg = await _joga_o_minigame("S06_J30", 130.0)
 	if mg == null:
 		return
-	var bipes := _linha_do_tempo().filter(func(e): return e.get("tipo") == "jogo" and e.get("slot") == "S06_J30" and e.get("o") == "chamada")
+	var bipes := _linha_do_tempo().filter(func(e): return e.get("tipo") == "pista" and e.get("slot") == "S06_J30" and e.get("evento") == "mandou")
 	var tipos := {}
 	for e in bipes:
 		tipos[str(e.get("tipo", ""))] = true
 	_esperar(tipos.has("certo") and tipos.has("errado"), "Corta-Fio: bipes certos e errados (%s)" % [tipos.keys()])
-	var sabotagens := _linha_do_tempo().filter(func(e): return e.get("tipo") == "jogo" and e.get("slot") == "S06_J30" and e.get("o") == "sabotagem")
+	var sabotagens := _linha_do_tempo().filter(func(e): return e.get("tipo") == "entrada" and e.get("slot") == "S06_J30" and e.get("o") == "sabotagem")
 	_esperar(sabotagens.all(func(e): return int(e.get("para", 0)) != int(e.get("jogador", -1))), "Corta-Fio: o falso nunca volta para quem mandou")
 	var v := mg.vencedor()
 	_esperar(not v.is_empty() and int(mg.bombas[v[0]]) == v.map(func(l): return int(mg.bombas[l])).max(), "Corta-Fio: vence quem desarmou mais")

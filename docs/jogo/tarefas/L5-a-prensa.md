@@ -1,6 +1,6 @@
 # L5 — A Prensa
 
-**Sprint:** L · **Slot:** S04_J20 · **Tamanho:** M · **Estimativa:** US$ 1,5 · **Depende de:** H04, F09, L1
+**Sprint:** L · **Slot:** S04_J20 · **Tamanho:** M · **Estimativa:** US$ 1,5 · **Depende de:** H04, H08, F09, L1
 
 ## Por quê
 
@@ -50,7 +50,7 @@ const FICHA := {
 	"titulo": "A Prensa",
 	"verbo": "Esquive!",
 	"genero": "sobrevivencia",
-	"icone": "vibracao",
+	"icone": "rumble_esquerdo",
 	"entradas": [],
 	"camera": "fixa",
 	"faixa": "MUS_S04_J20",
@@ -73,7 +73,6 @@ const LX_VAI := 0.6
 const LX_VOLTA := 0.3
 ## A chance de prensa na batida do dono: entrada, pico, saída.
 const DENSIDADE := [0.6, 1.0, 1.0]
-const PISCA_ESMAGADO := 0.3
 ```
 
 ## Como se joga
@@ -87,7 +86,7 @@ geração, um compasso antes.
 com `nova_nota(l, b, t)`. **Na pista** (`b − 1`), a nota decide onde caem as
 prensas, pelo lugar em que o cavaleiro está **agora** (`pos[l]` 0, 1 ou 2):
 
-| parte | `t_jogo` | caem | a pista (`Forja.sentir`, `ms = 0,4 batida`) |
+| parte | música (`progresso()` do kit) | caem | a pista (`Forja.sentir`, `ms = 0,4 batida`) |
 | --- | --- | --- | --- |
 | entrada | 0–30 s | só `pos[l]` | `"golpe"` (os dois motores: fuja para qualquer lado) |
 | **pico** | 30–60 s | no meio (`pos == 1`): o meio e um lado sorteado; num canto: só o canto | meio: `"golpe_esq"` se o seguro é a esquerda, `"golpe_dir"` se é a direita; canto: `"golpe"` |
@@ -95,7 +94,7 @@ prensas, pelo lugar em que o cavaleiro está **agora** (`pos[l]` 0, 1 ou 2):
 
 O `seguro` é o lugar para onde a pista manda (no `"golpe"`, qualquer lugar
 fora de `caem`). Registro:
-`Forja.evento("jogo", l + 1, {"slot": id, "o": "lado", "n": b, "lado": "ambos"/"esq"/"dir", "ok": ok})`.
+`Forja.evento("pista", l + 1, {"slot": id, "n": b, "evento": "mandou", "via": "rumble", "o_que": "ambos"/"esq"/"dir", "ok": ok})`.
 Quem está com `Ritmo.simples[l]` recebe só a regra da entrada.
 
 **A esquiva:** o analógico esquerdo passando de `LX_VAI` (±0,6) para um lado,
@@ -104,15 +103,15 @@ daquele lado na hora (`gesto("jump", 0.3)`, tween de x em 0,12 s); para
 fora da raia (do canto para a parede), ele bate e não sai.
 
 - **Com uma nota avisada e ainda não resolvida:** se o toque está a até
-  `Ritmo.JANELA_BOM + Ritmo.FOLGA_DO_ULTIMO` do tempo → a esquiva é julgada.
+  `FOLGA_PERDIDA` do tempo → a esquiva é julgada.
   O lugar novo fora de `caem` → `julgar_toque(l, t, n, true)` (é perigo: a
   folga de quem está em último); dentro de `caem` (o lado errado, ou a
   parede) → `nota_perdida(l, n)`. Fora da janela, depois da pista → cedo
   demais: `nota_perdida(l, n)` (a prensa corrige o rumo e desce onde ele
-  foi). Grave `{"o": "resposta", "n": b, "lado_pedido": ..., "lado_feito": "esq"/"dir"}`.
+  foi). Grave a linha `entrada` `{"o": "resposta", "n": b, "lado_pedido": ..., "lado_feito": "esq"/"dir"}`.
 - **Sem nota avisada:** o cavaleiro só muda de lugar, sem julgamento
   (reposicionar entre as prensas vale).
-- A nota que passa de `t + 0,18 s` sem esquiva é `nota_perdida(l, n)`.
+- A nota que passa de `t + FOLGA_PERDIDA` (o kit) sem esquiva é `nota_perdida(l, n)`.
 
 Um julgamento ERRO (a esquiva no lugar certo, mas fora do tempo) também é
 esmagamento: é o `falha()` do kit.
@@ -127,7 +126,7 @@ cabeça de todas as prensas com emissivo 0,8) e `marcar(l, FANTASMA_LUZ)`.
 Sem julgamento do kit (não é nota) e sem erro. Os pontos do fantasma não
 mudam a colocação.
 
-**Os pontos:** `marcar(l, Itens.pontos_do_acerto(l, PONTOS[j], j, b % 4 == 0))`.
+**Os pontos:** `marcar(l, PONTOS[julgamento])` (o item, `Itens.pontos_do_acerto`, o kit já aplica no `julgar_toque`: H08).
 
 ## O cenário
 
@@ -158,8 +157,8 @@ mudam a colocação.
 | vibração | `acerto` / `perfeito` / `erro` (o kit) | na esquiva julgada |
 | vibração | `explosao` | esmagado |
 | barra de luz | `CenarioDoImpacto.luz_com_brilho(l, BRILHO[vida])` | ao começar e a cada vida perdida (o fantasma fica no piso de 40%) |
-| barra de luz | vermelho 0,3 s | esmagado |
-| barra de luz | branco 0,1 s | na esquiva perfeita |
+| barra de luz | o kit escurece a cor no erro (H08); 0,5 s depois, `_piscar` põe o brilho da vida, um degrau abaixo | esmagado |
+| barra de luz | o kit (`_reagir`, H08): branco no perfeito, a cor do lugar escurecida no erro | no toque julgado |
 | luzinhas de jogador | o número, sempre (também o fantasma) | — |
 | alto-falante do dono | `Som.no_controle(l, "golpe", 0.8)` | esmagado |
 | alto-falante do dono | `Forja.som_falante(l, "coleta", 0.6)` | o fantasma acende a luz |
@@ -171,7 +170,7 @@ mudam a colocação.
 
 - **Esmagado:** a prensa bate; o cavaleiro fica achatado (`scale.y` 0,3 por
   uma batida, pela batida, e volta com um tween de 0,15 s), `gesto("fall", 0.6)`;
-  `Forja.sentir(l, "explosao")`, vermelho 0,3 s, `Som.no_controle(l, "golpe", 0.8)`,
+  `Forja.sentir(l, "explosao")`, a barra de luz escurece (o kit), `Som.no_controle(l, "golpe", 0.8)`,
   `Som.tocar("golpe", pos, 0.0)`, `tremer(TREMOR_EXPLOSAO)`; uma brasa da
   lanterna apaga (`CenarioDoImpacto.acender_lanterna(mats, vida)`). No
   treino, nada se perde.
@@ -179,7 +178,7 @@ mudam a colocação.
   uma lanterna pequena da cor do lugar
   (`Kit.caixa(self, Vector3(0.2, 0.2, 0.2), pos + Vector3(0, 1.8, 0), Kit.material(Forja.cor_do_lugar(l), 2.0))`)
   flutua em cima dele (`y` sobe e desce com `sin(PI * Ritmo.batida())`);
-  `caiu_em[l] = t_jogo`.
+  `caiu_em[l] = Ritmo.t_musica()`.
 - **A recuperação:** entre uma nota e outra do mesmo lugar há pelo menos
   uma batida (o hoqueto); o fantasma continua jogando.
 
@@ -328,7 +327,7 @@ func jogar(dt: float) -> void:
 			_esquivar(l, 1 if lx > 0.0 else -1)
 		elif absf(lx) <= LX_VOLTA:
 			_armado[l] = true
-		while not _notas[l].is_empty() and agora > float(_notas[l][0].t) + Ritmo.JANELA_BOM + Ritmo.FOLGA_DO_ULTIMO:
+		while not _notas[l].is_empty() and agora > float(_notas[l][0].t) + FOLGA_PERDIDA:
 			var nt: Dictionary = _notas[l].pop_front()
 			_ultima[l] = nt
 			nota_perdida(l, int(nt.n))
@@ -339,14 +338,12 @@ func jogar(dt: float) -> void:
 
 func toque(l: int, julgamento: int) -> void:
 	var nt: Dictionary = _ultima[l]
-	marcar(l, Itens.pontos_do_acerto(l, PONTOS[julgamento], julgamento, int(nt.b) % 4 == 0))
-	Som.tocar("pedra", _pos_da_prensa(l, nt.caem[0]), -6.0)
-	if julgamento == Ritmo.PERFEITO:
-		_piscar_cor(l, Color.WHITE, 0.1)
+	marcar(l, PONTOS[julgamento])  # o item, o kit já aplicou (H08)
+	Som.tocar("pedra", _pos_da_prensa(l, nt.caem[0]), -6.0)  # o piscar do perfeito é do kit (H08)
 
 
 func falha(l: int) -> void:
-	_esmagar(l)  # A falha: achatado, explosao, vermelho, brasa; na terceira, fantasma
+	_esmagar(l)  # A falha: achatado, explosao, brasa (a barra escurece pelo kit); na terceira, fantasma
 ```
 
 `_esquivar(l, dir)` muda `pos[l]` (preso entre 0 e 2), mexe o boneco, e,
@@ -354,7 +351,8 @@ havendo nota avisada, resolve pelo "Como se joga" (pondo a nota em
 `_ultima[l]` e tirando-a da lista antes de chamar `julgar_toque` ou
 `nota_perdida`). `_dono(b)` é o do Cerco. `_conferir_o_ultimo_em_pe()`: com
 `_comecaram >= 2`, quando só um presente tem `vida > 0`, todos `acabou`.
-`_piscar_cor`/`_piscar` como na L1, voltando a `BRILHO[vida[l]]`.
+`_piscar` como na L1: o `_esmagar` põe `_pisca[l] = CenarioDoImpacto.PISCA_MAX`, e depois
+do piscar do kit (H08) a barra volta a `BRILHO[vida[l]]`.
 
 Catálogo: `"S04_J20"` em `MINIGAMES` e na lista da seção `S04`. O `.uid`.
 Traduções: `"A Prensa": "The Press"`, `"Esquive!": "Dodge!"`. `dica(l)`:
@@ -365,7 +363,7 @@ Traduções: `"A Prensa": "The Press"`, `"Esquive!": "Dodge!"`. `dica(l)`:
 ## O que o registro mede
 
 - `sensacao` `golpe` / `golpe_esq` / `golpe_dir` e a `saida` de vibração.
-- `jogo` `lado` (qualquer lado, ou o lado seguro) e `jogo` `resposta` (o
+- `pista` (`via` `rumble`) (qualquer lado, ou o lado seguro) e `entrada` `resposta` (o
   lado para onde foi); o `toque` do kit. Pista de um lado com `ok` e
   esquiva para o outro lado, repetida num controle, é o motor daquele lado
   que não chegou (ou chegou trocado).
@@ -386,7 +384,8 @@ Traduções: `"A Prensa": "The Press"`, `"Esquive!": "Dodge!"`. `dica(l)`:
 - **`preso = true`:** o analógico é entrada do minigame; sem ele, o boneco
   anda sozinho pela física.
 - **O terror escurece a luz da casa** (11, regra 7): nenhuma luz de outra cor.
-- **Os pontos e o item:** se o kit já aplica `Itens.pontos_do_acerto`, marque cru.
+- **Os pontos e o item:** o kit aplica `Itens.pontos_do_acerto` no `julgar_toque`
+  (H08); marque cru.
 
 ## Pronto quando
 
@@ -394,8 +393,7 @@ A Prensa joga do aviso ao resultado com 4, 3, 2 e 1 jogador e com o robô nos
 três temperamentos (o ruim vira fantasma e acende a luz); aguenta o cabo que
 cai e volta; fecha com vencedor (o último em pé, ou os 90 s); a prova do jogo
 passa; e `bash tests/prova_visual.sh` passa com a **prancha olhada** com A
-Prensa nela (na cópia de trabalho, sem commitar, `"S04_J20"` em primeiro na
-lista da seção `S04`; depois volte a ordem) — no escuro da nuvem a prancha
+Prensa nela (o `Catalogo.sortear` da H08 põe o `S04_J20` na noite: rode a prova visual com a semente que o sorteia, `--semente=N`) — no escuro da nuvem a prancha
 confere a disposição; a aparência do escuro é o André quem aprova.
 
 ## Provas
@@ -419,7 +417,7 @@ func _prova_da_prensa() -> void:
 				pista[0] = true
 			if int(mg.pos[l]) < 0 or int(mg.pos[l]) > 2:
 				fora_da_raia[0] += 1
-	var mg := await _joga_o_minigame("S04_J20", 60.0, olhar)
+	var mg = await _joga_o_minigame("S04_J20", 130.0, olhar)
 	if mg == null:
 		return
 	_esperar(pista[0], "Prensa: a pista chegou a um controle simulado")

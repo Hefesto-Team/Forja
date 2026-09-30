@@ -1,6 +1,6 @@
 # I3 — Portões de Néon
 
-**Sprint:** I · **Slot:** S01_J03 · **Tamanho:** M · **Estimativa:** US$ 1,5 · **Depende de:** H04, F09, F03, H07, I1 (o `secao.gd`), e o sorteio dentro da seção ([o índice](I-a-centelha.md#antes-de-começar-o-que-ainda-falta-na-base))
+**Sprint:** I · **Slot:** S01_J03 · **Tamanho:** M · **Estimativa:** US$ 1,5 · **Depende de:** H04, H08, F09, F03, H07, I1 (o `secao.gd`)
 
 ## Por quê
 
@@ -48,11 +48,11 @@ const FICHA := {
   do portão** → `julgar_toque`: PERFEITO, ÓTIMO e BOM passam por baixo (o
   BOM raspa o elmo: faísca); ERRO é o portão em cima dele. ✕ mais de um
   tempo antes do portão não conta (ele está correndo); a nota passou sem ✕
-  (`JANELA_BOM + 0,05 s`) → nota perdida.
+  (`FOLGA_PERDIDA`, o do kit) → nota perdida.
 - **Os portões passados** são a distância; a meta: **40 portões**.
 - **Os pontos por julgamento** (ERRO, BOM, ÓTIMO, PERFEITO): `[0, 20, 35, 50]`;
   o primeiro a chegar +300, o segundo +200, o terceiro +100.
-- **A progressão:** `p = t_jogo / duracao`. De 0 a 1/3, um portão por
+- **A progressão:** `progresso()` do kit (em tempo de música, H08). De 0 a 1/3, um portão por
   compasso. **O pico (1/3 a 2/3), a perseguição:** dois portões por
   compasso, nas colcheias do hoqueto (`4c + 0,5·l` e `4c + 2 + 0,5·l`), e o
   néon do túnel pisca no tempo. De 2/3 em diante, um por compasso. Quantos
@@ -84,7 +84,7 @@ Néon é emissivo com trabalho (é o portão); a cor do lugar só na borda da ra
 | --- | --- |
 | **o ✕ (a feature)** | o impulso, na batida do portão |
 | vibração | o kit no acerto e no erro; esmagado: `Forja.sentir(l, "golpe")`; o portão que vem: `Forja.sentir(l, "aviso", int(30000.0 / Ritmo.bpm))` meio tempo antes da batida (só fora do pico, para não virar zumbido); a chegada: `explosao` |
-| barra de luz | `SECAO.piscar` no `toque` e na `falha` |
+| barra de luz | o kit (`_reagir`, H08): branco no perfeito, a cor do lugar escurecida no erro |
 | alto-falante do dono | perfeito: a nota (o kit); ótimo e bom: `Forja.som_falante(l, "clique", 0.5)`; erro: a nota quebrada (o kit); a chegada: `Forja.som_falante(l, "coleta", 0.8)` |
 | gatilho | livre (o R2 Off) |
 | háptica por material | `metal`, pelo kit |
@@ -152,14 +152,12 @@ const SECAO := preload("res://scripts/minigames/s01/secao.gd")
 
 # (a FICHA vem aqui)
 
-const BATIDA_DA_PRIMEIRA_NOTA := 4.0
 const META := 40
 const PONTOS := [0, 20, 35, 50]
 const DA_CHEGADA := [300, 200, 100, 0]
 const VELOCIDADE := 2.0  ## m por tempo
 const ALTURA := 2.6
 const RETA_FINAL := 8.0
-const FOLGA_PERDIDA := 0.05
 const N_PORTOES := 4  ## os portões visíveis por lugar (reciclados)
 
 var j := {}
@@ -199,22 +197,16 @@ func montar() -> void:
 		Forja.gatilho(l, 1, Forja.GATILHO_OFF)
 
 
-func _no_pico() -> bool:
-	var p := t_jogo / maxf(duracao, 1.0)
-	return p >= 1.0 / 3.0 and p < 2.0 / 3.0
-
-
 ## A batida do próximo portão do lugar depois de `b`.
 func _proxima_batida(l: int, b: float) -> float:
 	var passo := 4.0
 	var desloc := float(l)
 	if Ritmo.simples[l]:
 		passo = 8.0
-	elif _no_pico():
+	elif no_pico():
 		passo = 2.0
 		desloc = 0.5 * l
-	var k := floorf((b - desloc) / passo) + 1.0
-	return maxf(k * passo + desloc, BATIDA_DA_PRIMEIRA_NOTA + desloc)
+	return proxima_batida(l, b + 0.001, passo, desloc)  # o kit; estritamente depois de b
 
 
 ## Enche a fila do lugar até N_PORTOES batidas, a partir de `desde`; a
@@ -238,7 +230,6 @@ func iniciar_jogo() -> void:
 
 
 func jogar(_dt: float) -> void:
-	SECAO.voltar_a_luz(self)
 	for l in presentes():
 		var e: Dictionary = j[l]
 		_mostrar(l)
@@ -255,19 +246,19 @@ func jogar(_dt: float) -> void:
 		var alvo := Ritmo.t_da_batida(b)
 		var agora := Ritmo.t_musica()
 		# o aviso no controle, meio tempo antes (fora do pico)
-		if not _no_pico() and int(e.avisou) != int(e.n) and Ritmo.batida() >= b - 0.5:
+		if not no_pico() and int(e.avisou) != int(e.n) and Ritmo.batida() >= b - 0.5:
 			e.avisou = int(e.n)
 			Forja.sentir(l, "aviso", int(30000.0 / Ritmo.bpm))
 		if Forja.apertou(l, Forja.CRUZ) and Ritmo.batida() >= b - 1.0:
 			julgar_toque(l, alvo, int(e.n))
-		elif agora > alvo + Ritmo.JANELA_BOM + FOLGA_PERDIDA:
+		elif agora > alvo + FOLGA_PERDIDA:
 			nota_perdida(l, int(e.n))
 	if _fim_da_reta >= 0.0 and Ritmo.batida() >= _fim_da_reta:
 		for l in presentes():
 			acabou[l] = true
 	for k in _neon.size():
 		var m: StandardMaterial3D = (_neon[k] as MeshInstance3D).material_override
-		m.emission_energy_multiplier = 2.4 + (1.6 * (1.0 - fmod(Ritmo.batida(), 1.0)) if _no_pico() else 0.0)
+		m.emission_energy_multiplier = 2.4 + (1.6 * (1.0 - fmod(Ritmo.batida(), 1.0)) if no_pico() else 0.0)
 
 
 ## A nota da vez foi julgada: o portão sai da fila e o próximo vira a nota.
@@ -293,7 +284,6 @@ func toque(l: int, julgamento: int) -> void:
 	if julgamento != Ritmo.PERFEITO:
 		Forja.som_falante(l, "clique", 0.5)
 	Som.tocar("portao", Vector3(RAIAS[l], 1.0, Z_JOGADOR), -12.0)
-	SECAO.piscar(self, l, julgamento)
 	if int(e.passados) >= META:
 		_chegou(l)
 		return
@@ -309,7 +299,6 @@ func falha(l: int) -> void:
 	Forja.sentir(l, "golpe")
 	Som.tocar("golpe", Vector3(RAIAS[l], 0.5, Z_JOGADOR), -4.0)
 	Efeitos.faiscas(self, Vector3(RAIAS[l], 0.2, Z_JOGADOR), Tema.CIANO, 20, 0.8)
-	SECAO.piscar(self, l, Ritmo.ERRO)
 	_seguinte(l)
 
 
@@ -428,26 +417,14 @@ outras fichas da seção (ou de `await _prova_do_kit()`):
 ## S01_J03 (I3): os portões abrem pelo catálogo, o ✕ do robô chega julgado a
 ## cada lugar, e a corrida fecha com vencedor.
 func _prova_dos_portoes() -> void:
-	jogo._entrar_na_sala("S01_J03", false)
-	await _quadros(2)
-	var mg = jogo.sala
-	_esperar(mg is Minigame and mg.id == "S01_J03", "S01_J03: abriu pelo catálogo")
-	if not mg is Minigame:
-		return
-	var q := 0
-	while is_instance_valid(mg) and mg.fase == "aviso" and q < 900:
-		await _quadros(1)
-		q += 1
-	var inicio := Time.get_ticks_usec()
-	while is_instance_valid(mg) and mg.fase == "jogo" and Time.get_ticks_usec() - inicio < 40000000:
-		await _quadros(1)
-	_esperar(is_instance_valid(mg) and mg.fase == "fim", "S01_J03: fechou (%.1f s)" % ((Time.get_ticks_usec() - inicio) / 1e6))
-	if not is_instance_valid(mg):
+	# a espera é a da H08: o aviso em quadros, o jogo pelo relógio de parede (90 s de música e o treino)
+	var mg = await _joga_o_minigame("S01_J03", 130.0)
+	if mg == null:
 		return
 	for l in 4:
 		var c: Array = mg.contagem[l]
 		_esperar(int(c[3]) >= 1, "S01_J03 P%d: o robô bom passou um portão no perfeito %s" % [l + 1, c])
-	q = 0
+	var q := 0
 	while (jogo.estado != "salao" or jogo._trocando) and q < 900:
 		await _quadros(5)
 		q += 5

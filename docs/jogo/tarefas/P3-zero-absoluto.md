@@ -25,7 +25,7 @@ const FICHA := {
 	"titulo": "Zero Absoluto",
 	"verbo": "Silêncio!",
 	"genero": "terror",
-	"icone": "microfone",
+	"icone": "mic",
 	"entradas": [Forja.CRUZ, Forja.MICROFONE],
 	"camera": "fixa",
 	"faixa": "MUS_S08_J38",
@@ -34,6 +34,7 @@ const FICHA := {
 	"sensacoes": ["acerto", "perfeito", "erro", "golpe", "aviso"],
 	"material": "gelo",
 	"microjogo": {"verbo": "Silêncio!", "segundos": 6.0},
+	"papel_som": Forja.PAPEL_MICROFONE,  # o kit abre este papel de som no entrar() (H08)
 	"gesto": "walk",
 }
 ```
@@ -41,7 +42,8 @@ const FICHA := {
 ## Como se joga
 
 A faixa é `MUS_S08_J38`, 120 bpm (uma batida = 0,5 s), que **para por quatro
-tempos e volta**. `ENTRADA := 4`.
+tempos e volta**: na batida `M` de cada ciclo, `Ritmo.calar(4)` (8 no pico),
+da H08 — a música cala e o relógio segue. `BATIDA_DA_PRIMEIRA_NOTA` (4, do kit: H08).
 
 - **O ciclo** `c` começa em `_g0` e tem a marcha de `M = _marcha_de(c)`
   batidas (`MARCHA_1 := 4` no primeiro ciclo — o susto chega logo —,
@@ -81,7 +83,7 @@ tempos e volta**. `ENTRADA := 4`.
   (`_pico_c := floor(ciclos_previstos / 2)`) tem **oito** batidas de silêncio;
   ninguém sabe quando ele vai voltar a olhar a parede.
 
-`ciclos_previstos = floor((duracao / _t_batida() - ENTRADA) / 16)`.
+`ciclos_previstos = floor((duracao / _t_batida() - BATIDA_DA_PRIMEIRA_NOTA) / 16)`.
 
 ## O cenário
 
@@ -126,7 +128,7 @@ tempos e volta**. `ENTRADA := 4`.
 | TV | a música que para; no silêncio, só o vento (`Som.tocar("vento", null, -12.0)` na batida `M`); `Som.tocar("carimbo", pos, -2.0)` (o estalo do gelo) no congelamento | — |
 
 **No rádio:** sem placa de áudio não há microfone nem alto-falante: o lugar
-entra no "sozinho" abaixo desde o começo (a `troca` com `sem_microfone`), os
+entra no "sozinho" abaixo desde o começo (a `troca` `de` `microfone` `para` `sem_microfone`), os
 sons do alto-falante não soam, e a háptica do kit vai pelo rumble. A luz do
 mudo é saída HID e passa pela ponte.
 
@@ -206,7 +208,6 @@ extends Minigame
 
 const FICHA := { ... }
 
-const ENTRADA := 4
 const MARCHA_1 := 4
 const MARCHA := 12
 const SILENCIO := 4
@@ -219,7 +220,7 @@ const PONTOS := [0, 50, 75, 100]
 # ... e as do ouvido (a P1)
 
 var _c := 0                        ## o ciclo da vez
-var _g0 := float(ENTRADA)          ## o começo dele
+var _g0 := float(BATIDA_DA_PRIMEIRA_NOTA)          ## o começo dele
 var _nota := [-1, -1, -1, -1]
 var _alvo := [0.0, 0.0, 0.0, 0.0]
 var _n := [0, 0, 0, 0]
@@ -242,7 +243,6 @@ var _robo_riu := [-1, -1, -1, -1]
 
 
 func montar() -> void:
-	papel_som = Forja.PAPEL_MICROFONE
 	camera_pos = Vector3(0, 6.2, 10.4)
 	camera_olhar = Vector3(0, 1.4, -2.0)
 	# a caverna, o guardião de gelo, as trilhas; gatilhos_off
@@ -279,7 +279,7 @@ func jogar(dt: float) -> void:
 			_escudo(l)                    # o Botão do microfone, com carga
 		if fase_b >= m:
 			_escuta(l, b)                 # a voz por BARULHO_S, ou ✕: congela
-	_virada(fase_b, m)                    # em M - 2: o sino e o aviso de cada um; em M: a luz a 30%, o vento
+	_virada(fase_b, m)                    # em M - 2: o sino e o aviso de cada um; em M: Ritmo.calar(4 ou 8, H08), a luz a 30%, o vento
 
 
 func _marcha_de(c: int) -> int:
@@ -337,7 +337,7 @@ Catálogo: `"S08_J38"` em `MINIGAMES` e na seção `S08`. Traduções:
   barulho era da sala inteira e a regra do ar escolheu o mais alto);
 - `saida` `led_microfone` de cada escudo, com `seq` e `ok`, e o botão pelas
   medidas;
-- a marcha (`nota`/`toque`); `troca` para "sozinho".
+- a marcha (`nota`/`toque`); `troca` `de` `microfone` `para` `sem_microfone`.
 
 ## Armadilhas
 
@@ -345,20 +345,18 @@ Catálogo: `"S08_J38"` em `MINIGAMES` e na seção `S08`. Traduções:
   `_robo_rng.seed = rng.seed + 99` no `iniciar_jogo()`: o `rng` do kit é do jogo
   (os caminhos, os lados, o Aprendiz), e o robô não pode mudar o que o jogo sorteia
   (a paridade: com robô ou com gente, o mesmo jogo).
-- **A faixa tem de parar no silêncio de cada ciclo** (as batidas 8 a 11 da
-  música, depois 24 a 27, 40 a 43…). Confira o mapa
-  `MUS_S08_J38.batidas.json` (as seções "pausa", H05). Se a faixa não bater,
-  o silêncio do jogo segue igual (o guardião vira, a luz cai, o vento sopra),
-  e anote na ficha para a H05 cortar a faixa. Na sintetizada não há pausa; o
-  jogo não depende dela.
+- **A música cala no silêncio de cada ciclo** (as batidas 8 a 11, depois 24
+  a 27, 40 a 43…) pelo `Ritmo.calar(batidas)` da H08, uma vez por ciclo na
+  batida `M`: a música some e o relógio segue, com a faixa gerada e com a
+  sintetizada. O jogo não depende de a faixa ter a pausa.
 - **O pé também é barulho**: o ✕ no silêncio congela, mesmo com escudo (o
   escudo cala a voz, não o pé).
 - **O escudo desliga sozinho** no fim do silêncio: `Forja.led_mic(l, 0)`; no fim do
   minigame, o kit põe o controle em repouso.
 - **A regra do ar no silêncio** é o que impede a gargalhada de um de congelar
   os quatro; não a desligue.
-- **Na prova o pico não chega** (o fim é pelo `duracao`).
-- **`ENTRADA`**: se o kit tiver `BATIDA_DA_PRIMEIRA_NOTA`, use-a.
+- **Na prova o pico chega:** o fim conta em tempo de música (H08), e os 90 s
+  rodam inteiros.
 
 ## Pronto quando
 
@@ -377,24 +375,20 @@ Em `godot/testes/prova_do_jogo.gd`, uma `_prova_zero_absoluto()`:
 ## S08_J38: a marcha anda, e no primeiro silêncio o LED do mudo está aceso em
 ## quem gastou escudo e apagado nos outros.
 func _prova_zero_absoluto() -> void:
-	var sala = await _comeca_a_sala("S08_J38")
+	# a espera é a do `_joga_o_minigame` da H08: o aviso em quadros, o jogo pelo relógio de parede (90 s de música e o treino)
+	var viu := [false]
+	var olhar := func(s) -> void:
+		# o primeiro silêncio: as batidas 8 a 11 (4 s de música)
+		if not viu[0] and Ritmo.batida() >= s.BATIDA_DA_PRIMEIRA_NOTA + s.MARCHA_1 + 1.0:
+			viu[0] = true
+			for l in 4:
+				var aceso := int(_perc(l).get("led_mic", 0)) != 0
+				_esperar(aceso == bool(s._mudo[l]), "zero: o LED do P%d %s no silêncio" % [l + 1, "aceso" if s._mudo[l] else "apagado"])
+	var sala = await _joga_o_minigame("S08_J38", 130.0, olhar)
 	if sala == null:
 		return
-	var inicio := Time.get_ticks_usec()
-	# o primeiro silêncio é curto de propósito: batidas 8 a 11 (4 s de música),
-	# dentro do que a prova alcança a 16×
-	while is_instance_valid(sala) and sala.fase == "jogo" and Ritmo.batida() < sala.ENTRADA + sala.MARCHA_1 + 1.0 \
-			and Time.get_ticks_usec() - inicio < 20000000:
-		await _quadros(1)
-	if is_instance_valid(sala) and sala.fase == "jogo":
-		for l in 4:
-			var aceso := int(_perc(l).get("led_mic", 0)) != 0
-			_esperar(aceso == bool(sala._mudo[l]), "zero: o LED do P%d %s no silêncio" % [l + 1, "aceso" if sala._mudo[l] else "apagado"])
-	while is_instance_valid(sala) and sala.fase == "jogo" and Time.get_ticks_usec() - inicio < 30000000:
-		await _quadros(1)
-	_esperar(is_instance_valid(sala) and sala.fase == "fim", "zero: fechou")
-	if is_instance_valid(sala):
-		_esperar(sala._dist.max() >= 1.0, "zero: alguém marchou (%s)" % [sala._dist])
+	_esperar(viu[0], "zero: o primeiro silêncio chegou")
+	_esperar(sala._dist.max() >= 1.0, "zero: alguém marchou (%s)" % [sala._dist])
 ```
 
 (A 16×, os 90 s de jogo são uns 6 s de música: o primeiro silêncio, na

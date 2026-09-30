@@ -22,8 +22,6 @@ Um arquivo só, criado pela I1 e usado pelos cinco:
 | função | o que faz |
 | --- | --- |
 | `SECAO.montar(sala)` | `Kit.arena(sala, 5, 3)`; `atmosfera(Color("#ff9a52"), Tema.ROSA, true, 60)` (brasas subindo, o neon rosa); as três tochas; no fundo, `column` nos quatro cantos, três `banner`, dois `wood-support`, `barrel` e `pot` nas laterais, e o brilho laranja da fornalha em `(0, 1.2, -6)` |
-| `SECAO.piscar(sala, l, julgamento)` | a barra de luz do lugar: branco por 0,12 s no perfeito; a cor do lugar a 40% por 0,5 s no erro (F04: nunca abaixo de 30%, nunca mais de 0,5 s fora da cor) |
-| `SECAO.voltar_a_luz(sala)` | a cor do lugar volta; a primeira linha de todo `jogar()` |
 
 O código inteiro está na [I1](I1-o-martelo-de-hefesto.md#o-cenário).
 
@@ -42,11 +40,16 @@ Valem para os cinco; cada ficha já as traz escritas no código dela.
   "e" do 2 e do 4). A partitura simples (`Ritmo.simples[l]`) passa para uma
   nota a cada 4 tempos, na mesma fração.
 - **A contagem:** as batidas 0 a 3 são a entrada (H06); a primeira nota é a
-  batida 4 (`BATIDA_DA_PRIMEIRA_NOTA`).
-- **O pico no meio:** pela fração do jogo que vale, `t_jogo / duracao`
-  (F03): de 1/3 a 2/3.
-- **A barra de luz:** `SECAO.piscar` no `toque` e na `falha`,
-  `SECAO.voltar_a_luz` no `jogar`. As luzinhas de jogador nunca mudam.
+  batida 4 (`BATIDA_DA_PRIMEIRA_NOTA`, do kit). A fila de notas é do kit
+  (H08): `proxima_batida`, `casar_toque`, `notas_perdidas`, `FOLGA_PERDIDA`;
+  nenhuma ficha as reescreve.
+- **O pico no meio:** `no_pico()` do kit (o terço do meio da duração, em
+  tempo de música; `progresso()` dá o 0..1).
+- **O fim em tempo de música** (H08): a `duracao` da FICHA conta em
+  `Ritmo.t_musica()`; nenhuma ficha usa `"duracao": 0.0` como remendo.
+- **A barra de luz:** o kit pisca branco no perfeito e escurece no erro
+  (`_reagir`, H08); nenhuma ficha mexe nela. As luzinhas de jogador nunca
+  mudam.
 - **O alto-falante do dono:** no perfeito, a nota do lugar (o kit); nos
   outros acertos, o som pequeno do minigame (`Som.no_controle`); no erro, a
   nota quebrada (o kit). Nunca dois ao mesmo tempo.
@@ -83,14 +86,11 @@ núcleo (`Forja.med_*`) e os vereditos da bancada ficam **só** na I1, como
 hoje; os outros quatro gravam o que é deles na linha `entrada` (o tipo que
 A Centelha de hoje já grava, `godot/scripts/salas/centelha.gd:286`).
 
-## Antes de começar: o que ainda falta na base
+## Antes de começar: o que vem da base
 
-- **O sorteio dentro da seção.** A partida e o salão abrem a seção pelo
-  apelido (`centelha`), que o catálogo resolve para o primeiro minigame.
-  Nenhuma ficha da base faz a partida sortear **qual** dos cinco; sem isso,
-  I2 a I5 só abrem por `--sala=S01_J0n` e não aparecem na prova visual da
-  partida. As fichas I2 a I5 dependem dessa peça: se ela não existir, a
-  sessão faz tudo, deixa a prancha pendente e diz isso no fim.
-- **O ícone.** A `FICHA.icone` é o nome de um glifo de `godot/assets/glifos/`
-  (a F02 confere). Se o kit ainda não copia a `FICHA.icone` para
-  `SalaJogo.icone`, a primeira linha do `montar()` é `icone = str(ficha.icone)`.
+- **O sorteio dentro da seção** é da H08: `Catalogo.sortear(apelido,
+  semente, vez)` devolve um dos cinco sem repetir, e a partida guarda slots.
+  Nenhuma ficha mexe no catálogo além de pôr o seu slot nele.
+- **O ícone.** A `FICHA.icone` é o nome de um glifo que `Desenho.glifo`
+  acha (`godot/assets/glifos/`: `cross`, `stick_l`, `r2`…; a F02 confere), e
+  o kit o copia para `SalaJogo.icone` (H08).
