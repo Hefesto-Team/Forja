@@ -17,6 +17,7 @@ Estados: **a fazer**, **fazendo** (com o nome de quem pegou), **feito**
 | [F05](F05-o-haptico-forte.md) | F | O háptico forte | G | Opus | 3,5 | a fazer | — |
 | [F06](F06-o-registro-v2.md) | F | O registro v2 | G | Opus | 3,5 | a fazer | — |
 | [F07](F07-a-voz-do-texto.md) | F | A voz nova do texto | M | Sonnet | 2,5 | a fazer | — |
+| [F08](F08-a-paridade.md) | F | A paridade entre a prova e o jogo | M | Opus | 3,0 | a fazer | — |
 | [G01](G01-titulo-e-introducao.md) | G | O título e a introdução | M | Sonnet | 2,5 | a fazer | — |
 | [G02](G02-a-construcao-do-cavaleiro.md) | G | A construção do cavaleiro | G | Opus | 4,0 | a fazer | — |
 | [G03](G03-o-item-com-mecanica.md) | G | O item com mecânica | M | Opus | 3,0 | a fazer | — |
@@ -44,7 +45,7 @@ Estados: **a fazer**, **fazendo** (com o nome de quem pegou), **feito**
 | [R](R-o-relampago.md) | R | O Relâmpago | M | Sonnet | 2,5 | a fazer | — |
 | [S](S-a-noite-de-seis-horas.md) | S | A noite de seis horas | M | Sonnet | 3,0 | a fazer | — |
 
-**Soma das estimativas:** US$ 111,5 (F 22,5 · G 23,0 · H 20,0 · I–Q 40,5 · R 2,5 · S 3,0).
+**Soma das estimativas:** US$ 114,5 (F 25,5 · G 23,0 · H 20,0 · I–Q 40,5 · R 2,5 · S 3,0).
 Com o retrabalho de 30%, a faixa é a de [Como trabalhar](../12-como-trabalhar.md#o-orçamento).
 
 ## A ordem
