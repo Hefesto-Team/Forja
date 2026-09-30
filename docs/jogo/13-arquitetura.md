@@ -63,6 +63,9 @@ tests/*.sh                 as provas; scripts/*.sh a compilação, o gauntlet, a
 - **`class_name` em todo script que outro usa pelo nome**; os autoloads não têm `class_name`.
 - **Nada de caminho fixo e nada de endereço de aparelho** no código, no registro ou no relatório (regra do [AGENTS](../../AGENTS.md)).
 - **Toda saída ao controle passa pelo `Forja`**, por lugar. Nenhuma sala fala com o `Forja.ctl` direto.
+- **A dica de botão** é `Glifo.dica(..., com_botao := true)`: escreve "Botão ✕ (Ação)" (F07). O ícone da parte do controle usada vive em `SalaJogo.icone` (F02) e, nos minigames, em `FICHA.icone`.
+- **A coleta de texto para a prova:** `Desenho._coletar = "memoria"` guarda cada frase desenhada, para a prova conferir o que a tela mostrou (F02).
+- **O texto que vem do núcleo em C** (o porquê dos vereditos, os experimentos) fica fora da regra de maiúscula por enquanto: só aparece no Modo bancada.
 - **O que não se sabe, não se inventa:** se o comportamento do SDL, do Godot ou do controle não está na ficha nem aqui, a sessão mede ou para e anota.
 
 ## O ambiente de uma sessão
@@ -100,6 +103,16 @@ if Forja.bancada:
 Os vereditos continuam sendo **calculados e gravados** nos dois modos. Só a
 tela muda.
 
+- Fora da bancada, a sala às cegas **pula o estado de pergunta** e segue para
+  o que vem depois da resposta. Reflexo não é pergunta: o escudo do Impacto e
+  o tropeço dos Caminhos ficam nos dois modos.
+- As perguntas de luzinhas e de cor (Galeria, Prova) **continuam no Modo
+  bancada**: sem elas, os vereditos `leds_jogador` e `lightbar` não se medem.
+- O registro diz o modo: evento `sessao` com `"evento": "modo"`, e uma linha
+  `saida` com `"o": "pergunta"` a cada pergunta aberta.
+- O gauntlet e a prova de poucos são provas **da bancada** (conferem os
+  vereditos das perguntas) e rodam com `--bancada`.
+
 ### As sensações — F05
 
 **Hoje:** as salas chamam `Forja.vibrar(l, forte, fraco, ms)` com números
@@ -120,9 +133,18 @@ const SENSACOES := {
 func sentir(l: int, nome: String, ms := -1) -> bool
 ```
 
-`Forja.vibrar` continua existindo, mas **só é chamado dentro de `forja.gd`**
-e nas sensações direcionais (`"golpe_esq"`, `"golpe_dir"` entram na tabela
-quando o Impacto for refeito). A prova do jogo confere com `grep` que nenhum
+A tabela ganha também as direcionais, já na F05, porque o Impacto e a Prova
+vibram de um lado só hoje:
+
+```gdscript
+    "golpe_esq": [1.0, 0.0, 250],
+    "golpe_dir": [0.0, 1.0, 250],
+```
+
+`Forja.vibrar` continua existindo, mas **só é chamado dentro de `forja.gd`**.
+`sentir` grava a linha `sensacao` com `nome`, `escala` e `ms`. Com o motor
+vibrando, `Forja.som_haptica` daquele lugar devolve -1 (rumble e háptica por
+áudio nunca juntos, suspeita (e) de [05](05-haptica-e-controle.md#por-que-o-háptico-está-fraco)). A prova do jogo confere com `grep` que nenhum
 outro script chama `Forja.vibrar`. Valores e o porquê em
 [05](05-haptica-e-controle.md#o-piso-de-força).
 
@@ -131,7 +153,11 @@ outro script chama `Forja.vibrar`. Valores e o porquê em
 **Hoje:** `linha-do-tempo-<sessão>.jsonl`, formato
 `hefesto-tech-demo/linha-do-tempo/1` (`nativo/nucleo/linha_tempo.h:11`),
 uma linha por evento com `t`, `tipo`, `jogador` (1..4, 0 = a mesa). O `t`
-hoje é o tempo do jogo (`relogio_do_jogo`), não o de parede.
+hoje é **sempre** o tempo do jogo: `relogio_do_jogo(&f->t)` é chamado
+incondicionalmente em `nativo/nucleo/forja.c:179`, e o comentário de
+`nativo/nucleo/relogio.h` (que fala num `--acelerado`) está errado — esse
+argumento não existe. Os `Array` vindos do GDScript em `Forja.evento` hoje
+são gravados como texto.
 
 **Alvo:** formato `hefesto-tech-demo/linha-do-tempo/2`. Toda linha:
 
@@ -139,22 +165,25 @@ hoje é o tempo do jogo (`relogio_do_jogo`), não o de parede.
 {"t": 12.345, "t_musica": 8.120, "tipo": "saida", "jogador": 3, "lugar": 2, ...}
 ```
 
-- `t`: segundos desde o início da sessão, **relógio monotônico de parede**
-  (com `--acelerado` continua sendo o tempo do jogo, como documenta
-  `nativo/nucleo/relogio.h`).
-- `t_musica`: a posição da música, quando há; ausente quando não há.
-- `jogador` continua 1..4 (0 = a mesa) para não quebrar leitores; `lugar` é
-  0..3.
+- `t`: segundos desde o início da sessão, **relógio monotônico de parede**.
+  O tempo do jogo só com `ctl.acelerar(true)`, que só se aceita com
+  `--simular`; a linha `sessao` diz qual: `"relogio": "parede"` ou `"jogo"`.
+- `t_musica`: a posição da música, quando há; ausente quando não há. O C
+  recebe do GDScript por `Forja.t_musica(s)` (`lt_t_musica` no núcleo),
+  chamado pelo `Ritmo` a cada quadro (H01).
+- `jogador` continua 1..4 para não quebrar leitores, e `lugar` (0..3) vai
+  **junto** dele. Linha da mesa (`jogador` 0) não tem `lugar`.
+- `Array` do GDScript vira array JSON.
 
 Os tipos, e quem os escreve:
 
 | tipo | campos | quem |
 | --- | --- | --- |
-| `conexao` | `transporte` (`"usb"`/`"bt"`, o que o SDL relata), `firmware` (ex.: `"0x0224"`), `vid_pid` | F06 (C) |
+| `conexao` | `transporte` (`"usb"`, `"bt"`, `"virtual"` para o simulado, `"desconhecido"`), `firmware` (ex.: `"0x0224"`), `rumble_escala_cheia` (se o SDL manda o rumble sem o corte pela metade), `vid_pid`; `"evento": "reservou"` quando o lugar é dado na conexão (F04) | F05 (firmware), F06 (o resto), F04 (reserva) |
 | `saida` | `seq` (por lugar, cresce, nunca repete), `o` (`vibracao`, `gatilho`, `lightbar`, `leds_jogador`, `player_index`, `led_microfone`, `audio_hid`), os valores, `ok` | F06 (C) |
 | `som_controle` | `seq`, `papel` (`alto_falante`/`haptica`), `som`, `ganho`, `placa` (`true`/`false`) | H07 (C) |
-| `sensacao` | `nome` (da tabela de sensações), `escala` | F05 |
-| `minigame` | `slot`, `evento` (`comecou`/`terminou`), `vencedor`, `pontos`, `itens`, `duracao` | F03 |
+| `sensacao` | `nome` (da tabela de sensações), `escala`, `ms` | F05 |
+| `minigame` | `slot`, `evento` (`comecou`/`terminou`), `vencedor` (o lugar 0..3, ou -1 no coop), `pontos`, `itens`, `duracao` | F03 |
 | `nota` | `slot`, `n` (índice), `t_alvo` (em tempo de música) | H01 |
 | `toque` | `slot`, `n`, `desvio_ms`, `julgamento` (`perfeito`/`otimo`/`bom`/`erro`) | H02 |
 | `calibracao` | `desvio_ms`, `amostras` | G02 |
@@ -308,11 +337,16 @@ boneco leva nas costas.
 **Alvo:** `godot/scripts/ui/resultado.gd` (`class_name TelaResultado`),
 aberta pela fase `fim` para toda sala e todo minigame:
 
-- entrada: `colocacao: Array` (lugares na ordem), `pontos: Array`,
-  `coop: bool` e `coop_venceu: bool`;
+- `abrir(titulo: String, colocacao: Array, pontos: Array, coop: bool, coop_venceu: bool)`;
+- `SalaJogo.vencedor() -> Array` com um padrão (os lugares pela ordem dos
+  pontos); o minigame troca quando o critério é outro;
+- `SalaJogo.t_jogo`: o tempo de jogo valendo (o treino não conta), para o
+  relógio da tela nunca voltar;
+- `SalaJogo.AVISO_MAX := 8.0`: o aviso começa sozinho;
 - sequência: apito (0,5 s), resultado com o vencedor em destaque (o boneco
   faz `emote-yes`, faíscas na cor), jingle, "Botão ✕ (Continuar)";
-- avança sozinha em 6 s; com `--robo`, em 3 s;
+- avança sozinha em 6 s, **para todo mundo** — sem atalho de robô
+  ([a paridade](#a-paridade-entre-a-prova-e-o-jogo--f08));
 - no Modo bancada, a tabela de veredito aparece **abaixo** do resultado.
 
 ### A identidade — F04
@@ -322,6 +356,16 @@ aberta pela fase `fim` para toda sala e todo minigame:
 **Alvo:** o lugar é dado **na conexão** (`conectou()` em `pads.c`), com
 `SDL_SetGamepadPlayerIndex`, as luzinhas e a cor na hora. O ✕ do lobby só
 confirma. Regras em [05](05-haptica-e-controle.md#a-identidade-p1p4).
+
+A API da reserva:
+
+| onde | o quê |
+| --- | --- |
+| C (`nativo/nucleo/pads.c`) | `Pad.reserva` (o lugar reservado ao pad), `Slot.reservado_por`, `pad_lugar(pad)`, `pads_trocar_reserva(pad)` |
+| jogo (`godot/scripts/forja.gd`) | `Forja.trocar_lugar(l)`, `Forja.pad_segura(indice, botao)`, `pad(i)["reserva"]`, `lugar(l)["reservado"]` |
+
+A barra de luz nunca fica abaixo de 30% de brilho, e um piscar de outra cor
+dura no máximo 0,5 s: a cor do lugar sempre volta.
 
 ## A paridade entre a prova e o jogo — F08
 
@@ -353,9 +397,9 @@ nada. As regras:
 6. **A noite roda o pacote exportado**, não o jogo aberto pelo código: o
    AppImage ou o `.exe` que `scripts/exportar.sh` gera, com o mesmo roteiro
    de robô passando antes em `bash tests/prova_da_exportacao.sh`.
-7. **O único argumento que muda o tempo** é `--fixed-fps 60` (e o
-   `--acelerado` das provas longas, que só troca o relógio da linha do tempo);
-   nenhum argumento de prova encurta sala, treino ou fechamento.
+7. **O único argumento que muda o tempo** é `--fixed-fps 60` (e, depois da
+   F06, `ctl.acelerar` com `--simular`, que só troca o relógio da linha do
+   tempo); nenhum argumento de prova encurta sala, treino ou fechamento.
 
 ## Como uma ficha prova o que fez
 
