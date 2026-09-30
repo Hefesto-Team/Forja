@@ -14,6 +14,7 @@ binário (`scripts/licencas.gd`).
 | Mini Dungeon | Kenney (www.kenney.nl) | CC0 1.0 |
 | Impact Sounds, Interface Sounds, RPG Audio, Digital Audio, Music Jingles | Kenney (www.kenney.nl) | CC0 1.0 |
 | o desenho do DualSense, os glifos e o logo | o app Hefesto | MIT |
+| a trilha (`godot/assets/ost/`) | gerada no Suno (suno.com), plano pago, baixada com a assinatura ativa | licença de uso do Suno; não é CC0 e não se reaproveita fora do Forja |
 
 ## SDL
 
