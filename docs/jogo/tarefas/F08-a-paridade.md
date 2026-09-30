@@ -55,10 +55,14 @@ checagem estática impede a volta dos atalhos.
 6. A checagem estática, em `godot/testes/prova_do_jogo.gd`: ler cada `.gd` de
    `res://scripts/` e reprovar `Forja.robo` fora de `forja.gd`, de
    `main.gd:791` (as opções) e das funções `_robo`/`robo`.
-7. A prova do jogo passa a rodar **sem** `--bancada` pelo fluxo inteiro; o
-   que ela conferia pelas perguntas das salas às cegas vai para uma segunda
-   rodada **com** `--bancada` no mesmo `tests/prova_do_jogo.sh`.
-8. `tests/prova_da_exportacao.sh`: rodar o mesmo roteiro de robô no pacote
+7. Conferir que a F01 deixou as duas rodadas em `tests/prova_do_jogo.sh` (a
+   "forma-a" sem `--bancada`, a "antes" com `--bancada`), e que
+   `scripts/gauntlet.sh` e `tests/prova_de_poucos.sh` passam `--bancada`
+   (eles conferem os vereditos das perguntas).
+8. A prova do aviso de 8 s da F03 desliga o `Forja.robo` só dentro da prova,
+   porque até aqui era o único jeito de ter "ninguém apertou". Com o ✕ pelo
+   simulador, trocar isso por um robô que simplesmente não aperta.
+9. `tests/prova_da_exportacao.sh`: rodar o mesmo roteiro de robô no pacote
    exportado.
 
 ## Armadilhas
