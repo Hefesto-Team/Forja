@@ -67,7 +67,7 @@ Fonte: o `:root` de `interface/topo.html`. Os contrastes são medidos contra `--
   - Os mais frequentes são 12, depois 11, 11,5 e 12,5.
 - **Quando usar mono:** dado lido do controle ou valor que se compara ou copia (`95%`, `200 / 255`, `+143.2`, `#7EB8D4`), log e selos.
 - **Caixa:**
-  - Inicial maiúscula só na primeira letra da frase ("a maiúscula a regra é sobre a primeira letra", 30/08).
+  - Inicial maiúscula só na primeira letra da frase ("a maiúscula a regra é sobre a primeira letra", 30/08). **No jogo, a regra de 30/09 manda:** todo texto de tela começa com maiúscula, inclusive botão e rótulo, e botão se escreve "Botão ✕ (Iniciar)" ([docs/jogo/06](../jogo/06-telas-e-fluxo.md#a-voz-do-texto)).
   - `text-transform` é proibido; o portão `check_a_maiuscula_decorativa.py` reprova.
   - Caixa alta só em sigla (USB, BT, L2) e no texto dos selos.
   - O versalete espaçado dos canvases de julho não entrou no produto.
@@ -172,6 +172,7 @@ Fonte: o `:root` de `interface/topo.html`. Os contrastes são medidos contra `--
 - **30/08:** `--comment` passou de `#6272a4` para `#8896c4` e `--texto-mudo` de `#8b8fa8` para `#9a9eb8`. Mudou só a luminância, com piso de 4,5:1.
 - **30/08:** rótulos de campo em verde ("deixa verde os nomes"); título do quadro continua roxo.
 - **30/08:** maiúscula só na primeira letra da frase.
+- **30/09 (no jogo):** todo texto de tela começa com maiúscula; botão é "Botão ✕ (Iniciar)".
 - **31/08:** uma borda estrutural só, `#53576f` ("menos perceptíveis mas presentes e modernas").
 - **31/08:** no botão secundário a cor vai na palavra, não no contorno.
 - **31/08:** nenhum alarme sem medição.
