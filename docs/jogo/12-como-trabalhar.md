@@ -37,12 +37,32 @@ tem o mesmo molde:
 Uma ficha que cresceu demais vira duas: a sessão para, escreve a segunda
 ficha e põe no quadro.
 
+**Ficha visual** (tela, arte, câmera, HUD, minigame) só vira **feito** depois
+da prova visual (`bash tests/prova_visual.sh`, da [F09](tarefas/F09-a-prova-visual.md))
+e da prancha olhada. Foto escolhida não fecha ficha: na primeira noite, as
+fotos estavam certas e o jogo não.
+
+## O diário do André
+
+Quando o André joga ou olha uma prancha, ele anota numa linha por coisa
+vista, no fim da ficha (ou num `docs/jogo/tarefas/diario.md`, se não for de
+uma ficha só):
+
+```
+21:14 · S03_J12 Quebra-Gelo · P2 · o bloco nasceu atrás da câmera
+21:20 · resultado · — · o nome do vencedor cortado na borda
+```
+
+A hora casa com a linha do tempo e com a prancha. A próxima sessão lê o
+diário e resolve linha por linha; o que não couber na ficha vira ficha nova.
+
 ## O que roda onde
 
 | onde | o quê |
 | --- | --- |
 | **na sessão** (nuvem) | a prova rápida (`bash tests/prova_do_jogo.sh`); `scripts/compilar.sh testes` quando mexeu no módulo |
-| **com o André** (local, de graça) | o gauntlet e a prova de poucos (`scripts/gauntlet.sh`, `bash tests/prova_de_poucos.sh`), a bancada com aparelho, a exportação, as fotos das telas, e jogar para sentir |
+| **na sessão**, depois da F09 | a prova visual com `--fixed-fps 60` (`bash tests/prova_visual.sh`): a disposição, a tela parada, o texto, o relógio, o fim |
+| **com o André** (local, de graça) | o gauntlet e a prova de poucos (`scripts/gauntlet.sh`, `bash tests/prova_de_poucos.sh`), a bancada com aparelho, a exportação, a prova visual sem `--fixed-fps` na placa de vídeo (a aparência só se aprova aqui), e jogar para sentir |
 
 O que a nuvem não vê — a vibração na mão, o som no controle, a graça — só o
 André confere.

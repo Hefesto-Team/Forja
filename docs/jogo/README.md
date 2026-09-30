@@ -68,3 +68,6 @@ quebra o contrato.
 9. **A prova percorre o jogo que se joga.** O robô só age pelo controle
    simulado, a prova roda o modo do jogador, e a noite roda o pacote
    exportado ([13](13-arquitetura.md#a-paridade-entre-a-prova-e-o-jogo--f08)).
+10. **Foto escolhida não prova nada.** A prova visual grava a partida
+    inteira, com o robô errando, e confere todos os quadros; a aparência só
+    se aprova na máquina do André ([13](13-arquitetura.md#a-prova-visual--f09)).

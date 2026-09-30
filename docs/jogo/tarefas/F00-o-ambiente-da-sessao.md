@@ -42,7 +42,8 @@ qualquer ficha faz é `bash tests/prova_do_jogo.sh`, e ela passa.
    - sai logo se não está na nuvem (sem `CLAUDE_CODE_REMOTE` ou equivalente
      que a skill indicar) — na máquina do André não faz nada;
    - `apt-get install -y -qq` com a lista de `docs/DESENVOLVER.md:21-25` mais
-     `bubblewrap`, só se faltar algum (`dpkg -s`);
+     `bubblewrap` e `xvfb` (a prova visual da F09 roda com janela), só se
+     faltar algum (`dpkg -s`);
    - baixa o Godot 4.4.1 para `tools/` se não existir (a mesma URL de
      `run-local.sh`);
    - `scripts/compilar.sh linux` se `godot/bin/libforja.linux.x86_64.so` não
