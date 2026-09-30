@@ -323,6 +323,40 @@ aberta pela fase `fim` para toda sala e todo minigame:
 `SDL_SetGamepadPlayerIndex`, as luzinhas e a cor na hora. O ✕ do lobby só
 confirma. Regras em [05](05-haptica-e-controle.md#a-identidade-p1p4).
 
+## A paridade entre a prova e o jogo — F08
+
+O que a prova valida tem de ser **o mesmo jogo** que as pessoas jogam.
+Uma prova que passa por um caminho que o jogador nunca percorre não prova
+nada. As regras:
+
+1. **O robô só age pelo controle.** Ele aperta, inclina, toca e fala pelos
+   controles simulados (`Forja.robo_apertar`, `robo_eixo`, `robo_girar`,
+   `robo_tocar`, `robo_falar`, `robo_sacudir`) — nunca por um atalho no
+   código do jogo. **Hoje há atalhos**: o aviso marca o robô como pronto sem
+   ✕ (`godot/scripts/salas/sala_jogo.gd:237`), o fim da sala avança sozinho
+   (`sala_jogo.gd:385`), o placar e o pódio também (`godot/scripts/main.gd:493`,
+   `main.gd:873`). A F08 os troca por ✕ apertado no controle simulado.
+2. **`Forja.robo` só aparece em um lugar por minigame:** no gancho `robo(l, dt)`
+   (e, até o kit, na função `_robo` de cada sala). Fora disso, o jogo não
+   sabe que é um robô. A prova do jogo confere isso com `grep`.
+3. **O modo do jogador é o modo provado.** A prova do jogo roda **sem**
+   `--bancada`, pelo fluxo inteiro (título → construção → salão → partida →
+   pódio). O Modo bancada tem a sua própria prova, e só **acrescenta** camadas
+   (perguntas, veredito, diagnóstico); nunca muda regra, tempo ou tela do jogo
+   por baixo.
+4. **As fotos são do jogo.** `tests/telas.sh` fotografa o mesmo fluxo, sem
+   cena de teste montada à mão.
+5. **O controle simulado recebe o que o de verdade receberia.** A prova
+   confere pelo que chegou em cada controle simulado (player index, luz,
+   luzinhas, gatilhos, motores) e pela linha do tempo — os mesmos dados que a
+   noite de seis horas cruza.
+6. **A noite roda o pacote exportado**, não o jogo aberto pelo código: o
+   AppImage ou o `.exe` que `scripts/exportar.sh` gera, com o mesmo roteiro
+   de robô passando antes em `bash tests/prova_da_exportacao.sh`.
+7. **O único argumento que muda o tempo** é `--fixed-fps 60` (e o
+   `--acelerado` das provas longas, que só troca o relógio da linha do tempo);
+   nenhum argumento de prova encurta sala, treino ou fechamento.
+
 ## Como uma ficha prova o que fez
 
 | o que mudou | a prova |

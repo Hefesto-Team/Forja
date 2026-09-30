@@ -65,3 +65,6 @@ quebra o contrato.
 8. **Todo objeto novo passa pelo checklist de arte** de
    [11](11-arte-e-personagens.md#o-checklist-de-aprovação): fosco, em blocos,
    na proporção dos bonecos, e monstro feito de peças do kit.
+9. **A prova percorre o jogo que se joga.** O robô só age pelo controle
+   simulado, a prova roda o modo do jogador, e a noite roda o pacote
+   exportado ([13](13-arquitetura.md#a-paridade-entre-a-prova-e-o-jogo--f08)).
