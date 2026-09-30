@@ -59,9 +59,12 @@ Um roteiro novo, `godot/testes/prova_visual.gd` (+ `.tscn`), e um script
    ruim 30%) e o `_robo` de cada sala passa a consultá-la antes de apertar
    no tempo certo (quando não acerta, aperta atrasado ou não aperta). Só o
    gancho do robô muda.
-2. **Entrar pelo ✕.** O roteiro não usa `--sala=` nem `--tela=`: no título,
-   aperta ✕ no controle simulado de cada lugar, com intervalo, e segue a
-   tela como um jogador.
+2. **Entrar pelo ✕.** O roteiro não usa `--sala=` nem `--tela=`. Com
+   `--robo`, quem aperta do título à construção é o robô do fluxo
+   (`main._robo`, `TelaLobby.robo`, da G01/G02), pelo controle simulado; o
+   roteiro **só observa** — um ✕ a mais do roteiro pularia a introdução.
+   Antes da G01, o roteiro aperta ✕ no controle simulado de cada lugar, com
+   intervalo, como um jogador.
 3. **Os quadros.** A cada 2 s de `t` do jogo, `get_viewport().get_texture().get_image()`,
    `resize(480, 270)`, guardar em memória com a hora e o estado de
    `main.gd` (`estado`, `sala_id`).

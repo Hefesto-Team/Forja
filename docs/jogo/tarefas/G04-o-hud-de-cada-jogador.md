@@ -1,6 +1,6 @@
 # G04 — O HUD de cada jogador
 
-**Sprint:** G · **Tamanho:** G · **Estimativa:** US$ 3,5 · **Depende de:** F00, F07, G02, G03
+**Sprint:** G · **Tamanho:** G · **Estimativa:** US$ 3,5 · **Depende de:** F00, F02, F07, F09, G02, G03
 
 ## Por quê
 
@@ -13,7 +13,7 @@ julgamento e a fala precisam de um lugar acima do boneco.
 
 - [O HUD de cada jogador](../06-telas-e-fluxo.md#o-hud-de-cada-jogador)
 - [Os tokens de cor](../../estudos/03-o-sistema-visual-do-app-hefesto.md#1-tokens-de-cor) e a seção 7 do mesmo estudo (o fator ×2)
-- [As convenções](../13-arquitetura.md#as-convenções)
+- [As convenções](../13-arquitetura.md#as-convenções) e [a prova visual](../13-arquitetura.md#a-prova-visual--f09) (a checagem de texto)
 
 ## O estado de hoje
 
@@ -40,7 +40,10 @@ julgamento e a fala precisam de um lugar acima do boneco.
   deu `Itens.do_lugar(l)`, `Itens.escudo_inteiro(l)` e os ícones
   `item_*` em `Glifo`.
 - Nada mostra um julgamento ou uma fala acima do boneco.
-- `tests/telas.sh` fotografa só em português e na escala 1,0.
+- A prova visual (F09) roda `tests/prova_visual.sh` com a coleta de texto
+  de `Desenho` (F02), que guarda o retângulo de cada frase desenhada e
+  reprova sobreposição, retângulo fora da área segura e texto abaixo de
+  30 px — mas só em português e na escala 1,0.
   `godot/scripts/forja.gd:126-137`, `aplicar_opcoes()`, já lê
   `FORJA_IDIOMA`; não há variável para a escala do texto.
 
@@ -132,7 +135,7 @@ O main liga o sinal em `_entrar_na_sala`:
 `sala.no_visor.connect(hud.sobre_o_boneco)`, e zera `hud.visor` em
 `_sair_da_sala`.
 
-### A escala e a língua nas fotos
+### A escala e a língua na prova visual
 
 `godot/scripts/forja.gd`, `aplicar_opcoes()`, logo depois da linha do
 `FORJA_IDIOMA`:
@@ -142,8 +145,13 @@ O main liga o sinal em `_entrar_na_sala`:
 		Tema.escala_texto = Opcoes.ESCALA_DO_TEXTO[1]
 ```
 
-`tests/telas.sh fotos <pasta>` passa a fotografar quatro variantes, cada
-uma numa subpasta: `pt_BR-normal`, `pt_BR-grande`, `en-normal`, `en-grande`.
+`tests/prova_visual.sh` ganha duas passadas a mais da partida de 4
+jogadores (`--robo=medio`, partida de 3): uma com `FORJA_IDIOMA=en FORJA_TEXTO=grande`
+(o pior caso de largura) e uma com `FORJA_TEXTO=grande` em português. A
+checagem de texto da F09 (`ChecagensVisuais.texto`, sobre a coleta de
+`Desenho` com retângulo) roda nas passadas todas: **ela** é a prova de que
+nada encosta, nada sai da área segura e nada fica abaixo de 30 px — não a
+foto.
 
 ## Passos
 
@@ -170,49 +178,15 @@ Rodar `bash tests/prova_do_jogo.sh` depois dos passos 3, 5 e 7.
    `hud.combo[l] = sala.combo(l) if sala is SalaJogo and Forja.ocupado(l) else 0`;
    o sinal em `_entrar_na_sala`; `hud.visor = [{}, {}, {}, {}]` em
    `_sair_da_sala`.
-6. **`godot/scripts/forja.gd`:** o `FORJA_TEXTO`. **`tests/telas.sh`:** as
-   quatro variantes (abaixo).
+6. **`godot/scripts/forja.gd`:** o `FORJA_TEXTO`. **`tests/prova_visual.sh`:**
+   as duas passadas novas, com as variáveis na frente do Godot (siga o jeito
+   que a F09 monta as outras quatro), cada uma com a sua prancha
+   (`prancha-en-grande.png`, `prancha-pt-grande.png`).
 7. **`godot/scripts/traducoes.gd`:** `"Sem controle": "No controller"` e
    `"Entrar": "Join"`, se ainda não existem.
 8. **As provas** (ver Provas).
 
-`tests/telas.sh`, a função `fotos()` vira:
-
-```bash
-fotos() {
-  local base
-  base="$(realpath -m "$1")"
-  "$GODOT" --headless --path "$RAIZ/godot" --import --quit > /dev/null 2>&1
-  local total=0
-  for variante in pt_BR-normal pt_BR-grande en-normal en-grande; do
-    local pasta="$base/$variante"
-    mkdir -p "$pasta"
-    local rel
-    rel="$(mktemp -d)"
-    roteiro() {
-      local r="$1"
-      shift
-      env SAIDA="$pasta" ROTEIRO="$r" RAPIDO=1 FORJA_IDIOMA="${variante%-*}" FORJA_TEXTO="${variante#*-}" "$@" \
-        timeout 900 xvfb-run -a -s "-screen 0 1920x1080x24" \
-        "$GODOT" --rendering-driver opengl3 --fixed-fps 60 --path "$RAIZ/godot" --resolution 1920x1080 \
-        res://testes/captura_jogo.tscn -- --simular=4 --semente=7 --relatorios="$rel" ${ROBO:-}
-    }
-    roteiro extras > "$pasta/extras.log" 2>&1
-    ROBO=--robo roteiro salas SALAS=centelha FOTOS=centelha_aviso,centelha_jogo,centelha_fim > "$pasta/salas.log" 2>&1
-    ROBO=--robo roteiro partida FOTOS=partida_escolha,partida_placar_1,partida_podio > "$pasta/partida.log" 2>&1
-    rm -rf "$rel"
-    local n
-    n="$(ls "$pasta"/*.png 2> /dev/null | wc -l)"
-    echo "$variante: $n foto(s)"
-    [ "$n" -ge 9 ] || { grep -hE "SCRIPT ERROR|não chegou" "$pasta"/*.log | head; exit 1; }
-    total=$((total + n))
-  done
-  echo "$total foto(s) em $1"
-}
-```
-
-(O `comparar` continua comparando duas pastas; compare variante com
-variante.)
+`tests/telas.sh` não muda: as fotos dele são de divulgação, não prova.
 
 ## Armadilhas
 
@@ -232,6 +206,14 @@ variante.)
 - **O visor sem câmera:** no título e no lobby não há sala; `sobre_o_boneco`
   só desenha no salão e nas salas (quando o HUD está visível).
 - **Sem script novo** (sem `.uid`).
+- **A coleta de texto é a régua:** todo texto do HUD tem de passar por
+  `Desenho.texto`/`Desenho.paragrafo`/`Glifo.dica` (que coletam o retângulo);
+  um `draw_string` direto escapa da checagem.
+- **Os temperamentos e os casos que quebram:** o HUD tem de aguentar
+  `--robo=bom|medio|ruim`, partidas com 1 e 2 jogadores (os cartões vazios
+  translúcidos nos outros cantos) e um controle que desconecta e volta
+  (`simulador_cabo`): o cartão passa a "Sem controle" e volta sem mudar de
+  canto; o combo de quem caiu não some da conta.
 
 ## Não fazer
 
@@ -243,14 +225,22 @@ variante.)
 
 ## Pronto quando
 
-As fotos de todas as telas nas duas escalas e nas duas línguas não mostram
-texto encostando em texto nem abaixo de 30 px; a prova confere, sem janela,
-que nenhuma caixa do HUD encosta em outra nas quatro combinações, no salão e
-numa sala.
+A checagem de texto da prova visual (a coleta de `Desenho` com retângulo)
+passa nas seis passadas — as quatro da F09 e as duas novas, em inglês e com
+o texto grande —: nenhuma frase encosta em outra, sai da área segura ou fica
+abaixo de 30 px; a prova do jogo confere, sem janela, que nenhuma caixa do
+HUD encosta em outra nas quatro combinações, no salão e numa sala; e a
+ficha só fecha com `bash tests/prova_visual.sh` passando e as pranchas
+olhadas ([a prova visual](../13-arquitetura.md#a-prova-visual--f09)).
 
 ## Provas
 
 **Na sessão:** `bash tests/prova_do_jogo.sh`.
+
+**A prova visual (F09):** `bash tests/prova_visual.sh` com as seis passadas;
+o `checagens.txt` sem reprovação de texto; nas pranchas, os cartões nos
+cantos nas partidas de 4, 2 e 1 jogador, o cartão "Sem controle" na
+partida em que o controle cai, e o visor acima do boneco.
 
 Em `godot/testes/prova_do_jogo.gd`, uma função nova:
 
@@ -298,8 +288,9 @@ E uma checagem do cartão: com os quatro jogando,
 
 ## Para o André (local)
 
-1. `bash tests/telas.sh fotos /tmp/fotos-g04` e olhar lado a lado as quatro
-   subpastas: nenhum texto encostando, nada cortado, os cartões nos cantos.
+1. `bash tests/prova_visual.sh` sem `--fixed-fps`, com a placa de vídeo, e
+   olhar as pranchas (inclusive as de inglês e texto grande): nada
+   encostando, nada cortado, os cartões nos cantos; anotar no diário.
 2. `./run-local.sh` com o texto grande (Opções › Texto › Grande) e em
    inglês: uma sala inteira.
 3. Numa TV, de onde se joga: o nome do cavaleiro e o combo se leem.

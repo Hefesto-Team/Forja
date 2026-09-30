@@ -1,6 +1,6 @@
 # G01 — O título e a introdução
 
-**Sprint:** G · **Tamanho:** M · **Estimativa:** US$ 2,5 · **Depende de:** F00, F04, F07, F08
+**Sprint:** G · **Tamanho:** M · **Estimativa:** US$ 2,5 · **Depende de:** F00, F04, F07, F08, F09
 
 ## Por quê
 
@@ -160,7 +160,7 @@ controle simulado (`Forja.robo_apertar`):
 
 | estado | o robô |
 | --- | --- |
-| `titulo` | espera 3,0 s e aperta ✕ no controle do P1 |
+| `titulo` | espera 3,0 s e aperta ✕ no primeiro lugar com controle conectado (`Forja.lugar(l).get("conectado", false)`; hoje, o P1) |
 | `intro` | nada: a introdução acaba sozinha em 24 s |
 | `lobby` | a cada 0,6 s, aperta ✕ em cada lugar com controle que ainda não está pronto (a G02 troca este ramo pelo robô da construção) |
 
@@ -287,6 +287,7 @@ dos passos 3, 6 e 9.
 - **O pio precisa da placa preparada:** `Som.pio` prepara
   (`Forja.som_preparar`) só se `Forja.ctl.som_preparado()` for falso; a
   entrada numa sala prepara de novo, e isso é o comportamento de hoje.
+- **Os temperamentos e os casos que quebram:** o fluxo tem de aguentar `--robo=bom|medio|ruim` (o ruim demora e às vezes não aperta), partidas com 1 e 2 jogadores e um controle que desconecta e volta (`simulador_cabo`). No título e na introdução, com um só controle ou com o do P1 fora, o jogo segue: o robô do fluxo aperta no primeiro lugar com controle conectado (não fixo no P1), e a introdução acaba sozinha. O roteiro da prova visual (F09), com `--robo`, só olha do título até a construção: quem aperta é o robô do fluxo (um ✕ a mais do roteiro pularia a introdução).
 
 ## Não fazer
 
@@ -304,9 +305,13 @@ Alguém que nunca viu o jogo liga, vê o título com a forja pulsando, aperta
 (ou a pula com qualquer botão) e chega à construção; `--simular=4 --robo`
 faz o mesmo caminho sozinho, só apertando botões.
 
+E só fecha com `bash tests/prova_visual.sh` passando (a passada com `--fixed-fps 60`, na sessão) e a prancha olhada; foto de `tests/telas.sh` não é prova ([a prova visual](../13-arquitetura.md#a-prova-visual--f09)). A aparência (luz, cor, brilho, névoa, arte) só se aprova na máquina do André, com placa de vídeo, sem `--fixed-fps`.
+
 ## Provas
 
 **Na sessão:** `bash tests/prova_do_jogo.sh`.
+
+**A prova visual (F09):** `bash tests/prova_visual.sh` — as quatro partidas (4 jogadores bom e ruim, 2 jogadores, 1 jogador com o controle caindo) passando pelas telas desta ficha; na prancha: o título com a forja pulsando, a introdução escura e as quatro armaduras acendendo, sem uma letra; nas partidas de 1 e 2 jogadores, o mesmo caminho.
 
 Em `godot/testes/prova_do_jogo.gd`, `_prova_do_percurso()`: **trocar** o
 trecho que vai de `_esperar(jogo.estado == "titulo", …)` até o
@@ -352,7 +357,8 @@ testes de ◀▶ (P2) e ▲▼ (P3) continuam, apertados logo que
 do robô). A espera do salão passa a ser um laço:
 `while (jogo.estado != "salao" or jogo._trocando) and q < 1200`.
 
-Em `godot/testes/captura_jogo.gd`:
+Em `godot/testes/captura_jogo.gd` (fotos de divulgação, não prova — mas os
+roteiros têm de continuar andando):
 
 - `_roteiro_das_telas` (sem robô): depois de `["aperta", 0, Forja.CRUZ], ["espera", 40]`,
   acrescentar `["espera", 600], ["foto", "introducao"], ["espera", 420], ["foto", "introducao_armaduras"], ["aperta", 0, Forja.CRUZ], ["espera", 40]`.
@@ -366,9 +372,10 @@ Em `godot/testes/captura_jogo.gd`:
 
 ## Para o André (local)
 
-1. `bash tests/telas.sh fotos /tmp/fotos-g01` e olhar `titulo.png`,
-   `introducao.png` e `introducao_armaduras.png` (a escuridão e as quatro
-   armaduras, sem texto).
+1. `bash tests/prova_visual.sh` sem `--fixed-fps`, com a placa de vídeo, e
+   olhar as pranchas: o título, a escuridão da introdução e as quatro
+   armaduras (a luz e o brilho só se aprovam aqui). Anotar no diário o que
+   parecer errado. (`tests/telas.sh` continua dando fotos de divulgação.)
 2. `./run-local.sh`, com dois DualSense: apertar ✕ num e ○ no outro no
    título — cada pio sai só no controle que apertou; ver a introdução inteira
    uma vez e pular na segunda abertura com qualquer botão.

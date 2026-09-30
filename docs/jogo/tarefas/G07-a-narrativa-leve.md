@@ -1,6 +1,6 @@
 # G07 — A narrativa leve
 
-**Sprint:** G · **Tamanho:** P · **Estimativa:** US$ 1,5 · **Depende de:** F00, F07, G03, G04, G06 · **Usado por:** H04 (o kit chama `falar` e `mostrar_julgamento`)
+**Sprint:** G · **Tamanho:** P · **Estimativa:** US$ 1,5 · **Depende de:** F00, F07, G03, G04, G06, F09 · **Usado por:** H04 (o kit chama `falar` e `mostrar_julgamento`)
 
 ## Por quê
 
@@ -172,6 +172,7 @@ Rodar `bash tests/prova_do_jogo.sh` depois dos passos 3 e 4.
   nas outras salas agora.
 - **O robô:** nenhum `Forja.robo`; o robô pode disparar falas jogando, e
   isso é o jogo.
+- **Os temperamentos e os casos que quebram:** o fluxo tem de aguentar `--robo=bom|medio|ruim` (o ruim demora e às vezes não aperta), partidas com 1 e 2 jogadores e um controle que desconecta e volta (`simulador_cabo`). Com o `--robo=ruim` as falas de erro ("Tá tudo desafinado!", "De novo, do começo.") aparecem de verdade; "todos erraram" conta só quem está em `jogando` e com controle — com 1 jogador, o erro dele basta; quem desconectou não entra na conta.
 
 ## Não fazer
 
@@ -187,9 +188,13 @@ mesmo tempo e nunca duas do mesmo cavaleiro em menos de 20 s; o julgamento
 só usa "Ressonância!", "Afinado", "Quase" (e "Cedo"/"Tarde" no treino); o
 recorde diz "Recorde!".
 
+E só fecha com `bash tests/prova_visual.sh` passando (a passada com `--fixed-fps 60`, na sessão) e a prancha olhada; foto de `tests/telas.sh` não é prova ([a prova visual](../13-arquitetura.md#a-prova-visual--f09)).
+
 ## Provas
 
 **Na sessão:** `bash tests/prova_do_jogo.sh`.
+
+**A prova visual (F09):** `bash tests/prova_visual.sh` — as quatro partidas (4 jogadores bom e ruim, 2 jogadores, 1 jogador com o controle caindo) passando pelas telas desta ficha; na prancha: as falas acima do cavaleiro, nunca duas juntas; a checagem de texto da prova visual (sobreposição, área segura, 30 px, maiúscula) passa com elas na tela.
 
 Em `godot/testes/prova_do_jogo.gd`, uma função chamada no `_ready()` depois
 de `_prova_do_percurso()` (com o HUD já montado):

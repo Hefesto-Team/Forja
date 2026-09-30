@@ -1,6 +1,6 @@
 # G05 — A câmera dos quatro
 
-**Sprint:** G · **Tamanho:** M · **Estimativa:** US$ 2,5 · **Depende de:** F00 · **Usado por:** H04 (a chave `"camera"` da ficha do minigame vira `camera_modo`)
+**Sprint:** G · **Tamanho:** M · **Estimativa:** US$ 2,5 · **Depende de:** F00, F09 · **Usado por:** H04 (a chave `"camera"` da ficha do minigame vira `camera_modo`)
 
 ## Por quê
 
@@ -198,6 +198,7 @@ Rodar `bash tests/prova_do_jogo.sh` depois dos passos 2 e 4.
 - **O robô:** nada de `Forja.robo` aqui.
 - **A foto d'A Prova muda:** a câmera passa a seguir o grupo; a comparação
   das fotos (`tests/telas.sh comparar`) vai acusar diferença nela — é esperado.
+- **Os temperamentos e os casos que quebram:** o fluxo tem de aguentar `--robo=bom|medio|ruim` (o ruim demora e às vezes não aperta), partidas com 1 e 2 jogadores e um controle que desconecta e volta (`simulador_cabo`). A câmera com 1 alvo fica na distância mínima; com um controle fora, o boneco dele continua visível e continua sendo alvo (ele volta no mesmo lugar); o `--robo=ruim` anda menos e se espalha menos — o grupo tem de enquadrar os dois casos.
 
 ## Não fazer
 
@@ -213,9 +214,13 @@ Com quatro robôs espalhados n'A Prova, nenhum cavaleiro sai da tela no modo
 grupo; as contas do modo corrida põem o líder e o último na tela e trazem
 para a borda quem fica para trás; nada salta nem treme com o conforto ligado.
 
+E só fecha com `bash tests/prova_visual.sh` passando (a passada com `--fixed-fps 60`, na sessão) e a prancha olhada; foto de `tests/telas.sh` não é prova ([a prova visual](../13-arquitetura.md#a-prova-visual--f09)). A aparência (luz, cor, brilho, névoa, arte) só se aprova na máquina do André, com placa de vídeo, sem `--fixed-fps`.
+
 ## Provas
 
 **Na sessão:** `bash tests/prova_do_jogo.sh`.
+
+**A prova visual (F09):** `bash tests/prova_visual.sh` — as quatro partidas (4 jogadores bom e ruim, 2 jogadores, 1 jogador com o controle caindo) passando pelas telas desta ficha; na prancha: A Prova com o grupo sempre inteiro na tela nas partidas de 4, 2 e 1, sem salto de câmera entre quadros.
 
 Em `godot/testes/prova_do_jogo.gd`, duas funções novas, chamadas no
 `_ready()` depois de `_prova_de_fogo()`:
@@ -286,8 +291,8 @@ isso; se não, aperte ✕ no simulado 0 com `_aperta(0, Forja.CRUZ)` depois de
 1. `./run-local.sh -- --sala=prova`: correr com os quatro para os cantos —
    a câmera abre e fecha sem salto, ninguém some.
 2. Opções › Movimento da câmera desligado: nada treme.
-3. `bash tests/telas.sh fotos /tmp/fotos-g05` e comparar a foto d'A Prova
-   com a de antes (`bash tests/telas.sh comparar <antes> <depois> <saída>`).
+3. `bash tests/prova_visual.sh` sem `--fixed-fps`, com a placa de vídeo:
+   olhar A Prova nas pranchas (ninguém fora da tela, nada saltando).
 
 ## Ao terminar
 
