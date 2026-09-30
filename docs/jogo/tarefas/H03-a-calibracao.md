@@ -35,6 +35,10 @@ de seis horas compara.
   `"simulado"` (`nativo/godot/forja_controles.cpp:42-55`).
 - A construção do cavaleiro (G02) ainda pode não existir: é ela que mede o
   desvio com as oito marteladas.
+- **Provado nesta preparação**, numa cópia do projeto com a H01 e a H02: o
+  código de "O alvo" (menos o desenho da régua) e as checagens de "Provas"
+  passam na prova do jogo, com a linha `calibracao` de +80 ms e o
+  transporte `"simulado"` no registro.
 
 ## O alvo
 

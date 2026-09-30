@@ -62,6 +62,8 @@ lê dele.
     relógio de parede (numa cena vazia, 750 quadros por segundo de parede);
   - `play()` de um `AudioStreamPlayer` fora da árvore dá erro
     (`Playback can only happen when a node is inside the scene tree`).
+  - O código de "O alvo" e as checagens de "Provas" foram rodados numa
+    cópia do projeto, com a prova do jogo inteira: verde.
 
 ## O alvo
 
@@ -92,6 +94,7 @@ signal batida_cheia(n: int)  ## a cada tempo inteiro (n = 0 é o primeiro tempo 
 signal compasso(n: int)  ## a cada 4 tempos (n = 0 é o primeiro compasso)
 
 var slot := ""  ## a faixa que o relógio segue ("" = nenhuma)
+var dono := ""  ## o slot do minigame que segue o relógio (o kit põe; vai no registro)
 var bpm := 120.0
 var primeiro_tempo := 0.0  ## s, em tempo de música: onde cai o tempo 0
 
@@ -150,6 +153,7 @@ func tocar(slot_da_faixa: String, bpm_da_faixa: float, primeiro_tempo_s: float) 
 ## relógio continua pelo sistema, do ponto em que estava.
 func parar() -> void:
 	slot = ""
+	dono = ""
 	_tocador = null
 	if _pelo_audio:
 		_para_o_sistema(Time.get_ticks_usec())
@@ -184,8 +188,8 @@ func t_da_batida(n: float) -> float:
 
 ## Uma nota nova do lugar, no registro (o tipo `nota` do registro v2).
 func registrar_nota(l: int, n: int, t_alvo: float) -> void:
-	Forja.evento("nota", l + 1, {"slot": slot, "lugar": l, "n": n, "t_alvo": snappedf(t_alvo, 0.001),
-		"t_musica": snappedf(_t, 0.001)})
+	Forja.evento("nota", l + 1, {"slot": dono, "faixa": slot, "lugar": l, "n": n,
+		"t_alvo": snappedf(t_alvo, 0.001), "t_musica": snappedf(_t, 0.001)})
 
 
 ## A posição sem o salto do laço: quando a faixa volta ao começo, soma uma
@@ -339,7 +343,8 @@ Ritmo="*res://scripts/ritmo.gd"
    Importe de novo (os `.uid`). A pasta `testes/` já fica fora da exportação
    (`godot/export_presets.cfg:18`).
 7. **O 13**: na seção "O relógio de áudio e o julgamento", acrescente
-   `parar()`, `pausar(sim)`, `t_da_batida(n)`, `registrar_nota(l, n, t_alvo)`,
+   `dono` (o slot do minigame, que o kit põe e o registro leva em `slot`; a
+   faixa vai em `faixa`), `parar()`, `pausar(sim)`, `t_da_batida(n)`, `registrar_nota(l, n, t_alvo)`,
    `posicao_continua(...)` e, numa linha, as funções novas da `Musica`
    (`tocar_do_zero`, `mapa`, `laco_s`, `bpm_sintetizado`). Troque a frase
    "Sem faixa tocando, `t_musica()` anda pelo relógio do sistema, para as

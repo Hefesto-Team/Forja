@@ -173,7 +173,8 @@ são gravados como texto.
   chamado pelo `Ritmo` a cada quadro (H01).
 - `jogador` continua 1..4 para não quebrar leitores, e `lugar` (0..3) vai
   **junto** dele. Linha da mesa (`jogador` 0) não tem `lugar`.
-- `Array` do GDScript vira array JSON.
+- `Array` do GDScript vira array JSON, e NaN vira `null` — hoje o
+  `Forja.evento` escreve `nan`, que quebra o JSON (a F06 resolve).
 - O transporte e o firmware de cada controle ficam também no dicionário do
   pad (`Forja.pad(i)["transporte"]`, `["firmware"]`), para o jogo repetir
   o transporte onde o cruzamento precisa (a `calibracao`).
@@ -229,10 +230,35 @@ também vive em `Opcoes`: `Opcoes.cavaleiro[l]`, `Opcoes.noite()` (o que vale
 só para a noite corrente) e `Opcoes.guardar()` — que as telas chamam sem
 saber se é robô (quem não grava com robô é o próprio `Opcoes`).
 
-`julgar` subtrai o `desvio[l]` do toque antes de comparar. A `folga_bom` é
+`julgar` subtrai o `desvio[l]` do toque antes de comparar. O desvio e as
+bordas são **arredondados a 0,1 ms**, e a borda vale dentro: medido,
+`(10.06 - 10) * 1000` dá `60.0000000000005`, e o `Vector2` guarda 32 bits
+(−0,040 vira −39,99999); sem arredondar, o toque exato na borda seria
+reprovado.
+
+O `Ritmo` tem ainda:
+
+```gdscript
+func parar() -> void
+func pausar(sim: bool) -> void          # a pausa congela a música e as notas
+func t_da_batida(n: float) -> float     # o tempo de música da batida n
+var dono := ""                          # o slot do minigame que vai no registro (o slot do Ritmo é a faixa)
+var simples := [false, false, false, false]   # a partitura mais simples de quem está errando
+```
+
+E a `Musica` ganha `tocar_do_zero(slot)`, `mapa(slot)`, `laco_s()`,
+`bpm_sintetizado()` e um tween por vez. **A trilha sintetizada escorrega:** a
+síntese arredonda o tempo para um número inteiro de amostras (108 bpm vira
+108,0027), cerca de 4,5 ms em 3 minutos; o `Ritmo` usa o `bpm_sintetizado()`,
+não o nominal. A `folga_bom` é
 a ajuda escondida de quem está em último ([02](02-principios.md#8-ninguém-fica-para-trás-ninguém-é-punido-por-ser-bom)).
-Sem faixa tocando, `t_musica()` anda pelo relógio do sistema, para as
-provas sem som.
+**Os relógios, medidos:** com faixa, `t_musica()` é o da placa de som —
+também nas provas sem janela, onde o driver Dummy do Godot mistura (cerca de
+0,3% mais devagar que a parede). Sem faixa (`"faixa": ""`), anda pelo
+relógio do sistema. Com `--fixed-fps 60` o **jogo** anda cerca de 16 vezes
+mais depressa que a música. Por isso: o mundo se mexe **pela batida**, o
+robô mira pelo relógio da música, as provas esperam **fase** em quadros e
+**música** pelo relógio de parede.
 
 ### O kit do minigame — H04
 
@@ -271,6 +297,11 @@ const FICHA := {
 `Minigame.entrar()` confere as chaves obrigatórias e falha alto (`push_error`)
 se faltar alguma.
 
+**GDScript, medido:** o minigame que escreve `_init()` sem `super()` não lê a
+FICHA; redeclarar `RAIAS` na filha é erro de análise; o minigame **não tem**
+`class_name` (o catálogo carrega pelo caminho); `Forja.CRUZ` dentro do
+`const FICHA` funciona.
+
 **O que o kit faz** (e o minigame não repete):
 
 | o kit | como |
@@ -278,7 +309,10 @@ se faltar alguma.
 | as raias | `raia(l) -> Node3D` monta a laje, a borda na cor do lugar e a luz da vez em `RAIAS[l]`; `posicionar(l)` põe o boneco nela |
 | quem está conectado | `conectado(l) -> bool` |
 | o relógio | `Ritmo.tocar(...)` com a faixa da ficha na fase `jogo` |
-| o julgamento | `julgar_toque(l, t_alvo) -> int`: chama `Ritmo.julgar`, aplica o item (G03), grava o `toque`, chama `sentir` e o som da nota |
+| o julgamento | `julgar_toque(l, t_alvo, n := -1, perigo := false) -> int`: chama `Ritmo.julgar` (com a folga de quem está em último se `perigo`), aplica o item (G03), grava o `toque` com o número da nota, chama `sentir` e o som da nota |
+| as notas | `nova_nota(l, n, t_alvo)` registra a nota; `nota_perdida(l, n)` registra o erro sem toque e chama `falha` |
+| quem joga | `presentes()`, `na_raia(l)` (a guarda de `dica`/`status`), `acender_raia(l, forca)` |
+| a ficha | `conferir_a_ficha()` no `entrar()`, com `Minigame.CHAVES` |
 | as falas | `falar(l, evento)` com o limite de uma a cada 20 s por lugar (G07) |
 | o fechamento | na fase `fim`: apito, resultado com `vencedor()`, jingle, volta em 6 s (F03) |
 | o registro | `minigame`, `nota`, `toque` |
@@ -312,7 +346,12 @@ const MINIGAMES := {
 
 Os ids antigos (`centelha`, `viga`…) continuam valendo em `--sala=` como
 apelidos do primeiro minigame de cada seção, para as provas e os roteiros de
-hoje não quebrarem.
+hoje não quebrarem. A partida, o salão e a música falam pelo apelido; o
+`main` usa o `sala_id` (o que foi pedido), não o `sala.id`. Cada seção em
+`SECOES` tem `apelido`; o catálogo tem `SALAS_ANTIGAS` e `NOMES_VELHOS`.
+
+Os eventos `minigame` e `desempenho` têm **um dono só: a `SalaJogo`**, com
+`colocacao()` que o `Minigame` sobrescreve pelo `vencedor()`.
 
 **Onde mora cada minigame:** `godot/scripts/minigames/sNN/<nome>.gd`. As
 nove salas de hoje se mudam para lá quando são reescritas (ficha da seção),
@@ -506,6 +545,18 @@ As regras:
    o que viu. Cada linha do diário vira um item na ficha ou uma ficha nova.
 9. **Nenhuma ficha visual fecha só com fotos.** Tela, arte, câmera, HUD e
    minigame só ficam **feito** depois da prova visual e da prancha olhada.
+
+## Os limites conhecidos
+
+- **O toque tem a resolução do quadro** (16,7 ms a 60 fps). O SDL já guarda o
+  instante de cada aperto (`b_quando` em `nativo/nucleo/pads.c:377`); uma
+  ficha futura expõe `Forja.apertou_ha(l, botao)` para julgar pelo instante
+  do aperto, não pelo quadro.
+- **Nomes em C:** o tipo C da háptica por material se chama `MaterialHaptico`,
+  porque `Material` colide com o `godot::Material` do godot-cpp.
+- **`pads_mudaram` também dispara na entrada do lobby:** refazer a placa de
+  áudio ali corta o pio (medido); a placa só se refaz depois de ver o
+  controle cair (H07).
 
 ## Como uma ficha prova o que fez
 

@@ -90,11 +90,12 @@ Opus.
 ## O kit do minigame
 
 A ficha [H04](tarefas/H04-o-kit-do-minigame.md) é a que mais economiza. As
-salas de hoje repetem de 80 a 150 linhas cada (a raia, `_conectado`, `RAIAS`,
-as guardas de `dica` e `status`). Com o kit, um minigame novo é a
+salas de hoje repetem de 30 a 60 linhas cada (medido na H04: a raia,
+`_conectado`, `RAIAS`, as guardas de `dica` e `status`). Mais do que as
+linhas, o kit tira as **decisões** da sessão: relógio, julgamento, item,
+falas, fechamento e registro já estão resolvidos. Com ele, um minigame é a
 [ficha de dados](tarefas/molde-de-minigame.md) mais os ganchos que são só
-dele. É isso que põe cinco minigames em duas sessões por seção sem perder
-qualidade.
+dele — **uma ficha por minigame, uma sessão modelo por ficha**.
 
 ## O orçamento
 
@@ -109,21 +110,27 @@ Numa sessão do editor, a maior parte do custo é o contexto relido a cada
 turno — e ler do cache custa o mesmo nos dois modelos. Por isso **o que
 economiza é a sessão curta**, mais do que trocar de modelo. Uma sessão
 enxuta (uma ficha, uns 40 turnos, contexto abaixo de 80 mil tokens) sai por
-volta de US$ 1,5 a 2,5; as de seção, que fazem mais código, por volta do
-dobro.
+volta de US$ 1,5 a 2,5. As fichas já trazem o código de hoje, a API alvo e
+as checagens prontas, então o modelo executa sem explorar — e a maior parte
+delas é modelo.
 
 | sprint | fichas | estimativa (US$) |
 | --- | --- | --- |
-| F — a fundação | 7 | 21 |
+| F — a fundação (F00 a F09) | 10 | 29,5 |
 | G — as telas | 8 | 23 |
 | H — o ritmo, o som e o kit | 7 | 20 |
-| I–Q — as nove seções | 9 (18 sessões) | 40,5 |
+| I–Q — os 45 minigames | 45 (o primeiro de cada seção US$ 2,0, os outros 1,5) | 72 |
 | R — o Relâmpago | 1 | 2,5 |
 | S — a noite de seis horas | 1 | 3 |
-| **total** | **33** | **110** |
+| **total** | **72** | **150** |
 
-Com 30% de retrabalho, a faixa realista é **US$ 110 a 140**. US$ 80 pagam F,
-G, H e as três primeiras seções.
+Com 15% de retrabalho (menos que antes, porque as fichas trazem o código e
+as provas prontos), a faixa realista é **US$ 150 a 175**. US$ 80 pagam a
+fundação, as telas, o ritmo e o kit (F, G e H, cerca de US$ 72,5) e os
+primeiros minigames.
+
+O planejamento em si (a arquitetura e estas fichas) foi pago à parte, de
+propósito: gastar para planejar bem é o que deixa a execução barata e fácil.
 
 São estimativas. O número real sai do gasto anotado no quadro: depois das
 duas primeiras fichas, a tabela é recalibrada.
