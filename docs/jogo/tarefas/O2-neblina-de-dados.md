@@ -23,7 +23,7 @@ const FICHA := {
 	"titulo": "Neblina de Dados",
 	"verbo": "Salte no firme!",
 	"genero": "terror",
-	"icone": "haptica",
+	"icone": "rumble_direito",
 	"entradas": [Forja.CRUZ],
 	"camera": "fixa",
 	"faixa": "MUS_S07_J32",
@@ -32,6 +32,7 @@ const FICHA := {
 	"sensacoes": ["acerto", "perfeito", "erro", "golpe"],
 	"material": "areia",
 	"microjogo": {"verbo": "Salte!", "segundos": 6.0},
+	"papel_som": Forja.PAPEL_HAPTICA,  # o kit abre este papel de som no entrar() (H08)
 	"gesto": "jump",
 }
 ```
@@ -42,9 +43,9 @@ não se confundem.
 
 ## Como se joga
 
-A faixa é `MUS_S07_J32`, 100 bpm (uma batida = 0,6 s). `ENTRADA := 4`.
+A faixa é `MUS_S07_J32`, 100 bpm (uma batida = 0,6 s). `BATIDA_DA_PRIMEIRA_NOTA` (4, do kit: H08).
 
-- **O caminho de cada um:** para cada batida `n >= ENTRADA`, `_firme[l][n]`
+- **O caminho de cada um:** para cada batida `n >= BATIDA_DA_PRIMEIRA_NOTA`, `_firme[l][n]`
   diz se ali há pedra (sorteado com o `RandomNumberGenerator` do lugar, semente
   do kit + `7919 * (l + 1)`): 60% firme, nunca três neblinas seguidas. Gere
   400 batidas no `iniciar_jogo()`.
@@ -70,7 +71,7 @@ A faixa é `MUS_S07_J32`, 100 bpm (uma batida = 0,6 s). `ENTRADA := 4`.
   diante, só as batidas pares podem ser firmes (as ímpares viram neblina): o
   caminho fica regular.
 - **O pico — a neblina engrossa:** as 16 batidas a partir de
-  `_pico_b := ENTRADA + floor((duracao / _t_batida() - ENTRADA) / 2)`: a pista
+  `_pico_b := BATIDA_DA_PRIMEIRA_NOTA + floor((duracao / _t_batida() - BATIDA_DA_PRIMEIRA_NOTA) / 2)`: a pista
   chega em `n - 0.25` (menos tempo), as lanternas caem para 0,3 e a TV toca
   `Som.tocar("vento", null, -4.0)` na entrada do pico.
 
@@ -213,7 +214,6 @@ extends Minigame
 
 const FICHA := { ... }
 
-const ENTRADA := 4
 const META := 24
 const MARCO := 4
 const PASSO := 1.2
@@ -244,14 +244,13 @@ var _robo_mira := [0.0, 0.0, 0.0, 0.0]
 
 
 func montar() -> void:
-	papel_som = Forja.PAPEL_HAPTICA
 	camera_pos = Vector3(0, 6.4, 9.8)
 	camera_olhar = Vector3(0, 0.3, -2.0)
 	# ... o cenário de cima; para cada jogador: _nos[l] = _montar_raia(l); Forja.gatilhos_off(l)
 
 
 func iniciar_jogo() -> void:
-	_pico_b = ENTRADA + floor((duracao / _t_batida() - ENTRADA) / 2.0)
+	_pico_b = BATIDA_DA_PRIMEIRA_NOTA + floor((duracao / _t_batida() - BATIDA_DA_PRIMEIRA_NOTA) / 2.0)
 	for l in presentes():
 		# o rng do lugar, o caminho (_gerar), o rádio (_rumble e a troca), a luz a 30%
 		Forja.luz(l, Forja.cor_do_lugar(l).darkened(0.7))
@@ -335,7 +334,6 @@ Catálogo: `"S07_J32"` em `MINIGAMES` e na lista da seção `S07`, depois do
   lugar no fim (`Forja.silencio` no `terminar`).
 - **Na prova, o pico não chega** (o fim é pelo `duracao`, em tempo de jogo;
   a 16× a música anda uns 6 s). A prova confere as pistas, os saltos e o fim.
-- **`ENTRADA`**: se o kit tiver `BATIDA_DA_PRIMEIRA_NOTA`, use-a.
 - **O `rng` por lugar**, como no O1.
 
 ## Pronto quando
@@ -355,29 +353,27 @@ percurso depois da dos Caminhos:
 ## S07_J32: as pedras chegam à placa virtual de cada um, o robô salta nelas, e
 ## a luz de cada controle fica na cor do lugar, mais fraca, até o fim.
 func _prova_neblina() -> void:
-	var sala = await _comeca_a_sala("S07_J32")
-	if sala == null:
-		return
+	# a espera é a do `_joga_o_minigame` da H08: o aviso em quadros, o jogo pelo relógio de parede (100 s de música e o treino)
 	var sentiu := [false, false, false, false]
-	var luz_ok := true
-	var q := 0
-	while is_instance_valid(sala) and sala.fase == "jogo" and q < 12000:
+	var luz_ok := [true]
+	var q := [0]
+	var olhar := func(_s) -> void:
+		q[0] += 1
 		for l in 4:
 			if float(Forja.som_virtual(l).get("esq", 0.0)) > 0.05:
 				sentiu[l] = true
-			if q > 60:
+			if q[0] > 60:
 				var c: Color = _perc(l).get("luz", Color.BLACK)
 				var alvo := Forja.cor_do_lugar(l).darkened(0.7)
 				if Vector3(c.r - alvo.r, c.g - alvo.g, c.b - alvo.b).length() > 0.08:
-					luz_ok = false
-		await _quadros(1)
-		q += 1
+					luz_ok[0] = false
+	var sala = await _joga_o_minigame("S07_J32", 140.0, olhar)
+	if sala == null:
+		return
 	_esperar(sentiu.all(func(s): return s), "neblina: a pedra chegou à mão dos quatro %s" % [sentiu])
-	_esperar(luz_ok, "neblina: a luz ficou na cor do lugar, a 30%")
-	_esperar(is_instance_valid(sala) and sala.fase == "fim", "neblina: fechou")
-	if is_instance_valid(sala):
-		_esperar(sala._dist.max() >= 1, "neblina: alguém pousou numa pedra (%s)" % [sala._dist])
-		_esperar(sala.colocacao.size() == 4, "neblina: a colocação tem os quatro")
+	_esperar(luz_ok[0], "neblina: a luz ficou na cor do lugar, a 30%")
+	_esperar(sala._dist.max() >= 1, "neblina: alguém pousou numa pedra (%s)" % [sala._dist])
+	_esperar(sala.colocacao().size() == 4, "neblina: a colocação tem os quatro")
 ```
 
 No `_prova_do_relatorio()`: `pista` do `S07_J32` com `evento == "respondeu"`

@@ -1,6 +1,6 @@
 # I5 — A Esteira de Escória
 
-**Sprint:** I · **Slot:** S01_J05 · **Tamanho:** M · **Modelo:** Sonnet · **Estimativa:** US$ 1,5 · **Depende de:** H04, F09, F03, H07, I1 (o `secao.gd`), e o sorteio dentro da seção ([o índice](I-a-centelha.md#antes-de-começar-o-que-ainda-falta-na-base))
+**Sprint:** I · **Slot:** S01_J05 · **Tamanho:** M · **Modelo:** Sonnet · **Estimativa:** US$ 1,5 · **Depende de:** H04, H08, F09, F03, H07, I1 (o `secao.gd`)
 
 ## Por quê
 
@@ -61,7 +61,7 @@ const FICHA := {
   travada).
 - **Os pontos por julgamento** (ERRO, BOM, ÓTIMO, PERFEITO): `[0, 20, 35, 50]`;
   o roubo +30. Cada lingote prensado ou roubado conta 1 na pilha.
-- **A progressão:** `p = t_jogo / duracao`. De 0 a 1/3, as colcheias. **O
+- **A progressão:** `progresso()` do kit (em tempo de música, H08). De 0 a 1/3, as colcheias. **O
   pico (1/3 a 2/3), a esteira dobra:** o lingote de cada um passa em todo
   tempo (`k + 0,25·l`), um a cada quarto de tempo na esteira, e o ar
   comprimido sopra faísca na prensa. De 2/3 em diante, as colcheias.
@@ -91,7 +91,7 @@ A cor dos lugares só nos lingotes deles e nas raias. Tudo em caixa.
 | --- | --- |
 | **os botões (a feature)** | o botão do lingote, na sua vez; o mesmo botão, antes do dono, para roubar |
 | vibração | o kit por nota; o seu roubado: `Forja.sentir(l, "golpe")`; o roubo que deu certo: `Forja.sentir(l, "perfeito")`; a alavanca emperrada: `Forja.sentir(l, "erro")` |
-| barra de luz | `SECAO.piscar` no `toque` e na `falha` |
+| barra de luz | o kit (`_reagir`, H08): branco no perfeito, a cor do lugar escurecida no erro |
 | alto-falante do dono | perfeito: a nota (o kit); ótimo e bom: `Som.no_controle(l, "carimbo", 0.5)`; o roubo: `Forja.som_falante(l, "coleta", 0.8)`; erro: a nota quebrada (o kit) |
 | gatilho | livre (o R2 Off) |
 | háptica por material | `metal`, pelo kit |
@@ -177,7 +177,6 @@ const SECAO := preload("res://scripts/minigames/s01/secao.gd")
 
 const BOTOES := [Forja.CRUZ, Forja.CIRCULO, Forja.QUADRADO]
 const GLIFO := {Forja.CRUZ: "cross", Forja.CIRCULO: "circle", Forja.QUADRADO: "square"}
-const BATIDA_DA_PRIMEIRA_NOTA := 4.0
 const VELOCIDADE := 2.0  ## m por tempo
 const X_FOSSO := 10.8
 const ADIANTE := 6.0  ## tempos: o lingote nasce tantos tempos antes da prensa
@@ -226,21 +225,15 @@ func montar() -> void:
 		Forja.gatilho(l, 1, Forja.GATILHO_OFF)
 
 
-func _no_pico() -> bool:
-	var p := t_jogo / maxf(duracao, 1.0)
-	return p >= 1.0 / 3.0 and p < 2.0 / 3.0
-
-
 func _proxima_batida(l: int, b: float) -> float:
 	var passo := 2.0
 	var desloc := 0.5 * l
 	if Ritmo.simples[l]:
 		passo = 4.0
-	elif _no_pico():
+	elif no_pico():
 		passo = 1.0
 		desloc = 0.25 * l
-	var k := floorf((b - desloc) / passo) + 1.0
-	return maxf(k * passo + desloc, BATIDA_DA_PRIMEIRA_NOTA + desloc)
+	return proxima_batida(l, b + 0.001, passo, desloc)  # o kit; estritamente depois de b
 
 
 func iniciar_jogo() -> void:
@@ -268,7 +261,6 @@ func _nascer(l: int, b: float) -> void:
 
 
 func jogar(_dt: float) -> void:
-	SECAO.voltar_a_luz(self)
 	var agora_b := Ritmo.batida()
 	var agora := Ritmo.t_musica()
 	# os lingotes nascem ADIANTE tempos antes da batida deles
@@ -375,7 +367,6 @@ func toque(l: int, julgamento: int) -> void:
 	var p := jogador(l)
 	if p:
 		p.gesto("attack-melee-right", 0.35)
-	SECAO.piscar(self, l, julgamento)
 
 
 func falha(l: int) -> void:
@@ -387,7 +378,6 @@ func falha(l: int) -> void:
 		Forja.sentir(l, "golpe")
 	elif not _ing.is_empty():
 		_ing.estado = "caiu"  # segue até o fosso (o _mostrar derruba)
-	SECAO.piscar(self, l, Ritmo.ERRO)
 
 
 ## A prensa desce e sobe (0,15 s).
@@ -395,7 +385,7 @@ func _prensar_a_vista() -> void:
 	var tw := _bloco.create_tween()
 	tw.tween_property(_bloco, "position:y", 1.0, 0.06)
 	tw.tween_property(_bloco, "position:y", 2.2, 0.09)
-	if _no_pico():
+	if no_pico():
 		Efeitos.faiscas(self, Vector3(0, 0.6, Z_ESTEIRA), Tema.AMARELO, 10, 0.5)
 
 
@@ -502,28 +492,16 @@ Em `godot/testes/prova_do_jogo.gd`:
 ## S01_J05 (I5): a Esteira abre pelo catálogo; cada lugar prensa lingotes
 ## pelo botão simulado; o fim tem vencedor pela pilha.
 func _prova_da_esteira() -> void:
-	jogo._entrar_na_sala("S01_J05", false)
-	await _quadros(2)
-	var mg = jogo.sala
-	_esperar(mg is Minigame and mg.id == "S01_J05", "S01_J05: abriu pelo catálogo")
-	if not mg is Minigame:
-		return
-	var q := 0
-	while is_instance_valid(mg) and mg.fase == "aviso" and q < 900:
-		await _quadros(1)
-		q += 1
-	var inicio := Time.get_ticks_usec()
-	while is_instance_valid(mg) and mg.fase == "jogo" and Time.get_ticks_usec() - inicio < 40000000:
-		await _quadros(1)
-	_esperar(is_instance_valid(mg) and mg.fase == "fim", "S01_J05: fechou")
-	if not is_instance_valid(mg):
+	# a espera é a da H08: o aviso em quadros, o jogo pelo relógio de parede (90 s de música e o treino)
+	var mg = await _joga_o_minigame("S01_J05", 130.0)
+	if mg == null:
 		return
 	for l in 4:
 		var c: Array = mg.contagem[l]
 		_esperar(int(c[1]) + int(c[2]) + int(c[3]) >= 1, "S01_J05 P%d: prensou o seu %s" % [l + 1, c])
 	var v: Array = mg.vencedor()
 	_esperar(int(mg.j[v[0]].pilha) >= int(mg.j[v[v.size() - 1]].pilha), "S01_J05: o vencedor tem a maior pilha")
-	q = 0
+	var q := 0
 	while (jogo.estado != "salao" or jogo._trocando) and q < 900:
 		await _quadros(5)
 		q += 5

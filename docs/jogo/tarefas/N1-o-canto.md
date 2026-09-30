@@ -1,6 +1,6 @@
 # N1 — O Canto
 
-**Sprint:** N · **Slot:** S06_J26 · **Tamanho:** G · **Modelo:** Sonnet · **Estimativa:** US$ 2,0 · **Depende de:** H04, F09, F01, F02, F05, H06, H07, G08
+**Sprint:** N · **Slot:** S06_J26 · **Tamanho:** G · **Modelo:** Sonnet · **Estimativa:** US$ 2,0 · **Depende de:** H04, H08, F09, F01, F02, F05, H06, H07, G08
 
 ## Por quê
 
@@ -42,7 +42,7 @@ extends Minigame
 ## O registro mede: cada chamada (o som, se foi ao controle) e a resposta
 ## (o toque do kit com o mesmo n).
 ## O robô: ouve o ataque no alto-falante simulado na vez dele; só responde as
-## notas que ouviu, com a altura da partitura, no tempo; quando não acerta,
+## notas que ouviu, com a altura que ouviu (o nome do som, H08), no tempo; quando não acerta,
 ## 250 ms tarde.
 ## Com menos de quatro: dois têm as vezes 0 e 2; sozinho, as vezes 0 e 2 são
 ## as duas dele.
@@ -54,7 +54,7 @@ const FICHA := {
 	"titulo": "O Canto",
 	"verbo": "Repita!",
 	"genero": "tct",
-	"icone": "alto_falante",
+	"icone": "alto-falante",
 	"entradas": [Forja.CRUZ, Forja.CIRCULO],
 	"camera": "fixa",
 	"faixa": "MUS_S06_J26",
@@ -63,6 +63,8 @@ const FICHA := {
 	"sensacoes": ["toque", "acerto", "perfeito", "erro"],
 	"material": "metal",
 	"microjogo": {"verbo": "Repita!", "segundos": 6.0},
+	"nota_no_falante": false,  # o alto-falante é a pista: o kit não toca a nota do perfeito nele (H08)
+	"papel_som": Forja.PAPEL_ALTO_FALANTE,  # a bancada afina o alto-falante no aviso (F02)
 	# o que a bancada mede (o veredito é do núcleo, como hoje)
 	"features": ["alto_falante"],
 	"botoes_medidos": [Forja.CRUZ, Forja.CIRCULO],
@@ -109,7 +111,7 @@ com `nova_nota(l, n, t)`.
 
 **A chamada toca** no tempo de cada nota (`Ritmo.t_musica() >= Ritmo.t_da_batida(b)`):
 `var foi := CenarioDoCanto.falante(self, l, SOM[altura], 0.9)` e
-`Forja.evento("jogo", l + 1, {"slot": id, "o": "chamada", "n": <n da resposta>, "som": SOM[altura], "no_controle": foi})`.
+`Forja.evento("pista", l + 1, {"slot": id, "n": <n da resposta>, "evento": "mandou", "via": "alto_falante" if foi else "tv", "o_que": SOM[altura], "no_controle": foi})`.
 Na tela, o sino pequeno do lugar balança na vez dele (`CenarioDoCanto.balancar`
 com força 1 durante a batida), igual para as duas alturas.
 
@@ -120,12 +122,12 @@ com força 1 durante a batida), igual para as duas alturas.
 - o botão errado → `nota_perdida(l, n)` (desafinou);
 - nenhuma nota perto → nada.
 
-A nota que passa de `t + JANELA_BOM` é `nota_perdida(l, n)`. **A frase
+A nota que passa de `t + FOLGA_PERDIDA` (o kit) é `nota_perdida(l, n)`. **A frase
 inteira:** todas as notas dela BOM ou melhor → `frases[l] += 1`,
 `marcar(l, FRASE_INTEIRA)`, o sino dele brilha dourado (emissivo 1,4 por uma
 batida) e as trincas somem.
 
-**Os pontos:** `marcar(l, Itens.pontos_do_acerto(l, PONTOS[j], j, fmod(b, 4.0) == 0.0))`.
+**Os pontos:** `marcar(l, PONTOS[julgamento])` (o item, `Itens.pontos_do_acerto`, o kit já aplica no `julgar_toque`: H08).
 
 **Os 90 segundos:** entrada (0–30 s) frases de uma nota — a altura só;
 **pico** (30–60 s) frases de duas notas — altura e ritmo; aos 30 s o sino
@@ -262,7 +264,7 @@ comentário; escreva-o inteiro no arquivo.)
 | recurso | o quê | quando |
 | --- | --- | --- |
 | **alto-falante (protagonista)** | `"nota"` (grave) / `"nota_alta"` (aguda), 0,9 | a chamada, na vez do dono, no tempo de cada nota |
-| alto-falante do dono | `SOM[altura do botão]`, 0,8 | a nota que ele toca na resposta boa (corta a nota do kit: um som por vez) |
+| alto-falante do dono | `SOM[altura do botão]`, 0,8 | a nota que ele toca na resposta boa (a FICHA diz `"nota_no_falante": false`: o kit não toca a dele, um som por vez) |
 | vibração | `toque` | no começo de cada compasso, em todos (o tempo forte) |
 | vibração | `acerto` / `perfeito` / `erro` (o kit) | na resposta julgada |
 | barra de luz | `CenarioDoCanto.luz_da_nota(l, 0.6)` por `PULSO_S`, e volta a 1,0 | na resposta boa — nunca na chamada |
@@ -285,7 +287,7 @@ comentário; escreva-o inteiro no arquivo.)
 
 ## O fim e o vencedor
 
-90 s de `t_jogo`, pelo kit.
+90 s de música, pelo kit (H08).
 
 ```gdscript
 func vencedor() -> Array:
@@ -312,10 +314,11 @@ func vencedor() -> Array:
 # O robô ouve o alto-falante do controle simulado dele (o nível, pela lógica
 # de ataque de hoje) e guarda em que batida ouviu cada ataque. Na resposta,
 # toca só as notas cuja chamada ele ouviu (uma batida de compasso antes), com
-# a altura da partitura, no tempo. Quando não acerta, 250 ms tarde.
+# a altura que ouviu (`Forja.som_virtual` dá o nome do último som: H08), no
+# tempo. Quando não acerta, 250 ms tarde.
 var _robo_vale := [1.0, 1.0, 1.0, 1.0]
 var _robo_desde := [0.0, 0.0, 0.0, 0.0]  ## o tempo de música do último ataque
-var _robo_ouviu := [{}, {}, {}, {}]  ## lugar -> {meia batida do ataque: true}
+var _robo_ouviu := [{}, {}, {}, {}]  ## lugar -> {meia batida do ataque: o som ouvido}
 var _robo_nota := [-1, -1, -1, -1]
 var _robo_atraso := [0.0, 0.0, 0.0, 0.0]
 
@@ -328,7 +331,7 @@ func robo(l: int, _dt: float) -> void:
 	if nivel > 0.12 and nivel - float(_robo_vale[l]) > 0.10 and agora - float(_robo_desde[l]) > 0.12:
 		_robo_vale[l] = nivel
 		_robo_desde[l] = agora
-		_robo_ouviu[l][int(round(Ritmo.batida() * 2.0))] = true
+		_robo_ouviu[l][int(round(Ritmo.batida() * 2.0))] = str(Forja.som_virtual(l).get("som", ""))  # o nome do último som (H08)
 	else:
 		_robo_vale[l] = minf(float(_robo_vale[l]), nivel)
 	if Forja.bancada and _robo_da_bancada(l):  # a pergunta de hoje: ✕ se ouviu o canto às cegas, ○ se não (canto.gd:579-585)
@@ -343,7 +346,8 @@ func robo(l: int, _dt: float) -> void:
 	var chamada := int(round((float(nt.b) - 4.0) * 2.0))
 	var ouviu: bool = _robo_ouviu[l].has(chamada) or _robo_ouviu[l].has(chamada + 1)
 	if ouviu and agora >= float(nt.t) + float(_robo_atraso[l]):
-		Forja.robo_apertar(l, BOTAO[int(nt.altura)], 0.06)
+		var som := str(_robo_ouviu[l].get(chamada, _robo_ouviu[l].get(chamada + 1, "")))
+		Forja.robo_apertar(l, BOTAO[maxi(SOM.find(som), 0)], 0.06)  # a altura que ouviu, não a da partitura
 		_robo_nota[l] = 99999  # já respondeu esta
 ```
 
@@ -357,7 +361,7 @@ O que muda do `canto.gd` de hoje:
 | hoje | n'O Canto novo |
 | --- | --- |
 | `class_name SalaCanto`, `extends SalaJogo` | `extends Minigame`, sem `class_name`, o cabeçalho de "A ficha de dados" |
-| `_init()` | fica só com `super()` e `papel_som = Forja.PAPEL_ALTO_FALANTE` (a bancada afina o alto-falante no aviso, F02); o resto vai para a FICHA e o `montar` |
+| `_init()` | sai: o `papel_som` vira a chave `"papel_som"` da FICHA (H08; a bancada afina o alto-falante no aviso, F02); o resto vai para a FICHA e o `montar` |
 | `sino()`, `_montar_torre()`, `SINO_TV`, `PERFIL` | vão para `CenarioDoCanto` (facetado e fosco) |
 | `_montar_raia()` | o de "O cenário", sem a partitura |
 | `_novo_jogador()` | fica (a bancada), mais `frases`, `trincas` em variáveis do minigame |
@@ -387,11 +391,6 @@ var _pulso := [0.0, 0.0, 0.0, 0.0]
 var _grande := {}
 var _sinos := {}  ## lugar -> o sino pequeno
 var j := {}  ## lugar -> o estado da bancada (o _novo_jogador de hoje)
-
-
-func _init() -> void:
-	super()
-	papel_som = Forja.PAPEL_ALTO_FALANTE
 
 
 func montar() -> void:
@@ -435,7 +434,7 @@ func jogar(dt: float) -> void:
 			_responder(l, GRAVE)
 		elif Forja.apertou(l, Forja.CIRCULO):
 			_responder(l, AGUDA)
-		while not _notas[l].is_empty() and agora > float(_notas[l][0].t) + Ritmo.JANELA_BOM:
+		while not _notas[l].is_empty() and agora > float(_notas[l][0].t) + FOLGA_PERDIDA:
 			var nt: Dictionary = _notas[l].pop_front()
 			_ultima[l] = nt
 			nota_perdida(l, int(nt.n))
@@ -445,7 +444,7 @@ func jogar(dt: float) -> void:
 
 func toque(l: int, julgamento: int) -> void:
 	var nt: Dictionary = _ultima[l]
-	marcar(l, Itens.pontos_do_acerto(l, PONTOS[julgamento], julgamento, fmod(float(nt.b), 4.0) == 0.0))
+	marcar(l, PONTOS[julgamento])  # o item, o kit já aplicou (H08)
 	CenarioDoCanto.falante(self, l, SOM[int(nt.altura)], 0.8)
 	CenarioDoCanto.luz_da_nota(l, 0.6)
 	_pulso[l] = PULSO_S
@@ -473,7 +472,7 @@ que ainda não existirem): `"Repita!": "Repeat!"`, `"Grave": "Low"`,
 ## O que o registro mede
 
 - `som_controle` (H07) de cada chamada: `seq`, `som`, `placa`.
-- `jogo` `chamada` (n da resposta, som, `no_controle`) e o `toque` do kit
+- `pista` (`via` `alto_falante`) (n da resposta, som, `no_controle`) e o `toque` do kit
   com o mesmo `n`: a chamada que não chegou vira resposta errada ou nenhuma.
 - Na bancada, a `pergunta` (`"canto"`), a `resposta` de hoje e o veredito
   `alto_falante`.
@@ -488,11 +487,12 @@ que ainda não existirem): `"Repita!": "Repeat!"`, `"Grave": "Low"`,
   kit, e a próxima chamada do mesmo lugar vem pelo menos quatro batidas
   depois — não há colisão de chamada com resposta.
 - **A saída silenciosa:** sem alto-falante, a chamada vai para a TV e o
-  `jogo` `chamada` diz `no_controle: false`; o jogo não trava nem pula o lugar.
+  `pista` (`via` `alto_falante`) diz `no_controle: false`; o jogo não trava nem pula o lugar.
 - **O `_init` com `super()` na primeira linha** (H04: sem ele, a FICHA não é lida).
 - **Sem faixa, o compasso é o sino:** o `tempo_forte()` toca em todo
   compasso; não o desligue quando a faixa chegar.
-- **Os pontos e o item:** se o kit já aplica `Itens.pontos_do_acerto`, marque cru.
+- **Os pontos e o item:** o kit aplica `Itens.pontos_do_acerto` no `julgar_toque`
+  (H08); marque cru.
 
 ## Pronto quando
 
@@ -501,10 +501,9 @@ três temperamentos; aguenta o cabo que cai e volta; fecha com vencedor;
 `--sala=canto` abre o `S06_J26`; com `--bancada`, o canto às cegas aparece a
 cada oito compassos e o veredito `alto_falante` sai como antes; a prova do
 jogo passa nas duas rodadas; e `bash tests/prova_visual.sh` passa com a
-**prancha olhada** com O Canto nela — `canto` não está nas partidas da prova
-visual: na cópia de trabalho, sem commitar, troque `"viga"` por `"canto"` em
-`Partida.NA_ORDEM[5]` (`godot/scripts/partida.gd:24`), rode, olhe a prancha
-e volte (`git checkout godot/scripts/partida.gd`).
+**prancha olhada** com O Canto nela — `Partida.NA_ORDEM` inclui o Canto (H08), e o
+`Catalogo.sortear` põe o `S06_J26` na noite: rode a prova visual com a
+semente que o sorteia (`--semente=N`).
 
 ## Provas
 
@@ -528,12 +527,12 @@ func _prova_do_canto() -> void:
 				tocou[0] = true
 		if tocando >= 2 and fmod(Ritmo.batida(), 8.0) < 4.0:
 			dois_juntos[0] += 1
-	var mg := await _joga_o_minigame("canto", 60.0, olhar)
+	var mg = await _joga_o_minigame("canto", 130.0, olhar)
 	if mg == null:
 		return
 	_esperar(mg.id == "S06_J26", "Canto: --sala=canto abre o S06_J26")
 	_esperar(tocou[0], "Canto: a chamada chegou a um alto-falante simulado")
-	var chamadas := _linha_do_tempo().filter(func(e): return e.get("tipo") == "jogo" and e.get("slot") == "S06_J26" and e.get("o") == "chamada")
+	var chamadas := _linha_do_tempo().filter(func(e): return e.get("tipo") == "pista" and e.get("slot") == "S06_J26" and e.get("evento") == "mandou")
 	_esperar(chamadas.size() >= 1 and chamadas.any(func(e): return bool(e.get("no_controle", false))), "Canto: %d chamadas, no controle" % chamadas.size())
 	if not Forja.bancada:
 		_esperar(_linha_do_tempo().filter(func(e): return e.get("o") == "pergunta" and e.get("sala", e.get("slot", "")) == "S06_J26").is_empty(), "Canto: fora da bancada, nenhuma pergunta")

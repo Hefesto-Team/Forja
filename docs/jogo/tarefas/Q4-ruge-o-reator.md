@@ -52,7 +52,7 @@ ensinou.
 
 ## Como se joga
 
-A faixa é `MUS_S09_J44`, 120 bpm (uma batida = 0,5 s). `ENTRADA := 4`.
+A faixa é `MUS_S09_J44`, 120 bpm (uma batida = 0,5 s). `BATIDA_DA_PRIMEIRA_NOTA` (4, do kit: H08).
 
 **O roteiro** (em batidas):
 
@@ -266,7 +266,6 @@ extends Minigame
 const FICHA := { ... }
 
 enum { BATER, EQUILIBRAR, TRACAR, DEFENDER }
-const ENTRADA := 4
 const ESTACAO := 48
 const ROTEIRO := [
 	{"de": 4, "ate": 52, "verbo": BATER},
@@ -409,15 +408,11 @@ Catálogo: `"S09_J44"` em `MINIGAMES` e na seção `S09`. Traduções:
   `respondeu`;
 - `troca` de quem não tem giroscópio.
 
-**A linha nova no 13.** Se a tabela "Os tipos, e quem os escreve" do 13
-ainda não tem `estacao`, acrescente, no mesmo commit:
-
-```markdown
-| `estacao` | `slot`, `estacao` (`bater`, `equilibrar`, `tracar`, `defender`, `rugido`, `final`, e as do Q5), `batida` | os medleys (Q4, Q5), a cada troca de estação |
-```
-
-E, na linha `troca` (da O1), acrescente `giroscopio` a `recurso`,
-`analogico` a `para` e `sem_giroscopio` a `motivo`.
+As linhas `estacao` e `troca` são as do [13](../13-arquitetura.md#as-decisões-comuns-dos-minigames--h08)
+(H08): a `estacao` com `slot`, `estacao` (`bater`, `equilibrar`, `tracar`,
+`defender`, `rugido`, `final`) e `batida`; a `troca` de quem não tem
+giroscópio com `de` `giroscopio`, `para` `analogico` e o motivo
+`sem_giroscopio`.
 
 ## Armadilhas
 
@@ -436,7 +431,6 @@ E, na linha `troca` (da O1), acrescente `giroscopio` a `recurso`,
   batida**, pule o empurrão (ele já vê a plataforma virar).
 - **A prova fica mais longa** (118 s de relógio): a checagem do medley roda
   só na rodada sem a bancada (ver "Provas").
-- **`ENTRADA`**: se o kit tiver `BATIDA_DA_PRIMEIRA_NOTA`, use-a.
 
 ## Pronto quando
 
@@ -457,22 +451,20 @@ Em `godot/testes/prova_do_jogo.gd`, uma `_prova_ruge_o_reator()`, chamada
 ## cada uma pelo controle simulado (toques julgados em todas), e o medley fecha
 ## coop.
 func _prova_ruge_o_reator() -> void:
-	var sala = await _comeca_a_sala("S09_J44")
+	# a espera é a do `_joga_o_minigame` da H08: o aviso em quadros, o jogo pelo
+	# relógio de parede (o medley acaba sozinho em uns 120 s de música)
+	var verbos_julgados := {}
+	var antes := [0, 0, 0, 0]
+	var olhar := func(s) -> void:
+		for l in 4:
+			if s.pontos[l] != antes[l]:
+				antes[l] = s.pontos[l]
+				verbos_julgados[s._verbo[l]] = true
+	var sala = await _joga_o_minigame("S09_J44", 150.0, olhar)
 	if sala == null:
 		return
-	var verbos_julgados := {}
-	var inicio := Time.get_ticks_usec()
-	var antes := [0, 0, 0, 0]
-	while is_instance_valid(sala) and sala.fase == "jogo" and Time.get_ticks_usec() - inicio < 150000000:
-		for l in 4:
-			if sala.pontos[l] != antes[l]:
-				antes[l] = sala.pontos[l]
-				verbos_julgados[sala._verbo[l]] = true
-		await _quadros(1)
-	_esperar(is_instance_valid(sala) and sala.fase == "fim", "reator: fechou (%.0f s)" % ((Time.get_ticks_usec() - inicio) / 1e6))
 	_esperar(verbos_julgados.size() == 4, "reator: acertos nas quatro estações (%s)" % [verbos_julgados.keys()])
-	if is_instance_valid(sala):
-		_esperar(sala.coop, "reator: o resultado é coop")
+	_esperar(sala.coop and sala.destaque() >= 0, "reator: o resultado é coop, com o destaque")
 ```
 
 No `_prova_do_relatorio()`: as linhas `estacao` do `S09_J44` são seis, na

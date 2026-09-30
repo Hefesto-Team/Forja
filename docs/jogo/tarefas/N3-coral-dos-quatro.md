@@ -1,6 +1,6 @@
 # N3 — Coral dos Quatro
 
-**Sprint:** N · **Slot:** S06_J28 · **Tamanho:** M · **Modelo:** Sonnet · **Estimativa:** US$ 1,5 · **Depende de:** H04, F09, N1, H07
+**Sprint:** N · **Slot:** S06_J28 · **Tamanho:** M · **Modelo:** Sonnet · **Estimativa:** US$ 1,5 · **Depende de:** H04, H08, F09, N1, H07
 
 ## Por quê
 
@@ -49,7 +49,7 @@ const FICHA := {
 	"titulo": "Coral dos Quatro",
 	"verbo": "Cante a sua!",
 	"genero": "coop",
-	"icone": "alto_falante",
+	"icone": "alto-falante",
 	"entradas": [Forja.CRUZ],
 	"camera": "fixa",
 	"faixa": "MUS_S06_J28",
@@ -58,6 +58,7 @@ const FICHA := {
 	"sensacoes": ["toque", "acerto", "perfeito", "erro"],
 	"material": "madeira",
 	"microjogo": {"verbo": "Cante!", "segundos": 6.0},
+	"nota_no_falante": false,  # o alto-falante é a pista: o kit não toca a nota do perfeito nele (H08)
 }
 
 const PONTOS := [0, 40, 70, 100]  ## ERRO, BOM, OTIMO, PERFEITO
@@ -77,7 +78,7 @@ seguinte a **resposta**. O compasso de chamada é gerado quando
 **As vezes:** `lista = presentes()` em ordem, `k = lista.size()`. Cada
 chamada escolhe `k` das quatro batidas (`0..3`) e dá uma a cada lugar:
 
-| parte | `t_jogo` | as batidas e a ordem |
+| parte | música (`progresso()` do kit) | as batidas e a ordem |
 | --- | --- | --- |
 | entrada | 0–30 s | as batidas `[0, 1, 2, 3]` (com dois: `[0, 2]`; com um: `[0]`; com três: `[0, 1, 2]`), na ordem de `lista`: a roda de sempre |
 | **pico** | 30–60 s | as mesmas batidas, embaralhadas entre os lugares pelo `rng` (Fisher-Yates com `rng.randi_range`; nunca `Array.shuffle`); a chamada com `(c / 2) % ACORDE_A_CADA == 3` é **o acorde**: todos na batida 0 |
@@ -86,7 +87,7 @@ chamada escolhe `k` das quatro batidas (`0..3`) e dá uma a cada lugar:
 Quem está com `Ritmo.simples[l]` fica com a mesma vez da chamada anterior.
 
 **A chamada:** na batida `b = 4c + vez` de cada lugar, `var foi := CenarioDoCanto.falante(self, l, "nota:%d" % l, 0.9)`
-e `Forja.evento("jogo", l + 1, {"slot": id, "o": "chamada", "n": n, "som": "nota:%d" % l, "no_controle": foi})`.
+e `Forja.evento("pista", l + 1, {"slot": id, "n": n, "evento": "mandou", "via": "alto_falante" if foi else "tv", "o_que": "nota:%d" % l, "no_controle": foi})`.
 Na tela, nenhum sino balança na chamada (a vez é só do alto-falante); o
 sino grande dá o tempo forte.
 
@@ -104,7 +105,7 @@ se alguma faltou, **o vitral trinca**: o último painel aceso apaga com uma
 trinca (`acesos = maxi(0, acesos - 1)`). `acesos == PAINEIS` → o coral vence:
 `coop_venceu = true`, todos `acabou`.
 
-**Os pontos** (o destaque): `marcar(l, Itens.pontos_do_acerto(l, PONTOS[j], j, fmod(b, 4.0) == 0.0))`.
+**Os pontos** (o destaque): `marcar(l, PONTOS[julgamento])` (o item, `Itens.pontos_do_acerto`, o kit já aplica no `julgar_toque`: H08).
 
 **O compasso na mão:** `Forja.sentir(l, "toque")` no começo de cada compasso
 e `CenarioDoCanto.tempo_forte()`.
@@ -116,7 +117,7 @@ fundo abre a boca; saída, as vezes em qualquer batida.
 
 ## O cenário
 
-- `var grande := CenarioDoCanto.montar(self)`; `coop = true`; a câmera d'O Canto.
+- `var grande := CenarioDoCanto.montar(self)` (o `coop` vem do gênero da FICHA: H08); a câmera d'O Canto.
 - Por lugar: `raia(l)`, `posicionar(l)`, `preso = true`, e o sino pequeno
   com o suporte (N1: `CenarioDoCanto.sino(self, Vector3(RAIAS[l] + 0.6, 1.8, Z_JOGADOR - 0.35), 0.34, Color("#c08a42"))`),
   que balança **na resposta** boa dele.
@@ -160,9 +161,16 @@ fundo abre a boca; saída, as vezes em qualquer batida.
 ## O fim e o vencedor
 
 `fim` `meta_coletiva`: o vitral inteiro (todos `acabou`, `coop_venceu = true`)
-ou os 90 s de `t_jogo` (`coop_venceu = false`: o vitral fica pela metade). O
-destaque é quem cantou mais no tempo: `vencedor()` pelos `pontos` (o padrão
-do kit).
+ou os 90 s de música (H08; `coop_venceu = false`: o vitral fica pela metade). O
+registro grava `vencedor` −1 (coop); o destaque é quem cantou mais no tempo:
+
+```gdscript
+## Coop: o kit grava vencedor −1 (H08); o destaque é quem cantou mais no tempo.
+func destaque() -> int:
+	var lista := presentes()
+	lista.sort_custom(func(a, b): return int(pontos[a]) > int(pontos[b]) or (int(pontos[a]) == int(pontos[b]) and a < b))
+	return int(lista[0]) if not lista.is_empty() else -1
+```
 
 ## Com menos de quatro
 
@@ -229,7 +237,6 @@ var _pulso := [0.0, 0.0, 0.0, 0.0]
 func montar() -> void:
 	camera_pos = Vector3(0, 5.6, 11.2)
 	camera_olhar = Vector3(0, 1.6, -1.0)
-	coop = true
 	CenarioDoCanto.montar(self)
 	_montar_o_vitral_e_o_coro()
 	for p in jogadores:
@@ -265,7 +272,7 @@ func jogar(dt: float) -> void:
 			_tirar_das_respostas_abertas(l)
 		if Forja.apertou(l, Forja.CRUZ):
 			_cantar(l)
-		while not _notas[l].is_empty() and agora > float(_notas[l][0].t) + Ritmo.JANELA_BOM:
+		while not _notas[l].is_empty() and agora > float(_notas[l][0].t) + FOLGA_PERDIDA:
 			var nt: Dictionary = _notas[l].pop_front()
 			_ultima[l] = nt
 			nota_perdida(l, int(nt.n))
@@ -278,7 +285,7 @@ func jogar(dt: float) -> void:
 
 func toque(l: int, julgamento: int) -> void:
 	var nt: Dictionary = _ultima[l]
-	marcar(l, Itens.pontos_do_acerto(l, PONTOS[julgamento], julgamento, fmod(float(nt.b), 4.0) == 0.0))
+	marcar(l, PONTOS[julgamento])  # o item, o kit já aplicou (H08)
 	_respostas[int(nt.c)][l] = julgamento
 	CenarioDoCanto.luz_da_nota(l, 0.6)
 	_pulso[l] = PULSO_S
@@ -319,7 +326,8 @@ com `na_raia(l)` e `not aprendeu(l)` (`"Na sua vez": "On your turn"`).
   acorde junto (todos na 0) — aí a nota de cada um é a dele, e o coro soa.
 - **Nunca `Array.shuffle()`:** o embaralhar é pelo `rng` da semente.
 - **O acorde fecha com quem está:** quem caiu não segura os outros.
-- **Os pontos e o item:** se o kit já aplica `Itens.pontos_do_acerto`, marque cru.
+- **Os pontos e o item:** o kit aplica `Itens.pontos_do_acerto` no `julgar_toque`
+  (H08); marque cru.
 
 ## Pronto quando
 
@@ -327,9 +335,7 @@ O Coral dos Quatro joga do aviso ao resultado com 4, 3, 2 e 1 jogador e com
 o robô nos três temperamentos (o bom acende o vitral, o ruim não); aguenta o
 cabo que cai e volta; fecha com o resultado coop e o destaque; a prova do
 jogo passa; e `bash tests/prova_visual.sh` passa com a **prancha olhada** com
-o Coral nela (na cópia de trabalho, sem commitar: `"S06_J28"` em primeiro na
-lista da seção `S06` e `"canto"` no lugar de `"viga"` em `Partida.NA_ORDEM[5]`;
-depois volte os dois arquivos).
+o Coral nela (o `Catalogo.sortear` da H08 põe o `S06_J28` na noite: rode a prova visual com a semente que o sorteia, `--semente=N`).
 
 ## Provas
 
@@ -345,12 +351,12 @@ func _prova_do_coral() -> void:
 	var olhar := func(m: Minigame) -> void:
 		if int(m.acesos) < 0 or int(m.acesos) > m.PAINEIS:
 			fora[0] += 1
-	var mg := await _joga_o_minigame("S06_J28", 60.0, olhar)
+	var mg = await _joga_o_minigame("S06_J28", 130.0, olhar)
 	if mg == null:
 		return
-	_esperar(mg.coop, "Coral: é coop")
+	_esperar(mg.coop and mg.destaque() >= 0, "Coral: é coop, com o destaque")
 	_esperar(fora[0] == 0, "Coral: o vitral entre 0 e 12")
-	var chamadas := _linha_do_tempo().filter(func(e): return e.get("tipo") == "jogo" and e.get("slot") == "S06_J28" and e.get("o") == "chamada")
+	var chamadas := _linha_do_tempo().filter(func(e): return e.get("tipo") == "pista" and e.get("slot") == "S06_J28" and e.get("evento") == "mandou")
 	var sons := {}
 	for e in chamadas:
 		sons[str(e.get("som", ""))] = true

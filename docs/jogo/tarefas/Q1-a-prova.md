@@ -32,7 +32,7 @@ const FICHA := {
 	"titulo": "A Prova",
 	"verbo": "Vença a outra equipe!",
 	"genero": "2v2",
-	"icone": "gatilho_adaptativo",
+	"icone": "r2",
 	"entradas": [Forja.CRUZ, Forja.TOUCHPAD],
 	"camera": "fixa",
 	"faixa": "MUS_S09_J41",
@@ -56,13 +56,13 @@ Sem treino: é o fim da noite.
 
 ## Como se joga
 
-A faixa é `MUS_S09_J41`, 145 bpm (uma batida ≈ 0,41 s). `ENTRADA := 4`.
+A faixa é `MUS_S09_J41`, 145 bpm (uma batida ≈ 0,41 s). `BATIDA_DA_PRIMEIRA_NOTA` (4, do kit: H08).
 
 - **As equipes:** a regra da ficha-mãe. Em cada equipe, o primeiro é **A**,
   o segundo **B**.
 - **A frente:** `_frente` (em lajes, −6 a +6; começa em 0). A Brasa empurra
   para `+` (para o lado da Maré, à direita), a Maré para `−`.
-- **O compasso** `m` (a partir de `c0 = ENTRADA + 4m`): A toca nas batidas
+- **O compasso** `m` (a partir de `c0 = BATIDA_DA_PRIMEIRA_NOTA + 4m`): A toca nas batidas
   `+0` e `+2`, B nas `+1` e `+3` — o hoqueto dentro da equipe; as duas
   equipes tocam ao mesmo tempo. Cada nota é aberta uma batida antes.
 - **As armas se revezam de dois em dois compassos:** `(m / 2) % 2 == 0` é o
@@ -156,7 +156,7 @@ gesto); na besta, o virote cai aos pés (`Efeitos.faiscas(self, pos, Color("#8c9
 
 ## O fim e o vencedor
 
-A partida acaba na batida `ENTRADA + PARTIDA` (ou um compasso depois do
+A partida acaba na batida `BATIDA_DA_PRIMEIRA_NOTA + PARTIDA` (ou um compasso depois do
 nocaute): o apito da partida (`Som.tocar("sucesso", null, -4.0)`), a frente
 para, o R2 de todos volta a `GATILHO_OFF`. Sem a bancada, todos acabam ali.
 **O vencedor:** a equipe do lado para onde a frente andou (`_frente > 0`:
@@ -262,7 +262,6 @@ extends Minigame
 const FICHA := { ... }
 
 enum { MARTELO, BESTA, MARTELADA }
-const ENTRADA := 4
 const PARTIDA := 216
 const PICO_DE := 26
 const PICO_ATE := 30
@@ -315,7 +314,7 @@ func montar() -> void:
 
 
 func iniciar_jogo() -> void:
-	_fim_batida = float(ENTRADA + PARTIDA)
+	_fim_batida = float(BATIDA_DA_PRIMEIRA_NOTA + PARTIDA)
 	for l in presentes():
 		fin[l] = {"leds": Cega.nova(), "cor": Cega.nova(), "leds_pedido": -1, "cor_pedida": -1, "resp": -1,
 			"t": 0.0, "robo_espera": -1.0}
@@ -327,7 +326,7 @@ func jogar(dt: float) -> void:
 	var b := Ritmo.batida()
 	if not _acabou_a_partida:
 		var proximo := _m + 1
-		if b >= ENTRADA + 4.0 * proximo - 1.0:
+		if b >= BATIDA_DA_PRIMEIRA_NOTA + 4.0 * proximo - 1.0:
 			_novo_compasso(proximo)   # uma batida antes: a arma do bloco (o gatilho), o sino (m % 4 == 3)
 		for l in presentes():
 			if not conectado(l):
@@ -456,7 +455,6 @@ no empate).
   7); se o `timeout 1200` apertar, anote e avise.
 - **`Forja.robo` só no `robo()`**; o `_robo_prova_final` é chamado de dentro
   dele e não tem a palavra.
-- **`ENTRADA`**: se o kit tiver `BATIDA_DA_PRIMEIRA_NOTA`, use-a.
 
 ## Pronto quando
 

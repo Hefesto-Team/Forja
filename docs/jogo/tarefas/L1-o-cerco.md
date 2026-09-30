@@ -1,6 +1,6 @@
 # L1 — O Cerco
 
-**Sprint:** L · **Slot:** S04_J16 · **Tamanho:** G · **Modelo:** Sonnet · **Estimativa:** US$ 2,0 · **Depende de:** H04, F09, F01, F04, F05, F06, H06, H07, G04, G05, G08
+**Sprint:** L · **Slot:** S04_J16 · **Tamanho:** G · **Modelo:** Sonnet · **Estimativa:** US$ 2,0 · **Depende de:** H04, H08, F09, F01, F04, F05, F06, H06, H07, G04, G05, G08
 
 ## Por quê
 
@@ -49,7 +49,7 @@ const FICHA := {
 	"titulo": "O Cerco",
 	"verbo": "Defenda!",
 	"genero": "sobrevivencia",
-	"icone": "vibracao",
+	"icone": "rumble_esquerdo",
 	"entradas": [Forja.L1, Forja.R1],
 	"camera": "fixa",
 	"faixa": "MUS_S04_J16",
@@ -71,8 +71,6 @@ const VIDA_MIN := 1  ## a luz nunca apaga
 ## O brilho da barra de luz por vida (índice = vida): 40% a 100%, nunca abaixo (F04).
 const BRILHO := [0.4, 0.4, 0.55, 0.7, 0.85, 1.0]
 const PERFEITOS_PARA_CURAR := 4
-const PISCA_GOLPE := 0.3  ## s de vermelho no golpe (F04: no máximo 0,5 s)
-const PISCA_PERFEITO := 0.1  ## s de branco no perfeito
 ## A chance de golpe em cada batida do dono, por parte: entrada, pico, saída.
 const DENSIDADE := [0.5, 1.0, 0.75]
 const ARIETE_A_CADA := 4  ## no pico, um compasso de aríete a cada quatro
@@ -109,11 +107,10 @@ primeira nota possível é a batida `BATIDA_DA_PRIMEIRA_NOTA` (4).
   da nota mais perto);
 - o sopro no meio (`Som.tocar("sopro", null, -6.0)`): o som não entrega o lado;
 - os outros presentes com controle ganham uma `chance` (o isolamento);
-- o registro: `Forja.evento("jogo", l + 1, {"slot": id, "o": "lado", "n": b, "lado": "esq"/"dir", "ok": ok})`.
+- o registro: `Forja.evento("pista", l + 1, {"slot": id, "n": b, "evento": "mandou", "via": "rumble", "o_que": "esq"/"dir", "ok": ok})`.
 
 **A defesa**, na batida `b`: L1 é a esquerda, R1 a direita. O aperto casa
-com a primeira nota do lugar a no máximo `Ritmo.JANELA_BOM + Ritmo.FOLGA_DO_ULTIMO`
-(0,18 s) do tempo dela:
+com a nota em aberto mais perto pelo `casar_toque(l)` do kit (H08):
 
 - **lado certo** → `julgar_toque(l, t, n, true)` (é perigo físico: a folga
   de quem está em último vale) e `Cega.certo(cega)` — a mão acertou o lado,
@@ -122,22 +119,22 @@ com a primeira nota do lugar a no máximo `Ritmo.JANELA_BOM + Ritmo.FOLGA_DO_ULT
   `falha()`) e `Cega.errado(cega, lado_feito)`;
 - **nenhuma nota perto** → o fantasma (como hoje): `j[l].fantasmas += 1`,
   `marcar(l, FANTASMA)`, o `?` amarelo por 1 s, e
-  `Forja.evento("jogo", l + 1, {"slot": id, "o": "fantasma", "golpe_de": "P%d" % (dono + 1)})`
+  `Forja.evento("entrada", l + 1, {"slot": id, "o": "fantasma", "golpe_de": "P%d" % (dono + 1)})`
   com o dono da nota dos outros mais perto no tempo.
 
-Toda resposta grava `{"o": "resposta", "n": b, "lado_pedido": "esq"/"dir", "lado_feito": "esq"/"dir"/"nenhum"}`.
-A nota que passa de `t + 0,18 s` sem defesa é `nota_perdida(l, n)` e
-`Cega.perdido(cega)`.
+Toda resposta grava a linha `entrada` `{"o": "resposta", "n": b, "lado_pedido": "esq"/"dir", "lado_feito": "esq"/"dir"/"nenhum"}`.
+A nota que passa de `FOLGA_PERDIDA` (o kit, 0,14 s) sem defesa é
+`nota_perdida(l, n)` e `Cega.perdido(cega)`.
 
-**Os pontos** (no `toque`): `PONTOS[julgamento]`, pelo item:
-`marcar(l, Itens.pontos_do_acerto(l, PONTOS[j], j, b % 4 == 0))`.
+**Os pontos** (no `toque`): `marcar(l, PONTOS[julgamento])`; o item
+(`Itens.pontos_do_acerto`) o kit já aplica no `julgar_toque` (H08).
 
 **A vida:** começa em 5. Cada falha tira 1 (nunca abaixo de 1; no treino,
 nada tira). Quatro perfeitos seguidos devolvem 1 (até 5).
 
-**Os 90 segundos**, pela parte (`t_jogo`, o tempo que vale):
+**Os 90 segundos de música**, pela parte (`progresso()` do kit, H08):
 
-| parte | `t_jogo` | a batida do dono tem golpe com chance | o que acontece |
+| parte | música | a batida do dono tem golpe com chance | o que acontece |
 | --- | --- | --- | --- |
 | entrada | 0–30 s | 0,5 | aprende-se o lado |
 | **pico** | 30–60 s | 1,0 | **o aríete**: em todo compasso `c` com `c % ARIETE_A_CADA == 3`, o compasso inteiro é um golpe só, de todos, na batida `4c + 2` (cada um com o seu lado sorteado; a pista na `4c + 1`); as outras três batidas desse compasso ficam vazias |
@@ -263,8 +260,7 @@ static func luz_com_brilho(l: int, brilho: float) -> bool:
 | vibração | `acerto` / `perfeito` / `erro` (o kit) | na defesa julgada |
 | vibração | `golpe` | quando o golpe entra (a falha), por cima do `erro` do kit |
 | barra de luz | `CenarioDoImpacto.luz_com_brilho(l, BRILHO[vida])` | ao começar e a cada mudança de vida |
-| barra de luz | vermelho `Color(1, 0, 0)` por `PISCA_GOLPE` (0,3 s) | na falha; depois volta ao brilho da vida |
-| barra de luz | branco por `PISCA_PERFEITO` (0,1 s) | na defesa perfeita |
+| barra de luz | o kit (`_reagir`, H08): branco no perfeito, a cor do lugar escurecida no erro | na defesa julgada; 0,5 s depois, `_piscar` põe de volta o brilho da vida |
 | luzinhas de jogador | o número do lugar, sempre | nunca se mexe nelas (fora da bancada) |
 | alto-falante do dono | `Som.no_controle(l, "escudo", 0.7)` | na defesa (não no perfeito: aí o kit toca a nota do jogador) |
 | alto-falante do dono | `Som.no_controle(l, "golpe", 0.7)` | na falha |
@@ -292,7 +288,7 @@ cor é sempre a do lugar.
 
 ## O fim e o vencedor
 
-Acaba pelo tempo (90 s de `t_jogo`). O vencedor é quem tem mais vida; no
+Acaba pelo tempo (90 s de música, contados pelo kit: H08). O vencedor é quem tem mais vida; no
 empate, mais pontos:
 
 ```gdscript
@@ -372,7 +368,7 @@ O que muda do `impacto.gd` de hoje, na ordem do arquivo:
 | `plano`, `i_plano`, `fim_onda`, `onda`, `atual`, `resposta`, `respondido` | `_notas := [[], [], [], []]`, `_gerado := 1`, `_fora := [false, false, false, false]`, `_ultima := [{}, {}, {}, {}]` (a nota em resolução) |
 | `_init()` | sai (a FICHA; a câmera vai para o `montar`) |
 | `montar()`, `_montar_raia()` | o de "O cenário" |
-| `_novo_jogador()` | fica, sem `escudo_lado` de onda; `vida` vira `VIDA_MAX` (int); ganha `"perfeitos": 0`, `"pisca": 0.0`, `"pisca_cor": Color.WHITE` |
+| `_novo_jogador()` | fica, sem `escudo_lado` de onda; `vida` vira `VIDA_MAX` (int); ganha `"perfeitos": 0`, `"pisca": 0.0` |
 | `_cor_da_vida`, `_luz`, `_luz_da_vida` | `_luz_da_vida(l)` = `if CenarioDoImpacto.luz_com_brilho(l, BRILHO[j[l].vida]): j[l].luz_ok = true` |
 | `iniciar_jogo()` com `cega_plano_tiros` | o de baixo |
 | `_conectado` | `conectado` (kit) |
@@ -418,7 +414,7 @@ func jogar(dt: float) -> void:
 	if Forja.bancada:
 		_bancada(dt)  # abre a pergunta nos COMPASSOS_DA_PERGUNTA; PERGUNTA/RESPOSTA como hoje (impacto.gd:429-453)
 	var agora := Ritmo.t_musica()
-	var folga := Ritmo.JANELA_BOM + Ritmo.FOLGA_DO_ULTIMO
+	var folga := FOLGA_PERDIDA  # o kit (H08)
 	for l in presentes():
 		_piscar(l, dt)
 		if not conectado(l):
@@ -447,7 +443,7 @@ func _gerar_compasso(c: int) -> void:
 	lista.sort()
 	if lista.is_empty():
 		return
-	var parte := 0 if t_jogo < 30.0 else (1 if t_jogo < 60.0 else 2)
+	var parte := 0 if progresso() < 1.0 / 3.0 else (1 if no_pico() else 2)  # o kit, em tempo de música
 	if parte == 1 and c % ARIETE_A_CADA == 3:
 		for l in lista:
 			if not Ritmo.simples[l]:
@@ -472,13 +468,13 @@ func _nova(l: int, b: int, ariete: bool) -> void:
 func toque(l: int, julgamento: int) -> void:
 	var e: Dictionary = j[l]
 	var nt: Dictionary = _ultima[l]
-	marcar(l, Itens.pontos_do_acerto(l, PONTOS[julgamento], julgamento, int(nt.b) % 4 == 0))
+	marcar(l, PONTOS[julgamento])  # o item, o kit já aplicou (H08)
 	e.bloqueios += 1
 	e.escudo = 1.0
 	e.escudo_lado = int(nt.lado)
 	if julgamento == Ritmo.PERFEITO:
 		e.perfeitos += 1
-		_piscar_cor(l, Color.WHITE, PISCA_PERFEITO)
+		e.pisca = CenarioDoImpacto.PISCA_MAX  # o kit pisca branco; depois, o brilho da vida
 		if e.perfeitos % PERFEITOS_PARA_CURAR == 0 and e.vida < VIDA_MAX and not treinando:
 			e.vida += 1
 			_luz_da_vida(l)
@@ -498,20 +494,13 @@ func falha(l: int) -> void:
 	Som.tocar("golpe", jogador(l).global_position + Vector3(0, 1.2, 0), -2.0)
 	if not treinando:
 		e.vida = maxi(VIDA_MIN, int(e.vida) - 1)
-	_piscar_cor(l, Color(1, 0, 0), PISCA_GOLPE)
+	e.pisca = CenarioDoImpacto.PISCA_MAX  # o kit escurece a cor; depois, o brilho da vida um degrau abaixo
 	tremer(TREMOR_GOLPE)
 	_mostrar_golpe(l, int(nt.get("lado", 0)), false)
 	_cambalear(l, int(nt.get("lado", 0)))
 
 
-## A cor de um instante na barra de luz; volta sozinha ao brilho da vida (_piscar).
-func _piscar_cor(l: int, cor: Color, s: float) -> void:
-	j[l].pisca = minf(s, CenarioDoImpacto.PISCA_MAX)
-	j[l].pisca_cor = cor
-	if Forja.luz(l, cor):
-		j[l].luz_ok = true
-
-
+## Depois do piscar do kit (H08: no máximo 0,5 s), o brilho da vida volta.
 func _piscar(l: int, dt: float) -> void:
 	if float(j[l].pisca) > 0.0:
 		j[l].pisca = float(j[l].pisca) - dt
@@ -543,13 +532,10 @@ ainda não existirem).
 
 - `sensacao` `golpe_esq`/`golpe_dir` (F05) e a `saida` de vibração com `seq`
   e `ok` (F06), sozinhas.
-- `jogo` `lado` (n, lado, ok) na pista; `jogo` `resposta` (n, lado pedido,
-  lado feito); `jogo` `fantasma` (golpe de quem); e o `toque` do kit.
+- `pista` (`via` `rumble`) (n, lado, ok) na pista; `entrada` `resposta` (n, lado pedido,
+  lado feito); `entrada` `fantasma` (golpe de quem); e o `toque` do kit.
 - Na bancada, além disso, a `pergunta` da cor e a `resposta_cor` de hoje, e
   os quatro vereditos (`dar_vereditos`), calculados e gravados nos dois modos.
-- **O tipo `jogo` na tabela do 13:** se `grep -n '^| \`jogo\`' docs/jogo/13-arquitetura.md`
-  não achar nada, acrescente à tabela do registro v2 a linha
-  `| \`jogo\` | \`slot\`, \`o\` (o que aconteceu no minigame) e os campos dele | cada minigame (L1 em diante) |`.
 
 ## Armadilhas
 
@@ -560,15 +546,16 @@ ainda não existirem).
   compasso ficam vazias).
 - **`Forja.vibrar` não existe para a sala** (F05): só `Forja.sentir`.
 - **A barra de luz:** nunca `Forja.luz` com cor que não seja a do lugar, a
-  não ser o piscar (≤ 0,5 s) e a pergunta da bancada. A prova da F04 confere
+  não ser a pergunta da bancada; o piscar do perfeito e do erro é do kit
+  (H08), e o minigame só põe de volta o brilho da vida. A prova da F04 confere
   o tom de cada lugar durante a sala.
 - **O `_ultima[l]`** tem de estar posto antes de `julgar_toque`/`nota_perdida`:
   o kit chama `toque`/`falha` de dentro deles, na mesma linha.
 - **O mundo se mexe pela batida:** o `!`, a raia acesa e o projétil tomam o
   tempo de `Ritmo.t_musica()`; o piscar e o escudo que abaixa podem usar `dt`
   (são enfeite).
-- **Os pontos e o item:** se `grep -n pontos_do_acerto godot/scripts/minigames/minigame.gd`
-  achar o kit já aplicando o Martelo, marque `PONTOS[julgamento]` cru.
+- **Os pontos e o item:** o kit aplica `Itens.pontos_do_acerto` no
+  `julgar_toque` (H08); o minigame marca `PONTOS[julgamento]` cru.
 - **O treino** julga igual e não soma (`marcar`); a vida também não cai no treino.
 - **A pergunta da cor só com `Forja.bancada`.** Fora dela, nenhum
   `pergunta()` devolve nada e o `lightbar` sai "não medido" — é o esperado
@@ -590,35 +577,10 @@ partida de 5 da prova visual (é o `impacto`).
 
 Na sessão: `bash tests/prova_do_jogo.sh` e `bash tests/prova_visual.sh`.
 
-Em `godot/testes/prova_do_jogo.gd`, se ainda não existir
-(`grep -n "func _joga_o_minigame" godot/testes/prova_do_jogo.gd`), a função
-que os minigames da seção usam:
-
-```gdscript
-## Abre o minigame pelo catálogo, deixa o aviso passar (em quadros) e o jogo
-## correr até o fim (pelo relógio de parede, com limite). `a_cada_quadro` é
-## chamado a cada quadro da fase jogo. Devolve o minigame, ou null.
-func _joga_o_minigame(id: String, limite_s := 60.0, a_cada_quadro := Callable()) -> Minigame:
-	jogo._entrar_na_sala(id, false)
-	await _quadros(2)
-	var mg = jogo.sala
-	_esperar(mg is Minigame and mg.fase == "aviso", "%s: abriu pelo catálogo" % id)
-	if not mg is Minigame:
-		return null
-	var q := 0
-	while is_instance_valid(mg) and mg.fase == "aviso" and q < 900:
-		await _quadros(1)
-		q += 1
-	var inicio := Time.get_ticks_usec()
-	while is_instance_valid(mg) and mg.fase == "jogo" and Time.get_ticks_usec() - inicio < int(limite_s * 1e6):
-		if a_cada_quadro.is_valid():
-			a_cada_quadro.call(mg)
-		await _quadros(1)
-	_esperar(is_instance_valid(mg) and mg.fase == "fim", "%s: acabou (%.1f s)" % [mg.id if is_instance_valid(mg) else id, (Time.get_ticks_usec() - inicio) / 1e6])
-	return mg if is_instance_valid(mg) else null
-```
-
-E a checagem do Cerco, chamada no percurso logo depois da última sala de
+Em `godot/testes/prova_do_jogo.gd`, a checagem do Cerco usa o
+`_joga_o_minigame(slot, limite_s, a_cada_quadro)` da H08 (abre pelo
+catálogo, deixa o aviso passar em quadros e espera o fim pelo relógio de
+parede: 90 s de música e o treino cabem em 130 s). A checagem do Cerco, chamada no percurso logo depois da última sala de
 hoje (antes do relatório):
 
 ```gdscript
@@ -640,7 +602,7 @@ func _prova_do_cerco() -> void:
 			amostras[0] += 1
 			if not _mesmo_tom(pc.get("luz", Color.BLACK), Forja.cor_do_lugar(l)):
 				fora_do_tom[0] += 1
-	var mg := await _joga_o_minigame("impacto", 60.0, olhar)
+	var mg = await _joga_o_minigame("impacto", 130.0, olhar)
 	if mg == null:
 		return
 	_esperar(mg.id == "S04_J16", "Cerco: --sala=impacto abre o S04_J16")
@@ -648,7 +610,7 @@ func _prova_do_cerco() -> void:
 	_esperar(fora_do_tom[0] * 4 <= amostras[0], "Cerco: a barra de luz na cor do lugar (%d de %d fora)" % [fora_do_tom[0], amostras[0]])
 	var v := mg.vencedor()
 	_esperar(not v.is_empty() and int(mg.j[v[0]].vida) == v.map(func(l): return int(mg.j[l].vida)).max(), "Cerco: o vencedor tem a maior vida")
-	var pistas := _linha_do_tempo().filter(func(e): return e.get("tipo") == "jogo" and e.get("slot") == "S04_J16" and e.get("o") == "lado")
+	var pistas := _linha_do_tempo().filter(func(e): return e.get("tipo") == "pista" and e.get("slot") == "S04_J16" and e.get("evento") == "mandou")
 	var toques := _linha_do_tempo().filter(func(e): return e.get("tipo") == "toque" and e.get("slot") == "S04_J16")
 	_esperar(pistas.size() >= 1 and toques.size() >= 1, "Cerco: o registro tem %d pistas e %d toques" % [pistas.size(), toques.size()])
 	if not Forja.bancada:

@@ -23,7 +23,7 @@ const FICHA := {
 	"titulo": "Grito de Guerra",
 	"verbo": "Grite!",
 	"genero": "tct",
-	"icone": "microfone",
+	"icone": "mic",
 	"entradas": [],
 	"camera": "fixa",
 	"faixa": "MUS_S08_J39",
@@ -32,6 +32,7 @@ const FICHA := {
 	"sensacoes": ["acerto", "perfeito", "erro", "golpe_esq", "golpe_dir", "golpe"],
 	"material": "pedra",
 	"microjogo": {"verbo": "Grite!", "segundos": 6.0},
+	"papel_som": Forja.PAPEL_MICROFONE,  # o kit abre este papel de som no entrar() (H08)
 	"gesto": "attack-melee-right",
 }
 ```
@@ -41,7 +42,7 @@ const FICHA := {
 ## Como se joga
 
 A faixa é `MUS_S08_J39`, 135 bpm (uma batida ≈ 0,44 s), com um compasso de
-silêncio de vez em quando. `ENTRADA := 4`.
+silêncio de vez em quando. `BATIDA_DA_PRIMEIRA_NOTA` (4, do kit: H08).
 
 - **O ringue:** um octógono de raio `_raio` (começa em `RAIO := 6.0`),
   centro em `(0, 0, -0.5)`. Cada cavaleiro começa a 3 m do centro, no ângulo
@@ -51,7 +52,7 @@ silêncio de vez em quando. `ENTRADA := 4`.
   `VEL := 3.0` m/s (o andar é entrada, anda com o `dt`); o boneco olha para
   onde anda.
 - **O grito (a nota):** no tempo forte — a batida 0 de cada compasso,
-  `bn = ENTRADA + 4k` — cada lugar vivo tem uma nota (`nova_nota` uma batida
+  `bn = BATIDA_DA_PRIMEIRA_NOTA + 4k` — cada lugar vivo tem uma nota (`nova_nota` uma batida
   antes). O começo da voz (o ouvido da P1) a até 0,35 s do alvo →
   `julgar_toque(l, t(bn) + LATENCIA_MIC, n)`.
 - **A onda** (`toque`): de raio `ONDA_R := 3.0`, empurra todo outro
@@ -78,7 +79,7 @@ silêncio de vez em quando. `ENTRADA := 4`.
   (`lerpf` pela batida) e os gritos valem nas batidas 0 **e** 2 do compasso.
   Depois do pico, o raio fica em 4,5.
 
-`compassos_previstos = floor((duracao / _t_batida() - ENTRADA) / 4)`.
+`compassos_previstos = floor((duracao / _t_batida() - BATIDA_DA_PRIMEIRA_NOTA) / 4)`.
 
 ## O cenário
 
@@ -121,7 +122,7 @@ silêncio de vez em quando. `ENTRADA := 4`.
 | TV | a serra da música; `Som.tocar("golpe", pos, -4.0)` em cada empurrão; `Som.tocar("vento", pos, -2.0)` na queda; `tremor = 0.4` no grito perfeito | — |
 
 **No rádio:** sem placa de áudio não há microfone nem alto-falante: o lugar
-entra no "sozinho" abaixo desde o começo (a `troca` com `sem_microfone`), os
+entra no "sozinho" abaixo desde o começo (a `troca` `de` `microfone` `para` `sem_microfone`), os
 sons do alto-falante não soam, e a háptica do kit vai pelo rumble. A luz do
 mudo é saída HID e passa pela ponte.
 
@@ -205,7 +206,6 @@ extends Minigame
 
 const FICHA := { ... }
 
-const ENTRADA := 4
 const RAIO := 6.0
 const RAIO_PICO := 4.5
 const CENTRO := Vector3(0, 0, -0.5)
@@ -238,7 +238,6 @@ var _robo_mira := [0.0, 0.0, 0.0, 0.0]
 
 
 func montar() -> void:
-	papel_som = Forja.PAPEL_MICROFONE
 	camera_pos = Vector3(0, 12.0, 8.5)
 	camera_olhar = Vector3(0, 0, -0.5)
 	# o abismo, o ringue, a luz; os cavaleiros nos ângulos; os bonecos (com um); gatilhos_off
@@ -338,7 +337,7 @@ Catálogo: `"S08_J39"` em `MINIGAMES` e na seção `S08`. Traduções:
 - `toque` de cada grito (o desvio da voz no tempo forte);
 - `sensacao` `golpe_esq`/`golpe_dir` de cada empurrão (o lado da vibração, no
   controle de quem foi empurrado);
-- `troca` para "sozinho".
+- `troca` `de` `microfone` `para` `sem_microfone`.
 
 ## Armadilhas
 
@@ -354,7 +353,6 @@ Catálogo: `"S08_J39"` em `MINIGAMES` e na seção `S08`. Traduções:
 - **Sem controle não cai**: a onda não move quem está sem controle.
 - **Os bonecos não são robô** (é regra do jogo, com o `rng` do kit).
 - **Na prova o pico não chega** (o fim é pelo `duracao`).
-- **`ENTRADA`**: se o kit tiver `BATIDA_DA_PRIMEIRA_NOTA`, use-a.
 
 ## Pronto quando
 
@@ -371,26 +369,23 @@ Em `godot/testes/prova_do_jogo.gd`, uma `_prova_grito()`:
 ## S08_J39: o robô grita no tempo forte; alguém é empurrado, e a vibração do
 ## empurrado é de um lado só (golpe_esq ou golpe_dir, nunca os dois motores).
 func _prova_grito() -> void:
-	var sala = await _comeca_a_sala("S08_J39")
-	if sala == null:
-		return
-	var lado_ok := true
-	var empurrou := false
-	var q := 0
-	while is_instance_valid(sala) and sala.fase == "jogo" and q < 12000:
+	# a espera é a do `_joga_o_minigame` da H08: o aviso em quadros, o jogo pelo relógio de parede (90 s de música e o treino)
+	var lado_ok := [true]
+	var empurrou := [false]
+	var olhar := func(_s) -> void:
 		for l in 4:
 			var p := _perc(l)
 			var forte := float(p.get("forte", 0.0))
 			var fraco := float(p.get("fraco", 0.0))
 			if forte > 0.9 and fraco > 0.9:
-				lado_ok = false
+				lado_ok[0] = false
 			if (forte > 0.9 and fraco < 0.05) or (fraco > 0.9 and forte < 0.05):
-				empurrou = true
-		await _quadros(1)
-		q += 1
-	_esperar(empurrou, "grito: alguém foi empurrado (um motor só)")
-	_esperar(lado_ok, "grito: o empurrão nunca treme os dois motores cheios")
-	_esperar(is_instance_valid(sala) and sala.fase == "fim", "grito: fechou")
+				empurrou[0] = true
+	var sala = await _joga_o_minigame("S08_J39", 130.0, olhar)
+	if sala == null:
+		return
+	_esperar(empurrou[0], "grito: alguém foi empurrado (um motor só)")
+	_esperar(lado_ok[0], "grito: o empurrão nunca treme os dois motores cheios")
 ```
 
 (`golpe_esq` é `[1.0, 0.0]` e `golpe_dir` `[0.0, 1.0]`: um motor cheio e o

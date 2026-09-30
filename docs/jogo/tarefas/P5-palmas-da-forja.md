@@ -24,7 +24,7 @@ const FICHA := {
 	"titulo": "Palmas da Forja",
 	"verbo": "Bata palmas!",
 	"genero": "coop",
-	"icone": "microfone",
+	"icone": "mic",
 	"entradas": [],
 	"camera": "fixa",
 	"faixa": "MUS_S08_J40",
@@ -33,6 +33,7 @@ const FICHA := {
 	"sensacoes": ["acerto", "perfeito", "erro", "golpe"],
 	"material": "metal",
 	"microjogo": {"verbo": "Palmas!", "segundos": 6.0},
+	"papel_som": Forja.PAPEL_MICROFONE,  # o kit abre este papel de som no entrar() (H08)
 	"gesto": "interact-left",
 }
 ```
@@ -40,9 +41,9 @@ const FICHA := {
 ## Como se joga
 
 A faixa é `MUS_S08_J40`, 118 bpm (uma batida ≈ 0,51 s), com palmas no dois e
-no quatro. `ENTRADA := 4`.
+no quatro. `BATIDA_DA_PRIMEIRA_NOTA` (4, do kit: H08).
 
-- **A frase** tem 4 compassos (16 batidas), a partir de `f0 = ENTRADA + 16 * k`:
+- **A frase** tem 4 compassos (16 batidas), a partir de `f0 = BATIDA_DA_PRIMEIRA_NOTA + 16 * k`:
 
   | compasso | o que acontece |
   | --- | --- |
@@ -72,10 +73,10 @@ no quatro. `ENTRADA := 4`.
 - **A partitura simples** (`Ritmo.simples[l]`): na base, o lugar bate só o
   quatro (`+3`); as viradas continuam dele.
 - **O pico — a festa dobra:** os 4 compassos a partir de
-  `_pico_f0 := ENTRADA + 16 * floor(frases_previstas / 2)` são todos base, com
+  `_pico_f0 := BATIDA_DA_PRIMEIRA_NOTA + 16 * floor(frases_previstas / 2)` são todos base, com
   palmas em **toda** batida; a ferraria acende (as tochas a 2,4).
 
-`frases_previstas = floor((duracao / _t_batida() - ENTRADA) / 16)`.
+`frases_previstas = floor((duracao / _t_batida() - BATIDA_DA_PRIMEIRA_NOTA) / 16)`.
 
 ## O cenário
 
@@ -116,7 +117,7 @@ no quatro. `ENTRADA := 4`.
 | TV | a música com palmas no 2 e no 4; `Som.tocar("bigorna_aguda", bigorna, -4.0)` em cada batida da chamada; `Som.tocar("bigorna", bigorna, -8.0)` em cada palma que entra; `Som.tocar("falha", bigorna, -6.0)` na que desafina; `Som.tocar("sucesso")` na espada lendária | — |
 
 **No rádio:** sem placa de áudio não há microfone nem alto-falante: o lugar
-entra no "sozinho" abaixo desde o começo (a `troca` com `sem_microfone`), os
+entra no "sozinho" abaixo desde o começo (a `troca` `de` `microfone` `para` `sem_microfone`), os
 sons do alto-falante não soam, e a háptica do kit vai pelo rumble. A luz do
 mudo é saída HID e passa pela ponte.
 
@@ -190,7 +191,6 @@ extends Minigame
 
 const FICHA := { ... }
 
-const ENTRADA := 4
 const VIRADAS := [[0.0, 1.0, 2.0, 3.0], [0.0, 0.5, 1.0, 2.0], [0.0, 1.5, 2.0, 3.0], [0.0, 0.5, 1.5, 2.0, 3.0], [1.0, 1.5, 2.0, 2.5, 3.0]]
 const JANELA_CASA := 0.25
 const PONTOS := [0, 50, 75, 100]
@@ -217,7 +217,6 @@ var _robo_mira := [0.0, 0.0, 0.0, 0.0]
 
 
 func montar() -> void:
-	papel_som = Forja.PAPEL_MICROFONE
 	coop = true
 	camera_pos = Vector3(0, 5.8, 10.6)
 	camera_olhar = Vector3(0, 1.2, -1.8)
@@ -304,7 +303,7 @@ Catálogo: `"S08_J40"` em `MINIGAMES` e na seção `S08`. Traduções:
   transporte);
 - `toque` de cada palma, com o desvio; a chamada (`sensacao` `toque`) e a
   resposta — a noite compara o desvio na resposta com o da base;
-- `troca` para "sozinho".
+- `troca` `de` `microfone` `para` `sem_microfone`.
 
 ## Armadilhas
 
@@ -321,7 +320,6 @@ Catálogo: `"S08_J40"` em `MINIGAMES` e na seção `S08`. Traduções:
 - **O nível desce rápido** depois da palma: o ouvido vê o fim logo; não use
   o fim para nada.
 - **Na prova o pico não chega** (o fim é pelo `duracao`).
-- **`ENTRADA`**: se o kit tiver `BATIDA_DA_PRIMEIRA_NOTA`, use-a.
 
 ## Pronto quando
 
@@ -339,18 +337,13 @@ Em `godot/testes/prova_do_jogo.gd`, uma `_prova_palmas()`:
 ## S08_J40: o robô bate as palmas no microfone simulado; a espada ganha
 ## golpes; o resultado é coop.
 func _prova_palmas() -> void:
-	var sala = await _comeca_a_sala("S08_J40")
+	# a espera é a do `_joga_o_minigame` da H08: o aviso em quadros, o jogo pelo relógio de parede (90 s de música e o treino)
+	var sala = await _joga_o_minigame("S08_J40", 130.0)
 	if sala == null:
 		return
-	var q := 0
-	while is_instance_valid(sala) and sala.fase == "jogo" and q < 12000:
-		await _quadros(1)
-		q += 1
-	_esperar(is_instance_valid(sala) and sala.fase == "fim", "palmas: fechou")
-	if is_instance_valid(sala):
-		_esperar(sala._espada >= 1, "palmas: a espada ganhou golpes (%d)" % sala._espada)
-		_esperar(sala.coop, "palmas: o resultado é coop")
-		_esperar(sala._palmas.max() >= 1, "palmas: alguém cravou palmas (%s)" % [sala._palmas])
+	_esperar(sala._espada >= 1, "palmas: a espada ganhou golpes (%d)" % sala._espada)
+	_esperar(sala.coop and sala.destaque() >= 0, "palmas: o resultado é coop, com o destaque")
+	_esperar(sala._palmas.max() >= 1, "palmas: alguém cravou palmas (%s)" % [sala._palmas])
 ```
 
 `bash tests/prova_do_jogo.sh` e `bash tests/prova_visual.sh`.

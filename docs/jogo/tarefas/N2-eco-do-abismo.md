@@ -1,6 +1,6 @@
 # N2 — Eco do Abismo
 
-**Sprint:** N · **Slot:** S06_J27 · **Tamanho:** M · **Modelo:** Sonnet · **Estimativa:** US$ 1,5 · **Depende de:** H04, F09, N1
+**Sprint:** N · **Slot:** S06_J27 · **Tamanho:** M · **Modelo:** Sonnet · **Estimativa:** US$ 1,5 · **Depende de:** H04, H08, F09, N1
 
 ## Por quê
 
@@ -34,7 +34,7 @@ extends Minigame
 ## O alto-falante do dono: o eco (a protagonista).
 ## O registro mede: cada eco (o som, se foi ao controle) e o lado pisado.
 ## O robô: ouve o ataque do eco no alto-falante simulado e pisa na batida
-## seguinte, do lado da partitura; quando não acerta, 250 ms tarde.
+## seguinte, do lado que ouviu (o nome do som, H08); quando não acerta, 250 ms tarde.
 ## Com menos de quatro: as batidas se dividem; sozinho, só as pares.
 ## A régua: (1) "Responda o eco!" com as escadas no escuro; (2) sim: as duas
 ## pedras são iguais, só o eco diz; (3) não pergunta nada.
@@ -44,7 +44,7 @@ const FICHA := {
 	"titulo": "Eco do Abismo",
 	"verbo": "Responda o eco!",
 	"genero": "corrida",
-	"icone": "alto_falante",
+	"icone": "alto-falante",
 	"entradas": [],
 	"camera": "fixa",
 	"faixa": "MUS_S06_J27",
@@ -53,6 +53,7 @@ const FICHA := {
 	"sensacoes": ["toque", "acerto", "perfeito", "erro", "golpe"],
 	"material": "pedra",
 	"microjogo": {"verbo": "Responda!", "segundos": 6.0},
+	"nota_no_falante": false,  # o alto-falante é a pista: o kit não toca a nota do perfeito nele (H08)
 	"gesto": "lados",
 }
 
@@ -87,7 +88,7 @@ com `nova_nota(l, n, t)`.
 
 **O eco** em `b − 1` (`Ritmo.t_musica() >= Ritmo.t_da_batida(b - 1)`):
 `var foi := CenarioDoCanto.falante(self, l, ECO[lado], 0.9)` e
-`Forja.evento("jogo", l + 1, {"slot": id, "o": "chamada", "n": n, "som": ECO[lado], "no_controle": foi})`.
+`Forja.evento("pista", l + 1, {"slot": id, "n": n, "evento": "mandou", "via": "alto_falante" if foi else "tv", "o_que": ECO[lado], "no_controle": foi})`.
 Na tela, nada muda: as duas pedras do degrau seguinte são iguais.
 
 **Pisar:** o analógico esquerdo passando de `LX_VAI` para um lado (esquerda
@@ -101,13 +102,13 @@ negativa), rearmando abaixo de `LX_VOLTA`, casa com o passo do lugar a até
   (`degrau[l] = maxi(0, degrau[l] - ANDAR)`);
 - nenhum passo perto → nada (o cavaleiro olha para os lados).
 
-O passo que passa de `t + JANELA_BOM` é `nota_perdida(l, n)` (tropeça e fica).
-Cada pisada grava `{"o": "resposta", "n": n, "lado_pedido": ..., "lado_feito": ...}`.
+O passo que passa de `t + FOLGA_PERDIDA` (o kit) é `nota_perdida(l, n)` (tropeça e fica).
+Cada pisada grava a linha `entrada` `{"o": "resposta", "n": n, "lado_pedido": ..., "lado_feito": ...}`.
 
 **O topo:** o primeiro a chegar a `DEGRAUS` vence: todos `acabou`, e o kit
 fecha (`fim` `primeiro_a_chegar`). Senão, os 100 s.
 
-**Os pontos:** `marcar(l, Itens.pontos_do_acerto(l, PONTOS[j], j, fmod(b, 4.0) == 0.0))`.
+**Os pontos:** `marcar(l, PONTOS[julgamento])` (o item, `Itens.pontos_do_acerto`, o kit já aplica no `julgar_toque`: H08).
 
 **Os 100 segundos:** entrada (0–33 s) um passo por vez do dono (chance 0,8);
 **pico** (33–66 s) dois passos por vez (em colcheias) — aos 33 s um trovão de
@@ -195,11 +196,11 @@ no mesmo quadro, os pontos desempatam.)
 
 ```gdscript
 # O robô ouve o ataque do eco no alto-falante simulado (a lógica de ataque da
-# N1) e pisa na batida seguinte — do lado da partitura, porque a placa virtual
-# dá o nível e não a altura. Se não ouviu, não pisa. Quando não acerta, 250 ms tarde.
+# N1) e pisa na batida seguinte, do lado que ouviu (`Forja.som_virtual` dá o
+# nome do último som: H08). Se não ouviu, não pisa. Quando não acerta, 250 ms tarde.
 var _robo_vale := [1.0, 1.0, 1.0, 1.0]
 var _robo_desde := [0.0, 0.0, 0.0, 0.0]
-var _robo_ouviu := [{}, {}, {}, {}]  ## meia batida do ataque -> true
+var _robo_ouviu := [{}, {}, {}, {}]  ## meia batida do ataque -> o som ouvido
 var _robo_nota := [-1, -1, -1, -1]
 var _robo_atraso := [0.0, 0.0, 0.0, 0.0]
 
@@ -212,7 +213,7 @@ func robo(l: int, _dt: float) -> void:
 	if nivel > 0.12 and nivel - float(_robo_vale[l]) > 0.10 and agora - float(_robo_desde[l]) > 0.12:
 		_robo_vale[l] = nivel
 		_robo_desde[l] = agora
-		_robo_ouviu[l][int(round(Ritmo.batida() * 2.0))] = true
+		_robo_ouviu[l][int(round(Ritmo.batida() * 2.0))] = str(Forja.som_virtual(l).get("som", ""))  # o nome do último som (H08)
 	else:
 		_robo_vale[l] = minf(float(_robo_vale[l]), nivel)
 	if _notas[l].is_empty():
@@ -225,7 +226,8 @@ func robo(l: int, _dt: float) -> void:
 	var eco := int(round((float(nt.b) - 1.0) * 2.0))
 	var ouviu: bool = _robo_ouviu[l].has(eco) or _robo_ouviu[l].has(eco + 1)
 	if ouviu and agora >= float(nt.t) + float(_robo_atraso[l]):
-		Forja.robo_eixo(l, Forja.LX, -1.0 if int(nt.lado) == ESQ else 1.0, 0.1)
+		var som := str(_robo_ouviu[l].get(eco, _robo_ouviu[l].get(eco + 1, "")))
+		Forja.robo_eixo(l, Forja.LX, -1.0 if ECO.find(som) == ESQ else 1.0, 0.1)  # o lado que ouviu
 		_robo_nota[l] = 99999
 ```
 
@@ -297,7 +299,7 @@ func jogar(dt: float) -> void:
 			_pisar(l, ESQ if lx < 0.0 else DIR)
 		elif absf(lx) <= LX_VOLTA:
 			_armado[l] = true
-		while not _notas[l].is_empty() and agora > float(_notas[l][0].t) + Ritmo.JANELA_BOM:
+		while not _notas[l].is_empty() and agora > float(_notas[l][0].t) + FOLGA_PERDIDA:
 			var nt: Dictionary = _notas[l].pop_front()
 			_ultima[l] = nt
 			nota_perdida(l, int(nt.n))
@@ -308,7 +310,7 @@ func jogar(dt: float) -> void:
 
 func toque(l: int, julgamento: int) -> void:
 	var nt: Dictionary = _ultima[l]
-	marcar(l, Itens.pontos_do_acerto(l, PONTOS[julgamento], julgamento, fmod(float(nt.b), 4.0) == 0.0))
+	marcar(l, PONTOS[julgamento])  # o item, o kit já aplicou (H08)
 	degrau[l] = mini(DEGRAUS, int(degrau[l]) + 1)
 	_lado_do_boneco[l] = int(nt.lado)
 	_subir(l)  # tween, a pedra firme acende, "passo_salao" na TV
@@ -339,8 +341,8 @@ com `na_raia(l)` e `not aprendeu(l)` (`"Pise do lado do eco": "Step to the echo'
 
 ## O que o registro mede
 
-- `som_controle` (H07) de cada eco; `jogo` `chamada` (n, som, `no_controle`).
-- `jogo` `resposta` (lado pedido, lado feito) e o `toque` do kit: o eco com
+- `som_controle` (H07) de cada eco; `pista` (`via` `alto_falante`) (n, som, `no_controle`).
+- `entrada` `resposta` (lado pedido, lado feito) e o `toque` do kit: o eco com
   `placa` e o lado errado, sempre num controle, é o alto-falante que não
   cantou (o jogador chutou).
 
@@ -354,7 +356,8 @@ com `na_raia(l)` e `not aprendeu(l)` (`"Pise do lado do eco": "Step to the echo'
 - **O despencar não passa de 0** e apaga as pedras acesas acima.
 - **`primeiro_a_chegar`:** ao chegar, todos `acabou` no mesmo quadro — o kit
   fecha; não espere os outros.
-- **Os pontos e o item:** se o kit já aplica `Itens.pontos_do_acerto`, marque cru.
+- **Os pontos e o item:** o kit aplica `Itens.pontos_do_acerto` no `julgar_toque`
+  (H08); marque cru.
 
 ## Pronto quando
 
@@ -362,9 +365,7 @@ O Eco do Abismo joga do aviso ao resultado com 4, 3, 2 e 1 jogador e com o
 robô nos três temperamentos; aguenta o cabo que cai e volta; fecha com
 vencedor (o primeiro no topo, ou o mais alto); a prova do jogo passa; e
 `bash tests/prova_visual.sh` passa com a **prancha olhada** com o Eco nela
-(na cópia de trabalho, sem commitar: `"S06_J27"` em primeiro na lista da
-seção `S06` e `"canto"` no lugar de `"viga"` em `Partida.NA_ORDEM[5]`; depois
-volte os dois arquivos) — no escuro da nuvem, a prancha confere a
+(o `Catalogo.sortear` da H08 põe o `S06_J27` na noite: rode a prova visual com a semente que o sorteia, `--semente=N`) — no escuro da nuvem, a prancha confere a
 disposição; a aparência é o André quem aprova.
 
 ## Provas
@@ -382,14 +383,14 @@ func _prova_do_eco() -> void:
 		for l in m.presentes():
 			if int(m.degrau[l]) < 0 or int(m.degrau[l]) > m.DEGRAUS:
 				fora[0] += 1
-	var mg := await _joga_o_minigame("S06_J27", 60.0, olhar)
+	var mg = await _joga_o_minigame("S06_J27", 140.0, olhar)
 	if mg == null:
 		return
 	_esperar(fora[0] == 0, "Eco: o degrau sempre entre 0 e o topo")
 	var v := mg.vencedor()
 	_esperar(not v.is_empty() and int(mg.degrau[v[0]]) == v.map(func(l): return int(mg.degrau[l])).max(), "Eco: vence o mais alto")
-	var ecos := _linha_do_tempo().filter(func(e): return e.get("tipo") == "jogo" and e.get("slot") == "S06_J27" and e.get("o") == "chamada")
-	var resp := _linha_do_tempo().filter(func(e): return e.get("tipo") == "jogo" and e.get("slot") == "S06_J27" and e.get("o") == "resposta")
+	var ecos := _linha_do_tempo().filter(func(e): return e.get("tipo") == "pista" and e.get("slot") == "S06_J27" and e.get("evento") == "mandou")
+	var resp := _linha_do_tempo().filter(func(e): return e.get("tipo") == "entrada" and e.get("slot") == "S06_J27" and e.get("o") == "resposta")
 	_esperar(ecos.size() >= 1 and resp.size() >= 1, "Eco: %d ecos e %d pisadas no registro" % [ecos.size(), resp.size()])
 ```
 

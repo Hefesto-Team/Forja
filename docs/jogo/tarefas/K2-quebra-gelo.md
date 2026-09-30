@@ -1,6 +1,6 @@
 # K2 — Quebra-Gelo
 
-**Sprint:** K · **Slot:** S03_J12 · **Tamanho:** M · **Modelo:** Sonnet · **Estimativa:** US$ 1,5 · **Depende de:** H04, F09, F03, H07, K1 (o `secao.gd`), e o sorteio dentro da seção ([o índice](I-a-centelha.md#antes-de-começar-o-que-ainda-falta-na-base))
+**Sprint:** K · **Slot:** S03_J12 · **Tamanho:** M · **Modelo:** Sonnet · **Estimativa:** US$ 1,5 · **Depende de:** H04, H08, F09, F03, H07, K1 (o `secao.gd`)
 
 ## Por quê
 
@@ -49,12 +49,12 @@ const FICHA := {
   tempo dele: `4c + l + 0,5` (P1 no "e" do 1, P2 no "e" do 2…), uma por
   compasso. `Ritmo.simples[l]`: uma a cada 2 compassos.
 - **O julgamento, no cruzamento** (as convenções da seção). Nada até
-  `JANELA_BOM + 0,05 s` depois → nota perdida.
+  `FOLGA_PERDIDA`, o do kit depois → nota perdida.
 - **O bloco racha:** cada acerto é uma rachadura (o PERFEITO, duas); com
   **3 rachaduras** o bloco quebra, e um novo sobe da bancada.
 - **Os pontos por julgamento** (ERRO, BOM, ÓTIMO, PERFEITO): `[0, 20, 35, 50]`;
   o bloco quebrado +60.
-- **A progressão:** `p = t_jogo / duracao`. De 0 a 1/3, uma por compasso.
+- **A progressão:** `progresso()` do kit (em tempo de música, H08). De 0 a 1/3, uma por compasso.
   **O pico (1/3 a 2/3), a rajada:** duas por compasso, em `4c + 0,5 + (l % 2)`
   e mais 2 tempos (P1 e P3 juntos no "e" do 1 e do 3, P2 e P4 no "e" do 2 e do
   4). De 2/3 em diante, uma por compasso. Riscos de cada um em 75 s: ~40 a
@@ -82,7 +82,7 @@ Câmera: `camera_pos = Vector3(0, 8.6, 12.7)`, `camera_olhar = Vector3(0, 0.8, -
 | --- | --- |
 | **touchpad (a feature)** | o risco: o dedo anda, para o lado pedido, no contratempo |
 | vibração | o kit por nota (no cabo, a textura `gelo`: fina, de um atuador) |
-| barra de luz | `SECAO.piscar` no `toque` e na `falha` |
+| barra de luz | o kit (`_reagir`, H08): branco no perfeito, a cor do lugar escurecida no erro |
 | alto-falante do dono | perfeito: a nota (o kit); ótimo e bom: `Forja.som_falante(l, "material:gelo", 0.5)`; o bloco quebra: `Forja.som_falante(l, "coleta", 0.8)`; erro: a nota quebrada (o kit) |
 | háptica por material | a textura `gelo` sob o dedo enquanto ele encosta (`SECAO.textura(l, "gelo")`) |
 | gatilho | livre (o R2 Off) |
@@ -152,13 +152,11 @@ const SECAO := preload("res://scripts/minigames/s03/secao.gd")
 
 # (a FICHA vem aqui)
 
-const BATIDA_DA_PRIMEIRA_NOTA := 4.0
 const RISCO := 0.35
 const RACHAS := 3
 const CONGELA := 4.0  ## tempos
 const PONTOS := [0, 20, 35, 50]
 const QUEBRA := 60
-const FOLGA_PERDIDA := 0.05
 
 var j := {}
 var contagem := [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]
@@ -205,11 +203,6 @@ func montar() -> void:
 		Forja.gatilho(l, 1, Forja.GATILHO_OFF)
 
 
-func _no_pico() -> bool:
-	var p := t_jogo / maxf(duracao, 1.0)
-	return p >= 1.0 / 3.0 and p < 2.0 / 3.0
-
-
 ## A próxima nota do lugar depois de `desde`: o contratempo dele, pulando o congelamento.
 func _proxima(l: int, desde: float) -> void:
 	var e: Dictionary = j[l]
@@ -217,12 +210,11 @@ func _proxima(l: int, desde: float) -> void:
 	var desloc := l + 0.5
 	if Ritmo.simples[l]:
 		passo = 8.0
-	elif _no_pico():
+	elif no_pico():
 		passo = 2.0
 		desloc = (l % 2) + 0.5
 	var inicio := maxf(desde, float(e.gelo_b) + CONGELA)
-	var k := floorf((inicio - desloc) / passo) + 1.0
-	e.b = maxf(k * passo + desloc, BATIDA_DA_PRIMEIRA_NOTA + desloc)
+	e.b = proxima_batida(l, inicio + 0.001, passo, desloc)  # o kit; estritamente depois de inicio
 	e.dir = -int(e.dir)
 	e.aberta = false
 	e.antes = false
@@ -232,14 +224,13 @@ func _proxima(l: int, desde: float) -> void:
 func iniciar_jogo() -> void:
 	for l in presentes():
 		if not Forja.capacidade(l, "toque"):
-			Forja.evento("entrada", l + 1, {"o": "sensores", "toque": false})
+			Forja.evento("troca", l + 1, {"slot": id, "de": "touchpad", "para": "sem_touchpad"})
 			acabou[l] = true
 			continue
 		_proxima(l, BATIDA_DA_PRIMEIRA_NOTA - 0.01)
 
 
 func jogar(_dt: float) -> void:
-	SECAO.voltar_a_luz(self)
 	var agora := Ritmo.t_musica()
 	for l in presentes():
 		var e: Dictionary = j[l]
@@ -284,7 +275,7 @@ func _nota(l: int, e: Dictionary, agora: float) -> void:
 		Forja.evento("entrada", l + 1, {"o": "touchpad", "de_x": snappedf(float(e.x0), 0.01), "ate_x": snappedf(d.x, 0.01),
 			"ms": int((agora - float(e.t0)) * 1000.0), "lado": int(e.dir), "n": int(e.n)})
 		julgar_toque(l, alvo, int(e.n))
-	elif agora > alvo + Ritmo.JANELA_BOM + FOLGA_PERDIDA:
+	elif agora > alvo + FOLGA_PERDIDA:
 		nota_perdida(l, int(e.n))
 
 
@@ -304,7 +295,6 @@ func toque(l: int, julgamento: int) -> void:
 		e.rachas = int(e.rachas) + (2 if julgamento == Ritmo.PERFEITO else 1)
 		if int(e.rachas) >= RACHAS:
 			_quebrar(l)
-	SECAO.piscar(self, l, julgamento)
 	_proxima(l, float(e.b))
 
 
@@ -331,7 +321,6 @@ func falha(l: int) -> void:
 		p.gesto("emote-no", 0.5)
 	if not treinando:
 		e.gelo_b = Ritmo.batida()
-	SECAO.piscar(self, l, Ritmo.ERRO)
 	_proxima(l, float(e.b))
 
 
@@ -404,26 +393,14 @@ Em `godot/testes/prova_do_jogo.gd`:
 ## S03_J12 (K2): o Quebra-Gelo abre pelo catálogo; o risco simulado de cada
 ## lugar chega julgado; o fim tem vencedor.
 func _prova_do_quebra_gelo() -> void:
-	jogo._entrar_na_sala("S03_J12", false)
-	await _quadros(2)
-	var mg = jogo.sala
-	_esperar(mg is Minigame and mg.id == "S03_J12", "S03_J12: abriu pelo catálogo")
-	if not mg is Minigame:
-		return
-	var q := 0
-	while is_instance_valid(mg) and mg.fase == "aviso" and q < 900:
-		await _quadros(1)
-		q += 1
-	var inicio := Time.get_ticks_usec()
-	while is_instance_valid(mg) and mg.fase == "jogo" and Time.get_ticks_usec() - inicio < 40000000:
-		await _quadros(1)
-	_esperar(is_instance_valid(mg) and mg.fase == "fim", "S03_J12: fechou")
-	if not is_instance_valid(mg):
+	# a espera é a da H08: o aviso em quadros, o jogo pelo relógio de parede (75 s de música e o treino)
+	var mg = await _joga_o_minigame("S03_J12", 115.0)
+	if mg == null:
 		return
 	for l in 4:
 		var c: Array = mg.contagem[l]
 		_esperar(int(c[2]) + int(c[3]) >= 1, "S03_J12 P%d: riscou no contratempo %s" % [l + 1, c])
-	q = 0
+	var q := 0
 	while (jogo.estado != "salao" or jogo._trocando) and q < 900:
 		await _quadros(5)
 		q += 5

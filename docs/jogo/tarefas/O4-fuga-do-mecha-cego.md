@@ -25,7 +25,7 @@ const FICHA := {
 	"titulo": "Fuga do Mecha Cego",
 	"verbo": "Esconda-se!",
 	"genero": "sobrevivencia",
-	"icone": "haptica",
+	"icone": "rumble_direito",
 	"entradas": [Forja.ESQUERDA, Forja.DIREITA, Forja.CRUZ],
 	"camera": "fixa",
 	"faixa": "MUS_S07_J34",
@@ -34,6 +34,7 @@ const FICHA := {
 	"sensacoes": ["acerto", "perfeito", "erro", "golpe", "golpe_esq", "golpe_dir"],
 	"material": "pedra",
 	"microjogo": {"verbo": "Esconda-se!", "segundos": 6.0},
+	"papel_som": Forja.PAPEL_HAPTICA,  # o kit abre este papel de som no entrar() (H08)
 	# a bancada: os lados da háptica saem das fugas
 	"features": ["haptica_audio"],
 	"gesto": "lados",
@@ -44,10 +45,10 @@ const FICHA := {
 
 ## Como se joga
 
-A faixa é `MUS_S07_J34`, 140 bpm (uma batida ≈ 0,43 s). `ENTRADA := 4`.
+A faixa é `MUS_S07_J34`, 140 bpm (uma batida ≈ 0,43 s). `BATIDA_DA_PRIMEIRA_NOTA` (4, do kit: H08).
 
 **Uma ronda** do mecha dura `FRASE := 8` batidas; a ronda `f` começa em
-`b0 = ENTRADA + 8 * f`. No começo de cada ronda o mecha escolhe onde está:
+`b0 = BATIDA_DA_PRIMEIRA_NOTA + 8 * f`. No começo de cada ronda o mecha escolhe onde está:
 `_x_mecha = [-8.0, -4.0, 0.0, 4.0, 8.0][_rng.randi_range(0, 4)]` (nunca o x de
 uma raia). Para o lugar `l`, o lado é `0` (esquerda) se `_x_mecha < RAIAS[l]`,
 senão `1` (direita) — cada cavaleiro o sente de onde está.
@@ -76,7 +77,7 @@ senão `1` (direita) — cada cavaleiro o sente de onde está.
   tempo antes (a ronda começa em `b0 - 1` para ele: cinco passos, mais tempo
   para sentir), sem mudar a batida da fuga.
 - **O pico — o mecha corre:** as três rondas a partir de
-  `_pico_f := floor((duracao / _t_batida() - ENTRADA) / FRASE / 2)`: os passos
+  `_pico_f := floor((duracao / _t_batida() - BATIDA_DA_PRIMEIRA_NOTA) / FRASE / 2)`: os passos
   vêm em colcheias (oito, de `b0` a `b0 + 3.5`), o ganho é 1,0, e o holofote
   varre duas vezes (`b0 + 5` e `b0 + 7`).
 
@@ -165,7 +166,7 @@ func robo(l: int, _dt: float) -> void:
 	if _pego[l] and presentes().size() == 1:
 		return
 	var f: int = _f
-	var b0 := float(ENTRADA + FRASE * f)
+	var b0 := float(BATIDA_DA_PRIMEIRA_NOTA + FRASE * f)
 	var b := Ritmo.batida()
 	if _robo_f[l] != f:
 		_robo_f[l] = f
@@ -214,7 +215,6 @@ extends Minigame
 
 const FICHA := { ... }
 
-const ENTRADA := 4
 const FRASE := 8
 const XS_MECHA := [-8.0, -4.0, 0.0, 4.0, 8.0]
 const PONTOS_FUGA := [0, 25, 40, 50]
@@ -247,7 +247,6 @@ var _robo_barulho := [-1, -1, -1, -1]
 
 
 func montar() -> void:
-	papel_som = Forja.PAPEL_HAPTICA
 	camera_pos = Vector3(0, 6.8, 10.4)
 	camera_olhar = Vector3(0, 1.0, -2.2)
 	# o cenário, o mecha; para cada jogador: _nos[l], _le[l] = Cega.nova(), _ld[l] = Cega.nova(), gatilhos_off
@@ -255,7 +254,7 @@ func montar() -> void:
 
 func iniciar_jogo() -> void:
 	_rng.seed = rng.seed + 34
-	_pico_f = int(floor((duracao / _t_batida() - ENTRADA) / FRASE / 2.0))
+	_pico_f = int(floor((duracao / _t_batida() - BATIDA_DA_PRIMEIRA_NOTA) / FRASE / 2.0))
 	for l in presentes():
 		# o rádio / sem estéreo: _rumble e a troca; a luz a 30%
 		_vidas[l] = 3 if presentes().size() == 1 else 1
@@ -264,7 +263,7 @@ func iniciar_jogo() -> void:
 
 func jogar(_dt: float) -> void:
 	var b := Ritmo.batida()
-	var b0 := float(ENTRADA + FRASE * _f)
+	var b0 := float(BATIDA_DA_PRIMEIRA_NOTA + FRASE * _f)
 	_passos_do_mecha(b, b0)          # batidas 0-3 (no pico, colcheias); o da batida 0 pelo _pista
 	for l in presentes():
 		if not conectado(l):
@@ -366,7 +365,6 @@ Catálogo: `"S07_J34"` em `MINIGAMES` e na seção `S07`. Traduções:
   (senão a própria fuga seria barulho).
 - **Quem está sem controle não é pego** — senão o cabo que cai elimina.
 - **Na prova o pico não chega** (o fim é pelo `duracao`).
-- **`ENTRADA`**: se o kit tiver `BATIDA_DA_PRIMEIRA_NOTA`, use-a.
 
 ## Pronto quando
 
@@ -384,30 +382,26 @@ Em `godot/testes/prova_do_jogo.gd`, uma `_prova_mecha_cego()`:
 ## S07_J34: o passo do mecha treme só o atuador do lado dele, no controle de
 ## cada um; o robô foge para o outro lado; fecha com vencedor.
 func _prova_mecha_cego() -> void:
-	var sala = await _comeca_a_sala("S07_J34")
-	if sala == null:
-		return
-	var viu := false
-	var q := 0
-	while is_instance_valid(sala) and sala.fase == "jogo" and q < 12000:
+	# a espera é a do `_joga_o_minigame` da H08: o aviso em quadros, o jogo pelo relógio de parede (100 s de música e o treino)
+	var viu := [false]
+	var olhar := func(s) -> void:
 		var b := Ritmo.batida()
-		var b0 := float(sala.ENTRADA + sala.FRASE * sala._f)
-		if not viu and b > b0 + 0.05 and b < b0 + 0.3:
+		var b0 := float(s.BATIDA_DA_PRIMEIRA_NOTA + s.FRASE * s._f)
+		if not viu[0] and b > b0 + 0.05 and b < b0 + 0.3:
 			for l in 4:
 				var v := Forja.som_virtual(l)
-				var lado: int = sala._lado[l]
+				var lado: int = s._lado[l]
 				var dele := float(v.get("esq" if lado == 0 else "dir", 0.0))
 				var outro := float(v.get("dir" if lado == 0 else "esq", 1.0))
 				if dele > 0.05:
 					_esperar(outro < 0.02, "mecha P%d: o passo treme só o atuador da %s (%.2f × %.2f)" % [
 						l + 1, "esquerda" if lado == 0 else "direita", dele, outro])
-					viu = true
-		await _quadros(1)
-		q += 1
-	_esperar(viu, "mecha: o passo chegou a um atuador só")
-	_esperar(is_instance_valid(sala) and sala.fase == "fim", "mecha: fechou")
-	if is_instance_valid(sala):
-		_esperar(sala.colocacao.size() == 4, "mecha: a colocação tem os quatro")
+					viu[0] = true
+	var sala = await _joga_o_minigame("S07_J34", 140.0, olhar)
+	if sala == null:
+		return
+	_esperar(viu[0], "mecha: o passo chegou a um atuador só")
+	_esperar(sala.colocacao().size() == 4, "mecha: a colocação tem os quatro")
 ```
 
 No `_prova_do_relatorio()`: `pista` do `S07_J34` com `evento == "respondeu"`

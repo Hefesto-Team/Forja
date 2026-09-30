@@ -1,6 +1,6 @@
 # M3 — Metralhadora de Feitiços
 
-**Sprint:** M · **Slot:** S05_J23 · **Tamanho:** M · **Modelo:** Sonnet · **Estimativa:** US$ 1,5 · **Depende de:** H04, F09, M1
+**Sprint:** M · **Slot:** S05_J23 · **Tamanho:** M · **Modelo:** Sonnet · **Estimativa:** US$ 1,5 · **Depende de:** H04, H08, F09, M1
 
 ## Por quê
 
@@ -49,7 +49,7 @@ const FICHA := {
 	"titulo": "Metralhadora de Feitiços",
 	"verbo": "Segure a rajada!",
 	"genero": "coop",
-	"icone": "gatilho_adaptativo",
+	"icone": "r2",
 	"entradas": [],
 	"camera": "fixa",
 	"faixa": "MUS_S05_J23",
@@ -106,7 +106,7 @@ rajada treme no dedo.
 até `Ritmo.JANELA_BOM` → `julgar_toque(l, t, n)`. **Soltar:** o R2 caindo
 abaixo de `CenarioDaGaleria.R2_SOLTA` casa com a nota `solta` →
 `julgar_toque(l, t, n)`. Cada um grava
-`Forja.evento("jogo", l + 1, {"slot": id, "o": "disparo", "n": n, "modo": "vibracao", "curso": r2, "curso_max": <o maior R2 da rajada>})`.
+`Forja.evento("entrada", l + 1, {"slot": id, "o": "disparo", "n": n, "modo": "vibracao", "curso": r2, "curso_max": <o maior R2 da rajada>})`.
 
 **O superaquecimento:** o R2 acima de `ATIRA` sem rajada dele (sem nota
 `aperta` perto, ou depois da `solta` passar de `t + JANELA_BOM`) é tiro fora
@@ -119,7 +119,7 @@ Depois, o Vibration volta. (Se o fim de uma rajada passou sem soltar, é a
 
 **A frota:** `vida_da_frota = VIDA_POR_JOGADOR * k` no `iniciar_jogo`. Cada
 nota julgada tira `DANO[j]` e soma ao dano do lugar:
-`marcar(l, Itens.pontos_do_acerto(l, DANO[j] * PONTOS_POR_DANO, j, fmod(b, 4.0) == 0.0))`.
+`marcar(l, DANO[j] * PONTOS_POR_DANO)` (o item, `Itens.pontos_do_acerto`, o kit aplica no `julgar_toque`: H08).
 Vida 0: a frota cai — `coop_venceu = true`, todos `acabou`.
 
 **Os 90 segundos:** entrada (0–30 s) chance 0,5; **pico** (30–60 s) todo
@@ -131,7 +131,7 @@ chance 0,75.
 
 ## O cenário
 
-- `CenarioDaGaleria.montar(self)`; `coop = true`; a câmera um pouco mais
+- `CenarioDaGaleria.montar(self)` (o `coop` vem do gênero da FICHA: H08); a câmera um pouco mais
   alta para o céu: `camera_pos = Vector3(0, 6.8, 11.5)`, `camera_olhar = Vector3(0, 2.2, -3.0)`.
 - Por lugar: `raia(l)`, `posicionar(l)`, `rotation.y = PI`, `preso = true`,
   `CenarioDaGaleria.faixa(self, l)`, e a arma na mão:
@@ -161,7 +161,7 @@ chance 0,75.
 | vibração | `acerto` / `perfeito` / `erro` (o kit) | no começo e no fim julgados da rajada |
 | vibração | `golpe` | o canhão da nau, no pico, em todos |
 | vibração | `explosao` | a frota cai, em todos |
-| barra de luz | a cor do lugar, 100%; branco 0,1 s | no fim perfeito da rajada |
+| barra de luz | o kit (`_reagir`, H08): branco no perfeito, a cor do lugar escurecida no erro | no toque julgado |
 | barra de luz | laranja `Color(1.0, 0.45, 0.0)` 0,4 s | no superaquecimento; depois a cor |
 | luzinhas de jogador | o número, sempre | — |
 | alto-falante do dono | `Forja.som_falante(l, "coleta", 0.7)` | a rajada inteira boa (começo e fim ÓTIMO ou melhor): cai madeira do navio |
@@ -184,9 +184,17 @@ chance 0,75.
 ## O fim e o vencedor
 
 `fim` `meta_coletiva`: a frota cai (vida 0) e o kit fecha com
-`coop_venceu = true`; aos 90 s de `t_jogo`, se ainda voa, `coop_venceu = false`
-(ela foge: os navios sobem e somem). O destaque é quem deu mais dano:
-`vencedor()` pelos `pontos` (o padrão do kit).
+`coop_venceu = true`; aos 90 s de música (H08), se ainda voa, `coop_venceu = false`
+(ela foge: os navios sobem e somem). O registro grava `vencedor` −1 (coop);
+o destaque é quem deu mais dano:
+
+```gdscript
+## Coop: o kit grava vencedor −1 (H08); o destaque é o artilheiro com mais dano.
+func destaque() -> int:
+	var lista := presentes()
+	lista.sort_custom(func(a, b): return int(pontos[a]) > int(pontos[b]) or (int(pontos[a]) == int(pontos[b]) and a < b))
+	return int(lista[0]) if not lista.is_empty() else -1
+```
 
 ## Com menos de quatro
 
@@ -243,7 +251,6 @@ var _livre_em := [0.0, 0.0, 0.0, 0.0]
 func montar() -> void:
 	camera_pos = Vector3(0, 6.8, 11.5)
 	camera_olhar = Vector3(0, 2.2, -3.0)
-	coop = true
 	CenarioDaGaleria.montar(self)
 	_montar_a_frota()
 	for p in jogadores:
@@ -285,7 +292,7 @@ func jogar(_dt: float) -> void:
 		elif _atirando[l] and r2 <= CenarioDaGaleria.R2_SOLTA:
 			_atirando[l] = false
 			_soltou(l, r2)  # julga o fim
-		while not _notas[l].is_empty() and agora > float(_notas[l][0].t) + Ritmo.JANELA_BOM:
+		while not _notas[l].is_empty() and agora > float(_notas[l][0].t) + FOLGA_PERDIDA:
 			var nt: Dictionary = _notas[l].pop_front()
 			_ultima[l] = nt
 			nota_perdida(l, int(nt.n))
@@ -300,13 +307,10 @@ func jogar(_dt: float) -> void:
 func toque(l: int, julgamento: int) -> void:
 	var nt: Dictionary = _ultima[l]
 	vida_da_frota = maxi(0, vida_da_frota - DANO[julgamento])
-	marcar(l, Itens.pontos_do_acerto(l, DANO[julgamento] * PONTOS_POR_DANO, julgamento, fmod(float(nt.b), 4.0) == 0.0))
+	marcar(l, DANO[julgamento] * PONTOS_POR_DANO)  # o item, o kit já aplicou (H08)
 	if nt.tipo == "aperta":
 		_j_aperta[l] = julgamento
 		return
-	if julgamento == Ritmo.PERFEITO:
-		Forja.luz(l, Color.WHITE)
-		_volta_da_luz[l] = 0.1
 	if _j_aperta[l] >= Ritmo.OTIMO and julgamento >= Ritmo.OTIMO:
 		Forja.som_falante(l, "coleta", 0.7)
 		_arrancar_um_pedaco(l)
@@ -322,7 +326,8 @@ func _armar(l: int) -> void:
 ```
 
 (Com `var _volta_da_luz := [0.0, 0.0, 0.0, 0.0]` descontado por `dt`, e o
-`Forja.luz_do_lugar(l)` ao chegar a 0, como na M1.) `_superaquecer(l)`:
+`Forja.luz_do_lugar(l)` ao chegar a 0: só para o laranja do superaquecimento,
+que não é julgamento; o branco do perfeito é do kit, H08.) `_superaquecer(l)`:
 `_travada_ate[l] = (floor(Ritmo.batida() / 4.0) + 2.0) * 4.0`, a trava no
 R2, o laranja, `"tropeco"`, o evento, e tira da lista as notas dele com
 `b < _travada_ate[l]` (sem erro). `_apertou(l, r2)` sem nota `aperta` a até
@@ -338,7 +343,7 @@ Traduções: `"Metralhadora de Feitiços": "Spell Gatling"`,
 
 - A `saida` de gatilho: o Vibration (`params` = `[1, 6, <Hz>]`) e a trava
   (Feedback `[0, 8]`), com `seq` e `ok`.
-- `jogo` `disparo` no começo e no fim da rajada (curso, curso máximo), o
+- `entrada` `disparo` no começo e no fim da rajada (curso, curso máximo), o
   `toque` do kit e `jogo` `superaqueceu`. O cruzamento: a rajada solta no
   tempo com o Vibration `ok` é o tremor que chegou (o dedo conta as quatro
   semicolcheias); o mesmo lugar sempre segurando demais é o tremor que não
@@ -352,7 +357,8 @@ Traduções: `"Metralhadora de Feitiços": "Spell Gatling"`,
   vez do mesmo dono.
 - **A trava apaga as notas sem erro** — é a falha dela, não duas falhas.
 - **O R2 é do minigame, o L2 do item** (G03).
-- **Os pontos e o item:** se o kit já aplica `Itens.pontos_do_acerto`, marque cru.
+- **Os pontos e o item:** o kit aplica `Itens.pontos_do_acerto` no `julgar_toque`
+  (H08); marque cru.
 - **Poupar as mãos** ([10](../10-a-regua-astro-bot.md), lição 15): 90 s de
   rajada cansam; a chance 0,5 da entrada e as batidas dos outros são o descanso.
 
@@ -363,8 +369,7 @@ jogador e com o robô nos três temperamentos (o bom derruba a frota, o ruim
 superaquece e a frota foge); aguenta o cabo que cai no meio de uma rajada;
 fecha com o resultado coop e o destaque; a prova do jogo passa; e
 `bash tests/prova_visual.sh` passa com a **prancha olhada** com a
-Metralhadora nela (na cópia de trabalho, sem commitar, `"S05_J23"` em
-primeiro na lista da seção `S05`; depois volte a ordem).
+Metralhadora nela (o `Catalogo.sortear` da H08 põe o `S05_J23` na noite: rode a prova visual com a semente que o sorteia, `--semente=N`).
 
 ## Provas
 
@@ -383,10 +388,10 @@ func _prova_da_metralhadora() -> void:
 			if int(Forja.percepcao(l).get("gatilho_dir", 0)) == 0x26:
 				vibrou[0] = true
 		vidas.append(int(m.vida_da_frota))
-	var mg := await _joga_o_minigame("S05_J23", 60.0, olhar)
+	var mg = await _joga_o_minigame("S05_J23", 130.0, olhar)
 	if mg == null:
 		return
-	_esperar(mg.coop, "Metralhadora: é coop")
+	_esperar(mg.coop and mg.destaque() >= 0, "Metralhadora: é coop, com o destaque")
 	_esperar(vibrou[0], "Metralhadora: o Vibration chegou ao R2")
 	var subiu := false
 	for i in range(1, vidas.size()):

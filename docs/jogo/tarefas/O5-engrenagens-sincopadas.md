@@ -25,7 +25,7 @@ const FICHA := {
 	"titulo": "Engrenagens Sincopadas",
 	"verbo": "Encaixe!",
 	"genero": "2v2",
-	"icone": "haptica",
+	"icone": "rumble_direito",
 	"entradas": [Forja.CRUZ],
 	"camera": "grupo",
 	"faixa": "MUS_S07_J35",
@@ -34,20 +34,21 @@ const FICHA := {
 	"sensacoes": ["acerto", "perfeito", "erro", "golpe"],
 	"material": "metal",
 	"microjogo": {"verbo": "Encaixe!", "segundos": 6.0},
+	"papel_som": Forja.PAPEL_HAPTICA,  # o kit abre este papel de som no entrar() (H08)
 	"gesto": "jump",
 }
 ```
 
 ## Como se joga
 
-A faixa é `MUS_S07_J35`, 130 bpm (uma batida ≈ 0,46 s). `ENTRADA := 4`.
+A faixa é `MUS_S07_J35`, 130 bpm (uma batida ≈ 0,46 s). `BATIDA_DA_PRIMEIRA_NOTA` (4, do kit: H08).
 
 - **As equipes** (a regra da ficha-mãe d'A Prova): `presentes()` na ordem;
   os dois primeiros são a **Brasa** (âmbar `#e8a33c`), os dois seguintes a
   **Maré** (turquesa `#2fb3b3`). Em cada equipe, o primeiro é **A** e o
   segundo **B**. Falta gente: o **Aprendiz** (um boneco do jogo, não um
   jogador) completa a dupla — ver "Com menos de quatro".
-- **Um compasso** (4 batidas, a partir de `c0 = ENTRADA + 4 * m`):
+- **Um compasso** (4 batidas, a partir de `c0 = BATIDA_DA_PRIMEIRA_NOTA + 4 * m`):
 
   | batida | A | B |
   | --- | --- | --- |
@@ -72,7 +73,7 @@ A faixa é `MUS_S07_J35`, 130 bpm (uma batida ≈ 0,46 s). `ENTRADA := 4`.
 - **A partitura simples** (`Ritmo.simples[l]`): o lugar salta só nos
   compassos pares; nos ímpares, nem clique nem nota para ele.
 - **O pico — a engrenagem-mestra:** os 4 compassos a partir de
-  `_pico_m := floor((duracao / _t_batida() - ENTRADA) / 4 / 2)`: A e B saltam
+  `_pico_m := floor((duracao / _t_batida() - BATIDA_DA_PRIMEIRA_NOTA) / 4 / 2)`: A e B saltam
   **juntos** nas duas síncopes (`c0 + 1.5` e `c0 + 3.5`), cada um com os seus
   cliques e a sua nota. Cada salto certo sobe 1, como sempre; quando os
   **dois** da dupla acertam a mesma síncope, a equipe sobe **mais 1**
@@ -198,7 +199,6 @@ extends Minigame
 
 const FICHA := { ... }
 
-const ENTRADA := 4
 const META := 16
 const ALTURA_ENG := 0.9
 const PONTOS := [0, 50, 75, 100]
@@ -229,7 +229,6 @@ var _robo_mira := [0.0, 0.0, 0.0, 0.0]
 
 
 func montar() -> void:
-	papel_som = Forja.PAPEL_HAPTICA
 	usa_gatilho = true
 	camera_pos = Vector3(0, 5.5, 13.0)
 	camera_olhar = Vector3(0, 3.0, -1.0)
@@ -238,7 +237,7 @@ func montar() -> void:
 
 
 func iniciar_jogo() -> void:
-	_pico_m = int(floor((duracao / _t_batida() - ENTRADA) / 4.0 / 2.0))
+	_pico_m = int(floor((duracao / _t_batida() - BATIDA_DA_PRIMEIRA_NOTA) / 4.0 / 2.0))
 	for l in presentes():
 		Forja.gatilho(l, 1, Forja.GATILHO_RESISTENCIA, 2, 3)
 		# o rádio: _rumble e a troca (o O1)
@@ -246,8 +245,8 @@ func iniciar_jogo() -> void:
 
 func jogar(_dt: float) -> void:
 	var b := Ritmo.batida()
-	var m := int(floor((b - ENTRADA) / 4.0))
-	if b >= ENTRADA and m > _m_feito:
+	var m := int(floor((b - BATIDA_DA_PRIMEIRA_NOTA) / 4.0))
+	if b >= BATIDA_DA_PRIMEIRA_NOTA and m > _m_feito:
 		_m_feito = m
 		_abrir_compasso(m)        # agenda os cliques e abre as notas de quem salta neste compasso
 	for l in presentes():
@@ -263,7 +262,7 @@ func jogar(_dt: float) -> void:
 				var n: int = _nota[l]
 				_nota[l] = -1
 				julgar_toque(l, float(_alvo[l]), n, true)
-			elif Ritmo.t_musica() > float(_alvo[l]) + Ritmo.JANELA_BOM:
+			elif Ritmo.t_musica() > float(_alvo[l]) + FOLGA_PERDIDA:
 				var n2: int = _nota[l]
 				_nota[l] = -1
 				_respondeu(l, n2, "nenhuma")
@@ -302,7 +301,7 @@ func vencedor() -> Array:
 
 `_subir(e, d)`: `_altura[e] = clampi(_altura[e] + d, 0, META)`; o marco da
 coleta a cada 4; se chegou a `META` e `_chegou < 0`: `_chegou = e`,
-`_fim_batida = ENTRADA + 4 * (_m_feito + 1)` (o fim do compasso).
+`_fim_batida = BATIDA_DA_PRIMEIRA_NOTA + 4 * (_m_feito + 1)` (o fim do compasso).
 `_mais_pontos()`: a equipe com mais pontos somados (0 no empate).
 `_abrir_compasso(m)`: para cada lugar conectado cujo papel salta neste
 compasso (os dois papéis no pico; só os compassos pares com
@@ -349,7 +348,6 @@ Catálogo: `"S07_J35"` em `MINIGAMES` e na seção `S07`. Traduções:
 - **As cores das equipes** (âmbar e turquesa) são só do mundo; nunca
   `Forja.luz` com elas.
 - **Na prova o pico não chega** (o fim é pelo `duracao`).
-- **`ENTRADA`**: se o kit tiver `BATIDA_DA_PRIMEIRA_NOTA`, use-a.
 
 ## Pronto quando
 
@@ -367,26 +365,24 @@ Em `godot/testes/prova_do_jogo.gd`, uma `_prova_engrenagens()`:
 ## S07_J35: os cliques chegam à mão dos quatro, o R2 de cada um fica em
 ## resistência (0x21), as duas equipes sobem, e fecha com vencedor.
 func _prova_engrenagens() -> void:
-	var sala = await _comeca_a_sala("S07_J35")
-	if sala == null:
-		return
-	await _quadros(4)
-	for l in 4:
-		_esperar(int(_perc(l).get("gatilho_dir", 0)) == 0x21, "engrenagens P%d: o R2 em resistência" % (l + 1))
+	# a espera é a do `_joga_o_minigame` da H08: o aviso em quadros, o jogo pelo relógio de parede (90 s de música e o treino)
+	var r2 := [false, false, false, false]
 	var sentiu := [false, false, false, false]
-	var q := 0
-	while is_instance_valid(sala) and sala.fase == "jogo" and q < 12000:
+	var olhar := func(_s) -> void:
 		for l in 4:
+			if int(_perc(l).get("gatilho_dir", 0)) == 0x21:
+				r2[l] = true
 			if float(Forja.som_virtual(l).get("esq", 0.0)) > 0.05:
 				sentiu[l] = true
-		await _quadros(1)
-		q += 1
+	var sala = await _joga_o_minigame("S07_J35", 130.0, olhar)
+	if sala == null:
+		return
+	for l in 4:
+		_esperar(r2[l], "engrenagens P%d: o R2 em resistência" % (l + 1))
 	_esperar(sentiu.all(func(s): return s), "engrenagens: os cliques chegaram aos quatro %s" % [sentiu])
-	_esperar(is_instance_valid(sala) and sala.fase == "fim", "engrenagens: fechou")
-	if is_instance_valid(sala):
-		_esperar(sala._altura[0] + sala._altura[1] >= 1, "engrenagens: alguém subiu (%s)" % [sala._altura])
-		var c: Array = sala.colocacao
-		_esperar(c.size() == 4 and sala._equipe[c[0]] == sala._equipe[c[1]], "engrenagens: os dois primeiros são da mesma equipe (%s)" % [c])
+	_esperar(sala._altura[0] + sala._altura[1] >= 1, "engrenagens: alguém subiu (%s)" % [sala._altura])
+	var c: Array = sala.colocacao()
+	_esperar(c.size() == 4 and sala._equipe[c[0]] == sala._equipe[c[1]], "engrenagens: os dois primeiros são da mesma equipe (%s)" % [c])
 ```
 
 `bash tests/prova_do_jogo.sh` e `bash tests/prova_visual.sh`.

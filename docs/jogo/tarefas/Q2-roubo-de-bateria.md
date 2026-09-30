@@ -25,7 +25,7 @@ const FICHA := {
 	"titulo": "Roubo de Bateria",
 	"verbo": "Roube!",
 	"genero": "2v2",
-	"icone": "gatilhos",
+	"icone": "r2",
 	"entradas": [Forja.CRUZ],
 	"camera": "fixa",
 	"faixa": "MUS_S09_J42",
@@ -34,6 +34,7 @@ const FICHA := {
 	"sensacoes": ["acerto", "perfeito", "erro", "golpe"],
 	"material": "metal",
 	"microjogo": {"verbo": "Roube!", "segundos": 7.0},
+	"papel_som": Forja.PAPEL_HAPTICA,  # o kit abre este papel de som no entrar() (H08)
 	"gesto": "pick-up",
 }
 ```
@@ -42,7 +43,7 @@ const FICHA := {
 
 ## Como se joga
 
-A faixa é `MUS_S09_J42`, 138 bpm (uma batida ≈ 0,43 s). `ENTRADA := 4`.
+A faixa é `MUS_S09_J42`, 138 bpm (uma batida ≈ 0,43 s). `BATIDA_DA_PRIMEIRA_NOTA` (4, do kit: H08).
 
 - **As equipes:** a regra da ficha-mãe, **sem Aprendiz** (ver "Com menos de
   quatro"). A base da Brasa em `x = -9`, a da Maré em `x = 9` (raio
@@ -82,7 +83,7 @@ A faixa é `MUS_S09_J42`, 138 bpm (uma batida ≈ 0,43 s). `ENTRADA := 4`.
 - **O hoqueto:** o carregador segura o baixo (o pulso em toda batida); os
   outros entram com o ✕ por cima; a nota de cada lugar soa na TV (kit).
 - **O pico — a sobrecarga:** os 16 tempos do meio
-  (`_pico_b := ENTRADA + floor((duracao / _t_batida() - ENTRADA) / 2)`): as
+  (`_pico_b := BATIDA_DA_PRIMEIRA_NOTA + floor((duracao / _t_batida() - BATIDA_DA_PRIMEIRA_NOTA) / 2)`): as
   duas baterias no campo (a segunda nasce no centro), e a interferência não
   tem recarga.
 
@@ -220,7 +221,6 @@ extends Minigame
 
 const FICHA := { ... }
 
-const ENTRADA := 4
 const VEL := 4.0
 const LENTO := 0.7
 const LENTO_SOZINHO := 0.85
@@ -263,7 +263,6 @@ var _robo_x_mira := [0.0, 0.0, 0.0, 0.0]
 
 
 func montar() -> void:
-	papel_som = Forja.PAPEL_HAPTICA
 	usa_gatilho = true
 	camera_pos = Vector3(0, 14.0, 12.0)
 	camera_olhar = Vector3(0, 0, 0.5)
@@ -369,7 +368,6 @@ no empate).
 - **A arrancada anda pela batida** (o `lerpf` em meia batida); o andar do
   analógico usa o `dt` (é entrada).
 - **Na prova o pico não chega** (o fim é pelo `duracao`).
-- **`ENTRADA`**: se o kit tiver `BATIDA_DA_PRIMEIRA_NOTA`, use-a.
 
 ## Pronto quando
 
@@ -387,28 +385,25 @@ Em `godot/testes/prova_do_jogo.gd`, uma `_prova_roubo()`:
 ## S09_J42: alguém pega a bateria, os dois gatilhos dele pesam (0x21) e os
 ## dos outros ficam soltos; o pulso bate num atuador só.
 func _prova_roubo() -> void:
-	var sala = await _comeca_a_sala("S09_J42")
-	if sala == null:
-		return
-	var viu_peso := false
-	var viu_lado := false
-	var q := 0
-	while is_instance_valid(sala) and sala.fase == "jogo" and q < 12000:
-		var c: int = sala._carrega
+	# a espera é a do `_joga_o_minigame` da H08: o aviso em quadros, o jogo pelo relógio de parede (100 s de música e o treino)
+	var viu_peso := [false]
+	var viu_lado := [false]
+	var olhar := func(s) -> void:
+		var c: int = s._carrega
 		if c >= 0:
 			var p := _perc(c)
 			if int(p.get("gatilho_dir", 0)) == 0x21 and int(p.get("gatilho_esq", 0)) == 0x21:
-				viu_peso = true
+				viu_peso[0] = true
 			var v := Forja.som_virtual(c)
 			var esq := float(v.get("esq", 0.0))
 			var dir := float(v.get("dir", 0.0))
 			if (esq > 0.05 and dir < 0.02) or (dir > 0.05 and esq < 0.02):
-				viu_lado = true
-		await _quadros(1)
-		q += 1
-	_esperar(viu_peso, "roubo: o carregador sente o peso nos dois gatilhos")
-	_esperar(viu_lado, "roubo: o pulso bate num atuador só")
-	_esperar(is_instance_valid(sala) and sala.fase == "fim", "roubo: fechou")
+				viu_lado[0] = true
+	var sala = await _joga_o_minigame("S09_J42", 140.0, olhar)
+	if sala == null:
+		return
+	_esperar(viu_peso[0], "roubo: o carregador sente o peso nos dois gatilhos")
+	_esperar(viu_lado[0], "roubo: o pulso bate num atuador só")
 ```
 
 `bash tests/prova_do_jogo.sh` e `bash tests/prova_visual.sh`.

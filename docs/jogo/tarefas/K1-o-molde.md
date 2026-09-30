@@ -1,6 +1,6 @@
 # K1 — O Molde
 
-**Sprint:** K · **Slot:** S03_J11 · **Tamanho:** G · **Modelo:** Sonnet · **Estimativa:** US$ 2,0 · **Depende de:** H04, F09, F03, F05, H07, G05, I1 (as esperas da prova pelo relógio)
+**Sprint:** K · **Slot:** S03_J11 · **Tamanho:** G · **Modelo:** Sonnet · **Estimativa:** US$ 2,0 · **Depende de:** H04, H08, F09, F03, F05, H07, G05
 
 ## Por quê
 
@@ -15,7 +15,7 @@ vereditos da bancada de hoje saindo daqui.
 - [H04 — O kit do minigame](H04-o-kit-do-minigame.md)
 - [A linha n.º 11 em 03](../03-os-45-minigames.md#s3--o-molde--touchpad)
 - [O índice da seção](K-o-molde.md) (as convenções, o `secao.gd`)
-- [A I1](I1-o-martelo-de-hefesto.md#o-estado-de-hoje) — por que o n.º 1 de cada seção tem `"duracao": 0.0` e acaba pela primeira volta
+- [As decisões comuns dos minigames — H08](../13-arquitetura.md#as-decisões-comuns-dos-minigames--h08) — o fim em tempo de música, a fila de notas do kit, a barra de luz do kit, `Forja.textura`
 
 ## O estado de hoje
 
@@ -50,7 +50,7 @@ const FICHA := {
 	"entradas": [Forja.TOUCHPAD],
 	"camera": "fixa",
 	"faixa": "MUS_S03_J11",
-	"duracao": 0.0,
+	"duracao": 90.0,
 	"fim": "tempo",
 	"sensacoes": ["acerto", "perfeito", "erro", "golpe"],
 	"material": "pedra",
@@ -88,19 +88,20 @@ const FICHA := {
   Γ `x [0,12; 0,12; 0,88]`, `y [0,88; 0,12; 0,12]`; e o Γ espelhado
   `x [0,88; 0,88; 0,12]`, `y [0,88; 0,12; 0,12]`.
 - **O julgamento, no cruzamento** (as convenções da seção). Nada até
-  `JANELA_BOM + 0,05 s` depois → nota perdida.
+  `FOLGA_PERDIDA` (o kit) depois → nota perdida.
 - **A peça inteira** é a que teve as seis notas sem erro; com um erro, ela
   sai **torta**.
 - **Os pontos por julgamento** (ERRO, BOM, ÓTIMO, PERFEITO): `[0, 20, 35, 50]`;
   a peça inteira +100.
-- **A progressão:** `p = t_jogo / (90 × ritmo_nivel)`, decidida no começo de
+- **A progressão:** `no_pico()` do kit (o terço do meio dos 90 s de música), decidida no começo de
   cada peça. De 0 a 1/3, a peça de 8 tempos. **O pico (1/3 a 2/3), a fornada:**
   a peça de 4 tempos — três pontos e o carimbo; o molde abre sozinho. De 2/3
   em diante, 8 tempos de novo. `Ritmo.simples[l]`: a peça de 12 tempos (uma
   nota a cada 2 tempos).
 - **A primeira volta** é a primeira peça inteira (os três pontos, o clique,
-  abrir e fechar). O lugar acaba com a primeira volta feita **e**
-  `t_jogo >= 90 × ritmo_nivel`.
+  abrir e fechar), e cabe folgada nos 90 s. **O fim é do kit, em tempo de
+  música** (H08): os 90 s da FICHA contam em `Ritmo.t_musica()`, não em
+  tempo de jogo.
 
 ## O cenário
 
@@ -110,8 +111,8 @@ const FICHA := {
 extends RefCounted
 ## A seção O Molde (S03): o que os cinco minigames têm em comum — a oficina
 ## (o cenário), a bancada com a placa na proporção do touchpad (o dedo aparece
-## onde o jogo o vê), os dedos na placa, as peças facetadas, a textura sob o
-## dedo e a barra de luz. Sem class_name:
+## onde o jogo o vê), os dedos na placa, as peças facetadas e a textura sob o
+## dedo. A barra de luz que pisca no julgamento é do kit (H08). Sem class_name:
 ## const SECAO := preload("res://scripts/minigames/s03/secao.gd").
 
 const LARGURA := 2.4  ## a placa no mundo, em m (2:1, como o touchpad)
@@ -119,7 +120,6 @@ const ALTURA := 1.2
 const ASPECTO := 2.0
 const INCLINACAO := 32.0  ## graus: a borda de longe sobe, para a câmera ver a placa de frente
 
-static var _luz_ate := [0.0, 0.0, 0.0, 0.0]
 static var _textura_b := [-99.0, -99.0, -99.0, -99.0]
 
 
@@ -240,31 +240,15 @@ static func mostrar_dedos(sala: SalaJogo, l: int, nos: Dictionary) -> void:
 		lig.scale = Vector3(1, 1, maxf(0.01, a.distance_to(b)))
 
 
-## A textura do material sob o dedo, nos atuadores (no cabo), no máximo a cada
-## quarto de tempo. No rádio, nada: a pista vai pela nota e pela tela.
+## A textura do material sob o dedo, só nos atuadores (`Forja.textura`, H08: a
+## háptica, sem o alto-falante), no máximo a cada quarto de tempo. No rádio,
+## nada: a pista vai pela nota e pela tela.
 static func textura(l: int, material: String) -> void:
 	var b := Ritmo.batida()
 	if b - float(_textura_b[l]) < 0.25 or not Forja.som_tem(l, Forja.PAPEL_HAPTICA):
 		return
 	_textura_b[l] = b
-	Forja.som_haptica(l, "material:" + material, "material:" + material, 0.4)
-
-
-## A barra de luz (igual à das outras seções).
-static func piscar(sala: SalaJogo, l: int, julgamento: int) -> void:
-	if julgamento == Ritmo.PERFEITO:
-		Forja.luz(l, Color.WHITE)
-		_luz_ate[l] = sala.t + 0.12
-	elif julgamento == Ritmo.ERRO:
-		Forja.luz(l, Forja.cor_do_lugar(l).darkened(0.6))
-		_luz_ate[l] = sala.t + 0.5
-
-
-static func voltar_a_luz(sala: SalaJogo) -> void:
-	for l in 4:
-		if _luz_ate[l] > 0.0 and sala.t >= _luz_ate[l]:
-			_luz_ate[l] = 0.0
-			Forja.luz_do_lugar(l)
+	Forja.textura(l, material)
 ```
 
 Por lugar, em `o_molde.gd`: `SECAO.bancada(self, l)`; na placa, os dois
@@ -285,7 +269,7 @@ martelo. Câmera: `camera_pos = Vector3(0, 8.6, 12.7)`,
 | --- | --- |
 | **touchpad (a feature)** | o traço, o clique, os dois dedos |
 | vibração | o kit por nota; **o molde fecha**: `Forja.sentir(l, "golpe")` |
-| barra de luz | `SECAO.piscar` no `toque` e na `falha` |
+| barra de luz | o kit (`_reagir`, H08): branco no perfeito, a cor do lugar escurecida no erro |
 | alto-falante do dono | perfeito: a nota (o kit); **o clique carimba**: `Som.no_controle(l, "carimbo", 0.6)` (no ótimo e no bom); os outros acertos: `Forja.som_falante(l, "clique", 0.4)`; erro: a nota quebrada (o kit) |
 | háptica por material | a textura `pedra` sob o dedo enquanto ele traça (`SECAO.textura(l, "pedra")`, no cabo) e no acerto (o kit) |
 | gatilho | livre (o R2 Off) |
@@ -301,7 +285,7 @@ de sempre.
 
 ## O fim e o vencedor
 
-O lugar acaba com a primeira peça feita e 90 s de jogo. `vencedor()`: mais
+O kit fecha aos 90 s de música (`"fim": "tempo"`, H08). `vencedor()`: mais
 peças inteiras; empate pelos pontos, depois pelo lugar.
 
 ## Com menos de quatro
@@ -391,8 +375,6 @@ const SECAO := preload("res://scripts/minigames/s03/secao.gd")
 
 # (a FICHA vem aqui)
 
-const BATIDA_DA_PRIMEIRA_NOTA := 4.0
-const DURACAO_S := 90.0
 const LETRAS := [
 	{"x": [0.08, 0.50, 0.92], "y": [0.88, 0.12, 0.88]},
 	{"x": [0.08, 0.50, 0.92], "y": [0.12, 0.88, 0.12]},
@@ -408,7 +390,6 @@ const ABERTO := 0.45
 const FECHADO := 0.15
 const PONTOS := [0, 20, 35, 50]
 const INTEIRA := 100
-const FOLGA_PERDIDA := 0.05
 
 var j := {}
 var contagem := [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]
@@ -457,7 +438,7 @@ func montar() -> void:
 func iniciar_jogo() -> void:
 	for l in presentes():
 		if not Forja.capacidade(l, "toque"):
-			Forja.evento("entrada", l + 1, {"o": "sensores", "toque": false})
+			Forja.evento("troca", l + 1, {"slot": id, "de": "touchpad", "para": "sem_touchpad"})
 			acabou[l] = true
 			continue
 		_nova_peca(l, BATIDA_DA_PRIMEIRA_NOTA)
@@ -466,12 +447,11 @@ func iniciar_jogo() -> void:
 ## Uma peça nova do lugar começando na batida `s` (o primeiro tempo de um compasso).
 func _nova_peca(l: int, s: float) -> void:
 	var e: Dictionary = j[l]
-	var p := t_jogo / (DURACAO_S * ritmo_nivel)
 	e.s = s
 	if Ritmo.simples[l]:
 		e.roteiro = PECA_SIMPLES
 		e.tam = 12.0
-	elif p >= 1.0 / 3.0 and p < 2.0 / 3.0:
+	elif no_pico():
 		e.roteiro = PECA_PICO
 		e.tam = 4.0
 	else:
@@ -501,7 +481,6 @@ func _armar(l: int) -> void:
 
 
 func jogar(_dt: float) -> void:
-	SECAO.voltar_a_luz(self)
 	var agora := Ritmo.t_musica()
 	for l in presentes():
 		var e: Dictionary = j[l]
@@ -516,8 +495,6 @@ func jogar(_dt: float) -> void:
 			e.fora = false
 			_nova_peca(l, 4.0 * ceilf(Ritmo.batida() / 4.0 + 0.01))
 		_nota(l, e, agora)
-		if int(e.volta) >= 1 and t_jogo >= DURACAO_S * ritmo_nivel:
-			acabou[l] = true
 
 
 func _dedos(l: int) -> Array:
@@ -562,7 +539,7 @@ func _nota(l: int, e: Dictionary, agora: float) -> void:
 		Forja.evento("entrada", l + 1, {"o": "touchpad", "passo": o, "d0": [snappedf(d[0].x, 0.01), snappedf(d[0].y, 0.01)],
 			"d1": [snappedf(d[1].x, 0.01), snappedf(d[1].y, 0.01)], "dedos": int(d[0].z > 0.5) + int(d[1].z > 0.5), "n": int(e.n)})
 		julgar_toque(l, alvo, int(e.n))
-	elif agora > alvo + Ritmo.JANELA_BOM + FOLGA_PERDIDA:
+	elif agora > alvo + FOLGA_PERDIDA:
 		nota_perdida(l, int(e.n))
 
 
@@ -603,7 +580,6 @@ func toque(l: int, julgamento: int) -> void:
 			e.aberto = false
 			Forja.sentir(l, "golpe")  # o molde fecha
 			Som.tocar("bigorna", placa.global_position, -8.0)
-	SECAO.piscar(self, l, julgamento)
 	_avancar(l)
 
 
@@ -616,7 +592,6 @@ func falha(l: int) -> void:
 	var p := jogador(l)
 	if p:
 		p.gesto("emote-no", 0.5)
-	SECAO.piscar(self, l, Ritmo.ERRO)
 	_avancar(l)
 
 
@@ -777,7 +752,10 @@ passa; e `bash tests/prova_visual.sh` passa com a prancha **olhada**.
 
 **`godot/testes/prova_do_jogo.gd`:**
 
-1. Confira que o `_termina_a_sala()` já espera pelo relógio de parede (a I1).
+1. O Molde joga pelo `_joga_o_minigame("S03_J11", 140.0, ...)` da H08, que
+   espera a fase `fim` pelo relógio de parede (90 s de música, o aviso e o
+   fechamento); as esperas de `_termina_a_sala()` e da prova de poucos já
+   são as da H08.
 2. Em `_prova_do_relatorio()`, no laço da linha do tempo:
 
    ```gdscript

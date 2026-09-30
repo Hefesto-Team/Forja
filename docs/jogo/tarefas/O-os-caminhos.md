@@ -1,6 +1,6 @@
 # O — S7 — Os Caminhos: os cinco minigames
 
-**Sprint:** I–Q · **Tamanho:** G (cinco fichas) · **Modelo:** Sonnet · **Estimativa:** US$ 8,0 (a soma das cinco) · **Depende de:** H04, H07, F01, F09
+**Sprint:** O · **Tamanho:** G (cinco fichas) · **Modelo:** Sonnet · **Estimativa:** US$ 8,0 (a soma das cinco) · **Depende de:** H04, H08, H07, F01, F09
 
 Esta é a ficha-mãe: o índice. O trabalho anda pelas cinco fichas abaixo, uma
 por sessão, na ordem.
@@ -28,16 +28,17 @@ O5.
   metal, água (`passo:<chão>:<variação>`, `nativo/som/sons_salas.c`) — porque
   o robô e a bancada já os distinguem (`Forja.chao_do_envelope`, `chao.c`).
   Os outros materiais da H07 (`material:<nome>`) são a textura dos eventos.
-- `papel_som = Forja.PAPEL_HAPTICA` na primeira linha de `montar()`: a
-  `SalaJogo.entrar()` prepara a placa para a háptica depois do `montar()`, e o
-  aviso deixa cada um testar a sua (△).
-- As duas linhas novas do registro, `pista` e `troca` (a O1 as acrescenta ao
-  13; ver lá), e o mesmo `_pista()` nas cinco.
+- `"papel_som": Forja.PAPEL_HAPTICA` na FICHA (a chave da H08): o kit
+  prepara a placa para a háptica no `entrar()`, e o aviso deixa cada um
+  testar a sua (△).
+- As linhas `pista` e `troca` do [13](../13-arquitetura.md#as-decisões-comuns-dos-minigames--h08)
+  (a `troca` com `de` e `para`: `haptica` → `rumble`), e o mesmo `_pista()`
+  nas cinco.
 
 ## A ordem
 
-O1 primeiro (tira a sala de hoje, põe a seção no catálogo e as linhas
-`pista`/`troca` no 13). Depois O2, O3, O4, O5, uma por sessão.
+O1 primeiro (tira a sala de hoje e põe a seção no catálogo). Depois O2, O3,
+O4, O5, uma por sessão.
 
 ## Os cinco
 
@@ -59,8 +60,9 @@ Por baixo, sem perguntar nada a ninguém:
 - cada textura mandada aos atuadores (`som_controle`, papel `haptica`, com
   `placa`), e cada pista com o caminho que tomou (`pista`, `via` =
   `haptica`/`rumble`);
-- a troca para o rumble quando o lugar não tem placa (`troca`, motivo
-  `sem_placa`) ou só tem um canal (`sem_estereo`, em O4);
+- a troca para o rumble quando o lugar não tem placa (`troca`, `de`
+  `haptica`, `para` `rumble`, motivo `sem_placa`) ou só tem um canal
+  (`sem_estereo`, em O4);
 - a resposta a cada pista (`pista` `respondeu`: `certo`, `errado`,
   `nenhuma`) — a antiga pergunta "que chão é esse?" agora é o caminho que o
   jogador toma;

@@ -1,6 +1,6 @@
 # I4 — O Fole
 
-**Sprint:** I · **Slot:** S01_J04 · **Tamanho:** M · **Modelo:** Sonnet · **Estimativa:** US$ 1,5 · **Depende de:** H04, F09, F03, H07, G03 (o L2 é do item), I1 (o `secao.gd`), e o sorteio dentro da seção ([o índice](I-a-centelha.md#antes-de-começar-o-que-ainda-falta-na-base))
+**Sprint:** I · **Slot:** S01_J04 · **Tamanho:** M · **Modelo:** Sonnet · **Estimativa:** US$ 1,5 · **Depende de:** H04, H08, F09, F03, H07, G03 (o L2 é do item), I1 (o `secao.gd`)
 
 ## Por quê
 
@@ -54,7 +54,7 @@ const FICHA := {
   da faixa no mesmo quadro (afundou demais) é erro. A nota longa:
   **segurar dentro da faixa** até 1 tempo depois da batida (±0,02 de folga);
   soltar antes quebra o acorde, sem erro. Nada entrou até
-  `JANELA_BOM + 0,05 s` depois → nota perdida.
+  `FOLGA_PERDIDA`, o do kit depois → nota perdida.
 - **A chama** (0 a 1, de todos): cada acerto soma, em partes por nota,
   `[0, 0,005, 0,009, 0,012]` (ERRO, BOM, ÓTIMO, PERFEITO) vezes `4 / presentes`;
   o erro tira 0,01; **o acorde fecha** (todos os presentes com controle
@@ -62,7 +62,7 @@ const FICHA := {
   compasso a chama perde 0,004. Chegou a 1: **a forja chega ao branco**.
 - **Os pontos por julgamento** (os do soprador, para o destaque):
   `[0, 20, 35, 50]`, mais 15 por nota segurada até o fim.
-- **A progressão:** `p = t_jogo / duracao`. De 0 a 1/3, uma nota por
+- **A progressão:** `progresso()` do kit (em tempo de música, H08). De 0 a 1/3, uma nota por
   compasso. **O pico (1/3 a 2/3), o fole duplo:** duas por compasso
   (`4c + 0,5·l` e `4c + 2 + 0,5·l`), segurando meio tempo; a chama cresce
   mais depressa e a música abre. De 2/3 em diante, uma por compasso. Um
@@ -92,7 +92,7 @@ A chama é emissiva (tem trabalho), em blocos; nada liso.
 | --- | --- |
 | **gatilho analógico (a feature)** | a profundidade é a nota; o Feedback no R2 marca onde ela começa |
 | vibração | o kit por nota; o acorde fecha: `Forja.sentir(l, "acerto")` em todos; o branco: `Forja.sentir(l, "explosao")` em todos |
-| barra de luz | `SECAO.piscar` no `toque` e na `falha` |
+| barra de luz | o kit (`_reagir`, H08): branco no perfeito, a cor do lugar escurecida no erro |
 | alto-falante do dono | perfeito: a nota (o kit); ótimo e bom: `Forja.som_falante(l, "tom", 0.5)`; erro: a nota quebrada (o kit) |
 | gatilho | R2: Feedback na faixa do lugar do começo ao fim; o L2 nunca (item) |
 | háptica por material | `madeira`, pelo kit |
@@ -107,11 +107,12 @@ compasso não fecha. A próxima nota vem no tempo de sempre.
 
 ## O fim e o vencedor
 
-`coop = true` no `montar()`. A chama em 1 → `coop_venceu = true` e todos
-acabam (o fim da F03, com o jingle de vitória coop). Os 80 s sem o branco
-→ `coop_venceu` fica `false`: no `ao_terminar()`, a chama encolhe a uma
-brasa. `vencedor()` é o destaque (o melhor soprador): pelos pontos; empate
-pelo lugar. (O registro grava `vencedor` = o destaque: nunca −1.)
+O `coop` vem do gênero da FICHA (o kit, H08). A chama em 1 → `coop_venceu =
+true` e todos acabam (o fim da F03, com o jingle de vitória coop). Os 80 s de
+música sem o branco → `coop_venceu` fica `false`: no `ao_terminar()`, a
+chama encolhe a uma brasa. O registro grava `vencedor` −1 (coop: todos
+venceram ou todos perderam); `destaque()` é o melhor soprador, pelos pontos,
+empate pelo lugar.
 
 ## Com menos de quatro
 
@@ -175,7 +176,6 @@ const SECAO := preload("res://scripts/minigames/s01/secao.gd")
 
 # (a FICHA vem aqui)
 
-const BATIDA_DA_PRIMEIRA_NOTA := 4.0
 const ALTURA := [0.30, 0.48, 0.66, 0.84]  ## o meio da faixa de cada lugar no R2
 const MEIA_FAIXA := 0.07
 const POS_FEEDBACK := [2, 4, 5, 7]  ## onde a resistência começa (0..9), na faixa de cada um
@@ -186,7 +186,6 @@ const ACORDE := 0.02
 const ESFRIA := 0.004  ## por compasso
 const PONTOS := [0, 20, 35, 50]
 const SEGUROU := 15
-const FOLGA_PERDIDA := 0.05
 
 var j := {}
 var chama := 0.0
@@ -198,7 +197,6 @@ var contagem := [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]
 
 
 func montar() -> void:
-	coop = true
 	camera_pos = Vector3(0, 7.0, 12.0)
 	camera_olhar = Vector3(0, 1.0, -1.0)
 	SECAO.montar(self)
@@ -247,14 +245,9 @@ func montar() -> void:
 			"robo_n": -1, "robo_mira": 0.0}
 
 
-func _no_pico() -> bool:
-	var p := t_jogo / maxf(duracao, 1.0)
-	return p >= 1.0 / 3.0 and p < 2.0 / 3.0
-
-
 ## Quantos tempos a nota longa dura.
 func _sustenta(_l: int) -> float:
-	return 0.5 if _no_pico() else 1.0
+	return 0.5 if no_pico() else 1.0
 
 
 func _proxima_batida(l: int, b: float) -> float:
@@ -262,11 +255,10 @@ func _proxima_batida(l: int, b: float) -> float:
 	var desloc := float(l)
 	if Ritmo.simples[l]:
 		passo = 8.0
-	elif _no_pico():
+	elif no_pico():
 		passo = 2.0
 		desloc = 0.5 * l
-	var k := floorf((b - desloc) / passo) + 1.0
-	return maxf(k * passo + desloc, BATIDA_DA_PRIMEIRA_NOTA + desloc)
+	return proxima_batida(l, b + 0.001, passo, desloc)  # o kit; estritamente depois de b
 
 
 func _marcar_nota(l: int, b: float) -> void:
@@ -285,7 +277,6 @@ func iniciar_jogo() -> void:
 
 
 func jogar(_dt: float) -> void:
-	SECAO.voltar_a_luz(self)
 	var c := int(floor(Ritmo.batida() / 4.0))
 	if c > _compasso_visto:
 		if _compasso_visto >= 1:
@@ -333,7 +324,7 @@ func _nota(l: int, e: Dictionary, v: float) -> void:
 			nota_perdida(l, int(e.n))  # afundou demais de uma vez: a chama engasga
 		else:
 			julgar_toque(l, alvo, int(e.n))
-	elif agora > alvo + Ritmo.JANELA_BOM + FOLGA_PERDIDA:
+	elif agora > alvo + FOLGA_PERDIDA:
 		nota_perdida(l, int(e.n))
 
 
@@ -366,7 +357,6 @@ func toque(l: int, julgamento: int) -> void:
 	var p := jogador(l)
 	if p:
 		p.gesto("interact-right", 0.4)
-	SECAO.piscar(self, l, julgamento)
 	e.segurando = true  # agora a nota longa
 
 
@@ -378,7 +368,6 @@ func falha(l: int) -> void:
 	if p:
 		p.gesto("emote-no", 0.5)
 		Efeitos.faiscas(self, p.global_position + Vector3(0, 1.7, 0), Color("#5a5560"), 30, 0.6)
-	SECAO.piscar(self, l, Ritmo.ERRO)
 	_seguinte(l)
 
 
@@ -445,10 +434,11 @@ func _mostrar(l: int, v: float) -> void:
 	nivel.position.y = v * 1.4 * 0.5
 
 
-func vencedor() -> Array:
+## Coop: o kit grava vencedor −1 (H08); o destaque é o melhor soprador.
+func destaque() -> int:
 	var lista := presentes()
 	lista.sort_custom(func(a, b): return int(pontos[a]) > int(pontos[b]) or (int(pontos[a]) == int(pontos[b]) and a < b))
-	return lista
+	return int(lista[0]) if not lista.is_empty() else -1
 ```
 
 ## O que o registro mede
@@ -469,7 +459,9 @@ func vencedor() -> Array:
 - **O acorde fecha pelo compasso da nota** (`floor(b / 4)`), não pelo de
   agora: a nota do P4 no tempo 4 termina no compasso seguinte.
 - **A chama não cresce no treino.** O `marcar` já não soma no treino.
-- **`vencedor` nunca vazio:** com `coop`, o registro precisa do destaque.
+- **Coop no fechamento** (H08): o registro grava `vencedor` −1 e a tela diz
+  "Todos venceram!" ou "A forja apagou."; o destaque sai de `destaque()`.
+  Ninguém liga o `coop` à mão: o kit tira do gênero.
 - **O `Som.laco`** é um nó filho da sala: sai com ela; não o pare à mão.
 
 ## Pronto quando
@@ -477,7 +469,7 @@ func vencedor() -> Array:
 O Fole joga do aviso ao resultado com 4, 3, 2 e 1 jogador e com o robô nos
 três temperamentos; a forja chega ao branco com o robô bom e apaga com o
 ruim; o cabo que cai e volta recebe o Feedback de novo; o fim tem sempre o
-destaque; `bash tests/prova_do_jogo.sh` passa; e `bash tests/prova_visual.sh`
+destaque (e `vencedor` −1 no registro); `bash tests/prova_do_jogo.sh` passa; e `bash tests/prova_visual.sh`
 passa com a prancha **olhada** nas partidas em que O Fole aparece.
 
 ## Provas
@@ -488,29 +480,22 @@ Em `godot/testes/prova_do_jogo.gd`:
 ## S01_J04 (I4): O Fole abre pelo catálogo; o Feedback chega ao R2 de cada
 ## controle simulado (e só ao R2); o robô entra na faixa de cada um; o fim é coop.
 func _prova_do_fole() -> void:
-	jogo._entrar_na_sala("S01_J04", false)
-	await _quadros(2)
-	var mg = jogo.sala
-	_esperar(mg is Minigame and mg.id == "S01_J04", "S01_J04: abriu pelo catálogo")
-	if not mg is Minigame:
+	var r2 := [false, false, false, false]
+	var olhar := func(_mg: Minigame) -> void:
+		for l in 4:
+			if int(_perc(l).get("gatilho_dir", 0)) == 0x21:
+				r2[l] = true
+	# a espera é a da H08: o aviso em quadros, o jogo pelo relógio de parede (80 s de música e o treino)
+	var mg = await _joga_o_minigame("S01_J04", 120.0, olhar)
+	if mg == null:
 		return
-	var q := 0
-	while is_instance_valid(mg) and mg.fase == "aviso" and q < 900:
-		await _quadros(1)
-		q += 1
-	await _quadros(5)
 	for l in 4:
-		_esperar(int(_perc(l).get("gatilho_dir", 0)) == 0x21, "S01_J04 P%d: o R2 com a resistência do fole" % (l + 1))
-	var inicio := Time.get_ticks_usec()
-	while is_instance_valid(mg) and mg.fase == "jogo" and Time.get_ticks_usec() - inicio < 40000000:
-		await _quadros(1)
-	_esperar(is_instance_valid(mg) and mg.fase == "fim" and mg.coop, "S01_J04: fechou como coop")
-	if not is_instance_valid(mg):
-		return
+		_esperar(r2[l], "S01_J04 P%d: o R2 com a resistência do fole" % (l + 1))
+	_esperar(mg.coop and mg.destaque() >= 0, "S01_J04: fechou como coop, com o destaque")
 	for l in 4:
 		var c: Array = mg.contagem[l]
 		_esperar(int(c[1]) + int(c[2]) + int(c[3]) >= 1, "S01_J04 P%d: entrou na faixa dele %s" % [l + 1, c])
-	q = 0
+	var q := 0
 	while (jogo.estado != "salao" or jogo._trocando) and q < 900:
 		await _quadros(5)
 		q += 5

@@ -1,6 +1,6 @@
 # L — S4 — O Impacto: os cinco minigames
 
-**Sprint:** L · **Tamanho:** G (a seção, em cinco fichas) · **Modelo:** Sonnet · **Estimativa:** US$ 8,0 (a soma das cinco) · **Depende de:** H04, F09
+**Sprint:** L · **Tamanho:** G (a seção, em cinco fichas) · **Modelo:** Sonnet · **Estimativa:** US$ 8,0 (a soma das cinco) · **Depende de:** H04, H08, F09
 
 Esta ficha é o índice da seção. O trabalho está nas cinco fichas abaixo,
 uma por sessão, e cada uma se basta: a sessão lê a ficha do minigame dela,
@@ -25,7 +25,9 @@ usa as sensações da tabela e mais nada:
 
 A barra de luz é a coadjuvante que **vira vida pelo brilho**: sempre a cor
 do lugar, nunca abaixo de 40% de brilho (o piso do [F04](F04-p1-e-o-led.md)
-é 30%), e um piscar de outra cor dura no máximo 0,5 s. As luzinhas de
+é 30%). O piscar do perfeito e o escurecer do erro são do kit (`_reagir`,
+H08, no máximo 0,5 s); depois dele, o minigame põe de volta o brilho da
+vida. A barra nunca vira bomba nem cor de equipe. As luzinhas de
 jogador mostram sempre o número do jogador. O alto-falante do dono toca o
 som do impacto (`Som.no_controle(l, "escudo")`, `"golpe"`), curto e pessoal.
 
@@ -78,29 +80,24 @@ A validação da vibração, por baixo, sem perguntar nada ao jogador:
 - **O que foi mandado:** cada `sensacao` (nome, escala, ms, F05) e a `saida`
   de vibração correspondente (motor forte, motor fraco, duração, `seq`,
   `ok` = o SDL aceitou, F06). Isso o `Forja` grava sozinho.
-- **O que o minigame acrescenta** (o tipo `jogo`, com `slot`): a cada pista
-  mandada, `{"o": "lado", "n": <nota>, "lado": "esq" | "dir" | "ambos", "ok": <o sentir aceitou>}`;
+- **O que o minigame acrescenta** (os tipos do [13](../13-arquitetura.md#as-decisões-comuns-dos-minigames--h08),
+  com `slot`): a cada pista mandada, a linha `pista`
+  `{"n": <nota>, "evento": "mandou", "via": "rumble", "o_que": "esq" | "dir" | "ambos", "ok": <o sentir aceitou>}`;
   a cada resposta, o `toque` do kit (julgamento e desvio) e, quando o lado
-  importa, `{"o": "resposta", "n": <nota>, "lado_pedido": ..., "lado_feito": ...}`;
-  a cada aperto sem pista, `{"o": "fantasma", "golpe_de": <lugar que recebeu a pista mais perto>}`.
+  importa, a linha `entrada` `{"o": "resposta", "n": <nota>, "lado_pedido": ..., "lado_feito": ...}`;
+  a cada aperto sem pista, a `entrada` `{"o": "fantasma", "golpe_de": <lugar que recebeu a pista mais perto>}`.
+  O que o minigame fez no mundo (a luz do fantasma, o estouro) é a linha `jogo`.
 - **O cruzamento da noite** ([08](../08-a-noite-de-6-horas.md)): pista com
   `ok` e resposta do lado certo no tempo é a vibração que chegou; pista com
   `ok` e resposta errada ou nenhuma, repetida num controle só, é o motor que
   não chegou; aperto no tempo da pista do vizinho é vibração que vazou para
   o controle errado — a prova do isolamento esquerda e direita.
 
-(O tipo `jogo` ainda não está na tabela do registro v2 do
-[13](../13-arquitetura.md#o-registro-v2--f06-h01-h02-g02-h07): a primeira ficha
-que o usa — a L1 — acrescenta a linha lá, como manda o
-[molde](molde-de-minigame.md#o-registro).)
-
 ## O que fica fora destas fichas
 
-- **O sorteio entre os cinco.** A partida fala pelo apelido (`impacto`), e o
-  catálogo abre o primeiro da seção. Sortear um dos cinco é da base
-  (catálogo e partida), não daqui. Até lá, os quatro novos se jogam por
-  `--sala=S04_J17` (etc.) e aparecem na prova visual pelo passo de "Pronto
-  quando" de cada ficha.
+- **O sorteio entre os cinco** é da H08 (`Catalogo.sortear`): cada ficha só
+  põe o seu slot no catálogo. Os quatro novos também se jogam por
+  `--sala=S04_J17` (etc.).
 - **A faixa gerada.** Enquanto `MUS_S04_J1x` não existe (H05), o slot toca a
   trilha sintetizada do Impacto (112 bpm). Tudo nas fichas está em batidas;
   nada supõe o bpm da tabela de [04](../04-ritmo-e-audio.md#as-45-faixas).

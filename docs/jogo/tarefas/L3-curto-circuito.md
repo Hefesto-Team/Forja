@@ -1,6 +1,6 @@
 # L3 — Curto-Circuito
 
-**Sprint:** L · **Slot:** S04_J18 · **Tamanho:** M · **Modelo:** Sonnet · **Estimativa:** US$ 1,5 · **Depende de:** H04, F09, L1
+**Sprint:** L · **Slot:** S04_J18 · **Tamanho:** M · **Modelo:** Sonnet · **Estimativa:** US$ 1,5 · **Depende de:** H04, H08, F09, L1
 
 ## Por quê
 
@@ -56,7 +56,7 @@ const FICHA := {
 	"titulo": "Curto-Circuito",
 	"verbo": "Passe!",
 	"genero": "sabotagem",
-	"icone": "vibracao",
+	"icone": "rumble_esquerdo",
 	"entradas": [Forja.L1, Forja.R1],
 	"camera": "fixa",
 	"faixa": "MUS_S04_J18",
@@ -76,8 +76,7 @@ const PAVIO := [[16, 24], [10, 16], [10, 16], [16, 24]]
 const PASSO := [1.0, 0.5, 0.5, 1.0]
 const SEGURA_MAX := 4  ## quatro vezes sem passar e ela estoura
 const PAUSA_COMPASSOS := 2  ## entre uma rodada e a outra
-const PISCA_ESTOURO := 0.4  ## s de laranja na barra de luz (F04: no máximo 0,5 s)
-const LARANJA := Color(1.0, 0.45, 0.0)
+const LARANJA := Color(1.0, 0.45, 0.0)  ## as faíscas do estouro (no mundo, nunca na barra de luz)
 const BONECO := 9  ## o "lugar" do boneco de palha (um jogador só)
 ```
 
@@ -109,8 +108,8 @@ até `Ritmo.JANELA_BOM` da nota → `julgar_toque(l, t, n)`:
 
 Aperto longe de qualquer nota (quem não segura, ou quem segura fora da
 janela): nada acontece com a bomba; quem não segura e aperta ganha
-`Forja.evento("jogo", l + 1, {"slot": id, "o": "fantasma", "golpe_de": "P%d" % (_com + 1)})`
-(sentiu o coração de outro?). A chance que passa de `t + JANELA_BOM` sem
+`Forja.evento("entrada", l + 1, {"slot": id, "o": "fantasma", "golpe_de": "P%d" % (_com + 1)})`
+(sentiu o coração de outro?). A chance que passa de `t + FOLGA_PERDIDA` (o kit) sem
 aperto é `nota_perdida(l, n)`.
 
 **O coração (a pista, só em quem segura):** `faltam = _estouro_b − Ritmo.batida()`.
@@ -124,7 +123,7 @@ aperto é `nota_perdida(l, n)`.
 Controle pelo índice da grade: `var g := int(floor(Ritmo.batida() * div))`
 (`div` 1 ou 2); pulse quando `g > _ultimo_pulso` e guarde. Cada pulso vai ao
 registro como `sensacao` (F05); o minigame grava, na mudança de faixa,
-`Forja.evento("jogo", l + 1, {"slot": id, "o": "lado", "n": -1, "lado": "ambos", "ok": ok, "faltam": int(faltam)})`.
+`Forja.evento("pista", l + 1, {"slot": id, "n": -1, "evento": "mandou", "via": "rumble", "o_que": "ambos", "ok": ok, "faltam": int(faltam)})`.
 
 **O peso (o gatilho de quem segura):** R2 em
 `Forja.gatilho(l, 1, Forja.GATILHO_RESISTENCIA, 0, forca)`, com `forca` 3
@@ -135,7 +134,7 @@ volta a `Forja.GATILHO_OFF`. Mande só quando muda.
 perdida), quem segura estoura. Os que não estouraram ganham `SOBREVIVEU`.
 Na quarta rodada, depois do estouro, todos `acabou`.
 
-**Os pontos** do passe: `marcar(l, Itens.pontos_do_acerto(l, PONTOS[j], j, fmod(b, 4.0) == 0.0))`.
+**Os pontos** do passe: `marcar(l, PONTOS[julgamento])` (o item, `Itens.pontos_do_acerto`, o kit já aplica no `julgar_toque`: H08).
 
 **O pico** são as rodadas 2 e 3: o pavio mais curto e o passe na colcheia —
 a bomba roda duas vezes mais depressa. A rodada 4 volta à batida, com pavio
@@ -170,8 +169,7 @@ longo: o fim tenso.
 | vibração | `acerto` / `perfeito` / `erro` (o kit) | no passe julgado |
 | vibração | `explosao` | no estouro, em quem estourou |
 | barra de luz | a cor do lugar, 100%, sempre | — |
-| barra de luz | `LARANJA` por `PISCA_ESTOURO` (0,4 s) | no estouro; depois volta à cor (`CenarioDoImpacto.luz_com_brilho(l, 1.0)`) |
-| barra de luz | branco 0,1 s | no passe perfeito |
+| barra de luz | o kit (`_reagir`, H08): branco no perfeito, a cor do lugar escurecida no erro | no toque julgado |
 | luzinhas de jogador | o número, sempre | — |
 | alto-falante do dono | `Forja.som_falante(l, "clique", 0.8)` | ao receber a bomba |
 | alto-falante do dono | `Som.no_controle(l, "golpe", 0.8)` | no estouro |
@@ -293,12 +291,11 @@ func iniciar_jogo() -> void:
 	_proxima_rodada_b = 4.0
 
 
-func jogar(dt: float) -> void:
+func jogar(_dt: float) -> void:
 	var b := Ritmo.batida()
 	if _com == -1 and _rodada < RODADAS and b >= _proxima_rodada_b:
 		_comecar_rodada(int(_proxima_rodada_b))
 	for l in presentes():
-		_piscar(l, dt)
 		if not conectado(l):
 			continue
 		if Forja.apertou(l, Forja.L1):
@@ -310,7 +307,7 @@ func jogar(dt: float) -> void:
 		_gatilho_do_pavio()
 		if _com < 4 and not conectado(_com):
 			_passa_sozinha()
-		elif _com < 4 and not _notas[_com].is_empty() and Ritmo.t_musica() > float(_notas[_com][0].t) + Ritmo.JANELA_BOM:
+		elif _com < 4 and not _notas[_com].is_empty() and Ritmo.t_musica() > float(_notas[_com][0].t) + FOLGA_PERDIDA:
 			var nt: Dictionary = _notas[_com].pop_front()
 			_ultima[_com] = nt
 			nota_perdida(_com, int(nt.n))  # chama falha(): escorrega, ou estoura na quarta
@@ -323,9 +320,7 @@ func jogar(dt: float) -> void:
 
 func toque(l: int, julgamento: int) -> void:
 	var nt: Dictionary = _ultima[l]
-	marcar(l, Itens.pontos_do_acerto(l, PONTOS[julgamento], julgamento, fmod(float(nt.b), 4.0) == 0.0))
-	if julgamento == Ritmo.PERFEITO:
-		_piscar_cor(l, Color.WHITE, 0.1)
+	marcar(l, PONTOS[julgamento])  # o item, o kit já aplicou (H08); o piscar do perfeito é do kit
 	jogador(l).gesto("interact-left" if _lado_do_passe[l] == 0 else "interact-right", 0.3)
 	_entregar(_vizinho(l, _lado_do_passe[l]), float(nt.b))
 
@@ -350,8 +345,8 @@ põe a nota em `_ultima[l]` e chama `julgar_toque`, ou grava o fantasma),
 `_gatilho_do_pavio()`, `_passa_sozinha()`, `_boneco_devolve()`,
 `_estourar(l)` (o estouro; `_com = -1`; `_rodada += 1`;
 `_proxima_rodada_b = (floor(b / 4.0) + 1 + PAUSA_COMPASSOS) * 4`; na última,
-todos `acabou`), `_escorregar(l)`, `_piscar_cor` / `_piscar` (como na L1,
-com `CenarioDoImpacto.luz_com_brilho(l, 1.0)` na volta). E
+todos `acabou`), `_escorregar(l)`. A barra de luz fica na cor do lugar; o
+piscar do perfeito e do erro é do kit (H08). E
 `var _lado_do_passe := [0, 0, 0, 0]`, `var _ultima_do_boneco := 0.0`.
 
 `progresso()`: `"Rodada %d de %d" % [mini(_rodada + 1, RODADAS), RODADAS]`
@@ -365,7 +360,7 @@ Traduções: `"Curto-Circuito": "Short Circuit"`, `"Passe!": "Pass!"`,
 ## O que o registro mede
 
 - Cada pulso do coração (`sensacao`, com `seq` e `ok` na `saida`) só no
-  controle de quem segura, e o `jogo` `lado` (`"ambos"`, `faltam`) a cada
+  controle de quem segura, e o `pista` (`via` `rumble`) (`"ambos"`, `faltam`) a cada
   mudança de faixa do pavio.
 - O passe (`toque` do kit) e a chance perdida (`toque` perdido).
 - O fantasma: quem aperta sem segurar, com quem segurava (a vibração vazou?).
@@ -382,11 +377,11 @@ Traduções: `"Curto-Circuito": "Short Circuit"`, `"Passe!": "Pass!"`,
 - **O coração não repete na mesma grade:** `_ultimo_pulso` guarda o índice.
 - **O R2 de quem não segura fica Off**; o L2 é do item (G03) — nunca
   `gatilhos_off` no meio do jogo.
-- **Os 100 s são o teto**, não o fim normal: em jogo de verdade, as quatro
-  rodadas acabam antes. Na prova com `--fixed-fps 60`, o `t_jogo` corre ~16
-  vezes mais depressa que a música e o teto chega antes do primeiro
-  estouro: o vencedor sai pelos pontos. Está certo.
-- **Os pontos e o item:** se o kit já aplica `Itens.pontos_do_acerto`, marque cru.
+- **Os 100 s são o teto**, não o fim normal: as quatro rodadas acabam
+  antes (o fim é do jogo, `ultimo_em_pe`). O teto conta em tempo de música
+  (H08), então vale igual na prova e no sofá.
+- **Os pontos e o item:** o kit aplica `Itens.pontos_do_acerto` no `julgar_toque`
+  (H08); marque cru.
 
 ## Pronto quando
 
@@ -394,8 +389,7 @@ O Curto-Circuito joga do aviso ao resultado com 4, 3, 2 e 1 jogador (com o
 boneco de palha) e com o robô nos três temperamentos; aguenta o cabo que cai
 com a bomba na mão; fecha com vencedor; a prova do jogo passa; e
 `bash tests/prova_visual.sh` passa com a **prancha olhada** com o
-Curto-Circuito nela (na cópia de trabalho, sem commitar, `"S04_J18"` em
-primeiro na lista da seção `S04`; depois volte a ordem).
+Curto-Circuito nela (o `Catalogo.sortear` da H08 põe o `S04_J18` na noite: rode a prova visual com a semente que o sorteia, `--semente=N`).
 
 ## Provas
 
@@ -418,7 +412,7 @@ func _prova_do_curto_circuito() -> void:
 			dois_com_ela[0] += 1
 		if com == 1:
 			alguem_com_ela[0] = true
-	var mg := await _joga_o_minigame("S04_J18", 60.0, olhar)
+	var mg = await _joga_o_minigame("S04_J18", 140.0, olhar)
 	if mg == null:
 		return
 	_esperar(alguem_com_ela[0], "Curto-Circuito: a bomba pesou no R2 de quem segurava")

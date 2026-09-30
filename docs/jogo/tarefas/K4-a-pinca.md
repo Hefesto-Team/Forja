@@ -1,6 +1,6 @@
 # K4 — A Pinça
 
-**Sprint:** K · **Slot:** S03_J14 · **Tamanho:** M · **Modelo:** Sonnet · **Estimativa:** US$ 1,5 · **Depende de:** H04, F09, F03, H07, K1 (o `secao.gd`), e o sorteio dentro da seção ([o índice](I-a-centelha.md#antes-de-começar-o-que-ainda-falta-na-base))
+**Sprint:** K · **Slot:** S03_J14 · **Tamanho:** M · **Modelo:** Sonnet · **Estimativa:** US$ 1,5 · **Depende de:** H04, H08, F09, F03, H07, K1 (o `secao.gd`)
 
 ## Por quê
 
@@ -52,13 +52,13 @@ const FICHA := {
   `Ritmo.simples[l]`: uma peça a cada 2 compassos.
 - **O julgamento, no cruzamento** (as convenções da seção): pegar cedo (os
   dois dedos já encostados quando a janela abre) é julgado ali; soltar cedo
-  é soltar. Não pegou até `JANELA_BOM + 0,05 s` depois → nota perdida (e a
+  é soltar. Não pegou até `FOLGA_PERDIDA`, o do kit depois → nota perdida (e a
   soltura dessa peça nem existe). Segurou além da janela de soltar → nota
   perdida.
 - **A peça encaixada** é a que teve pegar e soltar BOM ou melhor, esticada.
 - **Os pontos por julgamento** (ERRO, BOM, ÓTIMO, PERFEITO): `[0, 20, 35, 50]`
   em cada nota; a peça encaixada +50.
-- **A progressão:** `p = t_jogo / duracao`. De 0 a 1/3, uma peça por
+- **A progressão:** `progresso()` do kit (em tempo de música, H08). De 0 a 1/3, uma peça por
   compasso, 2 tempos de nota longa. **O pico (1/3 a 2/3), a linha de
   montagem:** duas peças por compasso (pegar em `2k + 0,5·l`), `L = 1`. De
   2/3 em diante, uma por compasso. Peças de cada um em 80 s: ~30 a 100 bpm,
@@ -83,7 +83,7 @@ A peça quente brilha (é metal em brasa: tem trabalho). Nada liso.
 | --- | --- |
 | **touchpad (a feature)** | os dois dedos: pegar, esticar, soltar |
 | vibração | o kit por nota |
-| barra de luz | `SECAO.piscar` no `toque` e na `falha` |
+| barra de luz | o kit (`_reagir`, H08): branco no perfeito, a cor do lugar escurecida no erro |
 | alto-falante do dono | perfeito: a nota (o kit); pegar no ótimo/bom: `Forja.som_falante(l, "clique", 0.4)`; a peça encaixada: `Forja.som_falante(l, "coleta", 0.7)`; erro: a nota quebrada (o kit) |
 | háptica por material | a textura `metal` sob os dedos enquanto seguram (`SECAO.textura(l, "metal")`) |
 | gatilho | livre (o R2 Off) |
@@ -160,11 +160,9 @@ const SECAO := preload("res://scripts/minigames/s03/secao.gd")
 
 # (a FICHA vem aqui)
 
-const BATIDA_DA_PRIMEIRA_NOTA := 4.0
 const ESTICADA := 0.45
 const PONTOS := [0, 20, 35, 50]
 const ENCAIXE := 50
-const FOLGA_PERDIDA := 0.05
 
 var j := {}
 var contagem := [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]
@@ -191,11 +189,6 @@ func montar() -> void:
 		Forja.gatilho(l, 1, Forja.GATILHO_OFF)
 
 
-func _no_pico() -> bool:
-	var p := t_jogo / maxf(duracao, 1.0)
-	return p >= 1.0 / 3.0 and p < 2.0 / 3.0
-
-
 ## A próxima peça do lugar depois de `desde`: a batida de pegar e o tamanho da nota longa.
 func _proxima(l: int, desde: float) -> void:
 	var e: Dictionary = j[l]
@@ -204,12 +197,11 @@ func _proxima(l: int, desde: float) -> void:
 	e.len = 2.0
 	if Ritmo.simples[l]:
 		passo = 8.0
-	elif _no_pico():
+	elif no_pico():
 		passo = 2.0
 		desloc = 0.5 * l
 		e.len = 1.0
-	var k := floorf((desde - desloc) / passo) + 1.0
-	e.b = maxf(k * passo + desloc, BATIDA_DA_PRIMEIRA_NOTA + desloc)
+	e.b = proxima_batida(l, desde + 0.001, passo, desloc)  # o kit; estritamente depois de desde
 	e.estado = "pegar"
 	e.aberta = false
 	e.antes = false
@@ -221,14 +213,13 @@ func _proxima(l: int, desde: float) -> void:
 func iniciar_jogo() -> void:
 	for l in presentes():
 		if not Forja.capacidade(l, "toque"):
-			Forja.evento("entrada", l + 1, {"o": "sensores", "toque": false})
+			Forja.evento("troca", l + 1, {"slot": id, "de": "touchpad", "para": "sem_touchpad"})
 			acabou[l] = true
 			continue
 		_proxima(l, BATIDA_DA_PRIMEIRA_NOTA - 0.01)
 
 
 func jogar(_dt: float) -> void:
-	SECAO.voltar_a_luz(self)
 	var agora := Ritmo.t_musica()
 	for l in presentes():
 		var e: Dictionary = j[l]
@@ -270,7 +261,7 @@ func _pegar(l: int, e: Dictionary, agora: float) -> void:
 	if cruzou:
 		e.pegou_t = agora
 		julgar_toque(l, alvo, int(e.n))
-	elif agora > alvo + Ritmo.JANELA_BOM + FOLGA_PERDIDA:
+	elif agora > alvo + FOLGA_PERDIDA:
 		nota_perdida(l, int(e.n))
 
 
@@ -292,7 +283,7 @@ func _segurar(l: int, e: Dictionary, agora: float) -> void:
 			nota_perdida(l, int(e.n))  # não esticou: a peça cai
 		else:
 			julgar_toque(l, alvo, int(e.n))
-	elif agora > alvo + Ritmo.JANELA_BOM + FOLGA_PERDIDA:
+	elif agora > alvo + FOLGA_PERDIDA:
 		nota_perdida(l, int(e.n))
 
 
@@ -300,7 +291,6 @@ func toque(l: int, julgamento: int) -> void:
 	contagem[l][julgamento] += 1
 	var e: Dictionary = j[l]
 	marcar(l, PONTOS[julgamento])
-	SECAO.piscar(self, l, julgamento)
 	if str(e.estado) == "pegar":
 		if julgamento != Ritmo.PERFEITO:
 			Forja.som_falante(l, "clique", 0.4)
@@ -328,7 +318,6 @@ func falha(l: int) -> void:
 	var p := jogador(l)
 	if p:
 		p.gesto("emote-no", 0.5)
-	SECAO.piscar(self, l, Ritmo.ERRO)
 	var fim := float(e.b) + (float(e.len) if str(e.estado) == "segurar" else 0.0)
 	e.n = int(e.n) + 1
 	_proxima(l, fim)
@@ -420,26 +409,14 @@ Em `godot/testes/prova_do_jogo.gd`:
 ## S03_J14 (K4): a Pinça abre pelo catálogo; os dois dedos simulados de cada
 ## lugar pegam e soltam no tempo; o fim tem vencedor.
 func _prova_da_pinca() -> void:
-	jogo._entrar_na_sala("S03_J14", false)
-	await _quadros(2)
-	var mg = jogo.sala
-	_esperar(mg is Minigame and mg.id == "S03_J14", "S03_J14: abriu pelo catálogo")
-	if not mg is Minigame:
-		return
-	var q := 0
-	while is_instance_valid(mg) and mg.fase == "aviso" and q < 900:
-		await _quadros(1)
-		q += 1
-	var inicio := Time.get_ticks_usec()
-	while is_instance_valid(mg) and mg.fase == "jogo" and Time.get_ticks_usec() - inicio < 40000000:
-		await _quadros(1)
-	_esperar(is_instance_valid(mg) and mg.fase == "fim", "S03_J14: fechou")
-	if not is_instance_valid(mg):
+	# a espera é a da H08: o aviso em quadros, o jogo pelo relógio de parede (80 s de música e o treino)
+	var mg = await _joga_o_minigame("S03_J14", 120.0)
+	if mg == null:
 		return
 	for l in 4:
 		var c: Array = mg.contagem[l]
 		_esperar(int(c[2]) + int(c[3]) >= 1, "S03_J14 P%d: pegou no tempo %s" % [l + 1, c])
-	q = 0
+	var q := 0
 	while (jogo.estado != "salao" or jogo._trocando) and q < 900:
 		await _quadros(5)
 		q += 5

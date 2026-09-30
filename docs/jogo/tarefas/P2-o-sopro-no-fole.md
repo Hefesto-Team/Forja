@@ -22,7 +22,7 @@ const FICHA := {
 	"titulo": "O Sopro no Fole",
 	"verbo": "Sopre e pare!",
 	"genero": "tct",
-	"icone": "microfone",
+	"icone": "mic",
 	"entradas": [],
 	"camera": "fixa",
 	"faixa": "MUS_S08_J37",
@@ -31,6 +31,7 @@ const FICHA := {
 	"sensacoes": ["acerto", "perfeito", "erro", "golpe"],
 	"material": "madeira",
 	"microjogo": {"verbo": "Sopre!", "segundos": 6.0},
+	"papel_som": Forja.PAPEL_MICROFONE,  # o kit abre este papel de som no entrar() (H08)
 	"gesto": "interact-right",
 }
 ```
@@ -38,11 +39,11 @@ const FICHA := {
 ## Como se joga
 
 A faixa é `MUS_S08_J37`, 112 bpm (uma batida ≈ 0,54 s), com notas longas que
-param em seco. `ENTRADA := 4`.
+param em seco. `BATIDA_DA_PRIMEIRA_NOTA` (4, do kit: H08).
 
 - **O ciclo (o hoqueto):** com `np` lugares em `presentes()`, o ciclo tem
   `CICLO = 2 * np` batidas. O lugar na posição `i` tem **uma nota longa** por
-  ciclo: começa em `bi = ENTRADA + CICLO * c + 2 * i` e acaba em
+  ciclo: começa em `bi = BATIDA_DA_PRIMEIRA_NOTA + CICLO * c + 2 * i` e acaba em
   `bi + DUR`, com `DUR := 1.5` batidas. Entre uma nota e a do próximo sobra
   meia batida: a voz de um nunca encosta na do outro (a regra do ar agradece).
 - **Duas notas por nota longa:** a **entrada** (`n = 2k`, alvo `t(bi)`) e a
@@ -72,7 +73,7 @@ param em seco. `ENTRADA := 4`.
   `DUR := 3.5` (o fôlego inteiro); o fole cresce o dobro na tela, e a TV
   toca `Som.tocar("vento", null, -6.0)` na entrada.
 
-`ciclos_previstos = floor((duracao / _t_batida() - ENTRADA) / (2 * np))`.
+`ciclos_previstos = floor((duracao / _t_batida() - BATIDA_DA_PRIMEIRA_NOTA) / (2 * np))`.
 `t(x)` é `Ritmo.t_da_batida(x)`.
 
 ## O cenário
@@ -114,7 +115,7 @@ param em seco. `ENTRADA := 4`.
 | TV | a música; `Som.tocar("sopro", fole, -8.0)` durante o sopro de cada um (o som do fole dele, posicional); `Som.tocar("fogo", forja, -10.0)` na labareda; `Som.tocar("falha", pos, -6.0)` na fuligem | — |
 
 **No rádio:** sem placa de áudio não há microfone nem alto-falante: o lugar
-entra no "sozinho" abaixo desde o começo (a `troca` com `sem_microfone`), os
+entra no "sozinho" abaixo desde o começo (a `troca` `de` `microfone` `para` `sem_microfone`), os
 sons do alto-falante não soam, e a háptica do kit vai pelo rumble. A luz do
 mudo é saída HID e passa pela ponte.
 
@@ -189,7 +190,6 @@ extends Minigame
 
 const FICHA := { ... }
 
-const ENTRADA := 4
 const DUR := 1.5
 const DUR_PICO := 3.5
 const LATENCIA_FIM := 0.12
@@ -216,7 +216,6 @@ var _robo_sobra := [0.0, 0.0, 0.0, 0.0]
 
 
 func montar() -> void:
-	papel_som = Forja.PAPEL_MICROFONE
 	camera_pos = Vector3(0, 6.0, 11.0)
 	camera_olhar = Vector3(0, 0.8, -0.6)
 	# a oficina, os foles, as forjas; gatilhos_off
@@ -314,7 +313,7 @@ Catálogo: `"S08_J37"` em `MINIGAMES` e na seção `S08`. Traduções:
   quanto cada microfone sobe e **quanto demora para descer** — o
   `LATENCIA_FIM` real sai do `desvio_ms` das saídas;
 - `nota`/`toque` da entrada e da saída;
-- `troca` para "sozinho".
+- `troca` `de` `microfone` `para` `sem_microfone`.
 
 ## Armadilhas
 
@@ -330,7 +329,6 @@ Catálogo: `"S08_J37"` em `MINIGAMES` e na seção `S08`. Traduções:
 - **O hoqueto sem encostar.** Meia batida entre uma nota e a do próximo; não
   encurte, é o que impede o vizinho de "parar" a sua nota.
 - **Na prova o pico não chega** (o fim é pelo `duracao`, em tempo de jogo).
-- **`ENTRADA`**: se o kit tiver `BATIDA_DA_PRIMEIRA_NOTA`, use-a.
 
 ## Pronto quando
 
@@ -348,17 +346,12 @@ Em `godot/testes/prova_do_jogo.gd`, uma `_prova_sopro_no_fole()`:
 ## S08_J37: o robô sopra as notas longas; a entrada e a saída são julgadas, e
 ## ao menos uma nota inteira sai.
 func _prova_sopro_no_fole() -> void:
-	var sala = await _comeca_a_sala("S08_J37")
+	# a espera é a do `_joga_o_minigame` da H08: o aviso em quadros, o jogo pelo relógio de parede (80 s de música e o treino)
+	var sala = await _joga_o_minigame("S08_J37", 120.0)
 	if sala == null:
 		return
-	var q := 0
-	while is_instance_valid(sala) and sala.fase == "jogo" and q < 12000:
-		await _quadros(1)
-		q += 1
-	_esperar(is_instance_valid(sala) and sala.fase == "fim", "fole: fechou")
-	if is_instance_valid(sala):
-		_esperar(sala._inteiras.max() >= 1, "fole: uma nota inteira (%s)" % [sala._inteiras])
-		_esperar(sala.colocacao.size() == 4, "fole: a colocação tem os quatro")
+	_esperar(sala._inteiras.max() >= 1, "fole: uma nota inteira (%s)" % [sala._inteiras])
+	_esperar(sala.colocacao().size() == 4, "fole: a colocação tem os quatro")
 ```
 
 No `_prova_do_relatorio()`: os `toque` do `S08_J37` têm `n` par (entradas) e

@@ -29,7 +29,7 @@ const FICHA := {
 	"titulo": "O Último Acorde",
 	"verbo": "O acorde final!",
 	"genero": "coop",
-	"icone": "alto_falante",
+	"icone": "alto-falante",
 	"entradas": [Forja.CRUZ],
 	"camera": "fixa",
 	"faixa": "MUS_S09_J45",
@@ -38,6 +38,7 @@ const FICHA := {
 	"sensacoes": ["acerto", "perfeito", "erro", "golpe", "explosao", "aviso"],
 	"material": "metal",
 	"microjogo": {"verbo": "Acorde!", "segundos": 7.0},
+	"papel_som": Forja.PAPEL_MICROFONE,  # a estação 4; o alto-falante e a háptica tocam com a placa aberta (H07)
 	"gesto": "holding-right-shoot",
 	"treino": false,
 }
@@ -49,7 +50,7 @@ sopra. Cada **estação** usa no máximo duas.) `duracao` 0: acaba pela música
 
 ## Como se joga
 
-A faixa é `MUS_S09_J45`, 150 bpm (uma batida = 0,4 s). `ENTRADA := 4`.
+A faixa é `MUS_S09_J45`, 150 bpm (uma batida = 0,4 s). `BATIDA_DA_PRIMEIRA_NOTA` (4, do kit: H08).
 
 **O roteiro** (em batidas):
 
@@ -265,7 +266,6 @@ extends Minigame
 const FICHA := { ... }
 
 enum { ATIRAR, REPETIR, SENTIR, SOPRAR, ECLIPSE, FINAL }
-const ENTRADA := 4
 const ROTEIRO := [
 	{"de": 4, "ate": 52, "verbo": ATIRAR},
 	{"de": 52, "ate": 100, "verbo": REPETIR},
@@ -307,7 +307,6 @@ var _robo_mira := [0.0, 0.0, 0.0, 0.0]
 
 
 func montar() -> void:
-	papel_som = Forja.PAPEL_MICROFONE   # a estação 4; o alto-falante e a háptica tocam com a placa aberta (H07)
 	usa_gatilho = true
 	coop = true
 	camera_pos = Vector3(0, 8.5, 12.5)
@@ -389,11 +388,8 @@ ainda não estiverem lá; `"Salte no firme!"` veio da O2, `"Sopre!"` da P1).
   `haptica`/`rumble`), com o `respondeu` — no fim da noite, o jogador ainda
   percebe as pistas do controle como no começo?
 - `saida` do gatilho de arma, `voz` do sopro, `nota`/`toque` de tudo;
-- `troca` do alto-falante para a TV, da háptica para o rumble, do microfone
-  para "sozinho".
-
-(`para` `tv` é um valor novo da linha `troca`: acrescente ao 13, na linha da
-O1, se ainda não estiver lá.)
+- `troca` (13, H08) `de` `alto_falante` `para` `tv`, `de` `haptica` `para`
+  `rumble`, `de` `microfone` `para` `sem_microfone`.
 
 ## Armadilhas
 
@@ -420,7 +416,6 @@ O1, se ainda não estiver lá.)
   começo da estação 2 (`Forja.som_tem(l, Forja.PAPEL_ALTO_FALANTE)`).
 - **A prova fica mais longa** (até 120 s de relógio): a checagem roda só na
   rodada sem a bancada.
-- **`ENTRADA`**: se o kit tiver `BATIDA_DA_PRIMEIRA_NOTA`, use-a.
 
 ## Pronto quando
 
@@ -441,31 +436,29 @@ rodada sem a bancada:
 ## alto-falante do dono do compasso; o acorde final tem as 32 respostas; e o
 ## robô bom derruba o dragão.
 func _prova_o_ultimo_acorde() -> void:
-	var sala = await _comeca_a_sala("S09_J45")
-	if sala == null:
-		return
-	var canto_privado := true
-	var viu_canto := false
-	var inicio := Time.get_ticks_usec()
-	while is_instance_valid(sala) and sala.fase == "jogo" and Time.get_ticks_usec() - inicio < 160000000:
+	# a espera é a do `_joga_o_minigame` da H08: o aviso em quadros, o jogo pelo
+	# relógio de parede (o medley acaba sozinho, com o dragão)
+	var canto_privado := [true]
+	var viu_canto := [false]
+	var olhar := func(s) -> void:
 		# só no meio da chamada de cada compasso (0,6 a 1,9): a resposta do
 		# dono anterior ainda pode estar soando no começo
 		var dentro := fposmod(Ritmo.batida() - 52.0, 4.0)
-		if sala._verbo_da_vez == sala.REPETIR and dentro > 0.6 and dentro < 1.9:
+		if s._verbo_da_vez == s.REPETIR and dentro > 0.6 and dentro < 1.9:
 			var tocando := []
 			for l in 4:
 				if float(Forja.som_virtual(l).get("falante", 0.0)) > 0.05:
 					tocando.append(l)
 			if tocando.size() == 1:
-				viu_canto = true
+				viu_canto[0] = true
 			elif tocando.size() > 1:
-				canto_privado = false
-		await _quadros(1)
-	_esperar(viu_canto and canto_privado, "acorde: o canto sai só no alto-falante do dono")
-	_esperar(is_instance_valid(sala) and sala.fase == "fim", "acorde: fechou (%.0f s)" % ((Time.get_ticks_usec() - inicio) / 1e6))
-	if is_instance_valid(sala):
-		_esperar(sala._respostas >= sala.RESPOSTAS, "acorde: as %d respostas (%d)" % [sala.RESPOSTAS, sala._respostas])
-		_esperar(sala._caiu, "acorde: o robô bom derrubou o dragão")
+				canto_privado[0] = false
+	var sala = await _joga_o_minigame("S09_J45", 160.0, olhar)
+	if sala == null:
+		return
+	_esperar(viu_canto[0] and canto_privado[0], "acorde: o canto sai só no alto-falante do dono")
+	_esperar(sala._respostas >= sala.RESPOSTAS, "acorde: as %d respostas (%d)" % [sala.RESPOSTAS, sala._respostas])
+	_esperar(sala._caiu, "acorde: o robô bom derrubou o dragão")
 ```
 
 No `_prova_do_relatorio()`: as linhas `estacao` do

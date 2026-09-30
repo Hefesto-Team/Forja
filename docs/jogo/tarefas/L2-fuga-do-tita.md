@@ -1,6 +1,6 @@
 # L2 — Fuga do Titã
 
-**Sprint:** L · **Slot:** S04_J17 · **Tamanho:** M · **Modelo:** Sonnet · **Estimativa:** US$ 1,5 · **Depende de:** H04, F09, L1
+**Sprint:** L · **Slot:** S04_J17 · **Tamanho:** M · **Modelo:** Sonnet · **Estimativa:** US$ 1,5 · **Depende de:** H04, H08, F09, L1
 
 ## Por quê
 
@@ -50,7 +50,7 @@ const FICHA := {
 	"titulo": "Fuga do Titã",
 	"verbo": "Corra!",
 	"genero": "coop",
-	"icone": "vibracao",
+	"icone": "rumble_esquerdo",
 	"entradas": [],
 	"camera": "fixa",
 	"faixa": "MUS_S04_J17",
@@ -70,7 +70,7 @@ const GRADE := 0.02  ## a falha também dá ao titã este tanto
 const DISTANCIA_INICIAL := 0.6
 const PERTO := 0.35  ## abaixo disto, o passo é o golpe_esq (mais forte) e o gatilho pesa mais
 const PERIGO := 0.25  ## abaixo disto, a barra de luz pulsa na batida
-const PONTE_S := 90.0  ## a ponte aparece
+const PONTE_S := 90.0  ## a ponte aparece (em segundos de música)
 const R2_APERTA := 0.6
 const R2_SOLTA := 0.3
 const Z_TITA := Vector2(-7.0, -1.2)  ## o z do titã longe (distância 1) e encostado (0)
@@ -82,7 +82,7 @@ const Z_TITA := Vector2(-7.0, -1.2)  ## o z do titã longe (distância 1) e enco
 é a contagem de entrada (a primeira vez é a batida 4). `lista` são os
 `presentes()` em ordem crescente, `k = lista.size()`.
 
-| parte | `t_jogo` | a vez | com poucos |
+| parte | música (`progresso()` do kit) | a vez | com poucos |
 | --- | --- | --- | --- |
 | entrada | 0–33 s | batida `b` → `lista[b % k]`, sempre na mesma ordem | sozinho, só as pares |
 | **pico** | 33–66 s | a `ordem` do compasso é `lista` embaralhada pelo `rng` (Fisher-Yates com `rng.randi_range`, nunca `Array.shuffle`); batida `4c + i` → `ordem[i % k]`; se `ordem[0]` for o dono da batida `4c − 1`, gire a `ordem` uma casa | sozinho, só as pares, sem embaralhar |
@@ -100,15 +100,15 @@ com `nova_nota(l, n, t)`. O compasso é gerado quando `Ritmo.batida() >= 4c − 
 **A pista** (o passo do titã), em `b − 1`: `Forja.sentir(l, "aviso" if distancia > PERTO else "golpe_esq", _ms_da_pista())`,
 com `_ms_da_pista() = int(60000.0 / Ritmo.bpm * 0.4)` (0,4 batida: duas
 pistas de colcheia não se emendam). O registro:
-`Forja.evento("jogo", l + 1, {"slot": id, "o": "lado", "n": n, "lado": "esq", "ok": ok})`.
+`Forja.evento("pista", l + 1, {"slot": id, "n": n, "evento": "mandou", "via": "rumble", "o_que": "esq", "ok": ok})`.
 Nenhum sinal na tela diz de quem é a vez.
 
 **A pá:** R2 passando de `R2_APERTA` (0,6) para cima, rearmando abaixo de
 `R2_SOLTA` (0,3). Casa com a nota do lugar a até `Ritmo.JANELA_BOM` do tempo
 dela → `julgar_toque(l, t, n)` (não é perigo físico: sem folga). Sem nota
 perto → **pá fora da vez**: o carvão cai no trilho (`Efeitos.faiscas(self, pos_da_pa, Color("#3a3a44"), 8, 0.4)`), nada de ponto
-nem de erro, e `Forja.evento("jogo", l + 1, {"slot": id, "o": "fantasma", "golpe_de": "P%d" % (dono_mais_perto + 1)})`.
-A nota que passa de `t + JANELA_BOM` sem pá é `nota_perdida(l, n)`.
+nem de erro, e `Forja.evento("entrada", l + 1, {"slot": id, "o": "fantasma", "golpe_de": "P%d" % (dono_mais_perto + 1)})`.
+A nota que passa de `t + FOLGA_PERDIDA` (o kit) sem pá é `nota_perdida(l, n)`.
 
 **A distância** (0 encostado, 1 longe), começa em 0,6:
 
@@ -120,14 +120,14 @@ A nota que passa de `t + JANELA_BOM` sem pá é `nota_perdida(l, n)`.
 - presa entre 0 e 1. **Chegou a 0:** o titã alcança — `coop_venceu = false`,
   todos `acabou`, o titã agarra o vagão (abaixo).
 
-**Os pontos** (o destaque): `marcar(l, Itens.pontos_do_acerto(l, PONTOS[j], j, fmod(b, 4.0) == 0.0))`.
+**Os pontos** (o destaque): `marcar(l, PONTOS[julgamento])` (o item, `Itens.pontos_do_acerto`, o kit já aplica no `julgar_toque`: H08).
 
 **O momento:** aos 33 s a ordem se embaralha (o titã ruge: `Som.tocar("golpe", Vector3(0, 3, -6), 0.0)`
 e todos sentem `explosao` uma vez); aos `PONTE_S` a ponte sobe na frente.
 
 ## O cenário
 
-- `CenarioDoImpacto.montar(self)`; `coop = true`.
+- `CenarioDoImpacto.montar(self)` (o `coop` vem do gênero da FICHA: H08).
 - A câmera: `camera_pos = Vector3(0, 7.2, 11.5)`, `camera_olhar = Vector3(0, 1.2, -1.5)`
   (o titã atrás tem de caber).
 - **O vagão:** o estrado `Kit.caixa(self, Vector3(15.0, 0.3, 2.6), Vector3(0, 0.35, Z_JOGADOR), Kit.material(Color("#6b4526"), 0.0, 0.85))`;
@@ -171,7 +171,7 @@ e todos sentem `explosao` uma vez); aos `PONTE_S` a ponte sobe na frente.
 | vibração | `explosao` | aos 33 s (o rugido) e quando o titã alcança, em todos |
 | barra de luz | a cor do lugar, 100% | sempre |
 | barra de luz | `CenarioDoImpacto.luz_com_brilho(l, 1.0 if fposmod(Ritmo.batida(), 1.0) < 0.5 else 0.6)` | com `distancia < PERIGO`, em todos (mande só quando o valor muda) |
-| barra de luz | branco 0,1 s | na pá perfeita |
+| barra de luz | o kit (`_reagir`, H08): branco no perfeito, a cor do lugar escurecida no erro | no toque julgado |
 | luzinhas de jogador | o número, sempre | — |
 | alto-falante do dono | `Forja.som_falante(l, "clique", 0.6)` | na pá BOM ou ÓTIMO (no perfeito, o kit toca a nota) |
 | alto-falante do dono | `Som.no_controle(l, "golpe", 0.7)` | na falha |
@@ -196,15 +196,17 @@ e todos sentem `explosao` uma vez); aos `PONTE_S` a ponte sobe na frente.
 
 ## O fim e o vencedor
 
-`fim` `meta_coletiva`: aos 100 s de `t_jogo` o kit fecha. `coop_venceu` é
+`fim` `meta_coletiva`: aos 100 s de música o kit fecha (H08). `coop_venceu` é
 posto a cada quadro (`coop_venceu = distancia > 0.0`), e aos 100 s o vagão
-atravessa a ponte. O destaque é quem pôs mais pontos:
+atravessa a ponte. O registro grava `vencedor` −1 (coop); o destaque é quem
+pôs mais pontos:
 
 ```gdscript
-func vencedor() -> Array:
+## Coop: o kit grava vencedor −1 (H08); o destaque é quem pôs mais carvão no tempo.
+func destaque() -> int:
 	var lista := presentes()
-	lista.sort_custom(func(a, b): return int(pontos[a]) > int(pontos[b]))
-	return lista
+	lista.sort_custom(func(a, b): return int(pontos[a]) > int(pontos[b]) or (int(pontos[a]) == int(pontos[b]) and a < b))
+	return int(lista[0]) if not lista.is_empty() else -1
 ```
 
 ## Com menos de quatro
@@ -267,7 +269,6 @@ var _gatilho_forte := [false, false, false, false]
 func montar() -> void:
 	camera_pos = Vector3(0, 7.2, 11.5)
 	camera_olhar = Vector3(0, 1.2, -1.5)
-	coop = true
 	CenarioDoImpacto.montar(self)
 	_montar_o_vagao()  # estrado, rodas, caldeira, carvão, grades, dormentes (O cenário)
 	_montar_o_tita()
@@ -310,7 +311,7 @@ func jogar(dt: float) -> void:
 			_pa(l)
 		elif r2 <= R2_SOLTA:
 			_armado[l] = true
-		while not _notas[l].is_empty() and agora > float(_notas[l][0].t) + Ritmo.JANELA_BOM:
+		while not _notas[l].is_empty() and agora > float(_notas[l][0].t) + FOLGA_PERDIDA:
 			nota_perdida(l, int(_notas[l].pop_front().n))
 		_gatilho_do_medo(l)
 		_luz_do_perigo(l)
@@ -322,7 +323,7 @@ func jogar(dt: float) -> void:
 
 func toque(l: int, julgamento: int) -> void:
 	var b: float = _ultima[l].b
-	marcar(l, Itens.pontos_do_acerto(l, PONTOS[julgamento], julgamento, fmod(b, 4.0) == 0.0))
+	marcar(l, PONTOS[julgamento])  # o item, o kit já aplicou (H08)
 	var k := float(maxi(presentes().size(), 1))
 	distancia = clampf(distancia + GANHO[julgamento] * 4.0 / k * float(_ultima[l].peso), 0.0, 1.0)
 	jogador(l).gesto("attack-melee-right", 0.3)
@@ -342,7 +343,7 @@ func falha(l: int) -> void:
 
 `_ultima[l]` é a nota da pá (ponha antes de `julgar_toque`; na
 `nota_perdida` do laço, ponha a nota que saiu). `_parte()` devolve 0, 1 ou 2
-por `t_jogo` (33 e 66 s). `_gerar_compasso(c)` segue a tabela de "Como se
+pelo `progresso()` do kit (um terço e dois terços dos 100 s de música: `no_pico()` é a parte 1). `_gerar_compasso(c)` segue a tabela de "Como se
 joga", guarda cada vez em `_todas` e usa só os lugares com `conectado(l)`.
 `_gatilho_do_medo(l)` troca o R2 para `(2, 6)` quando `distancia < PERTO` e
 volta para `(2, 4)` acima, só quando muda (`_gatilho_forte[l]`).
@@ -356,7 +357,7 @@ Traduções: `"Fuga do Titã": "Escape from the Titan"`, `"Corra!": "Run!"`,
 ## O que o registro mede
 
 - `sensacao` `aviso`/`golpe_esq` e a `saida` de vibração (`seq`, `ok`).
-- `jogo` `lado` na pista; o `toque` do kit na pá; `jogo` `fantasma` na pá
+- `pista` (`via` `rumble`) na pista; o `toque` do kit na pá; `entrada` `fantasma` na pá
   fora da vez (com o dono da vez mais perto: a vibração foi para o controle
   errado, ou o jogador contou em vez de sentir).
 - A `saida` de gatilho (modo 1, 2, 4 ou 6, `seq`, `ok`).
@@ -370,11 +371,12 @@ Traduções: `"Fuga do Titã": "Escape from the Titan"`, `"Corra!": "Run!"`,
 - **O compasso do titã conta uma vez:** o `_compasso_do_tita` guarda o
   último; o treino também avança o titã (o vagão já está correndo), mas não
   soma pontos.
-- **O `coop_venceu`** é da `SalaJogo` (F03); `coop = true` no `montar`.
+- **O `coop_venceu`** é da `SalaJogo` (F03); o `coop` vem do gênero (H08):
+  ninguém liga o `coop` à mão.
 - **O R2 é do minigame, o L2 do item** (G03): nunca `gatilhos_off` depois do
   `montar`; o `silencio` do kit solta tudo na saída.
-- **Os pontos e o item:** se o kit já aplica `Itens.pontos_do_acerto`, marque
-  `PONTOS[julgamento]` cru.
+- **Os pontos e o item:** o kit aplica `Itens.pontos_do_acerto` no
+  `julgar_toque` (H08); marque `PONTOS[julgamento]` cru.
 - **Pela batida:** dormentes, titã e ponte se mexem por `Ritmo.batida()`; o
   tween da grade e do braço é enfeite.
 
@@ -384,10 +386,8 @@ A Fuga do Titã joga do aviso ao resultado com 4, 3, 2 e 1 jogador e com o
 robô nos três temperamentos (o `ruim` perde para o titã, o `bom` cruza a
 ponte); aguenta o cabo que cai e volta; fecha com o resultado coop (vitória
 ou derrota) e o destaque; a prova do jogo passa; e `bash tests/prova_visual.sh`
-passa com a **prancha olhada** com a Fuga do Titã nela: na cópia de
-trabalho, sem commitar, ponha `"S04_J17"` em primeiro na lista da seção
-`S04` do catálogo, rode a prova visual, olhe a prancha e volte a ordem
-(`git checkout godot/scripts/minigames/catalogo.gd` depois de salvar o resto).
+passa com a **prancha olhada** com a Fuga do Titã nela
+(o `Catalogo.sortear` da H08 põe o `S04_J17` na noite: rode a prova visual com a semente que o sorteia, `--semente=N`).
 
 ## Provas
 
@@ -404,10 +404,10 @@ func _prova_da_fuga_do_tita() -> void:
 		for l in mg.presentes():
 			if int(Forja.percepcao(l).get("gatilho_dir", 0)) == 0x21:
 				pesou[l] = true
-	var mg := await _joga_o_minigame("S04_J17", 60.0, olhar)
+	var mg = await _joga_o_minigame("S04_J17", 140.0, olhar)
 	if mg == null:
 		return
-	_esperar(mg.coop, "Titã: é coop")
+	_esperar(mg.coop and mg.destaque() >= 0, "Titã: é coop, com o destaque")
 	_esperar(pesou.size() == mg.presentes().size(), "Titã: a pá pesou no R2 de todos (%s)" % [pesou.keys()])
 	var perto := 99.0
 	for a in mg._todas:

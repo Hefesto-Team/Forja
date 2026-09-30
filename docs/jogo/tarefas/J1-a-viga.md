@@ -1,6 +1,6 @@
 # J1 — A Viga
 
-**Sprint:** J · **Slot:** S02_J06 · **Tamanho:** G · **Modelo:** Sonnet · **Estimativa:** US$ 2,0 · **Depende de:** H04, F09, F03, F05, H07, G05, I1 (as esperas da prova pelo relógio)
+**Sprint:** J · **Slot:** S02_J06 · **Tamanho:** G · **Modelo:** Sonnet · **Estimativa:** US$ 2,0 · **Depende de:** H04, H08, F09, F03, F05, H07, G05
 
 ## Por quê
 
@@ -15,7 +15,7 @@ pico), julgados no tempo, e os vereditos da bancada de hoje saindo daqui.
 - [H04 — O kit do minigame](H04-o-kit-do-minigame.md)
 - [A linha n.º 6 em 03](../03-os-45-minigames.md#s2--a-viga--giroscópio-e-acelerômetro)
 - [O índice da seção](J-a-viga.md) (as convenções, o `secao.gd`)
-- [A I1](I1-o-martelo-de-hefesto.md#o-estado-de-hoje) — por que o n.º 1 de cada seção tem `"duracao": 0.0` e acaba pela primeira volta
+- [As decisões comuns dos minigames — H08](../13-arquitetura.md#as-decisões-comuns-dos-minigames--h08) — o fim em tempo de música, a fila de notas do kit, a barra de luz do kit
 
 ## O estado de hoje
 
@@ -51,7 +51,7 @@ const FICHA := {
 	"entradas": [],
 	"camera": "fixa",
 	"faixa": "MUS_S02_J06",
-	"duracao": 0.0,
+	"duracao": 80.0,
 	"fim": "tempo",
 	"sensacoes": ["acerto", "perfeito", "erro", "golpe", "aviso"],
 	"material": "madeira",
@@ -84,7 +84,7 @@ const FICHA := {
   meio tempo antes da nota; o toque é o quadro em que a condição fica
   verdadeira — rolagem ou arfagem de pelo menos 0,25 rad (~14°) para o lado
   pedido, volante de pelo menos 1,2 rad/s para o lado pedido, a pancada.
-  Nada até `JANELA_BOM + 0,05 s` depois → nota perdida. A nota é perigo
+  Nada até `FOLGA_PERDIDA` (o kit) depois → nota perdida. A nota é perigo
   físico: `julgar_toque(l, alvo, n, true)` (a folga de quem está em último).
 - **O escorregão:** o erro escorrega o cavaleiro um passo (0,3 m) para o
   lado do empurrão; PERFEITO e ÓTIMO o trazem um passo de volta; BOM não
@@ -92,13 +92,14 @@ const FICHA := {
   da plataforma 8 tempos depois. As notas enquanto ele está fora não contam.
 - **Os pontos por julgamento** (ERRO, BOM, ÓTIMO, PERFEITO): `[0, 20, 35, 50]`;
   o pino vale o dobro.
-- **A progressão:** `p = t_jogo / (80 × ritmo_nivel)`. De 0 a 1/3, uma nota
+- **A progressão:** `progresso()` do kit (0..1 dos 80 s de música). De 0 a 1/3, uma nota
   a cada 2 tempos. **O pico (1/3 a 2/3), a viga torce:** uma nota por tempo
   (`k + 0,25·l`); a lava sobe de brilho. De 2/3 em diante, a cada 2 tempos.
   `Ritmo.simples[l]`: uma a cada 4 tempos.
 - **A primeira volta** é a primeira frase inteira, com o pino da batida 20
-  julgado: ela pede os três eixos do giroscópio e a martelada. O lugar acaba
-  quando a primeira volta passou **e** `t_jogo >= 80 × ritmo_nivel`.
+  julgado: ela pede os três eixos do giroscópio e a martelada, e cabe
+  folgada nos 80 s. **O fim é do kit, em tempo de música** (H08): os 80 s da
+  FICHA contam em `Ritmo.t_musica()`, não em tempo de jogo.
 
 ## O cenário
 
@@ -108,12 +109,12 @@ const FICHA := {
 extends RefCounted
 ## A seção A Viga (S02): o que os cinco minigames têm em comum — a caverna da
 ## lava (o cenário), a leitura do corpo com as saídas silenciosas (sem
-## giroscópio, a gravidade; sem nada, o analógico), a conta do robô e a barra
-## de luz que pisca no julgamento. Sem class_name:
+## giroscópio, a gravidade; sem nada, o analógico) e a linha `troca` que as
+## anota, e a conta do robô. A barra de luz que pisca no julgamento é do kit
+## (H08). Sem class_name:
 ## const SECAO := preload("res://scripts/minigames/s02/secao.gd").
 ## Aqui não se chama Forja.robo_* nem se lê Forja.robo: o robô é dos ganchos.
 
-static var _luz_ate := [0.0, 0.0, 0.0, 0.0]
 static var _shader: Shader = null
 
 
@@ -179,21 +180,15 @@ static func giro_para(l: int, rol: float, arf: float, gui := 0.0) -> Vector3:
 	return Vector3(clampf(20.0 * (arf - p.y), -6.0, 6.0), gui, clampf(20.0 * (-rol - p.x), -6.0, 6.0))
 
 
-## A barra de luz (igual à da seção A Centelha).
-static func piscar(sala: SalaJogo, l: int, julgamento: int) -> void:
-	if julgamento == Ritmo.PERFEITO:
-		Forja.luz(l, Color.WHITE)
-		_luz_ate[l] = sala.t + 0.12
-	elif julgamento == Ritmo.ERRO:
-		Forja.luz(l, Forja.cor_do_lugar(l).darkened(0.6))
-		_luz_ate[l] = sala.t + 0.5
-
-
-static func voltar_a_luz(sala: SalaJogo) -> void:
-	for l in 4:
-		if _luz_ate[l] > 0.0 and sala.t >= _luz_ate[l]:
-			_luz_ate[l] = 0.0
-			Forja.luz_do_lugar(l)
+## Sem giroscópio ou sem acelerômetro, o jogo segue pelas saídas silenciosas;
+## a linha `troca` (13, H08) diz para onde, uma vez por minigame, no iniciar_jogo().
+static func anotar_troca(sala: SalaJogo, l: int) -> void:
+	var giro := Forja.capacidade(l, "giro")
+	var acel := Forja.capacidade(l, "acel")
+	if not giro:
+		Forja.evento("troca", l + 1, {"slot": sala.id, "de": "giroscopio", "para": "gravidade" if acel else "analogico"})
+	if not acel:
+		Forja.evento("troca", l + 1, {"slot": sala.id, "de": "acelerometro", "para": "botao"})
 ```
 
 (Os dois trechos marcados com "o corpo de" e "o código de" são cópia literal
@@ -218,7 +213,7 @@ fica (11: é chão e o shader é chapado). A cor do lugar só no aro do boneco.
 | --- | --- |
 | **giroscópio e acelerômetro (a feature)** | o corpo inclina, vira e bate no tempo |
 | vibração | o kit por nota; a queda: `Forja.sentir(l, "golpe")`; o empurrão que vem com o cavaleiro a um passo da ponta (`perigo == 3`): `Forja.sentir(l, "aviso", int(30000.0 / Ritmo.bpm))` meio tempo antes |
-| barra de luz | `SECAO.piscar` no `toque` e na `falha` |
+| barra de luz | o kit (`_reagir`, H08): branco no perfeito, a cor do lugar escurecida no erro |
 | alto-falante do dono | perfeito: a nota (o kit); ótimo e bom: `Forja.som_falante(l, "clique", 0.4)`; erro: a nota quebrada (o kit); **o metal rangendo**: `Forja.som_falante(l, "material:metal", 0.6)` meio tempo antes de cada nota enquanto `perigo >= 2` |
 | gatilho | R2 endurece com o perigo: `Forja.gatilho(l, 1, Forja.GATILHO_RESISTENCIA, 0, 2 + 2 * perigo)` a cada mudança; `perigo == 0` → `GATILHO_OFF` no R2 |
 | háptica por material | `madeira`, pelo kit |
@@ -234,7 +229,7 @@ plataforma com `jump` e um `Efeitos.anel` na cor dele.
 
 ## O fim e o vencedor
 
-O lugar acaba com a primeira volta feita e 80 s de jogo. `vencedor()`: o
+O kit fecha aos 80 s de música (`"fim": "tempo"`, H08). `vencedor()`: o
 maior tempo em pé (segundos de música fora da lava, sem o treino); empate
 pelo menor número de quedas, depois pelos pontos, depois pelo lugar.
 
@@ -244,7 +239,7 @@ Nada muda. **O controle que cai:** a plataforma dele para; o tempo em pé não
 conta; ao voltar, a nota da vez é a próxima dele que ainda não passou. **Sem
 giroscópio** (o controle não publica): a rolagem e a arfagem vêm da
 gravidade e o volante do analógico direito; **sem nada**, do analógico
-esquerdo; a linha `entrada` `sensores` diz qual.
+esquerdo; a linha `troca` diz qual (`SECAO.anotar_troca`).
 
 ## O robô
 
@@ -312,8 +307,6 @@ const SECAO := preload("res://scripts/minigames/s02/secao.gd")
 
 # (a FICHA vem aqui)
 
-const BATIDA_DA_PRIMEIRA_NOTA := 4.0
-const DURACAO_S := 80.0
 const FRASE := 16.0
 const TIPOS := ["rolagem", "arfagem", "rolagem", "guinada"]
 const LIMIAR := 0.25  ## rad
@@ -324,7 +317,6 @@ const QUEDA := 4  ## passos até a ponta
 const PASSO := 0.3  ## m
 const FORA := 8.0  ## tempos na lava
 const PONTOS := [0, 20, 35, 50]
-const FOLGA_PERDIDA := 0.05
 const Z_VIGA := 0.8
 
 var j := {}
@@ -366,15 +358,9 @@ func montar() -> void:
 		Forja.gatilho(l, 1, Forja.GATILHO_OFF)
 
 
-func _no_pico() -> bool:
-	var p := t_jogo / (DURACAO_S * ritmo_nivel)
-	return p >= 1.0 / 3.0 and p < 2.0 / 3.0
-
-
 func iniciar_jogo() -> void:
 	for l in presentes():
-		Forja.evento("entrada", l + 1, {"o": "sensores", "giro": Forja.capacidade(l, "giro"),
-			"acel": Forja.capacidade(l, "acel")})
+		SECAO.anotar_troca(self, l)  # sem giroscópio ou acelerômetro: a linha `troca` (H08)
 		j[l].t_ant = Ritmo.t_musica()
 		_proxima(l, BATIDA_DA_PRIMEIRA_NOTA - 0.01)
 
@@ -387,11 +373,10 @@ func _proxima(l: int, desde: float) -> void:
 	var desloc := 0.5 * l
 	if Ritmo.simples[l]:
 		passo = 4.0
-	elif _no_pico():
+	elif no_pico():
 		passo = 1.0
 		desloc = 0.25 * l
-	var k := floorf((desde - desloc) / passo) + 1.0
-	var s := maxf(k * passo + desloc, BATIDA_DA_PRIMEIRA_NOTA + desloc)
+	var s := proxima_batida(l, desde + 0.001, passo, desloc)  # o kit; estritamente depois de desde
 	var pino := BATIDA_DA_PRIMEIRA_NOTA + FRASE * ceilf((desde + 0.001 - BATIDA_DA_PRIMEIRA_NOTA) / FRASE)
 	if pino > BATIDA_DA_PRIMEIRA_NOTA and pino <= s:
 		e.b = pino
@@ -411,7 +396,6 @@ func _proxima(l: int, desde: float) -> void:
 
 
 func jogar(_dt: float) -> void:
-	SECAO.voltar_a_luz(self)
 	var agora := Ritmo.t_musica()
 	for l in presentes():
 		var e: Dictionary = j[l]
@@ -433,8 +417,6 @@ func jogar(_dt: float) -> void:
 				_voltar(l)
 			continue
 		_nota(l, e, agora)
-		if int(e.volta) >= 1 and t_jogo >= DURACAO_S * ritmo_nivel:
-			acabou[l] = true
 
 
 func _condicao(l: int, e: Dictionary) -> bool:
@@ -488,7 +470,7 @@ func _nota(l: int, e: Dictionary, agora: float) -> void:
 		Forja.evento("entrada", l + 1, {"o": str(e.tipo), "pedido": int(e.pedido),
 			"valor": snappedf(_valor(l, e), 0.01), "n": int(e.n)})
 		julgar_toque(l, alvo, int(e.n), true)
-	elif agora > alvo + Ritmo.JANELA_BOM + FOLGA_PERDIDA:
+	elif agora > alvo + FOLGA_PERDIDA:
 		nota_perdida(l, int(e.n))
 
 
@@ -508,7 +490,6 @@ func toque(l: int, julgamento: int) -> void:
 		Som.tocar("vento", (e.viga as Node3D).global_position + Vector3(-3.0 * float(e.pedido), 1.2, 0), -14.0)
 	if julgamento != Ritmo.PERFEITO:
 		Forja.som_falante(l, "clique", 0.4)
-	SECAO.piscar(self, l, julgamento)
 	_proxima(l, float(e.b))
 
 
@@ -521,7 +502,6 @@ func falha(l: int) -> void:
 		e.dir = Vector2(0, -float(e.pedido))
 	else:
 		e.dir = Vector2(-float(e.pedido), 0)
-	SECAO.piscar(self, l, Ritmo.ERRO)
 	var p := jogador(l)
 	if not treinando:
 		_perigo(l, int(e.perigo) + 1)
@@ -674,8 +654,10 @@ passa; e `bash tests/prova_visual.sh` passa com a prancha **olhada**.
 
 **`godot/testes/prova_do_jogo.gd`:**
 
-1. Confira que o `_termina_a_sala()` já espera pelo relógio de parede (a I1
-   fez); se não, faça a troca da [I1](I1-o-martelo-de-hefesto.md#provas).
+1. A Viga joga pelo `_joga_o_minigame("S02_J06", 130.0, ...)` da H08, que
+   espera a fase `fim` pelo relógio de parede (80 s de música, o aviso e o
+   fechamento); as esperas de `_termina_a_sala()` e da prova de poucos já
+   são as da H08.
 2. `_prova_de_fogo()`: as duas comparações com `"viga"` (linhas 356 e 360
    de hoje) passam a `_e_a_sala(jogo.sala, "viga")` e `_e_a_sala(viga, "viga")`.
 3. Em `_prova_do_relatorio()`, no laço da linha do tempo:

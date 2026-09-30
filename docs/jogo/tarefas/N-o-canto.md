@@ -1,6 +1,6 @@
 # N — S6 — O Canto: os cinco minigames
 
-**Sprint:** N · **Tamanho:** G (a seção, em cinco fichas) · **Modelo:** Sonnet · **Estimativa:** US$ 8,0 (a soma das cinco) · **Depende de:** H04, F09, H07
+**Sprint:** N · **Tamanho:** G (a seção, em cinco fichas) · **Modelo:** Sonnet · **Estimativa:** US$ 8,0 (a soma das cinco) · **Depende de:** H04, H08, F09, H07
 
 Esta ficha é o índice da seção. O trabalho está nas cinco fichas abaixo,
 uma por sessão, e cada uma se basta.
@@ -69,9 +69,10 @@ que dá o compasso na sala. Com a faixa, ele continua, baixo, como sino da capel
 (`Forja.som_virtual(l)["falante"]`, o nível de 0 a 1) e acha o ataque de
 cada nota pela lógica de hoje (`canto.gd:565-573`: o nível subindo mais de
 0,10 acima do vale deixado pela anterior), com o "desde" medido em tempo de
-música. A placa virtual dá o nível, não a altura: o robô **só responde o
-que ouviu chegar** (se o som não chegou, ele não responde — a prova do
-caminho), e lê da partitura a altura que ouviu.
+música. No ataque, o `Forja.som_virtual(l)` dá também o nome do último som
+(H08): o robô **só responde o que ouviu chegar** (se o som não chegou, ele
+não responde — a prova do caminho), e responde a altura, o lado ou o bipe
+**que ouviu**, nunca o da partitura.
 
 ## A ordem
 
@@ -97,9 +98,12 @@ decorar e desconfiar.
 
 - **O que foi mandado:** cada `som_controle` (H07): `seq`, `papel`
   (`alto_falante`), `som`, `ganho`, `placa` — gravado pelo módulo.
-- **O que o minigame acrescenta** (o tipo `jogo`, com `slot`): a cada som que
-  é pista, `{"o": "chamada", "n": <a nota da resposta que depende dele>, "som": ..., "no_controle": <foi ao alto-falante ou à TV>}`;
-  a resposta é o `toque` do kit com o mesmo `n`.
+- **O que o minigame acrescenta** (os tipos do [13](../13-arquitetura.md#as-decisões-comuns-dos-minigames--h08),
+  com `slot`): a cada som que é pista, a linha `pista`
+  `{"n": <a nota da resposta que depende dele>, "evento": "mandou", "via": "alto_falante" | "tv", "o_que": <o som>, "no_controle": <foi ao alto-falante ou à TV>}`;
+  a resposta é o `toque` do kit com o mesmo `n`, e o que o jogador fez além
+  dele (a pisada, a sabotagem) é a linha `entrada`. O que o minigame fez no
+  mundo (o acorde, a armadilha) é a linha `jogo`.
 - **O cruzamento da noite:** chamada com `placa` e resposta certa é o som
   que chegou à mão certa; chamada com `placa` e resposta errada ou nenhuma,
   repetida num controle só, é o alto-falante que não tocou (ou tocou em
@@ -107,16 +111,12 @@ decorar e desconfiar.
 - **O Modo bancada** (só na N1) mede ainda o veredito `alto_falante` de hoje
   com a pergunta "o canto saiu do seu controle?".
 
-(O tipo `jogo` entra na tabela do registro v2 do 13 pela primeira ficha que
-o usar, como manda o [molde](molde-de-minigame.md#o-registro).)
 
 ## O que fica fora destas fichas
 
-- **O sorteio entre os cinco:** é da base (o catálogo e a partida). Até lá,
-  os novos se jogam por `--sala=S06_J27` (etc.) e entram na prova visual
-  pelo passo de "Pronto quando" de cada ficha. O `canto` não está nas
-  partidas de 3 nem de 5 de hoje (`Partida.NA_ORDEM`): o passo diz o que
-  trocar na cópia de trabalho.
+- **O sorteio entre os cinco** é da H08 (`Catalogo.sortear`), e
+  `Partida.NA_ORDEM` inclui o Canto: cada ficha só põe o seu slot no
+  catálogo. Os novos também se jogam por `--sala=S06_J27` (etc.).
 - **As faixas:** `MUS_S06_J2x` (H05). Tudo está em batidas.
 
 ## Pronto quando
