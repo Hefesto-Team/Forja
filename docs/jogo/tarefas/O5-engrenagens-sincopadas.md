@@ -173,7 +173,7 @@ func robo(l: int, _dt: float) -> void:
 	if _robo_nota[l] != n:
 		_robo_nota[l] = n
 		# quando não acerta, salta no tempo (sem a síncope) ou atrasado
-		_robo_mira[l] = 0.0 if Forja.robo_acerta() else (-0.23 if rng.randf() < 0.5 else 0.25)
+		_robo_mira[l] = 0.0 if Forja.robo_acerta() else (-0.23 if _robo_rng.randf() < 0.5 else 0.25)
 	if Ritmo.t_musica() >= float(_alvo[l]) + float(_robo_mira[l]):
 		Forja.robo_apertar(l, Forja.CRUZ, 0.05)
 		_robo_apertou[l] = n
@@ -323,6 +323,9 @@ Catálogo: `"S07_J35"` em `MINIGAMES` e na seção `S07`. Traduções:
 `"Engrenagens Sincopadas": "Syncopated Gears"`, `"Encaixe!": "Lock in!"`,
 `"Brasa %d": "Ember %d"`, `"Maré %d": "Tide %d"`, `"Com o Aprendiz": "With the Apprentice"`.
 
+`_t_batida()` (a duração de uma batida, em s, para o pico):
+`return Ritmo.t_da_batida(1.0) - Ritmo.t_da_batida(0.0)`.
+
 ## O que o registro mede
 
 - `pista` `mandou` do primeiro clique de cada salto (`via`) e `respondeu`
@@ -333,6 +336,10 @@ Catálogo: `"S07_J35"` em `MINIGAMES` e na seção `S07`. Traduções:
 
 ## Armadilhas
 
+- **O robô sorteia no dele.** `var _robo_rng := RandomNumberGenerator.new()`, com
+  `_robo_rng.seed = rng.seed + 99` no `iniciar_jogo()`: o `rng` do kit é do jogo
+  (os caminhos, os lados, o Aprendiz), e o robô não pode mudar o que o jogo sorteia
+  (a paridade: com robô ou com gente, o mesmo jogo).
 - **O Aprendiz não é robô.** É regra do jogo (como os bonecos de treino
   d'A Prova): nada de `Forja.robo` nele, nada de controle simulado.
 - **Não chame `raia(l)`/`posicionar(l)`:** os cavaleiros estão nas torres;

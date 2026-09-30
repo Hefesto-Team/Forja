@@ -186,9 +186,13 @@ chama sobe `0.4 / _denominador`. Ninguém fica travado.
 | gatilho | nada a segurar: `Forja.gatilhos_off(l)` | — |
 | TV | a música com espaço para a voz; `Som.tocar("bigorna", GUARDIAO, -4.0)` quando a forja acende; `Som.tocar("grito", GUARDIAO, 0.0)` e `Som.tocar("martelo", GUARDIAO, 2.0)` no rugido; `tremor = 1.4` | — |
 
-**No rádio:** o microfone e a luz do mudo passam pela ponte como qualquer
-saída; nada muda no minigame (a háptica é só a do kit, que já vai pelo rumble
-sem placa).
+**No rádio:** não há placa de áudio — nem alto-falante, nem
+microfone, nem atuadores. O lugar cai no "sopra sozinho" desde o começo
+(`Forja.som_tem(l, Forja.PAPEL_MICROFONE)` falso: a `troca` com `motivo`
+`sem_microfone`), o sino e o grito do alto-falante não soam (o aviso do susto
+fica na vibração: `Forja.sentir(l, "aviso")` em `S0 + 2` para quem não tem
+alto-falante), e a háptica do kit vai pelo rumble. A **luz do mudo** é saída
+HID: passa pela ponte, e o escudo do susto funciona igual.
 
 ## A falha
 
@@ -254,7 +258,7 @@ func robo(l: int, dt: float) -> void:
 	if n >= 0 and _robo_falou[l] != n:
 		if _robo_nota[l] != n:
 			_robo_nota[l] = n
-			_robo_mira[l] = 0.0 if Forja.robo_acerta() else (0.3 if rng.randf() < 0.5 else 99.0)
+			_robo_mira[l] = 0.0 if Forja.robo_acerta() else (0.3 if _robo_rng.randf() < 0.5 else 99.0)
 		if Ritmo.t_musica() >= float(_alvo[l]) + LATENCIA_MIC + float(_robo_mira[l]):
 			Forja.robo_falar(l, 0.8, 0.3)
 			_robo_falou[l] = n
@@ -477,6 +481,10 @@ mais. `status(l)`: `"%d pontos" % pontos[l]`; `progresso()`: `""`.
 
 ## Armadilhas
 
+- **O robô sorteia no dele.** `var _robo_rng := RandomNumberGenerator.new()`, com
+  `_robo_rng.seed = rng.seed + 99` no `iniciar_jogo()`: o `rng` do kit é do jogo
+  (os caminhos, os lados, o Aprendiz), e o robô não pode mudar o que o jogo sorteia
+  (a paridade: com robô ou com gente, o mesmo jogo).
 - **A prova fica mais longa.** A Voz acaba pela música (uns 55 s de relógio,
   e uns 20 s a mais com a bancada, nas duas rodadas). Não encurte (a regra 7
   da paridade); se o `timeout 1200` apertar, anote e avise.

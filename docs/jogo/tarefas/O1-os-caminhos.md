@@ -205,7 +205,7 @@ func robo(l: int, _dt: float) -> void:
 		# o temperamento (--robo=bom|medio|ruim), uma vez por bifurcação
 		_robo_mira_de[l] = k
 		_robo_certo[l] = Forja.robo_acerta()
-		_robo_atraso[l] = 0.0 if _robo_certo[l] or rng.randf() < 0.5 else 0.25
+		_robo_atraso[l] = 0.0 if _robo_certo[l] or _robo_rng.randf() < 0.5 else 0.25
 	var alvo := Ritmo.t_da_batida(_b0[l] + _ciclo(k) - 2)
 	if Ritmo.t_musica() < alvo + float(_robo_atraso[l]):
 		return
@@ -218,9 +218,9 @@ func robo(l: int, _dt: float) -> void:
 			Forja.robo_apertar(l, Forja.TOUCHPAD, 0.08)   # "não senti"
 			_robo_k[l] = k
 			return
-		d = rng.randi_range(0, 2)
+		d = _robo_rng.randi_range(0, 2)
 	if not _robo_certo[l] and float(_robo_atraso[l]) == 0.0:
-		d = (d + 1 + rng.randi_range(0, 1)) % 3   # erra a trilha
+		d = (d + 1 + _robo_rng.randi_range(0, 1)) % 3   # erra a trilha
 	Forja.robo_apertar(l, DIRECAO[d], 0.08)
 	_robo_k[l] = k
 ```
@@ -497,6 +497,10 @@ tem `pista` e `troca`, acrescente, no mesmo commit:
 
 ## Armadilhas
 
+- **O robô sorteia no dele.** `var _robo_rng := RandomNumberGenerator.new()`, com
+  `_robo_rng.seed = rng.seed + 99` no `iniciar_jogo()`: o `rng` do kit é do jogo
+  (os caminhos, os lados, o Aprendiz), e o robô não pode mudar o que o jogo sorteia
+  (a paridade: com robô ou com gente, o mesmo jogo).
 - **A cauda do metal.** O passo de metal soa por 0,55 s; os dois passos da
   senha ficam a 2 batidas (1 s) um do outro para o envelope fechar entre eles
   (0,2 s de silêncio). No pico, só um passo. Não aproxime.

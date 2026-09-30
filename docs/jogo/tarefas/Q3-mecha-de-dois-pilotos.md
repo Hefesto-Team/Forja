@@ -134,7 +134,9 @@ A faixa é `MUS_S09_J43`, 145 bpm (uma batida ≈ 0,41 s). `ENTRADA := 4`.
 
 **No rádio:** a perna levantando vira `Forja.sentir(l, "golpe_esq", 120)`
 (E) ou `Forja.sentir(l, "golpe_dir", 120)` (D) — meia batida (≈ 0,2 s) antes
-do acerto do kit, sem encostar nele; a `troca` uma vez. O microfone fica de fora.
+do acerto do kit, sem encostar nele; a `troca` uma vez. **Sem alto-falante**
+(o rádio), o gongo vai pela mão: `Forja.sentir(l, "toque")` uma batida antes
+do soco, no lugar do `pronto`. O microfone fica de fora.
 
 ## A falha
 
@@ -323,6 +325,12 @@ Dica (com `na_raia(l)`, a `pos` no pé do mecha): `["@cross"]` no passo e
 Catálogo: `"S09_J43"` em `MINIGAMES` e na seção `S09`. Traduções:
 `"Mecha de Dois Pilotos": "Two-Pilot Mech"`, `"Pilote juntos!": "Pilot together!"`,
 `"Pilotem!": "Pilot!"`.
+
+`_t_batida()` (a duração de uma batida, em s, para o pico):
+`return Ritmo.t_da_batida(1.0) - Ritmo.t_da_batida(0.0)`.
+
+`_mais_pontos()`: a equipe com mais pontos somados dos seus lugares (a Brasa
+no empate).
 
 ## O que o registro mede
 

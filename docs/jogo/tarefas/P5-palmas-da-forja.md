@@ -115,6 +115,11 @@ no quatro. `ENTRADA := 4`.
 | gatilho | nada a segurar: `Forja.gatilhos_off(l)` | — |
 | TV | a música com palmas no 2 e no 4; `Som.tocar("bigorna_aguda", bigorna, -4.0)` em cada batida da chamada; `Som.tocar("bigorna", bigorna, -8.0)` em cada palma que entra; `Som.tocar("falha", bigorna, -6.0)` na que desafina; `Som.tocar("sucesso")` na espada lendária | — |
 
+**No rádio:** sem placa de áudio não há microfone nem alto-falante: o lugar
+entra no "sozinho" abaixo desde o começo (a `troca` com `sem_microfone`), os
+sons do alto-falante não soam, e a háptica do kit vai pelo rumble. A luz do
+mudo é saída HID e passa pela ponte.
+
 **Sem microfone / mudo** (a P1): o lugar "bate sozinho, mais fraco" — em
 cada palma pedida, ele conta como acerto na palma da turma **uma vez sim,
 uma vez não**, sem nota e sem pontos; a `troca` uma vez. Se ninguém tem
@@ -156,7 +161,7 @@ func robo(l: int, _dt: float) -> void:
 		return
 	if _robo_nota[l] != n:
 		_robo_nota[l] = n
-		_robo_mira[l] = 0.0 if Forja.robo_acerta() else (0.3 if rng.randf() < 0.5 else 99.0)
+		_robo_mira[l] = 0.0 if Forja.robo_acerta() else (0.3 if _robo_rng.randf() < 0.5 else 99.0)
 	if Ritmo.t_musica() >= float(_alvo[l]) + LATENCIA_MIC + float(_robo_mira[l]):
 		Forja.robo_falar(l, 0.9, 0.08)   # a palma: curta e alta
 		_robo_bateu[l] = n
@@ -289,6 +294,9 @@ Catálogo: `"S08_J40"` em `MINIGAMES` e na seção `S08`. Traduções:
 `"Palmas da Forja": "Forge Clapping"`, `"Bata palmas!": "Clap!"`,
 `"Palmas!": "Clap!"`, `"%d palmas": "%d claps"`, `"Espada %d de %d": "Sword %d of %d"`.
 
+`_t_batida()` (a duração de uma batida, em s, para o pico):
+`return Ritmo.t_da_batida(1.0) - Ritmo.t_da_batida(0.0)`.
+
 ## O que o registro mede
 
 - `voz` de cada palma (o nível: a palma é o pico mais curto da seção — a
@@ -300,6 +308,10 @@ Catálogo: `"S08_J40"` em `MINIGAMES` e na seção `S08`. Traduções:
 
 ## Armadilhas
 
+- **O robô sorteia no dele.** `var _robo_rng := RandomNumberGenerator.new()`, com
+  `_robo_rng.seed = rng.seed + 99` no `iniciar_jogo()`: o `rng` do kit é do jogo
+  (os caminhos, os lados, o Aprendiz), e o robô não pode mudar o que o jogo sorteia
+  (a paridade: com robô ou com gente, o mesmo jogo).
 - **A palma de um chega aos quatro microfones.** A regra do ar dá a palma a
   quem está perto do mais alto; se todos batem, todos recebem. É o
   esperado; ajuste só `MARGEM_AR` (na P1), nunca aqui.

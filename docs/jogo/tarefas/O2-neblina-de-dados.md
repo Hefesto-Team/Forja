@@ -168,7 +168,7 @@ func robo(l: int, _dt: float) -> void:
 	if _robo_decidiu[l] != n:
 		_robo_decidiu[l] = n
 		var certo := Forja.robo_acerta()
-		_robo_mira[l] = 0.0 if certo else (0.25 if rng.randf() < 0.5 else -1.0)
+		_robo_mira[l] = 0.0 if certo else (0.25 if _robo_rng.randf() < 0.5 else -1.0)
 	if float(_robo_mira[l]) < 0.0:
 		# erra saltando na neblina: a próxima batida sem pedra
 		var m := n + 1
@@ -308,6 +308,9 @@ Catálogo: `"S07_J32"` em `MINIGAMES` e na lista da seção `S07`, depois do
 `S07_J31`. Traduções: `"Neblina de Dados": "Data Fog"`,
 `"Salte no firme!": "Jump on solid ground!"`, `"Salte!": "Jump!"`.
 
+`_t_batida()` (a duração de uma batida, em s, para o pico):
+`return Ritmo.t_da_batida(1.0) - Ritmo.t_da_batida(0.0)`.
+
 ## O que o registro mede
 
 - `pista` `mandou` de cada pedra (`o_que` `firme`, `via`) e `respondeu`
@@ -318,6 +321,10 @@ Catálogo: `"S07_J32"` em `MINIGAMES` e na lista da seção `S07`, depois do
 
 ## Armadilhas
 
+- **O robô sorteia no dele.** `var _robo_rng := RandomNumberGenerator.new()`, com
+  `_robo_rng.seed = rng.seed + 99` no `iniciar_jogo()`: o `rng` do kit é do jogo
+  (os caminhos, os lados, o Aprendiz), e o robô não pode mudar o que o jogo sorteia
+  (a paridade: com robô ou com gente, o mesmo jogo).
 - **Duas coisas na háptica ao mesmo tempo.** O pouso (areia, 0,14 s) sai na
   batida `n`; a próxima pedra, em `n + 0.5` (no pico, `n + 0.75`). A 100 bpm
   sobra tempo; não suba o andamento nem a antecedência.
