@@ -28,6 +28,9 @@ A direção do que vem agora: de bancada a jogo. Começa pelo [mapa da pasta](jo
 | [A noite de seis horas](jogo/08-a-noite-de-6-horas.md) | o teste final, o registro v2 e o cruzamento |
 | [Fora do escopo](jogo/09-fora-do-escopo.md) | o que o Forja recusa, e por quê |
 | [A régua Astro Bot](jogo/10-a-regua-astro-bot.md) | como usar o DualSense sem parecer teste |
+| [A arte e os personagens](jogo/11-arte-e-personagens.md) | as regras de coerência, o que destoa e os doze bonecos |
+| [Como trabalhar](jogo/12-como-trabalhar.md) | uma ficha por sessão, o que roda onde, o orçamento |
+| [O quadro](jogo/tarefas/README.md) | as fichas de trabalho, na ordem, com estado e gasto |
 
 ## Validar o Hefesto
 
