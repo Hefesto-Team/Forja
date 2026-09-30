@@ -1,6 +1,6 @@
 # H06 — Os jingles
 
-**Sprint:** H · **Tamanho:** P · **Modelo:** Sonnet · **Estimativa:** US$ 1,5 · **Depende de:** F00, F03, H01, H04
+**Sprint:** H · **Tamanho:** P · **Modelo:** Sonnet · **Estimativa:** US$ 1,5 · **Depende de:** F00, F03, H01, H04, H05
 
 ## Por quê
 
@@ -70,7 +70,7 @@ e, ao fim do arquivo:
 # ---------------------------------------------------------------- os jingles (H06) --
 
 ## Os jingles (docs/jogo/04-ritmo-e-audio.md#as-telas-e-os-jingles). O arquivo
-## próprio em assets/jingles/<nome>.ogg quando existir; enquanto não, uma
+## próprio em assets/ost/jingles/<nome>.ogg quando existir; enquanto não, uma
 ## gravação da Kenney de assets/sons/ ou a síntese que faz as vezes.
 ## nome -> ["gravado", a gravação] ou ["sintese", a receita]
 const JINGLES := {
@@ -92,7 +92,7 @@ var _jingle: AudioStreamPlayer = null
 ## duração em s (0: não há som para ele).
 func jingle(nome: String) -> float:
 	var s: AudioStream = null
-	var proprio := "res://assets/jingles/%s.ogg" % nome
+	var proprio := Musica.caminho(nome)   # res://assets/ost/jingles/<nome>.ogg (H05)
 	if ResourceLoader.exists(proprio):
 		s = load(proprio)
 	elif JINGLES.has(nome):

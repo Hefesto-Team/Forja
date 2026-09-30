@@ -97,7 +97,7 @@ Fichas: H01 a H07, no [quadro](docs/jogo/tarefas/README.md).
 | o relógio de áudio | a posição da música pelo guia do Godot, com a latência em cache e o início agendado; tudo que se move no ritmo é calculado da batida ([04](docs/jogo/04-ritmo-e-audio.md#o-relógio-de-áudio)) |
 | as janelas | perfeito −40/+60 ms, ótimo ±90, bom ±140, erro; a ajuda escondida para quem está atrás ([04](docs/jogo/04-ritmo-e-audio.md#as-janelas)) |
 | a calibração | o desvio de cada controle pelas marteladas, ajustável nas opções do lugar ([04](docs/jogo/04-ritmo-e-audio.md#a-calibração-que-ninguém-vê)) |
-| as 45 faixas | slots `MUS_Sxx_Jyy`, o mapa de batidas de cada uma, as quatro faixas novas, as faixas das telas; a decisão entre Git LFS e o pacote do release ([04](docs/jogo/04-ritmo-e-audio.md#as-45-faixas)) |
+| as 45 faixas | slots `MUS_Sxx_Jyy`, o mapa de batidas de cada uma, as quatro faixas novas, as faixas das telas; tudo dentro do git, em `godot/assets/ost/` ([04](docs/jogo/04-ritmo-e-audio.md#as-45-faixas)) |
 | os jingles | apito, vitória, vitória coop, derrota, empate, recorde, entrada, virada ([04](docs/jogo/04-ritmo-e-audio.md#as-telas-e-os-jingles)) |
 | a música que reage | filtro no erro, brilho no combo, rampas de 15 a 30 ms, e as camadas quando houver stems ([04](docs/jogo/04-ritmo-e-audio.md#a-música-que-reage)) |
 | o som no controle em todo evento | a placa de áudio de cada controle aberta na entrada do lugar; a agenda do alto-falante; a háptica por material ([05](docs/jogo/05-haptica-e-controle.md#a-agenda-do-alto-falante)) |

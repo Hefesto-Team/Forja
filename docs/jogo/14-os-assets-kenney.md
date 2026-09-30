@@ -40,19 +40,117 @@ entra, e o que fica de fora.
 
 ## A curadoria
 
-O que pode entrar, e o que não entra:
+Medido pacote a pacote (os zips grátis abertos e os `.glb` lidos): **39 dos
+54 kits 3D usam o mesmo estilo do Mini Dungeon** — um material `colormap` com
+a sua `Textures/colormap.png`, cores da mesma família, fosco. Esses podem
+entrar, cada um na sua pasta e **só quando uma ficha pedir**. Os outros não.
 
 | tipo | entra | não entra |
 | --- | --- | --- |
-| personagens | Mini Characters (12), Mini Arena, Mini Market, Mini Dungeon (já está) | Blocky Characters (sem esqueleto de pele), Animated Characters (outro esqueleto, só FBX) |
-| cenários | Castle Kit, Tower Defense Kit, Mini Dungeon, Mini Arena, Mini Market | Nature Kit e Space Kit (cor sólida, outro traço), Retro Urban Kit, os pacotes "(Classic)" |
+| personagens | Mini Characters (12), Mini Dungeon, Mini Arena, Mini Forest, Mini Market, Mini Arcade, Mini Skate; os **personagens do Graveyard Kit** (esqueleto, fantasma, zumbi, vampiro, coveiro — mesmo esqueleto, 32 animações: os monstros do terror) | Blocky Characters (sem esqueleto de pele), Animated Characters (outro esqueleto, só FBX) |
+| cenário e objetos | os kits com colormap: Castle, Tower Defense, Graveyard, Factory, Platformer, Pirate, Train, Survival, Fantasy Town, Blaster, Space Station, Prototype, Hexagon, Marble, Coaster, Minigolf, Car, Toy Car, Holiday, Food, Modular Buildings, Building, Modular Dungeon, Modular Cave, Modular Space, Cube Pets, Watercraft, City (Commercial, Industrial, Roads, Suburban) | os de cor sólida (Nature, Space, Racing, Furniture), os de textura própria (Retro Fantasy, Retro Urban), 3D Road Tiles, Brick Kit (peças de montar, fora do tom), os "(Classic)" e o Weapon Pack |
 | interface | UI Pack e UI Pack Sci-fi, só a versão em vetor; Input Prompts, só "Default" e "Vector" | tudo em pixel e em 1-bit |
 | áudio | Interface Sounds, UI Audio, Impact Sounds, Music Jingles, Digital Audio, Sci-fi Sounds | — |
 | fontes | nenhuma: Space Grotesk e JetBrains Mono continuam (o [estudo 03](../estudos/03-o-sistema-visual-do-app-hefesto.md)) | as fontes da Kenney |
 | 2D | nada | os 154 pacotes 2D |
 
-Pacote que não está na coluna "entra" só entra depois de uma linha nova nesta
-tabela, com o porquê, e do checklist de arte do [11](11-arte-e-personagens.md#o-checklist-de-aprovação).
+**Os vidros:** alguns modelos do Factory, Mini Market, Mini Arcade, Food,
+Building e Marble têm um material `glass` à parte; o Fantasy Town tem água em
+cor sólida. Esses modelos passam pelo checklist de arte antes de entrar.
+
+### A escala de cada kit
+
+Os kits não têm a mesma escala entre si (medido nos `.glb`; a Kenney não
+documenta). A escala que casa com os bonecos:
+
+| kit | medida | fator em `Kit.peca` |
+| --- | --- | --- |
+| a série Mini, Graveyard, Prototype, Space Station, Fantasy Town, Holiday, Platformer | a mesma dos bonecos (parede 1,0; boneco 0,67 a 0,84) | 1× (o `K = 2.0` de hoje vale para todos) |
+| Castle Kit | porta 0,61, portão 0,91 (o boneco fica mais alto que a porta) | 1,3 a 1,5× |
+| Survival Kit | bigorna 0,34, barril 0,34 | 1,4× |
+| Tower Defense Kit | escala de tabuleiro (canhão 0,53) | 1× como adereço grande; 1,5× como construção |
+| Factory Kit | porta 1,6, parede 3,0 | 0,5× |
+| Building Kit | parede 2,4 | 0,35× |
+| Pirate Kit | porta 4,4, barril 1,34 | 0,35 a 0,4× |
+| Cube Pets | cachorro 1,58 | 0,4× |
+| Blaster Kit | blaster 0,8 de comprimento | 0,3× na mão do boneco |
+| Modular Dungeon, Cave, Space | grade de 4 m | 0,25× |
+
+O fator vai na tabela `ESCALA_DO_PACOTE` de `godot/scripts/mundo/kit.gd`
+(ficha [G10](tarefas/G10-a-biblioteca-kenney.md)), e `Kit.peca` o aplica
+sozinho a partir do nome do pacote.
+
+### O que falta em todos
+
+**Lava, balão, sino, dragão e mecha** não existem em nenhum kit. Eles se
+montam com peças, pela regra 4 do [11](11-arte-e-personagens.md#as-regras-de-coerência)
+(peças do kit mais um brilho): a lava continua o shader chapado d'A Viga; o
+balão, um cesto do Pirate Kit com uma esfera facetada de 8 lados; o sino, o
+cilindro de 8 lados que a G08 já refaz; o dragão, a cabeça em blocos com
+olhos emissivos (como o guardião d'A Voz) sobre um corpo de peças do Castle e
+do Factory; o mecha, braços `robot-arm` e `crane` do Factory sobre um tronco
+de caixas.
+
+## Os kits nos 45 minigames
+
+A resposta ao "e nos minigames, não ajuda?": **ajuda em quase todos.** Cada
+minigame ganha uma arena e objetos próprios, em vez de todos saírem do mesmo
+Mini Dungeon e de caixas feitas à mão. A tabela é o ponto de partida do
+cenário de cada ficha; a ficha do minigame importa o kit na primeira vez que
+precisar (`python3 scripts/importar_kenney.py <zip> <pacote>`) e usa as peças
+pelo nome real do arquivo.
+
+| # | minigame | kits | peças (nomes reais dos `.glb`) |
+| --- | --- | --- | --- |
+| 1 | O Martelo de Hefesto | Survival, Graveyard | `workbench-anvil`, `tool-hammer`, `campfire-*`; `fire-basket` |
+| 2 | Marcha dos Escudeiros | Factory, Castle | `conveyor-long`, `conveyor-stripe-*`, `piston-square`; muros |
+| 3 | Portões de Néon | Castle, Modular Space, Factory | `metal-gate`, `gate`; `gate-lasers`; `piston-thin-square` |
+| 4 | O Fole | Survival, Hexagon, Factory | `campfire-*`; `building-smelter`; `pipe-large*` |
+| 5 | A Esteira de Escória | Factory | `conveyor*`, `piston-round`, `hopper-square`, `machine` |
+| 6 | A Viga | Castle, Platformer | `bridge-straight`; `platform` (a lava continua o shader) |
+| 7 | Pêndulos do Caos | Platformer, Factory | `saw`, `spike-block`, `block-moving*`; `crane` |
+| 8 | Patinação de Dados | Tower Defense, Holiday, Platformer | `snow-*`, `detail-crystal*`; `snowflake-*`; `block-snow-*` |
+| 9 | O Balão dos Foles | Pirate, Fantasy Town | cesto de `structure-*`; `windmill` (o balão é montado) |
+| 10 | Mira Óptica | Blaster, Prototype, Mini Forest | `target-large`, `target-small`, `target-fragment-*`; `target-a-*`; `target` |
+| 11 | O Molde | Survival, Factory | `workbench`; `machine-bed` |
+| 12 | Quebra-Gelo | Tower Defense, Holiday | `detail-crystal-large`, `tile-crystal`; `snow-*` |
+| 13 | Hackeando o Terminal | Space Station, Prototype | paredes e portas; os números `0`–`9`, `lever*`, `button-*` |
+| 14 | A Pinça | Factory | `robot-arm-a`, `robot-arm-b`, `crane-magnet` |
+| 15 | O Carimbo | Factory, Mini Market | `conveyor`, `machine`; caixas |
+| 16 | O Cerco | Castle, Tower Defense | torres e muros; `weapon-ballista`, `weapon-ammo-*` |
+| 17 | Fuga do Titã | Train, Castle, Factory | `railroad-*`, `train-carriage-*`, `train-locomotive-*`; o titã montado |
+| 18 | Curto-Circuito | Platformer, Toy Car | `bomb`; `item-box` |
+| 19 | Martelos Térmicos | Survival, Mini Arcade | `tool-hammer`; o fliperama de fundo |
+| 20 | A Prensa | Factory | `piston-*` (com as animações do próprio `.glb`), `machine-fortified` |
+| 21 | A Galeria | Blaster, Mini Arena | `target-*`; `weapon-rack` |
+| 22 | Arco de Néon | Mini Forest | `weapon-bow`, `weapon-arrow`, `target` |
+| 23 | Metralhadora de Feitiços | Blaster, Tower Defense | `blaster-*` (0,3×); `enemy-ufo-*` (a frota) |
+| 24 | Espada de Fita | Mini Arena | a arena, `weapon-sword` |
+| 25 | A Catapulta | Castle | `siege-catapult`, `siege-trebuchet`, torres e as versões `-demolished` |
+| 26 | O Canto | Castle, Fantasy Town | `tower-hexagon-*`; o sino montado |
+| 27 | Eco do Abismo | Modular Cave, Graveyard | a caverna (0,25×); `lantern-*` |
+| 28 | Coral dos Quatro | Fantasy Town, Castle | a praça, `fountain-*`; o salão |
+| 29 | Código do Dragão | Modular Dungeon, Hexagon | a sala (0,25×); `building-wizard-tower`; o dragão montado |
+| 30 | Corta-Fio | Platformer, Factory | `bomb`; `pipe-*`, `lever-*` |
+| 31 | Os Caminhos | Mini Forest, Hexagon, Tower Defense | trilhas, pontes, `tile-*` |
+| 32 | Neblina de Dados | Graveyard | lápides, criptas, `iron-fence*`, `character-ghost` |
+| 33 | Passo no Fosso | Tower Defense, Platformer | `tile-river-*`; `block-moving*` (o plasma é o shader) |
+| 34 | Fuga do Mecha Cego | Graveyard, Modular Cave, Factory | o cenário escuro; o mecha montado com `robot-arm` e `crane` |
+| 35 | Engrenagens Sincopadas | Factory, Marble | `cog-a` a `cog-e`; `fan-*` |
+| 36 | A Voz | Survival, Castle | `campfire-*`; o guardião de pedra em blocos (G08) |
+| 37 | O Sopro no Fole | Survival, Hexagon, Marble | `campfire-*`; `building-smelter`; `fan-*` |
+| 38 | Zero Absoluto | Holiday, Tower Defense, Graveyard | `snowman`, `snow-*`; `detail-crystal`; `character-skeleton` (o guardião que escuta) |
+| 39 | Grito de Guerra | Mini Arena | a arena de sumô |
+| 40 | Palmas da Forja | Fantasy Town, Holiday | a praça em festa |
+| 41 | A Prova | Mini Arena, Castle | a arena, as torres das duas equipes |
+| 42 | Roubo de Bateria | Space Station, Platformer | corredores; `jewel` (a bateria), `chest` |
+| 43 | Mecha de Dois Pilotos | Factory, City Industrial | os mechas montados; a cidade de fundo |
+| 44 | Ruge o Reator | Hexagon, Castle, Tower Defense | o tabuleiro que desaba; o dragão montado |
+| 45 | O Último Acorde | Castle, Graveyard, Tower Defense | o salão final; `detail-crystal-large` |
+
+Dos 45, **só o Balão (9), o Código do Dragão (29), o Mecha Cego (34), o Mecha
+de Dois Pilotos (43) e o Ruge o Reator (44) dependem de uma peça montada** —
+e mesmo esses usam kits para todo o resto.
 
 ## Como entra no repositório
 

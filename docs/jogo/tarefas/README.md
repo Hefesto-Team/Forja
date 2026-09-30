@@ -10,6 +10,7 @@ Estados: **a fazer**, **fazendo** (com o nome de quem pegou), **feito**
 "depende de" diz o que precisa estar **feito** antes.
 
 
+
 ## F — A fundação
 
 | ficha | título | tamanho | modelo | estimativa (US$) | depende de | estado | gasto real |
@@ -24,6 +25,7 @@ Estados: **a fazer**, **fazendo** (com o nome de quem pegou), **feito**
 | [F07](F07-a-voz-do-texto.md) | A voz nova do texto | M | Sonnet | 2,5 | F00, F02, F03 | a fazer | — |
 | [F08](F08-a-paridade.md) | A paridade entre a prova e o jogo | M | Opus | 3,0 | F00, F01, F03 | a fazer | — |
 | [F09](F09-a-prova-visual.md) | A prova visual | G | Opus | 4,0 | F00, F02 (a coleta de texto), F03 (o fim), F08 (o robô só pelo controle) | a fazer | — |
+| [F10](F10-o-rumble-seco.md) | O rumble seco | G | Opus | 4,0 | F05 (a medição do háptico), F06 (o registro) | a fazer | — |
 
 ## G — As telas
 
@@ -37,6 +39,9 @@ Estados: **a fazer**, **fazendo** (com o nome de quem pegou), **feito**
 | [G06](G06-o-salao-e-a-colecao.md) | O salão e a coleção | M | Sonnet | 2,5 | F00, G02, F09 | a fazer | — |
 | [G07](G07-a-narrativa-leve.md) | A narrativa leve | P | Sonnet | 1,5 | F00, F07, G03, G04, G06, F09 | a fazer | — |
 | [G08](G08-a-arte-bonecos-e-coerencia.md) | A arte: bonecos e coerência | G | Sonnet | 3,5 | F00, G01, G02, F09 | a fazer | — |
+| [G09](G09-o-teclado-do-nome.md) | O teclado de tela para o nome | M | Sonnet | 2,0 | F00, F07, F08, F09, G02 | a fazer | — |
+| [G10](G10-a-biblioteca-kenney.md) | A biblioteca Kenney | G | Sonnet | 3,0 | F00, G08 (a parte A e o `scripts/conferir_bonecos.py`) | a fazer | — |
+| [G11](G11-a-interface-com-o-ui-pack.md) | A interface com o UI Pack e os prompts | M | Sonnet | 2,5 | F00, F07, F09, G04, G10 | a fazer | — |
 
 ## H — O ritmo, o som e o kit
 
@@ -47,7 +52,7 @@ Estados: **a fazer**, **fazendo** (com o nome de quem pegou), **feito**
 | [H03](H03-a-calibracao.md) | A calibração | P | Sonnet | 2,0 | F00, H02 (e G02 para a medida automática — ver "Sem a G02") | a fazer | — |
 | [H04](H04-o-kit-do-minigame.md) | O kit do minigame | G | Opus | 4,5 | F00, F03, F05, F08, F09, H01, H02 | a fazer | — |
 | [H05](H05-o-pipeline-das-faixas.md) | O pipeline das faixas | M | Sonnet | 2,5 | F00, H01 | a fazer | — |
-| [H06](H06-os-jingles.md) | Os jingles | P | Sonnet | 1,5 | F00, F03, H01, H04 | a fazer | — |
+| [H06](H06-os-jingles.md) | Os jingles | P | Sonnet | 1,5 | F00, F03, H01, H04, H05 | a fazer | — |
 | [H07](H07-o-som-em-todo-evento.md) | O som em todo evento | G | Sonnet | 3,5 | F00, F05, F06, H04 | a fazer | — |
 | [H08](H08-os-acrescimos-do-kit.md) | Os acréscimos do kit | G | Opus | 4,0 | H04, H01, H02, F03, F05, G03 | a fazer | — |
 
@@ -155,7 +160,7 @@ Estados: **a fazer**, **fazendo** (com o nome de quem pegou), **feito**
 
 ## A soma
 
-**Estimativa total:** US$ 156,0 — F 29,5 · G 23,0 · H 24,0 · I–Q (os 45 minigames) 73,0 · R 3,5 · S 3,0.
+**Estimativa total:** US$ 167,5 em 77 fichas — F 33,5 · G 30,5 · H 24,0 · I–Q (os 45 minigames) 73,0 · R 3,5 · S 3,0.
 Com o retrabalho, a faixa está em [Como trabalhar](../12-como-trabalhar.md#o-orçamento).
 
 ## A ordem

@@ -30,6 +30,18 @@ relógio, das janelas, do fim, das sensações e do item). Sem a H08 no
   e o `<nome>.gd.uid` entra no commit.
 - As frases novas da tela (título, verbo) em `godot/scripts/traducoes.gd`.
 
+## O cenário: os kits da Kenney
+
+Antes de montar o cenário, a sessão lê a linha do seu minigame em
+[os kits nos 45 minigames](../14-os-assets-kenney.md#os-kits-nos-45-minigames)
+e usa aquelas peças pelo nome real, com `Kit.peca(pai, "<pacote>/<peça>", ...)`
+(a escala do pacote é automática, [G10](G10-a-biblioteca-kenney.md)). Se o kit
+ainda não está em `godot/assets/kenney/`, a sessão pede ao André que rode
+`python3 scripts/importar_kenney.py <zip> <pacote>` e, enquanto isso, monta com
+o Mini Dungeon e anota no quadro que o cenário espera o kit. Onde a tabela diz
+"montado" (balão, sino, dragão, mecha), vale a regra 4 do
+[11](../11-arte-e-personagens.md#as-regras-de-coerência).
+
 ## A ficha de dados: o `const FICHA`
 
 Um dicionário constante no começo do script. É texto: cabe no diff e se
