@@ -31,6 +31,8 @@ o kit (H04).
     guarda `float` de 32 bits, e a borda de −40 ms sai errada.
   Por isso o desvio e as bordas se arredondam a 0,1 ms antes de comparar, e
   **a borda vale dentro** da janela.
+- O código de "O alvo" e as checagens de "Provas" foram rodados numa cópia
+  do projeto, com a prova do jogo inteira: verde.
 
 ## O alvo
 
@@ -119,7 +121,7 @@ func zerar_ajuda() -> void:
 ## Um toque julgado, no registro (o tipo `toque` do registro v2). Sem
 ## `desvio_em_ms` (a nota passou sem toque), a linha diz "perdida".
 func registrar_toque(l: int, n: int, j: int, desvio_em_ms := NAN) -> void:
-	var campos := {"slot": slot, "lugar": l, "n": n, "julgamento": NOMES_DO_JULGAMENTO[j],
+	var campos := {"slot": dono, "faixa": slot, "lugar": l, "n": n, "julgamento": NOMES_DO_JULGAMENTO[j],
 		"t_musica": snappedf(_t, 0.001)}
 	if is_nan(desvio_em_ms):
 		campos["perdida"] = true
