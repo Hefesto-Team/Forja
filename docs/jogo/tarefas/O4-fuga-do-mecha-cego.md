@@ -340,6 +340,9 @@ Catálogo: `"S07_J34"` em `MINIGAMES` e na seção `S07`. Traduções:
 `"Fuga do Mecha Cego": "Escape the Blind Mech"`, `"Esconda-se!": "Hide!"`,
 `"Vivo": "Alive"`, `"Fantasma": "Ghost"`, `"%d vidas": "%d lives"`.
 
+`_t_batida()` (a duração de uma batida, em s, para o pico):
+`return Ritmo.t_da_batida(1.0) - Ritmo.t_da_batida(0.0)`.
+
 ## O que o registro mede
 
 - `pista` `mandou` de cada ronda com o lado (`o_que`) e a `via`; `respondeu`

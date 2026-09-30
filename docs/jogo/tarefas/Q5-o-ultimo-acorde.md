@@ -148,9 +148,10 @@ A faixa é `MUS_S09_J45`, 150 bpm (uma batida = 0,4 s). `ENTRADA := 4`.
 | luzinhas | o número do jogador, sempre | — |
 | TV | o coro heroico; `Som.tocar("transicao")` a cada estação; `Som.tocar("vitoria_noite")` na queda do dragão | — |
 
-**No rádio:** a pedra da estação 3 vai pelo rumble (`aviso`), com a `troca`;
-o alto-falante do controle no rádio — se não há placa, a regra do "Repetir"
-acima (o canto na TV). **Microfone mudo:** sopra sozinho (a P1).
+**No rádio** (sem placa de áudio): a pedra da estação 3 vai pelo rumble
+(`aviso`), com a `troca`; o canto da estação 2 vai para a TV (a regra do
+"Repetir"); a chamada do final fica no `aviso` da mão (que já vai junto); o
+sopro da estação 4 é "sozinho" (a P1). **Microfone mudo:** sopra sozinho.
 
 ## A falha
 
@@ -206,7 +207,7 @@ func robo(l: int, _dt: float) -> void:
 		return
 	if _robo_nota[l] != n:
 		_robo_nota[l] = n
-		_robo_mira[l] = 0.0 if Forja.robo_acerta() else (0.25 if rng.randf() < 0.6 else 99.0)
+		_robo_mira[l] = 0.0 if Forja.robo_acerta() else (0.25 if _robo_rng.randf() < 0.6 else 99.0)
 	var alvo := float(_alvo[l]) + float(_robo_mira[l])
 	match _verbo[l]:
 		ATIRAR:
@@ -396,6 +397,10 @@ O1, se ainda não estiver lá.)
 
 ## Armadilhas
 
+- **O robô sorteia no dele.** `var _robo_rng := RandomNumberGenerator.new()`, com
+  `_robo_rng.seed = rng.seed + 99` no `iniciar_jogo()`: o `rng` do kit é do jogo
+  (os caminhos, os lados, o Aprendiz), e o robô não pode mudar o que o jogo sorteia
+  (a paridade: com robô ou com gente, o mesmo jogo).
 - **O alto-falante não pode tocar dois sons ao mesmo tempo** (05, a agenda):
   o canto (estação 2) e a chamada (final) nunca encostam num som do kit no
   mesmo controle — o kit toca a nota do dono no PERFEITO; as notas do canto
@@ -408,8 +413,11 @@ O1, se ainda não estiver lá.)
   erra o "Repetir" e o final). Não tire essa porta.
 - **Três papéis de som num minigame só:** o `papel_som` é o microfone (para a
   estação 4 achar o microfone); o alto-falante e a háptica tocam pela placa
-  aberta desde a entrada do lugar (H07). Confira no aviso que o teste (△) é o
-  do microfone.
+  aberta desde a entrada do lugar (H07). O rádio da estação 3 se decide **no
+  começo dela**: `_rumble[l] = not Forja.som_tem(l, Forja.PAPEL_HAPTICA)`
+  (com a `troca`); se a háptica não estiver achada com o papel do microfone,
+  a pedra vai pelo rumble sozinha, e o registro diz. O do alto-falante, no
+  começo da estação 2 (`Forja.som_tem(l, Forja.PAPEL_ALTO_FALANTE)`).
 - **A prova fica mais longa** (até 120 s de relógio): a checagem roda só na
   rodada sem a bancada.
 - **`ENTRADA`**: se o kit tiver `BATIDA_DA_PRIMEIRA_NOTA`, use-a.

@@ -121,7 +121,9 @@ A faixa é `MUS_S09_J42`, 138 bpm (uma batida ≈ 0,43 s). `ENTRADA := 4`.
 
 **No rádio:** a pista do pulso vai pelo rumble do lado (`golpe_esq` para L2,
 `golpe_dir` para R2), com a `troca` uma vez; o peso dos gatilhos vai pela
-ponte. O microfone fica de fora.
+ponte. Sem alto-falante, a estática não soa — mas a interferência continua
+valendo, porque o que ela faz de verdade é **apagar a pista** dos próximos
+dois pulsos (e isso vale no rumble também). O microfone fica de fora.
 
 ## A falha
 
@@ -339,6 +341,12 @@ O5).
 Catálogo: `"S09_J42"` em `MINIGAMES` e na seção `S09`. Traduções:
 `"Roubo de Bateria": "Battery Heist"`, `"Roube!": "Steal!"`,
 `"Dois contra um": "Two against one"`, `"Contra a sentinela": "Against the sentry"`.
+
+`_t_batida()` (a duração de uma batida, em s, para o pico):
+`return Ritmo.t_da_batida(1.0) - Ritmo.t_da_batida(0.0)`.
+
+`_mais_pontos()`: a equipe com mais pontos somados dos seus lugares (a Brasa
+no empate).
 
 ## O que o registro mede
 

@@ -166,7 +166,7 @@ func robo(l: int, _dt: float) -> void:
 		if Forja.robo_acerta():
 			_robo_mira[l] = 0.0
 		else:
-			_robo_mira[l] = 0.2 if rng.randf() < 0.6 else 99.0
+			_robo_mira[l] = 0.2 if _robo_rng.randf() < 0.6 else 99.0
 	if Ritmo.t_musica() >= float(_alvo[l]) + float(_robo_mira[l]):
 		Forja.robo_apertar(l, Forja.CRUZ, 0.05)
 		_robo_apertou[l] = n
@@ -314,6 +314,10 @@ Catálogo: `"S07_J33"` em `MINIGAMES` e na seção `S07`. Traduções:
 
 ## Armadilhas
 
+- **O robô sorteia no dele.** `var _robo_rng := RandomNumberGenerator.new()`, com
+  `_robo_rng.seed = rng.seed + 99` no `iniciar_jogo()`: o `rng` do kit é do jogo
+  (os caminhos, os lados, o Aprendiz), e o robô não pode mudar o que o jogo sorteia
+  (a paridade: com robô ou com gente, o mesmo jogo).
 - **Rumble e háptica nunca juntos, no rádio.** No rádio o acerto do kit é
   rumble no instante do passo; o pulso da nota sai meio tempo antes (ver "O
   repertório"). No cabo, os dois são háptica e se misturam no mixer — tudo

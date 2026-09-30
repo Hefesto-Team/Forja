@@ -120,6 +120,11 @@ silêncio de vez em quando. `ENTRADA := 4`.
 | gatilho | nada a segurar: `Forja.gatilhos_off(l)` | — |
 | TV | a serra da música; `Som.tocar("golpe", pos, -4.0)` em cada empurrão; `Som.tocar("vento", pos, -2.0)` na queda; `tremor = 0.4` no grito perfeito | — |
 
+**No rádio:** sem placa de áudio não há microfone nem alto-falante: o lugar
+entra no "sozinho" abaixo desde o começo (a `troca` com `sem_microfone`), os
+sons do alto-falante não soam, e a háptica do kit vai pelo rumble. A luz do
+mudo é saída HID e passa pela ponte.
+
 **Sem microfone / mudo** (a P1): o lugar "grita sozinho, mais fraco": a cada
 tempo forte, uma onda com a força BOM (1,2 m) e raio 2,0, sem nota; a
 `troca` uma vez.
@@ -174,7 +179,7 @@ func robo(l: int, _dt: float) -> void:
 		return
 	if _robo_nota[l] != n:
 		_robo_nota[l] = n
-		_robo_mira[l] = 0.0 if Forja.robo_acerta() else (0.25 if rng.randf() < 0.5 else 99.0)
+		_robo_mira[l] = 0.0 if Forja.robo_acerta() else (0.25 if _robo_rng.randf() < 0.5 else 99.0)
 	if Ritmo.t_musica() >= float(_alvo[l]) + LATENCIA_MIC + float(_robo_mira[l]):
 		Forja.robo_falar(l, 0.9, 0.3)
 		_robo_gritou[l] = n
@@ -323,6 +328,9 @@ Catálogo: `"S08_J39"` em `MINIGAMES` e na seção `S08`. Traduções:
 `"Grito de Guerra": "War Cry"`, `"Grite!": "Shout!"`, `"No ringue": "In the ring"`,
 `"Contra 2 bonecos": "Against 2 dummies"` (e `"Fantasma"` já veio da O4).
 
+`_t_batida()` (a duração de uma batida, em s, para o pico):
+`return Ritmo.t_da_batida(1.0) - Ritmo.t_da_batida(0.0)`.
+
 ## O que o registro mede
 
 - `voz` de cada grito (o nível e o piso: o grito é o nível mais alto da
@@ -334,6 +342,10 @@ Catálogo: `"S08_J39"` em `MINIGAMES` e na seção `S08`. Traduções:
 
 ## Armadilhas
 
+- **O robô sorteia no dele.** `var _robo_rng := RandomNumberGenerator.new()`, com
+  `_robo_rng.seed = rng.seed + 99` no `iniciar_jogo()`: o `rng` do kit é do jogo
+  (os caminhos, os lados, o Aprendiz), e o robô não pode mudar o que o jogo sorteia
+  (a paridade: com robô ou com gente, o mesmo jogo).
 - **Todos gritam juntos**, e a regra do ar dá a voz a todos que estão perto
   do mais alto — é o esperado. Quem **não** gritou fica abaixo da margem e
   não solta onda.

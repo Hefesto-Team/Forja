@@ -141,7 +141,11 @@ A faixa é `MUS_S09_J41`, 145 bpm (uma batida ≈ 0,41 s). `ENTRADA := 4`.
 | TV | o estádio; `Som.tocar("martelo", pos, -6.0)` em cada martelo; `Som.tocar("tiro", pos, -10.0)` em cada virote; `Som.tocar("martelo", frente, 2.0)` e `tremor = 0.7` na martelada | — |
 
 **No rádio:** o gatilho e a vibração vão pela ponte; o `material` do kit vira
-rumble (o kit, sem placa). Nada muda na regra.
+rumble (o kit, sem placa). **Sem alto-falante** (o rádio não tem placa de
+áudio; `not Forja.som_tem(l, Forja.PAPEL_ALTO_FALANTE)`), o sino da martelada
+vai pela mão: `Forja.sentir(l, "aviso")` no lugar do `pronto`, com a `pista`
+`via` `rumble` e a `troca` (`alto_falante` → `rumble`, `sem_placa`) — o
+segredo continua só dele. O clique da besta fica no dedo (o gatilho).
 
 ## A falha
 
@@ -211,7 +215,7 @@ func robo(l: int, dt: float) -> void:
 		return
 	if _robo_nota[l] != n:
 		_robo_nota[l] = n
-		_robo_mira[l] = 0.0 if Forja.robo_acerta() else (0.25 if rng.randf() < 0.6 else 99.0)
+		_robo_mira[l] = 0.0 if Forja.robo_acerta() else (0.25 if _robo_rng.randf() < 0.6 else 99.0)
 	if Ritmo.t_musica() < float(_alvo[l]) + float(_robo_mira[l]):
 		return
 	if _arma_da_nota[l] == MARTELADA:
@@ -420,6 +424,9 @@ aparece na TV de todos, e o sino é segredo de quem o ouviu.
 tire as frases do tiroteio (`"recarregue"`, `"martelada!"`, `"%s · vida %d · %d balas"`...)
 que ninguém mais usa.
 
+`_mais_pontos()`: a equipe com mais pontos somados dos seus lugares (a Brasa
+no empate).
+
 ## O que o registro mede
 
 - **a carga:** cada `saida` (gatilho a cada bloco, vibração a cada golpe do
@@ -433,6 +440,10 @@ que ninguém mais usa.
 
 ## Armadilhas
 
+- **O robô sorteia no dele.** `var _robo_rng := RandomNumberGenerator.new()`, com
+  `_robo_rng.seed = rng.seed + 99` no `iniciar_jogo()`: o `rng` do kit é do jogo
+  (os caminhos, os lados, o Aprendiz), e o robô não pode mudar o que o jogo sorteia
+  (a paridade: com robô ou com gente, o mesmo jogo).
 - **A barra de luz e as luzinhas não são da equipe.** Nenhum `Forja.luz` e
   nenhum `Forja.leds_jogador` fora da prova final da bancada. A prova confere.
 - **Rumble e háptica nunca juntos:** o golpe do lado vai só para quem **não**

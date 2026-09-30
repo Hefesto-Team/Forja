@@ -113,6 +113,11 @@ param em seco. `ENTRADA := 4`.
 | gatilho | nada a segurar: `Forja.gatilhos_off(l)` | — |
 | TV | a música; `Som.tocar("sopro", fole, -8.0)` durante o sopro de cada um (o som do fole dele, posicional); `Som.tocar("fogo", forja, -10.0)` na labareda; `Som.tocar("falha", pos, -6.0)` na fuligem | — |
 
+**No rádio:** sem placa de áudio não há microfone nem alto-falante: o lugar
+entra no "sozinho" abaixo desde o começo (a `troca` com `sem_microfone`), os
+sons do alto-falante não soam, e a háptica do kit vai pelo rumble. A luz do
+mudo é saída HID e passa pela ponte.
+
 **Sem microfone / mudo:** sopra sozinho, mais fraco (a P1): em cada nota
 longa dele, `marcar(l, 30)` e o fole enche sozinho pela metade (sem nota,
 sem `_inteiras`); a `troca` uma vez.
@@ -153,7 +158,7 @@ func robo(l: int, _dt: float) -> void:
 		_robo_longa[l] = k
 		var certo := Forja.robo_acerta()
 		# quando não acerta: sopra demais (fuligem) ou entra atrasado
-		_robo_mira[l] = 0.0 if certo else (0.3 if rng.randf() < 0.5 else 0.0)
+		_robo_mira[l] = 0.0 if certo else (0.3 if _robo_rng.randf() < 0.5 else 0.0)
 		_robo_sobra[l] = 0.0 if certo else (0.5 if float(_robo_mira[l]) == 0.0 else 0.0)
 	var ini := Ritmo.t_da_batida(_bi[l]) + LATENCIA_MIC + float(_robo_mira[l])
 	if Ritmo.t_musica() >= ini:
@@ -300,6 +305,9 @@ Catálogo: `"S08_J37"` em `MINIGAMES` e na seção `S08`. Traduções:
 `"O Sopro no Fole": "Breath in the Bellows"`, `"Sopre e pare!": "Blow and stop!"`,
 `"%d inteiras": "%d whole"`.
 
+`_t_batida()` (a duração de uma batida, em s, para o pico):
+`return Ritmo.t_da_batida(1.0) - Ritmo.t_da_batida(0.0)`.
+
 ## O que o registro mede
 
 - `voz` (`comecou`/`parou`, o nível e o piso) de cada nota longa: a noite vê
@@ -310,6 +318,10 @@ Catálogo: `"S08_J37"` em `MINIGAMES` e na seção `S08`. Traduções:
 
 ## Armadilhas
 
+- **O robô sorteia no dele.** `var _robo_rng := RandomNumberGenerator.new()`, com
+  `_robo_rng.seed = rng.seed + 99` no `iniciar_jogo()`: o `rng` do kit é do jogo
+  (os caminhos, os lados, o Aprendiz), e o robô não pode mudar o que o jogo sorteia
+  (a paridade: com robô ou com gente, o mesmo jogo).
 - **A saída depende do fim da voz**, e o nível desce devagar: não use o
   `VOZ_ACIMA` para o fim, use o `VOZ_FICA` (a histerese da P1), senão a voz
   "para" e "volta" no meio do sopro.

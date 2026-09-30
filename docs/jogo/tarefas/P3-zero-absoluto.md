@@ -125,6 +125,11 @@ tempos e volta**. `ENTRADA := 4`.
 | gatilho | nada a segurar: `Forja.gatilhos_off(l)` | — |
 | TV | a música que para; no silêncio, só o vento (`Som.tocar("vento", null, -12.0)` na batida `M`); `Som.tocar("carimbo", pos, -2.0)` (o estalo do gelo) no congelamento | — |
 
+**No rádio:** sem placa de áudio não há microfone nem alto-falante: o lugar
+entra no "sozinho" abaixo desde o começo (a `troca` com `sem_microfone`), os
+sons do alto-falante não soam, e a háptica do kit vai pelo rumble. A luz do
+mudo é saída HID e passa pela ponte.
+
 **Sem microfone / mudo no sistema** (a P1): o guardião não o ouve — por isso
 ele anda mais devagar: cada passo vale `0.8` de laje (`_dist` é `float`) e as
 cargas dele são 0; a `troca` uma vez. O pé (✕ no silêncio) congela igual.
@@ -172,7 +177,7 @@ func robo(l: int, _dt: float) -> void:
 	if _robo_ciclo[l] != c and b >= g0 + m - 1.8:
 		_robo_ciclo[l] = c
 		var certo := Forja.robo_acerta()
-		if certo and _cargas[l] > 0 and rng.randf() < 0.3:
+		if certo and _cargas[l] > 0 and _robo_rng.randf() < 0.3:
 			Forja.robo_apertar(l, Forja.MICROFONE, 0.08)   # gasta o escudo e ri à vontade
 			_robo_ri[l] = true
 		else:
@@ -323,6 +328,9 @@ Catálogo: `"S08_J38"` em `MINIGAMES` e na seção `S08`. Traduções:
 `"Zero Absoluto": "Absolute Zero"`, `"Silêncio!": "Silence!"`,
 `"%d escudos": "%d shields"`.
 
+`_t_batida()` (a duração de uma batida, em s, para o pico):
+`return Ritmo.t_da_batida(1.0) - Ritmo.t_da_batida(0.0)`.
+
 ## O que o registro mede
 
 - `voz` no silêncio (quem fez barulho, o nível e o piso — e quantas vezes o
@@ -333,6 +341,10 @@ Catálogo: `"S08_J38"` em `MINIGAMES` e na seção `S08`. Traduções:
 
 ## Armadilhas
 
+- **O robô sorteia no dele.** `var _robo_rng := RandomNumberGenerator.new()`, com
+  `_robo_rng.seed = rng.seed + 99` no `iniciar_jogo()`: o `rng` do kit é do jogo
+  (os caminhos, os lados, o Aprendiz), e o robô não pode mudar o que o jogo sorteia
+  (a paridade: com robô ou com gente, o mesmo jogo).
 - **A faixa tem de parar no silêncio de cada ciclo** (as batidas 8 a 11 da
   música, depois 24 a 27, 40 a 43…). Confira o mapa
   `MUS_S08_J38.batidas.json` (as seções "pausa", H05). Se a faixa não bater,
