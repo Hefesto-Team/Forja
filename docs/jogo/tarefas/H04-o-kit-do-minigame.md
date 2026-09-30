@@ -181,7 +181,8 @@ func terminar() -> void:
 	if fase == "fim":
 		return
 	Ritmo.parar()
-	var c := colocacao()
+	var c := vencedor()
+	colocacao = c   # a var da SalaJogo (F03); o kit não declara func colocacao(): o nome colidiria
 	Forja.evento("desempenho", 0, {"slot": id, "fps_min": snappedf(_fps_min if _fps_n > 0 else 0.0, 0.1),
 		"fps_media": snappedf(_fps_soma / maxi(_fps_n, 1), 0.1)})
 	Forja.evento("minigame", 0, {"slot": id, "evento": "terminou", "vencedor": int(c[0]) if not c.is_empty() else -1,
@@ -265,11 +266,6 @@ func presentes() -> Array:
 ## O lugar está jogando agora (em jogo, e com controle)? A guarda da dica e do status.
 func na_raia(l: int) -> bool:
 	return fase == "jogo" and bool(jogando[l]) and conectado(l)
-
-
-## A colocação para o fechamento (F03): a do vencedor().
-func colocacao() -> Array:
-	return vencedor()
 
 
 ## A raia do lugar: a laje, a borda na cor do lugar e a luz da vez (apagada).
@@ -376,8 +372,8 @@ func _reagir(l: int, j: int) -> void:
 ```
 
 **Novo** (entra no 13): `conferir_a_ficha()`, `presentes()`, `na_raia(l)`,
-`acender_raia(l, forca)`, `nota_perdida(l, n)`, `nova_nota(l, n, t_alvo)`,
-`colocacao()`; `julgar_toque` ganha dois parâmetros opcionais
+`acender_raia(l, forca)`, `nota_perdida(l, n)`, `nova_nota(l, n, t_alvo)`;
+`julgar_toque` ganha dois parâmetros opcionais
 (`n := -1, perigo := false`); as chaves opcionais da FICHA (`features`,
 `botoes_medidos`, `gesto`, `treino`); o registro `minigame` com
 `colocacao` e `pontos` em texto (`"0,1,2,3"`, porque o registro de hoje não
@@ -716,8 +712,9 @@ marcado com **(prova)**. Se reprovar, conserte antes de seguir.
      o cálculo no `_process`.
    - Se a `SalaJogo` já grava o `minigame` (F03): apague do kit os dois
      `Forja.evento("minigame", ...)` e confira que a `SalaJogo` tira o
-     vencedor de um método que o kit sobrescreve (o `colocacao()` do kit); se
-     ela usa outro nome, sobrescreva esse também, devolvendo `vencedor()`.
+     vencedor do `vencedor()` do kit e grava na `var colocacao` (F03). **Não**
+     declare `func colocacao()` no kit: a F03 já tem `var colocacao` na
+     `SalaJogo`, e o mesmo nome não compila.
    Anote na ficha o que ficou de cada lado.
 3. **`godot/scripts/minigames/minigame.gd`**: crie com o código de "O alvo".
    Importe (`"$GODOT" --headless --path godot --import --quit`) e confira o
@@ -893,7 +890,7 @@ func _prova_do_kit() -> void:
 		var certos := int(c[esperado[l]])
 		_esperar(total == mg.NOTAS and certos * 10 >= total * 7,
 			"kit P%d: %s em %d de %d notas %s" % [l + 1, Ritmo.NOMES_DO_JULGAMENTO[esperado[l]], certos, total, c])
-	_esperar(mg.colocacao() == [0, 1, 2, 3], "kit: a colocação pelos pontos (%s, pontos %s)" % [mg.colocacao(), mg.pontos])
+	_esperar(mg.vencedor() == [0, 1, 2, 3], "kit: a colocação pelos pontos (%s, pontos %s)" % [mg.vencedor(), mg.pontos])
 	q = 0
 	while (jogo.estado != "salao" or jogo._trocando) and q < 900:
 		await _quadros(5)
