@@ -16,8 +16,9 @@ Leia [CONTRATO.md](CONTRATO.md) antes de qualquer patch. Se o patch quebra uma l
 - Nenhuma assinatura de ferramenta em commit, código ou documentação: commit sem trailer (nada de `Co-Authored-By`).
 - Nada que dependa da máquina de alguém: nenhum caminho fixo e nenhum endereço de aparelho no código, no registro ou no relatório. Endereço que aparecer sai com os octetos 4 e 5 zerados.
 - O SDK oficial da Sony é sob NDA: não se usa, não se procura, não se reproduz.
-- A voz das telas é a do app Hefesto ([estudo 03](docs/estudos/03-o-sistema-visual-do-app-hefesto.md)): maiúscula só na primeira letra da frase; nunca na tela: "mesa", "uinput", "hidraw", "MAC".
-- Trabalho novo começa por um item do [SPRINTS.md](SPRINTS.md) (*O que ainda falta*, no topo).
+- A voz das telas é a do app Hefesto ([estudo 03](docs/estudos/03-o-sistema-visual-do-app-hefesto.md)), com a regra de 30/09 ([docs/jogo/06](docs/jogo/06-telas-e-fluxo.md#a-voz-do-texto)): todo texto de tela começa com maiúscula, e botão se escreve "Botão ✕ (Iniciar)"; nunca na tela: "mesa", "uinput", "hidraw", "MAC".
+- O jogo não é teste: nenhuma pergunta sobre o controle, nenhum veredito, nenhum "olhe o LED" na tela do jogador. A validação vai para o registro e para o Modo bancada ([docs/jogo](docs/jogo/README.md#as-regras-de-ouro)).
+- Trabalho novo começa por um item do [SPRINTS.md](SPRINTS.md) (*O que ainda falta*, no topo), e pelo documento dele em [docs/jogo/](docs/jogo/README.md).
 - Os documentos têm um mapa: [docs/README.md](docs/README.md). Compilar, exportar e provar: [docs/DESENVOLVER.md](docs/DESENVOLVER.md).
 
 ## Os comandos

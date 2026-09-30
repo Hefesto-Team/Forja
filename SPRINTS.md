@@ -1,29 +1,148 @@
 # Forja — onde estamos e o que falta
 
-**Hoje (29/09/2026):** o Forja é um jogo de festa completo para até quatro
-DualSense — nove salas, a partida de 3, 5 ou 9 salas com treino, placar e
-pódio, música e efeitos, opções de conforto, português e inglês, e pacotes
-para Linux (AppImage e `.tar.gz`) e Windows. Tudo provado sem aparelho a cada
-push. O que ainda não foi provado é o que só a mesa prova.
+**Hoje (30/09/2026):** a primeira noite de teste aconteceu. As nove salas
+funcionaram, e o Forja cumpriu o objetivo inicial: cada recurso do DualSense
+provado jogando. Ela também mostrou o que falta para ser um jogo de verdade:
+o jogo pergunta ao jogador se o controle obedeceu, manda olhar o LED, termina
+salas numa tabela de veredito; não tem introdução nem criação de personagem;
+o HUD é fixo e a câmera não segue ninguém; o háptico é ultra fraco e o som no
+controle quase não aparece; no rádio nada se repetiu; o P1 da tela não era o
+P1 do controle. O diagnóstico inteiro, com arquivo e linha, está em
+[docs/jogo/01-diagnostico.md](docs/jogo/01-diagnostico.md).
+
+**Agora é a vez de tornar o jogo bom e viciante para quatro pessoas jogarem
+de quatro a seis horas sem cansar.** A direção está em
+[docs/jogo/](docs/jogo/README.md): 45 minigames (nove seções, cinco jogos
+cada), o ritmo medido pelo relógio de áudio, háptico forte, a construção do
+cavaleiro, e uma noite de seis horas que valida tudo pelo registro.
 
 **Contrato:** o jogo fala Sony/Steam no cabo. Não fala Hefesto. Sem relatório `0x31`.
 
-## O próximo passo: a noite de teste
-
-Quatro pessoas, quatro DualSense, uma partida de cinco salas do lobby ao
-pódio — e duas perguntas: **o controle fez o que o jogo pediu?** (o relatório
-responde, [docs/VALIDAR.md](docs/VALIDAR.md)) e **foi divertido, e querem
-outra?** (as pessoas respondem). É o Sprint A, logo abaixo, e é por ele que o
-resto se decide.
-
 ## O que ainda falta
 
-| o quê | por quê | quem destrava |
+| o quê | por quê | sprint |
 | --- | --- | --- |
-| o Sprint A inteiro: a rodada no cabo e no rádio, o som de cada controle de verdade, a bancada com aparelho, o `.exe` pela Steam | as provas rodam contra controles simulados; o juiz é a mesa | a noite de teste |
-| ouvir os efeitos | foram escolhidos pelo nome, sem escuta | uma partida com som |
-| a TV de 40" a 3 m e o Steam Deck de verdade | o tamanho do texto e os 60 quadros só se veem no aparelho | a noite de teste |
-| mais variações de conteúdo | a noite já sorteia quantos alvos, quantos sinos e os pilares da Prova; o resto das salas repete | depois da noite de teste, se pedirem |
+| tirar o teste de dentro do jogo | quiz, veredito e "olhe o LED" quebram o jogo; a validação vai para o registro | F |
+| háptico forte e o P1 certo | o controle falou baixo e trocou de número | F |
+| todo minigame fecha com vencedor | tela vazia e relógio que volta não são fim | F |
+| as telas de um jogo | título, introdução, construção do cavaleiro, HUD de cada jogador, câmera | G |
+| o ritmo e o som | relógio de áudio, janelas, calibração, as 45 faixas, jingles, som no controle em todo evento | H |
+| os 45 minigames | cinco por seção, com a sala de hoje como o primeiro | I a Q |
+| o Relâmpago | microjogos para aquecer e desempatar | R |
+| a noite de seis horas | o teste final com quatro pessoas, dois no cabo e dois no rádio | S |
+
+Ordem: F primeiro, porque tudo depende dela. G e H podem andar juntas. As
+seções vêm depois de H (precisam do relógio e das janelas), uma por vez, na
+ordem de I a Q. R depois das seções, S por último. Os itens do Sprint A que
+continuam valendo (o `.exe` pela Steam, a TV de 40" a 3 m, o Steam Deck)
+entram na noite de seis horas.
+
+## O jogo completo — as sprints a partir de 30/09/2026
+
+Cada sprint começa pelo documento dela em [docs/jogo/](docs/jogo/README.md)
+e respeita as [regras de ouro](docs/jogo/README.md#as-regras-de-ouro).
+
+### Sprint F — a fundação
+
+O jogo deixa de ser teste, e o controle passa a falar alto e com o número
+certo.
+
+| item | detalhe |
+| --- | --- |
+| o Modo bancada | o veredito ✓/✗, as perguntas das salas às cegas, o diagnóstico ao vivo, o livro da sessão e a bancada dos experimentos saem do jogo e vão para `--bancada`, fora do menu; a tela de fim de sala perde a tabela de veredito ([01](docs/jogo/01-diagnostico.md#o-jogo-parece-um-teste)) |
+| nenhuma frase metalinguística | "olhe o controle…", "olhe a luz", "o canto saiu do seu controle?", "Que chão é esse?", as features no aviso e o hardware no portão saem; cada sala pede um verbo do mundo ([02](docs/jogo/02-principios.md#1-o-controle-é-mundo-não-prova)) |
+| todo minigame fecha | o apito, o resultado com vencedor e colocação, o jingle e a volta, também fora de partida; o relógio não volta depois do treino; o aviso começa sozinho em oito segundos; a bancada emite `terminou` ([02](docs/jogo/02-principios.md#7-todo-minigame-fecha)) |
+| o P1 é o controle P1 | o lugar e as luzinhas na conexão, não no ✕; controle estranho não herda lugar; nenhuma sala usa as luzinhas nem a barra de luz de um jeito que apague a identidade ([05](docs/jogo/05-haptica-e-controle.md#a-identidade-p1p4)) |
+| as sete suspeitas do háptico | medir cada uma (firmware, modo suave, dono do motor, rumble contra háptica por áudio, escala salva) antes de mudar valores; registrar o firmware na conexão ([05](docs/jogo/05-haptica-e-controle.md#por-que-o-háptico-está-fraco)) |
+| o piso de força | as salas pedem eventos, não números; a tabela de eventos com o piso de [05](docs/jogo/05-haptica-e-controle.md#o-piso-de-força); nenhum `Input.start_joy_vibration` |
+| a decisão do rumble seco | votar, com a medição na mão, se o contrato ganha uma emenda para o bloco próprio de rumble ([05](docs/jogo/05-haptica-e-controle.md#a-força-máxima-que-é-legítima)) |
+| o registro v2 | `seq`, tempo de parede de verdade, `transporte`, `firmware`, os tipos `saida`, `som_controle`, `nota`, `toque`, `minigame`; o `formato` sobe de versão ([08](docs/jogo/08-a-noite-de-6-horas.md#o-registro-v2)) |
+| a voz nova do texto | toda frase de tela começa com maiúscula, botão como "Botão ✕ (Iniciar)"; as 233 frases de `traducoes.gd` e os textos montados; "fechar" ganha tradução; o portão `scripts/check_texto_de_tela.py` entra antes do push ([06](docs/jogo/06-telas-e-fluxo.md#a-voz-do-texto)) |
+
+**Pronto quando:** uma partida de nove salas vai do título ao pódio sem uma
+pergunta sobre o controle, sem uma tabela de veredito e sem uma frase em
+minúscula; cada sala acaba com um vencedor na tela; o P1 da tela é o P1 do
+controle desde a conexão; a prova do jogo, o gauntlet e a prova de poucos
+passam; e a linha do tempo sai no formato v2.
+
+### Sprint G — as telas
+
+| item | detalhe |
+| --- | --- |
+| título e introdução | a forja acendendo no ritmo; a introdução sem texto na primeira vez da noite ([06](docs/jogo/06-telas-e-fluxo.md#as-telas)) |
+| a construção do cavaleiro | boneco, acabamento, peça, item, nome e as oito marteladas que calibram; é também o lobby ([06b](docs/jogo/06b-a-construcao-do-cavaleiro.md)) |
+| o item com mecânica | Martelo, Escudo, Fole, Lanterna, Diapasão e Âncora, cada um visto no HUD e sentido no controle ([06b](docs/jogo/06b-a-construcao-do-cavaleiro.md#o-item-tem-mecânica)) |
+| o HUD de cada jogador | um canto por jogador, ancorado, com área segura; nunca abaixo de 30 px; conferido nas duas escalas e nas duas línguas ([06](docs/jogo/06-telas-e-fluxo.md#o-hud-de-cada-jogador)) |
+| a câmera dos quatro | enquadra quem está vivo, suave, com mínimo e máximo por minigame ([06](docs/jogo/06-telas-e-fluxo.md#a-câmera)) |
+| o salão e a coleção | os portões com o nome da seção, a vitrine da noite ([06b](docs/jogo/06b-a-construcao-do-cavaleiro.md#a-coleção)) |
+| a narrativa leve | a Dissonância, os Cavaleiros de Néon, as falas curtas e o vocabulário do visor ([07](docs/jogo/07-narrativa-e-voz.md)) |
+
+**Pronto quando:** alguém que nunca jogou liga o jogo, constrói o cavaleiro
+e chega ao primeiro minigame sem ler nada além de títulos e verbos; as fotos
+das telas (`tests/telas.sh`) não mostram colisão em nenhuma escala.
+
+### Sprint H — o ritmo e o som
+
+| item | detalhe |
+| --- | --- |
+| o relógio de áudio | a posição da música pelo guia do Godot, com a latência em cache e o início agendado; tudo que se move no ritmo é calculado da batida ([04](docs/jogo/04-ritmo-e-audio.md#o-relógio-de-áudio)) |
+| as janelas | perfeito −40/+60 ms, ótimo ±90, bom ±140, erro; a ajuda escondida para quem está atrás ([04](docs/jogo/04-ritmo-e-audio.md#as-janelas)) |
+| a calibração | o desvio de cada controle pelas marteladas, ajustável nas opções do lugar ([04](docs/jogo/04-ritmo-e-audio.md#a-calibração-que-ninguém-vê)) |
+| as 45 faixas | slots `MUS_Sxx_Jyy`, o mapa de batidas de cada uma, as quatro faixas novas, as faixas das telas; a decisão entre Git LFS e o pacote do release ([04](docs/jogo/04-ritmo-e-audio.md#as-45-faixas)) |
+| os jingles | apito, vitória, vitória coop, derrota, empate, recorde, entrada, virada ([04](docs/jogo/04-ritmo-e-audio.md#as-telas-e-os-jingles)) |
+| a música que reage | filtro no erro, brilho no combo, rampas de 15 a 30 ms, e as camadas quando houver stems ([04](docs/jogo/04-ritmo-e-audio.md#a-música-que-reage)) |
+| o som no controle em todo evento | a placa de áudio de cada controle aberta na entrada do lugar; a agenda do alto-falante; a háptica por material ([05](docs/jogo/05-haptica-e-controle.md#a-agenda-do-alto-falante)) |
+
+**Pronto quando:** um minigame de teste toca uma faixa com mapa de batidas,
+julga cada toque pelas janelas com o desvio da calibração, e todo evento tem
+som na TV e algo no controle do dono; o registro mostra `t_musica` em cada
+`nota` e cada `toque`.
+
+### Sprints I a Q — as nove seções
+
+Uma sprint por seção, cinco minigames cada, na ordem: **I** A Centelha,
+**J** A Viga, **K** O Molde, **L** O Impacto, **M** A Galeria, **N** O Canto,
+**O** Os Caminhos, **P** A Voz, **Q** A Prova. As fichas de cada minigame
+estão em [docs/jogo/03-os-45-minigames.md](docs/jogo/03-os-45-minigames.md).
+
+| item | detalhe |
+| --- | --- |
+| a sala de hoje, reescrita | o primeiro minigame de cada seção é a sala atual, sem quiz, sem veredito, no relógio de áudio |
+| os quatro novos | prototipar mais de quatro ideias e ficar com as melhores; cada um com um verbo diferente dos outros da seção |
+| pelo menos uma dupla | cada seção tem um minigame de dupla e um de todos contra todos |
+| o repertório inteiro | vibração, barra de luz, alto-falante e gatilho em todo minigame, além da feature da seção ([02](docs/jogo/02-principios.md#2-a-feature-protagoniza-o-repertório-acompanha)) |
+| o que o registro mede | a validação da feature, sem perguntar nada ao jogador |
+| a régua | as três perguntas de aprovação de [10](docs/jogo/10-a-regua-astro-bot.md#a-pergunta-de-aprovação) |
+
+**Pronto quando** (para cada seção): os cinco minigames jogam do aviso ao
+resultado com quatro, três, dois e um jogador, com o robô; o gauntlet e a
+prova de poucos passam; e a partida sorteada já os inclui.
+
+### Sprint R — o Relâmpago
+
+| item | detalhe |
+| --- | --- |
+| os microjogos | de 5 a 8 segundos, tirados dos 45, com um verbo de uma palavra ([03](docs/jogo/03-os-45-minigames.md#o-relâmpago)) |
+| a aceleração | a faixa `MUS_RELAMPAGO` sobe o andamento a cada cinco microjogos |
+| aquecimento e desempate | abre a noite e decide empates no placar |
+
+**Pronto quando:** três minutos de Relâmpago passam por microjogos das nove
+seções sem uma tela de carregamento.
+
+### Sprint S — a noite de seis horas
+
+| item | detalhe |
+| --- | --- |
+| o protocolo | quatro pessoas, dois no cabo e dois no rádio, trocando na metade; seis horas com pausas ([08](docs/jogo/08-a-noite-de-6-horas.md#o-protocolo)) |
+| o cruzamento | `scripts/cruzar_noite.py` casa o registro do jogo com o da ponte e com os toques, por controle e por transporte ([08](docs/jogo/08-a-noite-de-6-horas.md#o-cruzamento)) |
+| o que sobrou do Sprint A | o `.exe` pela Steam, a TV de 40" a 3 m, o Steam Deck |
+| o que vem depois | cada número do cruzamento vira um item aqui |
+
+**Pronto quando:** os quatro jogam seis horas com vontade, e o cruzamento
+responde por controle e por transporte: quanto o jogo mandou, quanto chegou
+e quanto o jogador percebeu.
+
+---
 
 ## Como este arquivo se lê
 
