@@ -212,5 +212,8 @@ pequenos e ligados a uma ação — nunca música, nunca ambiente contínuo.
   só entra faixa aprovada, ouvida no jogo; rascunho e geração descartada nunca
   entram. Se o repositório ficar pesado demais, o caminho é o Git LFS, sem
   mudar a pasta.
+- **A origem:** as faixas são geradas no Suno, no plano pago, e baixadas
+  em WAV com a assinatura ativa. A licença, o molde de prompt e o fluxo de
+  geração estão no [LEIA-ME da trilha](../../godot/assets/ost/LEIA-ME.md#a-origem-e-o-uso).
 - As sessões de produção (projetos de DAW, stems crus, gerações descartadas)
   nunca entram no repositório.
