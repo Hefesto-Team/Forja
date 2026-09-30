@@ -1,39 +1,84 @@
 # J — S2 — A Viga: os cinco minigames
 
-**Sprint:** I–Q · **Tamanho:** G · **Estimativa:** US$ 4,5
+**Sprint:** J · **Seção:** S02 · **Fichas:** J1 a J5 · **Soma:** US$ 8,0 (J1 G, 2,0; J2 a J5 M, 1,5 cada)
 
-## Por quê
+O índice da seção. Cada minigame tem a sua ficha, que se executa sozinha
+numa sessão; esta página diz o que os cinco têm em comum.
 
-A seção de giroscópio e acelerômetro: a sala de hoje reescrita no kit, sem quiz nem veredito, e quatro minigames novos com verbos diferentes.
+## A feature protagonista
 
-## Ler antes
+**Giroscópio e acelerômetro** — o corpo inteiro entra no jogo: inclinar,
+virar num golpe, deslizar, chacoalhar e mirar, sempre no tempo.
+Coadjuvantes: vibração no desequilíbrio, o R2 endurecendo quando o peso
+cresce, o metal rangendo no alto-falante do controle, a barra de luz na cor
+do lugar.
 
-- [As fichas dos minigames 6-10](../03-os-45-minigames.md#s2--a-viga--giroscópio-e-acelerômetro)
-- [O molde de minigame](molde-de-minigame.md)
-- [A régua](../10-a-regua-astro-bot.md#a-pergunta-de-aprovação)
+## O cenário comum: a caverna da lava
 
-## Arquivos que mudam
+Um arquivo só, criado pela J1 e usado pelos cinco:
+`godot/scripts/minigames/s02/secao.gd` (sem `class_name`;
+`const SECAO := preload("res://scripts/minigames/s02/secao.gd")`).
 
-- `godot/scripts/salas/viga.gd` (a sala de hoje, reescrita no kit)
-- `godot/minigames/S02_*.tres` (as cinco fichas de dados)
-- um arquivo por minigame novo em `godot/scripts/minigames/s02/`
-- `godot/scripts/partida.gd` (o sorteio)
-- `godot/scripts/traducoes.gd`
+| função | o que faz |
+| --- | --- |
+| `SECAO.montar(sala)` | a caverna d'A Viga de hoje (`godot/scripts/salas/viga.gd:120-180`): as plataformas de pedra em `z = 4, −3, −5`, as paredes, os blocos, **o poço de lava** de `z = −2` a `z = 3` (o shader chapado, que o [11](../11-arte-e-personagens.md#o-que-destoa-hoje) mantém), as três luzes da lava, as brasas, as tochas e `atmosfera(Color("#ff6a3d"), Tema.LARANJA, false, 30, 22.0, -7.8, 0.3)` |
+| `SECAO.pilar(sala, x, z)` | um pilar de pedra que sai da lava até `y = 0` (onde cada minigame põe o que o lugar pisa) |
+| `SECAO.rolagem(l)`, `SECAO.arfagem(l)` | a inclinação do controle em rad (rolagem: positivo = o lado direito desce; arfagem: positivo = a borda de longe sobe); sem giroscópio, pela gravidade; sem nada, pelo analógico esquerdo × 0,45 |
+| `SECAO.guinada(l)` | a velocidade de giro de volante, rad/s (positivo = para a esquerda); sem giroscópio, o analógico direito × 3 |
+| `SECAO.forca_g(l)` | o acelerômetro em g; sem acelerômetro, 2,0 no quadro em que ✕ foi apertado, senão 1,0 |
+| `SECAO.giro_para(l, rolagem, arfagem, guinada := 0.0) -> Vector3` | a conta do robô: o giro que leva o controle da inclinação de agora até a pedida. Só conta; quem manda é o `robo()` do minigame: `Forja.robo_girar(l, SECAO.giro_para(...), 0.06)` |
+| `SECAO.piscar(sala, l, j)`, `SECAO.voltar_a_luz(sala)` | a barra de luz, igual à da seção A Centelha |
 
-## Passos
+O código inteiro está na [J1](J1-a-viga.md#o-cenário).
 
-1. **Sessão 1 (Opus):** reescrever a sala de hoje no kit como o primeiro minigame da seção, e fazer o segundo.
-2. **Sessão 2 (modelo):** o terceiro, o quarto e o quinto, pelo molde.
-3. Cada minigame: o verbo, o repertório inteiro (vibração, barra de luz, alto-falante, gatilho), a falha física, o fim com vencedor, a faixa do slot (ou a sintetizada) e o que o registro mede.
-4. Cada minigame tem o robô, para jogar com `--robo`.
-5. As três perguntas da régua Astro Bot, respondidas na própria ficha de dados.
-6. O sorteio da partida passa a incluir os cinco.
+## As convenções da seção
 
-## Pronto quando
+- **As notas moram em batidas** (`Ritmo.t_da_batida`); o andamento vem do
+  mapa da faixa: até a H05, a trilha sintetizada da seção, a **96 bpm**; com
+  as faixas geradas, 110 a 130 ([04](../04-ritmo-e-audio.md#as-45-faixas)).
+- **O hoqueto em colcheias:** a nota do lugar `l` cai em `2k + 0,5·l`;
+  `Ritmo.simples[l]`: uma a cada 4 tempos. Quando a ficha usa outro, ela diz.
+- **O movimento é julgado no cruzamento:** o toque é o quadro em que a
+  condição (a inclinação passou do limiar, o giro passou da velocidade, o
+  pico passou de 1,8 g) **fica verdadeira**, dentro da janela que abre meio
+  tempo antes da nota. Já verdadeira ao abrir: julga ali (adiantado).
+- **Sem giroscópio, o jogo segue** mais fraco (a gravidade, o analógico), e o
+  registro anota: `Forja.evento("entrada", l + 1, {"o": "sensores", "giro": ..., "acel": ...})`
+  uma vez por minigame, no `iniciar_jogo()`.
+- **A contagem, o pico, a barra de luz, o alto-falante, a `contagem` para a
+  prova e o R2 (do minigame; o L2 é do item):** como na
+  [seção A Centelha](I-a-centelha.md#as-convenções-da-seção).
 
-Os cinco jogam do aviso ao resultado com quatro, três, dois e um jogador e com o robô; a partida sorteada os inclui; e o André aprovou os cinco jogando.
+## A ordem
 
-## Provas
+1. **[J1](J1-a-viga.md)** primeiro: reescreve A Viga de hoje no ritmo, muda
+   a sala para `minigames/s02/` e cria o `secao.gd`.
+2. **J2 a J5** em qualquer ordem, uma por sessão.
 
-- **Na sessão:** `bash tests/prova_do_jogo.sh`
-- **Com o André, local:** `scripts/gauntlet.sh` e `bash tests/prova_de_poucos.sh`; jogar os cinco com gente
+## Os cinco
+
+| ficha | slot | gênero | verbo | o que o corpo faz | tamanho | estimativa |
+| --- | --- | --- | --- | --- | --- | --- |
+| [J1 — A Viga](J1-a-viga.md) | S02_J06 | sobrevivência | "Equilibre!" | **inclina** contra o empurrão, na nota (rolagem, arfagem, volante), e crava o pino com uma pancada | G | 2,0 |
+| [J2 — Pêndulos do Caos](J2-pendulos-do-caos.md) | S02_J07 | sobrevivência | "Vire no alto!" | **vira num golpe** de pulso no alto do arco | M | 1,5 |
+| [J3 — Patinação de Dados](J3-patinacao-de-dados.md) | S02_J08 | corrida | "Deslize!" | **dirige** inclinando, e chega na nota no tempo | M | 1,5 |
+| [J4 — O Balão dos Foles](J4-o-balao-dos-foles.md) | S02_J09 | 2v2 | "Chacoalhe!" | **chacoalha** o controle, a dupla no tempo e no contratempo | M | 1,5 |
+| [J5 — Mira Óptica](J5-mira-optica.md) | S02_J10 | TcT | "Mire!" | **mira** girando o controle e dispara com o R2 na nota | M | 1,5 |
+
+## O que o registro mede
+
+Por baixo ([03](../03-os-45-minigames.md#s2--a-viga--giroscópio-e-acelerômetro)):
+a taxa e o ruído do giroscópio e do acelerômetro de cada controle, o ângulo
+pedido contra o ângulo feito, o atraso entre o pulso e o movimento. As
+medidas do núcleo e os vereditos `giroscopio` e `acelerometro` da bancada
+ficam **só** na J1, como hoje; os outros quatro gravam na linha `entrada` o
+que o movimento fez (o ângulo, a velocidade, o pico em g) e o kit grava o
+atraso (o `toque`).
+
+## Antes de começar: o que ainda falta na base
+
+- **O sorteio dentro da seção** e **o ícone**: os mesmos avisos do
+  [índice da seção A Centelha](I-a-centelha.md#antes-de-começar-o-que-ainda-falta-na-base).
+- **O robô fora do gancho:** o `secao.gd` não chama `Forja.robo_*` nem lê
+  `Forja.robo` (a checagem da F08 reprovaria); ele só faz a conta
+  (`giro_para`), e o `robo()` de cada minigame manda.
