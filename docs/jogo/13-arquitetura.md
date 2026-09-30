@@ -350,8 +350,10 @@ hoje não quebrarem. A partida, o salão e a música falam pelo apelido; o
 `main` usa o `sala_id` (o que foi pedido), não o `sala.id`. Cada seção em
 `SECOES` tem `apelido`; o catálogo tem `SALAS_ANTIGAS` e `NOMES_VELHOS`.
 
-Os eventos `minigame` e `desempenho` têm **um dono só: a `SalaJogo`**, com
-`colocacao()` que o `Minigame` sobrescreve pelo `vencedor()`.
+Os eventos `minigame` e `desempenho` têm **um dono só: a `SalaJogo`**. A
+colocação é a `var colocacao` da `SalaJogo` (F03), preenchida pelo
+`vencedor()`; o kit **não** declara uma `func colocacao()` (o nome
+colidiria).
 
 **Onde mora cada minigame:** `godot/scripts/minigames/sNN/<nome>.gd`. As
 nove salas de hoje se mudam para lá quando são reescritas (ficha da seção),
@@ -562,9 +564,10 @@ fim que é do próprio jogo (os medleys, o último em pé). E `duracao *
 ritmo_nivel` nunca passa de 120 s.
 
 **O custo, assumido:** 90 s de minigame são 90 s de verdade na prova. A prova
-rápida da sessão (`bash tests/prova_do_jogo.sh`) roda a partida de 3 e o
-minigame da ficha (`--sala=<slot>`); os 45 inteiros rodam no gauntlet e na
-prova visual, na máquina do André.
+rápida da sessão (`SALA=<slot> bash tests/prova_do_jogo.sh`) roda o percurso
+(que força o fim de cada minigame, para caber no tempo) e o minigame da ficha
+inteiro; os 45 inteiros rodam no gauntlet e na prova visual, na máquina do
+André.
 
 **Os eventos do jogo:**
 
@@ -592,12 +595,15 @@ func proxima_batida(l: int, desde: float, passo: float, desloc := 0.0) -> float 
 func casar_toque(l: int) -> int         # o n da nota em aberto mais perto do toque de agora (-1: nenhuma)
 func notas_perdidas(l: int) -> Array    # as que passaram de FOLGA_PERDIDA sem toque; chama nota_perdida
 func no_pico() -> bool                  # o terço do meio da duração
-func progresso() -> float               # 0..1 da duração
+func andamento() -> float               # 0..1 da duração (não `progresso`: esse já é a linha de texto do painel)
 ```
 
-**O ícone** da FICHA é o nome de um glifo de `godot/scripts/ui/glifo.gd`
-(`cross`, `giroscopio`, `touchpad`…), e o kit o copia para `SalaJogo.icone`.
-O molde lista os nomes.
+**O ícone** da FICHA é o nome da **parte do controle** (`botoes`,
+`analogicos`, `gatilhos`, `giroscopio`, `touchpad`, `vibracao`,
+`gatilho_adaptativo`, `alto_falante`, `haptica`, `microfone`). O kit traduz
+por `ICONE_DA_PARTE` para os desenhos de `godot/assets/glifos/` (que
+`Desenho.glifo` carrega) e copia para `SalaJogo.icone`. Os nomes de
+`ui/glifo.gd` são outros (`cruz`, `circulo`…) e não servem aqui.
 
 **A barra de luz reage no kit.** No `_reagir` do kit: o perfeito pisca branco
 por 0,15 s; o erro escurece a cor do lugar para 30% por 0,5 s. `Forja.piscar(l,
@@ -612,8 +618,8 @@ cor do lugar sempre volta.
   `#2fb3b3`) — longe do azul do P1 e do vermelho do P2. A cor da equipe vai
   no chão e na armadura, nunca na barra de luz. Os pontos da equipe vão para
   os dois da dupla, e a tela diz "A Brasa venceu!". Com 3 jogadores, o
-  terceiro entra como **o Aprendiz** na equipe que perdeu a rodada anterior;
-  com 1, joga contra o robô de treino (regra em [Q](tarefas/Q-a-prova.md)).
+  terceiro entra como **o Aprendiz**, pela tabela fixa de
+  [Q](tarefas/Q-a-prova.md); com 1, joga contra o robô de treino.
 - `coop` sai do gênero da FICHA; ninguém põe `coop = true` à mão.
 
 **As chaves opcionais novas da FICHA:**
@@ -631,6 +637,11 @@ sensações leves de um lado `"toque_esq": [0.4, 0.0, 80]` e
 `"toque_dir": [0.0, 0.4, 80]`, `Forja.som_virtual(l)` devolvendo também o
 nome do último som (para o robô ouvir a altura), e `Ritmo.calar(batidas)`
 (a música cala por N batidas e o relógio segue — o Zero Absoluto).
+
+**Os nomes do kit** (H08): `nova_nota(l, n, t_alvo, perigo)`, `julgar_nota`,
+`anotar(tipo, l, campos)` para os seis eventos do jogo, e
+`tempo_jogado()`, `tempo_acabou()`, `tempo_que_resta()` para o fim em tempo
+de música.
 
 **Na prova:** `_joga_o_minigame(slot, limite_s, a_cada_quadro)` em
 `godot/testes/prova_do_jogo.gd`, que abre o minigame por `--sala=<slot>`,
