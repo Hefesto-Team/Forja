@@ -546,6 +546,102 @@ As regras:
 9. **Nenhuma ficha visual fecha só com fotos.** Tela, arte, câmera, HUD e
    minigame só ficam **feito** depois da prova visual e da prancha olhada.
 
+## As decisões comuns dos minigames — H08
+
+Escritas depois das 45 fichas, para que todas falem a mesma língua. A
+[H08](tarefas/H08-os-acrescimos-do-kit.md) as constrói; toda ficha de
+minigame depende dela.
+
+**O fim conta em tempo de música.** Com faixa, a `duracao` da FICHA é medida
+em `Ritmo.t_musica()` desde o início do jogo valendo; sem faixa, pelo relógio
+de parede. Nunca em `t_fase` (tempo de jogo), que com `--fixed-fps 60` corre
+cerca de 16 vezes mais depressa e faria o minigame acabar antes do pico — o
+que fere a [paridade](#a-paridade-entre-a-prova-e-o-jogo--f08). Por isso
+**nenhum minigame usa `"duracao": 0.0` como remendo**: `0.0` só vale para o
+fim que é do próprio jogo (os medleys, o último em pé). E `duracao *
+ritmo_nivel` nunca passa de 120 s.
+
+**O custo, assumido:** 90 s de minigame são 90 s de verdade na prova. A prova
+rápida da sessão (`bash tests/prova_do_jogo.sh`) roda a partida de 3 e o
+minigame da ficha (`--sala=<slot>`); os 45 inteiros rodam no gauntlet e na
+prova visual, na máquina do André.
+
+**Os eventos do jogo:**
+
+| tipo | o que é |
+| --- | --- |
+| `entrada` | o que o jogador fez: o toque cru (já existe hoje, `godot/scripts/salas/centelha.gd:286`) |
+| `jogo` | o que o minigame fez no mundo: `slot`, `o` (o nome da coisa), valores |
+| `pista` | a pista que o minigame deu a um jogador, por qual canal (`haptica`, `alto_falante`, `rumble`, `tela`) |
+| `troca` | o minigame trocou de canal por falta de recurso: `de`, `para` (`giroscopio` → `analogico`, `haptica` → `rumble`, `microfone` → `sem_microfone`, `alto_falante` → `tv`) |
+| `voz` | o nível do microfone e o limiar, nos minigames de voz |
+| `estacao` | o trecho de um medley que começou ou acabou |
+
+**O sorteio dos 45.** `Catalogo.sortear(apelido: String, semente: int, vez: int) -> String`
+devolve o slot de um dos cinco da seção, sem repetir até os cinco saírem. A
+`Partida` guarda **slots**, não apelidos; `Partida.NA_ORDEM` inclui o Canto.
+O portão da seção no salão abre o próximo minigame da seção que ainda não se
+jogou na noite.
+
+**A fila de notas, no kit.** O que as 45 fichas repetiam vira do kit:
+
+```gdscript
+const BATIDA_DA_PRIMEIRA_NOTA := 4      # as quatro primeiras são a contagem de entrada
+const FOLGA_PERDIDA := 0.140            # depois disso, a nota passou
+func proxima_batida(l: int, desde: float, passo: float, desloc := 0.0) -> float   # o hoqueto: a vez do lugar
+func casar_toque(l: int) -> int         # o n da nota em aberto mais perto do toque de agora (-1: nenhuma)
+func notas_perdidas(l: int) -> Array    # as que passaram de FOLGA_PERDIDA sem toque; chama nota_perdida
+func no_pico() -> bool                  # o terço do meio da duração
+func progresso() -> float               # 0..1 da duração
+```
+
+**O ícone** da FICHA é o nome de um glifo de `godot/scripts/ui/glifo.gd`
+(`cross`, `giroscopio`, `touchpad`…), e o kit o copia para `SalaJogo.icone`.
+O molde lista os nomes.
+
+**A barra de luz reage no kit.** No `_reagir` do kit: o perfeito pisca branco
+por 0,15 s; o erro escurece a cor do lugar para 30% por 0,5 s. `Forja.piscar(l,
+cor, s)` (no máximo 0,5 s) e `Forja.luz(l, cor)` com piso de 30% de brilho. A
+cor do lugar sempre volta.
+
+**Coop e dupla no fechamento.**
+- Coop: o `vencedor` é −1 (todos venceram ou todos perderam), e a prova
+  aceita −1 quando o gênero é `coop`. O destaque (quem jogou melhor) sai de
+  `destaque() -> int`. A tela diz "Todos venceram!" ou "A forja apagou.".
+- 2v2: as equipes são **A Brasa** (âmbar `#e8a33c`) e **A Maré** (turquesa
+  `#2fb3b3`) — longe do azul do P1 e do vermelho do P2. A cor da equipe vai
+  no chão e na armadura, nunca na barra de luz. Os pontos da equipe vão para
+  os dois da dupla, e a tela diz "A Brasa venceu!". Com 3 jogadores, o
+  terceiro entra como **o Aprendiz** na equipe que perdeu a rodada anterior;
+  com 1, joga contra o robô de treino (regra em [Q](tarefas/Q-a-prova.md)).
+- `coop` sai do gênero da FICHA; ninguém põe `coop = true` à mão.
+
+**As chaves opcionais novas da FICHA:**
+
+| chave | o que é | sem ela |
+| --- | --- | --- |
+| `nota_no_falante` | `false`: o kit não toca a nota do perfeito no alto-falante (quando o alto-falante é a pista) | toca |
+| `textura_no_acerto` | `false`: o kit não toca a textura na háptica no acerto (quando a háptica é a pista) | toca |
+| `papel_som` | o papel de som que o minigame abre (`Forja.PAPEL_*`) | o alto-falante |
+
+**O que mais o kit aplica:** `Itens.pontos_do_acerto` no `julgar_toque`
+(nenhuma ficha aplica de novo). **O que mais o `Forja` ganha:**
+`Forja.textura(l, material)` (só a háptica, sem o alto-falante), as
+sensações leves de um lado `"toque_esq": [0.4, 0.0, 80]` e
+`"toque_dir": [0.0, 0.4, 80]`, `Forja.som_virtual(l)` devolvendo também o
+nome do último som (para o robô ouvir a altura), e `Ritmo.calar(batidas)`
+(a música cala por N batidas e o relógio segue — o Zero Absoluto).
+
+**Na prova:** `_joga_o_minigame(slot, limite_s, a_cada_quadro)` em
+`godot/testes/prova_do_jogo.gd`, que abre o minigame por `--sala=<slot>`,
+espera pelo relógio de parede e chama a checagem a cada quadro. O n.º1 de
+cada seção sobrescreve `dar_vereditos` e `pergunta` para a bancada (o molde
+diz como).
+
+**A medir na bancada** (valores provisórios nas fichas da S08):
+`LATENCIA_MIC` 0,08 s, `LATENCIA_FIM` 0,12 s, `MARGEM_AR` 0,12 s, e se a
+háptica chega com o papel de som do microfone aberto.
+
 ## Os limites conhecidos
 
 - **O toque tem a resolução do quadro** (16,7 ms a 60 fps). O SDL já guarda o
