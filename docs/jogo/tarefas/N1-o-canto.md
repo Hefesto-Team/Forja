@@ -54,7 +54,7 @@ const FICHA := {
 	"titulo": "O Canto",
 	"verbo": "Repita!",
 	"genero": "tct",
-	"icone": "alto-falante",
+	"icone": "alto_falante",
 	"entradas": [Forja.CRUZ, Forja.CIRCULO],
 	"camera": "fixa",
 	"faixa": "MUS_S06_J26",
@@ -111,7 +111,7 @@ com `nova_nota(l, n, t)`.
 
 **A chamada toca** no tempo de cada nota (`Ritmo.t_musica() >= Ritmo.t_da_batida(b)`):
 `var foi := CenarioDoCanto.falante(self, l, SOM[altura], 0.9)` e
-`Forja.evento("pista", l + 1, {"slot": id, "n": <n da resposta>, "evento": "mandou", "via": "alto_falante" if foi else "tv", "o_que": SOM[altura], "no_controle": foi})`.
+`anotar("pista", l, {"n": <n da resposta>, "evento": "mandou", "canal": "alto_falante", "o_que": SOM[altura], "no_controle": foi})`.
 Na tela, o sino pequeno do lugar balança na vez dele (`CenarioDoCanto.balancar`
 com força 1 durante a batida), igual para as duas alturas.
 
@@ -472,12 +472,10 @@ que ainda não existirem): `"Repita!": "Repeat!"`, `"Grave": "Low"`,
 ## O que o registro mede
 
 - `som_controle` (H07) de cada chamada: `seq`, `som`, `placa`.
-- `pista` (`via` `alto_falante`) (n da resposta, som, `no_controle`) e o `toque` do kit
+- `pista` (`canal` `alto_falante`) (n da resposta, som, `no_controle`) e o `toque` do kit
   com o mesmo `n`: a chamada que não chegou vira resposta errada ou nenhuma.
 - Na bancada, a `pergunta` (`"canto"`), a `resposta` de hoje e o veredito
   `alto_falante`.
-- **O tipo `jogo` na tabela do 13:** se ainda não estiver lá, acrescente a
-  linha (o texto está na [L1](L1-o-cerco.md#o-que-o-registro-mede)).
 
 ## Armadilhas
 
@@ -487,7 +485,7 @@ que ainda não existirem): `"Repita!": "Repeat!"`, `"Grave": "Low"`,
   kit, e a próxima chamada do mesmo lugar vem pelo menos quatro batidas
   depois — não há colisão de chamada com resposta.
 - **A saída silenciosa:** sem alto-falante, a chamada vai para a TV e o
-  `pista` (`via` `alto_falante`) diz `no_controle: false`; o jogo não trava nem pula o lugar.
+  `pista` (`canal` `alto_falante`) diz `no_controle: false`; o jogo não trava nem pula o lugar.
 - **O `_init` com `super()` na primeira linha** (H04: sem ele, a FICHA não é lida).
 - **Sem faixa, o compasso é o sino:** o `tempo_forte()` toca em todo
   compasso; não o desligue quando a faixa chegar.

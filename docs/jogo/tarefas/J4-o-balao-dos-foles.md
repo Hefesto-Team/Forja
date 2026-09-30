@@ -65,7 +65,7 @@ const FICHA := {
 - **Os pontos são da dupla:** cada acerto marca os pontos nos dois da dupla
   (`[0, 20, 35, 50]` por julgamento; o sopro duplo +30 nos dois). Assim o
   fechamento põe a dupla junta na colocação.
-- **A progressão:** `progresso()` do kit (em tempo de música, H08). De 0 a 1/3, normal. **O pico (1/3
+- **A progressão:** `andamento()` do kit (em tempo de música, H08). De 0 a 1/3, normal. **O pico (1/3
   a 2/3), a corrente de ar:** cada acerto vale 1,5 vez, e as nuvens se abrem
   (a luz sobe). De 2/3 em diante, normal. Uma dupla que acerta tudo chega
   às nuvens entre 55 s (128 bpm) e 80 s (96 bpm).
@@ -163,7 +163,7 @@ const SECAO := preload("res://scripts/minigames/s02/secao.gd")
 
 # (a FICHA vem aqui)
 
-const COR_DA_DUPLA := [Color("#e8a33c"), Color("#2fb3b3")]  ## a Brasa e a Maré (13, H08)
+const COR_DA_DUPLA := CORES_DAS_EQUIPES  ## a Brasa e a Maré (o kit, H08)
 const ACERTO_APRENDIZ := 0.8  ## a regra do Aprendiz (Q-a-prova.md)
 const X_DA_DUPLA := [-4.0, 4.0]
 const Z_BALAO := 3.8
@@ -177,7 +177,6 @@ const SOLTA := 1.3
 
 var j := {}
 var dupla := [[], []]  ## os lugares da Brasa e da Maré
-var aprendiz := [0, 0]  ## quantas partes da dupla o Aprendiz faz (0, 1 ou 2)
 var _aprendiz_b := -1.0  ## a última batida em que os Aprendizes sopraram
 var altura := [0.0, 0.0]
 var chegou := -1  ## a dupla que chegou às nuvens (-1: nenhuma)
@@ -192,15 +191,10 @@ func montar() -> void:
 	camera_pos = Vector3(0, 5.0, 17.0)
 	camera_olhar = Vector3(0, 4.4, 1.0)
 	SECAO.montar(self)
-	var lugares: Array = []
-	for p in jogadores:
-		lugares.append(p.lugar)
-	lugares.sort()
-	for i in lugares.size():
-		var d := (0 if i < 2 else 1) if lugares.size() >= 3 else (0 if i == 0 else 1)
-		dupla[d].append(lugares[i])
-	for d in 2:
-		aprendiz[d] = 2 - dupla[d].size()  # o boneco do Aprendiz entra no cesto, no lugar de quem falta
+	# as equipes são do kit (montar_equipes, H08: a regra de Q): a dupla d é a
+	# equipe d, e aprendizes[d] diz quantas partes o Aprendiz faz nela (o boneco
+	# dele entra no cesto, no lugar de quem falta)
+	dupla = [da_equipe(BRASA), da_equipe(MARE)]
 	var madeira := Kit.material(Color("#8a5a33"), 0.0, 0.85)
 	var corda := Kit.material(Color("#c8b89a"), 0.0, 0.9)
 	for d in 2:
@@ -325,16 +319,15 @@ func _nota(l: int, e: Dictionary, agora: float) -> void:
 	e.antes = sim
 	if cruzou:
 		e.armado = false
-		Forja.evento("entrada", l + 1, {"o": "acelerometro", "pico_g": snappedf(float(e.pico), 0.01), "n": int(e.n)})
+		anotar("entrada", l, {"o": "acelerometro", "pico_g": snappedf(float(e.pico), 0.01), "n": int(e.n)})
 		julgar_toque(l, alvo, int(e.n))
 	elif agora > alvo + FOLGA_PERDIDA:
 		nota_perdida(l, int(e.n))
 
 
-## Os pontos vão para os dois da dupla (o fechamento põe a dupla junta).
+## Os pontos vão para os dois da dupla (o fechamento põe a dupla junta): o kit.
 func _marcar_dupla(d: int, n: int) -> void:
-	for o in dupla[d]:
-		marcar(o, n)
+	marcar_equipe(d, n)
 
 
 func toque(l: int, julgamento: int) -> void:
@@ -400,7 +393,7 @@ func _aprendizes_sopram() -> void:
 	_aprendiz_b = b
 	var contra := int(b) % 2 == 1
 	for d in 2:
-		if aprendiz[d] == 0 or (aprendiz[d] == 1 and not contra):
+		if aprendizes[d] == 0 or (aprendizes[d] == 1 and not contra):
 			continue
 		_ok_no_compasso["%d:%d" % [d, int(b / 4.0)]] = false
 		if not treinando and chegou < 0 and rng.randf() < ACERTO_APRENDIZ:
@@ -474,7 +467,7 @@ func status(lugar: int) -> String:
   se alguém cai no meio (ele volta para a mesma dupla).
 - **O pico, não o valor:** a sacudida é cruzar 1,8 g vindo de menos de 1,3 g
   (`armado`); segurar o controle chacoalhando não conta duas vezes.
-- **Os pontos da dupla** vão para os dois (`_marcar_dupla`): é o que faz o
+- **Os pontos da dupla** vão para os dois (`_marcar_dupla`, o `marcar_equipe` do kit): é o que faz o
   fechamento (a F03) e a partida porem a dupla junta.
 - **O sopro duplo** fecha pelo compasso da nota, como o acorde d'O Fole.
 - **`_mostrar()` roda também no `montar()`**, para o aviso já mostrar os
@@ -503,7 +496,7 @@ func _prova_do_balao() -> void:
 	var mg = await _joga_o_minigame("S02_J09", 130.0)
 	if mg == null:
 		return
-	_esperar(mg.dupla == [[0, 1], [2, 3]] and mg.aprendiz == [0, 0], "S02_J09: as duplas pela ordem dos lugares, sem Aprendiz com quatro (%s)" % [mg.dupla])
+	_esperar(mg.dupla == [[0, 1], [2, 3]] and mg.aprendizes == [0, 0], "S02_J09: as duplas pela ordem dos lugares, sem Aprendiz com quatro (%s)" % [mg.dupla])
 	_esperar(mg.altura[0] > 0.0 and mg.altura[1] > 0.0, "S02_J09: os dois balões subiram (%s)" % [mg.altura])
 	var v: Array = mg.vencedor()
 	_esperar(int(mg.j[v[0]].dupla) == int(mg.j[v[1]].dupla), "S02_J09: a dupla vencedora vem junta (%s)" % [v])

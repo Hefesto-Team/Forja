@@ -11,7 +11,7 @@ lança. A pedra só voa se os dois fazem a parte no tempo. O verbo do gatilho
 aqui é **carregar e passar adiante**; cada dupla sente o mesmo lançamento
 em dois gatilhos diferentes.
 
-**Adaptado do [03](../03-os-45-minigames.md#s5--a-galeria--gatilho-adaptativo-e-luzinhas-de-jogador):**
+**Como no [03](../03-os-45-minigames.md#s5--a-galeria--gatilho-adaptativo-e-luzinhas-de-jogador):**
 a munição (as pedras) está no monte ao lado da catapulta e no peso do
 gatilho; a equipe (**A Brasa**, âmbar, e **A Maré**, turquesa: H08) está no
 chão, na armadura, no castelo e na bandeira, nunca na barra de luz nem nas
@@ -59,7 +59,7 @@ const FICHA := {
 	"titulo": "A Catapulta",
 	"verbo": "Carregue e lance!",
 	"genero": "2v2",
-	"icone": "r2",
+	"icone": "gatilho_adaptativo",
 	"entradas": [],
 	"camera": "fixa",
 	"faixa": "MUS_S05_J25",
@@ -127,11 +127,11 @@ contrapeso vale `CONTRAPESO` em cada uma das duas dele), no castelo da
 outra dupla, quando a pedra cai — em `b0 + T[3] + 1,5` (o arco do voo, pela
 batida). Castelo em 0 → todos `acabou`.
 
-**Os pontos** de cada um: `marcar(l, PONTOS[julgamento])` (o item, `Itens.pontos_do_acerto`, o kit já aplica no `julgar_toque`: H08).
+**Os pontos** vão para os dois da dupla: `marcar_equipe(equipe[l], PONTOS[julgamento])` (o kit, H08, que também aplica o item).
 
 Cada aperto e soltura gravam o `entrada` `disparo` (modo `"resistencia"` do
 puxador ou `"arma"` do travador, curso, curso máximo); cada lançamento grava
-`Forja.evento("jogo", 0, {"slot": id, "o": "lancamento", "dupla": d, "dano": dano})`.
+`anotar("jogo", -1, {"o": "lancamento", "dupla": d, "dano": dano})`.
 
 ## O cenário
 
@@ -320,7 +320,7 @@ func jogar(_dt: float) -> void:
 
 func toque(l: int, julgamento: int) -> void:
 	var nt: Dictionary = _ultima[l]
-	marcar(l, PONTOS[julgamento])  # o item, o kit já aplicou (H08)
+	marcar_equipe(equipe[l], PONTOS[julgamento])  # os dois da dupla; o item, o kit aplica (H08)
 	_somar_no_lancamento(l, nt, DANO[julgamento])
 	match nt.tipo:
 		"puxa":

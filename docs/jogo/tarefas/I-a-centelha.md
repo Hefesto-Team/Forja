@@ -44,7 +44,7 @@ Valem para os cinco; cada ficha já as traz escritas no código dela.
   (H08): `proxima_batida`, `casar_toque`, `notas_perdidas`, `FOLGA_PERDIDA`;
   nenhuma ficha as reescreve.
 - **O pico no meio:** `no_pico()` do kit (o terço do meio da duração, em
-  tempo de música; `progresso()` dá o 0..1).
+  tempo de música; `andamento()` dá o 0..1).
 - **O fim em tempo de música** (H08): a `duracao` da FICHA conta em
   `Ritmo.t_musica()`; nenhuma ficha usa `"duracao": 0.0` como remendo.
 - **A barra de luz:** o kit pisca branco no perfeito e escurece no erro
@@ -91,6 +91,7 @@ A Centelha de hoje já grava, `godot/scripts/salas/centelha.gd:286`).
 - **O sorteio dentro da seção** é da H08: `Catalogo.sortear(apelido,
   semente, vez)` devolve um dos cinco sem repetir, e a partida guarda slots.
   Nenhuma ficha mexe no catálogo além de pôr o seu slot nele.
-- **O ícone.** A `FICHA.icone` é o nome de um glifo que `Desenho.glifo`
-  acha (`godot/assets/glifos/`: `cross`, `stick_l`, `r2`…; a F02 confere), e
-  o kit o copia para `SalaJogo.icone` (H08).
+- **O ícone.** A `FICHA.icone` é o nome da parte do controle (`botoes`,
+  `analogicos`, `gatilhos`…), que o kit traduz para o glifo de
+  `godot/assets/glifos/` (`Minigame.ICONE_DA_PARTE`, H08) e copia para
+  `SalaJogo.icone`; a F02 confere.

@@ -23,7 +23,7 @@ const FICHA := {
 	"titulo": "Portões de Néon",
 	"verbo": "Passe!",
 	"genero": "corrida",
-	"icone": "cross",
+	"icone": "botoes",
 	"entradas": [Forja.CRUZ],
 	"camera": "fixa",
 	"faixa": "MUS_S01_J03",
@@ -52,7 +52,7 @@ const FICHA := {
 - **Os portões passados** são a distância; a meta: **40 portões**.
 - **Os pontos por julgamento** (ERRO, BOM, ÓTIMO, PERFEITO): `[0, 20, 35, 50]`;
   o primeiro a chegar +300, o segundo +200, o terceiro +100.
-- **A progressão:** `progresso()` do kit (em tempo de música, H08). De 0 a 1/3, um portão por
+- **A progressão:** `andamento()` do kit (em tempo de música, H08). De 0 a 1/3, um portão por
   compasso. **O pico (1/3 a 2/3), a perseguição:** dois portões por
   compasso, nas colcheias do hoqueto (`4c + 0,5·l` e `4c + 2 + 0,5·l`), e o
   néon do túnel pisca no tempo. De 2/3 em diante, um por compasso. Quantos
@@ -202,11 +202,11 @@ func _proxima_batida(l: int, b: float) -> float:
 	var passo := 4.0
 	var desloc := float(l)
 	if Ritmo.simples[l]:
-		passo = 8.0
+		passo = 4.0  # o kit dobra o passo na partitura simples
 	elif no_pico():
 		passo = 2.0
 		desloc = 0.5 * l
-	return proxima_batida(l, b + 0.001, passo, desloc)  # o kit; estritamente depois de b
+	return proxima_batida(l, b, passo, desloc)  # o kit (H08): a próxima depois de b
 
 
 ## Enche a fila do lugar até N_PORTOES batidas, a partir de `desde`; a

@@ -56,7 +56,7 @@ Os cinco verbos: chamar, soprar e parar, calar, gritar, bater palmas.
 ## O que o registro mede
 
 - o nível do microfone de cada controle a cada voz (`voz`: `comecou`/`parou`,
-  o pico, o piso) e a resposta dela ao tempo pedido (`nota`, `toque`);
+  o pico, o limiar) e a resposta dela ao tempo pedido (`nota`, `toque`);
 - o botão de mudo (as medidas do núcleo, `botoes_medidos`) e a luz do mudo
   mandada (`saida`, `o` = `led_microfone`, com `seq` e `ok`);
 - a `troca` `de` `microfone` `para` `sem_microfone` (motivo `sem_microfone`,

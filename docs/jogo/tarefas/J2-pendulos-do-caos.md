@@ -60,7 +60,7 @@ const FICHA := {
   (`Forja.sentir(lider, "aviso", ms)`); não muda janela nenhuma.
 - **Os pontos por julgamento** (ERRO, BOM, ÓTIMO, PERFEITO): `[0, 20, 35, 50]`;
   o fantasma ganha 10 por sopro (desempate entre fantasmas).
-- **A progressão:** `progresso()` do kit (em tempo de música, H08). De 0 a 1/3, o balanço de 4
+- **A progressão:** `andamento()` do kit (em tempo de música, H08). De 0 a 1/3, o balanço de 4
   tempos. **O pico (1/3 a 2/3), o bolero cresce:** o balanço de 2 tempos
   (`φ = A · cos(π · (batida − 0,25·l))`, um ápice por tempo, em `k + 0,25·l`)
   e `A = 0,75`. De 2/3 em diante, 4 tempos de novo. `Ritmo.simples[l]`: o
@@ -317,7 +317,7 @@ func _nota(l: int, e: Dictionary, agora: float) -> void:
 	e.aberta = true
 	e.antes = sim
 	if cruzou:
-		Forja.evento("entrada", l + 1, {"o": "giro", "pedido": int(e.pedido), "pico": snappedf(float(e.pico), 0.1),
+		anotar("entrada", l, {"o": "giro", "pedido": int(e.pedido), "pico": snappedf(float(e.pico), 0.1),
 			"limiar": limiar, "n": int(e.n)})
 		julgar_toque(l, alvo, int(e.n), true)
 	elif agora > alvo + FOLGA_PERDIDA:

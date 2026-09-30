@@ -1,6 +1,6 @@
 # P2 — O Sopro no Fole
 
-**Sprint:** P · **Slot:** S08_J37 · **Tamanho:** M · **Modelo:** Sonnet · **Estimativa:** US$ 1,5 · **Depende de:** H04, F09, H07, P1
+**Sprint:** P · **Slot:** S08_J37 · **Tamanho:** M · **Modelo:** Sonnet · **Estimativa:** US$ 1,5 · **Depende de:** H04, H08, F09, H07, P1
 
 ## Por quê
 
@@ -22,7 +22,7 @@ const FICHA := {
 	"titulo": "O Sopro no Fole",
 	"verbo": "Sopre e pare!",
 	"genero": "tct",
-	"icone": "mic",
+	"icone": "microfone",
 	"entradas": [],
 	"camera": "fixa",
 	"faixa": "MUS_S08_J37",
@@ -328,7 +328,8 @@ Catálogo: `"S08_J37"` em `MINIGAMES` e na seção `S08`. Traduções:
   silêncio (`_ignorar_ate_calar`), senão o fim dela julga a nota seguinte.
 - **O hoqueto sem encostar.** Meia batida entre uma nota e a do próximo; não
   encurte, é o que impede o vizinho de "parar" a sua nota.
-- **Na prova o pico não chega** (o fim é pelo `duracao`, em tempo de jogo).
+- **Na prova o pico chega:** o fim conta em tempo de música (H08), e a
+  `duracao` inteira roda na prova, pelo relógio de parede.
 
 ## Pronto quando
 

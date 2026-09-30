@@ -92,7 +92,7 @@ const FICHA := {
   da plataforma 8 tempos depois. As notas enquanto ele está fora não contam.
 - **Os pontos por julgamento** (ERRO, BOM, ÓTIMO, PERFEITO): `[0, 20, 35, 50]`;
   o pino vale o dobro.
-- **A progressão:** `progresso()` do kit (0..1 dos 80 s de música). De 0 a 1/3, uma nota
+- **A progressão:** `andamento()` do kit (0..1 dos 80 s de música). De 0 a 1/3, uma nota
   a cada 2 tempos. **O pico (1/3 a 2/3), a viga torce:** uma nota por tempo
   (`k + 0,25·l`); a lava sobe de brilho. De 2/3 em diante, a cada 2 tempos.
   `Ritmo.simples[l]`: uma a cada 4 tempos.
@@ -180,15 +180,16 @@ static func giro_para(l: int, rol: float, arf: float, gui := 0.0) -> Vector3:
 	return Vector3(clampf(20.0 * (arf - p.y), -6.0, 6.0), gui, clampf(20.0 * (-rol - p.x), -6.0, 6.0))
 
 
-## Sem giroscópio ou sem acelerômetro, o jogo segue pelas saídas silenciosas;
-## a linha `troca` (13, H08) diz para onde, uma vez por minigame, no iniciar_jogo().
-static func anotar_troca(sala: SalaJogo, l: int) -> void:
+## Os sensores do lugar, uma vez por minigame, no iniciar_jogo(): a linha
+## `entrada` `sensores` (o molde); sem giroscópio, o jogo segue pelas saídas
+## silenciosas (a gravidade, o analógico) e a linha `troca` diz a troca do 13
+## (`giroscopio` → `analogico`, H08).
+static func anotar_troca(sala: Minigame, l: int) -> void:
 	var giro := Forja.capacidade(l, "giro")
 	var acel := Forja.capacidade(l, "acel")
+	sala.anotar("entrada", l, {"o": "sensores", "giro": giro, "acel": acel})
 	if not giro:
-		Forja.evento("troca", l + 1, {"slot": sala.id, "de": "giroscopio", "para": "gravidade" if acel else "analogico"})
-	if not acel:
-		Forja.evento("troca", l + 1, {"slot": sala.id, "de": "acelerometro", "para": "botao"})
+		sala.anotar("troca", l, {"de": "giroscopio", "para": "analogico", "gravidade": acel})
 ```
 
 (Os dois trechos marcados com "o corpo de" e "o código de" são cópia literal
@@ -372,11 +373,11 @@ func _proxima(l: int, desde: float) -> void:
 	var passo := 2.0
 	var desloc := 0.5 * l
 	if Ritmo.simples[l]:
-		passo = 4.0
+		passo = 2.0  # o kit dobra o passo na partitura simples
 	elif no_pico():
 		passo = 1.0
 		desloc = 0.25 * l
-	var s := proxima_batida(l, desde + 0.001, passo, desloc)  # o kit; estritamente depois de desde
+	var s := proxima_batida(l, desde, passo, desloc)  # o kit (H08): a próxima depois de desde
 	var pino := BATIDA_DA_PRIMEIRA_NOTA + FRASE * ceilf((desde + 0.001 - BATIDA_DA_PRIMEIRA_NOTA) / FRASE)
 	if pino > BATIDA_DA_PRIMEIRA_NOTA and pino <= s:
 		e.b = pino
@@ -467,7 +468,7 @@ func _nota(l: int, e: Dictionary, agora: float) -> void:
 			e.g_armado = false
 			if Forja.capacidade(l, "acel"):
 				Forja.med_martelada(l)
-		Forja.evento("entrada", l + 1, {"o": str(e.tipo), "pedido": int(e.pedido),
+		anotar("entrada", l, {"o": str(e.tipo), "pedido": int(e.pedido),
 			"valor": snappedf(_valor(l, e), 0.01), "n": int(e.n)})
 		julgar_toque(l, alvo, int(e.n), true)
 	elif agora > alvo + FOLGA_PERDIDA:

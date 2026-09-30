@@ -29,7 +29,7 @@ const FICHA := {
 	"titulo": "A Voz",
 	"verbo": "Chame a forja!",
 	"genero": "coop",
-	"icone": "mic",
+	"icone": "microfone",
 	"entradas": [Forja.MICROFONE],
 	"camera": "fixa",
 	"faixa": "MUS_S08_J36",
@@ -130,11 +130,11 @@ func _ouvir(dt: float) -> void:
 		if agora and not _falando[l]:
 			_falando[l] = true
 			_pico_voz[l] = _nivel[l]
-			Forja.evento("voz", l + 1, {"slot": id, "evento": "comecou", "nivel": snappedf(_nivel[l], 0.01), "piso": snappedf(_piso[l], 0.01)})
+			anotar("voz", l, {"evento": "comecou", "nivel": snappedf(_nivel[l], 0.01), "limiar": snappedf(_piso[l] + VOZ_ACIMA, 0.01)})
 			_comecou(l)
 		elif not agora and _falando[l]:
 			_falando[l] = false
-			Forja.evento("voz", l + 1, {"slot": id, "evento": "parou", "nivel": snappedf(_pico_voz[l], 0.01), "piso": snappedf(_piso[l], 0.01)})
+			anotar("voz", l, {"evento": "parou", "nivel": snappedf(_pico_voz[l], 0.01), "limiar": snappedf(_piso[l] + VOZ_FICA, 0.01)})
 			_parou(l)
 ```
 
@@ -465,7 +465,7 @@ mais. `status(l)`: `"%d pontos" % pontos[l]`; `progresso()`: `""`.
 
 ## O que o registro mede
 
-- `voz` de cada começo e fim de voz (`nivel`, `piso`) — o nível do microfone
+- `voz` de cada começo e fim de voz (`nivel`, `limiar`) — o nível do microfone
   de cada controle, a noite inteira;
 - `nota` e `toque` de cada chamado, sopro e do mudo do susto (o desvio da voz
   no tempo pedido);
@@ -474,7 +474,7 @@ mais. `status(l)`: `"%d pontos" % pontos[l]`; `progresso()`: `""`.
 
 A linha `voz` é a do [13](../13-arquitetura.md#as-decisões-comuns-dos-minigames--h08)
 (H08): `slot`, `evento` (`comecou`/`parou`), `nivel` (no começo; o pico no
-`parou`) e o `piso` (o limiar).
+`parou`) e o `limiar` (o piso mais `VOZ_ACIMA` no começo, mais `VOZ_FICA` no fim).
 
 ## Armadilhas
 

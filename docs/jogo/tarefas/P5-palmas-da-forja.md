@@ -1,6 +1,6 @@
 # P5 — Palmas da Forja
 
-**Sprint:** P · **Slot:** S08_J40 · **Tamanho:** M · **Modelo:** Sonnet · **Estimativa:** US$ 1,5 · **Depende de:** H04, F09, H07, P1
+**Sprint:** P · **Slot:** S08_J40 · **Tamanho:** M · **Modelo:** Sonnet · **Estimativa:** US$ 1,5 · **Depende de:** H04, H08, F09, H07, P1
 
 ## Por quê
 
@@ -24,7 +24,7 @@ const FICHA := {
 	"titulo": "Palmas da Forja",
 	"verbo": "Bata palmas!",
 	"genero": "coop",
-	"icone": "mic",
+	"icone": "microfone",
 	"entradas": [],
 	"camera": "fixa",
 	"faixa": "MUS_S08_J40",
@@ -136,12 +136,12 @@ nada (é coletivo).
 
 ## O fim e o vencedor
 
-O kit fecha no `duracao` (90 s). `coop = true` no `montar()`;
+O kit fecha no `duracao` (90 s de música, H08). O `coop` vem do gênero da FICHA;
 `coop_venceu = _espada >= _meta` (posto a cada golpe, e ele fica). Na
 primeira vez em que a meta chega, a espada lendária acende (faíscas
 `Color("#ffb070")`, `Som.tocar("sucesso")`, o ferreiro `emote-yes`) e a festa
-continua até o fim. `vencedor()`: o destaque — mais palmas julgadas sem erro
-(`_palmas[l]`), depois pontos.
+continua até o fim. O registro grava `vencedor` −1 (coop); `destaque()`: mais
+palmas julgadas sem erro (`_palmas[l]`), depois pontos.
 
 ## Com menos de quatro
 
@@ -217,7 +217,6 @@ var _robo_mira := [0.0, 0.0, 0.0, 0.0]
 
 
 func montar() -> void:
-	coop = true
 	camera_pos = Vector3(0, 5.8, 10.6)
 	camera_olhar = Vector3(0, 1.2, -1.8)
 	# a ferraria, o ferreiro, a bigorna e a espada; cada raia; gatilhos_off
@@ -263,10 +262,11 @@ func falha(l: int) -> void:
 	jogador(l).gesto("emote-no", 0.2)
 
 
-func vencedor() -> Array:
+## Coop: o kit grava vencedor −1 (H08); o destaque é quem cravou mais palmas.
+func destaque() -> int:
 	var lista := presentes()
 	lista.sort_custom(func(a, b): return _palmas[a] > _palmas[b] or (_palmas[a] == _palmas[b] and pontos[a] > pontos[b]))
-	return lista
+	return int(lista[0]) if not lista.is_empty() else -1
 ```
 
 `_planejar()`: para cada frase `k` até o `duracao`, as batidas `f0 + 4c + 1`
@@ -319,7 +319,8 @@ Catálogo: `"S08_J40"` em `MINIGAMES` e na seção `S08`. Traduções:
   vizinha.
 - **O nível desce rápido** depois da palma: o ouvido vê o fim logo; não use
   o fim para nada.
-- **Na prova o pico não chega** (o fim é pelo `duracao`).
+- **Na prova o pico chega:** o fim conta em tempo de música (H08), e a
+  `duracao` inteira roda na prova, pelo relógio de parede.
 
 ## Pronto quando
 

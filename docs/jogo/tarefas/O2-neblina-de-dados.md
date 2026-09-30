@@ -1,6 +1,6 @@
 # O2 — Neblina de Dados
 
-**Sprint:** O · **Slot:** S07_J32 · **Tamanho:** M · **Modelo:** Sonnet · **Estimativa:** US$ 1,5 · **Depende de:** H04, F09, H07, O1
+**Sprint:** O · **Slot:** S07_J32 · **Tamanho:** M · **Modelo:** Sonnet · **Estimativa:** US$ 1,5 · **Depende de:** H04, H08, F09, H07, O1
 
 ## Por quê
 
@@ -23,7 +23,7 @@ const FICHA := {
 	"titulo": "Neblina de Dados",
 	"verbo": "Salte no firme!",
 	"genero": "terror",
-	"icone": "rumble_direito",
+	"icone": "haptica",
 	"entradas": [Forja.CRUZ],
 	"camera": "fixa",
 	"faixa": "MUS_S07_J32",
@@ -111,7 +111,7 @@ A faixa é `MUS_S07_J32`, 100 bpm (uma batida = 0,6 s). `BATIDA_DA_PRIMEIRA_NOTA
 | --- | --- | --- |
 | **háptica (protagonista)** | `material:pedra` nos dois atuadores: há chão | meio tempo antes de cada batida firme (no pico, um quarto) |
 | háptica por material | o pouso: o kit toca `material:areia` (o acerto) | no toque |
-| barra de luz | a cor do lugar a 30%: `Forja.luz(l, Forja.cor_do_lugar(l).darkened(0.7))` no `iniciar_jogo()` (o kit devolve a luz do lugar no fim) | o jogo inteiro |
+| barra de luz | a cor do lugar a 30%: `Forja.luz(l, Forja.cor_do_lugar(l).darkened(0.7))` no `iniciar_jogo()` e de novo 0,5 s depois de cada piscar do kit (H08: o `_reagir` volta à cor do lugar) (o kit devolve a luz do lugar no fim) | o jogo inteiro |
 | alto-falante do dono | a nota dele (kit); `Forja.som_falante(l, "coleta", 0.7)` em cada marco; `Forja.som_falante(l, "nota_quebrada:%d" % l, 0.7)` na queda | no pouso, no marco, na queda |
 | vibração | o kit (acerto, erro); a queda: `Forja.sentir(l, "golpe")` | na queda |
 | gatilho | nada a segurar: `Forja.gatilhos_off(l)` | — |
@@ -207,8 +207,8 @@ extends Minigame
 ##
 ## A falha: some no escuro e volta ao último marco. O vencedor: o primeiro no
 ## portão. O alto-falante do dono: a coleta em cada marco, a nota quebrada na
-## queda. O registro mede: cada pedra mandada (pista, via), o salto depois
-## dela (pista respondeu) e o salto na neblina. O robô: sente a pedra na
+## queda. O registro mede: cada pedra mandada (pista, com o canal), o salto depois
+## dela (a entrada resposta) e o salto na neblina. O robô: sente a pedra na
 ## placa virtual. Com menos de quatro: nada muda. A régua: a tela não mostra o
 ## caminho; sem o controle não se joga — é a seção dele.
 
@@ -312,7 +312,7 @@ Catálogo: `"S07_J32"` em `MINIGAMES` e na lista da seção `S07`, depois do
 
 ## O que o registro mede
 
-- `pista` `mandou` de cada pedra (`o_que` `firme`, `via`) e `respondeu`
+- `pista` `mandou` de cada pedra (`o_que` `firme`, `canal`) e a `entrada` `resposta`
   (`certo` no salto julgado, `nenhuma` na pedra que passou, `errado` no salto
   na neblina) — é daqui que a noite tira "P3 respondeu às pistas só de
   háptica em 71% das vezes";
@@ -332,8 +332,8 @@ Catálogo: `"S07_J32"` em `MINIGAMES` e na lista da seção `S07`, depois do
   Não mande pista durante `_caindo_ate`.
 - **A luz a 30%** é o piso da F04: não escureça mais. O kit devolve a cor do
   lugar no fim (`Forja.silencio` no `terminar`).
-- **Na prova, o pico não chega** (o fim é pelo `duracao`, em tempo de jogo;
-  a 16× a música anda uns 6 s). A prova confere as pistas, os saltos e o fim.
+- **Na prova o pico chega:** o fim conta em tempo de música (H08), e a
+  `duracao` inteira roda na prova, pelo relógio de parede. A prova confere as pistas, os saltos e o fim.
 - **O `rng` por lugar**, como no O1.
 
 ## Pronto quando
@@ -355,7 +355,7 @@ percurso depois da dos Caminhos:
 func _prova_neblina() -> void:
 	# a espera é a do `_joga_o_minigame` da H08: o aviso em quadros, o jogo pelo relógio de parede (100 s de música e o treino)
 	var sentiu := [false, false, false, false]
-	var luz_ok := [true]
+	var luz_fora := [0]  # o piscar do kit (H08, até 0,5 s) sai dos 30%; a maior parte do tempo, não
 	var q := [0]
 	var olhar := func(_s) -> void:
 		q[0] += 1
@@ -366,17 +366,17 @@ func _prova_neblina() -> void:
 				var c: Color = _perc(l).get("luz", Color.BLACK)
 				var alvo := Forja.cor_do_lugar(l).darkened(0.7)
 				if Vector3(c.r - alvo.r, c.g - alvo.g, c.b - alvo.b).length() > 0.08:
-					luz_ok[0] = false
+					luz_fora[0] += 1
 	var sala = await _joga_o_minigame("S07_J32", 140.0, olhar)
 	if sala == null:
 		return
 	_esperar(sentiu.all(func(s): return s), "neblina: a pedra chegou à mão dos quatro %s" % [sentiu])
-	_esperar(luz_ok[0], "neblina: a luz ficou na cor do lugar, a 30%")
+	_esperar(luz_fora[0] * 4 <= maxi(q[0] - 60, 1) * 4, "neblina: a luz ficou na cor do lugar, a 30%, fora o piscar do kit (%d quadros fora)" % luz_fora[0])
 	_esperar(sala._dist.max() >= 1, "neblina: alguém pousou numa pedra (%s)" % [sala._dist])
 	_esperar(sala.colocacao().size() == 4, "neblina: a colocação tem os quatro")
 ```
 
-No `_prova_do_relatorio()`: `pista` do `S07_J32` com `evento == "respondeu"`
+No `_prova_do_relatorio()`: `entrada` do `S07_J32` com `o == "resposta"`
 e `resposta == "certo"` ≥ 1.
 
 `bash tests/prova_do_jogo.sh` e `bash tests/prova_visual.sh`.

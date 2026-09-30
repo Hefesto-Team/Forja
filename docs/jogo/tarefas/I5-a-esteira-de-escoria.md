@@ -24,7 +24,7 @@ const FICHA := {
 	"titulo": "A Esteira de Escória",
 	"verbo": "Prense!",
 	"genero": "sabotagem",
-	"icone": "cross",
+	"icone": "botoes",
 	"entradas": [Forja.CRUZ, Forja.CIRCULO, Forja.QUADRADO],
 	"camera": "fixa",
 	"faixa": "MUS_S01_J05",
@@ -61,7 +61,7 @@ const FICHA := {
   travada).
 - **Os pontos por julgamento** (ERRO, BOM, ÓTIMO, PERFEITO): `[0, 20, 35, 50]`;
   o roubo +30. Cada lingote prensado ou roubado conta 1 na pilha.
-- **A progressão:** `progresso()` do kit (em tempo de música, H08). De 0 a 1/3, as colcheias. **O
+- **A progressão:** `andamento()` do kit (em tempo de música, H08). De 0 a 1/3, as colcheias. **O
   pico (1/3 a 2/3), a esteira dobra:** o lingote de cada um passa em todo
   tempo (`k + 0,25·l`), um a cada quarto de tempo na esteira, e o ar
   comprimido sopra faísca na prensa. De 2/3 em diante, as colcheias.
@@ -229,11 +229,11 @@ func _proxima_batida(l: int, b: float) -> float:
 	var passo := 2.0
 	var desloc := 0.5 * l
 	if Ritmo.simples[l]:
-		passo = 4.0
+		passo = 2.0  # o kit dobra o passo na partitura simples
 	elif no_pico():
 		passo = 1.0
 		desloc = 0.25 * l
-	return proxima_batida(l, b + 0.001, passo, desloc)  # o kit; estritamente depois de b
+	return proxima_batida(l, b, passo, desloc)  # o kit (H08): a próxima depois de b
 
 
 func iniciar_jogo() -> void:
@@ -316,7 +316,7 @@ func _apertou(l: int, botao: int, agora: float) -> void:
 			if botao == int(ing.botao):
 				julgar_toque(l, alvo, int(ing.n))
 			else:
-				Forja.evento("entrada", l + 1, {"o": "botao", "pedido": GLIFO[int(ing.botao)], "chegou": GLIFO[botao], "n": int(ing.n)})
+				anotar("entrada", l, {"o": "botao", "pedido": GLIFO[int(ing.botao)], "chegou": GLIFO[botao], "n": int(ing.n)})
 				nota_perdida(l, int(ing.n))
 			return
 	# 2. o lingote de outro, antes do dono e a menos de JANELA_OTIMO
@@ -329,7 +329,7 @@ func _apertou(l: int, botao: int, agora: float) -> void:
 			return
 	# 3. à toa: emperra
 	j[l].emperrado_ate = Ritmo.batida() + EMPERRA
-	Forja.evento("entrada", l + 1, {"o": "botao", "emperrou": true, "chegou": GLIFO[botao]})
+	anotar("entrada", l, {"o": "botao", "emperrou": true, "chegou": GLIFO[botao]})
 	Forja.sentir(l, "erro")
 	Efeitos.faiscas(self, Vector3(RAIAS[l] + 0.6, 0.9, Z_JOGADOR - 0.6), Tema.LARANJA, 14, 0.6)
 
@@ -337,7 +337,7 @@ func _apertou(l: int, botao: int, agora: float) -> void:
 func _roubar(l: int, ing: Dictionary) -> void:
 	var dono: int = ing.dono
 	ing.estado = "roubado"
-	Forja.evento("entrada", l + 1, {"o": "botao", "roubou_de": dono, "n": int(ing.n)})
+	anotar("entrada", l, {"o": "botao", "roubou_de": dono, "n": int(ing.n)})
 	marcar(l, ROUBO)
 	if not treinando:
 		j[l].pilha = int(j[l].pilha) + 1

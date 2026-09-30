@@ -100,7 +100,7 @@ decorar e desconfiar.
   (`alto_falante`), `som`, `ganho`, `placa` — gravado pelo módulo.
 - **O que o minigame acrescenta** (os tipos do [13](../13-arquitetura.md#as-decisões-comuns-dos-minigames--h08),
   com `slot`): a cada som que é pista, a linha `pista`
-  `{"n": <a nota da resposta que depende dele>, "evento": "mandou", "via": "alto_falante" | "tv", "o_que": <o som>, "no_controle": <foi ao alto-falante ou à TV>}`;
+  `{"n": <a nota da resposta que depende dele>, "evento": "mandou", "canal": "alto_falante" | "tv", "o_que": <o som>, "no_controle": <foi ao alto-falante ou à TV>}`;
   a resposta é o `toque` do kit com o mesmo `n`, e o que o jogador fez além
   dele (a pisada, a sabotagem) é a linha `entrada`. O que o minigame fez no
   mundo (o acorde, a armadilha) é a linha `jogo`.

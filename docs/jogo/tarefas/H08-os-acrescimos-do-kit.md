@@ -1304,6 +1304,17 @@ Reprovou: conserte antes de seguir. A prova fica uns 3 min mais longa
 14. **A prova visual** (F09): `bash tests/prova_visual.sh`, e olhe a prancha
     das partidas de 5 (O Canto está nelas agora). **(prova)** no fim.
 
+### Os dois acréscimos decididos depois da harmonização
+
+- **A luz de repouso.** No kit: `func luz_de_repouso(l: int) -> Color: return Forja.cor_do_lugar(l)`,
+  e o `_reagir` volta a barra a ela (não à cor cheia do lugar) depois do
+  piscar. O minigame que carrega estado na barra sobrescreve, mantendo a cor
+  do lugar e mudando só o brilho (piso de 30%). As fichas L1, L5, O2, O4 e P3
+  repõem o brilho à mão 0,5 s depois: com este gancho, troque por
+  `luz_de_repouso` quando executar essas fichas.
+- **O destaque no 2v2** sai de `acertos[l]`, não de `pontos[l]`, porque
+  `marcar_equipe` iguala os pontos da dupla.
+
 ## Armadilhas
 
 - **`progresso` não.** A `SalaJogo` já tem `progresso() -> String`;

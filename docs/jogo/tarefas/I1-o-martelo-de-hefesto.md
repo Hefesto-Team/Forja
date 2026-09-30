@@ -56,7 +56,7 @@ const FICHA := {
 	"titulo": "O Martelo de Hefesto",
 	"verbo": "Bata!",
 	"genero": "tct",
-	"icone": "cross",
+	"icone": "botoes",
 	"entradas": BOTOES,
 	"camera": "fixa",
 	"faixa": "MUS_S01_J01",
@@ -114,7 +114,7 @@ treze botões que um jogo usa), como a H04 deixou.
 - **As espadas:** cada acerto é um golpe (a nota especial, dois); seis
   golpes forjam uma espada, que aparece na estante atrás da bigorna. O erro
   racha a espada em curso: menos dois golpes.
-- **A progressão:** `progresso()` do kit (0..1 dos 90 s de música). De 0 a 1/3, uma runa
+- **A progressão:** `andamento()` do kit (0..1 dos 90 s de música). De 0 a 1/3, uma runa
   a cada 2 tempos. **O pico (1/3 a 2/3), a espada em brasa:** toda runa de
   botão acertada pede um segundo golpe um tempo depois, com o mesmo botão —
   cada lugar bate em todo tempo, e os quatro fazem semicolcheias; a luz da
@@ -378,9 +378,10 @@ func _runa(l: int) -> Variant:
 	return e.fila[e.atual] if int(e.atual) < e.fila.size() else null
 
 
-## A próxima batida do lugar a partir de `desde` (o hoqueto em colcheias, pelo kit).
+## A próxima batida do lugar a partir de `desde`, inclusive (o hoqueto em
+## colcheias, pela proxima_batida do kit, que dobra o passo na partitura simples).
 func _proxima_batida(l: int, desde: float) -> float:
-	return proxima_batida(l, desde, 4.0 if Ritmo.simples[l] else 2.0, 0.5 * l)
+	return proxima_batida(l, desde - 0.001, 2.0, 0.5 * l)
 
 
 func iniciar_jogo() -> void:
@@ -448,7 +449,7 @@ func _jogar(l: int) -> void:
 				if b == int(r.alvo):
 					julgar_toque(l, Ritmo.t_da_batida(float(e.b_nota)), int(e.n))
 				else:
-					Forja.evento("entrada", l + 1, {"o": "botao", "pedido": GLIFO[int(r.alvo)], "chegou": GLIFO[b],
+					anotar("entrada", l, {"o": "botao", "pedido": GLIFO[int(r.alvo)], "chegou": GLIFO[b],
 						"n": int(e.n)})
 					nota_perdida(l, int(e.n))
 				return
@@ -473,7 +474,7 @@ func _circulo(l: int, e: Dictionary, r: Dictionary) -> void:
 			if int(e.setores) != antes:
 				Som.tocar("tique", runas[l].raiz.global_position, -6.0, 1.0 + 0.06 * _contar(int(e.setores)))
 		if int(e.setores) == 0xFF:
-			Forja.evento("entrada", l + 1, {"o": "analogico", "detalhe": ("direito" if direito else "esquerdo") + ": as oito direções"})
+			anotar("entrada", l, {"o": "analogico", "detalhe": ("direito" if direito else "esquerdo") + ": as oito direções"})
 			e.b_nota = _proxima_batida(l, Ritmo.batida() + 1.0)
 			nova_nota(l, int(e.n), Ritmo.t_da_batida(float(e.b_nota)))
 		elif Ritmo.batida() > float(e.b_luz) + JANELA_ESPECIAL:
@@ -512,7 +513,7 @@ func _fole(l: int, e: Dictionary, r: Dictionary) -> void:
 	var cruzou := float(e.v_antes) < FUNDO and v >= FUNDO
 	e.v_antes = v
 	if cruzou:
-		Forja.evento("entrada", l + 1, {"o": "gatilho", "detalhe": ("R2" if direito else "L2") + ": meio e fundo"})
+		anotar("entrada", l, {"o": "gatilho", "detalhe": ("R2" if direito else "L2") + ": meio e fundo"})
 		julgar_toque(l, Ritmo.t_da_batida(float(e.b_nota)), int(e.n))
 	elif agora > Ritmo.t_da_batida(float(e.b_nota)) + FOLGA_PERDIDA:
 		nota_perdida(l, int(e.n))
@@ -717,7 +718,7 @@ quadro.)
 - **O treino** julga e não soma: as espadas só com `not treinando`.
 - **`class_name`, `_init()` e `RAIAS`**: nenhum (o kit); o `class_name
   SalaCentelha` já saiu na H04.
-- **O fim é do kit, em tempo de música** (H08): nada de `"duracao": 0.0`,
+- **O fim é do kit, em tempo de música** (H08): nada de duração zerada como remendo,
   de `t_jogo` ou de `t_fase` na ficha. O Martelo leva 90 s de relógio na
   prova; a espera é a do `_joga_o_minigame` da H08, pelo relógio de parede
   (veja Provas).

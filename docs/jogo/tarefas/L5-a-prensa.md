@@ -50,7 +50,7 @@ const FICHA := {
 	"titulo": "A Prensa",
 	"verbo": "Esquive!",
 	"genero": "sobrevivencia",
-	"icone": "rumble_esquerdo",
+	"icone": "vibracao",
 	"entradas": [],
 	"camera": "fixa",
 	"faixa": "MUS_S04_J20",
@@ -86,7 +86,7 @@ geração, um compasso antes.
 com `nova_nota(l, b, t)`. **Na pista** (`b − 1`), a nota decide onde caem as
 prensas, pelo lugar em que o cavaleiro está **agora** (`pos[l]` 0, 1 ou 2):
 
-| parte | música (`progresso()` do kit) | caem | a pista (`Forja.sentir`, `ms = 0,4 batida`) |
+| parte | música (`andamento()` do kit) | caem | a pista (`Forja.sentir`, `ms = 0,4 batida`) |
 | --- | --- | --- | --- |
 | entrada | 0–30 s | só `pos[l]` | `"golpe"` (os dois motores: fuja para qualquer lado) |
 | **pico** | 30–60 s | no meio (`pos == 1`): o meio e um lado sorteado; num canto: só o canto | meio: `"golpe_esq"` se o seguro é a esquerda, `"golpe_dir"` se é a direita; canto: `"golpe"` |
@@ -94,7 +94,7 @@ prensas, pelo lugar em que o cavaleiro está **agora** (`pos[l]` 0, 1 ou 2):
 
 O `seguro` é o lugar para onde a pista manda (no `"golpe"`, qualquer lugar
 fora de `caem`). Registro:
-`Forja.evento("pista", l + 1, {"slot": id, "n": b, "evento": "mandou", "via": "rumble", "o_que": "ambos"/"esq"/"dir", "ok": ok})`.
+`anotar("pista", l, {"n": b, "evento": "mandou", "canal": "rumble", "o_que": "ambos"/"esq"/"dir", "ok": ok})`.
 Quem está com `Ritmo.simples[l]` recebe só a regra da entrada.
 
 **A esquiva:** o analógico esquerdo passando de `LX_VAI` (±0,6) para um lado,
@@ -363,7 +363,7 @@ Traduções: `"A Prensa": "The Press"`, `"Esquive!": "Dodge!"`. `dica(l)`:
 ## O que o registro mede
 
 - `sensacao` `golpe` / `golpe_esq` / `golpe_dir` e a `saida` de vibração.
-- `pista` (`via` `rumble`) (qualquer lado, ou o lado seguro) e `entrada` `resposta` (o
+- `pista` (`canal` `rumble`) (qualquer lado, ou o lado seguro) e `entrada` `resposta` (o
   lado para onde foi); o `toque` do kit. Pista de um lado com `ok` e
   esquiva para o outro lado, repetida num controle, é o motor daquele lado
   que não chegou (ou chegou trocado).

@@ -82,7 +82,7 @@ A validação da vibração, por baixo, sem perguntar nada ao jogador:
   `ok` = o SDL aceitou, F06). Isso o `Forja` grava sozinho.
 - **O que o minigame acrescenta** (os tipos do [13](../13-arquitetura.md#as-decisões-comuns-dos-minigames--h08),
   com `slot`): a cada pista mandada, a linha `pista`
-  `{"n": <nota>, "evento": "mandou", "via": "rumble", "o_que": "esq" | "dir" | "ambos", "ok": <o sentir aceitou>}`;
+  `{"n": <nota>, "evento": "mandou", "canal": "rumble", "o_que": "esq" | "dir" | "ambos", "ok": <o sentir aceitou>}`;
   a cada resposta, o `toque` do kit (julgamento e desvio) e, quando o lado
   importa, a linha `entrada` `{"o": "resposta", "n": <nota>, "lado_pedido": ..., "lado_feito": ...}`;
   a cada aperto sem pista, a `entrada` `{"o": "fantasma", "golpe_de": <lugar que recebeu a pista mais perto>}`.

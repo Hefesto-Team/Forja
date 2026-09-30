@@ -1,6 +1,6 @@
 # P3 — Zero Absoluto
 
-**Sprint:** P · **Slot:** S08_J38 · **Tamanho:** M · **Modelo:** Sonnet · **Estimativa:** US$ 1,5 · **Depende de:** H04, F09, H07, G08, P1
+**Sprint:** P · **Slot:** S08_J38 · **Tamanho:** M · **Modelo:** Sonnet · **Estimativa:** US$ 1,5 · **Depende de:** H04, H08, F09, H07, G08, P1
 
 ## Por quê
 
@@ -25,7 +25,7 @@ const FICHA := {
 	"titulo": "Zero Absoluto",
 	"verbo": "Silêncio!",
 	"genero": "terror",
-	"icone": "mic",
+	"icone": "microfone",
 	"entradas": [Forja.CRUZ, Forja.MICROFONE],
 	"camera": "fixa",
 	"faixa": "MUS_S08_J38",
@@ -391,8 +391,9 @@ func _prova_zero_absoluto() -> void:
 	_esperar(sala._dist.max() >= 1.0, "zero: alguém marchou (%s)" % [sala._dist])
 ```
 
-(A 16×, os 90 s de jogo são uns 6 s de música: o primeiro silêncio, na
-batida 8, cabe; os outros não. Por isso a marcha curta no primeiro ciclo.)
+(O fim conta em tempo de música (H08): os 90 s rodam inteiros na prova, com
+todos os silêncios; a marcha curta do primeiro ciclo é para o susto chegar
+logo.)
 
 `bash tests/prova_do_jogo.sh` e `bash tests/prova_visual.sh`.
 

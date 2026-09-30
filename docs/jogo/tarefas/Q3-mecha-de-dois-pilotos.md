@@ -1,6 +1,6 @@
 # Q3 — Mecha de Dois Pilotos
 
-**Sprint:** Q · **Slot:** S09_J43 · **Tamanho:** M · **Modelo:** Sonnet · **Estimativa:** US$ 1,5 · **Depende de:** H04, F09, H07, G03, Q1
+**Sprint:** Q · **Slot:** S09_J43 · **Tamanho:** M · **Modelo:** Sonnet · **Estimativa:** US$ 1,5 · **Depende de:** H04, H08, F09, H07, G03, Q1
 
 ## Por quê
 
@@ -23,7 +23,7 @@ const FICHA := {
 	"titulo": "Mecha de Dois Pilotos",
 	"verbo": "Pilote juntos!",
 	"genero": "2v2",
-	"icone": "r2",
+	"icone": "gatilho_adaptativo",
 	"entradas": [Forja.CRUZ],
 	"camera": "fixa",
 	"faixa": "MUS_S09_J43",
@@ -217,9 +217,7 @@ const QUEDA := 3.0
 const EMPURRAO := 1.5
 const ACERTO_APRENDIZ_PASSO := 0.85
 const ACERTO_APRENDIZ_SOCO := 0.7
-const COR_EQUIPE := [Color("#e8a33c"), Color("#2fb3b3")]
 
-var _equipe := {}
 var _perna := {}               ## lugar -> 0 (E) / 1 (D)
 var _aprendizes := []          ## {equipe, perna, no, anim}
 var _dist := DIST_INICIAL
@@ -280,22 +278,22 @@ func toque(l: int, j: int) -> void:
 	if _e_soco[l]:
 		_soco_de(l, j)              # guarda o julgamento e o instante; o _resolver_socos decide
 	else:
-		marcar(l, [0, 50, 75, 100][j])
-		_andar(_equipe[l], PASSO[j], _perna[l])
+		marcar_equipe(equipe[l], [0, 50, 75, 100][j])  # os dois da dupla (o kit, H08)
+		_andar(equipe[l], PASSO[j], _perna[l])
 
 
 func falha(l: int) -> void:
 	if _e_soco[l]:
 		_soco_de(l, Ritmo.ERRO)
 	else:
-		_andar(_equipe[l], -0.2, _perna[l])
+		_andar(equipe[l], -0.2, _perna[l])
 		jogador(l).gesto("emote-no", 0.3)
 
 
 func vencedor() -> Array:
 	var e := 0 if _quedas[0] > _quedas[1] else (1 if _quedas[1] > _quedas[0] else (0 if _abalo[0] < _abalo[1] else (1 if _abalo[1] < _abalo[0] else _mais_pontos())))
-	var ganhou := presentes().filter(func(l): return _equipe[l] == e)
-	var perdeu := presentes().filter(func(l): return _equipe[l] != e)
+	var ganhou := presentes().filter(func(l): return equipe[l] == e)
+	var perdeu := presentes().filter(func(l): return equipe[l] != e)
 	ganhou.sort_custom(func(a, b): return pontos[a] > pontos[b])
 	perdeu.sort_custom(func(a, b): return pontos[a] > pontos[b])
 	return ganhou + perdeu
@@ -328,8 +326,7 @@ Catálogo: `"S09_J43"` em `MINIGAMES` e na seção `S09`. Traduções:
 `_t_batida()` (a duração de uma batida, em s, para o pico):
 `return Ritmo.t_da_batida(1.0) - Ritmo.t_da_batida(0.0)`.
 
-`_mais_pontos()`: a equipe com mais pontos somados dos seus lugares (a Brasa
-no empate).
+`_mais_pontos()`: `maxi(equipe_vencedora(), BRASA)` — a equipe com mais pontos pelo kit (`pontos_da_equipe`, H08; a Brasa no empate).
 
 ## O que o registro mede
 
@@ -351,7 +348,8 @@ no empate).
   do outro — isso é fora de sincronia.
 - **O Aprendiz não é robô** (é regra do jogo, com o `rng` do kit).
 - **`usa_gatilho = true`** e o R2 em `ARMA` a partida inteira; o L2 é do item.
-- **Na prova o pico não chega** (o fim é pelo `duracao`).
+- **Na prova o pico chega:** o fim conta em tempo de música (H08), e a
+  `duracao` inteira roda na prova, pelo relógio de parede.
 
 ## Pronto quando
 

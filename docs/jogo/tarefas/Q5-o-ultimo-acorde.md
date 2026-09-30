@@ -1,6 +1,6 @@
 # Q5 — O Último Acorde
 
-**Sprint:** Q · **Slot:** S09_J45 · **Tamanho:** G · **Modelo:** Sonnet · **Estimativa:** US$ 2,0 · **Depende de:** H04, F09, H07, G03, Q1, Q4, O1 (o `_pista`), P1 (o ouvido), e as seções S5 a S8 prontas
+**Sprint:** Q · **Slot:** S09_J45 · **Tamanho:** G · **Modelo:** Sonnet · **Estimativa:** US$ 2,0 · **Depende de:** H04, H08, F09, H07, G03, Q1, Q4, O1 (o `_pista`), P1 (o ouvido), e as seções S5 a S8 prontas
 
 ## Por quê
 
@@ -29,7 +29,7 @@ const FICHA := {
 	"titulo": "O Último Acorde",
 	"verbo": "O acorde final!",
 	"genero": "coop",
-	"icone": "alto-falante",
+	"icone": "alto_falante",
 	"entradas": [Forja.CRUZ],
 	"camera": "fixa",
 	"faixa": "MUS_S09_J45",
@@ -79,13 +79,13 @@ A faixa é `MUS_S09_J45`, 150 bpm (uma batida = 0,4 s). `BATIDA_DA_PRIMEIRA_NOTA
    `presentes()[c % np]`. Nas batidas 0 e 1 do compasso, o alto-falante
    **dele** canta um ritmo de duas notas (`Forja.som_falante(l, "nota:%d" % l, 0.8)`
    em `c0 + a` e `c0 + b`, com `[a, b]` de `RITMOS := [[0.0, 0.5], [0.0, 1.0], [0.5, 1.0], [0.0, 1.5]]`,
-   pelo `rng`) — a `pista` com `via` `alto_falante`, `o_que` o ritmo; a TV
+   pelo `rng`) — a `pista` com `canal` `alto_falante`, `o_que` o ritmo; a TV
    fica calada. Nas batidas 2 e 3, ele repete com ✕: duas notas, alvos
    `c0 + 2 + a` e `c0 + 2 + b` (a janela vale sobre o tempo, como toda
    nota). Sem alto-falante no controle dele
    (`not Forja.som_tem(l, Forja.PAPEL_ALTO_FALANTE)`): o ritmo toca na TV,
    em `Som.tocar("nota", raia, -6.0, TOM_DO_LUGAR[l])`, com a `troca`
-   (`recurso` `alto_falante`, `para` `tv`, `motivo` `sem_placa`).
+   (`de` `alto_falante`, `para` `tv`, `motivo` `sem_placa`).
 3. **Sentir.** A pedra da O2, no hoqueto: meia batida antes da batida de
    cada um, se ali há pedra (60%, pelo `rng`), `material:pedra` na mão dele
    (o `_pista`; no rádio, `aviso`); ✕ na pedra → `julgar_toque`; ✕ na
@@ -168,11 +168,11 @@ sopro da estação 4 é "sozinho" (a P1). **Microfone mudo:** sopra sozinho.
 
 ## O fim e o vencedor
 
-`coop = true` no `montar()`. O dragão cai → `coop_venceu = true`, a chuva de
+O `coop` vem do gênero da FICHA (H08). O dragão cai → `coop_venceu = true`, a chuva de
 luz e o jingle da noite; o medley acaba 8 batidas depois. O dragão foge (duas
 voltas extras sem cair) → `coop_venceu = false`; acaba 4 batidas depois. Em
-qualquer caso, todos acabam. `vencedor()`: o destaque — quem errou menos no
-medley inteiro (`_erros[l]`), depois pontos. A noite segue para o pódio
+qualquer caso, todos acabam. O registro grava `vencedor` −1 (coop); `destaque()`:
+quem errou menos no medley inteiro (`_erros[l]`), depois pontos. A noite segue para o pódio
 (`main.gd`).
 
 ## Com menos de quatro
@@ -308,7 +308,6 @@ var _robo_mira := [0.0, 0.0, 0.0, 0.0]
 
 func montar() -> void:
 	usa_gatilho = true
-	coop = true
 	camera_pos = Vector3(0, 8.5, 12.5)
 	camera_olhar = Vector3(0, 2.5, -2.5)
 	# o coração, o dragão (o da Q4, maior), as raias, as peças das estações; gatilhos_off
@@ -350,10 +349,11 @@ func falha(l: int) -> void:
 	_falha_da_estacao(l)            # o gesto e o efeito do verbo
 
 
-func vencedor() -> Array:
+## Coop: o kit grava vencedor −1 (H08); o destaque é quem errou menos no medley inteiro.
+func destaque() -> int:
 	var lista := presentes()
 	lista.sort_custom(func(a, b): return _erros[a] < _erros[b] or (_erros[a] == _erros[b] and pontos[a] > pontos[b]))
-	return lista
+	return int(lista[0]) if not lista.is_empty() else -1
 ```
 
 `_contar_o_acorde(b)`: quando `_respostas` chega a `RESPOSTAS` (na primeira
@@ -365,7 +365,7 @@ vez) ou a `RESPOSTAS + EXTRA * _voltas`: se `_faltas_final <= (FALTAS_MAX if _vo
 `_chamar(b)`: no final, nas batidas 0 e 2 de cada compasso, a chamada `r`
 para `presentes()[r % np]` (pulando quem está sem controle), o
 `Forja.som_falante(l, "nota:%d" % l, 0.8)`, `Forja.sentir(l, "aviso")` e a
-`pista` (`via` `alto_falante`, `o_que` `"chamada"`); a nota de resposta dele
+`pista` (`canal` `alto_falante`, `o_que` `"chamada"`); a nota de resposta dele
 na batida seguinte. `_cantar(b)`: na estação 2, no começo de cada compasso,
 sorteia o ritmo com o `rng` e toca as duas notas no alto-falante do dono
 (uma vez cada, nas batidas certas), com a `pista`; no eclipse, a frase na TV.
@@ -384,8 +384,8 @@ ainda não estiverem lá; `"Salte no firme!"` veio da O2, `"Sopre!"` da P1).
 
 - `estacao` a cada troca (`atirar`, `repetir`, `eclipse`, `sentir`, `soprar`,
   `final`) — a linha da Q4;
-- `pista` do canto e da chamada (`via` `alto_falante`) e da pedra (`via`
-  `haptica`/`rumble`), com o `respondeu` — no fim da noite, o jogador ainda
+- `pista` do canto e da chamada (`canal` `alto_falante`) e da pedra (`canal`
+  `haptica`/`rumble`), com a `entrada` `resposta` — no fim da noite, o jogador ainda
   percebe as pistas do controle como no começo?
 - `saida` do gatilho de arma, `voz` do sopro, `nota`/`toque` de tudo;
 - `troca` (13, H08) `de` `alto_falante` `para` `tv`, `de` `haptica` `para`
@@ -462,7 +462,7 @@ func _prova_o_ultimo_acorde() -> void:
 ```
 
 No `_prova_do_relatorio()`: as linhas `estacao` do
-`S09_J45` são seis, e há `pista` com `via == "alto_falante"` de cada lugar.
+`S09_J45` são seis, e há `pista` com `canal == "alto_falante"` de cada lugar.
 
 `bash tests/prova_do_jogo.sh` e `bash tests/prova_visual.sh`.
 

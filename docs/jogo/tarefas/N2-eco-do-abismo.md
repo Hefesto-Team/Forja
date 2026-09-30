@@ -44,7 +44,7 @@ const FICHA := {
 	"titulo": "Eco do Abismo",
 	"verbo": "Responda o eco!",
 	"genero": "corrida",
-	"icone": "alto-falante",
+	"icone": "alto_falante",
 	"entradas": [],
 	"camera": "fixa",
 	"faixa": "MUS_S06_J27",
@@ -88,7 +88,7 @@ com `nova_nota(l, n, t)`.
 
 **O eco** em `b − 1` (`Ritmo.t_musica() >= Ritmo.t_da_batida(b - 1)`):
 `var foi := CenarioDoCanto.falante(self, l, ECO[lado], 0.9)` e
-`Forja.evento("pista", l + 1, {"slot": id, "n": n, "evento": "mandou", "via": "alto_falante" if foi else "tv", "o_que": ECO[lado], "no_controle": foi})`.
+`anotar("pista", l, {"n": n, "evento": "mandou", "canal": "alto_falante", "o_que": ECO[lado], "no_controle": foi})`.
 Na tela, nada muda: as duas pedras do degrau seguinte são iguais.
 
 **Pisar:** o analógico esquerdo passando de `LX_VAI` para um lado (esquerda
@@ -341,7 +341,7 @@ com `na_raia(l)` e `not aprendeu(l)` (`"Pise do lado do eco": "Step to the echo'
 
 ## O que o registro mede
 
-- `som_controle` (H07) de cada eco; `pista` (`via` `alto_falante`) (n, som, `no_controle`).
+- `som_controle` (H07) de cada eco; `pista` (`canal` `alto_falante`) (n, som, `no_controle`).
 - `entrada` `resposta` (lado pedido, lado feito) e o `toque` do kit: o eco com
   `placa` e o lado errado, sempre num controle, é o alto-falante que não
   cantou (o jogador chutou).

@@ -1,6 +1,6 @@
 # O4 — Fuga do Mecha Cego
 
-**Sprint:** O · **Slot:** S07_J34 · **Tamanho:** M · **Modelo:** Sonnet · **Estimativa:** US$ 1,5 · **Depende de:** H04, F09, H07, O1
+**Sprint:** O · **Slot:** S07_J34 · **Tamanho:** M · **Modelo:** Sonnet · **Estimativa:** US$ 1,5 · **Depende de:** H04, H08, F09, H07, O1
 
 ## Por quê
 
@@ -25,7 +25,7 @@ const FICHA := {
 	"titulo": "Fuga do Mecha Cego",
 	"verbo": "Esconda-se!",
 	"genero": "sobrevivencia",
-	"icone": "rumble_direito",
+	"icone": "haptica",
 	"entradas": [Forja.ESQUERDA, Forja.DIREITA, Forja.CRUZ],
 	"camera": "fixa",
 	"faixa": "MUS_S07_J34",
@@ -117,7 +117,7 @@ senão `1` (direita) — cada cavaleiro o sente de onde está.
 | --- | --- | --- |
 | **háptica (protagonista)** | os passos do mecha **num atuador só**, mais fortes quanto mais perto | batidas 0 a 3 da ronda |
 | háptica por material | a fuga julgada: o kit toca `material:pedra` | no toque |
-| barra de luz | a cor do lugar a 30% (`Forja.luz(l, Forja.cor_do_lugar(l).darkened(0.7))` no `iniciar_jogo()`) | o jogo todo |
+| barra de luz | a cor do lugar a 30% (`Forja.luz(l, Forja.cor_do_lugar(l).darkened(0.7))` no `iniciar_jogo()` e de novo 0,5 s depois de cada piscar do kit, H08: o `_reagir` volta à cor do lugar) | o jogo todo |
 | alto-falante do dono | a nota dele (kit); `Forja.som_falante(l, "grito", 0.5)` quando é pego (o susto é só dele) | na captura |
 | vibração | pego: `Forja.sentir(l, "golpe")` | na captura |
 | gatilho | nada a segurar: `Forja.gatilhos_off(l)` | — |
@@ -208,7 +208,7 @@ extends Minigame
 ##
 ## A falha: o holofote acha; pego, vira fantasma que faz barulho (✕). O
 ## vencedor: o último em pé. O alto-falante do dono: o grito quando é pego. O
-## registro mede: o lado de cada ronda (pista), a fuga (pista respondeu) e os
+## registro mede: o lado de cada ronda (pista), a fuga (a entrada resposta) e os
 ## lados da háptica para a bancada. O robô: sente o lado na placa virtual.
 ## Com menos de quatro: sozinho, três vidas. A régua: a tela não mostra o
 ## mecha até a varredura; o lado só existe na mão.
@@ -344,7 +344,7 @@ Catálogo: `"S07_J34"` em `MINIGAMES` e na seção `S07`. Traduções:
 
 ## O que o registro mede
 
-- `pista` `mandou` de cada ronda com o lado (`o_que`) e a `via`; `respondeu`
+- `pista` `mandou` de cada ronda com o lado (`o_que`) e o `canal`; a `entrada` `resposta`
   com a fuga (`certo`/`errado`/`nenhuma`);
 - a prova do isolamento esquerda e direita dos atuadores: com os lados de
   cada controle, a noite vê "P3 fugiu certo 90% com o mecha à esquerda e 40%
@@ -364,7 +364,8 @@ Catálogo: `"S07_J34"` em `MINIGAMES` e na seção `S07`. Traduções:
 - **O barulho do silêncio** só conta depois de a nota da fuga fechar
   (senão a própria fuga seria barulho).
 - **Quem está sem controle não é pego** — senão o cabo que cai elimina.
-- **Na prova o pico não chega** (o fim é pelo `duracao`).
+- **Na prova o pico chega:** o fim conta em tempo de música (H08), e a
+  `duracao` inteira roda na prova, pelo relógio de parede.
 
 ## Pronto quando
 
@@ -404,7 +405,7 @@ func _prova_mecha_cego() -> void:
 	_esperar(sala.colocacao().size() == 4, "mecha: a colocação tem os quatro")
 ```
 
-No `_prova_do_relatorio()`: `pista` do `S07_J34` com `evento == "respondeu"`
+No `_prova_do_relatorio()`: `entrada` do `S07_J34` com `o == "resposta"`
 ≥ 4.
 
 `bash tests/prova_do_jogo.sh` e `bash tests/prova_visual.sh`.

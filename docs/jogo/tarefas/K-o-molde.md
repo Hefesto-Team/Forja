@@ -42,9 +42,9 @@ O código inteiro está na [K1](K1-o-molde.md#o-cenário).
   dedo encostado. O clique é o botão `Forja.TOUCHPAD`.
 - **Sem touchpad** (`Forja.capacidade(l, "toque")` falso): o lugar não tem o
   que pedir. O minigame o põe como acabado no `iniciar_jogo()` (sem erro) e
-  grava a troca de canal (13, H08): `Forja.evento("troca", l + 1, {"slot": id,
-  "de": "touchpad", "para": "sem_touchpad"})`. A linha `entrada` fica só para
-  o que o jogador fez.
+  grava `anotar("entrada", l, {"o": "sensores", "toque": false})` (a linha
+  `entrada` `sensores` do molde; não há troca de canal para o touchpad no
+  13).
 - **A contagem, o pico, a barra de luz, o alto-falante, a `contagem` para a
   prova e o R2 (livre; o L2 é do item):** como na
   [seção A Centelha](I-a-centelha.md#as-convenções-da-seção).

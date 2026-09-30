@@ -45,7 +45,7 @@ const FICHA := {
 	"titulo": "Arco de Néon",
 	"verbo": "Puxe e solte!",
 	"genero": "tct",
-	"icone": "r2",
+	"icone": "gatilho_adaptativo",
 	"entradas": [],
 	"camera": "fixa",
 	"faixa": "MUS_S05_J22",
@@ -116,7 +116,7 @@ soltura passou de `FUNDO` (0,9), a flecha sai em chamas (o rastro laranja
 e `Efeitos.faiscas` `Tema.LARANJA`).
 
 Cada puxada e cada soltura gravam
-`Forja.evento("entrada", l + 1, {"slot": id, "o": "disparo", "n": n, "modo": "resistencia", "curso": r2, "curso_max": <o maior R2 da nota>})`.
+`anotar("entrada", l, {"o": "disparo", "n": n, "modo": "resistencia", "curso": r2, "curso_max": <o maior R2 da nota>})`.
 
 **Os 80 segundos:** entrada (0–27 s) chance 0,5, notas de 2 batidas; **pico**
 (27–54 s) toda batida do dono livre tem flecha, e a de fogo vale (aos 27 s
@@ -315,7 +315,7 @@ func _arco(l: int, forca: int) -> void:
 lista e chamam `julgar_toque`; puxada sem nota perto não faz nada (o arco
 tensiona à toa); soltura sem nota perto também não. `_segurando(l)`: há uma
 nota `solta` na lista (a nota longa está correndo). `_parte()`: 0, 1 ou 2
-pelo `progresso()` do kit (um terço e dois terços da duração, em tempo de música: H08).
+pelo `andamento()` do kit (um terço e dois terços da duração, em tempo de música: H08).
 
 Catálogo: `"S05_J22"` em `MINIGAMES` e na lista da seção `S05`. O `.uid`.
 Traduções: `"Arco de Néon": "Neon Bow"`, `"Puxe e solte!": "Draw and release!"`,

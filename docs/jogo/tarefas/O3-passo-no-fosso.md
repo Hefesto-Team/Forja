@@ -1,6 +1,6 @@
 # O3 — Passo no Fosso
 
-**Sprint:** O · **Slot:** S07_J33 · **Tamanho:** M · **Modelo:** Sonnet · **Estimativa:** US$ 1,5 · **Depende de:** H04, F09, H07, O1
+**Sprint:** O · **Slot:** S07_J33 · **Tamanho:** M · **Modelo:** Sonnet · **Estimativa:** US$ 1,5 · **Depende de:** H04, H08, F09, H07, O1
 
 ## Por quê
 
@@ -24,7 +24,7 @@ const FICHA := {
 	"titulo": "Passo no Fosso",
 	"verbo": "Pise no contratempo!",
 	"genero": "corrida",
-	"icone": "rumble_direito",
+	"icone": "haptica",
 	"entradas": [Forja.CRUZ],
 	"camera": "fixa",
 	"faixa": "MUS_S07_J33",
@@ -187,7 +187,7 @@ extends Minigame
 ##
 ## A falha: escorrega no plasma e volta uma placa. O vencedor: o primeiro na
 ## margem. O alto-falante do dono: a coleta a cada 10 placas. O registro mede:
-## o pulso da nota de cada um (pista, via háptica ou rumble) e o passo depois
+## o pulso da nota de cada um (pista, pelo canal da háptica ou do rumble) e o passo depois
 ## dele. O robô: pisa pelo relógio da música. Com menos de quatro: o hoqueto
 ## se reparte. A régua: no pico, sem as placas à vista, só a mão marca o tempo.
 
@@ -304,8 +304,8 @@ Catálogo: `"S07_J33"` em `MINIGAMES` e na seção `S07`. Traduções:
 
 ## O que o registro mede
 
-- `pista` `mandou` do pulso de cada nota (`o_que` `contratempo`, `via`) e
-  `respondeu` (`certo`/`nenhuma`); o desvio de cada passo (`toque`,
+- `pista` `mandou` do pulso de cada nota (`o_que` `contratempo`, `canal`) e
+  a `entrada` `resposta` (`certo`/`nenhuma`); o desvio de cada passo (`toque`,
   `desvio_ms`) — o contratempo é onde o desvio de quem joga de ouvido mais
   cresce, e a noite compara com o do rádio;
 - `som_controle` de todo pulso (a carga contínua nos atuadores, 2,5 por
@@ -325,7 +325,8 @@ Catálogo: `"S07_J33"` em `MINIGAMES` e na seção `S07`. Traduções:
   deslize do trilho.
 - **150 bpm:** com o `JANELA_BOM` de 140 ms, o passo na batida (200 ms antes
   ou depois do contratempo) é erro — é a regra, não mude a janela.
-- **Na prova o pico não chega** (o fim é pelo `duracao`, em tempo de jogo).
+- **Na prova o pico chega:** o fim conta em tempo de música (H08), e a
+  `duracao` inteira roda na prova, pelo relógio de parede.
 
 ## Pronto quando
 
