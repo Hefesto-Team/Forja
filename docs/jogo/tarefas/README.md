@@ -9,6 +9,7 @@ Estados: **a fazer**, **fazendo** (com o nome de quem pegou), **feito**
 
 | ficha | sprint | título | tamanho | estimativa (US$) | estado | gasto real |
 | --- | --- | --- | --- | --- | --- | --- |
+| [F00](F00-o-ambiente-da-sessao.md) | F | O ambiente da sessão | P | 1,5 | a fazer | — |
 | [F01](F01-o-modo-bancada.md) | F | O Modo bancada | G | 3,5 | a fazer | — |
 | [F02](F02-sem-metalinguagem.md) | F | Nenhuma frase metalinguística | M | 2,0 | a fazer | — |
 | [F03](F03-todo-minigame-fecha.md) | F | Todo minigame fecha | M | 3,0 | a fazer | — |
@@ -43,7 +44,7 @@ Estados: **a fazer**, **fazendo** (com o nome de quem pegou), **feito**
 | [R](R-o-relampago.md) | R | O Relâmpago | M | 2,5 | a fazer | — |
 | [S](S-a-noite-de-seis-horas.md) | S | A noite de seis horas | M | 3,0 | a fazer | — |
 
-**Soma das estimativas:** US$ 110,0 (F 21,0 · G 23,0 · H 20,0 · I–Q 40,5 · R 2,5 · S 3,0).
+**Soma das estimativas:** US$ 111,5 (F 22,5 · G 23,0 · H 20,0 · I–Q 40,5 · R 2,5 · S 3,0).
 Com o retrabalho de 30%, a faixa é a de [Como trabalhar](../12-como-trabalhar.md#o-orçamento).
 
 ## A ordem
