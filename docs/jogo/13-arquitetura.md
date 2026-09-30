@@ -376,9 +376,13 @@ decidido:
 | `Salao` | `pulso`, `apagado`, `acender_bigorna`, `mostrar_colecao`; `godot/scripts/colecao.gd` | G06 |
 | `scripts/` | `conferir_bonecos.py`: confere os sete ossos e as animações de um `.glb` | G08 |
 
-Os pacotes Kenney novos entram cada um na sua pasta dentro de
-`godot/assets/kenney/`, porque o `Textures/colormap.png` de um pacote
-sobrescreveria o do Mini Dungeon.
+Os pacotes Kenney entram cada um na sua pasta, `godot/assets/kenney/<pacote>/`
+(o Mini Dungeon de hoje se muda para `godot/assets/kenney/mini-dungeon/`),
+porque o `Textures/colormap.png` de um pacote sobrescreveria o do outro. O
+caminho de toda peça sai de `Kit.caminho(nome)`: `"castle-kit/tower-base"`
+vai para `res://assets/kenney/castle-kit/tower-base.glb`; sem pacote no nome,
+vale o `mini-dungeon`. A curadoria (o que entra e o que não) é o
+[14](14-os-assets-kenney.md); a importação, a [G10](tarefas/G10-a-biblioteca-kenney.md).
 
 ### O item — G03
 

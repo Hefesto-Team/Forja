@@ -1,0 +1,6 @@
+# Os binários do jogo: sem conversão de fim de linha, sem diff de texto.
+*.ogg binary
+*.wav binary
+*.png binary
+*.glb binary
+*.ttf binary

@@ -288,6 +288,13 @@ Sem esfera, sem bronze, `metallic` 0.
 
 ### Parte B — com os pacotes do André
 
+> **Atualização de 30/09:** a Parte B passou para a
+> [G10 — a biblioteca Kenney](G10-a-biblioteca-kenney.md), que importa o Mini
+> Characters (os doze bonecos, no mesmo esqueleto) pelo
+> `scripts/importar_kenney.py`, um pacote por pasta, com a curadoria do
+> [14](../14-os-assets-kenney.md). O que segue abaixo vale como referência; a
+> G10 manda.
+
 1. O André baixa em [kenney.nl](https://kenney.nl) os pacotes CC0 da mesma
    linha "mini" com personagens e **copia cada pacote para uma pasta
    própria** em `godot/assets/kenney/<pacote>/` (os `.glb` e a pasta

@@ -29,6 +29,8 @@ dele.
 | [10 — A régua Astro Bot](10-a-regua-astro-bot.md) | o estudo de caso: como usar o DualSense sem parecer teste |
 | [11 — A arte e os personagens](11-arte-e-personagens.md) | as regras de coerência, o que destoa e os doze bonecos |
 | [12 — Como trabalhar](12-como-trabalhar.md) | o método: uma ficha por sessão, o que roda onde, o orçamento |
+| [13 — A arquitetura](13-arquitetura.md) | a base comum que toda ficha usa: APIs, registro, kit, paridade, prova visual |
+| [14 — Os assets da Kenney](14-os-assets-kenney.md) | o pacote All-in-1: o que entra, como entra, recolorir |
 | [O quadro](tarefas/README.md) | as fichas, na ordem de trabalho, com o estado e o gasto de cada uma |
 
 As sprints que executam isto estão no topo do [SPRINTS](../../SPRINTS.md),

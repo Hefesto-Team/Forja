@@ -30,6 +30,8 @@ A direção do que vem agora: de bancada a jogo. Começa pelo [mapa da pasta](jo
 | [A régua Astro Bot](jogo/10-a-regua-astro-bot.md) | como usar o DualSense sem parecer teste |
 | [A arte e os personagens](jogo/11-arte-e-personagens.md) | as regras de coerência, o que destoa e os doze bonecos |
 | [Como trabalhar](jogo/12-como-trabalhar.md) | uma ficha por sessão, o que roda onde, o orçamento |
+| [A arquitetura](jogo/13-arquitetura.md) | a base comum que toda ficha usa |
+| [Os assets da Kenney](jogo/14-os-assets-kenney.md) | o que entra do All-in-1, e como |
 | [O quadro](jogo/tarefas/README.md) | as fichas de trabalho, na ordem, com estado e gasto |
 
 ## Validar o Hefesto

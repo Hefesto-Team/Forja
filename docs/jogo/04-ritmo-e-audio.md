@@ -88,7 +88,7 @@ de áudio; o que reage é feito nos barramentos do Godot e no mixer do módulo.
 ## As 45 faixas
 
 Uma faixa por minigame. O nome do arquivo é o slot:
-`godot/assets/musica/Sxx/MUS_Sxx_Jyy.ogg`. Com cada faixa vai um mapa de
+`godot/assets/ost/Sxx/MUS_Sxx_Jyy.ogg`. Com cada faixa vai um mapa de
 batidas `MUS_Sxx_Jyy.batidas.json` com o BPM, o instante do primeiro tempo,
 os compassos e as seções (introdução, queda, pausa). Faixa gerada por IA
 pode escorregar o andamento, e o mapa é conferido à mão antes de a faixa
@@ -202,11 +202,15 @@ pequenos e ligados a uma ação — nunca música, nunca ambiente contínuo.
   preenchimento de silêncio quebra o laço).
 - Efeitos em WAV 48 kHz. Uma taxa só em todo o projeto, para o motor não
   reamostrar em tempo real.
-- As 45 faixas somam algo entre 150 e 250 MB. Antes da primeira faixa entrar,
-  a Sprint H decide entre **Git LFS** (com `.gitattributes` para `*.ogg` e
-  `*.wav` de música) e **um pacote de música anexado ao release** que o
-  `scripts/exportar.sh` baixa e confere por sha256, do mesmo jeito que o SDL
-  é fixado hoje. A recomendação é a segunda: o clone continua leve e a
-  exportação continua reprodutível.
+- **As músicas ficam dentro do git**, em `godot/assets/ost/` (decisão do
+  André em 30/09): `S01/` a `S09/` para as 45 faixas, `telas/` e `jingles/`,
+  com um [LEIA-ME](../../godot/assets/ost/LEIA-ME.md) que diz o nome de cada
+  arquivo. O `.gitattributes` da raiz marca `*.ogg`, `*.wav`, `*.png`,
+  `*.glb` e `*.ttf` como binários.
+- As 45 faixas somam algo entre 150 e 250 MB. **Cada versão de uma música
+  fica para sempre no histórico**, e o clone cresce com ela. Por isso a regra:
+  só entra faixa aprovada, ouvida no jogo; rascunho e geração descartada nunca
+  entram. Se o repositório ficar pesado demais, o caminho é o Git LFS, sem
+  mudar a pasta.
 - As sessões de produção (projetos de DAW, stems crus, gerações descartadas)
   nunca entram no repositório.
