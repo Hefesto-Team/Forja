@@ -56,7 +56,7 @@ const FICHA := {
   passar da nota). Não chegou até `FOLGA_PERDIDA`, o do kit depois → nota perdida.
 - **Os pontos por julgamento** (ERRO, BOM, ÓTIMO, PERFEITO): `[0, 20, 35, 50]`.
   Cada dado com julgamento BOM ou melhor é **coletado**.
-- **A progressão:** `progresso()` do kit (em tempo de música, H08). De 0 a 1/3, um dado a cada 2
+- **A progressão:** `andamento()` do kit (em tempo de música, H08). De 0 a 1/3, um dado a cada 2
   tempos. **O pico (1/3 a 2/3), a descida:** um dado por tempo (`k + 0,25·l`)
   e os dados vêm 3 m por tempo. De 2/3 em diante, a cada 2 tempos.
   Dados de cada um em 90 s: ~55 a 96 bpm, ~72 a 128 bpm.
@@ -200,11 +200,11 @@ func _proxima_batida(l: int, b: float) -> float:
 	var passo := 2.0
 	var desloc := 0.5 * l
 	if Ritmo.simples[l]:
-		passo = 4.0
+		passo = 2.0  # o kit dobra o passo na partitura simples
 	elif no_pico():
 		passo = 1.0
 		desloc = 0.25 * l
-	return proxima_batida(l, b + 0.001, passo, desloc)  # o kit; estritamente depois de b
+	return proxima_batida(l, b, passo, desloc)  # o kit (H08): a próxima depois de b
 
 
 ## Os dados nascem 6 tempos antes da batida deles; a trilha nunca repete a anterior.
@@ -271,7 +271,7 @@ func _nota(l: int, e: Dictionary, agora: float) -> void:
 	e.aberta = true
 	e.dentro = dentro
 	if entrou:
-		Forja.evento("entrada", l + 1, {"o": "rolagem", "pedido_x": d.x, "feito_x": snappedf(float(e.x), 0.01),
+		anotar("entrada", l, {"o": "rolagem", "pedido_x": d.x, "feito_x": snappedf(float(e.x), 0.01),
 			"rolagem": snappedf(SECAO.rolagem(l), 0.01), "n": int(d.n)})
 		julgar_toque(l, alvo, int(d.n))
 	elif agora > alvo + FOLGA_PERDIDA:

@@ -23,7 +23,7 @@ const FICHA := {
 	"titulo": "Marcha dos Escudeiros",
 	"verbo": "Marche!",
 	"genero": "corrida",
-	"icone": "stick_l",
+	"icone": "analogicos",
 	"entradas": [],
 	"camera": "fixa",
 	"faixa": "MUS_S01_J02",
@@ -57,7 +57,7 @@ const FICHA := {
   (ele está no chão). A meta: 48 m.
 - **Os pontos por julgamento** (ERRO, BOM, ÓTIMO, PERFEITO): `[0, 20, 35, 50]`;
   o primeiro a chegar +300, o segundo +200, o terceiro +100.
-- **A progressão:** `progresso()` do kit (em tempo de música, H08). De 0 a 1/3, a esteira normal.
+- **A progressão:** `andamento()` do kit (em tempo de música, H08). De 0 a 1/3, a esteira normal.
   **O pico (1/3 a 2/3), a ladeira:** a esteira puxa 2,5 vezes mais, as
   engrenagens do chão giram e soltam faísca. De 2/3 em diante, normal.
   Quem acerta tudo chega perto do tempo 120 (~67 s a 108 bpm); quem erra um
@@ -215,7 +215,7 @@ func montar() -> void:
 
 ## A próxima batida de passo do lugar que ainda não passou (a `proxima_batida` do kit).
 func _passo_da_vez(l: int) -> float:
-	return proxima_batida(l, Ritmo.batida(), 2.0 if Ritmo.simples[l] else 1.0)
+	return proxima_batida(l, Ritmo.batida() - 0.001, 1.0)  # o kit dobra o passo na partitura simples
 
 
 func _marcar_nota(l: int, b: float) -> void:
@@ -273,12 +273,12 @@ func _passo(l: int, e: Dictionary) -> void:
 		return
 	var perto := absf(agora - alvo) <= Ritmo.JANELA_BOM
 	if perto and antes_outro > SOLTO and y_outro <= FRENTE:
-		Forja.evento("entrada", l + 1, {"o": "analogico", "lado": "direito" if esquerdo else "esquerdo",
+		anotar("entrada", l, {"o": "analogico", "lado": "direito" if esquerdo else "esquerdo",
 			"trocou_o_pe": true, "n": int(e.n)})
 		nota_perdida(l, int(e.n))
 		return
 	if antes_pedido > SOLTO and y_pedido <= FRENTE and agora >= alvo - 0.5 * 60.0 / Ritmo.bpm:
-		Forja.evento("entrada", l + 1, {"o": "analogico", "lado": "esquerdo" if esquerdo else "direito",
+		anotar("entrada", l, {"o": "analogico", "lado": "esquerdo" if esquerdo else "direito",
 			"curso": snappedf(float(e.curso), 0.01), "n": int(e.n)})
 		julgar_toque(l, alvo, int(e.n))
 	elif agora > alvo + FOLGA_PERDIDA:

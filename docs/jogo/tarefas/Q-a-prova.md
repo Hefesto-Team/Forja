@@ -1,6 +1,6 @@
 # Q — S9 — A Prova: os cinco minigames
 
-**Sprint:** I–Q · **Tamanho:** G (cinco fichas) · **Estimativa:** US$ 9,0 (a soma das cinco) · **Depende de:** H04, H07, F01, F09, G03, e as seções S1 a S8 prontas antes dos medleys (Q4, Q5)
+**Sprint:** Q · **Tamanho:** G (cinco fichas) · **Estimativa:** US$ 9,0 (a soma das cinco: Q1, Q4 e Q5 G, 2,0; Q2 e Q3 M, 1,5) · **Depende de:** H04, H08, H07, F01, F09, G03, e as seções S1 a S8 prontas antes dos medleys (Q4, Q5)
 
 Esta é a ficha-mãe: o índice. O trabalho anda pelas cinco fichas abaixo, uma
 por sessão, na ordem.
@@ -18,9 +18,11 @@ saídas por segundo, as recusas sob carga, os quatro controles ao mesmo tempo.
 - A arena da Prova: `Kit.arena` larga, a luz da casa cheia (tocha `#ffb070`,
   lilás `#b9b0ff`), as bandeiras (`Kit.peca(..., "banner")`) das duas equipes
   no fundo.
-- **As equipes** (a mesma regra em Q1, Q3 e na O5): `presentes()` na ordem;
-  os dois primeiros são a **Brasa**, os dois seguintes a **Maré**. Falta
-  gente, o **Aprendiz** completa:
+- **As equipes** (a mesma regra em Q1, Q3, na O5 e nos 2v2 das outras
+  seções: J4, M4, M5): `presentes()` na ordem; os dois primeiros são a
+  **Brasa**, os dois seguintes a **Maré**. O kit as monta (`equipe[l]`,
+  `aprendizes[e]`, `montar_equipes`, H08). Falta gente, o **Aprendiz**
+  completa:
 
   | jogadores | Brasa | Maré |
   | --- | --- | --- |
@@ -38,11 +40,15 @@ saídas por segundo, as recusas sob carga, os quatro controles ao mesmo tempo.
   turquesa `#2fb3b3` (Maré) — longe das quatro cores dos lugares —, no chão
   do campo, no disco sob os pés de cada cavaleiro e nas bandeiras. A barra de
   luz é **sempre** a cor do lugar; as luzinhas, **sempre** o número do
-  jogador (nada de munição nas luzinhas).
+  jogador (nada de munição nas luzinhas). Os pontos da equipe vão para os
+  dois da dupla (`marcar_equipe`, H08), e a tela diz "A Brasa venceu!".
 - A Q2 (pega-bandeira) tem a regra dela para 3, 2 e 1 (sem Aprendiz: um
   boneco não carrega bateria).
 - `usa_gatilho = true` no `montar()` de quem usa gatilho (G03: o L2 fica
   livre do item).
+- **Os medleys** (Q4, Q5) são os únicos da seção com `"duracao": 0.0`: o fim
+  é do próprio jogo (a plataforma, o dragão). Os outros três contam a
+  `duracao` em tempo de música (H08).
 
 ## Os medleys (Q4, Q5): mini-versões, não o catálogo em modo trecho
 

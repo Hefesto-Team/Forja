@@ -1,6 +1,6 @@
 # Q4 — Ruge o Reator
 
-**Sprint:** Q · **Slot:** S09_J44 · **Tamanho:** G · **Estimativa:** US$ 2,0 · **Depende de:** H04, F09, H07, G03, Q1, O1 (as linhas `pista`/`troca`), e as seções S1 a S4 prontas (as mecânicas que as estações resumem)
+**Sprint:** Q · **Slot:** S09_J44 · **Tamanho:** G · **Estimativa:** US$ 2,0 · **Depende de:** H04, H08, F09, H07, G03, Q1, O1 (o `_pista`), e as seções S1 a S4 prontas (as mecânicas que as estações resumem)
 
 ## Por quê
 
@@ -91,7 +91,7 @@ A faixa é `MUS_S09_J44`, 120 bpm (uma batida = 0,5 s). `BATIDA_DA_PRIMEIRA_NOTA
    cruzar o do lado errado, dentro da janela, é erro. Sem giroscópio
    (`not Forja.capacidade(l, "giro")`): a gravidade (`Forja.acel`), e sem ela
    o analógico esquerdo (`Forja.eixo(l, Forja.LX)` além de ±0,6) — com a
-   `troca` (`recurso` `giroscopio`, `para` `analogico`, `motivo`
+   `troca` (`de` `giroscopio`, `para` `analogico`, `motivo`
    `sem_giroscopio`).
 3. **Traçar.** Na nota dele, a runa à frente do cavaleiro mostra uma seta
    (`_seta[n]`, esquerda ou direita, pelo `rng`), acesa uma batida antes. O
@@ -101,7 +101,7 @@ A faixa é `MUS_S09_J44`, 120 bpm (uma batida = 0,5 s). `BATIDA_DA_PRIMEIRA_NOTA
    outro lado é erro.
 4. **Defender.** Uma batida antes da nota dele, a garra do reator anuncia o
    lado **só na mão dele** (`Forja.sentir(l, "golpe_esq" / "golpe_dir", 150)`,
-   uma `pista` com `via` `rumble` e `o_que` o lado); na nota, L1 (esquerda) ou
+   uma `pista` com `canal` `rumble` e `o_que` o lado); na nota, L1 (esquerda) ou
    R1 (direita). O botão do lado errado é erro.
 
 - **A plataforma comum:** `_integridade` começa em 100. Cada erro (toque ERRO
@@ -175,11 +175,12 @@ giroscópio:** a troca da estação 2 (acima).
 
 ## O fim e o vencedor
 
-`coop = true` no `montar()`. Na batida 236 (depois do ✕ de todos), a
+O `coop` vem do gênero da FICHA (H08). Na batida 236 (depois do ✕ de todos), a
 plataforma aguentou: `coop_venceu = true`, o dragão fecha os olhos e cai para
 trás (a mandíbula fecha, os olhos apagam), faíscas `#ffb070`. Se a plataforma
 caiu antes: `coop_venceu = false`. Em qualquer caso, todos acabam.
-`vencedor()`: o destaque — quem errou menos (`_erros[l]`), depois mais pontos.
+O registro grava `vencedor` −1 (coop); `destaque()`: quem errou menos
+(`_erros[l]`), depois mais pontos.
 
 ## Com menos de quatro
 
@@ -309,7 +310,6 @@ var _robo_x := [0.5, 0.5, 0.5, 0.5]
 
 
 func montar() -> void:
-	coop = true
 	camera_pos = Vector3(0, 8.0, 12.0)
 	camera_olhar = Vector3(0, 2.0, -2.0)
 	# o covil, o dragão, a plataforma, as raias, as peças das estações; gatilhos_off
@@ -358,10 +358,11 @@ func falha(l: int) -> void:
 		_a_plataforma_cai()
 
 
-func vencedor() -> Array:
+## Coop: o kit grava vencedor −1 (H08); o destaque é quem errou menos.
+func destaque() -> int:
 	var lista := presentes()
 	lista.sort_custom(func(a, b): return _erros[a] < _erros[b] or (_erros[a] == _erros[b] and pontos[a] > pontos[b]))
-	return lista
+	return int(lista[0]) if not lista.is_empty() else -1
 ```
 
 `_distribuir(b)`: para a batida `x = floor(b) + 1` (uma vez cada, `_feita`):
@@ -375,7 +376,7 @@ e a batida 235 é de todos (bater). Para cada lugar que toca: `_nota[l] = _n[l]`
 `_seta_da_nota[l]` pelo `rng` e a runa acende; no defender, `_lado_garra[l]`
 pelo `rng` e a pista **agora** (uma batida antes):
 `Forja.sentir(l, "golpe_esq" if lado == 0 else "golpe_dir", 150)` e a linha
-`pista` (`via` `rumble`, `o_que` `esquerda`/`direita`). `_pistas(b)`: no
+`pista` (`canal` `rumble`, `o_que` `esquerda`/`direita`). `_pistas(b)`: no
 equilibrar, a cada compasso (`x % 4 == 0`), `_lado_balanco` pelo `rng` e o
 empurrão em todos. `_entrada(l)`: pelo verbo — `BATER`: `Forja.apertou(l, Forja.CRUZ)`;
 `EQUILIBRAR`: a rolagem (ou o que a substitui) cruzou o limite (certo →
@@ -383,7 +384,7 @@ empurrão em todos. `_entrada(l)`: pelo verbo — `BATER`: `Forja.apertou(l, For
 `TRACO` desde `_dedo_de[l]` (guardado no toque do dedo); `DEFENDER`: L1/R1.
 `_contar_notas()`: percorre o roteiro com os `presentes()` de agora e conta.
 A linha de cada estação, no `_trocar_trecho`:
-`Forja.evento("estacao", 0, {"slot": id, "estacao": NOME_ESTACAO[verbo], "batida": de})`
+`anotar("estacao", -1, {"nome": NOME_ESTACAO[verbo], "evento": "comecou", "batida": de})`
 (`"rugido"` e `"final"` nos outros dois).
 
 Dica (com `na_raia(l)`): o ícone do verbo da nota aberta — `["@cross"]`,
@@ -405,7 +406,7 @@ Catálogo: `"S09_J44"` em `MINIGAMES` e na seção `S09`. Traduções:
   compara com o desvio das seções de origem no começo — o cansaço por
   recurso;
 - `nota`/`toque` de cada estação; `pista` da garra (o lado, só no dono) e
-  `respondeu`;
+  a `entrada` `resposta`;
 - `troca` de quem não tem giroscópio.
 
 As linhas `estacao` e `troca` são as do [13](../13-arquitetura.md#as-decisões-comuns-dos-minigames--h08)

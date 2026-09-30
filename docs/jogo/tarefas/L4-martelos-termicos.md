@@ -46,7 +46,7 @@ const FICHA := {
 	"titulo": "Martelos Térmicos",
 	"verbo": "Acerte o lado!",
 	"genero": "tct",
-	"icone": "rumble_esquerdo",
+	"icone": "vibracao",
 	"entradas": [Forja.L1, Forja.R1],
 	"camera": "fixa",
 	"faixa": "MUS_S04_J19",
@@ -86,7 +86,7 @@ com `nova_nota(l, b, t)`. `quente` é `AMBAS` com a chance da parte
 - `ESQ` → `Forja.sentir(l, "golpe_esq", ms)`; `DIR` → `"golpe_dir"`;
   `AMBAS` → `"explosao"` (os dois motores inteiros: é a única pista com o
   fraco acima de 0,9); `ms = int(60000.0 / Ritmo.bpm * 0.4)`;
-- `Forja.evento("pista", l + 1, {"slot": id, "n": b, "evento": "mandou", "via": "rumble", "o_que": "esq"/"dir"/"ambos", "ok": ok})`.
+- `anotar("pista", l, {"n": b, "evento": "mandou", "canal": "rumble", "o_que": "esq"/"dir"/"ambos", "ok": ok})`.
 
 **As toupeiras sobem** de `b − 1` a `b − 0,25` (`y` de −0,6 a 0, pela
 batida) e descem de `b + 0,5` a `b + 1`. As duas têm o mesmo brilho laranja
@@ -289,7 +289,7 @@ func jogar(_dt: float) -> void:
 			_ultima[l] = nt
 			nota_perdida(l, int(nt.n))
 		_mover_as_toupeiras(l)  # sobe/desce pela batida da nota mais perto
-	var s := progresso() * duracao  # os segundos de música do jogo valendo (o kit, H08)
+	var s := tempo_jogado()  # os segundos de música do jogo valendo (o kit, H08)
 	_fornalha.light_energy = clampf((s - 25.0) / 2.0, 0.0, 1.0) * 2.5 if s < 50.0 else maxf(0.0, 2.5 - (s - 50.0))
 
 
@@ -325,7 +325,7 @@ com `na_raia(l)` e `not aprendeu(l)`.
 ## O que o registro mede
 
 - `sensacao` `golpe_esq` / `golpe_dir` / `explosao` e a `saida` de vibração.
-- `pista` (`via` `rumble`) na pista e `entrada` `resposta` com o lado martelado; o `toque` do kit.
+- `pista` (`canal` `rumble`) na pista e `entrada` `resposta` com o lado martelado; o `toque` do kit.
 - O fantasma (o martelo sem pista, com o dono da pista mais perto).
 - A dupla: `{"o": "dupla", "n": b, "juntos_ms": <a distância entre os dois martelos>}`.
 

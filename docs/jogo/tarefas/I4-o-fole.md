@@ -25,7 +25,7 @@ const FICHA := {
 	"titulo": "O Fole",
 	"verbo": "Sopre a forja!",
 	"genero": "coop",
-	"icone": "r2",
+	"icone": "gatilhos",
 	"entradas": [],
 	"camera": "fixa",
 	"faixa": "MUS_S01_J04",
@@ -62,7 +62,7 @@ const FICHA := {
   compasso a chama perde 0,004. Chegou a 1: **a forja chega ao branco**.
 - **Os pontos por julgamento** (os do soprador, para o destaque):
   `[0, 20, 35, 50]`, mais 15 por nota segurada até o fim.
-- **A progressão:** `progresso()` do kit (em tempo de música, H08). De 0 a 1/3, uma nota por
+- **A progressão:** `andamento()` do kit (em tempo de música, H08). De 0 a 1/3, uma nota por
   compasso. **O pico (1/3 a 2/3), o fole duplo:** duas por compasso
   (`4c + 0,5·l` e `4c + 2 + 0,5·l`), segurando meio tempo; a chama cresce
   mais depressa e a música abre. De 2/3 em diante, uma por compasso. Um
@@ -254,11 +254,11 @@ func _proxima_batida(l: int, b: float) -> float:
 	var passo := 4.0
 	var desloc := float(l)
 	if Ritmo.simples[l]:
-		passo = 8.0
+		passo = 4.0  # o kit dobra o passo na partitura simples
 	elif no_pico():
 		passo = 2.0
 		desloc = 0.5 * l
-	return proxima_batida(l, b + 0.001, passo, desloc)  # o kit; estritamente depois de b
+	return proxima_batida(l, b, passo, desloc)  # o kit (H08): a próxima depois de b
 
 
 func _marcar_nota(l: int, b: float) -> void:
@@ -318,7 +318,7 @@ func _nota(l: int, e: Dictionary, v: float) -> void:
 			_fim_da_nota(l, true)
 		return
 	if antes < lo and v >= lo and agora >= alvo - 0.5 * 60.0 / Ritmo.bpm:
-		Forja.evento("entrada", l + 1, {"o": "gatilho", "lado": "R2", "entrou": snappedf(v, 0.01), "faixa": ALTURA[l], "n": int(e.n)})
+		anotar("entrada", l, {"o": "gatilho", "lado": "R2", "entrou": snappedf(v, 0.01), "faixa": ALTURA[l], "n": int(e.n)})
 		e.entrou = v
 		if v > hi:
 			nota_perdida(l, int(e.n))  # afundou demais de uma vez: a chama engasga
@@ -331,7 +331,7 @@ func _nota(l: int, e: Dictionary, v: float) -> void:
 ## A nota longa acabou: segurada até o fim (o acorde conta com ela) ou solta antes.
 func _fim_da_nota(l: int, segurou: bool) -> void:
 	var e: Dictionary = j[l]
-	Forja.evento("entrada", l + 1, {"o": "gatilho", "lado": "R2", "min": snappedf(float(e.min), 0.01),
+	anotar("entrada", l, {"o": "gatilho", "lado": "R2", "min": snappedf(float(e.min), 0.01),
 		"max": snappedf(float(e.max), 0.01), "segurou": segurou, "n": int(e.n)})
 	if segurou:
 		e.ok_c = int(floor(float(e.b) / 4.0))

@@ -52,7 +52,7 @@ const FICHA := {
 	"titulo": "A Galeria",
 	"verbo": "Atire!",
 	"genero": "tct",
-	"icone": "r2",
+	"icone": "gatilho_adaptativo",
 	"entradas": [Forja.QUADRADO],
 	"camera": "fixa",
 	"faixa": "MUS_S05_J21",
@@ -117,7 +117,7 @@ a até `Ritmo.JANELA_BOM`:
 - sem nota perto → o tiro à toa: faísca no muro, `Forja.sentir(l, "toque")`,
   nada de ponto nem de erro.
 
-Todo tiro grava `Forja.evento("entrada", l + 1, {"slot": id, "o": "disparo", "n": n, "modo": "arma", "curso": r2, "curso_max": <o maior R2 até soltar>})`
+Todo tiro grava `anotar("entrada", l, {"o": "disparo", "n": n, "modo": "arma", "curso": r2, "curso_max": <o maior R2 até soltar>})`
 (o `curso_max` se grava ao soltar; guarde o evento até lá).
 
 **A munição:** `balas[l]` começa em `BALAS`. Chegou a 0 →

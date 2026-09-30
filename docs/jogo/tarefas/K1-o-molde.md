@@ -438,7 +438,7 @@ func montar() -> void:
 func iniciar_jogo() -> void:
 	for l in presentes():
 		if not Forja.capacidade(l, "toque"):
-			Forja.evento("troca", l + 1, {"slot": id, "de": "touchpad", "para": "sem_touchpad"})
+			anotar("entrada", l, {"o": "sensores", "toque": false})
 			acabou[l] = true
 			continue
 		_nova_peca(l, BATIDA_DA_PRIMEIRA_NOTA)
@@ -536,7 +536,7 @@ func _nota(l: int, e: Dictionary, agora: float) -> void:
 	e.aberta = true
 	e.antes = sim
 	if cruzou:
-		Forja.evento("entrada", l + 1, {"o": "touchpad", "passo": o, "d0": [snappedf(d[0].x, 0.01), snappedf(d[0].y, 0.01)],
+		anotar("entrada", l, {"o": "touchpad", "passo": o, "d0": [snappedf(d[0].x, 0.01), snappedf(d[0].y, 0.01)],
 			"d1": [snappedf(d[1].x, 0.01), snappedf(d[1].y, 0.01)], "dedos": int(d[0].z > 0.5) + int(d[1].z > 0.5), "n": int(e.n)})
 		julgar_toque(l, alvo, int(e.n))
 	elif agora > alvo + FOLGA_PERDIDA:

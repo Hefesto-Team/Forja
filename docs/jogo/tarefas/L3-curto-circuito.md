@@ -11,11 +11,10 @@ falta muito, acelerado quando falta pouco. É a pista privada do Astro Bot
 com a bomba sabe uma coisa que os outros não sabem — e escolhe para quem
 passar. O verbo da vibração aqui é **contar o tempo que falta**.
 
-**Adaptado do [03](../03-os-45-minigames.md#s4--o-impacto--vibração-e-barra-de-luz):**
+**Como no [03](../03-os-45-minigames.md#s4--o-impacto--vibração-e-barra-de-luz):**
 a bomba está no mundo (em cima da cabeça de quem segura) e no peso do R2 de
 quem segura; a barra de luz continua na cor do lugar e nunca diz quem está
-com ela. "Quatro rodadas; o último que não estourou" vira: quatro rodadas,
-e vence quem estourou menos.
+com ela. Quatro rodadas, e vence quem estourou menos (ninguém sai do jogo).
 
 ## Ler antes
 
@@ -56,7 +55,7 @@ const FICHA := {
 	"titulo": "Curto-Circuito",
 	"verbo": "Passe!",
 	"genero": "sabotagem",
-	"icone": "rumble_esquerdo",
+	"icone": "vibracao",
 	"entradas": [Forja.L1, Forja.R1],
 	"camera": "fixa",
 	"faixa": "MUS_S04_J18",
@@ -108,7 +107,7 @@ até `Ritmo.JANELA_BOM` da nota → `julgar_toque(l, t, n)`:
 
 Aperto longe de qualquer nota (quem não segura, ou quem segura fora da
 janela): nada acontece com a bomba; quem não segura e aperta ganha
-`Forja.evento("entrada", l + 1, {"slot": id, "o": "fantasma", "golpe_de": "P%d" % (_com + 1)})`
+`anotar("entrada", l, {"o": "fantasma", "golpe_de": "P%d" % (_com + 1)})`
 (sentiu o coração de outro?). A chance que passa de `t + FOLGA_PERDIDA` (o kit) sem
 aperto é `nota_perdida(l, n)`.
 
@@ -123,7 +122,7 @@ aperto é `nota_perdida(l, n)`.
 Controle pelo índice da grade: `var g := int(floor(Ritmo.batida() * div))`
 (`div` 1 ou 2); pulse quando `g > _ultimo_pulso` e guarde. Cada pulso vai ao
 registro como `sensacao` (F05); o minigame grava, na mudança de faixa,
-`Forja.evento("pista", l + 1, {"slot": id, "n": -1, "evento": "mandou", "via": "rumble", "o_que": "ambos", "ok": ok, "faltam": int(faltam)})`.
+`anotar("pista", l, {"n": -1, "evento": "mandou", "canal": "rumble", "o_que": "ambos", "ok": ok, "faltam": int(faltam)})`.
 
 **O peso (o gatilho de quem segura):** R2 em
 `Forja.gatilho(l, 1, Forja.GATILHO_RESISTENCIA, 0, forca)`, com `forca` 3
@@ -360,7 +359,7 @@ Traduções: `"Curto-Circuito": "Short Circuit"`, `"Passe!": "Pass!"`,
 ## O que o registro mede
 
 - Cada pulso do coração (`sensacao`, com `seq` e `ok` na `saida`) só no
-  controle de quem segura, e o `pista` (`via` `rumble`) (`"ambos"`, `faltam`) a cada
+  controle de quem segura, e o `pista` (`canal` `rumble`) (`"ambos"`, `faltam`) a cada
   mudança de faixa do pavio.
 - O passe (`toque` do kit) e a chance perdida (`toque` perdido).
 - O fantasma: quem aperta sem segurar, com quem segurava (a vibração vazou?).

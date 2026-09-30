@@ -58,12 +58,12 @@ encaixar.
 Por baixo, sem perguntar nada a ninguém:
 
 - cada textura mandada aos atuadores (`som_controle`, papel `haptica`, com
-  `placa`), e cada pista com o caminho que tomou (`pista`, `via` =
+  `placa`), e cada pista com o caminho que tomou (`pista`, `canal` =
   `haptica`/`rumble`);
 - a troca para o rumble quando o lugar não tem placa (`troca`, `de`
   `haptica`, `para` `rumble`, motivo `sem_placa`) ou só tem um canal
   (`sem_estereo`, em O4);
-- a resposta a cada pista (`pista` `respondeu`: `certo`, `errado`,
+- a resposta a cada pista (a `entrada` `resposta`: `certo`, `errado`,
   `nenhuma`) — a antiga pergunta "que chão é esse?" agora é o caminho que o
   jogador toma;
 - o tempo de cada resposta (`nota` e `toque`, do kit).

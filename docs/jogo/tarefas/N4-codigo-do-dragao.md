@@ -48,7 +48,7 @@ const FICHA := {
 	"titulo": "Código do Dragão",
 	"verbo": "Decore!",
 	"genero": "tct",
-	"icone": "alto-falante",
+	"icone": "alto_falante",
 	"entradas": [Forja.CRUZ, Forja.CIRCULO, Forja.TRIANGULO],
 	"camera": "fixa",
 	"faixa": "MUS_S06_J29",
@@ -81,7 +81,7 @@ compasso `S` (a primeira é a batida 4, depois da contagem):
    `p = 0,5` (o **pico**, 33–66 s; quem está com `Ritmo.simples[l]` fica em
    `p = 1`). A nota `i` é `senha[l][i]` (0, 1 ou 2), tocada com
    `var foi := CenarioDoCanto.falante(self, l, SOM[senha[l][i]], 0.9)` e
-   `Forja.evento("pista", l + 1, {"slot": id, "n": <n da resposta i>, "evento": "mandou", "via": "alto_falante" if foi else "tv", "o_que": SOM[...], "no_controle": foi})`.
+   `anotar("pista", l, {"n": <n da resposta i>, "evento": "mandou", "canal": "alto_falante", "o_que": SOM[...], "no_controle": foi})`.
 2. **Uma batida de silêncio:** a resposta começa em
    `A = ceilf(S + L * p) + 1`.
 3. **A resposta:** `L` notas nas batidas `A + i`:
@@ -330,7 +330,7 @@ com `na_raia(l)` e `not aprendeu(l)` (`"Média": "Middle"`); `status(l)`:
 
 ## O que o registro mede
 
-- `som_controle` (H07) de cada nota da senha e o `pista` (`via` `alto_falante`) (n da
+- `som_controle` (H07) de cada nota da senha e o `pista` (`canal` `alto_falante`) (n da
   resposta, som, `no_controle`).
 - O `toque` do kit em cada nota da resposta. O cruzamento: senha inteira
   cantada com `placa` e resposta que para sempre na mesma posição num

@@ -50,7 +50,7 @@ const FICHA := {
 	"titulo": "Fuga do Titã",
 	"verbo": "Corra!",
 	"genero": "coop",
-	"icone": "rumble_esquerdo",
+	"icone": "vibracao",
 	"entradas": [],
 	"camera": "fixa",
 	"faixa": "MUS_S04_J17",
@@ -82,7 +82,7 @@ const Z_TITA := Vector2(-7.0, -1.2)  ## o z do titã longe (distância 1) e enco
 é a contagem de entrada (a primeira vez é a batida 4). `lista` são os
 `presentes()` em ordem crescente, `k = lista.size()`.
 
-| parte | música (`progresso()` do kit) | a vez | com poucos |
+| parte | música (`andamento()` do kit) | a vez | com poucos |
 | --- | --- | --- | --- |
 | entrada | 0–33 s | batida `b` → `lista[b % k]`, sempre na mesma ordem | sozinho, só as pares |
 | **pico** | 33–66 s | a `ordem` do compasso é `lista` embaralhada pelo `rng` (Fisher-Yates com `rng.randi_range`, nunca `Array.shuffle`); batida `4c + i` → `ordem[i % k]`; se `ordem[0]` for o dono da batida `4c − 1`, gire a `ordem` uma casa | sozinho, só as pares, sem embaralhar |
@@ -100,14 +100,14 @@ com `nova_nota(l, n, t)`. O compasso é gerado quando `Ritmo.batida() >= 4c − 
 **A pista** (o passo do titã), em `b − 1`: `Forja.sentir(l, "aviso" if distancia > PERTO else "golpe_esq", _ms_da_pista())`,
 com `_ms_da_pista() = int(60000.0 / Ritmo.bpm * 0.4)` (0,4 batida: duas
 pistas de colcheia não se emendam). O registro:
-`Forja.evento("pista", l + 1, {"slot": id, "n": n, "evento": "mandou", "via": "rumble", "o_que": "esq", "ok": ok})`.
+`anotar("pista", l, {"n": n, "evento": "mandou", "canal": "rumble", "o_que": "esq", "ok": ok})`.
 Nenhum sinal na tela diz de quem é a vez.
 
 **A pá:** R2 passando de `R2_APERTA` (0,6) para cima, rearmando abaixo de
 `R2_SOLTA` (0,3). Casa com a nota do lugar a até `Ritmo.JANELA_BOM` do tempo
 dela → `julgar_toque(l, t, n)` (não é perigo físico: sem folga). Sem nota
 perto → **pá fora da vez**: o carvão cai no trilho (`Efeitos.faiscas(self, pos_da_pa, Color("#3a3a44"), 8, 0.4)`), nada de ponto
-nem de erro, e `Forja.evento("entrada", l + 1, {"slot": id, "o": "fantasma", "golpe_de": "P%d" % (dono_mais_perto + 1)})`.
+nem de erro, e `anotar("entrada", l, {"o": "fantasma", "golpe_de": "P%d" % (dono_mais_perto + 1)})`.
 A nota que passa de `t + FOLGA_PERDIDA` (o kit) sem pá é `nota_perdida(l, n)`.
 
 **A distância** (0 encostado, 1 longe), começa em 0,6:
@@ -343,7 +343,7 @@ func falha(l: int) -> void:
 
 `_ultima[l]` é a nota da pá (ponha antes de `julgar_toque`; na
 `nota_perdida` do laço, ponha a nota que saiu). `_parte()` devolve 0, 1 ou 2
-pelo `progresso()` do kit (um terço e dois terços dos 100 s de música: `no_pico()` é a parte 1). `_gerar_compasso(c)` segue a tabela de "Como se
+pelo `andamento()` do kit (um terço e dois terços dos 100 s de música: `no_pico()` é a parte 1). `_gerar_compasso(c)` segue a tabela de "Como se
 joga", guarda cada vez em `_todas` e usa só os lugares com `conectado(l)`.
 `_gatilho_do_medo(l)` troca o R2 para `(2, 6)` quando `distancia < PERTO` e
 volta para `(2, 4)` acima, só quando muda (`_gatilho_forte[l]`).
@@ -357,7 +357,7 @@ Traduções: `"Fuga do Titã": "Escape from the Titan"`, `"Corra!": "Run!"`,
 ## O que o registro mede
 
 - `sensacao` `aviso`/`golpe_esq` e a `saida` de vibração (`seq`, `ok`).
-- `pista` (`via` `rumble`) na pista; o `toque` do kit na pá; `entrada` `fantasma` na pá
+- `pista` (`canal` `rumble`) na pista; o `toque` do kit na pá; `entrada` `fantasma` na pá
   fora da vez (com o dono da vez mais perto: a vibração foi para o controle
   errado, ou o jogador contou em vez de sentir).
 - A `saida` de gatilho (modo 1, 2, 4 ou 6, `seq`, `ok`).

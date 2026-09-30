@@ -49,7 +49,7 @@ const FICHA := {
 	"titulo": "Metralhadora de Feitiços",
 	"verbo": "Segure a rajada!",
 	"genero": "coop",
-	"icone": "r2",
+	"icone": "gatilho_adaptativo",
 	"entradas": [],
 	"camera": "fixa",
 	"faixa": "MUS_S05_J23",
@@ -106,14 +106,14 @@ rajada treme no dedo.
 até `Ritmo.JANELA_BOM` → `julgar_toque(l, t, n)`. **Soltar:** o R2 caindo
 abaixo de `CenarioDaGaleria.R2_SOLTA` casa com a nota `solta` →
 `julgar_toque(l, t, n)`. Cada um grava
-`Forja.evento("entrada", l + 1, {"slot": id, "o": "disparo", "n": n, "modo": "vibracao", "curso": r2, "curso_max": <o maior R2 da rajada>})`.
+`anotar("entrada", l, {"o": "disparo", "n": n, "modo": "vibracao", "curso": r2, "curso_max": <o maior R2 da rajada>})`.
 
 **O superaquecimento:** o R2 acima de `ATIRA` sem rajada dele (sem nota
 `aperta` perto, ou depois da `solta` passar de `t + JANELA_BOM`) é tiro fora
 da vez. A arma trava: `Forja.gatilho(l, 1, Forja.GATILHO_RESISTENCIA, TRAVA[0], TRAVA[1])`
 até o começo do compasso seguinte ao próximo (um compasso inteiro); as
 notas dele nesse intervalo somem sem erro; `Forja.sentir(l, "erro")`;
-`Forja.evento("jogo", l + 1, {"slot": id, "o": "superaqueceu", "b": Ritmo.batida()})`.
+`anotar("jogo", l, {"o": "superaqueceu", "b": Ritmo.batida()})`.
 Depois, o Vibration volta. (Se o fim de uma rajada passou sem soltar, é a
 `nota_perdida` do kit **e** o superaquecimento.)
 

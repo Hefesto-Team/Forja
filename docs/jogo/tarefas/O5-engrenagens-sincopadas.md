@@ -1,6 +1,6 @@
 # O5 — Engrenagens Sincopadas
 
-**Sprint:** O · **Slot:** S07_J35 · **Tamanho:** M · **Estimativa:** US$ 1,5 · **Depende de:** H04, F09, H07, G03, G05, O1
+**Sprint:** O · **Slot:** S07_J35 · **Tamanho:** M · **Estimativa:** US$ 1,5 · **Depende de:** H04, H08, F09, H07, G03, G05, O1
 
 ## Por quê
 
@@ -25,7 +25,7 @@ const FICHA := {
 	"titulo": "Engrenagens Sincopadas",
 	"verbo": "Encaixe!",
 	"genero": "2v2",
-	"icone": "rumble_direito",
+	"icone": "haptica",
 	"entradas": [Forja.CRUZ],
 	"camera": "grupo",
 	"faixa": "MUS_S07_J35",
@@ -68,7 +68,7 @@ A faixa é `MUS_S07_J35`, 130 bpm (uma batida ≈ 0,46 s). `BATIDA_DA_PRIMEIRA_N
   (a engrenagem é perigo físico). Sem ✕ até a nota passar →
   `nota_perdida(l, n)`.
 - **A subida:** cada salto julgado sobe a **equipe** uma engrenagem
-  (`_altura[e] += 1`); `marcar(l, [0, 50, 75, 100][j])`.
+  (`_altura[e] += 1`); `marcar_equipe(e, [0, 50, 75, 100][j])` (os pontos vão para os dois da dupla: o kit, H08).
 - **A meta:** `META := 16` engrenagens.
 - **A partitura simples** (`Ritmo.simples[l]`): o lugar salta só nos
   compassos pares; nos ímpares, nem clique nem nota para ele.
@@ -204,10 +204,8 @@ const ALTURA_ENG := 0.9
 const PONTOS := [0, 50, 75, 100]
 const ACERTO_APRENDIZ := 0.8
 const X_TORRE := [-3.6, 3.6]
-const COR_EQUIPE := [Color("#e8a33c"), Color("#2fb3b3")]   ## Brasa, Maré
 const SINCOPE := [1.5, 3.5]   ## o salto de A e de B no compasso
 
-var _equipe := {}             ## lugar -> 0 (Brasa) ou 1 (Maré)
 var _papel := {}              ## lugar -> 0 (A) ou 1 (B)
 var _aprendiz := [[], []]     ## equipe -> os papéis (0/1) que o Aprendiz faz
 var _altura := [0, 0]
@@ -232,7 +230,7 @@ func montar() -> void:
 	usa_gatilho = true
 	camera_pos = Vector3(0, 5.5, 13.0)
 	camera_olhar = Vector3(0, 3.0, -1.0)
-	_formar_equipes()             # a regra de "As equipes" e de "Com menos de quatro"
+	_formar_equipes()             # equipe[l] e aprendizes[e] já vêm do kit (montar_equipes, H08: a regra de Q); aqui, os papéis e os bonecos dos Aprendizes
 	# as torres, as lajes da equipe, os discos, os Aprendizes
 
 
@@ -275,16 +273,16 @@ func jogar(_dt: float) -> void:
 
 
 func toque(l: int, j: int) -> void:
-	marcar(l, PONTOS[j])
+	marcar_equipe(equipe[l], PONTOS[j])  # os dois da dupla (o kit, H08)
 	_respondeu(l, _n[l] - 1, "certo")
-	_subir(_equipe[l], 1)         # e, no pico, o extra quando os dois acertam a mesma síncope
+	_subir(equipe[l], 1)         # e, no pico, o extra quando os dois acertam a mesma síncope
 
 
 func falha(l: int) -> void:
 	jogador(l).gesto("fall", 0.5)
-	_subir(_equipe[l], -1)
+	_subir(equipe[l], -1)
 	for o in presentes():
-		if _equipe.get(o, -1) == _equipe[l] and conectado(o):
+		if equipe[o] == equipe[l] and conectado(o):
 			Forja.sentir(o, "golpe")
 
 
@@ -292,8 +290,8 @@ func vencedor() -> Array:
 	var e := _chegou
 	if e < 0:
 		e = 0 if _altura[0] > _altura[1] else (1 if _altura[1] > _altura[0] else _mais_pontos())
-	var primeiro := presentes().filter(func(l): return _equipe[l] == e)
-	var outro := presentes().filter(func(l): return _equipe[l] != e)
+	var primeiro := presentes().filter(func(l): return equipe[l] == e)
+	var outro := presentes().filter(func(l): return equipe[l] != e)
 	primeiro.sort_custom(func(a, b): return pontos[a] > pontos[b])
 	outro.sort_custom(func(a, b): return pontos[a] > pontos[b])
 	return primeiro + outro
@@ -302,7 +300,7 @@ func vencedor() -> Array:
 `_subir(e, d)`: `_altura[e] = clampi(_altura[e] + d, 0, META)`; o marco da
 coleta a cada 4; se chegou a `META` e `_chegou < 0`: `_chegou = e`,
 `_fim_batida = BATIDA_DA_PRIMEIRA_NOTA + 4 * (_m_feito + 1)` (o fim do compasso).
-`_mais_pontos()`: a equipe com mais pontos somados (0 no empate).
+`_mais_pontos()`: `maxi(equipe_vencedora(), BRASA)` — a equipe com mais pontos pelo kit (`pontos_da_equipe`, H08; a Brasa no empate).
 `_abrir_compasso(m)`: para cada lugar conectado cujo papel salta neste
 compasso (os dois papéis no pico; só os compassos pares com
 `Ritmo.simples[l]`): os três cliques em `c0 + SINCOPE[papel] - 1.5`, `- 1.0`,
@@ -327,7 +325,7 @@ Catálogo: `"S07_J35"` em `MINIGAMES` e na seção `S07`. Traduções:
 
 ## O que o registro mede
 
-- `pista` `mandou` do primeiro clique de cada salto (`via`) e `respondeu`
+- `pista` `mandou` do primeiro clique de cada salto (`canal`) e a `entrada` `resposta`
   (`certo`/`nenhuma`); o `toque` com o desvio de cada salto na síncope — a
   noite compara o desvio na síncope entre cabo e rádio;
 - `saida` do gatilho R2 (a resistência leve) de cada um, uma vez;
@@ -347,7 +345,8 @@ Catálogo: `"S07_J35"` em `MINIGAMES` e na seção `S07`. Traduções:
   `montar()`, antes de o kit começar.
 - **As cores das equipes** (âmbar e turquesa) são só do mundo; nunca
   `Forja.luz` com elas.
-- **Na prova o pico não chega** (o fim é pelo `duracao`).
+- **Na prova o pico chega:** o fim conta em tempo de música (H08), e a
+  `duracao` inteira roda na prova, pelo relógio de parede.
 
 ## Pronto quando
 
@@ -382,7 +381,7 @@ func _prova_engrenagens() -> void:
 	_esperar(sentiu.all(func(s): return s), "engrenagens: os cliques chegaram aos quatro %s" % [sentiu])
 	_esperar(sala._altura[0] + sala._altura[1] >= 1, "engrenagens: alguém subiu (%s)" % [sala._altura])
 	var c: Array = sala.colocacao()
-	_esperar(c.size() == 4 and sala._equipe[c[0]] == sala._equipe[c[1]], "engrenagens: os dois primeiros são da mesma equipe (%s)" % [c])
+	_esperar(c.size() == 4 and sala.equipe[c[0]] == sala.equipe[c[1]], "engrenagens: os dois primeiros são da mesma equipe (%s)" % [c])
 ```
 
 `bash tests/prova_do_jogo.sh` e `bash tests/prova_visual.sh`.

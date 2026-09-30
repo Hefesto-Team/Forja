@@ -58,7 +58,7 @@ const FICHA := {
 - **A peça encaixada** é a que teve pegar e soltar BOM ou melhor, esticada.
 - **Os pontos por julgamento** (ERRO, BOM, ÓTIMO, PERFEITO): `[0, 20, 35, 50]`
   em cada nota; a peça encaixada +50.
-- **A progressão:** `progresso()` do kit (em tempo de música, H08). De 0 a 1/3, uma peça por
+- **A progressão:** `andamento()` do kit (em tempo de música, H08). De 0 a 1/3, uma peça por
   compasso, 2 tempos de nota longa. **O pico (1/3 a 2/3), a linha de
   montagem:** duas peças por compasso (pegar em `2k + 0,5·l`), `L = 1`. De
   2/3 em diante, uma por compasso. Peças de cada um em 80 s: ~30 a 100 bpm,
@@ -196,12 +196,12 @@ func _proxima(l: int, desde: float) -> void:
 	var desloc := float(l)
 	e.len = 2.0
 	if Ritmo.simples[l]:
-		passo = 8.0
+		passo = 4.0  # o kit dobra o passo na partitura simples
 	elif no_pico():
 		passo = 2.0
 		desloc = 0.5 * l
 		e.len = 1.0
-	e.b = proxima_batida(l, desde + 0.001, passo, desloc)  # o kit; estritamente depois de desde
+	e.b = proxima_batida(l, desde, passo, desloc)  # o kit (H08): a próxima depois de desde
 	e.estado = "pegar"
 	e.aberta = false
 	e.antes = false
@@ -213,7 +213,7 @@ func _proxima(l: int, desde: float) -> void:
 func iniciar_jogo() -> void:
 	for l in presentes():
 		if not Forja.capacidade(l, "toque"):
-			Forja.evento("troca", l + 1, {"slot": id, "de": "touchpad", "para": "sem_touchpad"})
+			anotar("entrada", l, {"o": "sensores", "toque": false})
 			acabou[l] = true
 			continue
 		_proxima(l, BATIDA_DA_PRIMEIRA_NOTA - 0.01)
@@ -277,7 +277,7 @@ func _segurar(l: int, e: Dictionary, agora: float) -> void:
 	if not dois:
 		# soltou (os dois, ou perdeu um): o instante é a soltura
 		var dedos := int(Forja.dedo(l, 0).z > 0.5) + int(Forja.dedo(l, 1).z > 0.5)
-		Forja.evento("entrada", l + 1, {"o": "dois_dedos", "abertura_max": snappedf(float(e.abertura), 0.01),
+		anotar("entrada", l, {"o": "dois_dedos", "abertura_max": snappedf(float(e.abertura), 0.01),
 			"segurou_ms": int((agora - float(e.pegou_t)) * 1000.0), "dedos_no_fim": dedos, "n": int(e.n)})
 		if float(e.abertura) < ESTICADA:
 			nota_perdida(l, int(e.n))  # não esticou: a peça cai

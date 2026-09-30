@@ -11,11 +11,10 @@ ganha um bipe falso para mandar ao controle de quem está na frente: um bipe
 quase igual ao certo, um pouco mais grave. O verbo do alto-falante aqui é
 **desconfiar**: ouvir não basta, tem de ouvir **qual**.
 
-**Adaptado do [03](../03-os-45-minigames.md#s6--o-canto--alto-falante) pelo
+**Como no [03](../03-os-45-minigames.md#s6--o-canto--alto-falante), pelo
 [princípio 8](../02-principios.md#8-ninguém-fica-para-trás-ninguém-é-punido-por-ser-bom):**
-"quem está na frente pode mandar um bipe falso para o controle de outro"
-vira: quem corta perfeito ganha o bipe falso, e o bipe falso vai sempre
-**para** quem está na frente (o ambiente pesa na liderança).
+quem corta perfeito ganha o bipe falso, e o bipe falso vai sempre **para**
+quem está na frente (o ambiente pesa na liderança).
 
 ## Ler antes
 
@@ -55,7 +54,7 @@ const FICHA := {
 	"titulo": "Corta-Fio",
 	"verbo": "Corte!",
 	"genero": "sabotagem",
-	"icone": "alto-falante",
+	"icone": "alto_falante",
 	"entradas": [Forja.CRUZ, Forja.TRIANGULO],
 	"camera": "fixa",
 	"faixa": "MUS_S06_J30",
@@ -93,7 +92,7 @@ pendência acaba. No **pico** (30–60 s), a batida do dono tem dois bipes, em
 `b` e `b + 0,5` (quem está com `Ritmo.simples[l]` fica com um). Na hora
 (`Ritmo.t_musica() >= Ritmo.t_da_batida(b)`):
 `var foi := CenarioDoCanto.falante(self, l, BIPE[tipo], 0.9)` e
-`Forja.evento("pista", l + 1, {"slot": id, "n": int(round((b + 1) * 2)), "evento": "mandou", "via": "alto_falante" if foi else "tv", "o_que": BIPE[tipo], "no_controle": foi, "tipo": ["certo", "errado", "falso"][tipo]})`.
+`anotar("pista", l, {"n": int(round((b + 1) * 2)), "evento": "mandou", "canal": "alto_falante", "o_que": BIPE[tipo], "no_controle": foi, "tipo": ["certo", "errado", "falso"][tipo]})`.
 Na tela, a bomba do peito pisca igual nos três (a luzinha da bomba é a
 mesma): a tela diz **quando** bipou, não **qual**.
 
@@ -107,7 +106,7 @@ mesma): a tela diz **quando** bipou, não **qual**.
 - bipe `ERRADO` ou `FALSO` → a armadilha `{"b": b + 1, "t": Ritmo.t_da_batida(b + 1), "tipo": ERRADO ou FALSO}`
   (não é nota do kit: nada de `nova_nota`). ✕ a até `JANELA_BOM` dela →
   **estoura** (sem julgamento do kit) e
-  `Forja.evento("jogo", l + 1, {"slot": id, "o": "armadilha", "tipo": "errado"/"falso"})`;
+  `anotar("jogo", l, {"o": "armadilha", "tipo": "errado"/"falso"})`;
 - ✕ longe de nota e de armadilha → nada (o alicate fecha no ar).
 
 **O bipe falso:** o corte PERFEITO dá uma carga (`carga[l] = true`, no
@@ -117,7 +116,7 @@ pontos, que não seja ele mesmo (se ele é o da frente, vai para o segundo):
 `_falso_para[alvo] = true`, `carga[l] = false`, `Som.tocar("especial", null, -10.0)`
 na TV (todos ouvem que alguém sabotou; ninguém ouve quem), o cavaleiro de
 quem mandou dá um chute no ar (`gesto("attack-kick-right", 0.4)`), e
-`Forja.evento("entrada", l + 1, {"slot": id, "o": "sabotagem", "para": alvo + 1})`.
+`anotar("entrada", l, {"o": "sabotagem", "para": alvo + 1})`.
 O falso é `"nota_alta"` (1175 Hz); o certo é `"pronto"` (1568 Hz, mais
 claro): quem conhece o certo distingue.
 
@@ -353,7 +352,7 @@ Traduções: `"Corta-Fio": "Wire Cutter"`, `"Corte!": "Cut!"`,
 
 ## O que o registro mede
 
-- `som_controle` (H07) de cada bipe; o `pista` (`via` `alto_falante`) com o `tipo`
+- `som_controle` (H07) de cada bipe; o `pista` (`canal` `alto_falante`) com o `tipo`
   (certo, errado, falso) e `no_controle`.
 - O `toque` do kit no corte certo (e o perdido: o fio que escapou); o `jogo`
   `armadilha` (cortou depois do estalo ou do falso); o `jogo` `sabotagem`.

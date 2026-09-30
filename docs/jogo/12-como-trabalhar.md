@@ -118,16 +118,16 @@ delas é modelo.
 | --- | --- | --- |
 | F — a fundação (F00 a F09) | 10 | 29,5 |
 | G — as telas | 8 | 23 |
-| H — o ritmo, o som e o kit | 7 | 20 |
-| I–Q — os 45 minigames | 45 (o primeiro de cada seção US$ 2,0, os outros 1,5) | 72 |
-| R — o Relâmpago | 1 | 2,5 |
+| H — o ritmo, o som e o kit (H01 a H08) | 8 | 24 |
+| I–Q — os 45 minigames | 45 (o n.º 1 de cada seção e os medleys US$ 2,0, os outros 1,5) | 73 |
+| R — o Relâmpago | 1 | 3,5 |
 | S — a noite de seis horas | 1 | 3 |
-| **total** | **72** | **150** |
+| **total** | **73** | **156** |
 
 Com 15% de retrabalho (menos que antes, porque as fichas trazem o código e
-as provas prontos), a faixa realista é **US$ 150 a 175**. US$ 80 pagam a
-fundação, as telas, o ritmo e o kit (F, G e H, cerca de US$ 72,5) e os
-primeiros minigames.
+as provas prontos), a faixa realista é **US$ 156 a 180**. US$ 80 pagam a
+base inteira — a fundação, as telas, o ritmo e o kit (F, G e H, US$ 76,5) —
+e a execução dos minigames vem depois, com a verba que vier.
 
 O planejamento em si (a arquitetura e estas fichas) foi pago à parte, de
 propósito: gastar para planejar bem é o que deixa a execução barata e fácil.

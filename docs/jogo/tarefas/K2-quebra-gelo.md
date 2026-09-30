@@ -54,7 +54,7 @@ const FICHA := {
   **3 rachaduras** o bloco quebra, e um novo sobe da bancada.
 - **Os pontos por julgamento** (ERRO, BOM, ÓTIMO, PERFEITO): `[0, 20, 35, 50]`;
   o bloco quebrado +60.
-- **A progressão:** `progresso()` do kit (em tempo de música, H08). De 0 a 1/3, uma por compasso.
+- **A progressão:** `andamento()` do kit (em tempo de música, H08). De 0 a 1/3, uma por compasso.
   **O pico (1/3 a 2/3), a rajada:** duas por compasso, em `4c + 0,5 + (l % 2)`
   e mais 2 tempos (P1 e P3 juntos no "e" do 1 e do 3, P2 e P4 no "e" do 2 e do
   4). De 2/3 em diante, uma por compasso. Riscos de cada um em 75 s: ~40 a
@@ -209,12 +209,12 @@ func _proxima(l: int, desde: float) -> void:
 	var passo := 4.0
 	var desloc := l + 0.5
 	if Ritmo.simples[l]:
-		passo = 8.0
+		passo = 4.0  # o kit dobra o passo na partitura simples
 	elif no_pico():
 		passo = 2.0
 		desloc = (l % 2) + 0.5
 	var inicio := maxf(desde, float(e.gelo_b) + CONGELA)
-	e.b = proxima_batida(l, inicio + 0.001, passo, desloc)  # o kit; estritamente depois de inicio
+	e.b = proxima_batida(l, inicio, passo, desloc)  # o kit (H08): a próxima depois de inicio
 	e.dir = -int(e.dir)
 	e.aberta = false
 	e.antes = false
@@ -224,7 +224,7 @@ func _proxima(l: int, desde: float) -> void:
 func iniciar_jogo() -> void:
 	for l in presentes():
 		if not Forja.capacidade(l, "toque"):
-			Forja.evento("troca", l + 1, {"slot": id, "de": "touchpad", "para": "sem_touchpad"})
+			anotar("entrada", l, {"o": "sensores", "toque": false})
 			acabou[l] = true
 			continue
 		_proxima(l, BATIDA_DA_PRIMEIRA_NOTA - 0.01)
@@ -272,7 +272,7 @@ func _nota(l: int, e: Dictionary, agora: float) -> void:
 	e.antes = sim
 	if cruzou:
 		var d := Forja.dedo(l, 0)
-		Forja.evento("entrada", l + 1, {"o": "touchpad", "de_x": snappedf(float(e.x0), 0.01), "ate_x": snappedf(d.x, 0.01),
+		anotar("entrada", l, {"o": "touchpad", "de_x": snappedf(float(e.x0), 0.01), "ate_x": snappedf(d.x, 0.01),
 			"ms": int((agora - float(e.t0)) * 1000.0), "lado": int(e.dir), "n": int(e.n)})
 		julgar_toque(l, alvo, int(e.n))
 	elif agora > alvo + FOLGA_PERDIDA:

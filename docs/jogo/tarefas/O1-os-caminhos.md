@@ -29,7 +29,7 @@ const FICHA := {
 	"titulo": "Os Caminhos",
 	"verbo": "Sinta o chão!",
 	"genero": "corrida",
-	"icone": "rumble_direito",
+	"icone": "haptica",
 	"entradas": [Forja.ESQUERDA, Forja.CIMA, Forja.DIREITA],
 	"camera": "fixa",
 	"faixa": "MUS_S07_J31",
@@ -257,8 +257,8 @@ extends Minigame
 ## bifurcação); atrasar é parar diante das placas.
 ## O vencedor: o primeiro no portão (os outros ainda correm dois compassos).
 ## O alto-falante do dono: a nota dele (kit) e a coleta ao passar o portão.
-## O registro mede: cada senha mandada (pista, via háptica ou rumble), a trilha
-## escolhida (pista respondeu) e o veredito haptica_audio da bancada.
+## O registro mede: cada senha mandada (pista, pelo canal da háptica ou do rumble), a trilha
+## escolhida (a entrada resposta) e o veredito haptica_audio da bancada.
 ## O robô: sente a senha na placa virtual (o envelope, chao_do_envelope).
 ## Com menos de quatro: nada muda; o hoqueto se espalha por quem joga.
 ## A régua: título, verbo e ícone bastam; sem a tela não dá para ver as
@@ -339,7 +339,7 @@ func iniciar_jogo() -> void:
 		_rng[l] = r
 		_rumble[l] = not Forja.som_tem(l, Forja.PAPEL_HAPTICA)
 		if _rumble[l]:
-			Forja.evento("troca", l + 1, {"slot": id, "de": "haptica", "para": "rumble", "motivo": "sem_placa"})
+			anotar("troca", l, {"de": "haptica", "para": "rumble", "motivo": "sem_placa"})
 		_b0[l] = float(BATIDA_DA_PRIMEIRA_NOTA + 2 * i)
 		_nova_bifurcacao(l)
 
@@ -446,12 +446,12 @@ func _pista(l: int, esq: String, dir: String, sensacao: String, n: int, o_que: S
 		Forja.sentir(l, sensacao)
 	else:
 		Forja.som_haptica(l, esq, dir, 1.0)
-	Forja.evento("pista", l + 1, {"slot": id, "n": n, "evento": "mandou",
-		"via": "rumble" if _rumble[l] else "haptica", "o_que": o_que})
+	anotar("pista", l, {"n": n, "evento": "mandou",
+		"canal": "rumble" if _rumble[l] else "haptica", "o_que": o_que})
 
 
 func _respondeu(l: int, n: int, resposta: String) -> void:
-	Forja.evento("pista", l + 1, {"slot": id, "n": n, "evento": "respondeu", "resposta": resposta})
+	anotar("entrada", l, {"o": "resposta", "n": n, "resposta": resposta})  # o que o jogador fez com a pista (13, H08)
 ```
 
 A senha: `_pista(l, "passo:%d:%d" % [s, v], "passo:%d:%d" % [s, v], RUMBLE_CHAO[s], k, NOME_CHAO[s])`.
@@ -478,15 +478,15 @@ ou `"Chegou"`. Nenhuma frase fala de chão, de háptica ou de controle.
 
 ## O que o registro mede
 
-- `pista` `mandou` de cada senha (`o_que` = o chão, `via`), e `pista`
-  `respondeu` com `certo`/`errado`/`nenhuma` — a pergunta antiga, respondida
+- `pista` `mandou` de cada senha (`o_que` = o chão, `canal`), e
+  a `entrada` `resposta` com `certo`/`errado`/`nenhuma` — a pergunta antiga, respondida
   com os pés;
 - `troca` quando o lugar não tem placa;
 - `som_controle` de cada passo (a H07, com `placa`), `nota` e `toque` (o kit);
 - o veredito `haptica_audio` (a bancada), calculado nos dois modos.
 
 As linhas `pista` e `troca` são as do [13](../13-arquitetura.md#as-decisões-comuns-dos-minigames--h08)
-(H08): a `pista` com `n`, `evento` (`mandou`/`respondeu`), `via` e `o_que`;
+(H08): a `pista` com `n`, `evento` `mandou`, `canal` e `o_que` (a resposta é a `entrada` `resposta`);
 a `troca` com `de` e `para` (`haptica` → `rumble`) e o `motivo` junto
 (`sem_placa`, `sem_estereo`).
 
@@ -573,8 +573,8 @@ Em `godot/testes/prova_do_jogo.gd`:
    (`_esperar` imprime cada chamada: por isso a pergunta vira uma variável e
    uma checagem só, no fim.)
 3. **No `_prova_do_relatorio()`**, no laço da linha do tempo: as `pista` com
-   `slot == "S07_J31"` e `evento == "mandou"` são ≥ 8 e todas `via == "haptica"`
-   (a placa virtual existe), as `respondeu` com `resposta == "certo"` são ≥ 4,
+   `slot == "S07_J31"` e `evento == "mandou"` são ≥ 8 e todas `canal == "haptica"`
+   (a placa virtual existe), as `entrada` `resposta` com `resposta == "certo"` são ≥ 4,
    e não há `troca` desse slot.
 
 `bash tests/prova_do_jogo.sh` e `bash tests/prova_visual.sh`.

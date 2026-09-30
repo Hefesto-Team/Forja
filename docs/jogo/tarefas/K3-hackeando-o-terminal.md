@@ -63,7 +63,7 @@ const FICHA := {
   resposta.
 - **Os pontos por julgamento** (os do hacker, para o destaque):
   `[0, 20, 35, 50]`.
-- **A progressão:** `progresso()` do kit (em tempo de música, H08), decidida no começo de cada senha.
+- **A progressão:** `andamento()` do kit (em tempo de música, H08), decidida no começo de cada senha.
   De 0 a 1/3, a senha de 4 notas. **O pico (1/3 a 2/3), a senha longa:** 8
   notas (chamada em 2 compassos, resposta em 2), e vale 2 travas. De 2/3 em
   diante, 4 notas. `Ritmo.simples[l]` não muda a senha (é coop): quem está
@@ -258,7 +258,7 @@ func _nova_senha(c: float) -> void:
 func iniciar_jogo() -> void:
 	for l in presentes():
 		if not Forja.capacidade(l, "toque"):
-			Forja.evento("troca", l + 1, {"slot": id, "de": "touchpad", "para": "sem_touchpad"})
+			anotar("entrada", l, {"o": "sensores", "toque": false})
 			acabou[l] = true
 	_nova_senha(BATIDA_DA_PRIMEIRA_NOTA)
 
@@ -321,7 +321,7 @@ func _resposta(l: int, pos: Vector2, agora: float) -> void:
 		if agora < alvo - 0.5 * 60.0 / Ritmo.bpm:
 			return  # a vez dele ainda não chegou: encostar à toa não conta
 		var q := _quadrante(pos)
-		Forja.evento("entrada", l + 1, {"o": "touchpad", "quadrante_pedido": int(nota.q), "quadrante": q,
+		anotar("entrada", l, {"o": "touchpad", "quadrante_pedido": int(nota.q), "quadrante": q,
 			"x": snappedf(pos.x, 0.01), "y": snappedf(pos.y, 0.01), "n": int(nota.n)})
 		_nota = nota
 		if q == int(nota.q):

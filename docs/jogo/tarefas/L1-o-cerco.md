@@ -49,7 +49,7 @@ const FICHA := {
 	"titulo": "O Cerco",
 	"verbo": "Defenda!",
 	"genero": "sobrevivencia",
-	"icone": "rumble_esquerdo",
+	"icone": "vibracao",
 	"entradas": [Forja.L1, Forja.R1],
 	"camera": "fixa",
 	"faixa": "MUS_S04_J16",
@@ -107,7 +107,7 @@ primeira nota possível é a batida `BATIDA_DA_PRIMEIRA_NOTA` (4).
   da nota mais perto);
 - o sopro no meio (`Som.tocar("sopro", null, -6.0)`): o som não entrega o lado;
 - os outros presentes com controle ganham uma `chance` (o isolamento);
-- o registro: `Forja.evento("pista", l + 1, {"slot": id, "n": b, "evento": "mandou", "via": "rumble", "o_que": "esq"/"dir", "ok": ok})`.
+- o registro: `anotar("pista", l, {"n": b, "evento": "mandou", "canal": "rumble", "o_que": "esq"/"dir", "ok": ok})`.
 
 **A defesa**, na batida `b`: L1 é a esquerda, R1 a direita. O aperto casa
 com a nota em aberto mais perto pelo `casar_toque(l)` do kit (H08):
@@ -119,7 +119,7 @@ com a nota em aberto mais perto pelo `casar_toque(l)` do kit (H08):
   `falha()`) e `Cega.errado(cega, lado_feito)`;
 - **nenhuma nota perto** → o fantasma (como hoje): `j[l].fantasmas += 1`,
   `marcar(l, FANTASMA)`, o `?` amarelo por 1 s, e
-  `Forja.evento("entrada", l + 1, {"slot": id, "o": "fantasma", "golpe_de": "P%d" % (dono + 1)})`
+  `anotar("entrada", l, {"o": "fantasma", "golpe_de": "P%d" % (dono + 1)})`
   com o dono da nota dos outros mais perto no tempo.
 
 Toda resposta grava a linha `entrada` `{"o": "resposta", "n": b, "lado_pedido": "esq"/"dir", "lado_feito": "esq"/"dir"/"nenhum"}`.
@@ -132,7 +132,7 @@ A nota que passa de `FOLGA_PERDIDA` (o kit, 0,14 s) sem defesa é
 **A vida:** começa em 5. Cada falha tira 1 (nunca abaixo de 1; no treino,
 nada tira). Quatro perfeitos seguidos devolvem 1 (até 5).
 
-**Os 90 segundos de música**, pela parte (`progresso()` do kit, H08):
+**Os 90 segundos de música**, pela parte (`andamento()` do kit, H08):
 
 | parte | música | a batida do dono tem golpe com chance | o que acontece |
 | --- | --- | --- | --- |
@@ -443,7 +443,7 @@ func _gerar_compasso(c: int) -> void:
 	lista.sort()
 	if lista.is_empty():
 		return
-	var parte := 0 if progresso() < 1.0 / 3.0 else (1 if no_pico() else 2)  # o kit, em tempo de música
+	var parte := 0 if andamento() < 1.0 / 3.0 else (1 if no_pico() else 2)  # o kit, em tempo de música
 	if parte == 1 and c % ARIETE_A_CADA == 3:
 		for l in lista:
 			if not Ritmo.simples[l]:
@@ -532,7 +532,7 @@ ainda não existirem).
 
 - `sensacao` `golpe_esq`/`golpe_dir` (F05) e a `saida` de vibração com `seq`
   e `ok` (F06), sozinhas.
-- `pista` (`via` `rumble`) (n, lado, ok) na pista; `entrada` `resposta` (n, lado pedido,
+- `pista` (`canal` `rumble`) (n, lado, ok) na pista; `entrada` `resposta` (n, lado pedido,
   lado feito); `entrada` `fantasma` (golpe de quem); e o `toque` do kit.
 - Na bancada, além disso, a `pergunta` da cor e a `resposta_cor` de hoje, e
   os quatro vereditos (`dar_vereditos`), calculados e gravados nos dois modos.

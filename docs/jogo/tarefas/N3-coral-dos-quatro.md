@@ -49,7 +49,7 @@ const FICHA := {
 	"titulo": "Coral dos Quatro",
 	"verbo": "Cante a sua!",
 	"genero": "coop",
-	"icone": "alto-falante",
+	"icone": "alto_falante",
 	"entradas": [Forja.CRUZ],
 	"camera": "fixa",
 	"faixa": "MUS_S06_J28",
@@ -78,7 +78,7 @@ seguinte a **resposta**. O compasso de chamada é gerado quando
 **As vezes:** `lista = presentes()` em ordem, `k = lista.size()`. Cada
 chamada escolhe `k` das quatro batidas (`0..3`) e dá uma a cada lugar:
 
-| parte | música (`progresso()` do kit) | as batidas e a ordem |
+| parte | música (`andamento()` do kit) | as batidas e a ordem |
 | --- | --- | --- |
 | entrada | 0–30 s | as batidas `[0, 1, 2, 3]` (com dois: `[0, 2]`; com um: `[0]`; com três: `[0, 1, 2]`), na ordem de `lista`: a roda de sempre |
 | **pico** | 30–60 s | as mesmas batidas, embaralhadas entre os lugares pelo `rng` (Fisher-Yates com `rng.randi_range`; nunca `Array.shuffle`); a chamada com `(c / 2) % ACORDE_A_CADA == 3` é **o acorde**: todos na batida 0 |
@@ -87,7 +87,7 @@ chamada escolhe `k` das quatro batidas (`0..3`) e dá uma a cada lugar:
 Quem está com `Ritmo.simples[l]` fica com a mesma vez da chamada anterior.
 
 **A chamada:** na batida `b = 4c + vez` de cada lugar, `var foi := CenarioDoCanto.falante(self, l, "nota:%d" % l, 0.9)`
-e `Forja.evento("pista", l + 1, {"slot": id, "n": n, "evento": "mandou", "via": "alto_falante" if foi else "tv", "o_que": "nota:%d" % l, "no_controle": foi})`.
+e `anotar("pista", l, {"n": n, "evento": "mandou", "canal": "alto_falante", "o_que": "nota:%d" % l, "no_controle": foi})`.
 Na tela, nenhum sino balança na chamada (a vez é só do alto-falante); o
 sino grande dá o tempo forte.
 

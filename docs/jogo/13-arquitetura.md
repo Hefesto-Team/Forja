@@ -575,8 +575,8 @@ André.
 | --- | --- |
 | `entrada` | o que o jogador fez: o toque cru (já existe hoje, `godot/scripts/salas/centelha.gd:286`) |
 | `jogo` | o que o minigame fez no mundo: `slot`, `o` (o nome da coisa), valores |
-| `pista` | a pista que o minigame deu a um jogador, por qual canal (`haptica`, `alto_falante`, `rumble`, `tela`) |
-| `troca` | o minigame trocou de canal por falta de recurso: `de`, `para` (`giroscopio` → `analogico`, `haptica` → `rumble`, `microfone` → `sem_microfone`, `alto_falante` → `tv`) |
+| `pista` | a pista que o minigame deu a um jogador, por qual canal (`haptica`, `alto_falante`, `rumble`, `tela`, `tv`) |
+| `troca` | o minigame trocou de canal por falta de recurso: `de`, `para` (`giroscopio` → `analogico`, `haptica` → `rumble`, `alto_falante` → `rumble`, `alto_falante` → `tv`, `microfone` → `sem_microfone`, `touchpad` → `botoes`) |
 | `voz` | o nível do microfone e o limiar, nos minigames de voz |
 | `estacao` | o trecho de um medley que começou ou acabou |
 
@@ -607,8 +607,13 @@ por `ICONE_DA_PARTE` para os desenhos de `godot/assets/glifos/` (que
 
 **A barra de luz reage no kit.** No `_reagir` do kit: o perfeito pisca branco
 por 0,15 s; o erro escurece a cor do lugar para 30% por 0,5 s. `Forja.piscar(l,
-cor, s)` (no máximo 0,5 s) e `Forja.luz(l, cor)` com piso de 30% de brilho. A
-cor do lugar sempre volta.
+cor, s)` (no máximo 0,5 s) e `Forja.luz(l, cor)` com piso de 30% de brilho.
+Depois do piscar, a barra volta à **luz de repouso**: o gancho
+`luz_de_repouso(l) -> Color` do kit, que por padrão é a cor do lugar e que o
+minigame sobrescreve quando a barra carrega estado (a vida no Cerco e na
+Prensa, os 30% do terror, o silêncio do Zero Absoluto) — sempre a cor do
+lugar, só com o brilho mudado, nunca abaixo de 30%. Nenhuma ficha "repõe o
+brilho depois" à mão.
 
 **Coop e dupla no fechamento.**
 - Coop: o `vencedor` é −1 (todos venceram ou todos perderam), e a prova
@@ -621,6 +626,11 @@ cor do lugar sempre volta.
   terceiro entra como **o Aprendiz**, pela tabela fixa de
   [Q](tarefas/Q-a-prova.md); com 1, joga contra o robô de treino.
 - `coop` sai do gênero da FICHA; ninguém põe `coop = true` à mão.
+- No 2v2, `marcar_equipe` dá os pontos aos dois da dupla, e o `destaque()`
+  sai dos **acertos individuais** (`acertos[l]`), não dos pontos — assim ele
+  separa quem jogou melhor dentro da equipe.
+- Na Prova com `--bancada`, as perguntas vêm depois do apito: elas não
+  contam no tempo do minigame (ressalva na [Q1](tarefas/Q1-a-prova.md)).
 
 **As chaves opcionais novas da FICHA:**
 

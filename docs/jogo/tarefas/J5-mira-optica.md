@@ -60,7 +60,7 @@ const FICHA := {
   embaça). A nota passou sem tiro (`FOLGA_PERDIDA`, o do kit) → perdida.
 - **Os pontos por julgamento** (ERRO, BOM, ÓTIMO, PERFEITO): `[0, 20, 35, 50]`.
   Cada acerto derruba o escudo (ele gira e volta no próximo acender).
-- **A progressão:** `progresso()` do kit (em tempo de música, H08). De 0 a 1/3, um alvo a cada 2
+- **A progressão:** `andamento()` do kit (em tempo de música, H08). De 0 a 1/3, um alvo a cada 2
   tempos. **O pico (1/3 a 2/3), o tiroteio:** um alvo por tempo
   (`k + 0,25·l`) e os escudos balançam ±0,3 m na batida. De 2/3 em diante,
   a cada 2 tempos. Alvos de cada um em 75 s: ~45 a 96 bpm, ~55 a 115 bpm.
@@ -222,11 +222,11 @@ func _proxima(l: int, desde: float) -> void:
 	var passo := 2.0
 	var desloc := 0.5 * l
 	if Ritmo.simples[l]:
-		passo = 4.0
+		passo = 2.0  # o kit dobra o passo na partitura simples
 	elif no_pico():
 		passo = 1.0
 		desloc = 0.25 * l
-	e.b = proxima_batida(l, desde + 0.001, passo, desloc)  # o kit; estritamente depois de desde
+	e.b = proxima_batida(l, desde, passo, desloc)  # o kit (H08): a próxima depois de desde
 	var novo := rng.randi_range(0, POSICOES.size() - 2)
 	if novo >= int(e.alvo) and int(e.alvo) >= 0:
 		novo += 1
@@ -299,7 +299,7 @@ func _atirar(l: int, e: Dictionary) -> void:
 		if not aberta:
 			_ricochete(l, m)  # cedo demais: embaça, sem nota
 			return
-		Forja.evento("entrada", l + 1, {"o": "mira", "erro_m": snappedf(dist, 0.01), "n": int(e.n)})
+		anotar("entrada", l, {"o": "mira", "erro_m": snappedf(dist, 0.01), "n": int(e.n)})
 		if dist <= RAIO:
 			julgar_toque(l, alvo, int(e.n))
 		else:

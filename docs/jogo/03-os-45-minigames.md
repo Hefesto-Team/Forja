@@ -89,7 +89,7 @@ prova do isolamento esquerda e direita sem perguntar nada.
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | 16 | **O Cerco** (o Impacto atual) | sobrevivência | "Defenda!" | Golpes chegam da esquerda ou da direita; a mão sente o lado um tempo antes; L1 ou R1 no lado certo e no tempo | o golpe passa, a barra de luz perde um degrau e o cavaleiro cambaleia | 90 s; quem terminar com mais luz | `MUS_S04_J16` |
 | 17 | **Fuga do Titã** | coop | "Corra!" | Um vagão desgovernado; os passos do titã chegam na mão cada vez mais fortes; cada um alimenta a caldeira no seu tempo | o titã encosta, sacode o vagão e arranca uma grade | 100 s; o vagão cruza a ponte (todos vencem) ou o titã alcança | `MUS_S04_J17` |
-| 18 | **Curto-Circuito** | sabotagem | "Passe!" | A bomba passa de mão em mão; na mão dela a vibração acelera como um coração; passe no tempo para o vizinho | segurou demais: a bomba estoura e o cavaleiro sai voando | quatro rodadas; o último que não estourou | `MUS_S04_J18` |
+| 18 | **Curto-Circuito** | sabotagem | "Passe!" | A bomba passa de mão em mão; na mão dela a vibração acelera como um coração; passe no tempo para o vizinho. A bomba está no mundo (acesa sobre a cabeça de quem segura) e no peso do R2 dele; a barra de luz nunca diz quem está com ela | segurou demais: a bomba estoura e o cavaleiro sai voando | quatro rodadas; vence quem estourou menos | `MUS_S04_J18` |
 | 19 | **Martelos Térmicos** | TcT | "Acerte o lado!" | Toupeiras de metal quente sobem dos dois lados; o tremor diz o lado; L1 ou R1 no tempo | martela o vazio e queima a mão (tremor longo) | 75 s; mais toupeiras | `MUS_S04_J19` |
 | 20 | **A Prensa** | sobrevivência / terror | "Esquive!" | Luz baixa; as prensas descem no compasso; a vibração forte avisa um tempo antes; o analógico tira o cavaleiro de baixo | esmagado, vira fantasma que acende luz no caminho dos outros | 90 s; último sem ser esmagado | `MUS_S04_J20` |
 
@@ -109,7 +109,7 @@ tela e no peso do gatilho, não nas luzinhas.
 | 22 | **Arco de Néon** | TcT | "Puxe e solte!" | O arco (Feedback) endurece ao puxar; segure durante a nota longa e solte no fim dela | a flecha cai aos pés | 80 s; mais alvos | `MUS_S05_J22` |
 | 23 | **Metralhadora de Feitiços** | coop | "Segure a rajada!" | A metralhadora (Vibration) treme no dedo em semicolcheias; os quatro dividem as frases do ataque, cada um na sua | a arma superaquece e trava por um compasso | 90 s; a frota cai (todos vencem) e o artilheiro com mais acertos leva o destaque | `MUS_S05_J23` |
 | 24 | **Espada de Fita** | duelo 2v2 | "Solte no pico!" | A fita K7 da espada estica e o gatilho pesa cada vez mais; solte no pico da nota para o corte | a fita afrouxa e a espada balança mole | melhor de três rodadas por dupla | `MUS_S05_J24` |
-| 25 | **A Catapulta** | 2v2 | "Carregue e lance!" | Cada dupla carrega a catapulta: um puxa a corda (Feedback), o outro trava no contratempo (Weapon); a pedra voa no castelo rival | a corda escapa e a pedra cai no próprio muro | primeiro castelo derrubado, ou mais dano em 90 s | `MUS_S05_J25` |
+| 25 | **A Catapulta** | 2v2 | "Carregue e lance!" | Cada dupla carrega a catapulta: um puxa a corda (Feedback), o outro trava no contratempo (Weapon); a pedra voa no castelo rival. A munição está no mundo (o monte de pedras ao lado da catapulta) e no peso do gatilho; a equipe (A Brasa, A Maré) no chão, na armadura e no castelo, nunca nas luzinhas nem na barra de luz | a corda escapa e a pedra cai no próprio muro | primeiro castelo derrubado, ou mais dano em 90 s | `MUS_S05_J25` |
 
 ## S6 — O Canto · alto-falante
 
@@ -127,7 +127,7 @@ não chegou, quem dependia dele erra a resposta, e o cruzamento mostra.
 | 27 | **Eco do Abismo** | corrida / terror | "Responda o eco!" | Escuridão; o eco no seu controle diz o degrau seguinte; a resposta certa acende o degrau | o degrau é oco e o cavaleiro despenca um andar | primeiro no topo | `MUS_S06_J27` |
 | 28 | **Coral dos Quatro** | coop | "Cante a sua!" | O acorde é dividido: cada controle canta uma nota; toque a sua na sua vez e o coral fecha | a nota falta e o coral desafina, o vitral trinca | 90 s; o vitral inteiro (todos vencem) e quem fechou mais acordes | `MUS_S06_J28` |
 | 29 | **Código do Dragão** | TcT | "Decore!" | O dragão canta uma senha no seu controle, de três notas até doze; repita inteira | o dragão cospe fumaça e a senha recomeça em três | 100 s; a senha mais longa | `MUS_S06_J29` |
-| 30 | **Corta-Fio** | sabotagem | "Corte!" | A bomba no peito bipa no seu alto-falante; corte o fio no bipe certo; quem está na frente pode mandar um bipe falso para o controle de outro | cortou no bipe errado: a bomba estoura em confete | três bombas; quem desarmou mais | `MUS_S06_J30` |
+| 30 | **Corta-Fio** | sabotagem | "Corte!" | A bomba no peito bipa no seu alto-falante; corte o fio no bipe certo; quem corta perfeito ganha um bipe falso, que vai sempre para o controle de quem está na frente | cortou no bipe errado: a bomba estoura em confete | três bombas; quem desarmou mais | `MUS_S06_J30` |
 
 ## S7 — Os Caminhos · háptica por áudio
 
@@ -143,7 +143,7 @@ escolhe.
 
 | # | minigame | gênero | verbo | como se joga | a falha | fim e vencedor | faixa |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| 31 | **Os Caminhos** (os Caminhos atuais) | corrida | "Sinta o chão!" | Três trilhas na bifurcação; a textura do chão certo (metal, areia, gelo) é a da senha do seu portão | a trilha errada cai num lamaçal lento | primeiro no fim | `MUS_S07_J31` |
+| 31 | **Os Caminhos** (os Caminhos atuais) | corrida | "Sinta o chão!" | Três trilhas na bifurcação; a textura do chão certo — um dos quatro chãos de hoje: grama, cascalho, metal, água — é a da senha do seu portão | a trilha errada cai num lamaçal lento | primeiro no fim, ou o mais longe em 100 s | `MUS_S07_J31` |
 | 32 | **Neblina de Dados** | terror | "Salte no firme!" | Neblina total; só a mão sabe onde há chão; salte no pulso quando a textura firme chegar | o chão era neblina e o cavaleiro some no escuro, volta ao ponto anterior | primeiro do outro lado | `MUS_S07_J32` |
 | 33 | **Passo no Fosso** | corrida | "Pise no contratempo!" | Placas afundam no tempo; a mão pulsa no contratempo, que é quando elas sobem | pisa na placa afundada e escorrega no plasma | primeiro na margem | `MUS_S07_J33` |
 | 34 | **Fuga do Mecha Cego** | terror / sobrevivência | "Esconda-se!" | O mecha caça pelo som; os passos dele chegam no atuador esquerdo ou direito; ande para o lado oposto no tempo e pare quando ele para | o holofote acha, o cavaleiro é pego e vira fantasma que faz barulho | 100 s; quem sobreviveu mais tempo | `MUS_S07_J34` |
@@ -169,7 +169,8 @@ mudo e a luz do mudo mandada, a resposta da voz ao tempo pedido.
 ## S9 — A Prova · tudo junto
 
 O fim de cada noite. Tudo ligado, em equipe. Os dois medleys usam as
-mecânicas das seções anteriores em sequência.
+mecânicas das seções anteriores em sequência, em mini-versões escritas no
+próprio script de cada medley.
 
 **O registro mede:** tudo junto — a carga de saídas por segundo, as recusas
 sob carga, os quatro controles ao mesmo tempo.
@@ -179,8 +180,8 @@ sob carga, os quatro controles ao mesmo tempo.
 | 41 | **A Prova** (a Prova atual, sem as perguntas) | 2v2 | "Vença a outra equipe!" | Duas equipes, cada recurso do controle é uma arma da equipe; a cor da equipe aparece no chão e no cavaleiro, não na barra de luz | cada erro cede terreno à outra equipe | 90 s; a equipe com mais território | `MUS_S09_J41` |
 | 42 | **Roubo de Bateria** | 2v2 | "Roube!" | Pega-bandeira: quem carrega a bateria segura o pulso dela em L2 e R2 alternados; a outra equipe manda interferência para o alto-falante do carregador | o pulso falha, a bateria cai no chão e fica livre | 100 s; mais baterias levadas para a base | `MUS_S09_J42` |
 | 43 | **Mecha de Dois Pilotos** | 2v2 | "Pilote juntos!" | Cada dupla pilota um mecha: um é a perna esquerda, o outro a direita; soco só sai com os dois no mesmo tempo | fora de sincronia, o mecha soca a própria cabeça | melhor de três quedas | `MUS_S09_J43` |
-| 44 | **Ruge o Reator** | coop / medley | "Aguentem!" | O dragão acorda. Trechos de 20 s das seções 1 a 4 em sequência, sem pausa: bater, equilibrar, traçar, defender | cada erro tira um pedaço da plataforma comum | 120 s; a plataforma aguenta (todos vencem) e quem errou menos leva o destaque | `MUS_S09_J44` |
-| 45 | **O Último Acorde** | coop / medley | "O acorde final!" | O fim da noite. Trechos das seções 5 a 8 e, no fim, 32 notas em chamada e resposta divididas entre os quatro | o acorde falta e o dragão se levanta de novo — mais oito notas | o dragão cai numa chuva de luz; a noite termina no pódio | `MUS_S09_J45` |
+| 44 | **Ruge o Reator** | coop / medley | "Aguentem!" | O dragão acorda. Trechos de 20 s das seções 1 a 4 em sequência, sem pausa, numa faixa só: bater, equilibrar, traçar, defender — mini-versões das mecânicas, escritas no próprio script do medley (não os minigames do catálogo) | cada erro tira um pedaço da plataforma comum | 120 s; a plataforma aguenta (todos vencem) e quem errou menos leva o destaque | `MUS_S09_J44` |
+| 45 | **O Último Acorde** | coop / medley | "O acorde final!" | O fim da noite. Trechos das seções 5 a 8 (mini-versões das mecânicas, no próprio script do medley) e, no fim, 32 notas em chamada e resposta divididas entre os quatro | o acorde falta e o dragão se levanta de novo — mais oito notas | o dragão cai numa chuva de luz; a noite termina no pódio | `MUS_S09_J45` |
 
 ---
 

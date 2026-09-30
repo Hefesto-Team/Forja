@@ -48,7 +48,7 @@ const FICHA := {
 	"titulo": "Espada de Fita",
 	"verbo": "Solte no pico!",
 	"genero": "2v2",
-	"icone": "r2",
+	"icone": "gatilho_adaptativo",
 	"entradas": [],
 	"camera": "fixa",
 	"faixa": "MUS_S05_J24",
@@ -94,7 +94,7 @@ ou "A Maré venceu!" (H08).
 nota): no compasso `c` (a partir de 1, fora das pausas entre rodadas),
 para cada presente:
 
-| parte | música (`progresso()` do kit) | a puxada | a soltura (o pico) | o peso (Feedback posição 2) |
+| parte | música (`andamento()` do kit) | a puxada | a soltura (o pico) | o peso (Feedback posição 2) |
 | --- | --- | --- | --- | --- |
 | entrada | 0–30 s | `4c` | `4c + 3` | `PESO[0..3]` em `4c`, `4c+1`, `4c+2`, `4c+2,5` |
 | **pico** | 30–60 s | `4c` e `4c + 2` | `4c + 1,5` e `4c + 3,5` (duas estocadas curtas) | `4` na puxada, `8` meia batida depois |
@@ -127,12 +127,12 @@ empate, as espadas batem e ninguém corta (faíscas no meio). Três cortes →
 `rodadas[d] += 1`, um compasso de pausa (sem notas), as fitas voltam.
 Duas rodadas → todos `acabou`.
 
-**Os pontos** de cada um: `marcar(l, PONTOS[julgamento])` (o item, `Itens.pontos_do_acerto`, o kit já aplica no `julgar_toque`: H08)
+**Os pontos** vão para os dois da dupla: `marcar_equipe(equipe[l], PONTOS[julgamento])` (o kit, H08, que também aplica o item)
 em cada nota boa.
 
 Cada puxada e soltura gravam o `entrada` `disparo` (modo `"resistencia"`,
 curso, curso máximo); cada corte grava
-`Forja.evento("jogo", 0, {"slot": id, "o": "corte", "dupla": d, "valores": "%d,%d" % [v0, v1]})`.
+`anotar("jogo", -1, {"o": "corte", "dupla": d, "valores": "%d,%d" % [v0, v1]})`.
 
 ## O cenário
 
@@ -270,8 +270,8 @@ func montar() -> void:
 	var lista := jogadores.map(func(p): return p.lugar)
 	lista.sort()
 	var meio := (lista.size() + 1) / 2
-	duplas = [lista.slice(0, meio), lista.slice(meio)]
-	_com_aprendiz = lista.size() == 3  # o boneco do Aprendiz entra na raia vazia da Maré
+	duplas = [lista.slice(0, meio), lista.slice(meio)]  # com 4, 3 e 2, as equipes do kit (da_equipe(BRASA), da_equipe(MARE))
+	_com_aprendiz = lista.size() == 3 and aprendizes[MARE] == 1  # o boneco do Aprendiz entra na raia vazia da Maré
 	for p in jogadores:
 		var l: int = p.lugar
 		raia(l)
@@ -315,7 +315,7 @@ func jogar(_dt: float) -> void:
 
 func toque(l: int, julgamento: int) -> void:
 	var nt: Dictionary = _ultima[l]
-	marcar(l, PONTOS[julgamento])  # o item, o kit já aplicou (H08)
+	marcar_equipe(equipe[l], PONTOS[julgamento])  # os dois da dupla; o item, o kit aplica (H08)
 	_guardar_o_valor(l, nt, julgamento)
 	if nt.tipo == "solta":
 		Forja.gatilho(l, 1, Forja.GATILHO_RESISTENCIA, 2, PESO_PARADO)  # o piscar do perfeito é do kit (H08)

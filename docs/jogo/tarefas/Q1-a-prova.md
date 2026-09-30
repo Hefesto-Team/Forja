@@ -1,6 +1,6 @@
 # Q1 — A Prova
 
-**Sprint:** Q · **Slot:** S09_J41 · **Tamanho:** G · **Estimativa:** US$ 2,0 · **Depende de:** H04, F09, F01, F04, H07, G03, O1
+**Sprint:** Q · **Slot:** S09_J41 · **Tamanho:** G · **Estimativa:** US$ 2,0 · **Depende de:** H04, H08, F09, F01, F04, H07, G03, O1
 
 ## Por quê
 
@@ -32,11 +32,11 @@ const FICHA := {
 	"titulo": "A Prova",
 	"verbo": "Vença a outra equipe!",
 	"genero": "2v2",
-	"icone": "r2",
+	"icone": "gatilho_adaptativo",
 	"entradas": [Forja.CRUZ, Forja.TOUCHPAD],
 	"camera": "fixa",
 	"faixa": "MUS_S09_J41",
-	"duracao": 0.0,
+	"duracao": 90.0,
 	"fim": "tempo",
 	"sensacoes": ["acerto", "perfeito", "erro", "golpe_esq", "golpe_dir", "explosao"],
 	"material": "metal",
@@ -50,9 +50,12 @@ const FICHA := {
 ```
 
 (As entradas são três: ✕, o R2 — eixo, fora da lista — e o touchpad.)
-`duracao` 0: a partida acaba pela música (`PARTIDA := 216` batidas, ≈ 89 s),
-porque, na bancada, as perguntas vêm **depois** da carga, também na prova.
-Sem treino: é o fim da noite.
+`duracao` 90 (a do 03), contados pelo kit em tempo de música (H08): a
+partida (`PARTIDA := 216` batidas, ≈ 89 s) cabe neles, e sem a bancada todos
+acabam no apito. Na bancada, as perguntas vêm **depois** da carga, também na
+prova, e passam dos 90 s: o fim por `tempo` do kit não pode cortá-las (a
+bancada só acrescenta camadas — a paridade, regra 3); se a H08 não deixar a
+bancada terminar as perguntas, pare e anote. Sem treino: é o fim da noite.
 
 ## Como se joga
 
@@ -77,7 +80,7 @@ A faixa é `MUS_S09_J41`, 145 bpm (uma batida ≈ 0,41 s). `BATIDA_DA_PRIMEIRA_N
 - **A martelada (a pista privada):** a cada 4 compassos (`m % 4 == 3`), na
   batida `c0` desse compasso, em cada equipe, o **lugar** com mais PERFEITOs
   nos últimos 16 tempos (no empate, o primeiro) ouve o sino **no próprio
-  alto-falante** — `_pista(l, ...)` com `via` `alto_falante`
+  alto-falante** — `_pista(l, ...)` com `canal` `alto_falante`
   (`Forja.som_falante(l, "pronto", 0.8)`), `o_que` `"martelada"`. A nota dele
   na batida `+0` do compasso seguinte é **a martelada**: o touchpad (clique)
   no tempo, no lugar do ✕/R2 dele. Julgada, empurra `ESPECIAL[j]`
@@ -144,8 +147,8 @@ A faixa é `MUS_S09_J41`, 145 bpm (uma batida ≈ 0,41 s). `BATIDA_DA_PRIMEIRA_N
 rumble (o kit, sem placa). **Sem alto-falante** (o rádio não tem placa de
 áudio; `not Forja.som_tem(l, Forja.PAPEL_ALTO_FALANTE)`), o sino da martelada
 vai pela mão: `Forja.sentir(l, "aviso")` no lugar do `pronto`, com a `pista`
-`via` `rumble` e a `troca` (`alto_falante` → `rumble`, `sem_placa`) — o
-segredo continua só dele. O clique da besta fica no dedo (o gatilho).
+`canal` `rumble` (o 13 não tem a troca `alto_falante` → `rumble`: o caminho
+fica dito na `pista`) — o segredo continua só dele. O clique da besta fica no dedo (o gatilho).
 
 ## A falha
 
@@ -271,11 +274,9 @@ const ESPECIAL := [0.0, 0.8, 1.2, 1.5]
 const CEDE := 0.12
 const PONTOS := [0, 50, 75, 100]
 const ACERTO_APRENDIZ := 0.8
-const COR_EQUIPE := [Color("#e8a33c"), Color("#2fb3b3")]
 const COR_PARECIDA_DO_LUGAR := [1, 0, -1, 2]
 # ... e as da prova final de hoje (CORES, BOTAO, GLIFO, PERGUNTA_ESPERA, PERGUNTA_S)
 
-var _equipe := {}              ## lugar -> 0 (Brasa) / 1 (Maré)
 var _papel := {}               ## lugar -> 0 (A) / 1 (B)
 var _aprendizes := []          ## {equipe, papel, no, anim}
 var _frente := 0.0
@@ -309,7 +310,7 @@ func montar() -> void:
 	usa_gatilho = true
 	camera_pos = Vector3(0, 13.5, 12.5)
 	camera_olhar = Vector3(0, 0, 0.5)
-	_formar_equipes()             # a regra da ficha-mãe; os Aprendizes
+	_formar_equipes()             # equipe[l] e aprendizes[e] já vêm do kit (montar_equipes, H08: a regra de Q); aqui, os bonecos dos Aprendizes
 	# a arena, a faixa de chão, a runa, as bandeiras, os cavaleiros e os discos
 
 
@@ -344,9 +345,9 @@ func jogar(dt: float) -> void:
 
 
 func toque(l: int, j: int) -> void:
-	marcar(l, PONTOS[j])
+	marcar_equipe(equipe[l], PONTOS[j])  # os dois da dupla (o kit, H08)
 	_acertadas[l] += 1
-	var e: int = _equipe[l]
+	var e: int = equipe[l]
 	if _arma_da_nota[l] == MARTELADA:
 		_marteladas[l] += 1
 		_respondeu(l, _n[l] - 1, "certo")
@@ -360,14 +361,14 @@ func toque(l: int, j: int) -> void:
 
 
 func falha(l: int) -> void:
-	_ceder(_equipe[l])
+	_ceder(equipe[l])
 	jogador(l).gesto("emote-no", 0.3)
 
 
 func vencedor() -> Array:
 	var e := 0 if _frente > 0.0 else (1 if _frente < 0.0 else _mais_pontos())
-	var ganhou := presentes().filter(func(l): return _equipe[l] == e)
-	var perdeu := presentes().filter(func(l): return _equipe[l] != e)
+	var ganhou := presentes().filter(func(l): return equipe[l] == e)
+	var perdeu := presentes().filter(func(l): return equipe[l] != e)
 	ganhou.sort_custom(func(a, b): return pontos[a] > pontos[b])
 	perdeu.sort_custom(func(a, b): return pontos[a] > pontos[b])
 	return ganhou + perdeu
@@ -398,7 +399,7 @@ o lado de lá da equipe `e` (`+` para a Brasa), com o `lerpf` da runa;
 no pico); na troca de bloco, o R2 de todos (`ARMA` ou `OFF`); se
 `m % 4 == 3`, o sino de cada equipe: `_sino(l, n)`, que faz
 `Forja.som_falante(l, "pronto", 0.8)` e grava
-`Forja.evento("pista", l + 1, {"slot": id, "n": n, "evento": "mandou", "via": "alto_falante", "o_que": "martelada"})`
+`anotar("pista", l, {"n": n, "evento": "mandou", "canal": "alto_falante", "o_que": "martelada"})`
 (o `_respondeu` é o do O1); a nota de quem ouviu o sino na batida `+0` do
 compasso seguinte é `MARTELADA`.
 `_entrada(l)`: `MARTELO` → `Forja.apertou(l, Forja.CRUZ)`; `BESTA` → o R2
@@ -423,8 +424,7 @@ aparece na TV de todos, e o sino é segredo de quem o ouviu.
 tire as frases do tiroteio (`"recarregue"`, `"martelada!"`, `"%s · vida %d · %d balas"`...)
 que ninguém mais usa.
 
-`_mais_pontos()`: a equipe com mais pontos somados dos seus lugares (a Brasa
-no empate).
+`_mais_pontos()`: `maxi(equipe_vencedora(), BRASA)` — a equipe com mais pontos pelo kit (`pontos_da_equipe`, H08; a Brasa no empate).
 
 ## O que o registro mede
 
@@ -432,7 +432,7 @@ no empate).
   lado, a explosão da martelada) com `seq` e `ok`, dos quatro ao mesmo
   tempo; `Forja.carga_*` soma as recusas sob carga (o veredito `tudo_junto`,
   na bancada, e a linha no relatório nos dois modos);
-- `pista` do sino (`via` `alto_falante`) e a martelada depois dele — a noite
+- `pista` do sino (`canal` `alto_falante`) e a martelada depois dele — a noite
   vê se o alto-falante de cada controle chegou;
 - `sensacao` `golpe_esq`/`golpe_dir` (o lado, no controle de quem esperava);
 - `nota`/`toque` de todas as armas.
@@ -479,7 +479,9 @@ func _prova_a_prova() -> void:
 	if sala == null:
 		return
 	_esperar(sala.id == "S09_J41", "prova: o apelido abre o S09_J41")
-	var identidade_ok := true
+	var luz_fora := 0  # o piscar do kit (H08, até 0,5 s) sai da cor do lugar; a maior parte do tempo, não
+	var amostras := 0
+	var leds_ok := true
 	var viu_besta := false
 	var inicio := Time.get_ticks_usec()
 	while is_instance_valid(sala) and not sala._acabou_a_partida and Time.get_ticks_usec() - inicio < 150000000:
@@ -487,24 +489,26 @@ func _prova_a_prova() -> void:
 			var p := _perc(l)
 			var luz: Color = p.get("luz", Color.BLACK)
 			var cor := Forja.cor_do_lugar(l)
+			amostras += 1
 			if Vector3(luz.r - cor.r, luz.g - cor.g, luz.b - cor.b).length() > 0.05:
-				identidade_ok = false
+				luz_fora += 1
 			if int(p.get("leds_jogador", 0)) != Forja.LEDS_DO_LUGAR[l]:
-				identidade_ok = false
+				leds_ok = false
 			if sala._m >= 0 and (sala._m / 2) % 2 == 1 and int(p.get("gatilho_dir", 0)) == 0x25:
 				viu_besta = true
 		await _quadros(5)
-	_esperar(identidade_ok, "prova: a luz e as luzinhas de cada um ficaram as do lugar a partida inteira")
+	_esperar(leds_ok, "prova: as luzinhas de cada um ficaram as do lugar a partida inteira")
+	_esperar(luz_fora * 4 <= amostras, "prova: a barra de luz na cor do lugar, fora o piscar do kit (%d de %d fora)" % [luz_fora, amostras])
 	_esperar(viu_besta, "prova: o R2 em arma (0x25) num bloco de besta")
 	if is_instance_valid(sala):
 		_esperar(absf(sala._frente) > 0.0, "prova: a frente andou (%.2f)" % sala._frente)
 	await _termina_a_sala(sala, ["tudo_junto"])
 ```
 
-(O `_termina_a_sala` espera pelo relógio de parede desde a O1. A lista de
+(O `_termina_a_sala` espera pelo relógio de parede, a espera da H08. A lista de
 vereditos por modo é a da F01: sem a bancada, o `tudo_junto` sai "não
 medido" e a checagem é a que ela deixou.) No `_prova_do_relatorio()`: há
-`pista` do `S09_J41` com `via == "alto_falante"`, e nenhuma `saida` com
+`pista` do `S09_J41` com `canal == "alto_falante"`, e nenhuma `saida` com
 `o == "lightbar"` desse minigame fora da bancada.
 
 `bash tests/prova_do_jogo.sh` e `bash tests/prova_visual.sh`.

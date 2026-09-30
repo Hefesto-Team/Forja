@@ -1,6 +1,6 @@
 # P4 — Grito de Guerra
 
-**Sprint:** P · **Slot:** S08_J39 · **Tamanho:** M · **Estimativa:** US$ 1,5 · **Depende de:** H04, F09, H07, P1
+**Sprint:** P · **Slot:** S08_J39 · **Tamanho:** M · **Estimativa:** US$ 1,5 · **Depende de:** H04, H08, F09, H07, P1
 
 ## Por quê
 
@@ -23,7 +23,7 @@ const FICHA := {
 	"titulo": "Grito de Guerra",
 	"verbo": "Grite!",
 	"genero": "tct",
-	"icone": "mic",
+	"icone": "microfone",
 	"entradas": [],
 	"camera": "fixa",
 	"faixa": "MUS_S08_J39",
@@ -352,7 +352,8 @@ Catálogo: `"S08_J39"` em `MINIGAMES` e na seção `S08`. Traduções:
   andar do analógico é entrada e usa o `dt`.
 - **Sem controle não cai**: a onda não move quem está sem controle.
 - **Os bonecos não são robô** (é regra do jogo, com o `rng` do kit).
-- **Na prova o pico não chega** (o fim é pelo `duracao`).
+- **Na prova o pico chega:** o fim conta em tempo de música (H08), e a
+  `duracao` inteira roda na prova, pelo relógio de parede.
 
 ## Pronto quando
 

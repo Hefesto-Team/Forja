@@ -1,6 +1,6 @@
 # Q2 — Roubo de Bateria
 
-**Sprint:** Q · **Slot:** S09_J42 · **Tamanho:** M · **Estimativa:** US$ 1,5 · **Depende de:** H04, F09, H07, G03, Q1
+**Sprint:** Q · **Slot:** S09_J42 · **Tamanho:** M · **Estimativa:** US$ 1,5 · **Depende de:** H04, H08, F09, H07, G03, Q1
 
 ## Por quê
 
@@ -25,7 +25,7 @@ const FICHA := {
 	"titulo": "Roubo de Bateria",
 	"verbo": "Roube!",
 	"genero": "2v2",
-	"icone": "r2",
+	"icone": "gatilhos",
 	"entradas": [Forja.CRUZ],
 	"camera": "fixa",
 	"faixa": "MUS_S09_J42",
@@ -64,7 +64,7 @@ A faixa é `MUS_S09_J42`, 138 bpm (uma batida ≈ 0,43 s). `BATIDA_DA_PRIMEIRA_N
   o errado → `nota_perdida(l, n)` com `_motivo[l] = "trocou"`; nada até a
   nota passar → `nota_perdida(l, n)`.
 - **Entregar:** o carregador dentro da própria base → a equipe marca uma
-  bateria (`_baterias[e] += 1`), `marcar(l, 200)`, o peso sai dos gatilhos
+  bateria (`_baterias[e] += 1`), `marcar_equipe(e, 200)`, o peso sai dos gatilhos
   (`GATILHO_OFF`), e uma bateria nova nasce no centro duas batidas depois.
 - **O ✕ no tempo** de quem não carrega (a nota nasce do toque: no aperto,
   `bn = roundi(Ritmo.batida())`, `nova_nota(l, n, t(bn))` e
@@ -214,7 +214,7 @@ extends Minigame
 ##
 ## A falha: o pulso falha e a bateria cai, livre. O vencedor: a equipe com
 ## mais baterias. O alto-falante do dono: a estática da interferência. O
-## registro mede: o pulso (pista, via háptica/rumble) e a resposta, o peso nos
+## registro mede: o pulso (pista, pelo canal da háptica ou do rumble) e a resposta, o peso nos
 ## gatilhos (saida), a estática no alto-falante. O robô: sente o lado do pulso
 ## na placa virtual. Com menos de quatro: dois contra um, um contra um, contra
 ## a sentinela. A régua: a cor da equipe está no chão.
@@ -230,9 +230,7 @@ const PEGA_R := 0.8
 const RECARGA := 8
 const RECARGA_SOZINHO := 16
 const PONTOS := [0, 50, 75, 100]
-const COR_EQUIPE := [Color("#e8a33c"), Color("#2fb3b3")]
 
-var _equipe := {}
 var _pos := {}                 ## lugar -> Vector3
 var _arrancada := {}           ## lugar -> {de, ate, b0}
 var _baterias := [0, 0]
@@ -294,7 +292,7 @@ func jogar(dt: float) -> void:
 
 func toque(l: int, j: int) -> void:
 	if _carrega_alguma(l):
-		marcar(l, PONTOS[j])
+		marcar_equipe(equipe[l], PONTOS[j])  # os dois da dupla (o kit, H08)
 		_respondeu(l, _n[l] - 1, "certo")
 	else:
 		_efeito_da_cruz(l)             # interferência (+50), escolta (+25) ou arrancada
@@ -310,8 +308,8 @@ func falha(l: int) -> void:
 
 func vencedor() -> Array:
 	var e := 0 if _baterias[0] > _baterias[1] else (1 if _baterias[1] > _baterias[0] else _mais_pontos())
-	var ganhou := presentes().filter(func(l): return _equipe[l] == e)
-	var perdeu := presentes().filter(func(l): return _equipe[l] != e)
+	var ganhou := presentes().filter(func(l): return equipe[l] == e)
+	var perdeu := presentes().filter(func(l): return equipe[l] != e)
 	ganhou.sort_custom(func(a, b): return pontos[a] > pontos[b])
 	perdeu.sort_custom(func(a, b): return pontos[a] > pontos[b])
 	return ganhou + perdeu
@@ -344,12 +342,11 @@ Catálogo: `"S09_J42"` em `MINIGAMES` e na seção `S09`. Traduções:
 `_t_batida()` (a duração de uma batida, em s, para o pico):
 `return Ritmo.t_da_batida(1.0) - Ritmo.t_da_batida(0.0)`.
 
-`_mais_pontos()`: a equipe com mais pontos somados dos seus lugares (a Brasa
-no empate).
+`_mais_pontos()`: `maxi(equipe_vencedora(), BRASA)` — a equipe com mais pontos pelo kit (`pontos_da_equipe`, H08; a Brasa no empate).
 
 ## O que o registro mede
 
-- `pista` de cada pulso (`o_que` `L2`/`R2`, `via`) e a resposta — a noite
+- `pista` de cada pulso (`o_que` `L2`/`R2`, `canal`) e a resposta — a noite
   vê, por controle, se o lado da háptica (ou do rumble) chegou;
 - `saida` do gatilho (o peso, a cada pega e entrega) com `seq` e `ok`, e
   `som_controle` da estática — a carga das saídas nos quatro;
@@ -367,7 +364,8 @@ no empate).
   sensação `golpe_*` dura 0,25 s — encurte a pista para `Forja.sentir(l, "golpe_esq", 180)`).
 - **A arrancada anda pela batida** (o `lerpf` em meia batida); o andar do
   analógico usa o `dt` (é entrada).
-- **Na prova o pico não chega** (o fim é pelo `duracao`).
+- **Na prova o pico chega:** o fim conta em tempo de música (H08), e a
+  `duracao` inteira roda na prova, pelo relógio de parede.
 
 ## Pronto quando
 

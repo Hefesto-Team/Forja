@@ -60,7 +60,7 @@ const FICHA := {
 - **Os pontos por julgamento** (ERRO, BOM, ÓTIMO, PERFEITO), do dono:
   `[0, 20, 35, 50]`; o selo por cima de outro: +30. Cada lingote na pilha
   conta 1.
-- **A progressão:** `progresso()` do kit (em tempo de música, H08). De 0 a 1/3, duas síncopes por
+- **A progressão:** `andamento()` do kit (em tempo de música, H08). De 0 a 1/3, duas síncopes por
   compasso. **O pico (1/3 a 2/3), a prensa corre:** toda colcheia fraca é
   síncope (`4c + 0,5`, `1,5`, `2,5`, `3,5`) — o rodízio anda duas vezes mais
   depressa. De 2/3 em diante, duas por compasso. Síncopes de cada um em 90 s:
@@ -237,7 +237,7 @@ func _nova_sincope(desde: float) -> void:
 		dono = roda[_k % roda.size()]
 		if bool(j[dono].borrado) or Ritmo.simples[dono]:
 			if bool(j[dono].borrado):
-				Forja.evento("entrada", dono + 1, {"o": "clique", "perdeu_a_vez": true})
+				anotar("entrada", dono, {"o": "clique", "perdeu_a_vez": true})
 			j[dono].borrado = false
 			dono = -1
 	_sinc = {"k": _k, "b": b, "dono": dono, "n": -1, "topo": -1, "melhor": -1, "clicou": {}}
@@ -261,7 +261,7 @@ func _nova_sincope(desde: float) -> void:
 func iniciar_jogo() -> void:
 	for l in presentes():
 		if not Forja.capacidade(l, "toque"):
-			Forja.evento("troca", l + 1, {"slot": id, "de": "touchpad", "para": "sem_touchpad"})
+			anotar("entrada", l, {"o": "sensores", "toque": false})
 			acabou[l] = true
 	_nova_sincope(BATIDA_DA_PRIMEIRA_NOTA)
 
@@ -295,7 +295,7 @@ func jogar(_dt: float) -> void:
 ## Um selo por cima: fica se for BOM ou melhor e estritamente mais firme que o de cima.
 func _por_cima(l: int, julgamento: int) -> void:
 	var ficou := julgamento >= Ritmo.BOM and julgamento > int(_sinc.melhor)
-	Forja.evento("entrada", l + 1, {"o": "clique", "por_cima_de": int(_sinc.topo), "dono": int(_sinc.dono),
+	anotar("entrada", l, {"o": "clique", "por_cima_de": int(_sinc.topo), "dono": int(_sinc.dono),
 		"julgamento": Ritmo.NOMES_DO_JULGAMENTO[julgamento], "ficou": ficou})
 	if not ficou:
 		_borrar(l, "não foi mais firme")
@@ -312,7 +312,7 @@ func _por_cima(l: int, julgamento: int) -> void:
 
 func _borrar(l: int, porque: String) -> void:
 	j[l].borrado = true
-	Forja.evento("entrada", l + 1, {"o": "clique", "borrou": porque})
+	anotar("entrada", l, {"o": "clique", "borrou": porque})
 	Forja.sentir(l, "erro")
 	Som.tocar("falha", LINGOTE, -12.0)
 
