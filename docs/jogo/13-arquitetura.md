@@ -401,6 +401,65 @@ nada. As regras:
    F06, `ctl.acelerar` com `--simular`, que só troca o relógio da linha do
    tempo); nenhum argumento de prova encurta sala, treino ou fechamento.
 
+## A prova visual — F09
+
+Na primeira noite, as fotos e os GIFs mostravam tudo certo, e a partida
+jogada mostrou erros grosseiros. As imagens de hoje
+(`godot/testes/captura_jogo.gd`, `scripts/trailer.sh`) apertam botões de
+verdade, mas **enxergam um jogo arrumado para a câmera**:
+
+| o que esconde o erro | onde |
+| --- | --- |
+| todo mundo entra por código, e o jogo abre direto na sala ou na tela | `_todos_entram()` e `--sala=`/`--tela=` em `godot/scripts/main.gd:156-200` |
+| a foto sai em momentos escolhidos (aviso, meio, veredito) | o roteiro de `captura_jogo.gd` |
+| o robô acerta sempre: falha, empate, lugar vazio e controle que cai nunca são filmados | o `_robo` de cada sala |
+| sempre quatro controles | `--simular=4` |
+| `--fixed-fps 60` esconde as travadas de quadro | as provas e as fotos |
+| entre as fotos, a janela encolhe (`RAPIDO=1`) | `captura_jogo.gd` |
+| na nuvem, o renderizador é por software: luz, brilho e névoa não são os da máquina de verdade | o Godot sem GPU |
+
+As regras:
+
+1. **Vídeo da partida inteira, não foto escolhida.** A prova visual grava
+   do título ao pódio pelo fluxo que o jogador percorre (sem `--sala=`, sem
+   `--tela=`, sem `_todos_entram()`): cada um entra apertando ✕ no seu
+   controle simulado.
+2. **A prancha.** Do vídeo sai uma prancha com um quadro a cada 2 s, em
+   grade, com a hora de cada quadro. Olhar a prancha inteira leva um minuto
+   e mostra o que estava entre as fotos.
+3. **O robô erra.** Três temperamentos, escolhidos por `--robo=bom`,
+   `--robo=medio`, `--robo=ruim`: o bom acerta quase tudo, o médio erra um
+   terço, o ruim erra a maioria e às vezes não aperta. Todos agem só pelo
+   controle simulado ([a paridade](#a-paridade-entre-a-prova-e-o-jogo--f08)).
+4. **Os casos que quebram jogo.** Toda prova visual roda, além dos quatro,
+   uma partida com dois jogadores, uma com um jogador, e uma em que um
+   controle desconecta no meio de um minigame e volta no seguinte (o
+   simulador desconecta, como o cabo que sai).
+5. **As checagens automáticas sobre todos os quadros,** não só as fotos:
+   - **tela parada:** o mesmo quadro por mais de 5 s fora da pausa;
+   - **tela vazia:** quadro quase todo de uma cor;
+   - **texto encavalado ou fora da tela:** cada frase desenhada é guardada
+     com o seu retângulo (a coleta de `Desenho` da F02), e a checagem
+     reprova sobreposição, retângulo fora da área segura e texto abaixo de
+     30 px;
+   - **relógio que sobe** durante o jogo;
+   - **fim sem vencedor:** um `minigame` `terminou` sem `vencedor` na linha
+     do tempo;
+   - **minúscula** no começo de frase de tela.
+6. **O quadro por segundo real.** O jogo grava na linha do tempo o mínimo e
+   a média de quadros por segundo de cada minigame (tipo `desempenho`). Menos
+   de 55 no mínimo é um aviso na prancha.
+7. **A verdade da imagem é a máquina do André.** Na nuvem, a prova visual
+   confere **disposição** (texto, tela parada, fim, relógio). A **aparência**
+   (luz, cor, brilho, névoa, a arte do [11](11-arte-e-personagens.md)) só se
+   aprova pela prova visual rodada na máquina do André, com placa de vídeo,
+   sem `--fixed-fps`.
+8. **O diário do André.** Quando o André joga, ele anota o que viu num
+   formato curto que casa com o vídeo e a linha do tempo: a hora, o minigame,
+   o que viu. Cada linha do diário vira um item na ficha ou uma ficha nova.
+9. **Nenhuma ficha visual fecha só com fotos.** Tela, arte, câmera, HUD e
+   minigame só ficam **feito** depois da prova visual e da prancha olhada.
+
 ## Como uma ficha prova o que fez
 
 | o que mudou | a prova |
