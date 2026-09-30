@@ -46,7 +46,7 @@ e respeita as [regras de ouro](docs/jogo/README.md#as-regras-de-ouro).
 
 ### Sprint F — a fundação
 
-Fichas: F01 a F07, no [quadro](docs/jogo/tarefas/README.md).
+Fichas: F00 a F10, no [quadro](docs/jogo/tarefas/README.md).
 
 O jogo deixa de ser teste, e o controle passa a falar alto e com o número
 certo.
@@ -71,7 +71,7 @@ passam; e a linha do tempo sai no formato v2.
 
 ### Sprint G — as telas
 
-Fichas: G01 a G08, no [quadro](docs/jogo/tarefas/README.md).
+Fichas: G01 a G11, no [quadro](docs/jogo/tarefas/README.md) (a G09 é o teclado do nome; a G10 e a G11, a Kenney — [14](docs/jogo/14-os-assets-kenney.md)).
 
 | item | detalhe |
 | --- | --- |

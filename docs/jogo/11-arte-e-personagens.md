@@ -76,10 +76,13 @@ Os bonecos novos vêm de três fontes, que se somam:
 
 ### (a) Kenney da mesma família
 
-Pacotes CC0 da Kenney na mesma linha "mini" e em blocos. **Antes de
-importar**, conferir no glTF que o esqueleto tem os sete ossos com os mesmos
-nomes e que as animações têm os mesmos nomes; um boneco que não bate não
-entra, porque quebraria todas as salas que tocam animação por nome.
+Pacotes CC0 da Kenney na mesma linha "mini". O **Mini Characters** tem os
+mesmos sete ossos e as mesmas 32 animações (conferido no arquivo) e, sozinho,
+traz doze bonecos. Quais pacotes entram, como entram e por que os outros
+ficam de fora está em [14 — os assets da Kenney](14-os-assets-kenney.md); a
+importação é a ficha [G10](tarefas/G10-a-biblioteca-kenney.md), que confere
+o esqueleto de cada boneco antes de copiar. Um boneco que não bate não entra,
+porque quebraria todas as salas que tocam animação por nome.
 
 ### (b) Montar peças
 
