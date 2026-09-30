@@ -15,7 +15,7 @@ godot/
   scenes/main.tscn         a cena única; tudo é montado em código
   scripts/
     forja.gd               autoload Forja: entrada e saída por lugar 0..3, argumentos, módulo nativo
-    main.gd                a máquina de estados: titulo, lobby, salao, sala, podio (+ overlays)
+    main.gd                a máquina de estados: titulo, intro (G01), lobby (vira a construção, G02), salao, sala, podio (+ overlays)
     player.gd              ForjaPlayer: o boneco, o item na mão, a cor do lugar
     partida.gd             Partida: a partida de 3, 5 ou 9, o placar, o pódio
     opcoes.gd              Opcoes (estático): vibração, gatilho, volumes, texto, idioma
@@ -186,9 +186,13 @@ Os tipos, e quem os escreve:
 | `minigame` | `slot`, `evento` (`comecou`/`terminou`), `vencedor` (o lugar 0..3, ou -1 no coop), `pontos`, `itens`, `duracao` | F03 |
 | `nota` | `slot`, `n` (índice), `t_alvo` (em tempo de música) | H01 |
 | `toque` | `slot`, `n`, `desvio_ms`, `julgamento` (`perfeito`/`otimo`/`bom`/`erro`) | H02 |
-| `calibracao` | `desvio_ms`, `amostras` | G02 |
+| `calibracao` | `desvio_ms`, `amostras`, `transporte` (o mesmo da linha `conexao`, repetido para o cruzamento não precisar juntar) | G02 |
 | `item` | `item`, `efeito` | G03 |
 | `sessao` | amplia o de hoje com `escala_vibracao` e `gatilho` de cada lugar | F05 |
+| `cavaleiro` | `boneco`, `acabamento`, `peca`, `item`, `nome` | G02 |
+| `colecao` | `desbloqueou` (o que), `por` (a conquista) | G06 |
+| `fala` | `evento`, `texto` | G07 |
+| `desempenho` | `slot`, `fps_min`, `fps_media` | F09 |
 
 O gauntlet, a bancada e a prova leem as versões 1 e 2 enquanto houver
 arquivos das duas.
@@ -213,8 +217,14 @@ const JANELA_PERFEITO := Vector2(-0.040, 0.060)   # (adiantado, atrasado), em s
 const JANELA_OTIMO := 0.090
 const JANELA_BOM := 0.140
 func julgar(l: int, t_toque: float, t_alvo: float, folga_bom := 0.0) -> int
-var desvio := [0.0, 0.0, 0.0, 0.0]   # a calibração de cada lugar, em s (G02/H03)
+var desvio := [0.0, 0.0, 0.0, 0.0]   # a calibração de cada lugar, em s, lida de Opcoes.desvio_ms (G02/H03)
 ```
+
+A calibração **persiste** em `Opcoes.desvio_ms[l]` (gravada pela construção
+do cavaleiro, G02); o `Ritmo` lê dali ao começar. O cavaleiro inteiro
+também vive em `Opcoes`: `Opcoes.cavaleiro[l]`, `Opcoes.noite()` (o que vale
+só para a noite corrente) e `Opcoes.guardar()` — que as telas chamam sem
+saber se é robô (quem não grava com robô é o próprio `Opcoes`).
 
 `julgar` subtrai o `desvio[l]` do toque antes de comparar. A `folga_bom` é
 a ajuda escondida de quem está em último ([02](02-principios.md#8-ninguém-fica-para-trás-ninguém-é-punido-por-ser-bom)).
@@ -305,28 +315,59 @@ hoje não quebrarem.
 nove salas de hoje se mudam para lá quando são reescritas (ficha da seção),
 e a sala antiga sai de `godot/scripts/salas/`.
 
+### Os acréscimos das telas — G01 a G08
+
+Cada ficha G acrescenta aqui, no mesmo commit, o que cria. O que já está
+decidido:
+
+| onde | o quê | ficha |
+| --- | --- | --- |
+| `main.gd` | estado `intro` (24 s, acaba sozinha; qualquer botão pula); `ui/tela_intro.gd` | G01 |
+| `Som` | `Som.pio(l)`: o pio do cavaleiro no alto-falante do controle | G01 |
+| `player.gd` | `BONECOS`, `PECAS`, `tingir`, `cabeca`, `vestir`, `cavaleiro` | G02, G08 |
+| `SalaJogo` | o sinal `no_visor`, `combo(l)` | G04 |
+| `SalaJogo` | `camera_modo`, `camera_distancia`, `camera_frente`, `camera_alcance`, `camera_foco`, `tremer()`, `abalo`, `TREMOR_GOLPE`, `TREMOR_EXPLOSAO`; `godot/scripts/enquadramento.gd` (`class_name Enquadramento`) | G05 |
+| `SalaJogo` | `usa_gatilho`, `errou(l)` | G03 |
+| `SalaJogo` | `falar(l, evento)`, `mostrar_julgamento(l, j)` — em `SalaJogo`, para as salas de hoje usarem antes do kit; `godot/scripts/falas.gd` | G07 |
+| `Salao` | `pulso`, `apagado`, `acender_bigorna`, `mostrar_colecao`; `godot/scripts/colecao.gd` | G06 |
+| `scripts/` | `conferir_bonecos.py`: confere os sete ossos e as animações de um `.glb` | G08 |
+
+Os pacotes Kenney novos entram cada um na sua pasta dentro de
+`godot/assets/kenney/`, porque o `Textures/colormap.png` de um pacote
+sobrescreveria o do Mini Dungeon.
+
 ### O item — G03
 
 **Hoje:** `player.gd` tem `ITENS` (mãos livres, espada, lança, espada e
 escudo, lança e escudo, poção, chave), só visual.
 
-**Alvo:** `godot/scripts/itens.gd` (`class_name Itens`, estático):
+**Alvo:** `godot/scripts/itens.gd` (`class_name Itens`, estático). A mecânica
+lê `Itens.escolhido[l]`, não o item visual do boneco, porque
+`SalaJogo.maos_livres` troca o que o boneco leva na mão.
 
 ```gdscript
 enum { NENHUM, MARTELO, ESCUDO, FOLE, LANTERNA, DIAPASAO, ANCORA }
-static func do_lugar(l: int) -> int
-static func ajustar_julgamento(l: int, j: int, no_tempo_forte: bool) -> int   # Martelo
-static func absorve_erro(l: int) -> bool                                     # Escudo (uma vez por minigame)
-static func acertos_para_voltar_o_combo(l: int, normal: int) -> int          # Fole
-static func antecipacao_s(l: int) -> float                                   # Lanterna
-static func ganho_da_nota(l: int) -> float                                   # Diapasão
-static func resiste_a_empurrao(l: int) -> float                              # Âncora (0..1)
-static func novo_minigame() -> void                                          # repõe o Escudo
+static var escolhido := [NENHUM, NENHUM, NENHUM, NENHUM]
+static var escudo_inteiro := [false, false, false, false]
+static func novo_minigame() -> void                                                        # repõe o Escudo
+static func pontos_do_acerto(l: int, pontos: int, julgamento: int, no_tempo_forte: bool) -> int  # Martelo: mexe em pontos, não no julgamento
+static func absorve_erro(l: int) -> bool                                                   # Escudo, uma vez por minigame
+static func combo_inicial(l: int) -> int
+static func combo_maximo(l: int, normal: int) -> int
+static func acertos_para_voltar_o_combo(l: int, normal: int) -> int                        # Fole
+static func antecipacao_s(l: int, bpm: float) -> float                                     # Lanterna: meio tempo da faixa
+static func janela_perfeito(l: int, janela: Vector2) -> Vector2                            # Lanterna encolhe 10 ms
+static func ganho_da_nota(l: int, genero: String) -> float                                 # Diapasão
+static func puxa_o_combo_da_equipe(l: int, genero: String) -> bool                         # Diapasão, só em dupla e coop
+static func resiste_a_empurrao(l: int) -> float                                            # Âncora, 0..1
+static func velocidade(l: int) -> float                                                    # Âncora anda um pouco mais devagar
+static func sentir(l: int) -> void                                                         # o item se sente no controle (L2)
+static func registrar(l: int, efeito: String) -> void                                      # linha `item` da linha do tempo
 ```
 
-O item visual (`player.gd`) e o item de mecânica são o mesmo índice: a
-construção do cavaleiro (G02) escolhe um dos seis, e cada um tem a peça que o
-boneco leva nas costas.
+O gatilho do item mexe **só no L2**; o R2 fica com o minigame. Até o kit
+(H04), o Escudo age só onde a sala chama `SalaJogo.errou(l)`; nas salas às
+cegas, nunca.
 
 ### A tela de resultado — F03
 
@@ -381,8 +422,11 @@ nada. As regras:
    (`sala_jogo.gd:385`), o placar e o pódio também (`godot/scripts/main.gd:493`,
    `main.gd:873`). A F08 os troca por ✕ apertado no controle simulado.
 2. **`Forja.robo` só aparece em um lugar por minigame:** no gancho `robo(l, dt)`
-   (e, até o kit, na função `_robo` de cada sala). Fora disso, o jogo não
-   sabe que é um robô. A prova do jogo confere isso com `grep`.
+   (e, até o kit, na função `_robo` de cada sala). Nas telas com entrada no
+   tempo, o mesmo: `main._robo(dt)` e `TelaLobby.robo(l, dt)`, chamados numa
+   linha `if Forja.robo: _robo(dt)`. Fora disso, o jogo não sabe que é um
+   robô. A prova do jogo confere isso com `grep`, aceitando só essa linha e
+   as funções do robô.
 3. **O modo do jogador é o modo provado.** A prova do jogo roda **sem**
    `--bancada`, pelo fluxo inteiro (título → construção → salão → partida →
    pódio). O Modo bancada tem a sua própria prova, e só **acrescenta** camadas
