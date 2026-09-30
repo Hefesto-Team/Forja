@@ -55,6 +55,7 @@ Estados: **a fazer**, **fazendo** (com o nome de quem pegou), **feito**
 | [H06](H06-os-jingles.md) | Os jingles | P | 1,5 | F00, F03, H01, H04, H05 | a fazer | — |
 | [H07](H07-o-som-em-todo-evento.md) | O som em todo evento | G | 3,5 | F00, F05, F06, H04 | a fazer | — |
 | [H08](H08-os-acrescimos-do-kit.md) | Os acréscimos do kit | G | 4,0 | H04, H01, H02, F03, F05, G03 | a fazer | — |
+| [H09](H09-o-gerador-da-trilha.md) | O gerador da trilha | M | 2,5 | F00, H05 | a fazer | — |
 
 ## I — [S1 — A Centelha: os cinco minigames](I-a-centelha.md)
 
@@ -160,7 +161,7 @@ Estados: **a fazer**, **fazendo** (com o nome de quem pegou), **feito**
 
 ## A soma
 
-**Estimativa total:** US$ 167,5 em 77 fichas — F 33,5 · G 30,5 · H 24,0 · I–Q (os 45 minigames) 73,0 · R 3,5 · S 3,0.
+**Estimativa total:** US$ 170,0 em 78 fichas — F 33,5 · G 30,5 · H 26,5 · I–Q (os 45 minigames) 73,0 · R 3,5 · S 3,0.
 Com o retrabalho, a faixa está em [Como trabalhar](../12-como-trabalhar.md#o-orçamento).
 
 ## A ordem

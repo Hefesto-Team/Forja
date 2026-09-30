@@ -95,7 +95,8 @@ pode escorregar o andamento, e o mapa é conferido à mão antes de a faixa
 entrar no jogo.
 
 O "nome de trabalho" é o nome da faixa na lista de geração. Onde está
-*nova*, a faixa ainda não existe e o prompt está logo abaixo da tabela.
+*nova*, o prompt foi escrito aqui e está logo abaixo da tabela. O prompt de
+cada slot, pronto para o gerador, está em `scripts/trilha_prompts.json`.
 
 | slot | minigame | BPM | tom | clima | nome de trabalho |
 | --- | --- | --- | --- | --- | --- |
@@ -212,8 +213,10 @@ pequenos e ligados a uma ação — nunca música, nunca ambiente contínuo.
   só entra faixa aprovada, ouvida no jogo; rascunho e geração descartada nunca
   entram. Se o repositório ficar pesado demais, o caminho é o Git LFS, sem
   mudar a pasta.
-- **A origem:** as faixas são geradas no Suno, no plano pago, e baixadas
-  em WAV com a assinatura ativa. A licença, o molde de prompt e o fluxo de
-  geração estão no [LEIA-ME da trilha](../../godot/assets/ost/LEIA-ME.md#a-origem-e-o-uso).
+- **A origem:** as faixas são geradas com o ACE-Step 1.5, um modelo aberto
+  (MIT), na máquina do André, pelo `scripts/gerar_trilha.py`
+  ([H09](tarefas/H09-o-gerador-da-trilha.md)), com os prompts de
+  `scripts/trilha_prompts.json`. O direito e o fluxo estão no
+  [LEIA-ME da trilha](../../godot/assets/ost/LEIA-ME.md#a-origem-e-o-uso).
 - As sessões de produção (projetos de DAW, stems crus, gerações descartadas)
   nunca entram no repositório.

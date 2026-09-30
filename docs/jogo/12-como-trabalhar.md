@@ -118,16 +118,16 @@ delas é modelo.
 | --- | --- | --- |
 | F — a fundação (F00 a F10, com o rumble seco) | 11 | 33,5 |
 | G — as telas (G01 a G11, com o teclado do nome e a Kenney) | 11 | 30,5 |
-| H — o ritmo, o som e o kit (H01 a H08) | 8 | 24 |
+| H — o ritmo, o som e o kit (H01 a H09, com o gerador da trilha) | 9 | 26,5 |
 | I–Q — os 45 minigames | 45 (o n.º 1 de cada seção e os medleys US$ 2,0, os outros 1,5) | 73 |
 | R — o Relâmpago | 1 | 3,5 |
 | S — a noite de seis horas | 1 | 3 |
-| **total** | **77** | **167,5** |
+| **total** | **78** | **170** |
 
 Com 15% de retrabalho (menos que antes, porque as fichas trazem o código e
-as provas prontos), a faixa realista é **US$ 167,5 a 195**. US$ 80 pagam a
+as provas prontos), a faixa realista é **US$ 170 a 196**. US$ 80 pagam a
 fundação e as telas (F e G, US$ 64) e o começo do ritmo; o resto da base (H,
-US$ 24) e os minigames vêm com a verba que vier.
+US$ 26,5) e os minigames vêm com a verba que vier.
 
 O planejamento em si (a arquitetura e estas fichas) foi pago à parte, de
 propósito: gastar para planejar bem é o que deixa a execução barata e fácil.
