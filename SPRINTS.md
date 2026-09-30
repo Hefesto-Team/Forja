@@ -25,17 +25,19 @@ cavaleiro, e uma noite de seis horas que valida tudo pelo registro.
 | tirar o teste de dentro do jogo | quiz, veredito e "olhe o LED" quebram o jogo; a validação vai para o registro | F |
 | háptico forte e o P1 certo | o controle falou baixo e trocou de número | F |
 | todo minigame fecha com vencedor | tela vazia e relógio que volta não são fim | F |
-| as telas de um jogo | título, introdução, construção do cavaleiro, HUD de cada jogador, câmera | G |
-| o ritmo e o som | relógio de áudio, janelas, calibração, as 45 faixas, jingles, som no controle em todo evento | H |
+| as telas de um jogo | título, introdução, construção do cavaleiro, HUD de cada jogador, câmera, os doze bonecos e a arte coerente | G |
+| o ritmo, o som e o kit | relógio de áudio, janelas, calibração, as 45 faixas, jingles, som no controle em todo evento, o kit do minigame | H |
 | os 45 minigames | cinco por seção, com a sala de hoje como o primeiro | I a Q |
 | o Relâmpago | microjogos para aquecer e desempatar | R |
 | a noite de seis horas | o teste final com quatro pessoas, dois no cabo e dois no rádio | S |
 
-Ordem: F primeiro, porque tudo depende dela. G e H podem andar juntas. As
-seções vêm depois de H (precisam do relógio e das janelas), uma por vez, na
-ordem de I a Q. R depois das seções, S por último. Os itens do Sprint A que
-continuam valendo (o `.exe` pela Steam, a TV de 40" a 3 m, o Steam Deck)
-entram na noite de seis horas.
+O trabalho anda pelo [quadro de fichas](docs/jogo/tarefas/README.md): uma
+ficha por sessão, na ordem do quadro, sem data. F primeiro, porque tudo
+depende dela. G e H podem andar juntas; as seções vêm depois do kit do
+minigame (H04), uma por vez. R depois das seções, S por último. Os itens do
+Sprint A que continuam valendo (o `.exe` pela Steam, a TV de 40" a 3 m, o
+Steam Deck) entram na noite de seis horas. O método e o orçamento estão em
+[docs/jogo/12-como-trabalhar.md](docs/jogo/12-como-trabalhar.md).
 
 ## O jogo completo — as sprints a partir de 30/09/2026
 
@@ -43,6 +45,8 @@ Cada sprint começa pelo documento dela em [docs/jogo/](docs/jogo/README.md)
 e respeita as [regras de ouro](docs/jogo/README.md#as-regras-de-ouro).
 
 ### Sprint F — a fundação
+
+Fichas: F01 a F07, no [quadro](docs/jogo/tarefas/README.md).
 
 O jogo deixa de ser teste, e o controle passa a falar alto e com o número
 certo.
@@ -67,6 +71,8 @@ passam; e a linha do tempo sai no formato v2.
 
 ### Sprint G — as telas
 
+Fichas: G01 a G08, no [quadro](docs/jogo/tarefas/README.md).
+
 | item | detalhe |
 | --- | --- |
 | título e introdução | a forja acendendo no ritmo; a introdução sem texto na primeira vez da noite ([06](docs/jogo/06-telas-e-fluxo.md#as-telas)) |
@@ -76,12 +82,15 @@ passam; e a linha do tempo sai no formato v2.
 | a câmera dos quatro | enquadra quem está vivo, suave, com mínimo e máximo por minigame ([06](docs/jogo/06-telas-e-fluxo.md#a-câmera)) |
 | o salão e a coleção | os portões com o nome da seção, a vitrine da noite ([06b](docs/jogo/06b-a-construcao-do-cavaleiro.md#a-coleção)) |
 | a narrativa leve | a Dissonância, os Cavaleiros de Néon, as falas curtas e o vocabulário do visor ([07](docs/jogo/07-narrativa-e-voz.md)) |
+| a arte: bonecos e coerência | doze bonecos no mesmo esqueleto, as peças de identidade, o guardião d'A Voz refeito e o checklist de arte ([11](docs/jogo/11-arte-e-personagens.md)) |
 
 **Pronto quando:** alguém que nunca jogou liga o jogo, constrói o cavaleiro
 e chega ao primeiro minigame sem ler nada além de títulos e verbos; as fotos
 das telas (`tests/telas.sh`) não mostram colisão em nenhuma escala.
 
-### Sprint H — o ritmo e o som
+### Sprint H — o ritmo, o som e o kit do minigame
+
+Fichas: H01 a H07, no [quadro](docs/jogo/tarefas/README.md).
 
 | item | detalhe |
 | --- | --- |
@@ -92,6 +101,7 @@ das telas (`tests/telas.sh`) não mostram colisão em nenhuma escala.
 | os jingles | apito, vitória, vitória coop, derrota, empate, recorde, entrada, virada ([04](docs/jogo/04-ritmo-e-audio.md#as-telas-e-os-jingles)) |
 | a música que reage | filtro no erro, brilho no combo, rampas de 15 a 30 ms, e as camadas quando houver stems ([04](docs/jogo/04-ritmo-e-audio.md#a-música-que-reage)) |
 | o som no controle em todo evento | a placa de áudio de cada controle aberta na entrada do lugar; a agenda do alto-falante; a háptica por material ([05](docs/jogo/05-haptica-e-controle.md#a-agenda-do-alto-falante)) |
+| o kit do minigame | o que as salas repetem sobe para `SalaJogo`, e cada minigame vira uma ficha de dados mais os ganchos dele ([molde](docs/jogo/tarefas/molde-de-minigame.md)) |
 
 **Pronto quando:** um minigame de teste toca uma faixa com mapa de batidas,
 julga cada toque pelas janelas com o desvio da calibração, e todo evento tem
@@ -99,6 +109,8 @@ som na TV e algo no controle do dono; o registro mostra `t_musica` em cada
 `nota` e cada `toque`.
 
 ### Sprints I a Q — as nove seções
+
+Fichas: I a Q, no [quadro](docs/jogo/tarefas/README.md).
 
 Uma sprint por seção, cinco minigames cada, na ordem: **I** A Centelha,
 **J** A Viga, **K** O Molde, **L** O Impacto, **M** A Galeria, **N** O Canto,
@@ -120,6 +132,8 @@ prova de poucos passam; e a partida sorteada já os inclui.
 
 ### Sprint R — o Relâmpago
 
+Fichas: R, no [quadro](docs/jogo/tarefas/README.md).
+
 | item | detalhe |
 | --- | --- |
 | os microjogos | de 5 a 8 segundos, tirados dos 45, com um verbo de uma palavra ([03](docs/jogo/03-os-45-minigames.md#o-relâmpago)) |
@@ -130,6 +144,8 @@ prova de poucos passam; e a partida sorteada já os inclui.
 seções sem uma tela de carregamento.
 
 ### Sprint S — a noite de seis horas
+
+Fichas: S, no [quadro](docs/jogo/tarefas/README.md).
 
 | item | detalhe |
 | --- | --- |

@@ -27,9 +27,13 @@ dele.
 | [08 — A noite de seis horas](08-a-noite-de-6-horas.md) | o protocolo do teste final, o registro v2 e o cruzamento offline |
 | [09 — Fora do escopo](09-fora-do-escopo.md) | o que o Forja recusa, e por quê |
 | [10 — A régua Astro Bot](10-a-regua-astro-bot.md) | o estudo de caso: como usar o DualSense sem parecer teste |
+| [11 — A arte e os personagens](11-arte-e-personagens.md) | as regras de coerência, o que destoa e os doze bonecos |
+| [12 — Como trabalhar](12-como-trabalhar.md) | o método: uma ficha por sessão, o que roda onde, o orçamento |
+| [O quadro](tarefas/README.md) | as fichas, na ordem de trabalho, com o estado e o gasto de cada uma |
 
 As sprints que executam isto estão no topo do [SPRINTS](../../SPRINTS.md),
-da F em diante.
+da F em diante; o trabalho em si anda pelo [quadro de fichas](tarefas/README.md),
+uma ficha por sessão ([12](12-como-trabalhar.md)).
 
 ## As regras de ouro
 
@@ -58,3 +62,6 @@ quebra o contrato.
    ler nada.
 7. **A falha é física e engraçada, nunca uma palavra.** O martelo quica, a
    ponte cai, o cavaleiro sai rolando — e todo mundo ri.
+8. **Todo objeto novo passa pelo checklist de arte** de
+   [11](11-arte-e-personagens.md#o-checklist-de-aprovação): fosco, em blocos,
+   na proporção dos bonecos, e monstro feito de peças do kit.

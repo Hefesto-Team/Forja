@@ -18,7 +18,7 @@ Leia [CONTRATO.md](CONTRATO.md) antes de qualquer patch. Se o patch quebra uma l
 - O SDK oficial da Sony é sob NDA: não se usa, não se procura, não se reproduz.
 - A voz das telas é a do app Hefesto ([estudo 03](docs/estudos/03-o-sistema-visual-do-app-hefesto.md)), com a regra de 30/09 ([docs/jogo/06](docs/jogo/06-telas-e-fluxo.md#a-voz-do-texto)): todo texto de tela começa com maiúscula, e botão se escreve "Botão ✕ (Iniciar)"; nunca na tela: "mesa", "uinput", "hidraw", "MAC".
 - O jogo não é teste: nenhuma pergunta sobre o controle, nenhum veredito, nenhum "olhe o LED" na tela do jogador. A validação vai para o registro e para o Modo bancada ([docs/jogo](docs/jogo/README.md#as-regras-de-ouro)).
-- Trabalho novo começa por um item do [SPRINTS.md](SPRINTS.md) (*O que ainda falta*, no topo), e pelo documento dele em [docs/jogo/](docs/jogo/README.md).
+- Trabalho novo é uma ficha do [quadro](docs/jogo/tarefas/README.md): uma sessão por ficha, lendo só a ficha e o que ela cita, e o quadro atualizado no mesmo commit ([como trabalhar](docs/jogo/12-como-trabalhar.md)). O mapa das sprints está no [SPRINTS.md](SPRINTS.md).
 - Os documentos têm um mapa: [docs/README.md](docs/README.md). Compilar, exportar e provar: [docs/DESENVOLVER.md](docs/DESENVOLVER.md).
 
 ## Os comandos
