@@ -57,6 +57,10 @@ das seções, S por último.
 
 ## Criar uma ficha nova
 
-Copie qualquer ficha, troque o conteúdo, mantenha as sete seções (por quê,
-ler antes, arquivos que mudam, passos, pronto quando, provas, e a linha de
-sprint, tamanho, modelo e estimativa), e ponha uma linha neste quadro.
+Copie uma ficha pronta (a [F01](F01-o-modo-bancada.md) é um bom modelo) e
+mantenha as seções: por quê, ler antes, o estado de hoje (com
+`caminho:linha` e o trecho do código), o alvo (pela
+[arquitetura](../13-arquitetura.md)), passos, armadilhas, não fazer, pronto
+quando, provas, para o André, ao terminar. A primeira linha depois do título
+diz sprint, tamanho, modelo, estimativa e dependências. Ponha uma linha neste
+quadro. Para minigame, use o [molde de minigame](molde-de-minigame.md).
