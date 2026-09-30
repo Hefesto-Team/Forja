@@ -23,7 +23,7 @@ Medido numa sessão da nuvem em 30/09/2026:
 | `apt-get install` da lista de `docs/DESENVOLVER.md:21-25` | 13 s |
 | baixar e descompactar o Godot 4.4.1 em `tools/` | 2 s |
 | `scripts/compilar.sh linux` com os pacotes | 67 s na primeira vez (baixa o SDL e o godot-cpp e compila tudo); depois, cache em `.cache/` |
-| `bash tests/prova_do_jogo.sh` | ~40 s |
+| `bash tests/prova_do_jogo.sh` | 106 s, verde ("prova do jogo ok") |
 
 `tools/`, `bin/` e `.cache/` já estão no `.gitignore`.
 
