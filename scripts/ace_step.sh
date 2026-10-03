@@ -56,23 +56,24 @@ servir() {
   local uv; uv="$(uv_bin)"
   [[ -d "$PASTA" ]] || { echo "não instalado: scripts/ace_step.sh instalar"; exit 1; }
 
-  # A placa tem 8 GB. Sem estes ajustes o ACE-Step ocupa ~6,8 GB e estoura na
-  # primeira geração ("CUDA out of memory. Tried to allocate 14.00 MiB"),
-  # porque o compositor, o navegador e o terminal também moram ali.
+  # A placa tem 8 GB. O próprio ACE-Step já sabe o que fazer com isso: ele
+  # classifica a 4060 como "tier3" (6 a 8 GB) e, sozinho, liga a descarga para
+  # a CPU e a quantização INT8 (acestep/gpu_config.py). Não se mexe nisso — na
+  # primeira tentativa eu desliguei a descarga e a carga do modelo estourou
+  # («CUDA out of memory», 6,84 GiB só para subir).
   #
-  # - o modelo do ACE-Step não entra: quem escreve o prompt é o
-  #   nosso descrever_trilha.py, com o Ollama, e os dois não cabem juntos;
-  # - o decodificador (VAE) desce para a CPU, que é onde está o pico;
-  # - o resto sai da placa entre uma faixa e outra.
-  # Qualquer um se desfaz exportando a variável antes de chamar o script.
+  # O que muda aqui é só uma coisa: o modelo do ACE-Step não
+  # entra. Quem escreve o prompt é o nosso descrever_trilha.py, com o Ollama,
+  # e os dois não cabem juntos. Isso devolve quase 2 GB para a geração.
+  #
+  # (Forçar o decodificador na CPU, com ACESTEP_VAE_ON_CPU=1, faz caber e faz
+  # demorar: medido, um jingle de 10 s passou de meia hora. Fica de reserva.)
   export ACESTEP_INIT_modelo="${ACESTEP_INIT_modelo:-false}"
-  export ACESTEP_VAE_ON_CPU="${ACESTEP_VAE_ON_CPU:-1}"
-  export ACESTEP_OFFLOAD_TO_CPU="${ACESTEP_OFFLOAD_TO_CPU:-1}"
   export ACESTEP_SAVE_MEMORY="${ACESTEP_SAVE_MEMORY:-1}"
   export PYTORCH_ALLOC_CONF="${PYTORCH_ALLOC_CONF:-expandable_segments:True}"
 
   echo "==> o ACE-Step na porta $PORTA (Ctrl+C para parar); os pesos ficam em $HF_HOME"
-  echo "    placa de 8 GB: sem o modelo, VAE na CPU, descarga entre as faixas"
+  echo "    placa de 8 GB: sem o modelo do ACE-Step (quem escreve o prompt é o Ollama)"
   cd "$PASTA" && exec "$uv" run acestep-api
 }
 
