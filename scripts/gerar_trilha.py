@@ -184,6 +184,7 @@ class MotorAceStep:
     nome = MOTOR
 
     passos = 60  ## inference_steps; a tela do terminal troca por esforço
+    lote = 2  ## quantas candidatas por tarefa; na placa de 8 GB o servidor não dá mais
 
     def __init__(self, url=URL_PADRAO):
         self.url = url.rstrip("/")
@@ -282,7 +283,33 @@ class MotorAceStep:
             aviso("  scripts/trilha_ambiente.sh soltar   (descarrega o modelo de texto)")
             aviso("  e feche o que estiver pesando na tela (navegador, editor de imagem).")
         self._garantir_modelo(aviso)
-        semente = random.randrange(1, 2 ** 31 - 1)
+
+        # O servidor limita o lote conforme a placa (na 4060 ele é "tier3" e
+        # entrega poucas por tarefa, às vezes uma só). Então a conta é nossa:
+        # repete a tarefa, com semente nova a cada volta, até juntar as n.
+        feitos = []
+        voltas_vazias = 0
+        while len(feitos) < n:
+            semente = random.randrange(1, 2 ** 31 - 1)
+            falta = n - len(feitos)
+            novos = self._uma_tarefa(slot, faixa, min(falta, self.lote), semente, pasta, len(feitos), aviso)
+            if not novos:
+                voltas_vazias += 1
+                if voltas_vazias >= 2:
+                    break
+                continue
+            voltas_vazias = 0
+            feitos.extend(novos)
+            if len(feitos) < n:
+                aviso("    %d de %d" % (len(feitos), n))
+        if not feitos:
+            raise SystemExit("o ACE-Step disse que terminou %s e não trouxe arquivo" % slot)
+        if len(feitos) < n:
+            aviso("    o servidor só entregou %d das %d candidatas pedidas" % (len(feitos), n))
+        return feitos
+
+    def _uma_tarefa(self, slot, faixa, lote, semente, pasta, ja_feitas, aviso):
+        """Uma chamada ao servidor; devolve as candidatas que ela trouxe."""
         tom = " ".join(p.capitalize() for p in str(faixa["tom"]).split())
         caption = faixa["prompt"] + " " + self.sufixo
         pedido = {
@@ -297,7 +324,7 @@ class MotorAceStep:
             # sem isto o servidor sorteia a semente e a faixa não se refaz
             "use_random_seed": False,
             "seed": semente,
-            "batch_size": min(8, n),
+            "batch_size": lote,
             "audio_format": "wav",
         }
         tarefa = self._post("/release_task", pedido)
@@ -310,19 +337,17 @@ class MotorAceStep:
             if estado == 1:
                 break
             if estado == 2:
-                raise SystemExit("o ACE-Step falhou em %s (veja o terminal do servidor)" % slot)
+                raise SystemExit("o ACE-Step falhou em %s (veja o fontes/logs/acestep.log)" % slot)
             if time.monotonic() - começo > DESISTE_S:
-                raise SystemExit("%s passou de %d minutos no ACE-Step; parei. Veja o terminal do servidor."
+                raise SystemExit("%s passou de %d minutos no ACE-Step; parei. Veja o fontes/logs/acestep.log."
                                  % (slot, DESISTE_S // 60))
             time.sleep(ESPERA_S)
-        feitos = []
-        for i, item in enumerate(itens, start=1):
+        saida = []
+        for i, item in enumerate(itens, start=ja_feitas + 1):
             caminho = pasta / ("%d.wav" % i)
             self._baixar(item["file"], caminho)
-            feitos.append({"caminho": caminho, "semente": item.get("seed", semente)})
-        if not feitos:
-            raise SystemExit("o ACE-Step disse que terminou %s e não trouxe arquivo" % slot)
-        return feitos
+            saida.append({"caminho": caminho, "semente": item.get("seed", semente)})
+        return saida
 
     def _estado(self, task_id):
         """(estado, itens) do /query_result — que recebe uma LISTA de task_id e
