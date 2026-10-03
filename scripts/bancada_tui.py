@@ -34,6 +34,9 @@ RAIZ = Path(__file__).resolve().parent.parent
 OFICINA = Path(os.environ.get("FORJA_OFICINA", RAIZ / "oficina"))
 TRABALHO = Path(os.environ.get("FORJA_TRILHA", OFICINA / "trilha"))
 OST = RAIZ / "godot" / "assets" / "ost"
+## As descrições moram ao lado do script que as escreve, no git: elas são
+## trabalho que se guarda, não material bruto.
+PROMPTS = RAIZ / "scripts" / "trilha_prompts.json"
 
 
 # ------------------------------------------------------------------ o kit --
@@ -72,6 +75,16 @@ def peso(pasta):
         n /= 1024.0
 
 
+def descritas():
+    """Quantas das 55 já têm título e descrição escritos."""
+    import json
+    try:
+        d = json.loads(PROMPTS.read_text(encoding="utf-8"))["faixas"]
+    except (ValueError, OSError, KeyError):
+        return 0
+    return sum(1 for f in d.values() if f.get("titulo") and f.get("prompt"))
+
+
 def servidor_no_ar():
     import urllib.error
     import urllib.request
@@ -101,22 +114,15 @@ def estado(verbo):
     if verbo == "trilha":
         c = conta(TRABALHO, ".wav")
         f = conta(OST, ".ogg")
-        return ["Candidatas esperando escolha: [b]%d[/b]" % c,
+        return ["Descritas: [b]%d[/b] de 55" % descritas(),
+                "Candidatas esperando escolha: [b]%d[/b]" % c,
                 "Faixas já no jogo: [b]%d[/b] de 55" % f,
                 "" if c else "[dim]Nada gerado ainda: é aqui que começa.[/dim]"]
     if verbo == "servidor":
         return ["[green]No ar na porta 8001[/green]" if servidor_no_ar()
                 else "[yellow]Fora do ar[/yellow] — a geração precisa dele"]
     if verbo == "palavras":
-        arq = TRABALHO / "trilha_prompts.json"
-        if not arq.is_file():
-            return ["[dim]Nenhuma faixa descrita ainda[/dim]"]
-        import json
-        try:
-            d = json.loads(arq.read_text(encoding="utf-8"))
-            return ["Faixas com título e descrição: [b]%d[/b] de 55" % len(d)]
-        except (ValueError, OSError):
-            return ["[yellow]O arquivo de descrições não abriu[/yellow]"]
+        return ["Faixas com título e descrição: [b]%d[/b] de 55" % descritas()]
     if verbo == "escutar":
         return ["Candidatas: [b]%d[/b] · %s no disco" % (conta(TRABALHO, ".wav"), peso(TRABALHO))]
     if verbo == "jogo":

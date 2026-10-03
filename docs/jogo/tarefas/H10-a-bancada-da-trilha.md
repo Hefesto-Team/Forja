@@ -2,6 +2,33 @@
 
 **Sprint:** H · **Tamanho:** M · **Estimativa:** US$ 3,0 · **Depende de:** H05 (o `mapa_de_batidas.py`), H09 (o `gerar_trilha.py`)
 
+## Onde a trilha está (03/10/2026)
+
+Aferido no disco, não de cabeça. A ordem de trabalho é esta, de cima para
+baixo: nada se gera sem descrição, nada se escolhe sem candidata.
+
+| etapa | onde está | como se mede |
+| --- | --- | --- |
+| descrever as 55 | **5 de 55** | `scripts/trilha_prompts.json`, as que têm `titulo` e `prompt` |
+| gerar as candidatas | **4 slots** (`MUS_S01_J01` a `J03`, `JIN_RECORDE`) | `oficina/trilha/<slot>/*.wav` |
+| escolher e aprovar | **0 de 55** | `godot/assets/ost/**/*.ogg` |
+
+**A decisão de 03/10:** descrever e gerar **as 55 primeiro**, e só depois
+sentar para escolher. O ouvido cansa; a máquina não.
+
+**O próximo passo**, nesta ordem, com a tela aberta (`./run.sh` → A trilha):
+
+1. **As palavras** — o Ollama escreve os 50 títulos e descrições que faltam.
+   Ele recusa título repetido entre os 55, então quanto mais escrito, mais
+   devagar fica o fim da fila. Uns 20 minutos.
+2. **O servidor** — `./run.sh servidor` noutra janela, e deixe lá. O modelo
+   de texto tem de estar descarregado antes: os dois não cabem nos 8 GB.
+3. **A geração** — medido: uma faixa de 150 s sai em 14 s, quatro candidatas
+   por slot. As 55 dão cerca de **50 minutos** de placa.
+4. **A escolha** — aí sim, de ouvido, pela tela.
+
+O gasto de placa é todo em (1) e (3), e nunca nos dois ao mesmo tempo.
+
 ## Por quê
 
 A H09 entregou o gerador, e ele funciona por linha de comando. Mas a trilha
