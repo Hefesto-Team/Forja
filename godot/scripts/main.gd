@@ -211,7 +211,7 @@ func _todos_entram() -> void:
 
 func _mostrar(qual: String) -> void:
 	estado = qual
-	Musica.tocar(sala_id if qual == "sala" else "salao")
+	Musica.tocar(sala_id if qual == "sala" else qual)
 	titulo.visible = qual == "titulo"
 	lobby.visible = qual == "lobby"
 	hud.visible = _hud_visivel()

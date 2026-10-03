@@ -10,11 +10,16 @@ run/main_scene="res://scenes/main.tscn"
 config/features=PackedStringArray("4.4", "Forward Plus")
 config/icon="res://assets/hefesto-logo.png"
 
+[audio]
+
+driver/mix_rate=48000
+
 [autoload]
 
 Forja="*res://scripts/forja.gd"
 Som="*res://scripts/som.gd"
 Musica="*res://scripts/musica.gd"
+Ritmo="*res://scripts/ritmo.gd"
 
 [display]
 

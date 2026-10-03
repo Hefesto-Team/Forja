@@ -242,6 +242,8 @@ O `Ritmo` tem ainda:
 func parar() -> void
 func pausar(sim: bool) -> void          # a pausa congela a música e as notas
 func t_da_batida(n: float) -> float     # o tempo de música da batida n
+func registrar_nota(l: int, n: int, t_alvo: float) -> void   # o tipo `nota` do registro v2
+static func posicao_continua(pos, anterior, voltas, laco_s) -> Array  # a volta do laço; pura, para a prova
 var dono := ""                          # o slot do minigame que vai no registro (o slot do Ritmo é a faixa)
 var simples := [false, false, false, false]   # a partitura mais simples de quem está errando
 ```

@@ -69,3 +69,16 @@ python3 scripts/gerar_trilha.py escolher MUS_S01_J01 2    # a escolhida vira a f
   ajusta no `trilha_prompts.json`, no mesmo commit da faixa.
 - Nos minigames, a faixa tem pelo menos 2 minutos (o `conferir_ost.py` exige
   120 s); o JSON já pede 150.
+
+## Os comandos
+
+```bash
+python3 scripts/conferir_ost.py                        # a pasta inteira (sai 1 se algo não confere)
+python3 scripts/mapa_de_batidas.py FAIXA.ogg --bpm 122  # o mapa de uma faixa que veio de fora
+tools/Godot_v4.4.1-stable_linux.x86_64 --headless --path godot --import --quit   # cria o .ogg.import
+SLOT=MUS_S01_J01 tools/Godot_v4.4.1-stable_linux.x86_64 --path godot res://testes/metronomo.tscn
+```
+
+O `.ogg.import` de cada faixa entra no commit junto com ela. O metrônomo é o
+que diz se o mapa está certo: o tique tem de cair na batida por três minutos.
+Só depois disso o `"conferido"` do `.batidas.json` vira `true`, à mão.

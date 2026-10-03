@@ -44,6 +44,8 @@ func _ready() -> void:
 			pasta = a.substr(13)
 	_prova_a_lista()
 	_prova_o_alto_falante_do_sistema()
+	await _prova_do_relogio()
+	_prova_das_faixas()
 	jogo = load("res://scenes/main.tscn").instantiate()
 	add_child(jogo)
 	await _prova_do_percurso()
@@ -530,3 +532,76 @@ func _prova_da_partida() -> void:
 		await _quadros(2)
 		q += 2
 	_esperar(jogo.estado == "salao" and jogo.partida == null and not jogo.placar.visible, "partida: ○ no pódio volta ao salão")
+
+
+## O relógio (H01): a volta do laço (a conta pura), o relógio do sistema sem
+## faixa e o da placa com a trilha sintetizada. Espera pelo relógio de
+## parede: com --fixed-fps 60 sem janela, o jogo anda mais depressa que ele.
+func _prova_do_relogio() -> void:
+	var r := Ritmo.posicao_continua(0.2, 17.6, 0, 17.8)
+	_esperar(int(r[1]) == 1 and absf(float(r[0]) - 18.0) < 0.0001, "relógio: a volta do laço soma a duração (%s)" % [r])
+	r = Ritmo.posicao_continua(5.0, 4.98, 1, 17.8)
+	_esperar(int(r[1]) == 1 and absf(float(r[0]) - 22.8) < 0.0001, "relógio: sem volta, a posição segue")
+	var b := Musica.bpm_sintetizado(108.0)
+	_esperar(absf(b - 108.0027) < 0.0001, "relógio: o andamento de verdade da síntese (%.4f)" % b)
+	await _medir_o_relogio("", 0.8, "sem faixa", false)
+	await _medir_o_relogio("MUS_S01_J01", 1.5, "com a faixa", Forja.modulo)
+	Ritmo.parar()
+
+
+func _medir_o_relogio(slot: String, segundos: float, rotulo: String, pela_placa: bool) -> void:
+	var mapa := Musica.mapa(slot)
+	Ritmo.tocar(slot, float(mapa.bpm), float(mapa.primeiro_tempo))
+	_esperar(Ritmo._pelo_audio == pela_placa, "relógio %s: %s" % [rotulo, "pela placa" if pela_placa else "pelo sistema"])
+	var sinais := [0]
+	var conta := func(_n: int) -> void: sinais[0] += 1
+	Ritmo.batida_cheia.connect(conta)
+	var inicio := Time.get_ticks_usec()
+	var antes := Ritmo.t_musica()
+	var recuou := false
+	var batida_certa := true
+	while Time.get_ticks_usec() - inicio < int(segundos * 1000000.0):
+		await _quadros(1)
+		var t := Ritmo.t_musica()
+		recuou = recuou or t < antes
+		antes = t
+		var esperada := (t - Ritmo.primeiro_tempo) * Ritmo.bpm / 60.0
+		batida_certa = batida_certa and absf(Ritmo.batida() - esperada) < 0.000001
+	Ritmo.batida_cheia.disconnect(conta)
+	var andou := Ritmo.t_musica()
+	_esperar(not recuou, "relógio %s: nunca anda para trás" % rotulo)
+	_esperar(batida_certa, "relógio %s: a batida é (t_musica − primeiro tempo) × bpm / 60" % rotulo)
+	_esperar(andou > segundos * 0.7 and andou < segundos * 1.3,
+		"relógio %s: andou %.3f s em %.1f s de relógio" % [rotulo, andou, segundos])
+	var tempos := int(floor(andou * float(mapa.bpm) / 60.0)) + 1  # o tempo 0 também conta
+	_esperar(absi(sinais[0] - tempos) <= 1, "relógio %s: um sinal por tempo (%d sinais, %d tempos)" % [rotulo, sinais[0], tempos])
+
+
+## As faixas (H05): o caminho de cada tipo, o mapa lido do JSON, e cada faixa
+## de exemplo — sem ela, a trilha sintetizada; com ela e o mapa conferido, a
+## gerada, com o laço do tipo dela. Pura (não toca nada).
+func _prova_das_faixas() -> void:
+	_esperar(Musica.caminho("MUS_S01_J01") == "res://assets/ost/S01/MUS_S01_J01.ogg", "faixas: o caminho de uma faixa de minigame")
+	_esperar(Musica.caminho("MUS_TELA_SALAO") == "res://assets/ost/telas/MUS_TELA_SALAO.ogg", "faixas: o caminho de uma tela")
+	_esperar(Musica.caminho("MUS_RELAMPAGO") == "res://assets/ost/telas/MUS_RELAMPAGO.ogg", "faixas: o caminho do Relâmpago")
+	_esperar(Musica.caminho("JIN_APITO") == "res://assets/ost/jingles/JIN_APITO.ogg", "faixas: o caminho de um jingle")
+	var m := Musica.ler_mapa('{"slot": "MUS_S01_J01", "bpm": 122.0, "primeiro_tempo_s": 0.372, "compassos": 64, "secoes": [], "conferido": true}')
+	_esperar(is_equal_approx(float(m.get("bpm", 0.0)), 122.0) and is_equal_approx(float(m.get("primeiro_tempo", 0.0)), 0.372) and bool(m.get("conferido", false)),
+		"faixas: o mapa se lê (%s)" % [m])
+	_esperar(Musica.ler_mapa('{"bpm": 0}').is_empty() and Musica.ler_mapa("não é json").is_empty(), "faixas: mapa ruim não vale")
+	_esperar(not bool(Musica.ler_mapa('{"bpm": 120.0, "primeiro_tempo_s": 0.0}').get("conferido", true)), "faixas: sem «conferido», não conferido")
+	_esperar(AudioServer.get_mix_rate() == 48000.0, "faixas: a mistura a 48 kHz (%d)" % AudioServer.get_mix_rate())
+	for slot: String in ["MUS_S01_J01", "MUS_S02_J06", "MUS_TELA_SALAO"]:
+		if not ResourceLoader.exists(Musica.caminho(slot)):
+			# sem a faixa na pasta (a nuvem nunca tem), a sintetizada da seção
+			if slot.begins_with("MUS_S"):
+				_esperar(Musica.mapa_gerado(slot).is_empty() and bool(Musica.mapa(slot).get("sintetizada", false)) == Forja.modulo,
+					"faixas: sem a faixa %s, a trilha sintetizada" % slot)
+			continue
+		var g := Musica.mapa_gerado(slot)
+		_esperar(not g.is_empty() and not bool(Musica.mapa(slot).get("sintetizada", true)),
+			"faixas: %s, com o mapa conferido, no lugar da sintetizada (%s)" % [slot, g])
+		var s := Musica._ogg(slot)
+		var volta: bool = not String(slot).begins_with("MUS_S")
+		_esperar(s != null and s.loop == volta and is_zero_approx(s.loop_offset),
+			"faixas: %s com o laço do tipo dela (volta: %s)" % [slot, volta])

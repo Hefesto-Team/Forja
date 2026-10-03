@@ -48,9 +48,15 @@ if command -v bwrap > /dev/null; then
          --tmpfs /sys/class/hidraw)
 fi
 
+# a trilha (H05): antes do --import, que criaria o .ogg.import que faltou no commit
+python3 "$RAIZ/scripts/conferir_ost.py" > "$TMP/ost.log" 2>&1
+OST=$?
+grep -E "^NÃO|^==>" "$TMP/ost.log"
+
 "${CAIXA[@]}" "$GODOT" --headless --path "$RAIZ/godot" --import --quit > "$TMP/import.log" 2>&1
 
 FALHAS=0
+[ "$OST" -eq 0 ] || { echo "FAIL a trilha não confere (python3 scripts/conferir_ost.py)"; FALHAS=$((FALHAS + 1)); }
 rodar() {
   local rel="$TMP/relatorios-$1"
   mkdir -p "$rel"
