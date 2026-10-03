@@ -249,7 +249,25 @@ class MotorAceStep:
         self._post("/v1/init", {"model": modelo}, espera=CARGA_S)
         aviso("==> modelo carregado")
 
+    @staticmethod
+    def placa_livre_mib():
+        """Quanto sobra na placa agora (None sem nvidia-smi)."""
+        try:
+            saida = subprocess.run(["nvidia-smi", "--query-gpu=memory.free",
+                                    "--format=csv,noheader,nounits"],
+                                   capture_output=True, text=True, check=True).stdout
+            return int(saida.strip().splitlines()[0])
+        except (FileNotFoundError, subprocess.CalledProcessError, ValueError, IndexError):
+            return None
+
     def gerar(self, slot, faixa, n, pasta, aviso=print):
+        livre = self.placa_livre_mib()
+        if livre is not None and livre < 1200:
+            # o modelo já carregado ocupa o grosso; menos que isto e a geração
+            # estoura no meio, como já estourou uma vez
+            aviso("A placa está com só %d MiB livres. Antes de insistir:" % livre)
+            aviso("  scripts/trilha_ambiente.sh soltar   (descarrega o modelo de texto)")
+            aviso("  e feche o que estiver pesando na tela (navegador, editor de imagem).")
         self._garantir_modelo(aviso)
         semente = random.randrange(1, 2 ** 31 - 1)
         tom = " ".join(p.capitalize() for p in str(faixa["tom"]).split())
