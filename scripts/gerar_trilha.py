@@ -211,29 +211,43 @@ class MotorAceStep:
         return resposta
 
     def _baixar(self, arquivo, caminho):
-        """O GET /v1/audio?path=… do servidor (api_routes.py: get_audio)."""
-        alvo = "%s/v1/audio?%s" % (self.url, urllib.parse.urlencode({"path": arquivo}))
+        """Traz a candidata para a pasta de trabalho.
+
+        O servidor roda na mesma máquina, então o caminho que ele devolve serve
+        direto — e é o único jeito que funciona: o `/v1/audio` só libera o que
+        está dentro da pasta de resultados dele, e a faixa recém-gerada sai no
+        `.cache/acestep/tmp/`, fora dela (HTTP 403). A busca pela rede fica de
+        reserva, para o dia em que o servidor estiver noutra máquina.
+        """
+        local = Path(self._so_o_caminho(arquivo))
+        if local.is_file():
+            shutil.copyfile(local, caminho)
+            return True
+        alvo = "%s/v1/audio?%s" % (self.url, urllib.parse.urlencode({"path": str(local)}))
         try:
             with urllib.request.urlopen(alvo, timeout=PEDIDO_S) as r:
                 dados = r.read()
         except urllib.error.URLError as e:
-            # o servidor pode estar na mesma máquina: o caminho serve direto
-            local = Path(arquivo)
-            if local.is_file():
-                shutil.copyfile(local, caminho)
-                return True
-            raise SystemExit("não consegui baixar %r do servidor (%s)" % (arquivo, e))
+            raise SystemExit("não achei a candidata nem no disco (%s) nem no servidor (%s)" % (local, e))
         if not dados:
             raise SystemExit("o servidor devolveu um arquivo vazio para %r" % arquivo)
         caminho.write_bytes(dados)
         return True
 
+    @staticmethod
+    def _so_o_caminho(valor):
+        """O servidor às vezes devolve «/v1/audio?path=…» no lugar do caminho."""
+        if "path=" in valor:
+            pedaco = valor.split("path=", 1)[1].split("&", 1)[0]
+            return urllib.parse.unquote(pedaco)
+        return valor
+
     def _garantir_modelo(self, aviso=print):
         """O servidor sobe sem modelo nenhum: a primeira faixa manda carregar.
 
-        Sem isto a tarefa entra na fila e fica lá para sempre
-        (`/health` diz `models_initialized: false`). Na primeira vez, os pesos
-        descem — são vários GB e demora.
+        Sem isto a tarefa entra na fila e fica lá para sempre (o `/health` diz
+        `models_initialized: false`). Na primeira vez os pesos descem — são
+        vários GB —, por isso a espera própria, longa.
         """
         try:
             with urllib.request.urlopen(self.url + "/health", timeout=PEDIDO_S) as r:
@@ -245,7 +259,6 @@ class MotorAceStep:
             return
         modelo = saude.get("loaded_model") or "acestep-v15-turbo"
         aviso("==> carregando o %s na placa (na primeira vez os pesos descem; demora)" % modelo)
-        # a carga é síncrona e pode levar muitos minutos: espera própria, longa
         self._post("/v1/init", {"model": modelo}, espera=CARGA_S)
         aviso("==> modelo carregado")
 
