@@ -38,6 +38,7 @@ KIT=(
   "provas|Rodar as provas do jogo|f_provas"
   "kenney|Procurar no pacote da Kenney (modelos, sons, ícones)|f_kenney"
   "onde|Onde mora cada coisa no repositório|f_onde"
+  "oficina|Abrir a oficina: o bruto que não entra no jogo|f_oficina"
   "instalar|Preparar esta máquina (pacotes, módulo, engine, trilha)|f_instalar"
   "estado|O que está instalado e quanto sobra na placa|f_estado"
   "soltar|Devolver a memória da placa agora|f_soltar"
@@ -52,6 +53,12 @@ soltar_a_placa() {
 
 ao_sair() {
   local codigo=$?
+  ## Se o menu estava aberto, o terminal volta ao que era antes de tudo:
+  ## cursor, mouse e a tela dela com o histórico intacto.
+  type -t menu_sair >/dev/null 2>&1 && menu_sair
+  ## Quando a bancada chama uma ferramenta, quem solta a placa é ela, ao
+  ## fechar. Soltar a cada ferramenta derrubaria o servidor no meio do uso.
+  [[ "${FORJA_SEM_SOLTAR:-}" == "1" ]] && exit $codigo
   echo
   echo "${CINZA}Devolvendo a memória da placa…${N}"
   soltar_a_placa
@@ -238,31 +245,175 @@ f_instalar() {
   esac
 }
 
+## A oficina é a pasta que a Godot não vê: ela mora fora de res://, de
+## propósito. Quem procura por ela no editor não acha, e tem razão.
+f_oficina() {
+  local alvo="$RAIZ/oficina"
+  echo "${B}A oficina${N} ${CINZA}— o material bruto, fora do git e fora da Godot${N}"
+  echo "  ${CIANO}${alvo}${N}"
+  echo
+  if [[ ! -d "$alvo" ]]; then
+    aviso "Ela ainda não existe nesta máquina: nada bruto foi baixado aqui."
+    echo "  Ela nasce sozinha em «Preparar esta máquina»."
+    return 0
+  fi
+  local sub
+  for sub in "$alvo"/*/; do
+    [[ -d "$sub" ]] || continue
+    printf '  %-16s %s\n' "$(basename "$sub")/" "$(du -sh "$sub" 2>/dev/null | cut -f1)"
+  done
+  echo
+  echo "${CINZA}  No editor da Godot o res:// é a pasta godot/. A oficina fica um${N}"
+  echo "${CINZA}  andar acima, e por isso não aparece lá — o que entra no jogo é${N}"
+  echo "${CINZA}  copiado para godot/assets/.${N}"
+  echo
+  command -v xdg-open >/dev/null || return 0
+  local r; r="$(perguntar "Abrir a pasta?" "sim")"
+  [[ "$r" == "sim" || "$r" == "s" ]] && { xdg-open "$alvo" >/dev/null 2>&1 & }
+  return 0
+}
+
 f_estado() { bash scripts/instalar.sh conferir; }
 
 f_soltar() { soltar_a_placa; feito "Pronto."; }
 
 # ---------------------------------------------------------------- o menu --
+# O menu é clicável: seta para andar, Enter ou clique para abrir, a primeira
+# letra salta. Nada depende só da cor nem só do mouse — quem usa teclado, quem
+# usa mouse e quem usa leitor de tela chegam no mesmo lugar (docs/estudos/02).
+#
+# Num terminal que não aceita mouse, ou numa saída que não é terminal, cai no
+# menu numerado de sempre. Nenhuma das duas formas pede um traço na linha.
 
-cabecalho() {
-  echo
-  echo "  ${ROSA}${B}A FORJA${N} ${CINZA}— a bancada${N}"
-  local m
-  m="$(nvidia-smi --query-gpu=memory.used,memory.total --format=csv,noheader 2>/dev/null | head -1)"
-  [[ -n "$m" ]] && echo "  ${CINZA}placa: ${m}${N}"
-  echo
+MENU_ABERTO=0
+
+## Liga a tela cheia do terminal e o mouse. Guarda o scrollback dela intacto:
+## o que as ferramentas imprimem volta para o terminal normal, e fica lá.
+menu_entrar() {
+  MENU_ABERTO=1
+  printf '\e[?1049h\e[?25l\e[?1003h\e[?1006h\e[2J'
 }
 
-menu() {
+menu_sair() {
+  [[ "$MENU_ABERTO" == "1" ]] || return 0
+  MENU_ABERTO=0
+  printf '\e[?1003l\e[?1006l\e[?25h\e[?1049l'
+}
+
+## Uma tecla, já com as sequências de escape montadas: «ESC[A» para a seta de
+## cima, «ESC[<0;12;7M» para o clique. Enter chega como linha vazia.
+menu_tecla() {
+  local t resto seq=""
+  IFS= read -rsn1 t || return 1
+  if [[ "$t" == $'\e' ]]; then
+    while IFS= read -rsn1 -t 0.02 resto; do
+      seq+="$resto"
+      [[ "$resto" == [a-zA-Z~] ]] && break
+    done
+    printf 'ESC%s' "$seq"
+  else
+    printf '%s' "$t"
+  fi
+}
+
+MENU_BASE=0  ## a linha da tela onde o primeiro item foi desenhado
+
+menu_desenhar() {
+  local sel="$1" i=0 linha=1 marca cor verbo texto
+  printf '\e[H'
+  printf '\e[K\n'; linha=$((linha + 1))
+  printf '  %s%sA FORJA%s %s— a bancada%s\e[K\n' "$ROSA" "$B" "$N" "$CINZA" "$N"; linha=$((linha + 1))
+  local m
+  m="$(nvidia-smi --query-gpu=memory.used,memory.total --format=csv,noheader 2>/dev/null | head -1)"
+  if [[ -n "$m" ]]; then
+    printf '  %splaca: %s%s\e[K\n' "$CINZA" "$m" "$N"; linha=$((linha + 1))
+  fi
+  printf '\e[K\n'; linha=$((linha + 1))
+  MENU_BASE=$linha
+
+  for item in "${KIT[@]}"; do
+    IFS='|' read -r verbo texto _ <<< "$item"
+    if (( i == sel )); then marca="›"; cor="${B}${CIANO}"; else marca=" "; cor=""; fi
+    printf '  %s%s %-10s %s%s\e[K\n' "$cor" "$marca" "$verbo" "$texto" "$N"
+    i=$((i + 1))
+  done
+  if (( i == sel )); then marca="›"; cor="${B}${CIANO}"; else marca=" "; cor="$CINZA"; fi
+  printf '  %s%s %-10s %s%s\e[K\n' "$cor" "$marca" "sair" "Fechar e devolver a memória da placa" "$N"
+
+  printf '\e[K\n'
+  printf '  %s↑ ↓ anda · Enter abre · o clique também · a letra salta · q sai%s\e[K\n' "$CINZA" "$N"
+  printf '\e[J'
+}
+
+menu_clicavel() {
+  local sel=0 total=$(( ${#KIT[@]} + 1 )) tecla item
+  local padrao_mouse='^ESC\[<([0-9]+);([0-9]+);([0-9]+)([Mm])$'
+  menu_entrar
+  menu_desenhar "$sel"
+  while true; do
+    tecla="$(menu_tecla)" || break
+    case "$tecla" in
+      'ESC[A'|'k') sel=$(( (sel - 1 + total) % total )) ;;
+      'ESC[B'|'j') sel=$(( (sel + 1) % total )) ;;
+      'ESC[H') sel=0 ;;
+      'ESC[F') sel=$((total - 1)) ;;
+      'q'|'ESC') break ;;
+      '') ## Enter
+          (( sel == total - 1 )) && break
+          menu_abrir "$sel" ;;
+      *)
+        if [[ "$tecla" =~ $padrao_mouse ]]; then
+          local botao="${BASH_REMATCH[1]}" lin="${BASH_REMATCH[3]}" tipo="${BASH_REMATCH[4]}"
+          local alvo=$(( lin - MENU_BASE ))
+          case "$botao" in
+            64) sel=$(( (sel - 1 + total) % total )) ;;
+            65) sel=$(( (sel + 1) % total )) ;;
+            0)  if [[ "$tipo" == "M" ]] && (( alvo >= 0 && alvo < total )); then
+                  sel=$alvo
+                  (( sel == total - 1 )) && break
+                  menu_abrir "$sel"
+                fi ;;
+            *)  ## o mouse só passeando: o item debaixo dele acende
+                (( alvo >= 0 && alvo < total )) && sel=$alvo ;;
+          esac
+        else
+          ## a primeira letra salta para a ferramenta
+          local i=0 v
+          for item in "${KIT[@]}"; do
+            IFS='|' read -r v _ _ <<< "$item"
+            [[ "${v:0:1}" == "$tecla" ]] && { sel=$i; break; }
+            i=$((i + 1))
+          done
+        fi ;;
+    esac
+    menu_desenhar "$sel"
+  done
+  menu_sair
+}
+
+## Abre uma ferramenta no terminal de verdade: o que ela imprime fica no
+## scrollback, para a pessoa rolar depois de voltar.
+menu_abrir() {
+  local funcao
+  IFS='|' read -r _ _ funcao <<< "${KIT[$1]}"
+  menu_sair
+  echo
+  "$funcao"
+  pausa
+  menu_entrar
+}
+
+## A reserva: terminal sem mouse, ou saída que não é terminal.
+menu_simples() {
   while true; do
     cabecalho
     local i=1
     for linha in "${KIT[@]}"; do
-      IFS='|' read -r _verbo texto _ <<< "$linha"
-      printf '  %s%2d%s  %s\n' "$CIANO" "$i" "$N" "$texto"
+      IFS='|' read -r verbo texto _ <<< "$linha"
+      printf '  %s%2d%s  %-10s %s\n' "$CIANO" "$i" "$N" "$verbo" "$texto"
       i=$((i + 1))
     done
-    printf '  %s%2s%s  %s\n' "$CIANO" "0" "$N" "Sair (devolve a memória da placa)"
+    printf '  %s%2s%s  %-10s %s\n' "$CIANO" "0" "$N" "sair" "Fechar e devolver a memória da placa"
     echo
     local n
     read -r -p "  ${B}Número${N} " n || break
@@ -277,6 +428,34 @@ menu() {
       sleep 1
     fi
   done
+}
+
+cabecalho() {
+  echo
+  echo "  ${ROSA}${B}A FORJA${N} ${CINZA}— a bancada${N}"
+  local m
+  m="$(nvidia-smi --query-gpu=memory.used,memory.total --format=csv,noheader 2>/dev/null | head -1)"
+  [[ -n "$m" ]] && echo "  ${CINZA}placa: ${m}${N}"
+  echo
+}
+
+## Três portas para a mesma lista, da mais rica para a mais simples; a que o
+## terminal e a máquina aguentarem. Nenhuma pede um traço na linha de comando.
+##
+##   1. a bancada em Textual: painel com o estado de cada ferramenta ao lado
+##   2. o menu do terminal: seta, Enter, clique e a letra que salta
+##   3. a lista numerada: quando a saída nem terminal é
+menu() {
+  local tela="$RAIZ/oficina/trilha-venv/bin/python"
+  if [[ -t 0 && -t 1 && -x "$tela" && "${FORJA_MENU:-}" == "" ]]; then
+    "$tela" "$RAIZ/scripts/bancada_tui.py" && return 0
+    aviso "A bancada não abriu; vou pelo menu do terminal."
+  fi
+  if [[ -t 0 && -t 1 && "${FORJA_MENU:-}" != "simples" ]]; then
+    menu_clicavel
+  else
+    menu_simples
+  fi
 }
 
 # ---------------------------------------------------------------- a entrada --
