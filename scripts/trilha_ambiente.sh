@@ -6,16 +6,16 @@
 #   scripts/trilha_ambiente.sh soltar        descarrega os modelos e devolve a memória da placa
 #   scripts/trilha_ambiente.sh desinstalar   apaga tudo o que o instalar trouxe
 #
-# Nada pede senha: o Ollama entra como um arquivo em fontes/ollama/, não como
+# Nada pede senha: o Ollama entra como um arquivo em oficina/ollama/, não como
 # serviço do sistema. Nada depende da máquina de alguém: tudo sai da raiz do
-# repositório. A pasta fontes/ está no .gitignore.
+# repositório. A pasta oficina/ está no .gitignore.
 set -euo pipefail
 
 RAIZ="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-FONTES="${FORJA_FONTES:-$RAIZ/fontes}"
-OLLAMA_DIR="$FONTES/ollama"
-VENV="$FONTES/trilha-venv"
-export OLLAMA_MODELS="${OLLAMA_MODELS:-$FONTES/modelos/ollama}"
+OFICINA="${FORJA_OFICINA:-$RAIZ/oficina}"
+OLLAMA_DIR="$OFICINA/ollama"
+VENV="$OFICINA/trilha-venv"
+export OLLAMA_MODELS="${OLLAMA_MODELS:-$OFICINA/modelos/ollama}"
 export OLLAMA_HOST="${OLLAMA_HOST:-127.0.0.1:11434}"
 OLLAMA_API="https://api.github.com/repos/ollama/ollama/releases/latest"
 OLLAMA_PACOTE="ollama-linux-amd64.tar.zst"  ## o nome do pacote na release (mudou de .tgz em 2025)
@@ -75,7 +75,7 @@ instalar_tela() {
 }
 
 instalar() {
-  mkdir -p "$FONTES"
+  mkdir -p "$OFICINA"
   bash "$RAIZ/scripts/ace_step.sh" instalar
   instalar_ollama
   instalar_tela

@@ -6,7 +6,7 @@ categorias, com o caminho de cada arquivo. Este script lê o catálogo e
 responde em segundos — para quem procura com os olhos e para quem procura
 com um comando.
 
-O pacote fica em `fontes/kenney/<versão>/`, fora do git: é material bruto.
+O pacote fica em `oficina/kenney/<versão>/`, fora do git: é material bruto.
 Nada daqui entra no jogo sozinho; o que entra vai para `godot/assets/`,
 pela ficha do quadro que decidir.
 
@@ -27,7 +27,7 @@ import unicodedata
 from pathlib import Path
 
 RAIZ = Path(__file__).resolve().parent.parent
-FONTES = Path(os.environ.get("FORJA_FONTES", RAIZ / "fontes")) / "kenney"
+OFICINA = Path(os.environ.get("FORJA_OFICINA", RAIZ / "oficina")) / "kenney"
 
 ## Palavra em português -> o jeito que a Kenney escreve. A Kenney é toda em
 ## inglês; sem isto, procurar «martelo» não acha nada.
@@ -51,14 +51,14 @@ def nu(texto):
 
 
 def pasta_do_pacote():
-    """A versão mais nova do All-in-1 que estiver em fontes/kenney/."""
-    if not FONTES.is_dir():
+    """A versão mais nova do All-in-1 que estiver em oficina/kenney/."""
+    if not OFICINA.is_dir():
         raise SystemExit("o pacote da Kenney não está em %s.\n"
-                         "Descompacte o All-in-1 ali (é material bruto, fora do git)." % FONTES)
-    achados = sorted((p for p in FONTES.iterdir() if (p / "assets.json").is_file()),
+                         "Descompacte o All-in-1 ali (é material bruto, fora do git)." % OFICINA)
+    achados = sorted((p for p in OFICINA.iterdir() if (p / "assets.json").is_file()),
                      key=lambda p: p.name, reverse=True)
     if not achados:
-        raise SystemExit("não achei nenhum assets.json em %s/*/" % FONTES)
+        raise SystemExit("não achei nenhum assets.json em %s/*/" % OFICINA)
     return achados[0]
 
 
@@ -181,7 +181,7 @@ def prova():
          "folders": [{"name": "Models", "files": ["3D assets/Castle Kit/Models/wall-hammer.glb"]}]}]}]
     confere(sum(1 for _ in arquivos_do_pacote(falso[0]["packs"][0])) == 1,
             "os arquivos de um pacote se contam")
-    if FONTES.is_dir():
+    if OFICINA.is_dir():
         try:
             pasta, cats = catalogo()
             confere(len(cats) >= 5, "o catálogo de verdade tem as categorias (%d)" % len(cats))

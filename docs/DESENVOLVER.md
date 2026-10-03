@@ -151,7 +151,7 @@ As faixas saem de dois modelos abertos rodando na própria máquina: o
 **ACE-Step 1.5** (música, licença MIT) e um modelo de texto pelo **Ollama**
 (`qwen3:8b`), que escreve o título e a descrição de cada faixa a partir da
 ficha do minigame nos documentos do jogo. Nada de serviço pago, nada de
-senha: o Ollama entra como arquivo em `fontes/ollama/`, não como serviço do
+senha: o Ollama entra como arquivo em `oficina/ollama/`, não como serviço do
 sistema.
 
 ```sh
@@ -181,11 +181,11 @@ python3 scripts/conferir_ost.py                    # a pasta da trilha confere?
 scripts/trilha_ambiente.sh soltar                  # devolve a placa, se sobrou algo
 ```
 
-A pasta de trabalho é `fontes/trilha/`, dentro do projeto e fora do git (a
-`fontes/` inteira está no `.gitignore`, junto do material bruto, como os
-pacotes da Kenney em `fontes/kenney/`): 55 slots com 4 candidatas de 150 s dão
+A pasta de trabalho é `oficina/trilha/`, dentro do projeto e fora do git (a
+`oficina/` inteira está no `.gitignore`, junto do material bruto, como os
+pacotes da Kenney em `oficina/kenney/`): 55 slots com 4 candidatas de 150 s dão
 uns 6 GB. `FORJA_TRILHA=/outro/lugar` troca a pasta. A escolhida também sai em
-MP3, em `fontes/trilha/mp3/`, só para escutar fora do jogo — o jogo nunca toca
+MP3, em `oficina/trilha/mp3/`, só para escutar fora do jogo — o jogo nunca toca
 MP3. A candidata cujo andamento escorrega mais de 10 ms sai riscada na página.
 O `.batidas.json` entra com `"conferido": false`; quem vira para `true`,
 depois de ouvir com o metrônomo

@@ -1,8 +1,15 @@
 ; Engine configuration file.
-; Godot 4.4 — FORJA, a Hefesto Tech Demo: quatro DualSense como a Sony e a Steam documentam.
+; It's best edited using the editor UI and not directly,
+; since the parameters that go here are not all obvious.
+;
+; Format:
+;   [section] ; section goes between []
+;   param=value ; assign values to parameters
+
 config_version=5
 
 [application]
+
 config/name="A Forja"
 config/description="Hefesto Tech Demo: quatro DualSense no mesmo sofá. USB 0x02, player index 0..3."
 config/version="0.3.0"
@@ -34,13 +41,8 @@ window/stretch/aspect="expand"
 
 theme/custom_font="res://assets/fontes/SpaceGrotesk-wght.ttf"
 
-[input_devices]
-
-pointing/emulate_touch_from_mouse=false
-
 [rendering]
 
-renderer/rendering_method="forward_plus"
-environment/defaults/default_clear_color=Color(0.0667, 0.0706, 0.102, 1)
 anti_aliasing/quality/msaa_3d=2
+environment/defaults/default_clear_color=Color(0.0667, 0.0706, 0.102, 1)
 anti_aliasing/quality/screen_space_aa=1

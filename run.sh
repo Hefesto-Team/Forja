@@ -105,7 +105,7 @@ f_servidor() {
 }
 
 f_trilha() {
-  if [[ ! -x fontes/trilha-venv/bin/python ]]; then
+  if [[ ! -x oficina/trilha-venv/bin/python ]]; then
     aviso "A bancada ainda não está instalada."
     local r; r="$(perguntar "Instalar agora? (são uns 15 GB)" "não")"
     [[ "$r" == "sim" || "$r" == "s" ]] || return 0
@@ -130,7 +130,7 @@ f_palavras() {
 }
 
 f_escutar() {
-  local pagina="${FORJA_TRILHA:-$RAIZ/fontes/trilha}/index.html"
+  local pagina="${FORJA_TRILHA:-$RAIZ/oficina/trilha}/index.html"
   python3 - <<'PY'
 import sys; sys.path.insert(0, "scripts")
 import gerar_trilha as g
@@ -181,13 +181,13 @@ f_kenney() {
 ## Onde mora cada coisa. Com as contas de verdade, não com uma lista decorada:
 ## se a pasta cresceu, o número cresce junto.
 f_onde() {
-  local ost="$RAIZ/godot/assets/ost" trab="${FORJA_TRILHA:-$RAIZ/fontes/trilha}"
+  local ost="$RAIZ/godot/assets/ost" trab="${FORJA_TRILHA:-$RAIZ/oficina/trilha}"
   conta() { find "$1" -type f ${2:+-name "$2"} 2>/dev/null | wc -l; }
   peso() { du -sh "$1" 2>/dev/null | cut -f1; }
 
   echo "${B}Duas pastas, e a diferença é toda a confusão:${N}"
   echo "  ${CIANO}godot/assets/${N}  o que está ${B}no jogo${N} — vai para o git"
-  echo "  ${CIANO}fontes/${N}        o material ${B}bruto${N} e os rascunhos — fora do git"
+  echo "  ${CIANO}oficina/${N}       o material ${B}bruto${N} e os rascunhos — fora do git"
   echo
 
   echo "${B}No jogo (godot/assets/)${N}"
@@ -195,15 +195,15 @@ f_onde() {
   printf '  %-26s %s\n' "sons/        efeitos"    "$(conta "$RAIZ/godot/assets/sons" '*.wav') arquivos"
   printf '  %-26s %s\n' "ost/         a trilha"   "$(conta "$ost" '*.ogg') faixas aprovadas"
   printf '  %-26s %s\n' "svg/ glifos/ mapa/"      "o desenho do controle e os ícones"
-  printf '  %-26s %s\n' "fontes/      tipografia" "Space Grotesk e JetBrains Mono"
+  printf '  %-26s %s\n' "fontes/      tipografia" "Space Grotesk e JetBrains Mono (as letras)"
   printf '  %-26s %s\n' "forja-logo.svg"          "o logo d'A Forja"
   echo
 
-  echo "${B}Bruto (fontes/, fora do git)${N}"
+  echo "${B}Bruto (oficina/, fora do git)${N}"
   printf '  %-26s %s\n' "trilha/      candidatas" "$(conta "$trab" '*.wav') esperando escolha · $(peso "$trab")"
   printf '  %-26s %s\n' "trilha/mp3/  para ouvir" "$(conta "$trab/mp3" '*.mp3') cópias fora do jogo"
-  printf '  %-26s %s\n' "kenney/      o pacote"   "$(peso "$RAIZ/fontes/kenney") comprado"
-  printf '  %-26s %s\n' "modelos/     IA"         "$(peso "$RAIZ/fontes/modelos")"
+  printf '  %-26s %s\n' "kenney/      o pacote"   "$(peso "$RAIZ/oficina/kenney") comprado"
+  printf '  %-26s %s\n' "modelos/     IA"         "$(peso "$RAIZ/oficina/modelos")"
   echo
 
   echo "${B}O resto${N}"
@@ -216,7 +216,7 @@ f_onde() {
   local faixas; faixas="$(conta "$ost" '*.ogg')"
   local cand; cand="$(conta "$trab" '*.wav')"
   if [[ "$faixas" == "0" && "$cand" != "0" ]]; then
-    echo "${AMARELO}Nenhuma faixa entrou no jogo ainda.${N} As $cand candidatas estão em fontes/trilha/"
+    echo "${AMARELO}Nenhuma faixa entrou no jogo ainda.${N} As $cand candidatas estão em oficina/trilha/"
     echo "esperando você escolher — é a opção «A bancada da trilha» deste menu."
   fi
 }

@@ -79,9 +79,9 @@ modelo de texto arrisca. **Antes de gerar som, a tela descarrega o modelo de
 texto**, sem perguntar. Ao sair, solta os dois e diz quanta memória voltou.
 
 **`scripts/trilha_ambiente.sh`** — `instalar`, `modelo`, `tela`, `estado`,
-`soltar`, `desinstalar`. O Ollama entra como arquivo em `fontes/ollama/`,
+`soltar`, `desinstalar`. O Ollama entra como arquivo em `oficina/ollama/`,
 não como serviço do sistema: **nada pede senha**. Os pesos vão para
-`fontes/modelos/`, e o `desinstalar` leva tudo embora.
+`oficina/modelos/`, e o `desinstalar` leva tudo embora.
 
 **`scripts/requisitos-trilha.txt`** — só o Textual. O gerador e o descritor
 continuam com a biblioteca padrão: é o que deixa as provas passarem em
@@ -98,15 +98,15 @@ qualquer máquina.
   tira isso antes do JSON.
 - **Nunca os dois modelos juntos.** Em 8 GB não cabe. Quem gera som primeiro
   solta o texto.
-- **A pasta de trabalho é `fontes/trilha/`**, dentro do projeto e fora do
+- **A pasta de trabalho é `oficina/trilha/`**, dentro do projeto e fora do
   git. 55 slots × 4 candidatas dão uns 6 GB.
-- **Não commitar** WAV, MP3, pesos de modelo nem nada de `fontes/`.
+- **Não commitar** WAV, MP3, pesos de modelo nem nada de `oficina/`.
 
 ## Não fazer
 
 - Não pôr o MP3 dentro de `godot/assets/ost/`: o jogo nunca toca MP3 (o
   LEIA-ME da trilha). A cópia em MP3 é só para ouvir fora do jogo, e mora em
-  `fontes/trilha/mp3/`.
+  `oficina/trilha/mp3/`.
 - Não virar `"conferido": true` pela tela: isso é do ouvido, com o metrônomo
   da H01.
 - Não instalar nada com `sudo` neste caminho.
@@ -125,7 +125,7 @@ Na sessão, as quatro, todas sem rede e sem placa:
 python3 scripts/trilha_fichas.py --prova
 python3 scripts/descrever_trilha.py --prova
 python3 scripts/gerar_trilha.py --prova
-FORJA_TRILHA_PROVA=1 fontes/trilha-venv/bin/python scripts/trilha_tui.py
+FORJA_TRILHA_PROVA=1 oficina/trilha-venv/bin/python scripts/trilha_tui.py
 ```
 
 ## Ao terminar

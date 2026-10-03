@@ -55,14 +55,14 @@ RAMPA_S = 0.005  # a rampa no fim do jingle, para não estalar
 # ------------------------------------------------------------------ os lugares --
 
 def pasta_de_trabalho():
-    """A pasta das candidatas: `fontes/trilha/` na raiz do repositório.
+    """A pasta das candidatas: `oficina/trilha/` na raiz do repositório.
 
-    Fica junto do resto do material bruto (a `fontes/` inteira está no
+    Fica junto do resto do material bruto (a `oficina/` inteira está no
     .gitignore), e nunca no git: WAV de rascunho não entra no repositório.
     FORJA_TRILHA troca a pasta, para quem quiser o disco noutro lugar.
     """
     escolhida = os.environ.get("FORJA_TRILHA")
-    return Path(escolhida) if escolhida else RAIZ / "fontes" / "trilha"
+    return Path(escolhida) if escolhida else RAIZ / "oficina" / "trilha"
 
 
 def destino(slot, ost=OST):
@@ -337,9 +337,9 @@ class MotorAceStep:
             if estado == 1:
                 break
             if estado == 2:
-                raise SystemExit("o ACE-Step falhou em %s (veja o fontes/logs/acestep.log)" % slot)
+                raise SystemExit("o ACE-Step falhou em %s (veja o oficina/logs/acestep.log)" % slot)
             if time.monotonic() - começo > DESISTE_S:
-                raise SystemExit("%s passou de %d minutos no ACE-Step; parei. Veja o fontes/logs/acestep.log."
+                raise SystemExit("%s passou de %d minutos no ACE-Step; parei. Veja o oficina/logs/acestep.log."
                                  % (slot, DESISTE_S // 60))
             time.sleep(ESPERA_S)
         saida = []
@@ -531,7 +531,7 @@ def em_mp3(origem, slot, trabalho):
 
     O jogo nunca toca MP3 (o LEIA-ME da trilha: o silêncio que o MP3 põe no
     começo e no fim quebra o laço e o tempo). Esta cópia é só para o ouvido,
-    e por isso fica em fontes/trilha/mp3/, fora do git.
+    e por isso fica em oficina/trilha/mp3/, fora do git.
     """
     pasta = Path(trabalho) / "mp3"
     pasta.mkdir(parents=True, exist_ok=True)

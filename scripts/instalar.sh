@@ -92,10 +92,10 @@ conferir() {
       falta "menos de 7 GB de memória de vídeo: o modelo de música não cabe inteiro"
     fi
   fi
-  [[ -d "$RAIZ/fontes/ace-step" ]] && ok "o gerador de música" || falta "o gerador de música (scripts/instalar.sh trilha)"
-  [[ -x "$RAIZ/fontes/ollama/bin/ollama" ]] || command -v ollama >/dev/null 2>&1 \
+  [[ -d "$RAIZ/oficina/ace-step" ]] && ok "o gerador de música" || falta "o gerador de música (scripts/instalar.sh trilha)"
+  [[ -x "$RAIZ/oficina/ollama/bin/ollama" ]] || command -v ollama >/dev/null 2>&1 \
     && ok "o modelo de texto" || falta "o modelo de texto (scripts/instalar.sh trilha)"
-  [[ -x "$RAIZ/fontes/trilha-venv/bin/python" ]] && ok "a tela da bancada" || falta "a tela da bancada (scripts/instalar.sh trilha)"
+  [[ -x "$RAIZ/oficina/trilha-venv/bin/python" ]] && ok "a tela da bancada" || falta "a tela da bancada (scripts/instalar.sh trilha)"
 
   titulo "Como abrir"
   echo "  ./run.sh"

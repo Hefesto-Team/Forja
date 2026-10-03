@@ -79,12 +79,12 @@ def subir_ollama():
     """Sobe o Ollama da pasta do projeto, se não estiver no ar. Devolve o processo (ou None)."""
     if no_ar():
         return None
-    binario = RAIZ / "fontes" / "ollama" / "bin" / "ollama"
+    binario = RAIZ / "oficina" / "ollama" / "bin" / "ollama"
     if not binario.is_file():
         raise SystemExit("o Ollama não está no ar nem instalado.\n"
                          "Instale: scripts/trilha_ambiente.sh instalar")
     ambiente = dict(os.environ)
-    ambiente.setdefault("OLLAMA_MODELS", str(RAIZ / "fontes" / "modelos" / "ollama"))
+    ambiente.setdefault("OLLAMA_MODELS", str(RAIZ / "oficina" / "modelos" / "ollama"))
     p = subprocess.Popen([str(binario), "serve"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, env=ambiente)
     for _ in range(40):
         if no_ar():

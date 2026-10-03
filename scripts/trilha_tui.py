@@ -19,7 +19,7 @@ O que ela garante, e é por isso que ela existe:
   mais candidatas e escolher são botões, com a faixa tocando.
 
   scripts/trilha_ambiente.sh tela            (o jeito certo: usa o ambiente)
-  fontes/trilha-venv/bin/python scripts/trilha_tui.py
+  oficina/trilha-venv/bin/python scripts/trilha_tui.py
 """
 import json
 import os

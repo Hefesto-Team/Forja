@@ -1,22 +1,22 @@
 #!/usr/bin/env bash
 # O ACE-Step 1.5, o motor da trilha (ficha H09; docs/DESENVOLVER.md "A trilha").
 #
-#   scripts/ace_step.sh instalar      baixa o projeto e as dependências em fontes/ace-step/
+#   scripts/ace_step.sh instalar      baixa o projeto e as dependências em oficina/ace-step/
 #   scripts/ace_step.sh servir        sobe o servidor de API na porta 8001 (deixe rodando)
 #   scripts/ace_step.sh estado        diz o que já está instalado e se o servidor responde
 #   scripts/ace_step.sh desinstalar   apaga a pasta, o ambiente e os pesos baixados
 #
 # Nada aqui depende da máquina de alguém: tudo sai da raiz do repositório e do
-# $HOME. A pasta fontes/ está no .gitignore — nada disto entra no git.
+# $HOME. A pasta oficina/ está no .gitignore — nada disto entra no git.
 set -euo pipefail
 
 RAIZ="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-PASTA="${FORJA_ACE_STEP:-$RAIZ/fontes/ace-step}"
+PASTA="${FORJA_ACE_STEP:-$RAIZ/oficina/ace-step}"
 REPO="https://github.com/ACE-Step/ACE-Step-1.5.git"
 PORTA="${FORJA_ACE_STEP_PORTA:-8001}"
 # Onde o Hugging Face guarda os pesos; dentro do projeto, para o desinstalar
 # levar tudo embora e o disco de casa não encher sem a gente ver.
-export HF_HOME="${FORJA_HF_HOME:-$RAIZ/fontes/modelos}"
+export HF_HOME="${FORJA_HF_HOME:-$RAIZ/oficina/modelos}"
 
 uv_bin() {
   if command -v uv >/dev/null 2>&1; then command -v uv
