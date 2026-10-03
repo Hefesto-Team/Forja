@@ -36,6 +36,8 @@ KIT=(
   "jogo|Abrir o jogo|f_jogo"
   "metronomo|Ouvir se o relógio de áudio está preso na batida|f_metronomo"
   "provas|Rodar as provas do jogo|f_provas"
+  "kenney|Procurar no pacote da Kenney (modelos, sons, ícones)|f_kenney"
+  "onde|Onde mora cada coisa no repositório|f_onde"
   "instalar|Preparar esta máquina (pacotes, módulo, engine, trilha)|f_instalar"
   "estado|O que está instalado e quanto sobra na placa|f_estado"
   "soltar|Devolver a memória da placa agora|f_soltar"
@@ -152,6 +154,72 @@ f_metronomo() {
 }
 
 f_provas() { bash tests/prova_do_jogo.sh; }
+
+f_kenney() {
+  local o
+  o="$(escolher_entre "O que você quer no pacote da Kenney?" \
+    "Procurar por uma palavra (em português ou inglês)|buscar" \
+    "Ver as categorias e quanto tem em cada uma|categorias" \
+    "Listar os pacotes de uma categoria|pacotes" \
+    "Ver o que tem dentro de um pacote|ver")" || return 1
+  case "${o##*|}" in
+    buscar)     local q; q="$(perguntar "Procurar por" "martelo")"
+                python3 scripts/kenney.py buscar "$q" ;;
+    categorias) python3 scripts/kenney.py ;;
+    pacotes)    local c; c="$(perguntar "Qual categoria (3D, 2D, Audio, Icons, UI, Other)" "3D")"
+                python3 scripts/kenney.py pacotes "$c" ;;
+    ver)        local n; n="$(perguntar "Nome do pacote" "Castle Kit")"
+                python3 scripts/kenney.py ver "$n"
+                local caminho; caminho="$(python3 scripts/kenney.py onde "$n" 2>/dev/null)"
+                if [[ -d "$caminho" ]]; then
+                  local r; r="$(perguntar "Abrir a pasta?" "sim")"
+                  [[ "$r" == "sim" || "$r" == "s" ]] && { xdg-open "$caminho" >/dev/null 2>&1 & }
+                fi ;;
+  esac
+}
+
+## Onde mora cada coisa. Com as contas de verdade, não com uma lista decorada:
+## se a pasta cresceu, o número cresce junto.
+f_onde() {
+  local ost="$RAIZ/godot/assets/ost" trab="${FORJA_TRILHA:-$RAIZ/fontes/trilha}"
+  conta() { find "$1" -type f ${2:+-name "$2"} 2>/dev/null | wc -l; }
+  peso() { du -sh "$1" 2>/dev/null | cut -f1; }
+
+  echo "${B}Duas pastas, e a diferença é toda a confusão:${N}"
+  echo "  ${CIANO}godot/assets/${N}  o que está ${B}no jogo${N} — vai para o git"
+  echo "  ${CIANO}fontes/${N}        o material ${B}bruto${N} e os rascunhos — fora do git"
+  echo
+
+  echo "${B}No jogo (godot/assets/)${N}"
+  printf '  %-26s %s\n' "kenney/      modelos 3D" "$(conta "$RAIZ/godot/assets/kenney" '*.glb') peças"
+  printf '  %-26s %s\n' "sons/        efeitos"    "$(conta "$RAIZ/godot/assets/sons" '*.wav') arquivos"
+  printf '  %-26s %s\n' "ost/         a trilha"   "$(conta "$ost" '*.ogg') faixas aprovadas"
+  printf '  %-26s %s\n' "svg/ glifos/ mapa/"      "o desenho do controle e os ícones"
+  printf '  %-26s %s\n' "fontes/      tipografia" "Space Grotesk e JetBrains Mono"
+  printf '  %-26s %s\n' "forja-logo.svg"          "o logo d'A Forja"
+  echo
+
+  echo "${B}Bruto (fontes/, fora do git)${N}"
+  printf '  %-26s %s\n' "trilha/      candidatas" "$(conta "$trab" '*.wav') esperando escolha · $(peso "$trab")"
+  printf '  %-26s %s\n' "trilha/mp3/  para ouvir" "$(conta "$trab/mp3" '*.mp3') cópias fora do jogo"
+  printf '  %-26s %s\n' "kenney/      o pacote"   "$(peso "$RAIZ/fontes/kenney") comprado"
+  printf '  %-26s %s\n' "modelos/     IA"         "$(peso "$RAIZ/fontes/modelos")"
+  echo
+
+  echo "${B}O resto${N}"
+  printf '  %-26s %s\n' "godot/"   "o jogo: cenas, scripts, salas"
+  printf '  %-26s %s\n' "nativo/"  "o módulo em C que fala com os controles"
+  printf '  %-26s %s\n' "docs/"    "a documentação — comece por docs/README.md"
+  printf '  %-26s %s\n' "tests/"   "as provas"
+  echo
+
+  local faixas; faixas="$(conta "$ost" '*.ogg')"
+  local cand; cand="$(conta "$trab" '*.wav')"
+  if [[ "$faixas" == "0" && "$cand" != "0" ]]; then
+    echo "${AMARELO}Nenhuma faixa entrou no jogo ainda.${N} As $cand candidatas estão em fontes/trilha/"
+    echo "esperando você escolher — é a opção «A bancada da trilha» deste menu."
+  fi
+}
 
 f_instalar() {
   bash scripts/instalar.sh conferir
