@@ -7,3 +7,5 @@ godot/.godot/
 build/
 dist/
 relatorios/
+fontes/
+__pycache__/

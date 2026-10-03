@@ -145,6 +145,57 @@ tools/Godot_v4.4.1-stable_linux.x86_64 --headless -s scripts/medir_clarao.gd -- 
   pasta/voz_antes_do_susto.png pasta/voz_clarao.png 20
 ```
 
+## A trilha
+
+As faixas saem de dois modelos abertos rodando na própria máquina: o
+**ACE-Step 1.5** (música, licença MIT) e um modelo de texto pelo **Ollama**
+(`qwen3:8b`), que escreve o título e a descrição de cada faixa a partir da
+ficha do minigame nos documentos do jogo. Nada de serviço pago, nada de
+senha: o Ollama entra como arquivo em `fontes/ollama/`, não como serviço do
+sistema.
+
+```sh
+scripts/trilha_ambiente.sh instalar     # o ACE-Step, o Ollama e a tela (uns 15 GB)
+scripts/trilha_ambiente.sh modelo       # o modelo de texto (uns 5 GB)
+scripts/ace_step.sh servir              # deixe rodando num terminal
+scripts/trilha_ambiente.sh tela         # a bancada da trilha, noutro terminal
+```
+
+A **bancada** (`scripts/trilha_tui.py`, ficha
+[H10](jogo/tarefas/H10-a-bancada-da-trilha.md)) tem os 55 slots à esquerda e,
+à direita, a ficha da faixa, o título, a descrição e as candidatas com o
+andamento de cada uma. Os botões: Descrever, Gerar, Mais esforço, Refazer,
+Escolher, Ouvir e Soltar a placa. **Nada se perde**: tudo é gravado assim que
+fica pronto, e fechar no meio não apaga nada. **Os dois modelos nunca dividem
+a placa** — antes de gerar som, a bancada descarrega o de texto; ao sair,
+solta os dois e diz quanta memória voltou.
+
+Pela linha de comando, sem a tela:
+
+```sh
+python3 scripts/descrever_trilha.py S01            # título e descrição da seção
+python3 scripts/gerar_trilha.py gerar S01          # 4 candidatas de cada faixa
+python3 scripts/gerar_trilha.py ouvir              # a página de escuta
+python3 scripts/gerar_trilha.py escolher MUS_S01_J01 2
+python3 scripts/conferir_ost.py                    # a pasta da trilha confere?
+scripts/trilha_ambiente.sh soltar                  # devolve a placa, se sobrou algo
+```
+
+A pasta de trabalho é `fontes/trilha/`, dentro do projeto e fora do git (a
+`fontes/` inteira está no `.gitignore`, junto do material bruto, como os
+pacotes da Kenney em `fontes/kenney/`): 55 slots com 4 candidatas de 150 s dão
+uns 6 GB. `FORJA_TRILHA=/outro/lugar` troca a pasta. A escolhida também sai em
+MP3, em `fontes/trilha/mp3/`, só para escutar fora do jogo — o jogo nunca toca
+MP3. A candidata cujo andamento escorrega mais de 10 ms sai riscada na página.
+O `.batidas.json` entra com `"conferido": false`; quem vira para `true`,
+depois de ouvir com o metrônomo
+(`SLOT=MUS_S01_J01 tools/Godot_v4.4.1-stable_linux.x86_64 --path godot res://testes/metronomo.tscn`),
+é a pessoa.
+
+O modelo XL do ACE-Step não cabe numa placa de 8 GB: use o turbo ou o base
+(quem escolhe é o servidor, não o script). Para apagar tudo o que a trilha
+trouxe: `scripts/trilha_ambiente.sh desinstalar`.
+
 ## O mapa do código
 
 | caminho | o que é |

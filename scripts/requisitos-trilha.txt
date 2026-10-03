@@ -1,0 +1,4 @@
+# A tela do terminal da trilha (scripts/trilha_tui.py, ficha H10).
+# Só isto: o gerador (scripts/gerar_trilha.py) continua rodando com a
+# biblioteca padrão do Python, para a prova passar em qualquer máquina.
+textual>=0.80

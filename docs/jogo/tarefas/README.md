@@ -47,15 +47,16 @@ Estados: **a fazer**, **fazendo** (com o nome de quem pegou), **feito**
 
 | ficha | título | tamanho | estimativa (US$) | depende de | estado | gasto real |
 | --- | --- | --- | --- | --- | --- | --- |
-| [H01](H01-o-relogio-de-audio.md) | O relógio de áudio | M | 3,0 | F00 | a fazer | — |
+| [H01](H01-o-relogio-de-audio.md) | O relógio de áudio | M | 3,0 | F00 | feito | — |
 | [H02](H02-as-janelas.md) | As janelas de julgamento | M | 3,0 | F00, H01 | a fazer | — |
 | [H03](H03-a-calibracao.md) | A calibração | P | 2,0 | F00, H02 (e G02 para a medida automática — ver "Sem a G02") | a fazer | — |
 | [H04](H04-o-kit-do-minigame.md) | O kit do minigame | G | 4,5 | F00, F03, F05, F08, F09, H01, H02 | a fazer | — |
-| [H05](H05-o-pipeline-das-faixas.md) | O pipeline das faixas | M | 2,5 | F00, H01 | a fazer | — |
+| [H05](H05-o-pipeline-das-faixas.md) | O pipeline das faixas | M | 2,5 | F00, H01 | feito | — |
 | [H06](H06-os-jingles.md) | Os jingles | P | 1,5 | F00, F03, H01, H04, H05 | a fazer | — |
 | [H07](H07-o-som-em-todo-evento.md) | O som em todo evento | G | 3,5 | F00, F05, F06, H04 | a fazer | — |
 | [H08](H08-os-acrescimos-do-kit.md) | Os acréscimos do kit | G | 4,0 | H04, H01, H02, F03, F05, G03 | a fazer | — |
-| [H09](H09-o-gerador-da-trilha.md) | O gerador da trilha | M | 2,5 | F00, H05 | a fazer | — |
+| [H09](H09-o-gerador-da-trilha.md) | O gerador da trilha | M | 2,5 | F00, H05 | feito | — |
+| [H10](H10-a-bancada-da-trilha.md) | A bancada da trilha | M | 3,0 | H05, H09 | feito | — |
 
 ## I — [S1 — A Centelha: os cinco minigames](I-a-centelha.md)
 
