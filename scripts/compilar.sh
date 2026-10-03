@@ -12,7 +12,7 @@
 # máquina saem do binário (-ffile-prefix-map).
 #
 # O SDL3 é o 3.4.14 — a mesma série que a Steam distribui no runtime, e a que o
-# Hefesto usa como régua. O godot-cpp é o da série 4.4, a do Godot do jogo.
+# Hefesto usa como régua. O godot-cpp vem do master, num commit fixo (ADR-009).
 set -euo pipefail
 
 RAIZ="$(cd "$(dirname "$0")/.." && pwd)"
@@ -22,8 +22,12 @@ SDL_VERSAO="3.4.14"
 SDL_SHA256="30d4aa2b3037718142b32dffd4e72f917ebb6cc5227150e7bb9c45efb2153aeb"
 SDL_URL="https://github.com/libsdl-org/SDL/releases/download/release-${SDL_VERSAO}/SDL3-${SDL_VERSAO}.tar.gz"
 
-GODOT_CPP_TAG="godot-4.4-stable"
-GODOT_CPP_COMMIT="714c9e2c165db2dcb7e6ea57e62a04204d3cfbfa"
+# A godot-cpp não tem versão 4.7: a última com tag é a godot-4.5-stable. Para
+# o jogo rodar na 4.7, o módulo compila contra o ramo «master» — mas **fixado
+# num commit**, que é o que mantém a compilação reproduzível. Subir de commit é
+# decisão, com commit próprio e as provas verdes (ADR-009).
+GODOT_CPP_TAG="master"
+GODOT_CPP_COMMIT="507ed9d840c01a3c5b2a39af8bb4000bfac30bf5"
 GODOT_CPP_URL="https://github.com/godotengine/godot-cpp.git"
 
 CACHE="${FORJA_CACHE:-$RAIZ/.cache}"
@@ -88,11 +92,15 @@ compilar_sdl() {
 # O godot-cpp na tag fixada, e só se o commit conferir. GODOT_CPP_DIR aponta
 # para uma árvore que já existe (conferida do mesmo jeito).
 preparar_godot_cpp() {
-  local dir="${GODOT_CPP_DIR:-$CACHE/godot-cpp-${GODOT_CPP_TAG}}"
+  local dir="${GODOT_CPP_DIR:-$CACHE/godot-cpp-${GODOT_CPP_COMMIT:0:10}}"
   if [[ ! -d "$dir/.git" ]]; then
-    diga "baixando godot-cpp ${GODOT_CPP_TAG}" >&2
+    diga "baixando godot-cpp ${GODOT_CPP_TAG} (${GODOT_CPP_COMMIT:0:10})" >&2
     rm -rf "$dir"
-    git clone -q --depth 1 --branch "$GODOT_CPP_TAG" "$GODOT_CPP_URL" "$dir" >&2
+    # o commit, não o topo do ramo: o master anda, e a compilação não pode andar junto
+    git init -q "$dir" >&2
+    git -C "$dir" remote add origin "$GODOT_CPP_URL" >&2
+    git -C "$dir" fetch -q --depth 1 origin "$GODOT_CPP_COMMIT" >&2
+    git -C "$dir" checkout -q FETCH_HEAD >&2
   fi
   local tem
   tem="$(git -C "$dir" rev-parse HEAD)"
