@@ -12,7 +12,7 @@ passa por ela.
 | 1 | **O controle está dentro do mundo.** No Playroom o jogo se passa dentro do console; o primeiro som é o Astro piando de dentro do alto-falante do controle; a nave tem o formato do DualSense | o controle é a armadura do cavaleiro ([07](07-narrativa-e-voz.md#o-mundo)); o primeiro som de cada jogador é o pio dele no próprio controle |
 | 2 | **Cada recurso tem um verbo físico que já faz sentido.** Voar pede giroscópio, soprar pede microfone, espremer pede gatilho | o verbo da tela é o verbo do mundo ("Incline!", "Sopre!", "Puxe e solte!") |
 | 3 | **Recurso sem motivo fica na gaveta.** A demo da motosserra esperou anos por uma razão natural | um minigame que só existe para mostrar um recurso não entra nos 45 |
-| 4 | **Uma fase, um recurso protagonista; o resto acompanha** | a seção protagoniza, o repertório acompanha ([02](02-principios.md#2-a-feature-protagoniza-o-repertório-acompanha)) |
+| 4 | **Uma fase, um verbo protagonista; o resto acompanha** | a seção protagoniza o verbo, nunca o repertório: toda sala usa o controle inteiro ([ADR-008](../adr/008-a-metodologia-astro-bot.md), [02](02-principios.md#2-a-feature-protagoniza-o-repertório-acompanha)) |
 | 5 | **Mecânica repetida precisa de outro uso.** No Astro Bot, cada poder aparece em geral duas vezes, cada uma de um jeito | cinco minigames por seção, cinco verbos diferentes ([02](02-principios.md#4-cinco-jogos-cinco-verbos)) |
 | 6 | **Controles base mínimos**: um analógico e dois botões, o gatilho guardado para o poder | cada minigame usa no máximo três entradas; o resto do controle é saída |
 | 7 | **Prototipar e cortar muito**: uma fração pequena das ideias virou fase | cada seção prototipa mais de cinco ideias e fica com as cinco melhores; os 45 de [03](03-os-45-minigames.md) são o ponto de partida, não um contrato |
@@ -44,6 +44,15 @@ Antes de um minigame entrar, três perguntas:
    em todos; precisa dar nos da seção dele.)
 3. Em algum momento o jogo pergunta ao jogador se o controle funcionou? Se
    sim, o minigame volta para a mesa.
+
+## O método, e não só a régua
+
+As 24 lições acima são o **resultado**. O **método** que a Team Asobi usa
+para chegar nele — a sensação nasce na bancada antes de virar minigame,
+ideia sem protótipo não entra, quem faz o movimento faz o háptico, poucos
+materiais de contraste alto, prioridade com reserva de intensidade — está
+no [ADR-008](../adr/008-a-metodologia-astro-bot.md), com a pesquisa em
+[estudo 05](../estudos/05-o-dualsense-do-astro-bot.md).
 
 ## Para ir mais fundo
 

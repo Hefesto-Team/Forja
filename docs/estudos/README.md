@@ -13,6 +13,7 @@ resto na mão.
 | [Manuais de UI e UX para a TV](02-manuais-de-ui-e-ux.md) | tamanhos, área segura, foco, contraste, cor, ritmo de leitura, retorno e animação — e um checklist de 31 itens |
 | [O sistema visual do app Hefesto](03-o-sistema-visual-do-app-hefesto.md) | os tokens de cor, a tipografia, os componentes, o logo, a voz das telas, as decisões da mantenedora e a tradução para a tela do jogo |
 | [Minimalismo e o DualSense nos jogos comerciais](04-minimalismo-e-o-dualsense-nos-jogos.md) | as regras de uma interface enxuta, como os jogos comerciais mostram cada recurso do controle, e os tokens sugeridos |
+| [O DualSense de Astro Bot](05-o-dualsense-do-astro-bot.md) | o método da Team Asobi em fonte pública, o caminho do háptico por forma de onda, e o que cabe no Forja — virou o [ADR-008](../adr/008-a-metodologia-astro-bot.md) |
 
 Só material público: nada do SDK da Sony nem de documento sob NDA. As linhas
 citadas apontam para os repositórios no dia do estudo (o Hefesto no commit

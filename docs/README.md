@@ -51,7 +51,7 @@ A direção do que vem agora: de bancada a jogo. Começa pelo [mapa da pasta](jo
 | [AGENTS](../AGENTS.md) | as regras da casa e os comandos, em uma página |
 | [DESENVOLVER](DESENVOLVER.md) | compilar, exportar, as provas sem aparelho, as fotos, o trailer e o mapa do código |
 | [As decisões](adr/README.md) | uma decisão por arquivo, com o porquê |
-| [Os estudos](estudos/README.md) | o que guiou a cara e o método: o Hefesto por dentro, os manuais de UI para a TV, o sistema visual, o DualSense nos jogos comerciais |
+| [Os estudos](estudos/README.md) | o que guiou a cara e o método: o Hefesto por dentro, os manuais de UI para a TV, o sistema visual, o DualSense nos jogos comerciais, o DualSense de Astro Bot |
 | [O checklist do estudo 02](CHECKLIST-DO-ESTUDO-02.md) | os 31 itens de UI para a TV, conferidos tela por tela |
 
 ## O projeto

@@ -36,6 +36,10 @@ A feature protagonista leva o verbo principal; as outras dão a textura. Um
 minigame só está pronto quando ver, ouvir e sentir acontecem no mesmo
 quadro.
 
+**A feature protagoniza o verbo, não o repertório** ([ADR-008](../adr/008-a-metodologia-astro-bot.md)): nenhuma sala do Forja
+usa uma feature só. A tabela acima é o chão de toda sala, de qualquer
+seção; sala que deixa um recurso de fora diz na ficha por quê.
+
 ## 3. Uma nota por jogador
 
 O núcleo rítmico do Forja é o hoqueto: a frase musical é dividida entre os

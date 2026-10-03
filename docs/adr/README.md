@@ -9,5 +9,6 @@
 | [005](005-o-radio-nativo-so-entrada.md) | DualSense nativo no rádio entra só com a entrada |
 | [006](006-o-som-se-acha-como-um-jogo-acha.md) | O som de cada controle se acha como um jogo acha |
 | [007](007-o-jogo-e-o-3d-em-godot.md) | O jogo é o 3D em Godot, com o SDL3 dentro dele (substitui em parte o 004) |
+| [008](008-a-metodologia-astro-bot.md) | A metodologia Astro Bot, e o repertório inteiro do controle em toda sala |
 
 A lei de cima continua sendo o [CONTRATO.md](../../CONTRATO.md).
