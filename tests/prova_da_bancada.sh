@@ -9,7 +9,8 @@
 # Uso: bash tests/prova_da_bancada.sh        (GODOT=<binário> para outro Godot)
 set -u
 RAIZ="$(cd "$(dirname "$0")/.." && pwd)"
-GODOT="${GODOT:-$RAIZ/tools/Godot_v4.4.1-stable_linux.x86_64}"
+source "$RAIZ/scripts/engine.sh"   # a versão da engine mora lá (ADR-009)
+GODOT="$FORJA_GODOT"
 [ -x "$GODOT" ] || { echo "sem Godot: rode ./run-local.sh uma vez, ou GODOT=<binário>"; exit 2; }
 TMP="$(mktemp -d /tmp/forja-prova-da-bancada-XXXXXX)"
 trap 'rm -rf "$TMP"' EXIT

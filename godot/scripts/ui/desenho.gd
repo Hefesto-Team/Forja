@@ -4,7 +4,7 @@ extends RefCounted
 ## com borda, selo cheio em mono, as cinco lâmpadas do LED de jogador, a barra
 ## de bateria, o texto com alinhamento. Tudo em cima da API 2D do Godot.
 
-const LOGO := preload("res://assets/hefesto-logo.png")
+const LOGO := preload("res://assets/forja-logo.png")
 
 ## O glifo de cada feature do relatório (os de assets/glifos, do app Hefesto).
 const GLIFO_DA_FEATURE := {

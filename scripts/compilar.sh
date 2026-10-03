@@ -29,6 +29,9 @@ SDL_URL="https://github.com/libsdl-org/SDL/releases/download/release-${SDL_VERSA
 GODOT_CPP_TAG="master"
 GODOT_CPP_COMMIT="507ed9d840c01a3c5b2a39af8bb4000bfac30bf5"
 GODOT_CPP_URL="https://github.com/godotengine/godot-cpp.git"
+# O master traz a API de várias versões (extension_api-4-3 … 4-7) e exige dizer
+# qual. A nossa é a da engine que o jogo roda (scripts/engine.sh).
+GODOT_CPP_API="${GODOT_CPP_API:-4.7}"
 
 CACHE="${FORJA_CACHE:-$RAIZ/.cache}"
 JOBS="${JOBS:-$(getconf _NPROCESSORS_ONLN 2>/dev/null || echo 2)}"
@@ -120,13 +123,13 @@ compilar() {
     linux)
       compilar_sdl linux
       extra+=(-DCMAKE_PREFIX_PATH="$CACHE/sdl-${SDL_VERSAO}-linux"
-              -DGODOT_CPP_DIR="$(preparar_godot_cpp)" -DFORJA_TESTES=OFF)
+              -DGODOT_CPP_DIR="$(preparar_godot_cpp)" -DGODOTCPP_API_VERSION="$GODOT_CPP_API" -DFORJA_TESTES=OFF)
       ;;
     windows)
       compilar_sdl windows
       extra+=(-DCMAKE_TOOLCHAIN_FILE="$RAIZ/cmake/mingw64-x86_64.cmake"
               -DCMAKE_PREFIX_PATH="$CACHE/sdl-${SDL_VERSAO}-windows"
-              -DGODOT_CPP_DIR="$(preparar_godot_cpp)" -DFORJA_TESTES=OFF)
+              -DGODOT_CPP_DIR="$(preparar_godot_cpp)" -DGODOTCPP_API_VERSION="$GODOT_CPP_API" -DFORJA_TESTES=OFF)
       ;;
     testes)
       extra+=(-DFORJA_EXTENSAO=OFF -DFORJA_TESTES=ON)

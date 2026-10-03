@@ -1,0 +1,49 @@
+# Os pacotes de sistema da Forja (Debian/Ubuntu/Pop!_OS).
+# Uma linha por pacote; o que vem depois de # é comentário.
+# Quem instala é o scripts/instalar.sh, que também confere sem instalar nada.
+
+# compilar
+build-essential
+cmake
+ninja-build
+pkg-config
+git
+curl
+unzip
+zstd                  # o pacote do Ollama vem em .tar.zst
+
+# som
+libasound2-dev
+libpulse-dev
+libpipewire-0.3-dev
+
+# janela e entrada (X11)
+libx11-dev
+libxext-dev
+libxrandr-dev
+libxcursor-dev
+libxfixes-dev
+libxi-dev
+libxss-dev
+libxtst-dev
+libxkbcommon-dev
+
+# janela (Wayland)
+libwayland-dev
+wayland-protocols
+libdecor-0-dev
+
+# vídeo
+libdrm-dev
+libgbm-dev
+libgl1-mesa-dev
+libegl1-mesa-dev
+
+# sistema
+libdbus-1-dev
+libudev-dev
+
+# as provas e as fotos das telas
+bubblewrap            # a caixa das provas
+xvfb                  # a prova visual, que precisa de janela
+ffmpeg                # converter e cortar as faixas da trilha

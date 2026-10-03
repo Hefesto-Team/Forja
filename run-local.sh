@@ -12,9 +12,9 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "$0")" && pwd)"
 cd "$ROOT"
 
-GODOT_VER="4.4.1-stable"
-GODOT_BIN="$ROOT/tools/Godot_v${GODOT_VER}_linux.x86_64"
-GODOT_URL="https://github.com/godotengine/godot/releases/download/${GODOT_VER}/Godot_v${GODOT_VER}_linux.x86_64.zip"
+source "$ROOT/scripts/engine.sh"   # a versão da engine mora lá (ADR-009)
+GODOT_VER="$FORJA_GODOT_VER"
+GODOT_BIN="$FORJA_GODOT"
 
 echo "==> ferramentas de bancada (o mesmo empacotador USB 0x02 do jogo)"
 make -s all

@@ -9,7 +9,8 @@
 # telas em inglês.
 set -euo pipefail
 RAIZ="$(cd "$(dirname "$0")/.." && pwd)"
-GODOT="${GODOT:-$RAIZ/tools/Godot_v4.4.1-stable_linux.x86_64}"
+source "$RAIZ/scripts/engine.sh"   # a versão da engine mora lá (ADR-009)
+GODOT="$FORJA_GODOT"
 SAIDA="$(realpath -m "${1:-$RAIZ/dist/trailer.avi}")"
 mkdir -p "$(dirname "$SAIDA")"
 REL="$(mktemp -d)"

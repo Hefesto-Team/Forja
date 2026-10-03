@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+# A versão da engine, num lugar só (ADR-009).
+#
+# Todo script que precisa do Godot faz:
+#   source "$RAIZ/scripts/engine.sh"      # define FORJA_GODOT
+#
+# Subir de versão é mudar esta linha e rodar as provas. Antes isto estava
+# escrito com todas as letras em dezesseis arquivos, e cada um subia sozinho.
+
+FORJA_GODOT_VER="${FORJA_GODOT_VER:-4.7.2-stable}"
+
+_engine_raiz="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+FORJA_GODOT="${GODOT:-$_engine_raiz/tools/Godot_v${FORJA_GODOT_VER}_linux.x86_64}"
+FORJA_GODOT_URL="https://github.com/godotengine/godot/releases/download/${FORJA_GODOT_VER}/Godot_v${FORJA_GODOT_VER}_linux.x86_64.zip"
+
+## Baixa a engine para tools/ se ela não estiver lá. Não abre nada.
+forja_baixar_engine() {
+  [[ -x "$FORJA_GODOT" ]] && return 0
+  echo "==> baixando Godot ${FORJA_GODOT_VER} (editor Linux x86_64, ~60 MB)"
+  local tmp; tmp="$(mktemp -d)"
+  if ! curl -fsSL -o "$tmp/godot.zip" "$FORJA_GODOT_URL"; then
+    rm -rf "$tmp"; echo "não deu para baixar a engine de $FORJA_GODOT_URL" >&2; return 1
+  fi
+  mkdir -p "$_engine_raiz/tools"
+  unzip -o -q "$tmp/godot.zip" -d "$_engine_raiz/tools" || { rm -rf "$tmp"; return 1; }
+  rm -rf "$tmp"
+  chmod +x "$FORJA_GODOT"
+  [[ -x "$FORJA_GODOT" ]]
+}

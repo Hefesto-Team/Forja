@@ -22,8 +22,9 @@ set -euo pipefail
 RAIZ="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$RAIZ"
 
-GODOT_VER="4.4.1-stable"
-GODOT_BIN="${GODOT:-$RAIZ/tools/Godot_v${GODOT_VER}_linux.x86_64}"
+source "$RAIZ/scripts/engine.sh"   # a versão da engine mora lá (ADR-009)
+GODOT_VER="$FORJA_GODOT_VER"
+GODOT_BIN="$FORJA_GODOT"
 GODOT_URL="https://github.com/godotengine/godot/releases/download/${GODOT_VER}/Godot_v${GODOT_VER}_linux.x86_64.zip"
 MODELOS_URL="https://github.com/godotengine/godot/releases/download/${GODOT_VER}/Godot_v${GODOT_VER}_export_templates.tpz"
 MODELO_LINUX="linux_release.x86_64"
@@ -143,7 +144,7 @@ desktop() {
   cat <<'TEXTO'
 [Desktop Entry]
 Type=Application
-Name=FORJA
+Name=A Forja
 GenericName=Jogo de festa para quatro DualSense
 Comment=Quatro DualSense no mesmo sofá
 Exec=forja.x86_64
@@ -221,7 +222,7 @@ exportar() {
   licencas > "$saida/LICENCAS.txt"
   if [[ "$qual" == linux ]]; then
     cp "$RAIZ/udev/99-forja-dualsense.rules" "$saida/"
-    cp "$RAIZ/godot/assets/hefesto-logo.png" "$saida/forja.png"
+    cp "$RAIZ/godot/assets/forja-logo.png" "$saida/forja.png"
     desktop > "$saida/forja.desktop"
     tar -C "$DIST" -czf "$DIST/$nome.tar.gz" "$nome"
     diga "dist/$nome.tar.gz"

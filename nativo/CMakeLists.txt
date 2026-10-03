@@ -10,7 +10,7 @@
 #
 #   -DFORJA_EXTENSAO=ON    a GDExtension (precisa do SDL3 e do godot-cpp)
 #   -DFORJA_TESTES=ON      as provas da lógica, sem aparelho e sem SDL
-#   -DGODOT_CPP_DIR=...    a árvore do godot-cpp (godot-4.4-stable)
+#   -DGODOT_CPP_DIR=...    a árvore do godot-cpp (master, num commit fixo)
 cmake_minimum_required(VERSION 3.20)
 project(forja LANGUAGES C CXX)
 
@@ -136,7 +136,14 @@ add_library(forja SHARED
   godot/forja_som.cpp
   godot/forja_bancada.cpp
 )
-target_link_libraries(forja PRIVATE forja_sdl godot-cpp::template_release)
+# O godot-cpp do master exporta «godot::cpp»; até a 4.5 o nome era
+# «godot-cpp::template_release» (ADR-009). Aceita os dois, para quem tiver uma
+# árvore antiga em GODOT_CPP_DIR não ficar de fora.
+if(TARGET godot::cpp)
+  target_link_libraries(forja PRIVATE forja_sdl godot::cpp)
+else()
+  target_link_libraries(forja PRIVATE forja_sdl godot-cpp::template_release)
+endif()
 target_compile_definitions(forja PRIVATE FORJA_VERSAO="${FORJA_VERSAO}")
 
 # O nome segue o do godot-cpp: libforja.linux.x86_64.so, libforja.windows.x86_64.dll
