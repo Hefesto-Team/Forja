@@ -113,6 +113,20 @@ o que acontece sem cabo, e o ajuste global de força.
   como "uma fase, um verbo protagonista".
 - **O registro ganha peso**: é ele que prova que os sete recursos saíram, já
   que a sala não pode perguntar ao jogador.
+- **Todo número do DualSense nos nossos documentos é medida nossa, e diz
+  isso.** A Sony recusa publicar latência, frequência de ressonância, resposta
+  em frequência e curva de força do gatilho — quatro recusas registradas na
+  entrevista do chefe de projeto de periféricos da SIE ([estudo 05, adendo
+  §3](../estudos/05-o-dualsense-do-astro-bot.md)). Faixa que aparecer sem
+  rótulo de origem sai do documento.
+- **O teto de frequência do háptico tem fundamento publicado**: o aparelho é
+  de banda larga e quem corta o agudo é um filtro em software, porque acima
+  dele a vibração passa a ser *ouvida*. O critério é perceptual, não um número
+  do fabricante — e é assim que a tabela de materiais o escreve.
+- **Falta uma pré-escuta do háptico.** A Sony construiu um ambiente de autoria
+  de forma de onda ao lado do motor de som; o nosso motor existe
+  (`nativo/som/sintese.c`) e a ferramenta de desenhar e sentir antes de entrar
+  no jogo, não. Vira ficha.
 - **O estudo 05 é a fonte**, com as lacunas anotadas nele: o conteúdo pago da
   GDC Vault, a ferramenta interna da Asobi e a resposta em frequência medida
   do atuador continuam desconhecidos.

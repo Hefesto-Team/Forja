@@ -150,3 +150,105 @@ Toda a coluna "No FORJA" é **[I]**.
 - A frase "cerca de 12 superfícies-chave", atribuída à Newshub/Stuff: não verificada.
 - O nome "Seismix", o limite de ~500 Hz atribuído à Famitsu e várias páginas que deram 403, 504 ou não resolveram (Digital Trends em parte, Gamespot, VGC, TechRadar review, Actronika, Audiokinetic). O que vem delas saiu do resumo do buscador, sem conferência direta.
 - O relato do núcleo "DualSense 2.0" é de segunda mão (Gfinity sobre um vídeo de Julien Chièze). O vídeo original não foi visto.
+
+---
+
+# Adendo — o que a própria Sony publicou (02/10/2026)
+
+Uma segunda varredura, só em fonte **da Sony e de publicação acadêmica**,
+corrige três pontos do relatório acima. Nada do SDK: ele é sob NDA, e não foi
+procurado nem lido.
+
+## 1. O método "som vira háptico" é publicado pela Sony, não é só prática de estúdio
+
+Na brochura **Sony's Technology 2020** (Sony Corporation, Corporate
+Communications, julho/2020, "Haptics — Taking on New Challenges with
+Haptics", pp. 26–27), Yukari Konishi, do Global R&D Tokyo Division da Sony
+Interactive Entertainment, descreve a ferramenta interna:
+
+> *"we have created a **haptic vibration waveform design environment** that
+> anyone can use easily"* … *"we have not only developed a tool that allows
+> game creators to design an impactful, natural and comfortable vibration
+> waveform in fewer steps, but also created a method of **almost automatically
+> generating vibration patterns from a game's sound effects**."*
+
+O PDF original responde 403; cópia legível:
+<http://web.archive.org/web/20201125202546/https://www.sony.net/SonyInfo/technology/activities/Tech2020/pdf/Sonys_Technology_2020_E.pdf>
+
+A página **Sony's Haptics Technology** do R&D Center (hoje 404; cópia em
+<http://web.archive.org/web/20250918021425/https://www.sony.co.jp/en/technology/haptics/>)
+diz o porquê: *"**Focusing on the fact that sound and vibration are similar in
+nature**, the R&D Center advanced its research through the use of Sony's audio
+technology."*
+
+**Para o Forja:** a ferramenta de autoria é parte do método, não acessório. O
+`nativo/som/sintese.c` é o nosso análogo; o que falta ao lado dele é a
+**pré-escuta**, para a onda ser desenhada e sentida antes de entrar no jogo.
+
+## 2. Como o atuador funciona, por quem o projetou — em publicação de terceiro
+
+**IPSJ 情報処理 Vol.62 No.7 (2021)**, artigo de Zenji Nishikawa (jornalista)
+entrevistando **Takeshi Igarashi**, chefe do departamento de projeto de
+periféricos da SIE. Acesso aberto:
+<https://ipsj.ixsq.nii.ac.jp/record/211668/files/IPSJ-O-MGN620705.pdf>
+
+- **Motor linear de vibração ântero-posterior** — "na prática, uma bobina de
+  voz" —, não o motor rotativo do DS3/DS4. Banda muito mais larga, do grave ao
+  agudo, **num elemento só**.
+- **O teto de frequência é um filtro em software**, não limite do aparelho:
+  acima dele a vibração *passa a ser ouvida como som*. O limite "é tecnicamente
+  possível remover".
+- **Uma única frequência de ressonância** — o valor é 非公開 (não divulgado).
+- O dado mais simples de mandar é *"uma forma de onda como dados de áudio PCM"*.
+- Dois elementos iguais, um por punho, para **vibração em estéreo**; o curso é
+  simétrico, **mas o acionamento assimétrico é possível**.
+- **O gatilho**: um parafuso sem-fim no eixo do motor move um braço com
+  engrenagem helicoidal que encosta no gatilho. A força **máxima** é a tensão
+  do motor pela redução; a **mínima** é a mola mais a **carga mecânica do
+  engrenamento** — ou seja, o piso de resistência é físico, não escolha de
+  software.
+
+Bate com as patentes públicas ([US 11.806.614 B2](https://patents.google.com/patent/US11806614B2/en),
+[JP 7.778.862 B2](https://patents.google.com/patent/JP7778862B2/en)).
+
+## 3. A Sony recusa publicar os números — e isso é uma regra para o repositório
+
+O mesmo artigo registra **quatro** recusas: latência e resposta, frequência de
+ressonância, a curva de resposta em frequência DS4 × DualSense, e a curva de
+força do gatilho — todas 非公開.
+
+**Portanto: toda faixa numérica do DualSense em documento do Forja não vem de
+fonte aberta da Sony.** Vem de medição nossa, de teardown ou de engenharia
+reversa, e tem de estar rotulada assim — inclusive os 60 a 180 Hz da tabela de
+materiais do [05](../jogo/05-haptica-e-controle.md).
+
+Os números que a Sony **publicou** são de outros aparelhos, e servem de
+fundamento citável:
+
+| grandeza | valor | fonte |
+| --- | --- | --- |
+| atuador bobina+massa+mola | 35,0 × 5,0 × 7,5 mm, 5,2 g | Traxion, Jun Rekimoto (Sony CSL), UIST '13, [10.1145/2501988.2502044](https://doi.org/10.1145/2501988.2502044) |
+| extinção da vibração | menos de 50 ms | idem |
+| ciclo assimétrico (força virtual) | 2 ms ligado / 8 ms desligado | idem |
+| ciclo simétrico (vibração normal) | 5 ms / 5 ms | idem |
+| rigidez reproduzida | 0,544 a 5,304 N/mm | Yoshida et al., R&D Center Sony, IEEE World Haptics 2021, [10.1109/whc49131.2021.9517139](https://doi.org/10.1109/whc49131.2021.9517139) |
+
+O Traxion é a ponte certa para qualquer efeito direcional do Forja: é paper da
+Sony, aberto, com milissegundos concretos, e a IPSJ confirma que o DualSense
+aceita acionamento assimétrico no mesmo eixo.
+
+## 4. O vocabulário da Sony, para as telas e os documentos
+
+*wide-frequency* (広帯域) · *wide dynamic range* · *vibration waveform* (振動波形) ·
+*vibration pattern* · *haptic super-resolution* (触覚超解像) · "controle
+independente de amplitude e frequência" · 振動覚・圧覚・力覚・温冷覚 (vibratória,
+pressão, força, térmica) · **抵抗力覚** — *sensação de força resistiva*, que é o
+termo técnico do que o gatilho faz · *trigger effect*.
+
+## 5. O que continua sem fonte
+
+A SIE publica háptico em SIGGRAPH Emerging Technologies, UIST e CHI, mas
+**nunca sobre o DualSense**: ele só existe em entrevista e em palestra de
+estúdio. Não há paper da Sony sobre *áudio para háptico* — o método com rede
+neural existe só como depoimento na brochura. A biblioteca da AES estava fora
+do ar (503) e não pôde ser varrida.
