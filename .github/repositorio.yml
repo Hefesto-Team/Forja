@@ -44,9 +44,10 @@ funções:
     ligada: true
   discussions:
     ligada: true
+  # O botão Sponsor mostra o que o FUNDING.yml lista; o GitHub Sponsors, o Ko-fi e o PIX entram lá
+  # quando quem mantém decidir quem recebe.
   sponsor:
-    ligada: false
-    depois: "quando quem mantém decidir quem recebe as doações (o botão Sponsor já aparece pelo FUNDING.yml)"
+    ligada: true
 
 # Só o alerta do Dependabot fica, como no Hefesto: a atualização se faz num commit de quem mantém.
 seguranca:
