@@ -148,6 +148,7 @@ jogo e joga de novo no binário Linux, no AppImage e no `.exe` pelo Wine.
 
 | se você quer… | leia |
 | --- | --- |
+| contribuir: as regras da casa e os comandos | [docs/COMO-CONTRIBUIR.md](docs/COMO-CONTRIBUIR.md) |
 | compilar, exportar, rodar as provas | [docs/DESENVOLVER.md](docs/DESENVOLVER.md) |
 | entender cada sala por dentro | [docs/SALAS.md](docs/SALAS.md) |
 | saber onde o projeto está e o que falta | [SPRINTS.md](SPRINTS.md) |

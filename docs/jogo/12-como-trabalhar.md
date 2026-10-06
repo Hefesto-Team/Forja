@@ -1,8 +1,8 @@
 # 12 — Como trabalhar
 
 O jeito de tocar o Forja daqui para a frente: sem data, uma tarefa por vez,
-de um jeito que qualquer pessoa — ou qualquer sessão do editor — pegue
-uma ficha, faça e entregue sem precisar entender o projeto inteiro. É também
+de um jeito que qualquer pessoa, em qualquer sessão de trabalho, pegue uma
+ficha, faça e entregue sem precisar entender o projeto inteiro. É também
 o jeito mais barato: o que mais custa numa sessão é o contexto que ela carrega.
 
 ## O quadro e as fichas
@@ -17,12 +17,12 @@ tem o mesmo molde:
 - **Passos:** de três a oito.
 - **Pronto quando:** uma frase que se confere.
 - **Provas:** o que roda na sessão e o que o André roda na máquina dele.
-- **Sprint, tamanho, modelo e estimativa.**
+- **Sprint, tamanho e estimativa.**
 
 ## O ciclo de uma ficha
 
 1. Pegar a primeira ficha **a fazer** do quadro e marcar **fazendo**.
-2. Abrir uma sessão **nova** do editor. Uma ficha, uma sessão.
+2. Abrir uma sessão **nova**. Uma ficha, uma sessão.
 3. Pedir: "Faça a ficha `docs/jogo/tarefas/<ficha>.md`". A sessão lê a ficha
    e os arquivos que ela cita — nada mais.
 4. Fazer, rodar a prova rápida (`bash tests/prova_do_jogo.sh`) e commitar
@@ -77,16 +77,6 @@ André confere.
 - Resultado do André em resumo: "gauntlet 20/20, a prova de poucos falhou na
   Viga com 2 jogadores: <3 linhas>".
 
-## Qual modelo
-
-| para quê |
-| --- |
-| o kit do minigame, a primeira ficha de cada sprint, a primeira sessão de cada seção, tudo que mexe no módulo em C, decisão de contrato |
-| as fichas repetitivas: a varredura de texto, os minigames 3 a 5 de cada seção, as telas, a importação de bonecos |
-
-Cada ficha diz o caminho sugerido. Na dúvida, modelo primeiro; se travar,
-Opus.
-
 ## O kit do minigame
 
 A ficha [H04](tarefas/H04-o-kit-do-minigame.md) é a que mais economiza. As
@@ -95,24 +85,15 @@ salas de hoje repetem de 30 a 60 linhas cada (medido na H04: a raia,
 linhas, o kit tira as **decisões** da sessão: relógio, julgamento, item,
 falas, fechamento e registro já estão resolvidos. Com ele, um minigame é a
 [ficha de dados](tarefas/molde-de-minigame.md) mais os ganchos que são só
-dele — **uma ficha por minigame, uma sessão modelo por ficha**.
+dele — **uma ficha por minigame, uma sessão por ficha**.
 
 ## O orçamento
 
-Preços de 30/09/2026, por milhão de tokens:
-
-| entrada | saída | leitura do cache |
-| --- | --- | --- |
-| US$ 4 | US$ 20 | US$ 0,20 |
-| US$ 2 | US$ 10 | US$ 0,20 |
-
-Numa sessão do editor, a maior parte do custo é o contexto relido a cada
-turno — e ler do cache custa o mesmo nos dois modelos. Por isso **o que
-economiza é a sessão curta**, mais do que trocar de modelo. Uma sessão
-enxuta (uma ficha, uns 40 turnos, contexto abaixo de 80 mil tokens) sai por
-volta de US$ 1,5 a 2,5. As fichas já trazem o código de hoje, a API alvo e
-as checagens prontas, então o modelo executa sem explorar — e a maior parte
-delas é modelo.
+Numa sessão de trabalho, a maior parte do custo é o contexto relido a cada
+turno. Por isso **o que economiza é a sessão curta**, mais do que qualquer
+outra escolha. Uma sessão enxuta (uma ficha, uns 40 turnos, contexto abaixo de
+80 mil tokens) sai por volta de US$ 1,5 a 2,5. As fichas já trazem o código de hoje, a API alvo e
+as checagens prontas, então a sessão executa sem explorar.
 
 | sprint | fichas | estimativa (US$) |
 | --- | --- | --- |
@@ -142,5 +123,5 @@ uma. Quem retomar pega a próxima linha do quadro.
 ## Para quem chega agora
 
 1. Leia o [README desta pasta](README.md) e as regras de ouro.
-2. Leia o [CONTRATO](../../CONTRATO.md) e o [AGENTS](../../AGENTS.md).
+2. Leia o [CONTRATO](../../CONTRATO.md) e o [COMO-CONTRIBUIR](../COMO-CONTRIBUIR.md).
 3. Abra o [quadro](tarefas/README.md), pegue a primeira ficha **a fazer**.

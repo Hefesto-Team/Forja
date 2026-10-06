@@ -9,3 +9,8 @@ dist/
 relatorios/
 oficina/
 __pycache__/
+# a lei do repositório é docs/COMO-CONTRIBUIR.md; o arquivo de regras das ferramentas
+# de assistente fica só na máquina de quem o usa, e nunca entra no git
+AGENTS.md
+editor.md
+.editor/

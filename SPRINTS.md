@@ -342,7 +342,7 @@ entrega, e onde se confere:
 - **os estudos** que guiaram a cara e o método, em
   [docs/estudos](docs/estudos/README.md).
 
-Quem continua começa pelo [AGENTS.md](AGENTS.md) (a lei do repositório e os
+Quem continua começa pelo [COMO-CONTRIBUIR](docs/COMO-CONTRIBUIR.md) (a lei do repositório e os
 comandos), pelo [CONTRATO.md](CONTRATO.md) e pelo backlog abaixo. Trabalho
 novo começa por um item daqui — e, como o resto deste arquivo, a lista não
 começa trabalho sozinha.
