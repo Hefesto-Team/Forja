@@ -26,6 +26,9 @@ jobs:
         with:
           fetch-depth: 0 # a versão do jogo vem do git describe
 
+      - name: A prova sem rastro (nome de ferramenta e de modelo, trailer, arquivo das ferramentas; ela se prova sozinha)
+        run: bash tests/prova_sem_rastro.sh
+
       - name: Dependências (o SDL carrega X11, Wayland e o som em tempo de execução)
         run: |
           sudo apt-get update

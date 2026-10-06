@@ -58,6 +58,15 @@ grep -E "^NÃO|^==>" "$TMP/ost.log"
 
 FALHAS=0
 [ "$OST" -eq 0 ] || { echo "FAIL a trilha não confere (python3 scripts/conferir_ost.py)"; FALHAS=$((FALHAS + 1)); }
+# nada do que se publica pode denunciar a ferramenta nem o modelo (tests/prova_sem_rastro.sh)
+if git -C "$RAIZ" rev-parse --git-dir > /dev/null 2>&1; then
+  bash "$RAIZ/tests/prova_sem_rastro.sh" > "$TMP/sem-rastro.log" 2>&1
+  SEM_RASTRO=$?
+  grep -E "^FAIL|^     |prova sem rastro ok" "$TMP/sem-rastro.log"
+  [ "$SEM_RASTRO" -eq 0 ] || { echo "FAIL a prova sem rastro (bash tests/prova_sem_rastro.sh)"; FALHAS=$((FALHAS + 1)); }
+else
+  echo "sem git aqui: a prova sem rastro foi pulada (ela lê o que o git versiona)"
+fi
 rodar() {
   local rel="$TMP/relatorios-$1"
   mkdir -p "$rel"
