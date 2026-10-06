@@ -15,7 +15,8 @@ permissions:
   contents: read
 
 env:
-  GODOT_VERSAO: "4.4.1-stable"
+  # A versão é a do scripts/engine.sh (ADR-009); o passo «A versão do Godot é a do engine.sh» reprova se divergirem.
+  GODOT_VERSAO: "4.7.2-stable"
 
 jobs:
   linux:
@@ -55,6 +56,11 @@ jobs:
 
       - name: As ferramentas de bancada e as provas delas
         run: make all
+
+      - name: A versão do Godot é a do engine.sh
+        run: |
+          grep -q "FORJA_GODOT_VER:-${GODOT_VERSAO}}" scripts/engine.sh \
+            || { echo "o CI baixa o Godot ${GODOT_VERSAO}, e o scripts/engine.sh pede outro: alinhe os dois"; exit 1; }
 
       - name: O Godot em cache
         id: godot
@@ -139,6 +145,11 @@ jobs:
           path: godot/bin
           merge-multiple: true
 
+      - name: A versão do Godot é a do engine.sh
+        run: |
+          grep -q "FORJA_GODOT_VER:-${GODOT_VERSAO}}" scripts/engine.sh \
+            || { echo "o CI baixa o Godot ${GODOT_VERSAO}, e o scripts/engine.sh pede outro: alinhe os dois"; exit 1; }
+
       - name: O Godot em cache
         id: godot
         uses: actions/cache@v4
@@ -207,6 +218,11 @@ jobs:
         with:
           name: forja-modulo-linux-x86_64
           path: godot/bin
+
+      - name: A versão do Godot é a do engine.sh
+        run: |
+          grep -q "FORJA_GODOT_VER:-${GODOT_VERSAO}}" scripts/engine.sh \
+            || { echo "o CI baixa o Godot ${GODOT_VERSAO}, e o scripts/engine.sh pede outro: alinhe os dois"; exit 1; }
 
       - name: O Godot em cache
         id: godot
