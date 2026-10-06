@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Tirar uma dúvida
+    url: https://github.com/Hefesto-Team/Forja/discussions/categories/q-a
+    about: Para perguntar como rodar ou jogar, a conversa é nas Discussões.
+  - name: Mostrar a sua noite de jogo
+    url: https://github.com/Hefesto-Team/Forja/discussions/categories/show-and-tell
+    about: Conte com quem, em qual sistema e com quantos controles você jogou.
+  - name: Relatar uma falha de segurança
+    url: https://github.com/Hefesto-Team/Forja/security/advisories/new
+    about: Em privado, sem abrir uma issue pública.

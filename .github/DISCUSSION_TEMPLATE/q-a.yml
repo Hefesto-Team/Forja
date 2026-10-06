@@ -1,0 +1,21 @@
+title: "[Pergunta] "
+labels: ["question"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Antes de perguntar, vale olhar o [COMO-RODAR](https://github.com/Hefesto-Team/Forja/blob/main/COMO-RODAR.md). Se for um defeito, abra uma [issue](https://github.com/Hefesto-Team/Forja/issues/new/choose).
+  - type: textarea
+    id: pergunta
+    attributes:
+      label: Sua pergunta
+      description: O que você quer fazer e o que já tentou.
+    validations:
+      required: true
+  - type: dropdown
+    id: sistema
+    attributes:
+      label: Sistema
+      options:
+        - Linux
+        - Windows

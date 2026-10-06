@@ -3,11 +3,12 @@
 #   python3 aplicar.py --repo DONO/NOME --arquivo .github/repositorio.yml --conferir   diz a diferença; sai com 1 se houver
 #   python3 aplicar.py --repo DONO/NOME --arquivo .github/repositorio.yml --aplicar    aplica pelo `gh api`, e rodar de novo não muda nada
 # Mudar uma configuração na interface do GitHub não vale: a próxima conferência acusa a diferença.
+# O quadro «Roteiro» e os tipos de issue são da organização e moram no arquivo do Hefesto, que liga o quadro a este repositório.
 versão: 1
 
 about:
   descrição: "Uma noite de jogo para quatro amigos, quatro DualSense e um sofá: nove salas, uma gincana e um pódio."
-  # Sem endereço próprio por enquanto: a página do jogo nasce com as Pages, depois da release 1.
+  # A página do jogo nasce com o trailer, e o endereço entra aqui nesse dia.
   site: ""
   topicos:
     - godot
@@ -21,32 +22,52 @@ about:
     - controller
     - haptic-feedback
 
+configuração:
+  mesclagem:
+    merge_commit: false
+    squash: true
+    rebase: true
+    apagar_ramo: true
+    atualizar_ramo: true
+
 # `ligada: false` precisa de `depois`: o que está desligado hoje e quando volta a ser considerado.
 funções:
   issues:
     ligada: true
   wiki:
     ligada: false
-    depois: "depois da release 1"
+    depois: "só se o jogo ganhar o que a pasta docs/ não diga: os documentos moram lá, e uma segunda cópia na Wiki divergiria"
   pages:
     ligada: false
-    depois: "depois da release 1"
+    depois: "quando o trailer do jogo existir (a página do jogo mostra o trailer)"
   projects:
-    ligada: false
-    depois: "depois da release 1"
+    ligada: true
   discussions:
-    ligada: false
-    depois: "depois da release 1"
+    ligada: true
   sponsor:
     ligada: false
-    depois: "depois da release 1"
+    depois: "quando quem mantém decidir quem recebe as doações (o botão Sponsor já aparece pelo FUNDING.yml)"
 
+# Só o alerta do Dependabot fica, como no Hefesto: a atualização se faz num commit de quem mantém.
 seguranca:
   relato_privado: true
   alertas_do_dependabot: true
-  atualizacoes_de_seguranca: true
+  atualizacoes_de_seguranca: false
   varredura_de_segredo: true
   protecao_de_push_de_segredo: true
+  varredura_de_codigo: true
+  linguagens_da_varredura: [actions, c-cpp, python]
+  grafo_de_dependencias: true
+  # O release do jogo cria a versão e anexa os três pacotes num comando só (`gh release create` do
+  # forja.yml); a imutável pede que isso saia em rascunho, e se mede na primeira release.
+  releases_imutaveis:
+    ligada: false
+    depois: "quando a primeira release do jogo provar que o `gh release create` com anexos publica em rascunho"
+
+ações:
+  permissao_do_fluxo: leitura
+  fluxo_aprova_pr: false
+  aprovacao_de_fork: todos_de_fora
 
 # Quem mantém: as mesmas duas contas do repositório do Hefesto.
 mantenedores:
@@ -55,15 +76,64 @@ mantenedores:
   - conta: AndreBFarias
     função: admin
 
+equipes:
+  - nome: mantenedores
+    descrição: "Quem mantém o Hefesto e a Forja."
+    acesso: maintain
+    membros:
+      - conta: vitoriamariadb
+        função: maintainer
+      - conta: AndreBFarias
+        função: maintainer
+
+rotulos:
+  exclusivos: false
+  lista:
+    - {nome: "bug", cor: "d73a4a", descrição: "Algo não funciona como deveria"}
+    - {nome: "enhancement", cor: "a2eeef", descrição: "Uma ideia nova ou uma melhoria"}
+    - {nome: "question", cor: "d876e3", descrição: "Uma dúvida de uso ou de configuração"}
+    - {nome: "documentation", cor: "0075ca", descrição: "O guia, o README ou os documentos do jogo"}
+    - {nome: "duplicate", cor: "cfd3d7", descrição: "Já existe uma issue sobre isto"}
+    - {nome: "invalid", cor: "e4e669", descrição: "Não é um defeito do projeto"}
+    - {nome: "wontfix", cor: "ffffff", descrição: "Não vai ser feito; o motivo fica na conversa"}
+    - {nome: "good first issue", cor: "7057ff", descrição: "Boa para quem está chegando"}
+    - {nome: "help wanted", cor: "008672", descrição: "Ajuda é bem-vinda"}
+    - {nome: "área: jogo", cor: "c5def5", descrição: "As salas, as telas e as cenas do Godot"}
+    - {nome: "área: módulo", cor: "c5def5", descrição: "O módulo nativo: o controle, a vibração e o som"}
+    - {nome: "área: bancada", cor: "c5def5", descrição: "As ferramentas de bancada e o Modo bancada"}
+    - {nome: "área: pacotes", cor: "c5def5", descrição: "A exportação, o AppImage e o .exe"}
+    - {nome: "sistema: Linux", cor: "bfd4f2", descrição: "Só acontece no Linux"}
+    - {nome: "sistema: Windows", cor: "bfd4f2", descrição: "Só acontece no Windows"}
+    - {nome: "prioridade: alta", cor: "b60205", descrição: "Impede de jogar"}
+    - {nome: "prioridade: média", cor: "fbca04", descrição: "Atrapalha, mas dá para jogar"}
+    - {nome: "prioridade: baixa", cor: "0e8a16", descrição: "Pode esperar"}
+
+milestones:
+  - titulo: "Primeira versão pública"
+    descrição: "O que entra na primeira versão pública do jogo."
+  - titulo: "Depois da primeira versão"
+    descrição: "O que fica para as versões seguintes."
+
+# As categorias nascem com as Discussions e a API do GitHub não cria nem renomeia categoria: aqui só se mede.
+discussoes:
+  categorias:
+    - {slug: announcements, responsável: false}
+    - {slug: q-a, responsável: true}
+    - {slug: ideas, responsável: false}
+    - {slug: show-and-tell, responsável: false}
+
 # O check obrigatório é o job que roda a prova do jogo (o `name` dele em `.github/workflows/forja.yml`),
 # e o nome tem de bater letra por letra. Os administradores passam pelo ruleset «a porta»;
-# o ruleset «a história» não tem exceção para ninguém. O histórico linear mora na porta: a história
-# do `main` já tem um merge, e sem exceção a regra barraria o primeiro push do repositório recriado.
+# o ruleset «a história» não tem exceção para ninguém, e é nele que mora a assinatura (uma exceção a
+# anularia para quem mais empurra commit). O histórico linear mora na porta: a história do `main` já
+# tem um merge, e sem exceção a regra barraria o primeiro push do repositório recriado.
+# A assinatura só se aplica depois do push da história: a que já existe não é assinada.
 rulesets:
-  - nome: "A história do main não se reescreve"
+  - nome: "A história do main não se reescreve e vem assinada"
     ramos: [main]
     sem_apagar: true
     sem_push_forcado: true
+    assinatura: exigida
   - nome: "O que entra no main passa pela prova e pela revisão"
     ramos: [main]
     historico_linear: true
@@ -72,3 +142,22 @@ rulesets:
     checks:
       - "Linux — módulo, provas e a prova do jogo"
     excecao: administradores
+  - nome: "As versões publicadas não se apagam nem se reescrevem"
+    tags: ["v*"]
+    sem_apagar: true
+    sem_push_forcado: true
+    sem_atualizar: true
+
+comunidade:
+  saude_minima: 100
+
+# O que o GitHub oferece e a casa deixa de fora, cada um com o motivo medido em 06/10/2026.
+de_fora:
+  lfs: "o maior arquivo versionado tem 1,9 MB (`git ls-files` com `stat`); o limite do GitHub é 100 MB por arquivo"
+  merge_queue: "o trabalho do dia entra por push direto de quem mantém no `main`; a fila serve a quem mescla PR de muita gente"
+  codespaces: "o jogo pede o aparelho (quatro DualSense no cabo), uma placa de vídeo e uma sessão gráfica, que um contêiner na nuvem não tem"
+  autolinks: "nenhuma referência do repositório tem um prefixo próprio para virar link: as issues e os PRs já viram link sozinhos"
+  imagem_de_previa_social: "a API do GitHub não tem endpoint para a imagem (nenhum caminho de «social preview» na descrição OpenAPI de 06/10/2026); sobe-se pela interface, em Settings"
+  ambientes: "o release do jogo não publica em serviço de terceiros: ele anexa os três pacotes à própria release (`gh release create` no forja.yml), sem ambiente com aprovação"
+  packages: "os pacotes do jogo saem como anexos da release (o binário, o .exe e o AppImage), e não como imagem de contêiner"
+  revisao_de_dependencias: "o repositório não tem manifesto de dependências (só `third_party/`, que é código embutido): o grafo não teria o que comparar num PR"

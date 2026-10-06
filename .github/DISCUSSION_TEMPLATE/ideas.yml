@@ -1,0 +1,9 @@
+title: "[Ideia] "
+body:
+  - type: textarea
+    id: ideia
+    attributes:
+      label: Sua ideia
+      description: O que você imagina e para quem ajudaria.
+    validations:
+      required: true

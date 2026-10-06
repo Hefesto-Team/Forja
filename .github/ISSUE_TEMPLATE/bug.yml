@@ -1,0 +1,68 @@
+name: Algo não funciona
+description: Conte o que aconteceu, para a gente conseguir repetir.
+title: "[Defeito] "
+labels: ["bug"]
+type: Bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Obrigado por avisar. Quanto mais preciso o relato, mais rápido sai a correção.
+        Para uma dúvida, prefira as [Discussões](https://github.com/Hefesto-Team/Forja/discussions/categories/q-a).
+  - type: textarea
+    id: o-que-aconteceu
+    attributes:
+      label: O que aconteceu
+      description: O que você fez, o que viu e o que esperava ver.
+    validations:
+      required: true
+  - type: input
+    id: sala
+    attributes:
+      label: Em qual sala ou tela
+      placeholder: A Viga, o placar, o salão da forja...
+    validations:
+      required: true
+  - type: textarea
+    id: como-repetir
+    attributes:
+      label: Como repetir
+      placeholder: |
+        1. Quatro DualSense no cabo.
+        2. Partida com três salas.
+        3. ...
+    validations:
+      required: true
+  - type: dropdown
+    id: sistema
+    attributes:
+      label: Sistema
+      options:
+        - Linux
+        - Windows
+    validations:
+      required: true
+  - type: dropdown
+    id: jogadores
+    attributes:
+      label: Quantos jogadores
+      options:
+        - "1"
+        - "2"
+        - "3"
+        - "4"
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Versão do jogo
+      description: O nome do pacote que você baixou, ou o resultado de `git describe` se roda do código.
+    validations:
+      required: true
+  - type: textarea
+    id: bancada
+    attributes:
+      label: Saída da bancada
+      description: Se você roda do código, cole o resultado de `./run-local.sh bancada` (ele lista os DualSense no cabo).
+      render: shell

@@ -1,0 +1,21 @@
+title: "[Minha noite de jogo] "
+body:
+  - type: markdown
+    attributes:
+      value: Conte como foi a sua noite de Forja. Ajuda quem está chegando a saber o que esperar.
+  - type: input
+    id: jogadores
+    attributes:
+      label: Quantos jogadores e quais controles
+      placeholder: Quatro DualSense no cabo, dois no cabo e dois por adaptador...
+    validations:
+      required: true
+  - type: input
+    id: sistema
+    attributes:
+      label: Sistema
+  - type: textarea
+    id: como
+    attributes:
+      label: Como foi
+      description: Qual sala fez mais barulho, e o que você mudaria.

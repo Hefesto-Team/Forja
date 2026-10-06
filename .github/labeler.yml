@@ -1,0 +1,40 @@
+# O `rotulos.yml` põe no PR o rótulo da área que ele toca, pelo caminho dos arquivos mudados.
+# Cada rótulo existe no `repositorio.yml`, e cada caminho tem de casar com algum arquivo do repositório.
+"área: jogo":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "godot/**"
+"área: módulo":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "nativo/**"
+          - "include/**"
+          - "src/**"
+          - "cmake/**"
+          - "third_party/**"
+"área: bancada":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "src/forja_send.c"
+          - "src/forja_read.c"
+          - "src/forja_speak.c"
+          - "scripts/bancada_tui.py"
+          - "tests/prova_da_bancada.sh"
+          - "COMO-RODAR.md"
+"área: pacotes":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "scripts/exportar.sh"
+          - "scripts/instalar.sh"
+          - "scripts/modelos_de_exportacao.py"
+          - "godot/export_presets.cfg"
+          - "udev/**"
+          - "tests/prova_da_exportacao.sh"
+documentation:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "docs/**"
+          - "README.md"
+          - "README.en.md"
+          - "COMO-RODAR.md"
+          - "CONTRATO.md"
