@@ -35,8 +35,8 @@ qualquer ficha faz é `bash tests/prova_do_jogo.sh`, e ela passa.
 
 ## Passos
 
-1. Registrar o gancho de início de sessão (`SessionStart`) na configuração
-   da própria sessão na nuvem, **fora do repositório**: ele só chama
+1. Registrar o gancho de início de sessão na configuração da própria sessão
+   na nuvem, **fora do repositório**: ele só chama
    `scripts/preparar_sessao.sh`, que é o que se versiona.
 2. Escrever `scripts/preparar_sessao.sh`:
    - sai logo se não está na nuvem (sem a variável de ambiente que só a

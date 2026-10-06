@@ -21,10 +21,9 @@ Cada uma nasceu de um defeito real.
 - **Português do Brasil, com acento, em tudo:** código, telas, documentação e
   commits (`feat:`, `fix:`, `docs:`).
 - **O autor do commit é quem o escreveu, e só.** A mensagem diz o que mudou e
-  por quê, sem trailer de coautoria e sem assinatura de ferramenta, e nada do
-  que é publicado (código, documentação, ficha) nomeia ferramenta ou modelo. A
-  prova que guarda isto é `bash tests/prova_sem_rastro.sh`: ela roda a cada
-  push e se prova sozinha, com defeitos de mentira que ela tem de reprovar.
+  por quê, sem trailer de coautoria e sem assinatura. A prova que guarda isto
+  é `bash tests/prova_sem_rastro.sh`: ela roda a cada push e se prova
+  sozinha, com defeitos de mentira que ela tem de reprovar.
 - **Nada que dependa da máquina de alguém:** nenhum caminho fixo e nenhum
   endereço de aparelho no código, no registro ou no relatório. Endereço que
   aparecer sai com os octetos 4 e 5 zerados.

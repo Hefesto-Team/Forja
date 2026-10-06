@@ -69,9 +69,8 @@ André confere.
 
 ## A economia de contexto
 
-- Uma ficha por sessão; sessão nova é mais barata que uma sessão longa ou
-  compactada.
-- A ficha já diz os arquivos: nada de exploração com subagentes.
+- Uma ficha por sessão; sessão nova é mais barata que uma sessão longa.
+- A ficha já diz os arquivos: nada de exploração fora deles.
 - Não reler `docs/jogo/` inteiro; só os links da ficha.
 - Log grande não se cola: só o trecho que falhou.
 - Resultado do André em resumo: "gauntlet 20/20, a prova de poucos falhou na
@@ -89,11 +88,10 @@ dele — **uma ficha por minigame, uma sessão por ficha**.
 
 ## O orçamento
 
-Numa sessão de trabalho, a maior parte do custo é o contexto relido a cada
-turno. Por isso **o que economiza é a sessão curta**, mais do que qualquer
-outra escolha. Uma sessão enxuta (uma ficha, uns 40 turnos, contexto abaixo de
-80 mil tokens) sai por volta de US$ 1,5 a 2,5. As fichas já trazem o código de hoje, a API alvo e
-as checagens prontas, então a sessão executa sem explorar.
+**O que economiza é a sessão curta**, mais do que qualquer outra escolha. Uma
+sessão enxuta (uma ficha, sem exploração) sai por volta de US$ 1,5 a 2,5. As
+fichas já trazem o código de hoje, a API alvo e as checagens prontas, então a
+sessão executa sem explorar.
 
 | sprint | fichas | estimativa (US$) |
 | --- | --- | --- |
