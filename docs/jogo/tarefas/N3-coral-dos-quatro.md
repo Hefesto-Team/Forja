@@ -373,7 +373,7 @@ func _prova_do_coral() -> void:
 ## Ao terminar
 
 - No [quadro](README.md): a linha **N3** (se não existir, acrescente
-  `| [N3](N3-coral-dos-quatro.md) | N | S6 — Coral dos Quatro | M | — | 1,5 | feito (<commit>) | <gasto> |`),
+  `| [N3](N3-coral-dos-quatro.md) | N | S6 — Coral dos Quatro | M | 1,5 | feito (<commit>) | <gasto> |`),
   com o commit e o gasto real.
 - Commit sugerido (sem trailer):
   `feat: Coral dos Quatro — o acorde dividido entre os alto-falantes`

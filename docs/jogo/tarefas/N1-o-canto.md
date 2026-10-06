@@ -555,7 +555,7 @@ quatro controles, dois no cabo e dois no rádio):
 
 - No [quadro](README.md): a linha **N1** (se o quadro só tem a linha **N**
   da seção, acrescente abaixo dela
-  `| [N1](N1-o-canto.md) | N | S6 — O Canto | G | — | 2,0 | feito (<commit>) | <gasto> |`),
+  `| [N1](N1-o-canto.md) | N | S6 — O Canto | G | 2,0 | feito (<commit>) | <gasto> |`),
   com o commit e o gasto real.
 - Commit sugerido (sem trailer):
   `feat: O Canto no kit — chamada e resposta no alto-falante de cada um`

@@ -1778,7 +1778,7 @@ bash tests/prova_de_poucos.sh
 ## Ao terminar
 
 - No [quadro](README.md), acrescente a linha da H08 depois da H07
-  (`| [H08](H08-os-acrescimos-do-kit.md) | H | Os acréscimos do kit | G | — | 4,0 | feito (<commit>) | <gasto> |`),
+  (`| [H08](H08-os-acrescimos-do-kit.md) | H | Os acréscimos do kit | G | 4,0 | feito (<commit>) | <gasto> |`),
   some os US$ 4,0 na linha da soma (H passa a 24,0 e o total a 122,5) e diga em "A ordem" que
   as seções (I a Q) dependem da H08.
 - Commit sugerido (sem trailer):

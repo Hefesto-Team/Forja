@@ -439,7 +439,7 @@ func _prova_da_prensa() -> void:
 ## Ao terminar
 
 - No [quadro](README.md): a linha **L5** (se não existir, acrescente
-  `| [L5](L5-a-prensa.md) | L | S4 — A Prensa | M | — | 1,5 | feito (<commit>) | <gasto> |`),
+  `| [L5](L5-a-prensa.md) | L | S4 — A Prensa | M | 1,5 | feito (<commit>) | <gasto> |`),
   com o commit e o gasto real. Com as cinco feitas, a linha **L** da seção
   também vira **feito**.
 - Commit sugerido (sem trailer):

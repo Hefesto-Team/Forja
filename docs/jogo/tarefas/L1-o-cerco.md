@@ -636,7 +636,7 @@ quatro DualSense, dois no cabo e dois no rádio):
 
 - No [quadro](README.md): a linha **L1** (se o quadro só tem a linha **L**
   da seção, acrescente abaixo dela a linha
-  `| [L1](L1-o-cerco.md) | L | S4 — O Cerco | G | — | 2,0 | feito (<commit>) | <gasto> |`),
+  `| [L1](L1-o-cerco.md) | L | S4 — O Cerco | G | 2,0 | feito (<commit>) | <gasto> |`),
   com o commit e o gasto real.
 - Commit sugerido (sem trailer):
   `feat: O Cerco — O Impacto no kit, no tempo da faixa, e o cenário comum da seção`

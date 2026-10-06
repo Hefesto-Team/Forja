@@ -394,7 +394,7 @@ não é exigido. A dupla se prova com o André.)
 ## Ao terminar
 
 - No [quadro](README.md): a linha **L4** (se não existir, acrescente
-  `| [L4](L4-martelos-termicos.md) | L | S4 — Martelos Térmicos | M | — | 1,5 | feito (<commit>) | <gasto> |`),
+  `| [L4](L4-martelos-termicos.md) | L | S4 — Martelos Térmicos | M | 1,5 | feito (<commit>) | <gasto> |`),
   com o commit e o gasto real.
 - Commit sugerido (sem trailer):
   `feat: Martelos Térmicos — a toupeira quente que só a mão distingue`

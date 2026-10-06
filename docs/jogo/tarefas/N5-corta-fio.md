@@ -414,7 +414,7 @@ func _prova_do_corta_fio() -> void:
 ## Ao terminar
 
 - No [quadro](README.md): a linha **N5** (se não existir, acrescente
-  `| [N5](N5-corta-fio.md) | N | S6 — Corta-Fio | M | — | 1,5 | feito (<commit>) | <gasto> |`),
+  `| [N5](N5-corta-fio.md) | N | S6 — Corta-Fio | M | 1,5 | feito (<commit>) | <gasto> |`),
   com o commit e o gasto real. Com as cinco feitas, a linha **N** da seção
   também vira **feito**.
 - Commit sugerido (sem trailer):

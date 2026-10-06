@@ -788,6 +788,6 @@ da régua, respondidas no cabeçalho, conferidas jogando.
   `["^Espadas: (\\d+)$", "Swords: $1"]` (o título e o verbo a H04 já pôs).
 - `"$GODOT" --headless --path godot --import --quit` e o `secao.gd.uid` no commit.
 - No [quadro](README.md): se ainda não há as linhas dos minigames da seção,
-  ponha I1 a I5 logo abaixo da linha **I** (com o link, M ou G, modelo, a
+  ponha I1 a I5 logo abaixo da linha **I** (com o link, M ou G, a
   estimativa, "a fazer"); marque a I1 **feito**, com o commit e o gasto real.
 - Commit (sem trailer): `feat: O Martelo de Hefesto no tempo da música, com as espadas e a forja da seção`

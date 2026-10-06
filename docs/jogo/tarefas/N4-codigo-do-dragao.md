@@ -396,7 +396,7 @@ func _prova_do_dragao() -> void:
 ## Ao terminar
 
 - No [quadro](README.md): a linha **N4** (se não existir, acrescente
-  `| [N4](N4-codigo-do-dragao.md) | N | S6 — Código do Dragão | M | — | 1,5 | feito (<commit>) | <gasto> |`),
+  `| [N4](N4-codigo-do-dragao.md) | N | S6 — Código do Dragão | M | 1,5 | feito (<commit>) | <gasto> |`),
   com o commit e o gasto real.
 - Commit sugerido (sem trailer):
   `feat: Código do Dragão — a senha que só o seu controle canta`

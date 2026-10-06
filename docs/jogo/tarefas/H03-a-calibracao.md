@@ -200,7 +200,7 @@ escreve no desvio por essa chamada, no mesmo commit.
   de "calibração", "latência" ou "desvio" na tela.
 - **O lugar desconectado**: a opção é do lugar, não do controle; um controle
   que volta ao mesmo lugar herda o tempo do lugar. Não guarde nada pelo
-  aparelho (regra do [AGENTS](../../../AGENTS.md)).
+  aparelho (regra do [COMO-CONTRIBUIR](../../COMO-CONTRIBUIR.md)).
 - **O treino**: nada muda; o desvio vale desde o primeiro toque.
 
 ## Não fazer

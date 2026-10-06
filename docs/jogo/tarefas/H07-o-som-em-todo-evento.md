@@ -250,17 +250,17 @@ hoje; se outra ficha mexeu perto, aplique à mão):
 +++ b/nativo/som/sons_salas.h
 @@ -5,12 +5,14 @@
  #define FORJA_SONS_SALAS_H
- 
+
  #include "mixer.h"
 +#include "sintese.h"
- 
+
  #ifdef __cplusplus
  extern "C" {
  #endif
- 
+
  #define SONS_PASSOS_VARIANTES 3
 +#define SONS_PIOS 12 /* um pio por boneco (player.gd, MODELOS; a G08 chega a doze) */
- 
+
  typedef struct SonsSalas {
    Som sino;     /* o teste do alto-falante */
 @@ -23,11 +25,18 @@
@@ -273,7 +273,7 @@ hoje; se outra ficha mexeu perto, aplique à mão):
 +  Som coleta;                   /* o tilintar da coleta */
 +  Som material[MATERIAL_TOTAL]; /* a háptica por material (sintese.h) */
  } SonsSalas;
- 
+
  const SonsSalas *sons_salas(void);
  /* Um som pelo nome: "sino", "pulso", "nota", "nota_alta", "grito", "tropeco",
 - * "clique", "pronto", "tom" ou "passo:<chão>:<variação>". NULL se não existe. */
@@ -282,7 +282,7 @@ hoje; se outra ficha mexeu perto, aplique à mão):
 + * "material:<nome>". NULL se não existe. */
  const Som *sons_salas_por_nome(const char *nome);
  void sons_salas_liberar(void);
- 
+
 --- a/nativo/som/sons_salas.c
 +++ b/nativo/som/sons_salas.c
 @@ -48,6 +48,27 @@
@@ -364,9 +364,9 @@ hoje; se outra ficha mexeu perto, aplique à mão):
 --- a/nativo/som/mixer.c
 +++ b/nativo/som/mixer.c
 @@ -3,6 +3,8 @@
- 
+
  #include <math.h>
- 
+
 +#include "rampa.h"
 +
  void mixer_iniciar(Mixer *m, int canais) {
@@ -375,7 +375,7 @@ hoje; se outra ficha mexeu perto, aplique à mão):
 @@ -71,10 +73,11 @@
    SDL_UnlockMutex(m->trava);
  }
- 
+
 +/* Todas as vozes vão a zero pela rampa de saída (nunca de uma vez). */
  void mixer_parar_tudo(Mixer *m) {
    SDL_LockMutex(m->trava);
@@ -384,7 +384,7 @@ hoje; se outra ficha mexeu perto, aplique à mão):
 +    m->voz[i].fade_alvo = 0;
    SDL_UnlockMutex(m->trava);
  }
- 
+
 @@ -92,7 +95,7 @@
    int nc = m->canais;
    SDL_memset(saida, 0, sizeof(float) * (size_t)quadros * (size_t)nc);
@@ -410,7 +410,7 @@ hoje; se outra ficha mexeu perto, aplique à mão):
 @@ -84,11 +84,14 @@
  /* De onde veio o "pelo aparelho" nesta máquina, ou por que não há som. */
  const char *somc_plataforma(void);
- 
+
 -/* Toca no alto-falante do controle. Devolve a voz, ou -1 sem alto-falante. */
 -int somc_falante(struct Forja *a, int slot, const Som *s, float ganho);
 +/* Toca no alto-falante do controle — um som por vez: o anterior daquele
@@ -451,11 +451,11 @@ hoje; se outra ficha mexeu perto, aplique à mão):
 +  ev_bool(&ev, "placa", placa);
 +  ev_fim(&ev, &a->lt);
 +}
- 
+
  static float limitar(float v, float a, float b) { return v < a ? a : (v > b ? b : v); }
  static float aproximar(float atual, float alvo, float taxa, float dt) {
 @@ -255,6 +274,7 @@
- 
+
  static void zerar(void) {
    SDL_memset(&g_sc, 0, sizeof(g_sc));
 +  SDL_memset(g_voz_falante, 0, sizeof(g_voz_falante));
@@ -463,9 +463,9 @@ hoje; se outra ficha mexeu perto, aplique à mão):
      for (int p = 0; p < PAPEL_TOTAL; p++)
        g_sc.j[s].no[p] = g_sc.j[s].saida[p] = -1;
 @@ -367,8 +387,10 @@
- 
+
  /* ---------- tocar ---------- */
- 
+
 -int somc_falante(Forja *a, int slot, const Som *s, float ganho) {
 -  if (!somc_tem(a, slot, PAPEL_ALTO_FALANTE) || !s)
 +int somc_falante(Forja *a, int slot, const Som *s, float ganho, const char *nome) {
@@ -485,12 +485,12 @@ hoje; se outra ficha mexeu perto, aplique à mão):
 +  g_voz_falante[slot] = mixer_tocar(&sd->mixer, s, g, false);
 +  return g_voz_falante[slot];
  }
- 
+
  /* O jack do fone: plugou, o som do controle muda para o fone (as duas
 @@ -407,8 +432,10 @@
    ev_fim(&ev, &a->lt);
  }
- 
+
 -int somc_haptica(Forja *a, int slot, const Som *esq, const Som *dir, float ganho) {
 -  if (!somc_tem(a, slot, PAPEL_HAPTICA))
 +int somc_haptica(Forja *a, int slot, const Som *esq, const Som *dir, float ganho, const char *nome) {
@@ -504,7 +504,7 @@ hoje; se outra ficha mexeu perto, aplique à mão):
 +++ b/nativo/godot/forja_som.cpp
 @@ -141,13 +141,19 @@
  }
- 
+
  int ForjaControles::som_falante(int lugar, const String &som, float ganho) {
 -  return aberto_ ? somc_falante(FORJA, lugar, som_do_nome(som), ganho) : -1;
 +  if (!aberto_)
@@ -512,7 +512,7 @@ hoje; se outra ficha mexeu perto, aplique à mão):
 +  CharString nome = som.utf8();
 +  return somc_falante(FORJA, lugar, som_do_nome(som), ganho, nome.get_data());
  }
- 
+
  int ForjaControles::som_haptica(int lugar, const String &esq, const String &dir, float ganho) {
    if (!aberto_)
      return -1;
@@ -522,7 +522,7 @@ hoje; se outra ficha mexeu perto, aplique à mão):
 +  CharString nome = quais.utf8();
 +  return somc_haptica(FORJA, lugar, som_do_nome(esq), som_do_nome(dir), ganho, nome.get_data());
  }
- 
+
  void ForjaControles::som_parar(int lugar) {
 --- a/nativo/CMakeLists.txt
 +++ b/nativo/CMakeLists.txt
@@ -777,7 +777,7 @@ faça o commit e escreva a ficha H07b com os passos 8 a 12 — é o que o
 
 ## Armadilhas
 
-- **Não recompile com um Godot rodando** (ele segura o `.so`, AGENTS).
+- **Não recompile com um Godot rodando** (ele segura o `.so`, COMO-CONTRIBUIR).
 - **`Material` é nome do godot-cpp**: o tipo C é `MaterialHaptico` (medido).
 - **Rumble e háptica por áudio não se somam no mesmo instante** (o 05,
   suspeita e): `tocar_material` escolhe um; o kit não chama `sentir` no

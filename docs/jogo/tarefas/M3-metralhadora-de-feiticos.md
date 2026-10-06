@@ -413,7 +413,7 @@ func _prova_da_metralhadora() -> void:
 ## Ao terminar
 
 - No [quadro](README.md): a linha **M3** (se não existir, acrescente
-  `| [M3](M3-metralhadora-de-feiticos.md) | M | S5 — Metralhadora de Feitiços | M | — | 1,5 | feito (<commit>) | <gasto> |`),
+  `| [M3](M3-metralhadora-de-feiticos.md) | M | S5 — Metralhadora de Feitiços | M | 1,5 | feito (<commit>) | <gasto> |`),
   com o commit e o gasto real.
 - Commit sugerido (sem trailer):
   `feat: Metralhadora de Feitiços — a rajada dividida, o tremor no dedo`

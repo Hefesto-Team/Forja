@@ -29,18 +29,18 @@ Medido numa sessão da nuvem em 30/09/2026:
 
 ## O alvo
 
-Um gancho de início de sessão do editor na nuvem que deixa a sessão
+Um gancho de início de sessão na nuvem que deixa a sessão
 pronta sozinha: pacotes, módulo, Godot. Depois dele, a primeira coisa que
 qualquer ficha faz é `bash tests/prova_do_jogo.sh`, e ela passa.
 
 ## Passos
 
-1. Usar a skill `session-start-hook` do editor para criar o gancho do
-   repositório (`.editor/settings.json` com um `SessionStart` que chama
-   `scripts/preparar_sessao.sh`).
+1. Registrar o gancho de início de sessão (`SessionStart`) na configuração
+   da própria sessão na nuvem, **fora do repositório**: ele só chama
+   `scripts/preparar_sessao.sh`, que é o que se versiona.
 2. Escrever `scripts/preparar_sessao.sh`:
-   - sai logo se não está na nuvem (sem `editor_CODE_REMOTE` ou equivalente
-     que a skill indicar) — na máquina do André não faz nada;
+   - sai logo se não está na nuvem (sem a variável de ambiente que só a
+     sessão na nuvem define) — na máquina do André não faz nada;
    - `apt-get install -y -qq` com a lista de `docs/DESENVOLVER.md:21-25` mais
      `bubblewrap` e `xvfb` (a prova visual da F09 roda com janela), só se
      faltar algum (`dpkg -s`);
@@ -57,7 +57,7 @@ qualquer ficha faz é `bash tests/prova_do_jogo.sh`, e ela passa.
 
 - Nunca rodar `./run-local.sh` na nuvem: ele abre a janela do jogo no fim.
 - O gancho precisa ser idempotente e rápido quando já está tudo pronto.
-- Não pôr caminho fixo da máquina no script (regra do AGENTS).
+- Não pôr caminho fixo da máquina no script (regra do [COMO-CONTRIBUIR](../../COMO-CONTRIBUIR.md)).
 - Rede: se o download falhar, o script avisa e sai com erro claro, sem
   deixar meio arquivo em `tools/`.
 

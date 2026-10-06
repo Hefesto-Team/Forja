@@ -67,5 +67,5 @@ Os cinco verbos: chamar, soprar e parar, calar, gritar, bater palmas.
 ## Ao começar a seção
 
 No [quadro](README.md), troque a linha **P** pelas cinco linhas (P1 a P5),
-com o tamanho, o modelo e a estimativa da tabela acima, e a soma no fim do
+com o tamanho e a estimativa da tabela acima, e a soma no fim do
 quadro.

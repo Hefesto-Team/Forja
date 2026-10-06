@@ -404,7 +404,7 @@ func _prova_do_eco() -> void:
 ## Ao terminar
 
 - No [quadro](README.md): a linha **N2** (se não existir, acrescente
-  `| [N2](N2-eco-do-abismo.md) | N | S6 — Eco do Abismo | M | — | 1,5 | feito (<commit>) | <gasto> |`),
+  `| [N2](N2-eco-do-abismo.md) | N | S6 — Eco do Abismo | M | 1,5 | feito (<commit>) | <gasto> |`),
   com o commit e o gasto real.
 - Commit sugerido (sem trailer):
   `feat: Eco do Abismo — a escada no escuro que só o alto-falante mostra`

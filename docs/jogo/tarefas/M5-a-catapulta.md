@@ -446,7 +446,7 @@ func _prova_da_catapulta() -> void:
 ## Ao terminar
 
 - No [quadro](README.md): a linha **M5** (se não existir, acrescente
-  `| [M5](M5-a-catapulta.md) | M | S5 — A Catapulta | M | — | 1,5 | feito (<commit>) | <gasto> |`),
+  `| [M5](M5-a-catapulta.md) | M | S5 — A Catapulta | M | 1,5 | feito (<commit>) | <gasto> |`),
   com o commit e o gasto real. Com as cinco feitas, a linha **M** da seção
   também vira **feito**.
 - Commit sugerido (sem trailer):

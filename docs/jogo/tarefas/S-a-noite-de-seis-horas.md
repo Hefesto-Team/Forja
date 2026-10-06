@@ -37,7 +37,7 @@ Tudo numa **pasta da noite** (a de `--relatorios=<pasta>`):
    | --- | --- | --- |
    | `t` | sim | segundos, no relógio da ponte (qualquer origem: o script acha a diferença para o do jogo) |
    | `lugar` | um dos dois | 0..3 — o jogador; a ponte o tira das luzinhas de jogador do próprio relatório (a tabela do CONTRATO: `0x04` P1, `0x0A` P2, `0x15` P3, `0x1B` P4) |
-   | `controle` | um dos dois | um nome opaco da ponte (`radio-1`...), quando ela não sabe o lugar; o `--mapa radio-1=2,...` diz de quem é. Nunca endereço de aparelho: o AGENTS proíbe |
+   | `controle` | um dos dois | um nome opaco da ponte (`radio-1`...), quando ela não sabe o lugar; o `--mapa radio-1=2,...` diz de quem é. Nunca endereço de aparelho: o COMO-CONTRIBUIR proíbe |
    | `o` | não | o tipo da saída, se a ponte decodifica (`vibracao`, `gatilho`, `lightbar`, `leds_jogador`, `led_microfone`, `audio_hid`) — com ele, o casamento só junta saídas do mesmo tipo |
    | `escreveu` | não | `1`/`0` (ou `true`/`false`): a ponte escreveu no rádio; sem o campo, conta como escrita |
    | `seq` | não | a contagem da própria ponte (o `0x02` não carrega o `seq` do jogo); o script não a usa para casar |
@@ -703,7 +703,7 @@ O protocolo é o do 08. O que esta ficha acrescenta, na ordem:
 ## Armadilhas
 
 - **Nenhum endereço de aparelho** no registro da ponte, no script ou no
-  relatório (o AGENTS): a ponte identifica pelo lugar (as luzinhas do
+  relatório (o COMO-CONTRIBUIR): a ponte identifica pelo lugar (as luzinhas do
   relatório) ou por um nome opaco com `--mapa`. Se a ponte de hoje só souber
   o endereço, ela escreve um nome opaco e guarda a tabela dela fora da pasta
   da noite.

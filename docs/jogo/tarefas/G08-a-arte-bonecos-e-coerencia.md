@@ -186,7 +186,7 @@ if __name__ == "__main__":
 ```
 
 (Nenhum caminho absoluto na saída: só o relativo ao repositório — a regra
-do AGENTS.)
+do COMO-CONTRIBUIR.)
 
 **2. Os bonecos por corpo e cabeça** (`godot/scripts/player.gd`). Cabeça e
 corpo são malhas separadas no mesmo esqueleto: cada cabeça combina com cada

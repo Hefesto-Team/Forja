@@ -390,7 +390,7 @@ e `params` (`[a, b, c]`), como grava `nativo/nucleo/pads.c` hoje.)
 ## Ao terminar
 
 - No [quadro](README.md): a linha **M2** (se não existir, acrescente
-  `| [M2](M2-arco-de-neon.md) | M | S5 — Arco de Néon | M | — | 1,5 | feito (<commit>) | <gasto> |`),
+  `| [M2](M2-arco-de-neon.md) | M | S5 — Arco de Néon | M | 1,5 | feito (<commit>) | <gasto> |`),
   com o commit e o gasto real.
 - Commit sugerido (sem trailer):
   `feat: Arco de Néon — a nota longa no peso do gatilho`

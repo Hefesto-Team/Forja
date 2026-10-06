@@ -536,7 +536,7 @@ o L2 solto da G03) passam a olhar pelo apelido (`_e_a_sala` da H04).
 
 - No [quadro](README.md): a linha **M1** (se o quadro só tem a linha **M**
   da seção, acrescente abaixo dela
-  `| [M1](M1-a-galeria.md) | M | S5 — A Galeria | G | — | 2,0 | feito (<commit>) | <gasto> |`),
+  `| [M1](M1-a-galeria.md) | M | S5 — A Galeria | G | 2,0 | feito (<commit>) | <gasto> |`),
   com o commit e o gasto real.
 - Commit sugerido (sem trailer):
   `feat: A Galeria no kit — o estande no tempo, a munição no tambor e no gatilho`

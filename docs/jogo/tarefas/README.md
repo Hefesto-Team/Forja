@@ -180,5 +180,5 @@ mantenha as seções: por quê, ler antes, o estado de hoje (com
 `caminho:linha` e o trecho do código), o alvo (pela
 [arquitetura](../13-arquitetura.md)), passos, armadilhas, não fazer, pronto
 quando, provas, para o André, ao terminar. A primeira linha depois do título
-diz sprint, tamanho, modelo, estimativa e dependências. Ponha uma linha neste
+diz sprint, tamanho, estimativa e dependências. Ponha uma linha neste
 quadro. Para minigame, use o [molde de minigame](molde-de-minigame.md).

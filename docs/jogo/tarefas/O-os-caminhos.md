@@ -75,5 +75,5 @@ acertos depois de uma pista no rumble.
 ## Ao começar a seção
 
 No [quadro](README.md), troque a linha **O** pelas cinco linhas (O1 a O5),
-com o tamanho, o modelo e a estimativa da tabela acima, e a soma no fim do
+com o tamanho e a estimativa da tabela acima, e a soma no fim do
 quadro.

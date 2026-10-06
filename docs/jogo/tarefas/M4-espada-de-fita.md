@@ -411,7 +411,7 @@ func _prova_da_espada() -> void:
 ## Ao terminar
 
 - No [quadro](README.md): a linha **M4** (se não existir, acrescente
-  `| [M4](M4-espada-de-fita.md) | M | S5 — Espada de Fita | M | — | 1,5 | feito (<commit>) | <gasto> |`),
+  `| [M4](M4-espada-de-fita.md) | M | S5 — Espada de Fita | M | 1,5 | feito (<commit>) | <gasto> |`),
   com o commit e o gasto real.
 - Commit sugerido (sem trailer):
   `feat: Espada de Fita — o duelo em dupla, com o peso que conta até o pico`

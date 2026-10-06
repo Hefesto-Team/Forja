@@ -430,7 +430,7 @@ func _prova_da_fuga_do_tita() -> void:
 ## Ao terminar
 
 - No [quadro](README.md): a linha **L2** (se não existir, acrescente
-  `| [L2](L2-fuga-do-tita.md) | L | S4 — Fuga do Titã | M | — | 1,5 | feito (<commit>) | <gasto> |`
+  `| [L2](L2-fuga-do-tita.md) | L | S4 — Fuga do Titã | M | 1,5 | feito (<commit>) | <gasto> |`
   abaixo da L1), com o commit e o gasto real.
 - Commit sugerido (sem trailer):
   `feat: Fuga do Titã — o coop d'O Impacto, a vez que passa de mão em mão`

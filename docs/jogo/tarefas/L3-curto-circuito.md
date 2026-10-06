@@ -433,7 +433,7 @@ func _prova_do_curto_circuito() -> void:
 ## Ao terminar
 
 - No [quadro](README.md): a linha **L3** (se não existir, acrescente
-  `| [L3](L3-curto-circuito.md) | L | S4 — Curto-Circuito | M | — | 1,5 | feito (<commit>) | <gasto> |`),
+  `| [L3](L3-curto-circuito.md) | L | S4 — Curto-Circuito | M | 1,5 | feito (<commit>) | <gasto> |`),
   com o commit e o gasto real.
 - Commit sugerido (sem trailer):
   `feat: Curto-Circuito — a bomba de mão em mão, com o pavio que só a mão sente`

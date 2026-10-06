@@ -96,7 +96,7 @@ Um roteiro novo, `godot/testes/prova_visual.gd` (+ `.tscn`), e um script
    resumo das checagens.
 8. Aposentar os atalhos de foto: `captura_jogo.gd` continua para as fotos de
    divulgação, mas `tests/telas.sh` passa a chamar a prova visual. Documentar
-   em `docs/DESENVOLVER.md` e em `AGENTS.md` (os comandos).
+   em `docs/DESENVOLVER.md` e em `docs/COMO-CONTRIBUIR.md` (os comandos).
 
 ## Armadilhas
 

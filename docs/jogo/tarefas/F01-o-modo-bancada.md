@@ -170,7 +170,7 @@ if Forja.bancada:
    provas da bancada.
 9. **`godot/testes/prova_do_jogo.gd`**: as checagens de "Provas", abaixo.
 10. **Documentar** `--bancada` em `docs/DESENVOLVER.md` (a lista "Os argumentos
-    do jogo", `:73-80`), no `AGENTS.md` (a linha dos argumentos de
+    do jogo", `:73-80`), no `docs/COMO-CONTRIBUIR.md` (a linha dos argumentos de
     `./run-local.sh`) e no cabeçalho de `forja.gd`.
 
 ## Armadilhas

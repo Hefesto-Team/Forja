@@ -122,7 +122,7 @@ basta", e nenhuma linha de código muda.
 ## Armadilhas
 
 - **Nunca rodar a Parte B sem a emenda escrita no CONTRATO no mesmo
-  commit.** O AGENTS manda: patch que quebra o contrato está errado.
+  commit.** O COMO-CONTRIBUIR manda: patch que quebra o contrato está errado.
 - **O SDL reenvia o rumble a cada 2 s:** com o seco, o lugar não pode ter
   nenhum `SDL_RumbleGamepad` em curso, nem de zero (um zero do SDL também
   manda pacote).
