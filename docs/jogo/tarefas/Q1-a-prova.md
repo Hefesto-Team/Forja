@@ -1,6 +1,6 @@
 # Q1 — A Prova
 
-**Sprint:** Q · **Slot:** S09_J41 · **Tamanho:** G · **Estimativa:** US$ 2,0 · **Depende de:** H04, H08, F09, F01, F04, H07, G03, O1
+**Sprint:** Q · **Slot:** S09_J41 · **Tamanho:** G · **Depende de:** H04, H08, F09, F01, F04, H07, G03, O1
 
 ## Por quê
 
@@ -521,6 +521,6 @@ e a barra de luz nunca pode trocar de cor.
 
 ## Ao terminar
 
-- No [quadro](README.md), a linha Q1: **feito**, com o commit e o gasto real.
+- No [quadro](README.md), a linha Q1: **feito**, com o commit.
 - Commit sugerido (sem trailer):
   `feat: A Prova no kit — cabo de guerra no ritmo, a identidade intacta`

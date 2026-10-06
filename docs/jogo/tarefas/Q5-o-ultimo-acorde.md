@@ -1,6 +1,6 @@
 # Q5 — O Último Acorde
 
-**Sprint:** Q · **Slot:** S09_J45 · **Tamanho:** G · **Estimativa:** US$ 2,0 · **Depende de:** H04, H08, F09, H07, G03, Q1, Q4, O1 (o `_pista`), P1 (o ouvido), e as seções S5 a S8 prontas
+**Sprint:** Q · **Slot:** S09_J45 · **Tamanho:** G · **Depende de:** H04, H08, F09, H07, G03, Q1, Q4, O1 (o `_pista`), P1 (o ouvido), e as seções S5 a S8 prontas
 
 ## Por quê
 
@@ -474,6 +474,6 @@ quatro; e o dragão caindo tem de parecer o fim de uma noite.
 
 ## Ao terminar
 
-- No [quadro](README.md), a linha Q5: **feito**, com o commit e o gasto real.
+- No [quadro](README.md), a linha Q5: **feito**, com o commit.
 - Commit sugerido (sem trailer):
   `feat: O Último Acorde — o medley da segunda metade e o acorde dos quatro`

@@ -1,6 +1,6 @@
 # P5 — Palmas da Forja
 
-**Sprint:** P · **Slot:** S08_J40 · **Tamanho:** M · **Estimativa:** US$ 1,5 · **Depende de:** H04, H08, F09, H07, P1
+**Sprint:** P · **Slot:** S08_J40 · **Tamanho:** M · **Depende de:** H04, H08, F09, H07, P1
 
 ## Por quê
 
@@ -356,6 +356,6 @@ lendária tem de parecer uma conquista da sala.
 
 ## Ao terminar
 
-- No [quadro](README.md), a linha P5: **feito**, com o commit e o gasto real.
+- No [quadro](README.md), a linha P5: **feito**, com o commit.
 - Commit sugerido (sem trailer):
   `feat: Palmas da Forja — a turma segura o ritmo com as mãos`

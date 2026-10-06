@@ -1,6 +1,6 @@
 # I4 — O Fole
 
-**Sprint:** I · **Slot:** S01_J04 · **Tamanho:** M · **Estimativa:** US$ 1,5 · **Depende de:** H04, H08, F09, F03, H07, G03 (o L2 é do item), I1 (o `secao.gd`)
+**Sprint:** I · **Slot:** S01_J04 · **Tamanho:** M · **Depende de:** H04, H08, F09, F03, H07, G03 (o L2 é do item), I1 (o `secao.gd`)
 
 ## Por quê
 
@@ -517,5 +517,5 @@ chama cresce; a fumaça no rosto faz rir; o fole duplo do meio aperta.
 - `traducoes.gd`: `"O Fole": "The Bellows"`, `"Sopre a forja!": "Blow the forge!"`,
   `"Sopre!": "Blow!"`.
 - Importe e ponha o `.uid` no commit.
-- No [quadro](README.md), a I4 **feito**, com o commit e o gasto real.
+- No [quadro](README.md), a I4 **feito**, com o commit.
 - Commit (sem trailer): `feat: O Fole — a profundidade do R2 é a altura da nota`

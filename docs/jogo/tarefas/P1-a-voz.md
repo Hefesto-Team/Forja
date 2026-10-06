@@ -1,6 +1,6 @@
 # P1 — A Voz
 
-**Sprint:** P · **Slot:** S08_J36 · **Tamanho:** G · **Estimativa:** US$ 2,0 · **Depende de:** H04, H08, F09, F01, H07, G08
+**Sprint:** P · **Slot:** S08_J36 · **Tamanho:** G · **Depende de:** H04, H08, F09, F01, H07, G08
 
 ## Por quê
 
@@ -549,6 +549,6 @@ ninguém trava.
 
 ## Ao terminar
 
-- No [quadro](README.md), a linha P1: **feito**, com o commit e o gasto real.
+- No [quadro](README.md), a linha P1: **feito**, com o commit.
 - Commit sugerido (sem trailer):
   `feat: A Voz no kit — o sopro em coro, o mudo é o escudo, sem pergunta`

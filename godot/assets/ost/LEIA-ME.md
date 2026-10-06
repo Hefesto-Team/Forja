@@ -19,7 +19,7 @@ Exemplo: a faixa d'O Martelo de Hefesto é `S01/MUS_S01_J01.ogg`.
 - **OGG Vorbis, 48 kHz, estéreo.** Nunca MP3: o silêncio que o MP3 põe no
   começo e no fim quebra o laço e o tempo.
 - O mapa de batidas (`.batidas.json`) diz o BPM, o instante do primeiro tempo,
-  os compassos e as seções. Faixa gerada por IA pode escorregar o andamento:
+  os compassos e as seções. Faixa gerada pelo ACE-Step pode escorregar o andamento:
   o mapa é conferido de ouvido antes de a faixa entrar (a ficha H05 explica).
 - Sem faixa na pasta, o jogo toca a trilha sintetizada de hoje: dá para
   jogar antes de todas as músicas existirem.
@@ -39,7 +39,7 @@ fora do repositório.
   `scripts/gerar_trilha.py`
   ([ficha H09](../../../docs/jogo/tarefas/H09-o-gerador-da-trilha.md)).
   Não há serviço pago, assinatura nem termo de uso de empresa no meio.
-- **O direito:** música feita por IA não tem autor pela lei (no Brasil e nos
+- **O direito:** música gerada por programa não tem autor pela lei (no Brasil e nos
   EUA, só pessoa é autora), então ninguém é dono dela: nem o Forja, nem o
   ACE-Step. As faixas seguem com o jogo e com a licença do repositório; o
   que é nosso de verdade é a escolha, os prompts e o jogo em volta.

@@ -1,6 +1,6 @@
 # G11 — A interface com o UI Pack e os prompts
 
-**Sprint:** G · **Tamanho:** M · **Estimativa:** US$ 2,5 · **Depende de:** F00, F07, F09, G04, G10
+**Sprint:** G · **Tamanho:** M · **Depende de:** F00, F07, F09, G04, G10
 
 ## Por quê
 

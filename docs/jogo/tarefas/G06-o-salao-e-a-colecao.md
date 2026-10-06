@@ -1,6 +1,6 @@
 # G06 — O salão e a coleção
 
-**Sprint:** G · **Tamanho:** M · **Estimativa:** US$ 2,5 · **Depende de:** F00, G02, F09
+**Sprint:** G · **Tamanho:** M · **Depende de:** F00, G02, F09
 
 ## Por quê
 

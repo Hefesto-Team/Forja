@@ -1,6 +1,6 @@
 # N — S6 — O Canto: os cinco minigames
 
-**Sprint:** N · **Tamanho:** G (a seção, em cinco fichas) · **Estimativa:** US$ 8,0 (a soma das cinco) · **Depende de:** H04, H08, F09, H07
+**Sprint:** N · **Tamanho:** G (a seção, em cinco fichas) (a soma das cinco) · **Depende de:** H04, H08, F09, H07
 
 Esta ficha é o índice da seção. O trabalho está nas cinco fichas abaixo,
 uma por sessão, e cada uma se basta.
@@ -83,13 +83,13 @@ não responde — a prova do caminho), e responde a altura, o lado ou o bipe
 
 ## Os cinco
 
-| ficha | minigame | gênero | verbo | o alto-falante diz | estimativa |
-| --- | --- | --- | --- | --- | --- |
-| [N1](N1-o-canto.md) | O Canto (`S06_J26`) | TcT | "Repita!" | **a frase** (grave e aguda) que você repete no compasso seguinte | US$ 2,0 |
-| [N2](N2-eco-do-abismo.md) | Eco do Abismo (`S06_J27`) | corrida / terror | "Responda o eco!" | **o lado** do degrau firme, uma batida antes | US$ 1,5 |
-| [N3](N3-coral-dos-quatro.md) | Coral dos Quatro (`S06_J28`) | coop | "Cante a sua!" | **quando** é a sua vez no acorde (a ordem se embaralha) | US$ 1,5 |
-| [N4](N4-codigo-do-dragao.md) | Código do Dragão (`S06_J29`) | TcT | "Decore!" | **a senha** secreta, de três a doze notas | US$ 1,5 |
-| [N5](N5-corta-fio.md) | Corta-Fio (`S06_J30`) | sabotagem | "Corte!" | **qual bipe** é o do fio certo (e o falso que um rival mandou) | US$ 1,5 |
+| ficha | minigame | gênero | verbo | o alto-falante diz |
+| --- | --- | --- | --- | --- |
+| [N1](N1-o-canto.md) | O Canto (`S06_J26`) | TcT | "Repita!" | **a frase** (grave e aguda) que você repete no compasso seguinte |
+| [N2](N2-eco-do-abismo.md) | Eco do Abismo (`S06_J27`) | corrida / terror | "Responda o eco!" | **o lado** do degrau firme, uma batida antes |
+| [N3](N3-coral-dos-quatro.md) | Coral dos Quatro (`S06_J28`) | coop | "Cante a sua!" | **quando** é a sua vez no acorde (a ordem se embaralha) |
+| [N4](N4-codigo-do-dragao.md) | Código do Dragão (`S06_J29`) | TcT | "Decore!" | **a senha** secreta, de três a doze notas |
+| [N5](N5-corta-fio.md) | Corta-Fio (`S06_J30`) | sabotagem | "Corte!" | **qual bipe** é o do fio certo (e o falso que um rival mandou) |
 
 Cinco verbos com a mesma feature: repetir, seguir, achar a sua vez,
 decorar e desconfiar.

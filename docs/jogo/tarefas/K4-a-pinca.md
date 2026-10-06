@@ -1,6 +1,6 @@
 # K4 — A Pinça
 
-**Sprint:** K · **Slot:** S03_J14 · **Tamanho:** M · **Estimativa:** US$ 1,5 · **Depende de:** H04, H08, F09, F03, H07, K1 (o `secao.gd`)
+**Sprint:** K · **Slot:** S03_J14 · **Tamanho:** M · **Depende de:** H04, H08, F09, F03, H07, K1 (o `secao.gd`)
 
 ## Por quê
 
@@ -437,5 +437,5 @@ fim se ouve, a peça que cai faz rir, e a linha de montagem do meio aperta.
   `"Solte!": "Release!"`; em `EN_PADROES`, `["^Peças: (\\d+)$", "Pieces: $1"]`
   se ainda não estiver lá (a K1 põe).
 - Importe e ponha o `.uid` no commit.
-- No [quadro](README.md), a K4 **feito**, com o commit e o gasto real.
+- No [quadro](README.md), a K4 **feito**, com o commit.
 - Commit (sem trailer): `feat: A Pinça — pegar, esticar e soltar com dois dedos no tempo`

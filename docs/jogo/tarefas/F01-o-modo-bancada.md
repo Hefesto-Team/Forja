@@ -1,6 +1,6 @@
 # F01 — O Modo bancada
 
-**Sprint:** F · **Tamanho:** G · **Estimativa:** US$ 3,5 · **Depende de:** F00
+**Sprint:** F · **Tamanho:** G · **Depende de:** F00
 
 ## Por quê
 
@@ -313,7 +313,7 @@ func _prova_do_modo() -> void:
 
 ## Ao terminar
 
-- No [quadro](README.md), a linha da F01: estado **feito** (com o commit) e o gasto real.
+- No [quadro](README.md), a linha da F01: estado **feito** (com o commit).
 - Dizer ao André, no fim da sessão, que as duas rodadas da prova (o passo 7 da
   F08) já ficaram prontas aqui.
 - Commit sugerido: `feat: o Modo bancada — perguntas, veredito, diagnóstico e livro só com --bancada`

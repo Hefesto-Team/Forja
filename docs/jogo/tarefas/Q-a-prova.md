@@ -1,6 +1,6 @@
 # Q — S9 — A Prova: os cinco minigames
 
-**Sprint:** Q · **Tamanho:** G (cinco fichas) · **Estimativa:** US$ 9,0 (a soma das cinco: Q1, Q4 e Q5 G, 2,0; Q2 e Q3 M, 1,5) · **Depende de:** H04, H08, H07, F01, F09, G03, e as seções S1 a S8 prontas antes dos medleys (Q4, Q5)
+**Sprint:** Q · **Tamanho:** G (cinco fichas) (a soma das cinco: Q1, Q4 e Q5 G, 2,0; Q2 e Q3 M, 1,5) · **Depende de:** H04, H08, H07, F01, F09, G03, e as seções S1 a S8 prontas antes dos medleys (Q4, Q5)
 
 Esta é a ficha-mãe: o índice. O trabalho anda pelas cinco fichas abaixo, uma
 por sessão, na ordem.
@@ -76,13 +76,13 @@ da P1 e da pista da O1.
 
 ## Os cinco
 
-| ficha | gênero | verbo | estimativa |
-| --- | --- | --- | --- |
-| [Q1 — A Prova](Q1-a-prova.md) | 2v2 | "Vença a outra equipe!" | US$ 2,0 |
-| [Q2 — Roubo de Bateria](Q2-roubo-de-bateria.md) | 2v2 | "Roube!" | US$ 1,5 |
-| [Q3 — Mecha de Dois Pilotos](Q3-mecha-de-dois-pilotos.md) | 2v2 | "Pilote juntos!" | US$ 1,5 |
-| [Q4 — Ruge o Reator](Q4-ruge-o-reator.md) | coop (medley) | "Aguentem!" | US$ 2,0 |
-| [Q5 — O Último Acorde](Q5-o-ultimo-acorde.md) | coop (medley) | "O acorde final!" | US$ 2,0 |
+| ficha | gênero | verbo |
+| --- | --- | --- |
+| [Q1 — A Prova](Q1-a-prova.md) | 2v2 | "Vença a outra equipe!" |
+| [Q2 — Roubo de Bateria](Q2-roubo-de-bateria.md) | 2v2 | "Roube!" |
+| [Q3 — Mecha de Dois Pilotos](Q3-mecha-de-dois-pilotos.md) | 2v2 | "Pilote juntos!" |
+| [Q4 — Ruge o Reator](Q4-ruge-o-reator.md) | coop (medley) | "Aguentem!" |
+| [Q5 — O Último Acorde](Q5-o-ultimo-acorde.md) | coop (medley) | "O acorde final!" |
 
 Os cinco verbos: empurrar a frente, roubar, pilotar em sincronia, aguentar,
 fechar o acorde.

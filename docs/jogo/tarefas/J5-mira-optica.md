@@ -1,6 +1,6 @@
 # J5 — Mira Óptica
 
-**Sprint:** J · **Slot:** S02_J10 · **Tamanho:** M · **Estimativa:** US$ 1,5 · **Depende de:** H04, H08, F09, F03, H07, G03 (o L2 é do item), J1 (o `secao.gd`)
+**Sprint:** J · **Slot:** S02_J10 · **Tamanho:** M · **Depende de:** H04, H08, F09, F03, H07, G03 (o L2 é do item), J1 (o `secao.gd`)
 
 ## Por quê
 
@@ -459,5 +459,5 @@ prévia de um tempo dá para mirar, e o tiroteio do meio aperta.
 - `traducoes.gd`: `"Mira Óptica": "Optical Aim"`, `"Mire!": "Aim!"`; em
   `EN_PADROES`, `["^Alvos: (\\d+)$", "Targets: $1"]`.
 - Importe e ponha o `.uid` no commit.
-- No [quadro](README.md), a J5 **feito**, com o commit e o gasto real.
+- No [quadro](README.md), a J5 **feito**, com o commit.
 - Commit (sem trailer): `feat: a Mira Óptica — girar o controle para mirar, o R2 na batida`

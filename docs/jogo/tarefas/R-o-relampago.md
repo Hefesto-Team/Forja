@@ -1,6 +1,6 @@
 # R — O Relâmpago
 
-**Sprint:** R · **Slot:** RELAMPAGO · **Tamanho:** G · **Estimativa:** US$ 3,5 · **Depende de:** H04, F09, H07, G03, as seções I a Q prontas (os 45 no catálogo), Q4 e Q5 (as estações que se copiam), O2 (a pedra), P1 (o ouvido)
+**Sprint:** R · **Slot:** RELAMPAGO · **Tamanho:** G · **Depende de:** H04, F09, H07, G03, as seções I a Q prontas (os 45 no catálogo), Q4 e Q5 (as estações que se copiam), O2 (a pedra), P1 (o ouvido)
 
 ## Por quê
 
@@ -503,7 +503,7 @@ barriga.
 
 ## Ao terminar
 
-- No [quadro](README.md), a linha R: **feito**, com o commit e o gasto real
-  (e o tamanho G e a estimativa US$ 3,5 desta ficha, no lugar dos de antes).
+- No [quadro](README.md), a linha R: **feito**, com o commit
+  (e o tamanho G desta ficha, no lugar do de antes).
 - Commit sugerido (sem trailer):
   `feat: O Relâmpago — os 45 em microjogos, o aquecimento e o desempate`

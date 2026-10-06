@@ -1,6 +1,6 @@
 # I3 — Portões de Néon
 
-**Sprint:** I · **Slot:** S01_J03 · **Tamanho:** M · **Estimativa:** US$ 1,5 · **Depende de:** H04, H08, F09, F03, H07, I1 (o `secao.gd`)
+**Sprint:** I · **Slot:** S01_J03 · **Tamanho:** M · **Depende de:** H04, H08, F09, F03, H07, I1 (o `secao.gd`)
 
 ## Por quê
 
@@ -444,5 +444,5 @@ antes, o achatado faz rir, e a perseguição do meio aperta.
 - `traducoes.gd`: `"Portões de Néon": "Neon Gates"`, `"Passe!": "Go under!"`;
   em `EN_PADROES`, `["^Portões: (\\d+)$", "Gates: $1"]`.
 - Importe e ponha o `.uid` no commit.
-- No [quadro](README.md), a I3 **feito**, com o commit e o gasto real.
+- No [quadro](README.md), a I3 **feito**, com o commit.
 - Commit (sem trailer): `feat: os Portões de Néon — o ✕ na batida do portão`

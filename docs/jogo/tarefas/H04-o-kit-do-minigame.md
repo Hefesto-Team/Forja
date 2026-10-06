@@ -1,6 +1,6 @@
 # H04 — O kit do minigame
 
-**Sprint:** H · **Tamanho:** G · **Estimativa:** US$ 4,5 · **Depende de:** F00, F03, F05, F08, F09, H01, H02
+**Sprint:** H · **Tamanho:** G · **Depende de:** F00, F03, F05, F08, F09, H01, H02
 
 ## Por quê
 

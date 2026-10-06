@@ -1,6 +1,6 @@
 # L1 — O Cerco
 
-**Sprint:** L · **Slot:** S04_J16 · **Tamanho:** G · **Estimativa:** US$ 2,0 · **Depende de:** H04, H08, F09, F01, F04, F05, F06, H06, H07, G04, G05, G08
+**Sprint:** L · **Slot:** S04_J16 · **Tamanho:** G · **Depende de:** H04, H08, F09, F01, F04, F05, F06, H06, H07, G04, G05, G08
 
 ## Por quê
 
@@ -636,7 +636,7 @@ quatro DualSense, dois no cabo e dois no rádio):
 
 - No [quadro](README.md): a linha **L1** (se o quadro só tem a linha **L**
   da seção, acrescente abaixo dela a linha
-  `| [L1](L1-o-cerco.md) | L | S4 — O Cerco | G | 2,0 | feito (<commit>) | <gasto> |`),
-  com o commit e o gasto real.
+  `| [L1](L1-o-cerco.md) | L | S4 — O Cerco | G | feito (<commit>) |`),
+  com o commit.
 - Commit sugerido (sem trailer):
   `feat: O Cerco — O Impacto no kit, no tempo da faixa, e o cenário comum da seção`

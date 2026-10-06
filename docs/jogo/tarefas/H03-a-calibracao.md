@@ -1,6 +1,6 @@
 # H03 — A calibração
 
-**Sprint:** H · **Tamanho:** P · **Estimativa:** US$ 2,0 · **Depende de:** F00, H02 (e G02 para a medida automática — ver "Sem a G02")
+**Sprint:** H · **Tamanho:** P · **Depende de:** F00, H02 (e G02 para a medida automática — ver "Sem a G02")
 
 ## Por quê
 

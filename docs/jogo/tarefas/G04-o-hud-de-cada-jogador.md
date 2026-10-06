@@ -1,6 +1,6 @@
 # G04 — O HUD de cada jogador
 
-**Sprint:** G · **Tamanho:** G · **Estimativa:** US$ 3,5 · **Depende de:** F00, F02, F07, F09, G02, G03
+**Sprint:** G · **Tamanho:** G · **Depende de:** F00, F02, F07, F09, G02, G03
 
 ## Por quê
 

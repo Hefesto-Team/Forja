@@ -1,6 +1,6 @@
 # N5 — Corta-Fio
 
-**Sprint:** N · **Slot:** S06_J30 · **Tamanho:** M · **Estimativa:** US$ 1,5 · **Depende de:** H04, H08, F09, N1, H07
+**Sprint:** N · **Slot:** S06_J30 · **Tamanho:** M · **Depende de:** H04, H08, F09, N1, H07
 
 ## Por quê
 
@@ -414,8 +414,8 @@ func _prova_do_corta_fio() -> void:
 ## Ao terminar
 
 - No [quadro](README.md): a linha **N5** (se não existir, acrescente
-  `| [N5](N5-corta-fio.md) | N | S6 — Corta-Fio | M | 1,5 | feito (<commit>) | <gasto> |`),
-  com o commit e o gasto real. Com as cinco feitas, a linha **N** da seção
+  `| [N5](N5-corta-fio.md) | N | S6 — Corta-Fio | M | feito (<commit>) |`),
+  com o commit. Com as cinco feitas, a linha **N** da seção
   também vira **feito**.
 - Commit sugerido (sem trailer):
   `feat: Corta-Fio — o bipe certo, o estalo e o falso, cada um no seu controle`

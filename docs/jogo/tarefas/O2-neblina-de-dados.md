@@ -1,6 +1,6 @@
 # O2 — Neblina de Dados
 
-**Sprint:** O · **Slot:** S07_J32 · **Tamanho:** M · **Estimativa:** US$ 1,5 · **Depende de:** H04, H08, F09, H07, O1
+**Sprint:** O · **Slot:** S07_J32 · **Tamanho:** M · **Depende de:** H04, H08, F09, H07, O1
 
 ## Por quê
 
@@ -389,6 +389,6 @@ marco). A neblina do pico tem de assustar sem apagar o boneco.
 
 ## Ao terminar
 
-- No [quadro](README.md), a linha O2: **feito**, com o commit e o gasto real.
+- No [quadro](README.md), a linha O2: **feito**, com o commit.
 - Commit sugerido (sem trailer):
   `feat: Neblina de Dados — só a mão sabe onde há chão`

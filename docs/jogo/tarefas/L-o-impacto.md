@@ -1,6 +1,6 @@
 # L — S4 — O Impacto: os cinco minigames
 
-**Sprint:** L · **Tamanho:** G (a seção, em cinco fichas) · **Estimativa:** US$ 8,0 (a soma das cinco) · **Depende de:** H04, H08, F09
+**Sprint:** L · **Tamanho:** G (a seção, em cinco fichas) (a soma das cinco) · **Depende de:** H04, H08, F09
 
 Esta ficha é o índice da seção. O trabalho está nas cinco fichas abaixo,
 uma por sessão, e cada uma se basta: a sessão lê a ficha do minigame dela,
@@ -60,13 +60,13 @@ as prensas) e usa do kit a raia (`raia(l)`, `acender_raia(l, forca)`,
 
 ## Os cinco
 
-| ficha | minigame | gênero | verbo | a vibração diz | estimativa |
-| --- | --- | --- | --- | --- | --- |
-| [L1](L1-o-cerco.md) | O Cerco (`S04_J16`) | sobrevivência | "Defenda!" | **de que lado** vem o golpe, um tempo antes | US$ 2,0 |
-| [L2](L2-fuga-do-tita.md) | Fuga do Titã (`S04_J17`) | coop | "Corra!" | **de quem é a vez** de alimentar a caldeira, e quão perto o titã está | US$ 1,5 |
-| [L3](L3-curto-circuito.md) | Curto-Circuito (`S04_J18`) | sabotagem | "Passe!" | **quanto falta** para a bomba na sua mão estourar (o coração acelera) | US$ 1,5 |
-| [L4](L4-martelos-termicos.md) | Martelos Térmicos (`S04_J19`) | TcT | "Acerte o lado!" | **qual das duas toupeiras é a quente** (as duas parecem iguais) | US$ 1,5 |
-| [L5](L5-a-prensa.md) | A Prensa (`S04_J20`) | sobrevivência / terror | "Esquive!" | **que a prensa vai descer em você**, e depois para que lado fugir | US$ 1,5 |
+| ficha | minigame | gênero | verbo | a vibração diz |
+| --- | --- | --- | --- | --- |
+| [L1](L1-o-cerco.md) | O Cerco (`S04_J16`) | sobrevivência | "Defenda!" | **de que lado** vem o golpe, um tempo antes |
+| [L2](L2-fuga-do-tita.md) | Fuga do Titã (`S04_J17`) | coop | "Corra!" | **de quem é a vez** de alimentar a caldeira, e quão perto o titã está |
+| [L3](L3-curto-circuito.md) | Curto-Circuito (`S04_J18`) | sabotagem | "Passe!" | **quanto falta** para a bomba na sua mão estourar (o coração acelera) |
+| [L4](L4-martelos-termicos.md) | Martelos Térmicos (`S04_J19`) | TcT | "Acerte o lado!" | **qual das duas toupeiras é a quente** (as duas parecem iguais) |
+| [L5](L5-a-prensa.md) | A Prensa (`S04_J20`) | sobrevivência / terror | "Esquive!" | **que a prensa vai descer em você**, e depois para que lado fugir |
 
 Cinco verbos com a mesma feature: defender, revezar, passar, atacar e
 esquivar. A régua de cada um (as três perguntas de

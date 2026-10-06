@@ -1,6 +1,6 @@
 # N4 — Código do Dragão
 
-**Sprint:** N · **Slot:** S06_J29 · **Tamanho:** M · **Estimativa:** US$ 1,5 · **Depende de:** H04, H08, F09, N1, H07
+**Sprint:** N · **Slot:** S06_J29 · **Tamanho:** M · **Depende de:** H04, H08, F09, N1, H07
 
 ## Por quê
 
@@ -396,7 +396,7 @@ func _prova_do_dragao() -> void:
 ## Ao terminar
 
 - No [quadro](README.md): a linha **N4** (se não existir, acrescente
-  `| [N4](N4-codigo-do-dragao.md) | N | S6 — Código do Dragão | M | 1,5 | feito (<commit>) | <gasto> |`),
-  com o commit e o gasto real.
+  `| [N4](N4-codigo-do-dragao.md) | N | S6 — Código do Dragão | M | feito (<commit>) |`),
+  com o commit.
 - Commit sugerido (sem trailer):
   `feat: Código do Dragão — a senha que só o seu controle canta`

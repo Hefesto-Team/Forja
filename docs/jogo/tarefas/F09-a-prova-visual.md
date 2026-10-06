@@ -1,6 +1,6 @@
 # F09 — A prova visual
 
-**Sprint:** F · **Tamanho:** G · **Estimativa:** US$ 4,0 · **Depende de:** F00, F02 (a coleta de texto), F03 (o fim), F08 (o robô só pelo controle)
+**Sprint:** F · **Tamanho:** G · **Depende de:** F00, F02 (a coleta de texto), F03 (o fim), F08 (o robô só pelo controle)
 
 ## Por quê
 

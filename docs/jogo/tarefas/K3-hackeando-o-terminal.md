@@ -1,6 +1,6 @@
 # K3 — Hackeando o Terminal
 
-**Sprint:** K · **Slot:** S03_J13 · **Tamanho:** M · **Estimativa:** US$ 1,5 · **Depende de:** H04, H08, F09, F03, H07, K1 (o `secao.gd`)
+**Sprint:** K · **Slot:** S03_J13 · **Tamanho:** M · **Depende de:** H04, H08, F09, F03, H07, K1 (o `secao.gd`)
 
 ## Por quê
 
@@ -540,5 +540,5 @@ meio é o desafio.
   `"Siga a senha!": "Follow the code!"`, `"Siga!": "Follow!"`; em `EN_PADROES`,
   `["^Travas: (\\d+) de (\\d+)$", "Locks: $1 of $2"]`.
 - Importe e ponha o `.uid` no commit.
-- No [quadro](README.md), a K3 **feito**, com o commit e o gasto real.
+- No [quadro](README.md), a K3 **feito**, com o commit.
 - Commit (sem trailer): `feat: Hackeando o Terminal — a senha em chamada e resposta, um quadrante por jogador`

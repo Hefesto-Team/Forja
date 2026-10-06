@@ -1,6 +1,6 @@
 # O3 — Passo no Fosso
 
-**Sprint:** O · **Slot:** S07_J33 · **Tamanho:** M · **Estimativa:** US$ 1,5 · **Depende de:** H04, H08, F09, H07, O1
+**Sprint:** O · **Slot:** S07_J33 · **Tamanho:** M · **Depende de:** H04, H08, F09, H07, O1
 
 ## Por quê
 
@@ -369,6 +369,6 @@ zumbido contínuo — se virar, anote na ficha.
 
 ## Ao terminar
 
-- No [quadro](README.md), a linha O3: **feito**, com o commit e o gasto real.
+- No [quadro](README.md), a linha O3: **feito**, com o commit.
 - Commit sugerido (sem trailer):
   `feat: Passo no Fosso — a mão marca o contratempo`

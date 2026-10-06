@@ -1,6 +1,6 @@
 # F05 — O háptico forte
 
-**Sprint:** F · **Tamanho:** G · **Estimativa:** US$ 3,5 · **Depende de:** F00, F01
+**Sprint:** F · **Tamanho:** G · **Depende de:** F00, F01
 
 ## Por quê
 
@@ -323,7 +323,7 @@ de `_prova_do_percurso()` e `_prova_das_sensacoes()` no fim de `_ready()`.)
 
 ## Ao terminar
 
-- No [quadro](README.md), a linha da F05: estado **feito** (com o commit) e o gasto real.
+- No [quadro](README.md), a linha da F05: estado **feito** (com o commit).
 - Se `"golpe_esq"`/`"golpe_dir"` e o registro do firmware ainda não estiverem
   no 13 ("As sensações", "O registro v2"), acrescentar no mesmo commit.
 - Commit sugerido: `feat: o háptico forte — a tabela de sensações com o piso, o firmware e as opções no registro`

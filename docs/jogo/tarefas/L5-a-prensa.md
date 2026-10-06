@@ -1,6 +1,6 @@
 # L5 — A Prensa
 
-**Sprint:** L · **Slot:** S04_J20 · **Tamanho:** M · **Estimativa:** US$ 1,5 · **Depende de:** H04, H08, F09, L1
+**Sprint:** L · **Slot:** S04_J20 · **Tamanho:** M · **Depende de:** H04, H08, F09, L1
 
 ## Por quê
 
@@ -439,8 +439,8 @@ func _prova_da_prensa() -> void:
 ## Ao terminar
 
 - No [quadro](README.md): a linha **L5** (se não existir, acrescente
-  `| [L5](L5-a-prensa.md) | L | S4 — A Prensa | M | 1,5 | feito (<commit>) | <gasto> |`),
-  com o commit e o gasto real. Com as cinco feitas, a linha **L** da seção
+  `| [L5](L5-a-prensa.md) | L | S4 — A Prensa | M | feito (<commit>) |`),
+  com o commit. Com as cinco feitas, a linha **L** da seção
   também vira **feito**.
 - Commit sugerido (sem trailer):
   `feat: A Prensa — o terror d'O Impacto, a mão que avisa antes do olho`

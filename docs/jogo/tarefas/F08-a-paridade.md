@@ -1,6 +1,6 @@
 # F08 — A paridade entre a prova e o jogo
 
-**Sprint:** F · **Tamanho:** M · **Estimativa:** US$ 3,0 · **Depende de:** F00, F01, F03
+**Sprint:** F · **Tamanho:** M · **Depende de:** F00, F01, F03
 
 ## Por quê
 

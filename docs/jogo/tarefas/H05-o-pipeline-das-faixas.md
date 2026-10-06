@@ -1,6 +1,6 @@
 # H05 — O pipeline das faixas
 
-**Sprint:** H · **Tamanho:** M · **Estimativa:** US$ 2,5 · **Depende de:** F00, H01
+**Sprint:** H · **Tamanho:** M · **Depende de:** F00, H01
 
 ## Por quê
 

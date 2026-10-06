@@ -27,8 +27,7 @@ tem o mesmo molde:
    e os arquivos que ela cita — nada mais.
 4. Fazer, rodar a prova rápida (`bash tests/prova_do_jogo.sh`) e commitar
    (`feat:`/`fix:`/`docs:`, sem trailer).
-5. No mesmo commit: marcar a ficha **feito** no quadro e anotar o gasto real
-   da sessão.
+5. No mesmo commit: marcar a ficha **feito** no quadro.
 6. A sessão termina dizendo ao André, em uma lista curta, o que ele precisa
    rodar e jogar na máquina dele.
 7. O André roda, joga, e cola só o resumo (ou o trecho que falhou) na próxima
@@ -88,35 +87,9 @@ dele — **uma ficha por minigame, uma sessão por ficha**.
 
 ## O orçamento
 
-**O que economiza é a sessão curta**, mais do que qualquer outra escolha. Uma
-sessão enxuta (uma ficha, sem exploração) sai por volta de US$ 1,5 a 2,5. As
-fichas já trazem o código de hoje, a API alvo e as checagens prontas, então a
-sessão executa sem explorar.
-
-| sprint | fichas | estimativa (US$) |
-| --- | --- | --- |
-| F — a fundação (F00 a F10, com o rumble seco) | 11 | 33,5 |
-| G — as telas (G01 a G11, com o teclado do nome e a Kenney) | 11 | 30,5 |
-| H — o ritmo, o som e o kit (H01 a H09, com o gerador da trilha) | 9 | 26,5 |
-| I–Q — os 45 minigames | 45 (o n.º 1 de cada seção e os medleys US$ 2,0, os outros 1,5) | 73 |
-| R — o Relâmpago | 1 | 3,5 |
-| S — a noite de seis horas | 1 | 3 |
-| **total** | **78** | **170** |
-
-Com 15% de retrabalho (menos que antes, porque as fichas trazem o código e
-as provas prontos), a faixa realista é **US$ 170 a 196**. US$ 80 pagam a
-fundação e as telas (F e G, US$ 64) e o começo do ritmo; o resto da base (H,
-US$ 26,5) e os minigames vêm com a verba que vier.
-
-O planejamento em si (a arquitetura e estas fichas) foi pago à parte, de
-propósito: gastar para planejar bem é o que deixa a execução barata e fácil.
-
-São estimativas. O número real sai do gasto anotado no quadro: depois das
-duas primeiras fichas, a tabela é recalibrada.
-
-A regra: **qualidade não se corta.** Quando a verba acaba, o trabalho pausa
-numa ficha fechada — commitada, com o quadro atualizado — nunca no meio de
-uma. Quem retomar pega a próxima linha do quadro.
+**O que economiza é a sessão curta.** As fichas já trazem o código de hoje, a API alvo e as
+checagens prontas, então a sessão executa sem explorar. O planejamento (a arquitetura e estas fichas)
+foi feito à parte, de propósito: planejar bem é o que deixa a execução barata e fácil.
 
 ## Para quem chega agora
 

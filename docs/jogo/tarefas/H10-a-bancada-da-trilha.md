@@ -1,6 +1,6 @@
 # H10 — A bancada da trilha
 
-**Sprint:** H · **Tamanho:** M · **Estimativa:** US$ 3,0 · **Depende de:** H05 (o `mapa_de_batidas.py`), H09 (o `gerar_trilha.py`)
+**Sprint:** H · **Tamanho:** M · **Depende de:** H05 (o `mapa_de_batidas.py`), H09 (o `gerar_trilha.py`)
 
 ## Onde a trilha está (03/10/2026)
 

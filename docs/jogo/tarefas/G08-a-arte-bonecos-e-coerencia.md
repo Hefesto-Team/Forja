@@ -1,6 +1,6 @@
 # G08 — A arte: bonecos e coerência
 
-**Sprint:** G · **Tamanho:** G · **Estimativa:** US$ 3,5 · **Depende de:** F00, G01, G02, F09 · **Parte B depende de:** os pacotes Kenney que o André baixa e commita
+**Sprint:** G · **Tamanho:** G · **Depende de:** F00, G01, G02, F09 · **Parte B depende de:** os pacotes Kenney que o André baixa e commita
 
 ## Por quê
 

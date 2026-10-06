@@ -1,6 +1,6 @@
 # Q2 — Roubo de Bateria
 
-**Sprint:** Q · **Slot:** S09_J42 · **Tamanho:** M · **Estimativa:** US$ 1,5 · **Depende de:** H04, H08, F09, H07, G03, Q1
+**Sprint:** Q · **Slot:** S09_J42 · **Tamanho:** M · **Depende de:** H04, H08, F09, H07, G03, Q1
 
 ## Por quê
 
@@ -414,6 +414,6 @@ pode ser presa fácil.
 
 ## Ao terminar
 
-- No [quadro](README.md), a linha Q2: **feito**, com o commit e o gasto real.
+- No [quadro](README.md), a linha Q2: **feito**, com o commit.
 - Commit sugerido (sem trailer):
   `feat: Roubo de Bateria — o pulso nos gatilhos, a estática no alto-falante`

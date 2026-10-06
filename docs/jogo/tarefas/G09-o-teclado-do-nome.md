@@ -1,6 +1,6 @@
 # G09 — O teclado de tela para o nome
 
-**Sprint:** G · **Tamanho:** M · **Estimativa:** US$ 2,0 · **Depende de:** F00, F07, F08, F09, G02
+**Sprint:** G · **Tamanho:** M · **Depende de:** F00, F07, F08, F09, G02
 
 ## Por quê
 

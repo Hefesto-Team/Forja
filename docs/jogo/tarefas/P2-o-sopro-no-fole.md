@@ -1,6 +1,6 @@
 # P2 — O Sopro no Fole
 
-**Sprint:** P · **Slot:** S08_J37 · **Tamanho:** M · **Estimativa:** US$ 1,5 · **Depende de:** H04, H08, F09, H07, P1
+**Sprint:** P · **Slot:** S08_J37 · **Tamanho:** M · **Depende de:** H04, H08, F09, H07, P1
 
 ## Por quê
 
@@ -367,6 +367,6 @@ e ajuste `MARGEM_AR`.
 
 ## Ao terminar
 
-- No [quadro](README.md), a linha P2: **feito**, com o commit e o gasto real.
+- No [quadro](README.md), a linha P2: **feito**, com o commit.
 - Commit sugerido (sem trailer):
   `feat: O Sopro no Fole — sopre a nota inteira e pare em seco`

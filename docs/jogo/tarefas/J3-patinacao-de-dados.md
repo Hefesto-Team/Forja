@@ -1,6 +1,6 @@
 # J3 — Patinação de Dados
 
-**Sprint:** J · **Slot:** S02_J08 · **Tamanho:** M · **Estimativa:** US$ 1,5 · **Depende de:** H04, H08, F09, F03, H07, J1 (o `secao.gd`)
+**Sprint:** J · **Slot:** S02_J08 · **Tamanho:** M · **Depende de:** H04, H08, F09, F03, H07, J1 (o `secao.gd`)
 
 ## Por quê
 
@@ -422,5 +422,5 @@ faz rir, a descida do meio aperta.
 - `traducoes.gd`: `"Patinação de Dados": "Data Skating"`, `"Deslize!": "Glide!"`;
   em `EN_PADROES`, `["^Dados: (\\d+)$", "Dice: $1"]`.
 - Importe e ponha o `.uid` no commit.
-- No [quadro](README.md), a J3 **feito**, com o commit e o gasto real.
+- No [quadro](README.md), a J3 **feito**, com o commit.
 - Commit (sem trailer): `feat: a Patinação de Dados — dirigir com o corpo até o dado na batida`

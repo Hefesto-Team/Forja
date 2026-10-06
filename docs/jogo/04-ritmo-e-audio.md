@@ -90,7 +90,7 @@ de áudio; o que reage é feito nos barramentos do Godot e no mixer do módulo.
 Uma faixa por minigame. O nome do arquivo é o slot:
 `godot/assets/ost/Sxx/MUS_Sxx_Jyy.ogg`. Com cada faixa vai um mapa de
 batidas `MUS_Sxx_Jyy.batidas.json` com o BPM, o instante do primeiro tempo,
-os compassos e as seções (introdução, queda, pausa). Faixa gerada por IA
+os compassos e as seções (introdução, queda, pausa). Faixa gerada pelo ACE-Step
 pode escorregar o andamento, e o mapa é conferido à mão antes de a faixa
 entrar no jogo.
 

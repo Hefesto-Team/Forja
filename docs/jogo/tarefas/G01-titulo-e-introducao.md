@@ -1,6 +1,6 @@
 # G01 — O título e a introdução
 
-**Sprint:** G · **Tamanho:** M · **Estimativa:** US$ 2,5 · **Depende de:** F00, F04, F07, F08, F09
+**Sprint:** G · **Tamanho:** M · **Depende de:** F00, F04, F07, F08, F09
 
 ## Por quê
 

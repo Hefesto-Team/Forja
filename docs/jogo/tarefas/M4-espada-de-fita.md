@@ -1,6 +1,6 @@
 # M4 — Espada de Fita
 
-**Sprint:** M · **Slot:** S05_J24 · **Tamanho:** M · **Estimativa:** US$ 1,5 · **Depende de:** H04, H08, F09, M1
+**Sprint:** M · **Slot:** S05_J24 · **Tamanho:** M · **Depende de:** H04, H08, F09, M1
 
 ## Por quê
 
@@ -411,7 +411,7 @@ func _prova_da_espada() -> void:
 ## Ao terminar
 
 - No [quadro](README.md): a linha **M4** (se não existir, acrescente
-  `| [M4](M4-espada-de-fita.md) | M | S5 — Espada de Fita | M | 1,5 | feito (<commit>) | <gasto> |`),
-  com o commit e o gasto real.
+  `| [M4](M4-espada-de-fita.md) | M | S5 — Espada de Fita | M | feito (<commit>) |`),
+  com o commit.
 - Commit sugerido (sem trailer):
   `feat: Espada de Fita — o duelo em dupla, com o peso que conta até o pico`

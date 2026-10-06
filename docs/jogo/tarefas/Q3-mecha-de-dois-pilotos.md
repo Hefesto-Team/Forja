@@ -1,6 +1,6 @@
 # Q3 — Mecha de Dois Pilotos
 
-**Sprint:** Q · **Slot:** S09_J43 · **Tamanho:** M · **Estimativa:** US$ 1,5 · **Depende de:** H04, H08, F09, H07, G03, Q1
+**Sprint:** Q · **Slot:** S09_J43 · **Tamanho:** M · **Depende de:** H04, H08, F09, H07, G03, Q1
 
 ## Por quê
 
@@ -397,6 +397,6 @@ no rádio, confira no registro a diferença dos apertos do soco.
 
 ## Ao terminar
 
-- No [quadro](README.md), a linha Q3: **feito**, com o commit e o gasto real.
+- No [quadro](README.md), a linha Q3: **feito**, com o commit.
 - Commit sugerido (sem trailer):
   `feat: Mecha de Dois Pilotos — as duas pernas no tempo, o soco em sincronia`

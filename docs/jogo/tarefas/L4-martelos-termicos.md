@@ -1,6 +1,6 @@
 # L4 — Martelos Térmicos
 
-**Sprint:** L · **Slot:** S04_J19 · **Tamanho:** M · **Estimativa:** US$ 1,5 · **Depende de:** H04, H08, F09, L1, G08
+**Sprint:** L · **Slot:** S04_J19 · **Tamanho:** M · **Depende de:** H04, H08, F09, L1, G08
 
 ## Por quê
 
@@ -394,7 +394,7 @@ não é exigido. A dupla se prova com o André.)
 ## Ao terminar
 
 - No [quadro](README.md): a linha **L4** (se não existir, acrescente
-  `| [L4](L4-martelos-termicos.md) | L | S4 — Martelos Térmicos | M | 1,5 | feito (<commit>) | <gasto> |`),
-  com o commit e o gasto real.
+  `| [L4](L4-martelos-termicos.md) | L | S4 — Martelos Térmicos | M | feito (<commit>) |`),
+  com o commit.
 - Commit sugerido (sem trailer):
   `feat: Martelos Térmicos — a toupeira quente que só a mão distingue`

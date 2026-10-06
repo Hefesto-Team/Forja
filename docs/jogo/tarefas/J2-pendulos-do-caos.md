@@ -1,6 +1,6 @@
 # J2 — Pêndulos do Caos
 
-**Sprint:** J · **Slot:** S02_J07 · **Tamanho:** M · **Estimativa:** US$ 1,5 · **Depende de:** H04, H08, F09, F03, H07, J1 (o `secao.gd`)
+**Sprint:** J · **Slot:** S02_J07 · **Tamanho:** M · **Depende de:** H04, H08, F09, F03, H07, J1 (o `secao.gd`)
 
 ## Por quê
 
@@ -529,5 +529,5 @@ rir, o fantasma quer soprar, e o bolero do meio aperta.
 - `traducoes.gd`: `"Pêndulos do Caos": "Pendulums of Chaos"`, `"Vire no alto!": "Flip at the top!"`,
   `"Vire!": "Flip!"`; em `EN_PADROES`, `["^Quedas: (\\d+) de (\\d+)$", "Falls: $1 of $2"]`.
 - Importe e ponha o `.uid` no commit.
-- No [quadro](README.md), a J2 **feito**, com o commit e o gasto real.
+- No [quadro](README.md), a J2 **feito**, com o commit.
 - Commit (sem trailer): `feat: os Pêndulos do Caos — virar num golpe no alto do arco`

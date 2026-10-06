@@ -1,6 +1,6 @@
 # G03 — O item com mecânica
 
-**Sprint:** G · **Tamanho:** M · **Estimativa:** US$ 3,0 · **Depende de:** F00, F05, F06, G02, F09 · **Usado por:** H04 (o kit chama o `Itens` no julgamento)
+**Sprint:** G · **Tamanho:** M · **Depende de:** F00, F05, F06, G02, F09 · **Usado por:** H04 (o kit chama o `Itens` no julgamento)
 
 ## Por quê
 

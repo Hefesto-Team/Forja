@@ -1,6 +1,6 @@
 # M — S5 — A Galeria: os cinco minigames
 
-**Sprint:** M · **Tamanho:** G (a seção, em cinco fichas) · **Estimativa:** US$ 8,0 (a soma das cinco) · **Depende de:** H04, H08, F09
+**Sprint:** M · **Tamanho:** G (a seção, em cinco fichas) (a soma das cinco) · **Depende de:** H04, H08, F09
 
 Esta ficha é o índice da seção. O trabalho está nas cinco fichas abaixo,
 uma por sessão, e cada uma se basta.
@@ -70,13 +70,13 @@ primeiro byte do efeito (`Forja.percepcao(l)["gatilho_dir"]`: `0x05` Off,
 
 ## Os cinco
 
-| ficha | minigame | gênero | verbo | o gatilho é | estimativa |
-| --- | --- | --- | --- | --- | --- |
-| [M1](M1-a-galeria.md) | A Galeria (`S05_J21`) | TcT | "Atire!" | **Weapon:** o clique no ponto certo do curso, no tempo; vazio, Off | US$ 2,0 |
-| [M2](M2-arco-de-neon.md) | Arco de Néon (`S05_J22`) | TcT | "Puxe e solte!" | **Feedback** que endurece durante a nota longa; soltar no fim dela | US$ 1,5 |
-| [M3](M3-metralhadora-de-feiticos.md) | Metralhadora de Feitiços (`S05_J23`) | coop | "Segure a rajada!" | **Vibration** em semicolcheias no dedo; segurar só a sua batida | US$ 1,5 |
-| [M4](M4-espada-de-fita.md) | Espada de Fita (`S05_J24`) | 2v2 | "Solte no pico!" | **Feedback** que pesa um degrau por batida: o peso é o relógio; soltar no pico | US$ 1,5 |
-| [M5](M5-a-catapulta.md) | A Catapulta (`S05_J25`) | 2v2 | "Carregue e lance!" | **Feedback** (a corda) num e **Weapon** (a trava) no outro: a dupla passa a pedra de um dedo para o outro | US$ 1,5 |
+| ficha | minigame | gênero | verbo | o gatilho é |
+| --- | --- | --- | --- | --- |
+| [M1](M1-a-galeria.md) | A Galeria (`S05_J21`) | TcT | "Atire!" | **Weapon:** o clique no ponto certo do curso, no tempo; vazio, Off |
+| [M2](M2-arco-de-neon.md) | Arco de Néon (`S05_J22`) | TcT | "Puxe e solte!" | **Feedback** que endurece durante a nota longa; soltar no fim dela |
+| [M3](M3-metralhadora-de-feiticos.md) | Metralhadora de Feitiços (`S05_J23`) | coop | "Segure a rajada!" | **Vibration** em semicolcheias no dedo; segurar só a sua batida |
+| [M4](M4-espada-de-fita.md) | Espada de Fita (`S05_J24`) | 2v2 | "Solte no pico!" | **Feedback** que pesa um degrau por batida: o peso é o relógio; soltar no pico |
+| [M5](M5-a-catapulta.md) | A Catapulta (`S05_J25`) | 2v2 | "Carregue e lance!" | **Feedback** (a corda) num e **Weapon** (a trava) no outro: a dupla passa a pedra de um dedo para o outro |
 
 Cinco verbos com a mesma feature: atirar, sustentar e soltar, segurar só a
 sua parte, soltar no ponto do peso, e revezar a carga em dupla.

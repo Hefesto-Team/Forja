@@ -1,6 +1,6 @@
 # K1 — O Molde
 
-**Sprint:** K · **Slot:** S03_J11 · **Tamanho:** G · **Estimativa:** US$ 2,0 · **Depende de:** H04, H08, F09, F03, F05, H07, G05
+**Sprint:** K · **Slot:** S03_J11 · **Tamanho:** G · **Depende de:** H04, H08, F09, F03, F05, H07, G05
 
 ## Por quê
 
@@ -797,5 +797,5 @@ aprende, a textura de pedra se sente no cabo, e a estante enche.
   existe); em `EN_PADROES`, `["^Peças: (\\d+)$", "Pieces: $1"]`.
 - Importe; `o_molde.gd.uid` e `secao.gd.uid` no commit.
 - No [quadro](README.md): as linhas K1 a K5 abaixo da linha **K** (se ainda
-  não existem), e a K1 **feito**, com o commit e o gasto real.
+  não existem), e a K1 **feito**, com o commit.
 - Commit (sem trailer): `feat: O Molde no tempo da música — a peça em dois compassos, e a oficina da seção`

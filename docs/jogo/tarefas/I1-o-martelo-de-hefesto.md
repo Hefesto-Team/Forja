@@ -1,6 +1,6 @@
 # I1 — O Martelo de Hefesto
 
-**Sprint:** I · **Slot:** S01_J01 · **Tamanho:** G · **Estimativa:** US$ 2,0 · **Depende de:** H04, H08, F09, F03, F05, H07, G05
+**Sprint:** I · **Slot:** S01_J01 · **Tamanho:** G · **Depende de:** H04, H08, F09, F03, F05, H07, G05
 
 ## Por quê
 
@@ -789,5 +789,5 @@ da régua, respondidas no cabeçalho, conferidas jogando.
 - `"$GODOT" --headless --path godot --import --quit` e o `secao.gd.uid` no commit.
 - No [quadro](README.md): se ainda não há as linhas dos minigames da seção,
   ponha I1 a I5 logo abaixo da linha **I** (com o link, M ou G, a
-  estimativa, "a fazer"); marque a I1 **feito**, com o commit e o gasto real.
+  estimativa, "a fazer"); marque a I1 **feito**, com o commit.
 - Commit (sem trailer): `feat: O Martelo de Hefesto no tempo da música, com as espadas e a forja da seção`

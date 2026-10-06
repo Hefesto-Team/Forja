@@ -1,6 +1,6 @@
 # H07 — O som em todo evento
 
-**Sprint:** H · **Tamanho:** G · **Estimativa:** US$ 3,5 · **Depende de:** F00, F05, F06, H04
+**Sprint:** H · **Tamanho:** G · **Depende de:** F00, F05, F06, H04
 
 ## Por quê
 

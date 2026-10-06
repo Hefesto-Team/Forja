@@ -1,6 +1,6 @@
 # F04 — O P1 da tela é o controle P1
 
-**Sprint:** F · **Tamanho:** M · **Estimativa:** US$ 3,0 · **Depende de:** F00, F01
+**Sprint:** F · **Tamanho:** M · **Depende de:** F00, F01
 
 ## Por quê
 
@@ -359,7 +359,7 @@ A linha do tempo, no fim (com o `_linha_do_tempo()` da F01):
 
 ## Ao terminar
 
-- No [quadro](README.md), a linha da F04: estado **feito** (com o commit) e o gasto real.
+- No [quadro](README.md), a linha da F04: estado **feito** (com o commit).
 - Se a API da reserva ainda não estiver no 13 ("A identidade — F04"),
   acrescentá-la no mesmo commit (a regra do 13).
 - Commit sugerido: `feat: o lugar nasce na conexão — player index, luzinhas e cor antes do primeiro botão`

@@ -1,6 +1,6 @@
 # F03 — Todo minigame fecha
 
-**Sprint:** F · **Tamanho:** M · **Estimativa:** US$ 3,0 · **Depende de:** F00, F01
+**Sprint:** F · **Tamanho:** M · **Depende de:** F00, F01
 
 ## Por quê
 
@@ -318,5 +318,5 @@ A linha do tempo, na função `_prova_do_modo()` da F01 (ou numa nova, no fim):
 
 ## Ao terminar
 
-- No [quadro](README.md), a linha da F03: estado **feito** (com o commit) e o gasto real.
+- No [quadro](README.md), a linha da F03: estado **feito** (com o commit).
 - Commit sugerido: `feat: todo minigame fecha — apito, vencedor e a volta sozinha em 6 s`

@@ -1,6 +1,6 @@
 # N1 — O Canto
 
-**Sprint:** N · **Slot:** S06_J26 · **Tamanho:** G · **Estimativa:** US$ 2,0 · **Depende de:** H04, H08, F09, F01, F02, F05, H06, H07, G08
+**Sprint:** N · **Slot:** S06_J26 · **Tamanho:** G · **Depende de:** H04, H08, F09, F01, F02, F05, H06, H07, G08
 
 ## Por quê
 
@@ -555,7 +555,7 @@ quatro controles, dois no cabo e dois no rádio):
 
 - No [quadro](README.md): a linha **N1** (se o quadro só tem a linha **N**
   da seção, acrescente abaixo dela
-  `| [N1](N1-o-canto.md) | N | S6 — O Canto | G | 2,0 | feito (<commit>) | <gasto> |`),
-  com o commit e o gasto real.
+  `| [N1](N1-o-canto.md) | N | S6 — O Canto | G | feito (<commit>) |`),
+  com o commit.
 - Commit sugerido (sem trailer):
   `feat: O Canto no kit — chamada e resposta no alto-falante de cada um`

@@ -1,6 +1,6 @@
 # O — S7 — Os Caminhos: os cinco minigames
 
-**Sprint:** O · **Tamanho:** G (cinco fichas) · **Estimativa:** US$ 8,0 (a soma das cinco) · **Depende de:** H04, H08, H07, F01, F09
+**Sprint:** O · **Tamanho:** G (cinco fichas) (a soma das cinco) · **Depende de:** H04, H08, H07, F01, F09
 
 Esta é a ficha-mãe: o índice. O trabalho anda pelas cinco fichas abaixo, uma
 por sessão, na ordem.
@@ -42,13 +42,13 @@ O4, O5, uma por sessão.
 
 ## Os cinco
 
-| ficha | gênero | verbo | estimativa |
-| --- | --- | --- | --- |
-| [O1 — Os Caminhos](O1-os-caminhos.md) | corrida | "Sinta o chão!" | US$ 2,0 |
-| [O2 — Neblina de Dados](O2-neblina-de-dados.md) | terror | "Salte no firme!" | US$ 1,5 |
-| [O3 — Passo no Fosso](O3-passo-no-fosso.md) | corrida | "Pise no contratempo!" | US$ 1,5 |
-| [O4 — Fuga do Mecha Cego](O4-fuga-do-mecha-cego.md) | sobrevivência | "Esconda-se!" | US$ 1,5 |
-| [O5 — Engrenagens Sincopadas](O5-engrenagens-sincopadas.md) | 2v2 | "Encaixe!" | US$ 1,5 |
+| ficha | gênero | verbo |
+| --- | --- | --- |
+| [O1 — Os Caminhos](O1-os-caminhos.md) | corrida | "Sinta o chão!" |
+| [O2 — Neblina de Dados](O2-neblina-de-dados.md) | terror | "Salte no firme!" |
+| [O3 — Passo no Fosso](O3-passo-no-fosso.md) | corrida | "Pise no contratempo!" |
+| [O4 — Fuga do Mecha Cego](O4-fuga-do-mecha-cego.md) | sobrevivência | "Esconda-se!" |
+| [O5 — Engrenagens Sincopadas](O5-engrenagens-sincopadas.md) | 2v2 | "Encaixe!" |
 
 Os cinco verbos: escolher a trilha, saltar, pisar no contratempo, esconder-se,
 encaixar.

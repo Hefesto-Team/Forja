@@ -1,6 +1,6 @@
 # K2 — Quebra-Gelo
 
-**Sprint:** K · **Slot:** S03_J12 · **Tamanho:** M · **Estimativa:** US$ 1,5 · **Depende de:** H04, H08, F09, F03, H07, K1 (o `secao.gd`)
+**Sprint:** K · **Slot:** S03_J12 · **Tamanho:** M · **Depende de:** H04, H08, F09, F03, H07, K1 (o `secao.gd`)
 
 ## Por quê
 
@@ -420,5 +420,5 @@ rajada do meio pega todo mundo.
 - `traducoes.gd`: `"Quebra-Gelo": "Icebreaker"`, `"Rache!": "Crack it!"`; em
   `EN_PADROES`, `["^Blocos: (\\d+)$", "Blocks: $1"]`.
 - Importe e ponha o `.uid` no commit.
-- No [quadro](README.md), a K2 **feito**, com o commit e o gasto real.
+- No [quadro](README.md), a K2 **feito**, com o commit.
 - Commit (sem trailer): `feat: o Quebra-Gelo — riscar o touchpad no contratempo`

@@ -1,6 +1,6 @@
 # G02 — A construção do cavaleiro
 
-**Sprint:** G · **Tamanho:** G · **Estimativa:** US$ 4,0 · **Depende de:** F00, F04, F05, F06, F07, F08, G01, F09 · **H01:** opcional (sem ele, o relógio local e o gancho descrito abaixo)
+**Sprint:** G · **Tamanho:** G · **Depende de:** F00, F04, F05, F06, F07, F08, G01, F09 · **H01:** opcional (sem ele, o relógio local e o gancho descrito abaixo)
 
 ## Por quê
 

@@ -1,6 +1,6 @@
 # O1 — Os Caminhos
 
-**Sprint:** O · **Slot:** S07_J31 · **Tamanho:** G · **Estimativa:** US$ 2,0 · **Depende de:** H04, H08, F09, F01, H07, G08
+**Sprint:** O · **Slot:** S07_J31 · **Tamanho:** G · **Depende de:** H04, H08, F09, F01, H07, G08
 
 ## Por quê
 
@@ -589,6 +589,6 @@ se sentir mais rápida, não mais confusa.
 
 ## Ao terminar
 
-- No [quadro](README.md), a linha O1: **feito**, com o commit e o gasto real.
+- No [quadro](README.md), a linha O1: **feito**, com o commit.
 - Commit sugerido (sem trailer):
   `feat: Os Caminhos no kit — a senha na mão escolhe a trilha, sem pergunta`

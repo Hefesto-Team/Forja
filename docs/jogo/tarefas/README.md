@@ -1,168 +1,167 @@
 # O quadro
 
 Uma ficha por linha, na ordem de trabalho. É o único arquivo que se
-atualiza a cada entrega: o estado da ficha e o gasto real da sessão. O
+atualiza a cada entrega: o estado da ficha. O
 método está em [Como trabalhar](../12-como-trabalhar.md); a base comum, na
 [arquitetura](../13-arquitetura.md).
 
 Estados: **a fazer**, **fazendo** (com o nome de quem pegou), **feito**
-(com o commit). O gasto real é o que a sessão custou, em US$. A coluna
+(com o commit). A coluna
 "depende de" diz o que precisa estar **feito** antes.
 
 
 
 ## F — A fundação
 
-| ficha | título | tamanho | estimativa (US$) | depende de | estado | gasto real |
-| --- | --- | --- | --- | --- | --- | --- |
-| [F00](F00-o-ambiente-da-sessao.md) | O ambiente da sessão | P | 1,5 | — | a fazer | — |
-| [F01](F01-o-modo-bancada.md) | O Modo bancada | G | 3,5 | F00 | a fazer | — |
-| [F02](F02-sem-metalinguagem.md) | Nenhuma frase metalinguística | M | 2,0 | F00, F01 | a fazer | — |
-| [F03](F03-todo-minigame-fecha.md) | Todo minigame fecha | M | 3,0 | F00, F01 | a fazer | — |
-| [F04](F04-p1-e-o-led.md) | O P1 da tela é o controle P1 | M | 3,0 | F00, F01 | a fazer | — |
-| [F05](F05-o-haptico-forte.md) | O háptico forte | G | 3,5 | F00, F01 | a fazer | — |
-| [F06](F06-o-registro-v2.md) | O registro v2 | G | 3,5 | F00, F01, F03, F04, F05 | a fazer | — |
-| [F07](F07-a-voz-do-texto.md) | A voz nova do texto | M | 2,5 | F00, F02, F03 | a fazer | — |
-| [F08](F08-a-paridade.md) | A paridade entre a prova e o jogo | M | 3,0 | F00, F01, F03 | a fazer | — |
-| [F09](F09-a-prova-visual.md) | A prova visual | G | 4,0 | F00, F02 (a coleta de texto), F03 (o fim), F08 (o robô só pelo controle) | a fazer | — |
-| [F10](F10-o-rumble-seco.md) | O rumble seco | G | 4,0 | F05 (a medição do háptico), F06 (o registro) | a fazer | — |
+| ficha | título | tamanho | depende de | estado |
+| --- | --- | --- | --- | --- |
+| [F00](F00-o-ambiente-da-sessao.md) | O ambiente da sessão | P | — | a fazer |
+| [F01](F01-o-modo-bancada.md) | O Modo bancada | G | F00 | a fazer |
+| [F02](F02-sem-metalinguagem.md) | Nenhuma frase metalinguística | M | F00, F01 | a fazer |
+| [F03](F03-todo-minigame-fecha.md) | Todo minigame fecha | M | F00, F01 | a fazer |
+| [F04](F04-p1-e-o-led.md) | O P1 da tela é o controle P1 | M | F00, F01 | a fazer |
+| [F05](F05-o-haptico-forte.md) | O háptico forte | G | F00, F01 | a fazer |
+| [F06](F06-o-registro-v2.md) | O registro v2 | G | F00, F01, F03, F04, F05 | a fazer |
+| [F07](F07-a-voz-do-texto.md) | A voz nova do texto | M | F00, F02, F03 | a fazer |
+| [F08](F08-a-paridade.md) | A paridade entre a prova e o jogo | M | F00, F01, F03 | a fazer |
+| [F09](F09-a-prova-visual.md) | A prova visual | G | F00, F02 (a coleta de texto), F03 (o fim), F08 (o robô só pelo controle) | a fazer |
+| [F10](F10-o-rumble-seco.md) | O rumble seco | G | F05 (a medição do háptico), F06 (o registro) | a fazer |
 
 ## G — As telas
 
-| ficha | título | tamanho | estimativa (US$) | depende de | estado | gasto real |
-| --- | --- | --- | --- | --- | --- | --- |
-| [G01](G01-titulo-e-introducao.md) | O título e a introdução | M | 2,5 | F00, F04, F07, F08, F09 | a fazer | — |
-| [G02](G02-a-construcao-do-cavaleiro.md) | A construção do cavaleiro | G | 4,0 | F00, F04, F05, F06, F07, F08, G01, F09 | a fazer | — |
-| [G03](G03-o-item-com-mecanica.md) | O item com mecânica | M | 3,0 | F00, F05, F06, G02, F09 | a fazer | — |
-| [G04](G04-o-hud-de-cada-jogador.md) | O HUD de cada jogador | G | 3,5 | F00, F02, F07, F09, G02, G03 | a fazer | — |
-| [G05](G05-a-camera-dos-quatro.md) | A câmera dos quatro | M | 2,5 | F00, F09 | a fazer | — |
-| [G06](G06-o-salao-e-a-colecao.md) | O salão e a coleção | M | 2,5 | F00, G02, F09 | a fazer | — |
-| [G07](G07-a-narrativa-leve.md) | A narrativa leve | P | 1,5 | F00, F07, G03, G04, G06, F09 | a fazer | — |
-| [G08](G08-a-arte-bonecos-e-coerencia.md) | A arte: bonecos e coerência | G | 3,5 | F00, G01, G02, F09 | a fazer | — |
-| [G09](G09-o-teclado-do-nome.md) | O teclado de tela para o nome | M | 2,0 | F00, F07, F08, F09, G02 | a fazer | — |
-| [G10](G10-a-biblioteca-kenney.md) | A biblioteca Kenney | G | 3,0 | F00, G08 (a parte A e o `scripts/conferir_bonecos.py`) | a fazer | — |
-| [G11](G11-a-interface-com-o-ui-pack.md) | A interface com o UI Pack e os prompts | M | 2,5 | F00, F07, F09, G04, G10 | a fazer | — |
+| ficha | título | tamanho | depende de | estado |
+| --- | --- | --- | --- | --- |
+| [G01](G01-titulo-e-introducao.md) | O título e a introdução | M | F00, F04, F07, F08, F09 | a fazer |
+| [G02](G02-a-construcao-do-cavaleiro.md) | A construção do cavaleiro | G | F00, F04, F05, F06, F07, F08, G01, F09 | a fazer |
+| [G03](G03-o-item-com-mecanica.md) | O item com mecânica | M | F00, F05, F06, G02, F09 | a fazer |
+| [G04](G04-o-hud-de-cada-jogador.md) | O HUD de cada jogador | G | F00, F02, F07, F09, G02, G03 | a fazer |
+| [G05](G05-a-camera-dos-quatro.md) | A câmera dos quatro | M | F00, F09 | a fazer |
+| [G06](G06-o-salao-e-a-colecao.md) | O salão e a coleção | M | F00, G02, F09 | a fazer |
+| [G07](G07-a-narrativa-leve.md) | A narrativa leve | P | F00, F07, G03, G04, G06, F09 | a fazer |
+| [G08](G08-a-arte-bonecos-e-coerencia.md) | A arte: bonecos e coerência | G | F00, G01, G02, F09 | a fazer |
+| [G09](G09-o-teclado-do-nome.md) | O teclado de tela para o nome | M | F00, F07, F08, F09, G02 | a fazer |
+| [G10](G10-a-biblioteca-kenney.md) | A biblioteca Kenney | G | F00, G08 (a parte A e o `scripts/conferir_bonecos.py`) | a fazer |
+| [G11](G11-a-interface-com-o-ui-pack.md) | A interface com o UI Pack e os prompts | M | F00, F07, F09, G04, G10 | a fazer |
 
 ## H — O ritmo, o som e o kit
 
-| ficha | título | tamanho | estimativa (US$) | depende de | estado | gasto real |
-| --- | --- | --- | --- | --- | --- | --- |
-| [H01](H01-o-relogio-de-audio.md) | O relógio de áudio | M | 3,0 | F00 | feito | — |
-| [H02](H02-as-janelas.md) | As janelas de julgamento | M | 3,0 | F00, H01 | a fazer | — |
-| [H03](H03-a-calibracao.md) | A calibração | P | 2,0 | F00, H02 (e G02 para a medida automática — ver "Sem a G02") | a fazer | — |
-| [H04](H04-o-kit-do-minigame.md) | O kit do minigame | G | 4,5 | F00, F03, F05, F08, F09, H01, H02 | a fazer | — |
-| [H05](H05-o-pipeline-das-faixas.md) | O pipeline das faixas | M | 2,5 | F00, H01 | feito | — |
-| [H06](H06-os-jingles.md) | Os jingles | P | 1,5 | F00, F03, H01, H04, H05 | a fazer | — |
-| [H07](H07-o-som-em-todo-evento.md) | O som em todo evento | G | 3,5 | F00, F05, F06, H04 | a fazer | — |
-| [H08](H08-os-acrescimos-do-kit.md) | Os acréscimos do kit | G | 4,0 | H04, H01, H02, F03, F05, G03 | a fazer | — |
-| [H09](H09-o-gerador-da-trilha.md) | O gerador da trilha | M | 2,5 | F00, H05 | feito | — |
-| [H10](H10-a-bancada-da-trilha.md) | A bancada da trilha | M | 3,0 | H05, H09 | feito | — |
+| ficha | título | tamanho | depende de | estado |
+| --- | --- | --- | --- | --- |
+| [H01](H01-o-relogio-de-audio.md) | O relógio de áudio | M | F00 | feito |
+| [H02](H02-as-janelas.md) | As janelas de julgamento | M | F00, H01 | a fazer |
+| [H03](H03-a-calibracao.md) | A calibração | P | F00, H02 (e G02 para a medida automática — ver "Sem a G02") | a fazer |
+| [H04](H04-o-kit-do-minigame.md) | O kit do minigame | G | F00, F03, F05, F08, F09, H01, H02 | a fazer |
+| [H05](H05-o-pipeline-das-faixas.md) | O pipeline das faixas | M | F00, H01 | feito |
+| [H06](H06-os-jingles.md) | Os jingles | P | F00, F03, H01, H04, H05 | a fazer |
+| [H07](H07-o-som-em-todo-evento.md) | O som em todo evento | G | F00, F05, F06, H04 | a fazer |
+| [H08](H08-os-acrescimos-do-kit.md) | Os acréscimos do kit | G | H04, H01, H02, F03, F05, G03 | a fazer |
+| [H09](H09-o-gerador-da-trilha.md) | O gerador da trilha | M | F00, H05 | feito |
+| [H10](H10-a-bancada-da-trilha.md) | A bancada da trilha | M | H05, H09 | feito |
 
 ## I — [S1 — A Centelha: os cinco minigames](I-a-centelha.md)
 
-| ficha | título | tamanho | estimativa (US$) | depende de | estado | gasto real |
-| --- | --- | --- | --- | --- | --- | --- |
-| [I1](I1-o-martelo-de-hefesto.md) | O Martelo de Hefesto | G | 2,0 | H04, H08, F09, F03, F05, H07, G05 | a fazer | — |
-| [I2](I2-marcha-dos-escudeiros.md) | Marcha dos Escudeiros | M | 1,5 | H04, H08, F09, F03, H07, I1 (o `secao.gd`) | a fazer | — |
-| [I3](I3-portoes-de-neon.md) | Portões de Néon | M | 1,5 | H04, H08, F09, F03, H07, I1 (o `secao.gd`) | a fazer | — |
-| [I4](I4-o-fole.md) | O Fole | M | 1,5 | H04, H08, F09, F03, H07, G03 (o L2 é do item), I1 (o `secao.gd`) | a fazer | — |
-| [I5](I5-a-esteira-de-escoria.md) | A Esteira de Escória | M | 1,5 | H04, H08, F09, F03, H07, I1 (o `secao.gd`) | a fazer | — |
+| ficha | título | tamanho | depende de | estado |
+| --- | --- | --- | --- | --- |
+| [I1](I1-o-martelo-de-hefesto.md) | O Martelo de Hefesto | G | H04, H08, F09, F03, F05, H07, G05 | a fazer |
+| [I2](I2-marcha-dos-escudeiros.md) | Marcha dos Escudeiros | M | H04, H08, F09, F03, H07, I1 (o `secao.gd`) | a fazer |
+| [I3](I3-portoes-de-neon.md) | Portões de Néon | M | H04, H08, F09, F03, H07, I1 (o `secao.gd`) | a fazer |
+| [I4](I4-o-fole.md) | O Fole | M | H04, H08, F09, F03, H07, G03 (o L2 é do item), I1 (o `secao.gd`) | a fazer |
+| [I5](I5-a-esteira-de-escoria.md) | A Esteira de Escória | M | H04, H08, F09, F03, H07, I1 (o `secao.gd`) | a fazer |
 
 ## J — [S2 — A Viga: os cinco minigames](J-a-viga.md)
 
-| ficha | título | tamanho | estimativa (US$) | depende de | estado | gasto real |
-| --- | --- | --- | --- | --- | --- | --- |
-| [J1](J1-a-viga.md) | A Viga | G | 2,0 | H04, H08, F09, F03, F05, H07, G05 | a fazer | — |
-| [J2](J2-pendulos-do-caos.md) | Pêndulos do Caos | M | 1,5 | H04, H08, F09, F03, H07, J1 (o `secao.gd`) | a fazer | — |
-| [J3](J3-patinacao-de-dados.md) | Patinação de Dados | M | 1,5 | H04, H08, F09, F03, H07, J1 (o `secao.gd`) | a fazer | — |
-| [J4](J4-o-balao-dos-foles.md) | O Balão dos Foles | M | 1,5 | H04, H08, F09, F03, H07, J1 (o `secao.gd`) | a fazer | — |
-| [J5](J5-mira-optica.md) | Mira Óptica | M | 1,5 | H04, H08, F09, F03, H07, G03 (o L2 é do item), J1 (o `secao.gd`) | a fazer | — |
+| ficha | título | tamanho | depende de | estado |
+| --- | --- | --- | --- | --- |
+| [J1](J1-a-viga.md) | A Viga | G | H04, H08, F09, F03, F05, H07, G05 | a fazer |
+| [J2](J2-pendulos-do-caos.md) | Pêndulos do Caos | M | H04, H08, F09, F03, H07, J1 (o `secao.gd`) | a fazer |
+| [J3](J3-patinacao-de-dados.md) | Patinação de Dados | M | H04, H08, F09, F03, H07, J1 (o `secao.gd`) | a fazer |
+| [J4](J4-o-balao-dos-foles.md) | O Balão dos Foles | M | H04, H08, F09, F03, H07, J1 (o `secao.gd`) | a fazer |
+| [J5](J5-mira-optica.md) | Mira Óptica | M | H04, H08, F09, F03, H07, G03 (o L2 é do item), J1 (o `secao.gd`) | a fazer |
 
 ## K — [S3 — O Molde: os cinco minigames](K-o-molde.md)
 
-| ficha | título | tamanho | estimativa (US$) | depende de | estado | gasto real |
-| --- | --- | --- | --- | --- | --- | --- |
-| [K1](K1-o-molde.md) | O Molde | G | 2,0 | H04, H08, F09, F03, F05, H07, G05 | a fazer | — |
-| [K2](K2-quebra-gelo.md) | Quebra-Gelo | M | 1,5 | H04, H08, F09, F03, H07, K1 (o `secao.gd`) | a fazer | — |
-| [K3](K3-hackeando-o-terminal.md) | Hackeando o Terminal | M | 1,5 | H04, H08, F09, F03, H07, K1 (o `secao.gd`) | a fazer | — |
-| [K4](K4-a-pinca.md) | A Pinça | M | 1,5 | H04, H08, F09, F03, H07, K1 (o `secao.gd`) | a fazer | — |
-| [K5](K5-o-carimbo.md) | O Carimbo | M | 1,5 | H04, H08, F09, F03, H07, K1 (o `secao.gd`) | a fazer | — |
+| ficha | título | tamanho | depende de | estado |
+| --- | --- | --- | --- | --- |
+| [K1](K1-o-molde.md) | O Molde | G | H04, H08, F09, F03, F05, H07, G05 | a fazer |
+| [K2](K2-quebra-gelo.md) | Quebra-Gelo | M | H04, H08, F09, F03, H07, K1 (o `secao.gd`) | a fazer |
+| [K3](K3-hackeando-o-terminal.md) | Hackeando o Terminal | M | H04, H08, F09, F03, H07, K1 (o `secao.gd`) | a fazer |
+| [K4](K4-a-pinca.md) | A Pinça | M | H04, H08, F09, F03, H07, K1 (o `secao.gd`) | a fazer |
+| [K5](K5-o-carimbo.md) | O Carimbo | M | H04, H08, F09, F03, H07, K1 (o `secao.gd`) | a fazer |
 
 ## L — [S4 — O Impacto: os cinco minigames](L-o-impacto.md)
 
-| ficha | título | tamanho | estimativa (US$) | depende de | estado | gasto real |
-| --- | --- | --- | --- | --- | --- | --- |
-| [L1](L1-o-cerco.md) | O Cerco | G | 2,0 | H04, H08, F09, F01, F04, F05, F06, H06, H07, G04, G05, G08 | a fazer | — |
-| [L2](L2-fuga-do-tita.md) | Fuga do Titã | M | 1,5 | H04, H08, F09, L1 | a fazer | — |
-| [L3](L3-curto-circuito.md) | Curto-Circuito | M | 1,5 | H04, H08, F09, L1 | a fazer | — |
-| [L4](L4-martelos-termicos.md) | Martelos Térmicos | M | 1,5 | H04, H08, F09, L1, G08 | a fazer | — |
-| [L5](L5-a-prensa.md) | A Prensa | M | 1,5 | H04, H08, F09, L1 | a fazer | — |
+| ficha | título | tamanho | depende de | estado |
+| --- | --- | --- | --- | --- |
+| [L1](L1-o-cerco.md) | O Cerco | G | H04, H08, F09, F01, F04, F05, F06, H06, H07, G04, G05, G08 | a fazer |
+| [L2](L2-fuga-do-tita.md) | Fuga do Titã | M | H04, H08, F09, L1 | a fazer |
+| [L3](L3-curto-circuito.md) | Curto-Circuito | M | H04, H08, F09, L1 | a fazer |
+| [L4](L4-martelos-termicos.md) | Martelos Térmicos | M | H04, H08, F09, L1, G08 | a fazer |
+| [L5](L5-a-prensa.md) | A Prensa | M | H04, H08, F09, L1 | a fazer |
 
 ## M — [S5 — A Galeria: os cinco minigames](M-a-galeria.md)
 
-| ficha | título | tamanho | estimativa (US$) | depende de | estado | gasto real |
-| --- | --- | --- | --- | --- | --- | --- |
-| [M1](M1-a-galeria.md) | A Galeria | G | 2,0 | H04, H08, F09, F01, F04, F05, F06, H06, H07, G03, G08 | a fazer | — |
-| [M2](M2-arco-de-neon.md) | Arco de Néon | M | 1,5 | H04, H08, F09, M1 | a fazer | — |
-| [M3](M3-metralhadora-de-feiticos.md) | Metralhadora de Feitiços | M | 1,5 | H04, H08, F09, M1 | a fazer | — |
-| [M4](M4-espada-de-fita.md) | Espada de Fita | M | 1,5 | H04, H08, F09, M1 | a fazer | — |
-| [M5](M5-a-catapulta.md) | A Catapulta | M | 1,5 | H04, H08, F09, M1 | a fazer | — |
+| ficha | título | tamanho | depende de | estado |
+| --- | --- | --- | --- | --- |
+| [M1](M1-a-galeria.md) | A Galeria | G | H04, H08, F09, F01, F04, F05, F06, H06, H07, G03, G08 | a fazer |
+| [M2](M2-arco-de-neon.md) | Arco de Néon | M | H04, H08, F09, M1 | a fazer |
+| [M3](M3-metralhadora-de-feiticos.md) | Metralhadora de Feitiços | M | H04, H08, F09, M1 | a fazer |
+| [M4](M4-espada-de-fita.md) | Espada de Fita | M | H04, H08, F09, M1 | a fazer |
+| [M5](M5-a-catapulta.md) | A Catapulta | M | H04, H08, F09, M1 | a fazer |
 
 ## N — [S6 — O Canto: os cinco minigames](N-o-canto.md)
 
-| ficha | título | tamanho | estimativa (US$) | depende de | estado | gasto real |
-| --- | --- | --- | --- | --- | --- | --- |
-| [N1](N1-o-canto.md) | O Canto | G | 2,0 | H04, H08, F09, F01, F02, F05, H06, H07, G08 | a fazer | — |
-| [N2](N2-eco-do-abismo.md) | Eco do Abismo | M | 1,5 | H04, H08, F09, N1 | a fazer | — |
-| [N3](N3-coral-dos-quatro.md) | Coral dos Quatro | M | 1,5 | H04, H08, F09, N1, H07 | a fazer | — |
-| [N4](N4-codigo-do-dragao.md) | Código do Dragão | M | 1,5 | H04, H08, F09, N1, H07 | a fazer | — |
-| [N5](N5-corta-fio.md) | Corta-Fio | M | 1,5 | H04, H08, F09, N1, H07 | a fazer | — |
+| ficha | título | tamanho | depende de | estado |
+| --- | --- | --- | --- | --- |
+| [N1](N1-o-canto.md) | O Canto | G | H04, H08, F09, F01, F02, F05, H06, H07, G08 | a fazer |
+| [N2](N2-eco-do-abismo.md) | Eco do Abismo | M | H04, H08, F09, N1 | a fazer |
+| [N3](N3-coral-dos-quatro.md) | Coral dos Quatro | M | H04, H08, F09, N1, H07 | a fazer |
+| [N4](N4-codigo-do-dragao.md) | Código do Dragão | M | H04, H08, F09, N1, H07 | a fazer |
+| [N5](N5-corta-fio.md) | Corta-Fio | M | H04, H08, F09, N1, H07 | a fazer |
 
 ## O — [S7 — Os Caminhos: os cinco minigames](O-os-caminhos.md)
 
-| ficha | título | tamanho | estimativa (US$) | depende de | estado | gasto real |
-| --- | --- | --- | --- | --- | --- | --- |
-| [O1](O1-os-caminhos.md) | Os Caminhos | G | 2,0 | H04, H08, F09, F01, H07, G08 | a fazer | — |
-| [O2](O2-neblina-de-dados.md) | Neblina de Dados | M | 1,5 | H04, H08, F09, H07, O1 | a fazer | — |
-| [O3](O3-passo-no-fosso.md) | Passo no Fosso | M | 1,5 | H04, H08, F09, H07, O1 | a fazer | — |
-| [O4](O4-fuga-do-mecha-cego.md) | Fuga do Mecha Cego | M | 1,5 | H04, H08, F09, H07, O1 | a fazer | — |
-| [O5](O5-engrenagens-sincopadas.md) | Engrenagens Sincopadas | M | 1,5 | H04, H08, F09, H07, G03, G05, O1 | a fazer | — |
+| ficha | título | tamanho | depende de | estado |
+| --- | --- | --- | --- | --- |
+| [O1](O1-os-caminhos.md) | Os Caminhos | G | H04, H08, F09, F01, H07, G08 | a fazer |
+| [O2](O2-neblina-de-dados.md) | Neblina de Dados | M | H04, H08, F09, H07, O1 | a fazer |
+| [O3](O3-passo-no-fosso.md) | Passo no Fosso | M | H04, H08, F09, H07, O1 | a fazer |
+| [O4](O4-fuga-do-mecha-cego.md) | Fuga do Mecha Cego | M | H04, H08, F09, H07, O1 | a fazer |
+| [O5](O5-engrenagens-sincopadas.md) | Engrenagens Sincopadas | M | H04, H08, F09, H07, G03, G05, O1 | a fazer |
 
 ## P — [S8 — A Voz: os cinco minigames](P-a-voz.md)
 
-| ficha | título | tamanho | estimativa (US$) | depende de | estado | gasto real |
-| --- | --- | --- | --- | --- | --- | --- |
-| [P1](P1-a-voz.md) | A Voz | G | 2,0 | H04, H08, F09, F01, H07, G08 | a fazer | — |
-| [P2](P2-o-sopro-no-fole.md) | O Sopro no Fole | M | 1,5 | H04, H08, F09, H07, P1 | a fazer | — |
-| [P3](P3-zero-absoluto.md) | Zero Absoluto | M | 1,5 | H04, H08, F09, H07, G08, P1 | a fazer | — |
-| [P4](P4-grito-de-guerra.md) | Grito de Guerra | M | 1,5 | H04, H08, F09, H07, P1 | a fazer | — |
-| [P5](P5-palmas-da-forja.md) | Palmas da Forja | M | 1,5 | H04, H08, F09, H07, P1 | a fazer | — |
+| ficha | título | tamanho | depende de | estado |
+| --- | --- | --- | --- | --- |
+| [P1](P1-a-voz.md) | A Voz | G | H04, H08, F09, F01, H07, G08 | a fazer |
+| [P2](P2-o-sopro-no-fole.md) | O Sopro no Fole | M | H04, H08, F09, H07, P1 | a fazer |
+| [P3](P3-zero-absoluto.md) | Zero Absoluto | M | H04, H08, F09, H07, G08, P1 | a fazer |
+| [P4](P4-grito-de-guerra.md) | Grito de Guerra | M | H04, H08, F09, H07, P1 | a fazer |
+| [P5](P5-palmas-da-forja.md) | Palmas da Forja | M | H04, H08, F09, H07, P1 | a fazer |
 
 ## Q — [S9 — A Prova: os cinco minigames](Q-a-prova.md)
 
-| ficha | título | tamanho | estimativa (US$) | depende de | estado | gasto real |
-| --- | --- | --- | --- | --- | --- | --- |
-| [Q1](Q1-a-prova.md) | A Prova | G | 2,0 | H04, H08, F09, F01, F04, H07, G03, O1 | a fazer | — |
-| [Q2](Q2-roubo-de-bateria.md) | Roubo de Bateria | M | 1,5 | H04, H08, F09, H07, G03, Q1 | a fazer | — |
-| [Q3](Q3-mecha-de-dois-pilotos.md) | Mecha de Dois Pilotos | M | 1,5 | H04, H08, F09, H07, G03, Q1 | a fazer | — |
-| [Q4](Q4-ruge-o-reator.md) | Ruge o Reator | G | 2,0 | H04, H08, F09, H07, G03, Q1, O1 (o `_pista`), e as seções S1 a S4 prontas (as mecânicas que as estações resumem) | a fazer | — |
-| [Q5](Q5-o-ultimo-acorde.md) | O Último Acorde | G | 2,0 | H04, H08, F09, H07, G03, Q1, Q4, O1 (o `_pista`), P1 (o ouvido), e as seções S5 a S8 prontas | a fazer | — |
+| ficha | título | tamanho | depende de | estado |
+| --- | --- | --- | --- | --- |
+| [Q1](Q1-a-prova.md) | A Prova | G | H04, H08, F09, F01, F04, H07, G03, O1 | a fazer |
+| [Q2](Q2-roubo-de-bateria.md) | Roubo de Bateria | M | H04, H08, F09, H07, G03, Q1 | a fazer |
+| [Q3](Q3-mecha-de-dois-pilotos.md) | Mecha de Dois Pilotos | M | H04, H08, F09, H07, G03, Q1 | a fazer |
+| [Q4](Q4-ruge-o-reator.md) | Ruge o Reator | G | H04, H08, F09, H07, G03, Q1, O1 (o `_pista`), e as seções S1 a S4 prontas (as mecânicas que as estações resumem) | a fazer |
+| [Q5](Q5-o-ultimo-acorde.md) | O Último Acorde | G | H04, H08, F09, H07, G03, Q1, Q4, O1 (o `_pista`), P1 (o ouvido), e as seções S5 a S8 prontas | a fazer |
 
 ## R — O Relâmpago
 
-| ficha | título | tamanho | estimativa (US$) | depende de | estado | gasto real |
-| --- | --- | --- | --- | --- | --- | --- |
-| [R](R-o-relampago.md) | O Relâmpago | G | 3,5 | H04, F09, H07, G03, as seções I a Q prontas (os 45 no catálogo), Q4 e Q5 (as estações que se copiam), O2 (a pedra), P1 (o ouvido) | a fazer | — |
+| ficha | título | tamanho | depende de | estado |
+| --- | --- | --- | --- | --- |
+| [R](R-o-relampago.md) | O Relâmpago | G | H04, F09, H07, G03, as seções I a Q prontas (os 45 no catálogo), Q4 e Q5 (as estações que se copiam), O2 (a pedra), P1 (o ouvido) | a fazer |
 
 ## S — A noite de seis horas
 
-| ficha | título | tamanho | estimativa (US$) | depende de | estado | gasto real |
-| --- | --- | --- | --- | --- | --- | --- |
-| [S](S-a-noite-de-seis-horas.md) | A noite de seis horas | M | 3,0 | F06 (o registro v2), F09, H07, as seções I a Q e a R prontas; a O1 e a P1 (as linhas `pista`, `troca`, `voz` no 13); e, com o André, a noite em si | a fazer | — |
+| ficha | título | tamanho | depende de | estado |
+| --- | --- | --- | --- | --- |
+| [S](S-a-noite-de-seis-horas.md) | A noite de seis horas | M | F06 (o registro v2), F09, H07, as seções I a Q e a R prontas; a O1 e a P1 (as linhas `pista`, `troca`, `voz` no 13); e, com o André, a noite em si | a fazer |
 
 ## A soma
 
-**Estimativa total:** US$ 170,0 em 78 fichas — F 33,5 · G 30,5 · H 26,5 · I–Q (os 45 minigames) 73,0 · R 3,5 · S 3,0.
 Com o retrabalho, a faixa está em [Como trabalhar](../12-como-trabalhar.md#o-orçamento).
 
 ## A ordem

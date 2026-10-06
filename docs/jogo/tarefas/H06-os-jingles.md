@@ -1,6 +1,6 @@
 # H06 — Os jingles
 
-**Sprint:** H · **Tamanho:** P · **Estimativa:** US$ 1,5 · **Depende de:** F00, F03, H01, H04, H05
+**Sprint:** H · **Tamanho:** P · **Depende de:** F00, F03, H01, H04, H05
 
 ## Por quê
 

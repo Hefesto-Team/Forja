@@ -1,6 +1,6 @@
 # M3 — Metralhadora de Feitiços
 
-**Sprint:** M · **Slot:** S05_J23 · **Tamanho:** M · **Estimativa:** US$ 1,5 · **Depende de:** H04, H08, F09, M1
+**Sprint:** M · **Slot:** S05_J23 · **Tamanho:** M · **Depende de:** H04, H08, F09, M1
 
 ## Por quê
 
@@ -413,7 +413,7 @@ func _prova_da_metralhadora() -> void:
 ## Ao terminar
 
 - No [quadro](README.md): a linha **M3** (se não existir, acrescente
-  `| [M3](M3-metralhadora-de-feiticos.md) | M | S5 — Metralhadora de Feitiços | M | 1,5 | feito (<commit>) | <gasto> |`),
-  com o commit e o gasto real.
+  `| [M3](M3-metralhadora-de-feiticos.md) | M | S5 — Metralhadora de Feitiços | M | feito (<commit>) |`),
+  com o commit.
 - Commit sugerido (sem trailer):
   `feat: Metralhadora de Feitiços — a rajada dividida, o tremor no dedo`

@@ -1,6 +1,6 @@
 # G07 — A narrativa leve
 
-**Sprint:** G · **Tamanho:** P · **Estimativa:** US$ 1,5 · **Depende de:** F00, F07, G03, G04, G06, F09 · **Usado por:** H04 (o kit chama `falar` e `mostrar_julgamento`)
+**Sprint:** G · **Tamanho:** P · **Depende de:** F00, F07, G03, G04, G06, F09 · **Usado por:** H04 (o kit chama `falar` e `mostrar_julgamento`)
 
 ## Por quê
 

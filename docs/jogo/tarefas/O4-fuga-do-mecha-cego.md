@@ -1,6 +1,6 @@
 # O4 — Fuga do Mecha Cego
 
-**Sprint:** O · **Slot:** S07_J34 · **Tamanho:** M · **Estimativa:** US$ 1,5 · **Depende de:** H04, H08, F09, H07, O1
+**Sprint:** O · **Slot:** S07_J34 · **Tamanho:** M · **Depende de:** H04, H08, F09, H07, O1
 
 ## Por quê
 
@@ -418,6 +418,6 @@ os lados.
 
 ## Ao terminar
 
-- No [quadro](README.md), a linha O4: **feito**, com o commit e o gasto real.
+- No [quadro](README.md), a linha O4: **feito**, com o commit.
 - Commit sugerido (sem trailer):
   `feat: Fuga do Mecha Cego — o lado do passo só na mão`

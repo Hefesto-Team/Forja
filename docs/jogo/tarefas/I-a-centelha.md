@@ -1,6 +1,6 @@
 # I — S1 — A Centelha: os cinco minigames
 
-**Sprint:** I · **Seção:** S01 · **Fichas:** I1 a I5 · **Soma:** US$ 8,0 (I1 G, 2,0; I2 a I5 M, 1,5 cada)
+**Sprint:** I · **Seção:** S01 · **Fichas:** I1 a I5
 
 O índice da seção. Cada minigame tem a sua ficha, que se executa sozinha
 numa sessão; esta página diz o que os cinco têm em comum.

@@ -1,6 +1,6 @@
 # F07 — A voz nova do texto
 
-**Sprint:** F · **Tamanho:** M · **Estimativa:** US$ 2,5 · **Depende de:** F00, F02, F03
+**Sprint:** F · **Tamanho:** M · **Depende de:** F00, F02, F03
 
 ## Por quê
 
@@ -230,5 +230,5 @@ func _prova_das_maiusculas() -> void:
 
 ## Ao terminar
 
-- No [quadro](README.md), a linha da F07: estado **feito** (com o commit) e o gasto real.
+- No [quadro](README.md), a linha da F07: estado **feito** (com o commit).
 - Commit sugerido: `feat: a voz do texto — maiúscula em toda frase e "Botão ✕ (Iniciar)"`

@@ -1,6 +1,6 @@
 # G10 — A biblioteca Kenney
 
-**Sprint:** G · **Tamanho:** G · **Estimativa:** US$ 3,0 · **Depende de:** F00, G08 (a parte A e o `scripts/conferir_bonecos.py`)
+**Sprint:** G · **Tamanho:** G · **Depende de:** F00, G08 (a parte A e o `scripts/conferir_bonecos.py`)
 
 ## Por quê
 

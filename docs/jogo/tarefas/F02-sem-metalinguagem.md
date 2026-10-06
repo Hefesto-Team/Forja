@@ -1,6 +1,6 @@
 # F02 — Nenhuma frase metalinguística
 
-**Sprint:** F · **Tamanho:** M · **Estimativa:** US$ 2,0 · **Depende de:** F00, F01
+**Sprint:** F · **Tamanho:** M · **Depende de:** F00, F01
 
 ## Por quê
 
@@ -233,5 +233,5 @@ E, em
 
 ## Ao terminar
 
-- No [quadro](README.md), a linha da F02: estado **feito** (com o commit) e o gasto real.
+- No [quadro](README.md), a linha da F02: estado **feito** (com o commit).
 - Commit sugerido: `feat: a tela do jogador fala do mundo, não do controle`

@@ -1,6 +1,6 @@
 # J1 — A Viga
 
-**Sprint:** J · **Slot:** S02_J06 · **Tamanho:** G · **Estimativa:** US$ 2,0 · **Depende de:** H04, H08, F09, F03, F05, H07, G05
+**Sprint:** J · **Slot:** S02_J06 · **Tamanho:** G · **Depende de:** H04, H08, F09, F03, F05, H07, G05
 
 ## Por quê
 
@@ -708,5 +708,5 @@ lava faz rir.
   `["^Em pé: (\\d+) s$", "Standing: $1 s"]`.
 - Importe; `a_viga.gd.uid` e `secao.gd.uid` no commit.
 - No [quadro](README.md): as linhas J1 a J5 abaixo da linha **J** (se ainda
-  não existem), e a J1 **feito**, com o commit e o gasto real.
+  não existem), e a J1 **feito**, com o commit.
 - Commit (sem trailer): `feat: A Viga no tempo da música — inclinar contra o empurrão, e a caverna da seção`

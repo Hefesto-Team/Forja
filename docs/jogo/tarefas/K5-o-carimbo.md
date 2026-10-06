@@ -1,6 +1,6 @@
 # K5 — O Carimbo
 
-**Sprint:** K · **Slot:** S03_J15 · **Tamanho:** M · **Estimativa:** US$ 1,5 · **Depende de:** H04, H08, F09, F03, H07, K1 (o `secao.gd`)
+**Sprint:** K · **Slot:** S03_J15 · **Tamanho:** M · **Depende de:** H04, H08, F09, F03, H07, K1 (o `secao.gd`)
 
 ## Por quê
 
@@ -476,5 +476,5 @@ meio é o caos.
   `EN_PADROES`, `["^Lingotes: (\\d+)$", "Ingots: $1"]` se ainda não estiver lá
   (a I5 põe).
 - Importe e ponha o `.uid` no commit.
-- No [quadro](README.md), a K5 **feito**, com o commit e o gasto real.
+- No [quadro](README.md), a K5 **feito**, com o commit.
 - Commit (sem trailer): `feat: O Carimbo — o clique na síncope, e o selo mais firme por cima`

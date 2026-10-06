@@ -1,6 +1,6 @@
 # S — A noite de seis horas
 
-**Sprint:** S · **Tamanho:** M · **Estimativa:** US$ 3,0 · **Depende de:** F06 (o registro v2), F09, H07, as seções I a Q e a R prontas; a O1 e a P1 (as linhas `pista`, `troca`, `voz` no 13); e, com o André, a noite em si
+**Sprint:** S · **Tamanho:** M · **Depende de:** F06 (o registro v2), F09, H07, as seções I a Q e a R prontas; a O1 e a P1 (as linhas `pista`, `troca`, `voz` no 13); e, com o André, a noite em si
 
 ## Por quê
 
@@ -737,7 +737,7 @@ quatro controles nos dois transportes; os resultados estão no 08 e em
 
 ## Ao terminar
 
-- No [quadro](README.md), a linha S: **feito**, com o commit e o gasto real;
+- No [quadro](README.md), a linha S: **feito**, com o commit;
   e as fichas novas que a noite pediu.
 - Commits sugeridos (sem trailer):
   `feat: o cruzamento da noite — o jogo, a ponte e os jogadores, por controle e por transporte`

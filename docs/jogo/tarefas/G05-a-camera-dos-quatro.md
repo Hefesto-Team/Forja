@@ -1,6 +1,6 @@
 # G05 — A câmera dos quatro
 
-**Sprint:** G · **Tamanho:** M · **Estimativa:** US$ 2,5 · **Depende de:** F00, F09 · **Usado por:** H04 (a chave `"camera"` da ficha do minigame vira `camera_modo`)
+**Sprint:** G · **Tamanho:** M · **Depende de:** F00, F09 · **Usado por:** H04 (a chave `"camera"` da ficha do minigame vira `camera_modo`)
 
 ## Por quê
 

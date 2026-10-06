@@ -1,6 +1,6 @@
 # P — S8 — A Voz: os cinco minigames
 
-**Sprint:** P · **Tamanho:** G (cinco fichas) · **Estimativa:** US$ 8,0 (a soma das cinco) · **Depende de:** H04, H08, H07, F01, F09, G08
+**Sprint:** P · **Tamanho:** G (cinco fichas) (a soma das cinco) · **Depende de:** H04, H08, H07, F01, F09, G08
 
 Esta é a ficha-mãe: o índice. O trabalho anda pelas cinco fichas abaixo, uma
 por sessão, na ordem.
@@ -43,13 +43,13 @@ ouvido). Depois P2, P3, P4, P5.
 
 ## Os cinco
 
-| ficha | gênero | verbo | estimativa |
-| --- | --- | --- | --- |
-| [P1 — A Voz](P1-a-voz.md) | coop | "Chame a forja!" | US$ 2,0 |
-| [P2 — O Sopro no Fole](P2-o-sopro-no-fole.md) | TcT | "Sopre e pare!" | US$ 1,5 |
-| [P3 — Zero Absoluto](P3-zero-absoluto.md) | terror | "Silêncio!" | US$ 1,5 |
-| [P4 — Grito de Guerra](P4-grito-de-guerra.md) | TcT | "Grite!" | US$ 1,5 |
-| [P5 — Palmas da Forja](P5-palmas-da-forja.md) | coop | "Bata palmas!" | US$ 1,5 |
+| ficha | gênero | verbo |
+| --- | --- | --- |
+| [P1 — A Voz](P1-a-voz.md) | coop | "Chame a forja!" |
+| [P2 — O Sopro no Fole](P2-o-sopro-no-fole.md) | TcT | "Sopre e pare!" |
+| [P3 — Zero Absoluto](P3-zero-absoluto.md) | terror | "Silêncio!" |
+| [P4 — Grito de Guerra](P4-grito-de-guerra.md) | TcT | "Grite!" |
+| [P5 — Palmas da Forja](P5-palmas-da-forja.md) | coop | "Bata palmas!" |
 
 Os cinco verbos: chamar, soprar e parar, calar, gritar, bater palmas.
 

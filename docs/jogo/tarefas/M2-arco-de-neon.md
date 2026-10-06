@@ -1,6 +1,6 @@
 # M2 — Arco de Néon
 
-**Sprint:** M · **Slot:** S05_J22 · **Tamanho:** M · **Estimativa:** US$ 1,5 · **Depende de:** H04, H08, F09, M1
+**Sprint:** M · **Slot:** S05_J22 · **Tamanho:** M · **Depende de:** H04, H08, F09, M1
 
 ## Por quê
 
@@ -390,7 +390,7 @@ e `params` (`[a, b, c]`), como grava `nativo/nucleo/pads.c` hoje.)
 ## Ao terminar
 
 - No [quadro](README.md): a linha **M2** (se não existir, acrescente
-  `| [M2](M2-arco-de-neon.md) | M | S5 — Arco de Néon | M | 1,5 | feito (<commit>) | <gasto> |`),
-  com o commit e o gasto real.
+  `| [M2](M2-arco-de-neon.md) | M | S5 — Arco de Néon | M | feito (<commit>) |`),
+  com o commit.
 - Commit sugerido (sem trailer):
   `feat: Arco de Néon — a nota longa no peso do gatilho`

@@ -1,6 +1,6 @@
 # Q4 — Ruge o Reator
 
-**Sprint:** Q · **Slot:** S09_J44 · **Tamanho:** G · **Estimativa:** US$ 2,0 · **Depende de:** H04, H08, F09, H07, G03, Q1, O1 (o `_pista`), e as seções S1 a S4 prontas (as mecânicas que as estações resumem)
+**Sprint:** Q · **Slot:** S09_J44 · **Tamanho:** G · **Depende de:** H04, H08, F09, H07, G03, Q1, O1 (o `_pista`), e as seções S1 a S4 prontas (as mecânicas que as estações resumem)
 
 ## Por quê
 
@@ -480,6 +480,6 @@ plataforma caindo tem de dar vontade de "mais uma".
 
 ## Ao terminar
 
-- No [quadro](README.md), a linha Q4: **feito**, com o commit e o gasto real.
+- No [quadro](README.md), a linha Q4: **feito**, com o commit.
 - Commit sugerido (sem trailer):
   `feat: Ruge o Reator — o medley da primeira metade, a plataforma de todos`

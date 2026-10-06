@@ -1,6 +1,6 @@
 # H09 — O gerador da trilha
 
-**Sprint:** H · **Tamanho:** M · **Estimativa:** US$ 2,5 · **Depende de:** F00, H05 (o `mapa_de_batidas.py` e o `Musica.caminho`)
+**Sprint:** H · **Tamanho:** M · **Depende de:** F00, H05 (o `mapa_de_batidas.py` e o `Musica.caminho`)
 
 ## Por quê
 

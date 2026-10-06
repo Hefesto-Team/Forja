@@ -1,6 +1,6 @@
 # F00 — O ambiente da sessão
 
-**Sprint:** F · **Tamanho:** P · **Estimativa:** US$ 1,5
+**Sprint:** F · **Tamanho:** P
 
 ## Por quê
 

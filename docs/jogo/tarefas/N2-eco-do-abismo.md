@@ -1,6 +1,6 @@
 # N2 — Eco do Abismo
 
-**Sprint:** N · **Slot:** S06_J27 · **Tamanho:** M · **Estimativa:** US$ 1,5 · **Depende de:** H04, H08, F09, N1
+**Sprint:** N · **Slot:** S06_J27 · **Tamanho:** M · **Depende de:** H04, H08, F09, N1
 
 ## Por quê
 
@@ -404,7 +404,7 @@ func _prova_do_eco() -> void:
 ## Ao terminar
 
 - No [quadro](README.md): a linha **N2** (se não existir, acrescente
-  `| [N2](N2-eco-do-abismo.md) | N | S6 — Eco do Abismo | M | 1,5 | feito (<commit>) | <gasto> |`),
-  com o commit e o gasto real.
+  `| [N2](N2-eco-do-abismo.md) | N | S6 — Eco do Abismo | M | feito (<commit>) |`),
+  com o commit.
 - Commit sugerido (sem trailer):
   `feat: Eco do Abismo — a escada no escuro que só o alto-falante mostra`

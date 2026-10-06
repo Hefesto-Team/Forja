@@ -1,6 +1,6 @@
 # P4 — Grito de Guerra
 
-**Sprint:** P · **Slot:** S08_J39 · **Tamanho:** M · **Estimativa:** US$ 1,5 · **Depende de:** H04, H08, F09, H07, P1
+**Sprint:** P · **Slot:** S08_J39 · **Tamanho:** M · **Depende de:** H04, H08, F09, H07, P1
 
 ## Por quê
 
@@ -402,6 +402,6 @@ onda do vizinho calado, anote os `voz` e ajuste `MARGEM_AR`.
 
 ## Ao terminar
 
-- No [quadro](README.md), a linha P4: **feito**, com o commit e o gasto real.
+- No [quadro](README.md), a linha P4: **feito**, com o commit.
 - Commit sugerido (sem trailer):
   `feat: Grito de Guerra — a voz no tempo forte empurra`

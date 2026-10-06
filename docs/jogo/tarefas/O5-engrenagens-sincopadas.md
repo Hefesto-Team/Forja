@@ -1,6 +1,6 @@
 # O5 — Engrenagens Sincopadas
 
-**Sprint:** O · **Slot:** S07_J35 · **Tamanho:** M · **Estimativa:** US$ 1,5 · **Depende de:** H04, H08, F09, H07, G03, G05, O1
+**Sprint:** O · **Slot:** S07_J35 · **Tamanho:** M · **Depende de:** H04, H08, F09, H07, G03, G05, O1
 
 ## Por quê
 
@@ -393,6 +393,6 @@ ser nem inútil nem imbatível.
 
 ## Ao terminar
 
-- No [quadro](README.md), a linha O5: **feito**, com o commit e o gasto real.
+- No [quadro](README.md), a linha O5: **feito**, com o commit.
 - Commit sugerido (sem trailer):
   `feat: Engrenagens Sincopadas — a dupla sobe no vão dos dentes`

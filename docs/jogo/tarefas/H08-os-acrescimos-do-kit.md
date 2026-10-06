@@ -1,6 +1,6 @@
 # H08 — Os acréscimos do kit
 
-**Sprint:** H · **Tamanho:** G · **Estimativa:** US$ 4,0 · **Depende de:** H04, H01, H02, F03, F05, G03
+**Sprint:** H · **Tamanho:** G · **Depende de:** H04, H01, H02, F03, F05, G03
 
 ## Por quê
 
@@ -1778,8 +1778,8 @@ bash tests/prova_de_poucos.sh
 ## Ao terminar
 
 - No [quadro](README.md), acrescente a linha da H08 depois da H07
-  (`| [H08](H08-os-acrescimos-do-kit.md) | H | Os acréscimos do kit | G | 4,0 | feito (<commit>) | <gasto> |`),
-  some os US$ 4,0 na linha da soma (H passa a 24,0 e o total a 122,5) e diga em "A ordem" que
+  (`| [H08](H08-os-acrescimos-do-kit.md) | Os acréscimos do kit | G | … | feito (<commit>) |`),
+  e diga em "A ordem" que
   as seções (I a Q) dependem da H08.
 - Commit sugerido (sem trailer):
   `feat: os acréscimos do kit — o fim em tempo de música, o sorteio dos cinco, a fila de notas e a luz que reage`

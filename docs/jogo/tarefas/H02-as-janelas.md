@@ -1,6 +1,6 @@
 # H02 — As janelas de julgamento
 
-**Sprint:** H · **Tamanho:** M · **Estimativa:** US$ 3,0 · **Depende de:** F00, H01
+**Sprint:** H · **Tamanho:** M · **Depende de:** F00, H01
 
 ## Por quê
 

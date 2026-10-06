@@ -1,6 +1,6 @@
 # P3 — Zero Absoluto
 
-**Sprint:** P · **Slot:** S08_J38 · **Tamanho:** M · **Estimativa:** US$ 1,5 · **Depende de:** H04, H08, F09, H07, G08, P1
+**Sprint:** P · **Slot:** S08_J38 · **Tamanho:** M · **Depende de:** H04, H08, F09, H07, G08, P1
 
 ## Por quê
 
@@ -404,6 +404,6 @@ quatro (se congelar, anote os `voz` e ajuste `MARGEM_AR`).
 
 ## Ao terminar
 
-- No [quadro](README.md), a linha P3: **feito**, com o commit e o gasto real.
+- No [quadro](README.md), a linha P3: **feito**, com o commit.
 - Commit sugerido (sem trailer):
   `feat: Zero Absoluto — calar no tempo, o mudo é o escudo`

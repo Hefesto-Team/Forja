@@ -1,6 +1,6 @@
 # N3 — Coral dos Quatro
 
-**Sprint:** N · **Slot:** S06_J28 · **Tamanho:** M · **Estimativa:** US$ 1,5 · **Depende de:** H04, H08, F09, N1, H07
+**Sprint:** N · **Slot:** S06_J28 · **Tamanho:** M · **Depende de:** H04, H08, F09, N1, H07
 
 ## Por quê
 
@@ -373,7 +373,7 @@ func _prova_do_coral() -> void:
 ## Ao terminar
 
 - No [quadro](README.md): a linha **N3** (se não existir, acrescente
-  `| [N3](N3-coral-dos-quatro.md) | N | S6 — Coral dos Quatro | M | 1,5 | feito (<commit>) | <gasto> |`),
-  com o commit e o gasto real.
+  `| [N3](N3-coral-dos-quatro.md) | N | S6 — Coral dos Quatro | M | feito (<commit>) |`),
+  com o commit.
 - Commit sugerido (sem trailer):
   `feat: Coral dos Quatro — o acorde dividido entre os alto-falantes`

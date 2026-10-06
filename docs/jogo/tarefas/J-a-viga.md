@@ -1,6 +1,6 @@
 # J — S2 — A Viga: os cinco minigames
 
-**Sprint:** J · **Seção:** S02 · **Fichas:** J1 a J5 · **Soma:** US$ 8,0 (J1 G, 2,0; J2 a J5 M, 1,5 cada)
+**Sprint:** J · **Seção:** S02 · **Fichas:** J1 a J5
 
 O índice da seção. Cada minigame tem a sua ficha, que se executa sozinha
 numa sessão; esta página diz o que os cinco têm em comum.

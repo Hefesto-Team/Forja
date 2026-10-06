@@ -1,6 +1,6 @@
 # H01 — O relógio de áudio
 
-**Sprint:** H · **Tamanho:** M · **Estimativa:** US$ 3,0 · **Depende de:** F00
+**Sprint:** H · **Tamanho:** M · **Depende de:** F00
 
 ## Por quê
 

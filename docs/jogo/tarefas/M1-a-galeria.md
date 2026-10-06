@@ -1,6 +1,6 @@
 # M1 — A Galeria
 
-**Sprint:** M · **Slot:** S05_J21 · **Tamanho:** G · **Estimativa:** US$ 2,0 · **Depende de:** H04, H08, F09, F01, F04, F05, F06, H06, H07, G03, G08
+**Sprint:** M · **Slot:** S05_J21 · **Tamanho:** G · **Depende de:** H04, H08, F09, F01, F04, F05, F06, H06, H07, G03, G08
 
 ## Por quê
 
@@ -536,7 +536,7 @@ o L2 solto da G03) passam a olhar pelo apelido (`_e_a_sala` da H04).
 
 - No [quadro](README.md): a linha **M1** (se o quadro só tem a linha **M**
   da seção, acrescente abaixo dela
-  `| [M1](M1-a-galeria.md) | M | S5 — A Galeria | G | 2,0 | feito (<commit>) | <gasto> |`),
-  com o commit e o gasto real.
+  `| [M1](M1-a-galeria.md) | M | S5 — A Galeria | G | feito (<commit>) |`),
+  com o commit.
 - Commit sugerido (sem trailer):
   `feat: A Galeria no kit — o estande no tempo, a munição no tambor e no gatilho`

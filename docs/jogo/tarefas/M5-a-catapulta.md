@@ -1,6 +1,6 @@
 # M5 — A Catapulta
 
-**Sprint:** M · **Slot:** S05_J25 · **Tamanho:** M · **Estimativa:** US$ 1,5 · **Depende de:** H04, H08, F09, M1
+**Sprint:** M · **Slot:** S05_J25 · **Tamanho:** M · **Depende de:** H04, H08, F09, M1
 
 ## Por quê
 
@@ -446,8 +446,8 @@ func _prova_da_catapulta() -> void:
 ## Ao terminar
 
 - No [quadro](README.md): a linha **M5** (se não existir, acrescente
-  `| [M5](M5-a-catapulta.md) | M | S5 — A Catapulta | M | 1,5 | feito (<commit>) | <gasto> |`),
-  com o commit e o gasto real. Com as cinco feitas, a linha **M** da seção
+  `| [M5](M5-a-catapulta.md) | M | S5 — A Catapulta | M | feito (<commit>) |`),
+  com o commit. Com as cinco feitas, a linha **M** da seção
   também vira **feito**.
 - Commit sugerido (sem trailer):
   `feat: A Catapulta — a corda num gatilho, a trava no outro`

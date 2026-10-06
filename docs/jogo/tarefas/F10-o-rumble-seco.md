@@ -1,6 +1,6 @@
 # F10 — O rumble seco
 
-**Sprint:** F · **Tamanho:** G · **Estimativa:** US$ 4,0 · **Depende de:** F05 (a medição do háptico), F06 (o registro)
+**Sprint:** F · **Tamanho:** G · **Depende de:** F05 (a medição do háptico), F06 (o registro)
 
 ## Por quê
 

@@ -1,6 +1,6 @@
 # K — S3 — O Molde: os cinco minigames
 
-**Sprint:** K · **Seção:** S03 · **Fichas:** K1 a K5 · **Soma:** US$ 8,0 (K1 G, 2,0; K2 a K5 M, 1,5 cada)
+**Sprint:** K · **Seção:** S03 · **Fichas:** K1 a K5
 
 O índice da seção. Cada minigame tem a sua ficha, que se executa sozinha
 numa sessão; esta página diz o que os cinco têm em comum.

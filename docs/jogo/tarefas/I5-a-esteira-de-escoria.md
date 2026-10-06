@@ -1,6 +1,6 @@
 # I5 — A Esteira de Escória
 
-**Sprint:** I · **Slot:** S01_J05 · **Tamanho:** M · **Estimativa:** US$ 1,5 · **Depende de:** H04, H08, F09, F03, H07, I1 (o `secao.gd`)
+**Sprint:** I · **Slot:** S01_J05 · **Tamanho:** M · **Depende de:** H04, H08, F09, F03, H07, I1 (o `secao.gd`)
 
 ## Por quê
 
@@ -521,5 +521,5 @@ segura quem aperta à toa, e a esteira dobrada do meio é o caos.
 - `traducoes.gd`: `"A Esteira de Escória": "The Slag Conveyor"`, `"Prense!": "Press!"`;
   em `EN_PADROES`, `["^Lingotes: (\\d+)$", "Ingots: $1"]`.
 - Importe e ponha o `.uid` no commit.
-- No [quadro](README.md), a I5 **feito**, com o commit e o gasto real.
+- No [quadro](README.md), a I5 **feito**, com o commit.
 - Commit (sem trailer): `feat: A Esteira de Escória — prensar na sua vez, roubar antes do dono`

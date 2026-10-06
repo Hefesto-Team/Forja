@@ -1,6 +1,6 @@
 # F06 — O registro v2
 
-**Sprint:** F · **Tamanho:** G · **Estimativa:** US$ 3,5 · **Depende de:** F00, F01, F03, F04, F05
+**Sprint:** F · **Tamanho:** G · **Depende de:** F00, F01, F03, F04, F05
 
 ## Por quê
 
@@ -308,7 +308,7 @@ func _prova_do_registro_v2() -> void:
 
 ## Ao terminar
 
-- No [quadro](README.md), a linha da F06: estado **feito** (com o commit) e o gasto real.
+- No [quadro](README.md), a linha da F06: estado **feito** (com o commit).
 - Se `lt_t_musica`, `Forja.t_musica`, `--acelerado` e o `transporte` `"virtual"`
   ainda não estiverem no 13 ("O registro v2"), acrescentar no mesmo commit.
 - Commit sugerido: `feat: o registro v2 — relógio de parede, lugar em toda linha e seq em toda saída`

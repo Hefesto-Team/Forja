@@ -14,13 +14,13 @@ binário (`scripts/licencas.gd`).
 | Mini Dungeon | Kenney (www.kenney.nl) | CC0 1.0 |
 | Impact Sounds, Interface Sounds, RPG Audio, Digital Audio, Music Jingles | Kenney (www.kenney.nl) | CC0 1.0 |
 | o desenho do DualSense, os glifos e o logo | o app Hefesto | MIT |
-| a trilha (`godot/assets/ost/`) | gerada com o ACE-Step 1.5 (github.com/ace-step/ACE-Step-1.5), na máquina do Forja | o modelo é MIT; a música gerada por IA não tem autor e segue com o jogo |
+| a trilha (`godot/assets/ost/`) | gerada com o ACE-Step 1.5 (github.com/ace-step/ACE-Step-1.5), na máquina do Forja | o modelo é MIT; a música gerada por programa não tem autor e segue com o jogo |
 
 ## SDL
 
 ```
 Copyright (C) 1997-2026 Sam Lantinga <slouken@libsdl.org>
-  
+
 This software is provided 'as-is', without any express or implied
 warranty.  In no event will the authors be held liable for any damages
 arising from the use of this software.
@@ -28,11 +28,11 @@ arising from the use of this software.
 Permission is granted to anyone to use this software for any purpose,
 including commercial applications, and to alter it and redistribute it
 freely, subject to the following restrictions:
-  
+
 1. The origin of this software must not be misrepresented; you must not
    claim that you wrote the original software. If you use this software
    in a product, an acknowledgment in the product documentation would be
-   appreciated but is not required. 
+   appreciated but is not required.
 2. Altered source versions must be plainly marked as such, and must not be
    misrepresented as being the original software.
 3. This notice may not be removed or altered from any source distribution.
@@ -147,7 +147,7 @@ with others.
 
 The OFL allows the licensed fonts to be used, studied, modified and
 redistributed freely as long as they are not sold by themselves. The
-fonts, including any derivative works, can be bundled, embedded, 
+fonts, including any derivative works, can be bundled, embedded,
 redistributed and/or sold with any software provided that any reserved
 names are not used by derivative works. The fonts and derivatives,
 however, cannot be released under any other type of license. The

@@ -1,6 +1,6 @@
 # L3 — Curto-Circuito
 
-**Sprint:** L · **Slot:** S04_J18 · **Tamanho:** M · **Estimativa:** US$ 1,5 · **Depende de:** H04, H08, F09, L1
+**Sprint:** L · **Slot:** S04_J18 · **Tamanho:** M · **Depende de:** H04, H08, F09, L1
 
 ## Por quê
 
@@ -433,7 +433,7 @@ func _prova_do_curto_circuito() -> void:
 ## Ao terminar
 
 - No [quadro](README.md): a linha **L3** (se não existir, acrescente
-  `| [L3](L3-curto-circuito.md) | L | S4 — Curto-Circuito | M | 1,5 | feito (<commit>) | <gasto> |`),
-  com o commit e o gasto real.
+  `| [L3](L3-curto-circuito.md) | L | S4 — Curto-Circuito | M | feito (<commit>) |`),
+  com o commit.
 - Commit sugerido (sem trailer):
   `feat: Curto-Circuito — a bomba de mão em mão, com o pavio que só a mão sente`

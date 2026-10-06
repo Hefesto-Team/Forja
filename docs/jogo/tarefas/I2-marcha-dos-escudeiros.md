@@ -1,6 +1,6 @@
 # I2 — Marcha dos Escudeiros
 
-**Sprint:** I · **Slot:** S01_J02 · **Tamanho:** M · **Estimativa:** US$ 1,5 · **Depende de:** H04, H08, F09, F03, H07, I1 (o `secao.gd`)
+**Sprint:** I · **Slot:** S01_J02 · **Tamanho:** M · **Depende de:** H04, H08, F09, F03, H07, I1 (o `secao.gd`)
 
 ## Por quê
 
@@ -468,6 +468,6 @@ faz rir, a ladeira pesa no meio, e o passo no metal soa em cada controle.
 - `godot/scripts/traducoes.gd`: `"Marcha dos Escudeiros": "March of the Squires"`,
   `"Marche!": "March!"` em `EN`; `["^(\\d+) m$", "$1 m"]` em `EN_PADROES`.
 - `"$GODOT" --headless --path godot --import --quit`; o `.uid` no commit.
-- No [quadro](README.md), a linha I2 **feito**, com o commit e o gasto real
+- No [quadro](README.md), a linha I2 **feito**, com o commit
   (se as linhas dos minigames ainda não existem, a I1 diz como pôr).
 - Commit (sem trailer): `feat: a Marcha dos Escudeiros — os analógicos alternados no bumbo`

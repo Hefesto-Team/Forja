@@ -1,6 +1,6 @@
 # J4 — O Balão dos Foles
 
-**Sprint:** J · **Slot:** S02_J09 · **Tamanho:** M · **Estimativa:** US$ 1,5 · **Depende de:** H04, H08, F09, F03, H07, J1 (o `secao.gd`)
+**Sprint:** J · **Slot:** S02_J09 · **Tamanho:** M · **Depende de:** H04, H08, F09, F03, H07, J1 (o `secao.gd`)
 
 ## Por quê
 
@@ -523,5 +523,5 @@ o vapor do erro faz rir; a corrida dos dois balões se lê de longe.
   `"Sozinho até as nuvens": "Alone to the clouds"`; em `EN_PADROES`,
   `["^(\\d+) m$", "$1 m"]` se ainda não estiver lá (a I2 põe).
 - Importe e ponha o `.uid` no commit.
-- No [quadro](README.md), a J4 **feito**, com o commit e o gasto real.
+- No [quadro](README.md), a J4 **feito**, com o commit.
 - Commit (sem trailer): `feat: O Balão dos Foles — a dupla chacoalha no tempo e no contratempo`
