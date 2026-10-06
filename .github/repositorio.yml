@@ -57,15 +57,16 @@ mantenedores:
 
 # O check obrigatório é o job que roda a prova do jogo (o `name` dele em `.github/workflows/forja.yml`),
 # e o nome tem de bater letra por letra. Os administradores passam pelo ruleset «a porta»;
-# o ruleset «a história» não tem exceção para ninguém.
+# o ruleset «a história» não tem exceção para ninguém. O histórico linear mora na porta: a história
+# do `main` já tem um merge, e sem exceção a regra barraria o primeiro push do repositório recriado.
 rulesets:
   - nome: "A história do main não se reescreve"
     ramos: [main]
     sem_apagar: true
     sem_push_forcado: true
-    historico_linear: true
   - nome: "O que entra no main passa pela prova e pela revisão"
     ramos: [main]
+    historico_linear: true
     revisão:
       aprovacoes: 1
     checks:
