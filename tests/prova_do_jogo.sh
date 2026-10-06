@@ -58,7 +58,7 @@ grep -E "^NÃO|^==>" "$TMP/ost.log"
 
 FALHAS=0
 [ "$OST" -eq 0 ] || { echo "FAIL a trilha não confere (python3 scripts/conferir_ost.py)"; FALHAS=$((FALHAS + 1)); }
-# nada do que se publica pode denunciar a ferramenta nem o modelo (tests/prova_sem_rastro.sh)
+# o que se publica é escrito por pessoas, sem trailer nem termo interno (tests/prova_sem_rastro.sh)
 if git -C "$RAIZ" rev-parse --git-dir > /dev/null 2>&1; then
   bash "$RAIZ/tests/prova_sem_rastro.sh" > "$TMP/sem-rastro.log" 2>&1
   SEM_RASTRO=$?
