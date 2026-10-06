@@ -69,17 +69,21 @@ SAIDA="${CI_LOCAL_SAIDA:-$CASA/ci-local/$DATA}"
 # que a citava fez dois jobs vermelhos de verdade passarem por «rede caída» (06/10/2026).
 REDE_PASSO='\]\s+\|\s+(W: Failed to fetch .*(Temporary failure resolving|Could not resolve)|Temporary failure resolving .|fatal: unable to access .*Could not resolve host|curl: \([67]\) |.*Failed to establish a new connection: \[Errno -[23]\]|(Error: )?getaddrinfo (EAI_AGAIN|ENOTFOUND))'
 REDE_ACT='^Error: .*(no such host|dial tcp|Temporary failure in name resolution)'
+# O docker que não respondeu a tempo (limpar o container de um job que passou: `context deadline exceeded`,
+# medido em 06/10/2026 com a máquina cheia): também não é defeito do job.
+DOCKER_CAIDO='^(Error: |\[[^]]*\] +(failed to remove container|Error while stop job container)).*(context deadline exceeded|Cannot connect to the Docker daemon)'
 
-modo=""; alvo=""; conferir=0; listar=0; SEM_PASSO=()
+modo=""; alvo=""; conferir=0; listar=0; SEM_PASSO=(); SO_PERNA=""
 while [ $# -gt 0 ]; do
   case "$1" in
     --rapido) modo=rapido ;;
     --completo) modo=completo ;;
     --job) shift; alvo="${1:-}"; modo=job ;;
     --sem-passo) shift; SEM_PASSO+=("${1:-}") ;;
+    --perna) shift; SO_PERNA="${1:-}" ;;
     --listar) listar=1 ;;
     --conferir) conferir=1 ;;
-    -h|--ajuda) sed -n '2,29p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'; exit 0 ;;
+    -h|--ajuda) awk 'NR > 1 && /^#/ {sub(/^# ?/, ""); print} /^set -uo/ {exit}' "${BASH_SOURCE[0]}"; exit 0 ;;
     *) echo "ci-local: argumento desconhecido: $1" >&2; exit 2 ;;
   esac
   shift
@@ -216,11 +220,21 @@ if [ -z "$IMAGEM" ]; then
   fi
 fi
 IMAGEM_22=""
+DOCKERFILE_22="$RAIZ/scripts/ci-local/Dockerfile.ubuntu-22.04"
 for j in "${JOBS[@]}"; do
   [ "$(campo ROLA "$j" 4)" = ubuntu-22.04 ] || continue
-  docker image inspect "$BASE_22" >/dev/null 2>&1 || docker pull -q "$BASE_22" >/dev/null 2>&1 \
-    || { echo "ci-local: a imagem $BASE_22 (do job $j) não baixou (rede?); nada rodou" >&2; exit 2; }
-  IMAGEM_22="$BASE_22"
+  if [ -f "$DOCKERFILE_22" ]; then
+    IMAGEM_22="hefesto-ci-local-22:$(sha256sum "$DOCKERFILE_22" | cut -c1-10)"
+    if ! docker image inspect "$IMAGEM_22" >/dev/null 2>&1; then
+      echo "ci-local: montando a imagem $IMAGEM_22 sobre $BASE_22 (uma vez só)" >&2
+      docker build -q -t "$IMAGEM_22" -f "$DOCKERFILE_22" "$RAIZ/scripts/ci-local" >/dev/null 2>&1 \
+        || { echo "ci-local: a imagem $IMAGEM_22 (do job $j) não montou (rede?); nada rodou" >&2; exit 2; }
+    fi
+  else
+    docker image inspect "$BASE_22" >/dev/null 2>&1 || docker pull -q "$BASE_22" >/dev/null 2>&1 \
+      || { echo "ci-local: a imagem $BASE_22 (do job $j) não baixou (rede?); nada rodou" >&2; exit 2; }
+    IMAGEM_22="$BASE_22"
+  fi
 done
 
 mkdir -p "$SAIDA" "$CASA/ci-local/artefatos"
@@ -298,20 +312,16 @@ yaml_de() { # job -> caminho do YAML (o original, ou a cópia filtrada)
 SUJA=""
 if ! git -C "$RAIZ" diff --cached --quiet HEAD -- 2>/dev/null; then SUJA=" (índice com mudança não commitada)"; fi
 
-rodar_job() { # job índice
-  local job="$1" i="$2" yml log rc ini extras=() porta
-  log="$SAIDA/$job.log"
-  ini=$(date +%s)
-  yml="$(yaml_de "$job")" || { echo "ci-local: o job '$job' não está em workflow nenhum" > "$log"; echo 2 > "$SAIDA/$job.rc"; return 2; }
-  porta=$((30000 + ($$ % 3000) * 10 + i % 10))
-  local arquivo_do_yaml; arquivo_do_yaml="$(arquivo_do_job "$job")"
-  if [ -n "$(campo EM-TAG "$arquivo_do_yaml" 3)" ]; then
-    local versao; versao="$(sed -nE 's/^version *= *"([^"]+)".*/\1/p' "$ARV/pyproject.toml" 2>/dev/null | head -1)"
-    printf '{"ref": "refs/tags/v%s"}\n' "${versao:-0.0.0-local}" > "$TMP/tag-$job.json"
-    extras+=(-e "$TMP/tag-$job.json")
+chamar_act() { # job yml log porta [rótulo do runner da matriz]
+  local job="$1" yml="$2" log="$3" porta="$4" rotulo="${5:-}" extras=()
+  [ -f "$TMP/tag-$job.json" ] && extras+=(-e "$TMP/tag-$job.json")
+  # A matriz de runners (`runs-on: ${{ matrix.os }}`) roda UMA perna por chamada: com as duas imagens no mesmo
+  # `-P`, o act dá a mesma imagem às duas pernas (a ordem do mapa muda de corrida para corrida: medido em
+  # 06/10/2026, o `deb` rodou as duas pernas no noble numa corrida e no jammy na outra).
+  if [ -n "$rotulo" ]; then
+    extras+=(--matrix "os:$rotulo")
+    [ "$rotulo" = ubuntu-22.04 ] && extras+=(-P "ubuntu-22.04=$IMAGEM_22")
   fi
-  [ -n "$IMAGEM_22" ] && extras+=(-P "ubuntu-22.04=$IMAGEM_22")
-  # shellcheck disable=SC2086
   (
     cd "$ARV" || exit 2
     "$ACT" push -W "$yml" -j "$job" \
@@ -325,46 +335,94 @@ rodar_job() { # job índice
       --env GIT_CONFIG_COUNT=1 --env GIT_CONFIG_KEY_0=safe.directory --env 'GIT_CONFIG_VALUE_0=*' \
       "${OPCOES[@]}" ${CI_LOCAL_ACT_EXTRA:-} >"$log" 2>&1
   )
-  rc=$?
+}
+
+rodar_job() { # job índice
+  local job="$1" i="$2" yml log rc=0 r ini porta rot arquivo_do_yaml versao rotulos=("")
+  log="$SAIDA/$job.log"
+  ini=$(date +%s)
+  yml="$(yaml_de "$job")" || { echo "ci-local: o job '$job' não está em workflow nenhum" > "$log"; echo 2 > "$SAIDA/$job.rc"; return 2; }
+  porta=$((30000 + ($$ % 3000) * 10 + i % 10))
+  arquivo_do_yaml="$(arquivo_do_job "$job")"
+  if [ -n "$(campo EM-TAG "$arquivo_do_yaml" 3)" ]; then
+    versao="$(sed -nE 's/^version *= *"([^"]+)".*/\1/p' "$ARV/pyproject.toml" 2>/dev/null | head -1)"
+    printf '{"ref": "refs/tags/v%s"}\n' "${versao:-0.0.0-local}" > "$TMP/tag-$job.json"
+  fi
+  [ "$(campo ROLA "$job" 4)" = ubuntu-22.04 ] && rotulos=(ubuntu-24.04 ubuntu-22.04)
+  [ -n "$SO_PERNA" ] && [ "${#rotulos[@]}" -gt 1 ] && rotulos=("$SO_PERNA")
+  : > "$log"
+  for rot in "${rotulos[@]}"; do
+    if [ -z "$rot" ]; then
+      chamar_act "$job" "$yml" "$log" "$porta"; r=$?
+    else
+      chamar_act "$job" "$yml" "$log.$rot" "$porta" "$rot"; r=$?
+      { echo "=== a perna $rot (rc=$r)"; cat "$log.$rot"; } >> "$log"; rm -f "$log.$rot"
+    fi
+    # vermelho vale mais que não rodado, que vale mais que verde
+    if [ "$r" != 0 ]; then case "$rc" in 0 | 2) rc=$r ;; esac; fi
+  done
   # Reprovou porque a rede caiu: não é defeito do job, e não rodar não é verde.
   if [ "$rc" != 0 ] && [ "$rc" != 2 ] && grep -qE -e "$REDE_PASSO" -e "$REDE_ACT" "$log"; then
     echo "ci-local: a rede caiu no meio deste job; ele não rodou de verdade (o log tem a linha)" >> "$log"
     echo rede > "$SAIDA/$job.motivo"; rc=2
+  elif [ "$rc" != 0 ] && [ "$rc" != 2 ] && grep -qE "$DOCKER_CAIDO" "$log"; then
+    echo "ci-local: o docker não respondeu a tempo neste job; ele não rodou de verdade (o log tem a linha)" >> "$log"
+    echo docker > "$SAIDA/$job.motivo"; rc=2
   fi
   echo "$rc" > "$SAIDA/$job.rc"
   echo $(( $(date +%s) - ini )) > "$SAIDA/$job.seg"
   return "$rc"
 }
 
-# As actions (`setup-python`…) o `act` clona em ~/.cache/act; dois `act` clonando juntos se pisam
-# («Unable to reset to <sha>: EOF»). Com todas as cópias já ali, `--action-offline-mode` não baixa
-# de novo (e a corrida sai rápida e sem rede); faltando alguma, um job de cada vez até ela existir.
-acoes_em_falta() { # as actions (fora o checkout, que o act troca pela árvore) dos workflows dos jobs a rodar, sem cópia local
-  local j f u ref
-  for j in "${JOBS[@]}"; do
-    f="$(arquivo_do_job "$j")"; [ -n "$f" ] || continue
-    grep -hoE 'uses: *[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+[^ ]*@[^ ]+' "$ARV/.github/workflows/$f"
-  done | sed -E 's/^uses: *//' | sort -u | while read -r u; do
-    case "$u" in actions/checkout@*) continue ;; esac
-    ref="${u#*@}"; u="${u%%@*}"
-    [ -d "$HOME/.cache/act/$(echo "$u" | cut -d/ -f1,2 | tr / -)@${ref//\//-}" ] || echo "$u@$ref"
-  done
+# O que o `act` roda junto com o job: o `needs:` dele, menos o que a tabela manda tirar (`SEM-NEEDS`), e o
+# `needs:` deles, e assim por diante. Dois `act` ao mesmo tempo com um job em comum brigam pelo mesmo
+# container (`Conflict. The container name "/act-Release-deb-…" is already in use`: medido em 06/10/2026),
+# e o job que é plano de outro já roda dentro dele: o resultado dele é o do job que o cobre.
+needs_do_job() { # job -> os `needs:` dele, um por linha, sem o que o SEM-NEEDS tira
+  local f tira; f="$(arquivo_do_job "$1")"; [ -n "$f" ] || return 0
+  tira=",$(campo SEM-NEEDS "$1" 3),"
+  awk -v job="$1" '
+    /^jobs:/ {emjobs=1}
+    emjobs && /^  [A-Za-z0-9_-]+:[[:space:]]*$/ {atual=$1; sub(/:$/, "", atual)}
+    atual==job && /^    needs:/ {v=$0; sub(/^    needs:[[:space:]]*/, "", v); gsub(/[\[\]]/, "", v); n=split(v, d, /[[:space:]]*,[[:space:]]*/); for (i=1;i<=n;i++) if (d[i] != "") print d[i]}
+  ' "$RAIZ/.github/workflows/$f" | while read -r d; do case "$tira" in *",$d,"*) ;; *) echo "$d" ;; esac; done
 }
-OFFLINE=()
-if [ -z "$(acoes_em_falta)" ]; then OFFLINE=(--action-offline-mode); else EM_PARALELO=1; fi
+plano_do_job() { # job -> ele e tudo o que o act roda junto
+  local fila=("$1") visto=" " atual d
+  while [ "${#fila[@]}" -gt 0 ]; do
+    atual="${fila[0]}"; fila=("${fila[@]:1}")
+    case "$visto" in *" $atual "*) continue ;; esac
+    visto="$visto$atual "
+    while read -r d; do [ -n "$d" ] && fila+=("$d"); done < <(needs_do_job "$atual")
+  done
+  for d in $visto; do echo "$d"; done
+}
+declare -A COBERTO=()
+for j in "${JOBS[@]}"; do
+  for k in "${JOBS[@]}"; do
+    [ "$j" != "$k" ] && plano_do_job "$k" | grep -qx "$j" && { COBERTO[$j]=$k; break; }
+  done
+done
 
 INI=$(date +%s)
 i=0
 for j in "${JOBS[@]}"; do
   [ -n "$j" ] || continue
+  [ -z "${COBERTO[$j]:-}" ] || continue
   while [ "$(jobs -rp | wc -l)" -ge "$EM_PARALELO" ]; do wait -n 2>/dev/null || true; done
   ( rodar_job "$j" "$i"; rc=$?
     if [ "$rc" = 0 ]; then echo "ci-local: $j verde ($(cat "$SAIDA/$j.seg")s)" >&2
-    elif [ "$rc" = 2 ]; then echo "ci-local: $j NÃO RODOU$([ -f "$SAIDA/$j.motivo" ] && echo " (rede)") (log $SAIDA/$j.log)" >&2
+    elif [ "$rc" = 2 ]; then echo "ci-local: $j NÃO RODOU$([ -f "$SAIDA/$j.motivo" ] && echo " ($(cat "$SAIDA/$j.motivo"))") (log $SAIDA/$j.log)" >&2
     else echo "ci-local: $j VERMELHO rc=$rc (log $SAIDA/$j.log)" >&2; fi ) &
   i=$((i + 1))
 done
 wait
+for j in "${!COBERTO[@]}"; do # o job que é plano de outro tem o resultado do que o cobre
+  k="${COBERTO[$j]}"
+  cp "$SAIDA/$k.rc" "$SAIDA/$j.rc" 2>/dev/null || echo 2 > "$SAIDA/$j.rc"
+  echo "rodou dentro do plano de $k: veja $SAIDA/$k.log" > "$SAIDA/$j.log"
+  echo "ci-local: $j rodou dentro do plano de $k (rc=$(cat "$SAIDA/$j.rc"))" >&2
+done
 
 VERDE=(); VERMELHO=(); NAO_RODOU=()
 for j in "${JOBS[@]}"; do
