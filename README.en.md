@@ -84,6 +84,7 @@ four controllers in four people's hands are the judge.
 Everything is tested without hardware on every push. The build, the tests and
 the code map are in [docs/DESENVOLVER.md](docs/DESENVOLVER.md) (in
 Portuguese, like the rest of the documentation; the screens are translated).
+The house rules for contributing are in [docs/COMO-CONTRIBUIR.md](docs/COMO-CONTRIBUIR.md).
 
 ## Credits
 

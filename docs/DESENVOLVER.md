@@ -2,7 +2,7 @@
 
 Para quem vai mexer no código. Antes de qualquer patch, a lei:
 [CONTRATO.md](../CONTRATO.md) (o que o jogo fala com o controle, e o que
-nunca fala) e [AGENTS.md](../AGENTS.md) (as regras da casa e os comandos).
+nunca fala) e [COMO-CONTRIBUIR.md](COMO-CONTRIBUIR.md) (as regras da casa e os comandos).
 
 O jogo é o 3D em Godot 4.4; um módulo nativo em C, com o SDL3 dentro, fala
 com os controles ([ADR-007](adr/007-o-jogo-e-o-3d-em-godot.md)).

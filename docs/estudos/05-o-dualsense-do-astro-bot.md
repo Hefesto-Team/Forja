@@ -73,7 +73,7 @@ Síntese de três relatórios de pesquisa (02/10/2026). As fontes são todas pú
   - no kernel, `DS_OUTPUT_VALID_FLAG0_HAPTICS_SELECT` quer dizer "classic rumble style".
   - Fontes: os mesmos arquivos da SDL e do kernel citados acima.
 - **[F]** Desde 11/2020, o Steam Input deixa passar o háptico por áudio com o rumble ligado. https://www.gamingonlinux.com/2020/11/valve-expand-steam-input-to-support-more-of-the-ps5-dualsense-controller
-- **[F]** O háptico por áudio só existe no cabo. O caminho Bluetooth (relatório `0x32`, CRC `0xA2`) é **proibido** pelo AGENTS.md e não serve. https://drqp.readthedocs.io/en/latest/Dev/saxense-feasibility.html
+- **[F]** O háptico por áudio só existe no cabo. O caminho Bluetooth (relatório `0x32`, CRC `0xA2`) é **proibido** pelo COMO-CONTRIBUIR.md e não serve. https://drqp.readthedocs.io/en/latest/Dev/saxense-feasibility.html
 
 ### Frequência e vocabulário de autoria
 

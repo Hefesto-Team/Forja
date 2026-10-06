@@ -62,7 +62,7 @@ servir() {
   # primeira tentativa eu desliguei a descarga e a carga do modelo estourou
   # («CUDA out of memory», 6,84 GiB só para subir).
   #
-  # O que muda aqui é só uma coisa: o modelo do ACE-Step não
+  # O que muda aqui é só uma coisa: o modelo de TEXTO do ACE-Step não
   # entra. Quem escreve o prompt é o nosso descrever_trilha.py, com o Ollama,
   # e os dois não cabem juntos. Isso devolve quase 2 GB para a geração.
   #
@@ -73,7 +73,7 @@ servir() {
   export PYTORCH_ALLOC_CONF="${PYTORCH_ALLOC_CONF:-expandable_segments:True}"
 
   echo "==> o ACE-Step na porta $PORTA (Ctrl+C para parar); os pesos ficam em $HF_HOME"
-  echo "    placa de 8 GB: sem o modelo do ACE-Step (quem escreve o prompt é o Ollama)"
+  echo "    placa de 8 GB: sem o modelo de texto do ACE-Step (quem escreve o prompt é o Ollama)"
   cd "$PASTA" && exec "$uv" run acestep-api
 }
 

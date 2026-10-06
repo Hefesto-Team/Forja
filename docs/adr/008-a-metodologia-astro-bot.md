@@ -13,7 +13,7 @@ da palestra de Masayuki Yamada no GDC 2025, a Famitsu, a CEDEC, o PlayStation
 Blog — mais o código aberto que descreve o aparelho (kernel Linux, SDL).
 
 Nada do SDK da Sony entrou, nem entrará: ele é sob NDA
-([AGENTS.md](../../AGENTS.md)). O que se replica aqui é **método publicado**,
+([COMO-CONTRIBUIR.md](../COMO-CONTRIBUIR.md)). O que se replica aqui é **método publicado**,
 não código fechado.
 
 Duas coisas da pesquisa mudam o que fazíamos:

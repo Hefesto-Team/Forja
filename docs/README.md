@@ -48,7 +48,7 @@ A direção do que vem agora: de bancada a jogo. Começa pelo [mapa da pasta](jo
 | documento | o que tem |
 | --- | --- |
 | [CONTRATO](../CONTRATO.md) | a lei: o que o jogo fala com o controle, e o que nunca fala |
-| [AGENTS](../AGENTS.md) | as regras da casa e os comandos, em uma página |
+| [COMO-CONTRIBUIR](COMO-CONTRIBUIR.md) | as regras da casa e os comandos, em uma página |
 | [DESENVOLVER](DESENVOLVER.md) | compilar, exportar, as provas sem aparelho, as fotos, o trailer e o mapa do código |
 | [As decisões](adr/README.md) | uma decisão por arquivo, com o porquê |
 | [Os estudos](estudos/README.md) | o que guiou a cara e o método: o Hefesto por dentro, os manuais de UI para a TV, o sistema visual, o DualSense nos jogos comerciais, o DualSense de Astro Bot |

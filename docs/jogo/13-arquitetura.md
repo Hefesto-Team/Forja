@@ -61,7 +61,7 @@ tests/*.sh                 as provas; scripts/*.sh a compilação, o gauntlet, a
 - **Todo texto de tela passa por `Traducoes`** (as funções de `ui/desenho.gd` e `ui/glifo.gd` já passam) e começa com maiúscula. Frase nova = uma entrada nova em `godot/scripts/traducoes.gd`.
 - **Script novo precisa do `.uid`.** O Godot 4.4 cria o `<arquivo>.gd.uid` ao importar. Depois de criar um `.gd`, rode `"$GODOT" --headless --path godot --import --quit` e commite o `.uid` junto. A prova do jogo já importa antes de rodar.
 - **`class_name` em todo script que outro usa pelo nome**; os autoloads não têm `class_name`.
-- **Nada de caminho fixo e nada de endereço de aparelho** no código, no registro ou no relatório (regra do [AGENTS](../../AGENTS.md)).
+- **Nada de caminho fixo e nada de endereço de aparelho** no código, no registro ou no relatório (regra do [COMO-CONTRIBUIR](../COMO-CONTRIBUIR.md)).
 - **Toda saída ao controle passa pelo `Forja`**, por lugar. Nenhuma sala fala com o `Forja.ctl` direto.
 - **A dica de botão** é `Glifo.dica(..., com_botao := true)`: escreve "Botão ✕ (Ação)" (F07). O ícone da parte do controle usada vive em `SalaJogo.icone` (F02) e, nos minigames, em `FICHA.icone`.
 - **A coleta de texto para a prova:** `Desenho._coletar = "memoria"` guarda cada frase desenhada, para a prova conferir o que a tela mostrou (F02).
