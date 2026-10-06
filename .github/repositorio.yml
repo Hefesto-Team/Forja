@@ -1,0 +1,73 @@
+# O que este repositório tem no GitHub, escrito como código. O arquivo segue o mesmo esquema do
+# repositório do Hefesto, e quem o lê é o `scripts/github/aplicar.py` de lá:
+#   python3 aplicar.py --repo DONO/NOME --arquivo .github/repositorio.yml --conferir   diz a diferença; sai com 1 se houver
+#   python3 aplicar.py --repo DONO/NOME --arquivo .github/repositorio.yml --aplicar    aplica pelo `gh api`, e rodar de novo não muda nada
+# Mudar uma configuração na interface do GitHub não vale: a próxima conferência acusa a diferença.
+versão: 1
+
+about:
+  descrição: "Uma noite de jogo para quatro amigos, quatro DualSense e um sofá: nove salas, uma gincana e um pódio."
+  # Sem endereço próprio por enquanto: a página do jogo nasce com as Pages, depois da release 1.
+  site: ""
+  topicos:
+    - godot
+    - gdextension
+    - dualsense
+    - game
+    - local-multiplayer
+    - couch-co-op
+    - party-game
+    - linux
+    - controller
+    - haptic-feedback
+
+# `ligada: false` precisa de `depois`: o que está desligado hoje e quando volta a ser considerado.
+funções:
+  issues:
+    ligada: true
+  wiki:
+    ligada: false
+    depois: "depois da release 1"
+  pages:
+    ligada: false
+    depois: "depois da release 1"
+  projects:
+    ligada: false
+    depois: "depois da release 1"
+  discussions:
+    ligada: false
+    depois: "depois da release 1"
+  sponsor:
+    ligada: false
+    depois: "depois da release 1"
+
+seguranca:
+  relato_privado: true
+  alertas_do_dependabot: true
+  atualizacoes_de_seguranca: true
+  varredura_de_segredo: true
+  protecao_de_push_de_segredo: true
+
+# Quem mantém: as mesmas duas contas do repositório do Hefesto.
+mantenedores:
+  - conta: vitoriamariadb
+    função: admin
+  - conta: AndreBFarias
+    função: admin
+
+# O check obrigatório é o job que roda a prova do jogo (o `name` dele em `.github/workflows/forja.yml`),
+# e o nome tem de bater letra por letra. Os administradores passam pelo ruleset «a porta»;
+# o ruleset «a história» não tem exceção para ninguém.
+rulesets:
+  - nome: "A história do main não se reescreve"
+    ramos: [main]
+    sem_apagar: true
+    sem_push_forcado: true
+    historico_linear: true
+  - nome: "O que entra no main passa pela prova e pela revisão"
+    ramos: [main]
+    revisão:
+      aprovacoes: 1
+    checks:
+      - "Linux — módulo, provas e a prova do jogo"
+    excecao: administradores
