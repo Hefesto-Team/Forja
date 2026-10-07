@@ -23,6 +23,9 @@ about:
     - haptic-feedback
 
 configuração:
+  # O ramo padrão é declarado, não herdado do primeiro push: o `--conferir` reprova o repositório
+  # recriado que nasce noutro ramo, e o `--aplicar` o volta a este (o ramo tem de existir no remoto).
+  ramo_padrao: main
   mesclagem:
     merge_commit: false
     squash: true
