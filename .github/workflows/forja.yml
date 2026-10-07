@@ -149,7 +149,13 @@ jobs:
             https://github.com/GloriousEggroll/proton-ge-custom/releases/download/GE-Proton11-7/GE-Proton11-7-x86_64.tar.gz
           tar -xzf "$RUNNER_TEMP/ge.tar.gz" -C "$RUNNER_TEMP"
           dir="$(ls -d "$RUNNER_TEMP"/GE-Proton11-7*/ | head -1)"
-          ls "$dir/files/bin"
+          ls "$dir/files/bin" "$dir/files/lib"
+          find "$dir/files/lib" -name 'libvkd3d-1.dll' -o -name 'freetype*' | head
+          # O script do Proton põe o vkd3d no caminho das dll; o wine sozinho não acha.
+          vk="$(dirname "$(dirname "$(find "$dir/files/lib" -path '*x86_64-windows/libvkd3d-1.dll' | head -1)")")"
+          echo "WINEDLLPATH=${vk}:${dir}files/lib/wine" >> "$GITHUB_ENV"
+          sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=30 update
+          sudo apt-get install -y --no-install-recommends libfreetype6
           echo "WINE=${dir}files/bin/wine" >> "$GITHUB_ENV"
           echo "WINESERVER=${dir}files/bin/wineserver" >> "$GITHUB_ENV"
 
