@@ -52,7 +52,7 @@ static const char *SERVIDOR =
     "\t\tsysfs.path = \"/devices/pci0000:00/usb3/3-4/3-4:1.0/sound/card2\"\n"
     "Sink #593\n"
     "\tState: RUNNING\n"
-    "\tName: sink_do_daemon_000003\n"
+    "\tName: sink_do_daemon_0c0b0a\n"
     "\tDescription: Alto-falante do Controle 1 (DualSense Wireless Controller)\n"
     "\tSample Specification: s16le 2ch 48000Hz\n"
     "\tProperties:\n"
@@ -87,7 +87,7 @@ static void prova_a_lista(void) {
   int placa = achar(nos, n,
                     "alsa_output.usb-Sony_Interactive_Entertainment_DualSense_Wireless_"
                     "Controller-00.HiFi__Speaker__sink");
-  int nomeado = achar(nos, n, "sink_do_daemon_000003");
+  int nomeado = achar(nos, n, "sink_do_daemon_0c0b0a");
   expect(placa >= 0 && nomeado >= 0, "a placa e o nó nomeado estão na lista");
   if (placa >= 0) {
     expect(nos[placa].canais == 4, "a placa tem quatro canais");
@@ -109,7 +109,7 @@ static void prova_o_nome_de_antes_era_invisivel(void) {
   /* A mordida do nome (E6): com a descrição de antes da forma A, o nó do rádio
    * some da lista que o jogo percorre — ele existia e ninguém o reconhecia. */
   const char *antes = "Sink #593\n"
-                      "\tName: sink_do_daemon_000003\n"
+                      "\tName: sink_do_daemon_0c0b0a\n"
                       "\tDescription: Alto-falante do Controle 1\n"
                       "\tSample Specification: s16le 2ch 48000Hz\n";
   ForjaNoDeSom nos[4];

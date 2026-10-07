@@ -133,14 +133,14 @@ void provas_relatorio(void) {
   RelControle *c3 = &r.controles[2];
   c3->presente = 1;
   rel_copiar(c3->nome, sizeof(c3->nome), "DualSense \"aspas\" \\ barra\ttab");
-  rel_copiar(c3->evidencia, sizeof(c3->evidencia), "phys 14:3a:9a:00:00:ab");
+  rel_copiar(c3->evidencia, sizeof(c3->evidencia), "phys 02:3a:9a:12:34:ab");
 
-  espera(strcmp(c3->evidencia, "phys 14:3a:9a:00:00:ab") == 0, "o relatório mascara na entrada");
+  espera(strcmp(c3->evidencia, "phys 02:3a:9a:00:00:ab") == 0, "o relatório mascara na entrada");
 
   rel_registrar(&r, 1, F_GIROSCOPIO, RES_FALHOU, NIVEL_REAGIU, "girar", "pouco", NULL, 10.0);
   rel_registrar(&r, 1, F_GIROSCOPIO, RES_PASSOU, NIVEL_REAGIU, "girar", "312 graus/s", "segunda", 20.5);
   rel_registrar(&r, 3, F_VIBRACAO_FORTE, RES_FALHOU, NIVEL_SAIU, "sentir o grave",
-                "2/6 às cegas; MAC 11:22:33:00:00:66", "", 30.0);
+                "2/6 às cegas; MAC 02:22:33:44:55:66", "", 30.0);
   espera(rel_registrar(&r, 5, F_GIROSCOPIO, RES_PASSOU, NIVEL_REAGIU, "", "", "", 0) == NULL,
          "jogador 5 não existe");
   espera(rel_registrar(&r, 1, F_TOTAL, RES_PASSOU, NIVEL_REAGIU, "", "", "", 0) == NULL,
@@ -150,7 +150,7 @@ void provas_relatorio(void) {
   espera(u && u->resultado == RES_PASSOU, "vale a última tentativa");
   espera(rel_ultimo(&r, 1, F_ACELEROMETRO) == NULL, "o que não se mediu não existe");
   const RelItem *v = rel_ultimo(&r, 3, F_VIBRACAO_FORTE);
-  espera(v && strstr(v->medido, "11:22:33:00:00:66") != NULL, "o medido também é mascarado");
+  espera(v && strstr(v->medido, "02:22:33:00:00:66") != NULL, "o medido também é mascarado");
 
   rel_nota(&r, "nota da mesa");
   espera(rel_json(&r, &json, NULL) == 0, "o JSON cheio monta");

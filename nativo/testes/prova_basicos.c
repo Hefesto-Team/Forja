@@ -13,33 +13,33 @@
 void provas_mascara(void) {
   char s[128];
 
-  mascara_mac_copia("uniq 14:3a:9a:00:00:ab fim", s, sizeof(s));
-  espera_str(s, "uniq 14:3a:9a:00:00:ab fim", "os octetos 4 e 5 zerados, com ':'");
+  mascara_mac_copia("uniq 02:3a:9a:12:34:ab fim", s, sizeof(s));
+  espera_str(s, "uniq 02:3a:9a:00:00:ab fim", "os octetos 4 e 5 zerados, com ':'");
 
-  mascara_mac_copia("serial a0-fa-9c-00-00-f0", s, sizeof(s));
-  espera_str(s, "serial a0-fa-9c-00-00-f0", "com '-', como o SDL monta o serial");
+  mascara_mac_copia("serial 02-fa-9c-00-11-f0", s, sizeof(s));
+  espera_str(s, "serial 02-fa-9c-00-00-f0", "com '-', como o SDL monta o serial");
 
-  mascara_mac_copia("bluez_output.D4_2F_4B_00_00_D8.1", s, sizeof(s));
-  espera_str(s, "bluez_output.D4_2F_4B_00_00_D8.1", "com '_', como o nó do BlueZ");
+  mascara_mac_copia("bluez_output.02_2F_4B_77_66_D8.1", s, sizeof(s));
+  espera_str(s, "bluez_output.02_2F_4B_00_00_D8.1", "com '_', como o nó do BlueZ");
 
-  mascara_mac_copia("usb-Sony_DualSense_a0fa9c0000f0-00", s, sizeof(s));
-  espera_str(s, "usb-Sony_DualSense_a0fa9c0000f0-00", "doze hex seguidos (iSerial)");
+  mascara_mac_copia("usb-Sony_DualSense_02fa9c1122f0-00", s, sizeof(s));
+  espera_str(s, "usb-Sony_DualSense_02fa9c0000f0-00", "doze hex seguidos (iSerial)");
 
   mascara_mac_copia("sessão 202609271930 às 19h", s, sizeof(s));
   espera_str(s, "sessão 202609271930 às 19h", "doze dígitos sem letra não são MAC");
 
-  mascara_mac_copia("14:3a:9a:12:34", s, sizeof(s));
-  espera_str(s, "14:3a:9a:12:34", "cinco pares não são MAC");
+  mascara_mac_copia("02:3a:9a:12:34", s, sizeof(s));
+  espera_str(s, "02:3a:9a:12:34", "cinco pares não são MAC");
 
-  mascara_mac_copia("14:3a:9a-00:00:ab", s, sizeof(s));
-  espera_str(s, "14:3a:9a-00:00:ab", "separador misturado não é MAC");
+  mascara_mac_copia("02:3a:9a-12:34:ab", s, sizeof(s));
+  espera_str(s, "02:3a:9a-12:34:ab", "separador misturado não é MAC");
 
-  mascara_mac_copia("x14:3a:9a:00:00:ab", s, sizeof(s));
-  espera_str(s, "x14:3a:9a:00:00:ab", "grudado numa palavra não é MAC");
+  mascara_mac_copia("x02:3a:9a:12:34:ab", s, sizeof(s));
+  espera_str(s, "x02:3a:9a:12:34:ab", "grudado numa palavra não é MAC");
 
-  strcpy(s, "a 11:22:33:00:00:66 e b 77:88:99:00:00:cc");
+  strcpy(s, "a 02:22:33:44:55:66 e b aa:bb:99:aa:bb:cc");
   espera(mascara_mac(s) == 2, "dois MACs no mesmo texto");
-  espera_str(s, "a 11:22:33:00:00:66 e b 77:88:99:00:00:cc", "os dois mascarados");
+  espera_str(s, "a 02:22:33:00:00:66 e b aa:bb:99:00:00:cc", "os dois mascarados");
 
   espera(mascara_mac(NULL) == 0, "NULL não quebra");
   mascara_mac_copia(NULL, s, sizeof(s));
