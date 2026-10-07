@@ -81,8 +81,8 @@ O `.exe` é o do pacote `forja-windows-x86_64` (o artefato do CI, ou
    depois de um `--` (por exemplo, `-- --semente=7`). Os relatórios ficam em
    `relatorios/`, ao lado do `.exe`.
 
-A cada push, o CI roda esse mesmo `.exe` pelo Wine do GE-Proton (fixo pela
-versão e pelo sha256 no `forja.yml`), a base do Proton: o robô joga a Prova de Fogo inteira com quatro DualSense simulados, e
-o relatório tem de sair igual ao do binário Linux. O som de cada controle sob
-Proton depende da versão dele: [docs/COMO-O-SOM-CHEGA-AO-CONTROLE.md](COMO-O-SOM-CHEGA-AO-CONTROLE.md).
+A cada push, o CI roda esse mesmo `.exe` pelo Wine do GE-Proton, fixo pela
+versão e pelo sha256 no `forja.yml`: o robô joga a Prova de Fogo inteira com
+quatro DualSense simulados, e o relatório tem de sair igual ao do binário
+Linux. O som de cada controle sob Proton depende da versão dele: [docs/COMO-O-SOM-CHEGA-AO-CONTROLE.md](COMO-O-SOM-CHEGA-AO-CONTROLE.md).
 

@@ -95,30 +95,38 @@ onde_caiu() {
 import re, sys
 linhas = open(sys.argv[1], encoding="utf-8", errors="replace").read().splitlines()
 re_dll = re.compile(r'Loaded L"([^"]+)" at ([0-9A-Fa-f]+): (\w+)')
-re_fora = re.compile(r"Unhandled .* at address (?:0x)?([0-9A-Fa-f]+)")
-re_seh = re.compile(r"code=c0000005 .*addr=(?:0x)?([0-9A-Fa-f]+)")
-dlls, queda = [], None
+re_fora = re.compile(r"Unhandled (.+?) at address (?:0x)?([0-9A-Fa-f]+)")
+re_seh = re.compile(r"dispatch_exception code=([0-9A-Fa-f]+) .*addr=(?:0x)?([0-9A-Fa-f]+)")
+dlls, seh, queda = [], [], None
 for i, l in enumerate(linhas):
     m = re_dll.search(l)
     if m:
         dlls.append((int(m.group(2), 16), m.group(1), m.group(3), i))
+    m = re_seh.search(l)
+    if m:
+        seh.append((m.group(1).lower(), int(m.group(2), 16), i))
     m = re_fora.search(l)
     if m and queda is None:
-        queda = (int(m.group(1), 16), i)
+        end = int(m.group(2), 16)
+        # O código é o da exceção no mesmo endereço, antes da linha do «Unhandled».
+        cod = [c for c, e, j in seh if e == end and j < i]
+        queda = (end, i, cod[-1] if cod else "?", m.group(1))
 if queda is None:
-    seh = [(int(m.group(1), 16), i) for i, l in enumerate(linhas) for m in [re_seh.search(l)] if m]
-    queda = seh[-1] if seh else None
+    # Sem a linha do «Unhandled» (o timeout, por exemplo): a última leitura inválida.
+    lidas = [(e, j) for c, e, j in seh if c == "c0000005"]
+    if lidas:
+        queda = lidas[-1] + ("c0000005", "acesso inválido à memória")
 if queda is None:
     print("    sem queda de memória no log (nenhum c0000005)")
     sys.exit(0)
-end, linha = queda
+end, linha, cod, texto = queda
 antes = [d for d in dlls if d[3] <= linha]
 dono = max((d for d in antes if d[0] <= end), default=None)
 if dono:
     nome = dono[1].replace(chr(92), "/").rsplit("/", 1)[-1]
-    print(f"    a queda: c0000005 em {end:016X}, {nome} + 0x{end - dono[0]:X} ({dono[2]})")
+    print(f"    a queda: {cod} ({texto}) em {end:016X}, {nome} + 0x{end - dono[0]:X} ({dono[2]})")
 else:
-    print(f"    a queda: c0000005 em {end:016X}, fora de toda dll carregada")
+    print(f"    a queda: {cod} ({texto}) em {end:016X}, fora de toda dll carregada")
 print("    as últimas dll carregadas antes dela:")
 for base, nome, tipo, _ in antes[-5:]:
     print(f"      {base:016X} {tipo:8} {nome.replace(chr(92) * 2, chr(92))}")
@@ -177,11 +185,14 @@ if ! command -v "$WINE" > /dev/null; then
   if [ "${SO_LINUX:-0}" = 1 ]; then
     echo "    sem o Wine: o .exe não rodou (SO_LINUX=1)"
   else
-    falha "sem o Wine, o .exe não rodou (instale o wine, ou SO_LINUX=1 para só o Linux)"
+    falha "sem o Wine ($WINE), o .exe não rodou (WINE e WINESERVER apontam o Wine, que não pode ser o do apt do Ubuntu 24.04; ou SO_LINUX=1 para só o Linux)"
   fi
 elif [ ! -f "$WINDOWS" ]; then
   falha "sem $WINDOWS: rode scripts/exportar.sh windows"
 else
+  # Os logs de uma queda velha não ficam ao lado de uma corrida nova.
+  GUARDA="$DIST/o-exe-no-wine"
+  rm -rf "$GUARDA"
   export WINEPREFIX="$TMP/wine" WINEDEBUG=-all WINEDLLOVERRIDES="mscoree,mshtml="
   versao_do_wine="$("$WINE" --version 2> /dev/null | tail -n 1)"
   echo "    $versao_do_wine"
@@ -196,8 +207,7 @@ else
   if [ "$rc" -ne 0 ]; then
     grep -v -E "^([0-9a-f]{4}:)?(trace|warn|fixme|err):" "$TMP/windows.log" | tail -n 40
     onde_caiu "$TMP/windows.log"
-    GUARDA="$DIST/o-exe-no-wine"
-    rm -rf "$GUARDA" && mkdir -p "$GUARDA"
+    mkdir -p "$GUARDA"
     echo "$versao_do_wine" > "$GUARDA/versao-do-wine.txt"
     cp "$TMP/windows.log" "$GUARDA/exe.log"
     cp "$TMP/wineboot.log" "$GUARDA/"
