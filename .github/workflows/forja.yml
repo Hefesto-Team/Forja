@@ -183,10 +183,24 @@ jobs:
           scripts/exportar.sh tudo
           scripts/exportar.sh appimage
 
-      - name: O Wine, a base do Proton, para rodar o .exe
+      - name: O Wine do GE-Proton, a base do Proton, para rodar o .exe (por versão e sha256)
         run: |
+          pacote="$RUNNER_TEMP/${GE_PROTON_VERSAO}-x86_64.tar.gz"
+          curl -fsSL --retry 5 --retry-all-errors -o "$pacote" \
+            "https://github.com/GloriousEggroll/proton-ge-custom/releases/download/${GE_PROTON_VERSAO}/${GE_PROTON_VERSAO}-x86_64.tar.gz"
+          echo "${GE_PROTON_SHA256}  ${pacote}" | sha256sum -c -
+          proton="$RUNNER_TEMP/ge-proton"
+          mkdir -p "$proton"
+          tar -xzf "$pacote" -C "$proton" --strip-components=1
+          rm -f "$pacote"
+          # O wine do Proton usa o FreeType do sistema e, fora do script do Proton, não acha o vkd3d sozinho.
           sudo apt-get update
-          sudo apt-get install -y --no-install-recommends wine wine64
+          sudo apt-get install -y --no-install-recommends libfreetype6
+          {
+            echo "WINE=$proton/files/bin/wine"
+            echo "WINESERVER=$proton/files/bin/wineserver"
+            echo "WINEDLLPATH=$proton/files/lib/vkd3d:$proton/files/lib/wine"
+          } >> "$GITHUB_ENV"
 
       - name: A prova da exportação (a Prova de Fogo no binário Linux e no .exe pelo Wine)
         run: bash tests/prova_da_exportacao.sh
