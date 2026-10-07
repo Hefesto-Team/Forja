@@ -44,7 +44,7 @@ toca a trilha sintetizada de hoje, e nada quebra.
 
   Cada pasta tem um `.gitkeep`. O `.gitattributes` da raiz marca `*.ogg`,
   `*.wav`, `*.png`, `*.glb` e `*.ttf` como `binary` (sem conversão de fim de
-  linha e sem diff de texto). Os dois já estão no git (commit `178446b`).
+  linha e sem diff de texto). Os dois já estão no git (commit `050347c`).
 - A nuvem não tem `ffmpeg`, `ffprobe`, `oggenc`, `sox` nem `numpy`
   (medido), e o Godot não codifica Vorbis (só lê). **A sessão não consegue
   fazer um OGG de verdade**: a prova com faixa é do André. Os dois scripts
