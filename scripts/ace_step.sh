@@ -68,7 +68,10 @@ servir() {
   #
   # (Forçar o decodificador na CPU, com ACESTEP_VAE_ON_CPU=1, faz caber e faz
   # demorar: medido, um jingle de 10 s passou de meia hora. Fica de reserva.)
-  export ACESTEP_INIT_modelo="${ACESTEP_INIT_modelo:-false}"
+  # O modelo de texto desligado vai pelo .env do próprio ACE-Step (fora do git), que ele lê sozinho e que
+  # não passa por cima do ambiente: nasce do .env.example dele, e a única linha ACESTEP_INIT_ ativa vira false.
+  [[ -f "$PASTA/.env" ]] || cp "$PASTA/.env.example" "$PASTA/.env"
+  sed -i -E 's/^(ACESTEP_INIT_[A-Z]+)=.*/\1=false/' "$PASTA/.env"
   export ACESTEP_SAVE_MEMORY="${ACESTEP_SAVE_MEMORY:-1}"
   export PYTORCH_ALLOC_CONF="${PYTORCH_ALLOC_CONF:-expandable_segments:True}"
 
