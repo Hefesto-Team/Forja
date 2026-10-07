@@ -135,6 +135,11 @@ jobs:
     name: Exportação — o binário Linux e o .exe, e a Prova de Fogo nos dois
     runs-on: ubuntu-24.04
     needs: [linux, windows]
+    env:
+      # O Wine do .exe: o do GE-Proton, fixo pela versão e pelo sha256 do pacote (o que a página da release mostra).
+      # O Wine 9.0 do apt do Ubuntu derruba o Godot 4.6+ antes do main (tests/prova_da_exportacao.sh diz por quê).
+      GE_PROTON_VERSAO: "GE-Proton11-7"
+      GE_PROTON_SHA256: "c5448b76a230384e2d7bc6beb5ccb97bafb7e2c3b6c527cb03a1a546bbcb00a0"
     steps:
       - uses: actions/checkout@v4
 
@@ -178,13 +183,35 @@ jobs:
           scripts/exportar.sh tudo
           scripts/exportar.sh appimage
 
-      - name: O Wine, a base do Proton, para rodar o .exe
+      - name: O Wine do GE-Proton, a base do Proton, para rodar o .exe (por versão e sha256)
         run: |
+          pacote="$RUNNER_TEMP/${GE_PROTON_VERSAO}-x86_64.tar.gz"
+          curl -fsSL --retry 5 --retry-all-errors -o "$pacote" \
+            "https://github.com/GloriousEggroll/proton-ge-custom/releases/download/${GE_PROTON_VERSAO}/${GE_PROTON_VERSAO}-x86_64.tar.gz"
+          echo "${GE_PROTON_SHA256}  ${pacote}" | sha256sum -c -
+          proton="$RUNNER_TEMP/ge-proton"
+          mkdir -p "$proton"
+          tar -xzf "$pacote" -C "$proton" --strip-components=1
+          rm -f "$pacote"
+          # O wine do Proton usa o FreeType do sistema e, fora do script do Proton, não acha o vkd3d sozinho.
           sudo apt-get update
-          sudo apt-get install -y --no-install-recommends wine wine64
+          sudo apt-get install -y --no-install-recommends libfreetype6
+          {
+            echo "WINE=$proton/files/bin/wine"
+            echo "WINESERVER=$proton/files/bin/wineserver"
+            echo "WINEDLLPATH=$proton/files/lib/vkd3d:$proton/files/lib/wine"
+          } >> "$GITHUB_ENV"
 
       - name: A prova da exportação (a Prova de Fogo no binário Linux e no .exe pelo Wine)
         run: bash tests/prova_da_exportacao.sh
+
+      - name: Os logs do Wine, quando o .exe cai (+seh,+loaddll)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: forja-o-exe-no-wine
+          path: dist/o-exe-no-wine/
+          if-no-files-found: ignore
 
       - uses: actions/upload-artifact@v4
         with:
