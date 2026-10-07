@@ -28,9 +28,10 @@ GODOT_BIN="$FORJA_GODOT"
 GODOT_URL="https://github.com/godotengine/godot/releases/download/${GODOT_VER}/Godot_v${GODOT_VER}_linux.x86_64.zip"
 MODELOS_URL="https://github.com/godotengine/godot/releases/download/${GODOT_VER}/Godot_v${GODOT_VER}_export_templates.tpz"
 MODELO_LINUX="linux_release.x86_64"
-MODELO_LINUX_SHA256="d9f79ab89b5ae369aeed11c6052d402e8218cd503bf85b4a235f9c30c46a7c63"
+# MEDIDA (ramo medida/forja-exe-4-7): o sha256 dos modelos pode vir do ambiente, para exportar também com o 4.4.1.
+MODELO_LINUX_SHA256="${FORJA_MODELO_LINUX_SHA256:-d9f79ab89b5ae369aeed11c6052d402e8218cd503bf85b4a235f9c30c46a7c63}"
 MODELO_WINDOWS="windows_release_x86_64.exe"
-MODELO_WINDOWS_SHA256="d34d36f3be1a6c49c56525ae86469b92e4f417ddf0b43cf00dd80c385c4b0562"
+MODELO_WINDOWS_SHA256="${FORJA_MODELO_WINDOWS_SHA256:-d34d36f3be1a6c49c56525ae86469b92e4f417ddf0b43cf00dd80c385c4b0562}"
 # O AppImage: o appimagetool por versão E por sha256; o runtime sai do começo
 # dele mesmo (um AppImage é o runtime seguido do squashfs), e fica fixo junto.
 APPIMAGETOOL_URL="https://github.com/AppImage/appimagetool/releases/download/1.9.0/appimagetool-x86_64.AppImage"
@@ -209,9 +210,9 @@ exportar() {
   diga "exportando para ${preset} → dist/$nome/"
   godot --export-release "$preset" "$saida/$exe" > "$DIST/$nome.log" 2>&1 || {
     cat "$DIST/$nome.log" >&2
-    exit 1
+    [[ "${FORJA_EXPORTAR_TOLERANTE:-0}" == 1 ]] || exit 1
   }
-  if grep -E "^(ERROR|SCRIPT ERROR)|completed with warnings" "$DIST/$nome.log" >&2; then
+  if grep -E "^(ERROR|SCRIPT ERROR)|completed with warnings" "$DIST/$nome.log" >&2 && [[ "${FORJA_EXPORTAR_TOLERANTE:-0}" != 1 ]]; then
     echo "a exportação para ${preset} reclamou (dist/$nome.log)" >&2
     exit 1
   fi
@@ -254,7 +255,7 @@ garantir_godot
 garantir_modelos
 mkdir -p "$DIST"
 diga "importando os assets"
-godot --import > "$DIST/importar.log" 2>&1 || { cat "$DIST/importar.log" >&2; exit 1; }
+godot --import > "$DIST/importar.log" 2>&1 || { cat "$DIST/importar.log" >&2; [[ "${FORJA_EXPORTAR_TOLERANTE:-0}" == 1 ]] || exit 1; }
 case "$ALVO" in
   linux) exportar linux ;;
   windows) exportar windows ;;
