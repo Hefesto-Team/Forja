@@ -18,6 +18,11 @@ on:
 permissions:
   contents: read
 
+# Um push novo neste ramo de medida substitui a corrida anterior.
+concurrency:
+  group: medida-forja-exe
+  cancel-in-progress: true
+
 jobs:
   modulo:
     name: A dll (API ${{ matrix.api }})
@@ -32,8 +37,9 @@ jobs:
           fetch-depth: 0
 
       - name: Dependências
+        timeout-minutes: 8
         run: |
-          sudo apt-get update
+          sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=30 update
           sudo apt-get install -y --no-install-recommends cmake ninja-build mingw-w64
 
       - name: O SDL e o godot-cpp em cache
@@ -117,23 +123,26 @@ jobs:
           path: artefatos
 
       - name: O Wine do apt (o mesmo do forja.yml do main)
+        timeout-minutes: 15
         if: matrix.wine == 'apt'
         run: |
-          sudo apt-get update
+          sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=30 update
           sudo apt-get install -y --no-install-recommends wine wine64
 
       - name: O Wine estável do WineHQ
+        timeout-minutes: 15
         if: matrix.wine == 'winehq'
         run: |
           sudo dpkg --add-architecture i386
           sudo mkdir -pm755 /etc/apt/keyrings
           sudo wget -q -O /etc/apt/keyrings/winehq-archive.key https://dl.winehq.org/wine-builds/winehq.key
           sudo wget -q -NP /etc/apt/sources.list.d/ https://dl.winehq.org/wine-builds/ubuntu/dists/noble/winehq-noble.sources
-          sudo apt-get update
+          sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=30 update
           sudo apt-get install -y winehq-stable
           echo "WINE=$(command -v wine)" >> "$GITHUB_ENV"
 
       - name: O Wine do GE-Proton11-7
+        timeout-minutes: 15
         if: matrix.wine == 'proton'
         run: |
           curl -fsSL -o "$RUNNER_TEMP/ge.tar.gz" \
@@ -160,6 +169,7 @@ jobs:
           sha256sum variante/* || true
 
       - name: Rodar o .exe com +seh,+loaddll
+        timeout-minutes: 25
         run: |
           tempo=900
           [ "${{ matrix.variante }}" = exe47-semdll ] && tempo=240
