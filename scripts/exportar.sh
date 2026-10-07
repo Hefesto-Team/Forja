@@ -28,9 +28,9 @@ GODOT_BIN="$FORJA_GODOT"
 GODOT_URL="https://github.com/godotengine/godot/releases/download/${GODOT_VER}/Godot_v${GODOT_VER}_linux.x86_64.zip"
 MODELOS_URL="https://github.com/godotengine/godot/releases/download/${GODOT_VER}/Godot_v${GODOT_VER}_export_templates.tpz"
 MODELO_LINUX="linux_release.x86_64"
-MODELO_LINUX_SHA256="820f3fec74869f088dc4509737a5d30a8b54208a75d148ec26da9e0e839d9d9a"
+MODELO_LINUX_SHA256="d9f79ab89b5ae369aeed11c6052d402e8218cd503bf85b4a235f9c30c46a7c63"
 MODELO_WINDOWS="windows_release_x86_64.exe"
-MODELO_WINDOWS_SHA256="b493c1d53fb915f7805f360cfe42d1c3126e720dfc234a4b0f2feb99200f9a4b"
+MODELO_WINDOWS_SHA256="d34d36f3be1a6c49c56525ae86469b92e4f417ddf0b43cf00dd80c385c4b0562"
 # O AppImage: o appimagetool por versão E por sha256; o runtime sai do começo
 # dele mesmo (um AppImage é o runtime seguido do squashfs), e fica fixo junto.
 APPIMAGETOOL_URL="https://github.com/AppImage/appimagetool/releases/download/1.9.0/appimagetool-x86_64.AppImage"
