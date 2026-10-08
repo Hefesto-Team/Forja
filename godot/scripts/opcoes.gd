@@ -9,12 +9,12 @@ extends RefCounted
 ## P1..P4 é o índice, não o controle). Com o robô (as provas), nada se lê nem
 ## se grava: a prova joga sempre com as opções de fábrica.
 
-const GATILHO := ["desligado", "fraco", "forte"]
+const GATILHO := ["Desligado", "Fraco", "Forte"]
 const GATILHO_DESLIGADO := 0
 const GATILHO_FRACO := 1
 const GATILHO_FORTE := 2
 const PASSO := 25  ## a vibração e os volumes andam de 25 em 25%
-const TEXTO := ["normal", "grande"]
+const TEXTO := ["Normal", "Grande"]
 const ESCALA_DO_TEXTO := [1.0, 1.15]
 const ARQUIVO := "user://opcoes.cfg"
 ## As línguas das telas: o português é o padrão.

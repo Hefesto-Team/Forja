@@ -96,9 +96,9 @@ func valor(chave: String) -> String:
 		"tempo": return "%+d ms" % int(Opcoes.tempo_ms[quem])
 		"volume_tv": return "%d%%" % Opcoes.volume_tv
 		"volume_controle": return "%d%%" % Opcoes.volume_controle
-		"tremor": return "ligado" if Opcoes.tremor else "desligado"
-		"flashes": return "ligados" if Opcoes.flashes else "desligados"
-		"tela_cheia": return "tela cheia" if Opcoes.tela_cheia else "janela"
+		"tremor": return "Ligado" if Opcoes.tremor else "Desligado"
+		"flashes": return "Ligados" if Opcoes.flashes else "Desligados"
+		"tela_cheia": return "Tela cheia" if Opcoes.tela_cheia else "Janela"
 		"texto": return Opcoes.TEXTO[Opcoes.texto]
 		"idioma": return Opcoes.NOMES_DOS_IDIOMAS[Opcoes.idioma]
 	return ""
@@ -197,9 +197,9 @@ func _draw() -> void:
 				_desenhar_regua(b)
 			y += REGUA_RESERVA
 		y += alto
-	var dicas := [["cima", "linha"], ["esquerda", "trocar"], ["circulo", "voltar"]]
+	var dicas := [["cima", "Linha"], ["esquerda", "Trocar"], ["circulo", "Voltar"]]
 	if not _linhas.is_empty() and _linhas[linha][0] == "tempo":
-		dicas.insert(2, ["cruz", "tocar no tempo"])
+		dicas.insert(2, ["cruz", "Tocar no tempo"])
 	Desenho.dicas_a_direita(self, Vector2(r.end.x - 48, r.end.y - 26), dicas, Tema.T_SELO)
 
 
