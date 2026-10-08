@@ -346,4 +346,4 @@ func _prova_do_modo() -> void:
   pergunta, o fim sem tabela, Create não abre nada) e
   `./run-local.sh -- --bancada --partida=5` (as perguntas e a tabela de volta);
   `scripts/gauntlet.sh` e `bash tests/prova_de_poucos.sh` ficam com o André.
-- Dito ao André: as duas rodadas da prova (o passo 7 da F08) já ficaram prontas aqui.
+- Para o André: as duas rodadas da prova (o passo 7 da F08) já ficaram prontas aqui.
