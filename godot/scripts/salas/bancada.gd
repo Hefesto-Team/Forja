@@ -174,6 +174,7 @@ func _process(dt: float) -> void:
 	if fim:
 		acabou = true
 		_te = 0.0
+		terminou.emit()
 		agora = "pronto: %d resultado%s gravado%s na linha do tempo da sessão" % [linhas.size(),
 			"" if linhas.size() == 1 else "s", "" if linhas.size() == 1 else "s"]
 		Som.tocar("sucesso", null, -6.0)

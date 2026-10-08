@@ -1,9 +1,8 @@
 class_name PainelSala
 extends Control
 ## O painel de uma sala que mede: no aviso, o objetivo e as features que ela
-## prova, e quem já está pronto; no jogo, o tempo que resta; no fim, o
-## veredito de cada um, por feature, com o que foi medido — ícone e palavra,
-## nunca só a cor.
+## prova, e quem já está pronto; no jogo, o tempo que resta. O fim é da
+## TelaResultado (resultado.gd).
 
 var sala: Node = null  ## a SalaJogo em curso, ou null
 var escondido := false  ## a pausa ou o diagnóstico estão por cima
@@ -28,8 +27,6 @@ func _draw() -> void:
 			_aviso()
 		"jogo":
 			_tempo()
-		"fim":
-			_fim()
 
 
 func _aviso() -> void:
@@ -44,7 +41,7 @@ func _aviso() -> void:
 	var filas := 1
 	var fila_x := 0.0
 	for f in sala.features:
-		var w := 64.0 + Desenho.largura(_nome_da_feature(f), Tema.fonte(500), Tema.T_ROTULO) + 48.0
+		var w := 64.0 + Desenho.largura(TelaResultado.nome_da_feature(f), Tema.fonte(500), Tema.T_ROTULO) + 48.0
 		if fila_x > 0.0 and fila_x + w - 48.0 > larg - 96.0:
 			filas += 1
 			fila_x = 0.0
@@ -70,7 +67,7 @@ func _aviso() -> void:
 	var fx := x
 	for f in sala.features:
 		var tex := Desenho.glifo(Desenho.GLIFO_DA_FEATURE.get(f, ""))
-		var nome := _nome_da_feature(f)
+		var nome := TelaResultado.nome_da_feature(f)
 		var w := 64.0 + Desenho.largura(nome, Tema.fonte(500), Tema.T_ROTULO) + 48.0
 		if fx > x and fx + w - 48.0 > x + larg - 96.0:
 			fx = x
@@ -101,6 +98,11 @@ func _aviso() -> void:
 		if papel >= 0:
 			_som_do_lugar(chip, l, papel)
 		cx += 258
+	# o aviso não espera para sempre: o trilho esvazia até a sala começar sozinha
+	var trilho := Rect2(Vector2(x, y + 64.0 + (ALTURA_SOM if papel >= 0 else 0.0) + 14.0), Vector2(larg - 96.0, 8.0))
+	draw_rect(trilho, Tema.TRILHO)
+	var resta := 1.0 - clampf(float(sala.t_fase) / SalaJogo.AVISO_MAX, 0.0, 1.0)
+	draw_rect(Rect2(trilho.position, Vector2(trilho.size.x * resta, 8.0)), Tema.ROXO)
 	# os botões, no alto à direita (a linha dos lugares é dos quatro)
 	var dicas := [["cruz", "pronto"]]
 	if papel >= 0:
@@ -137,13 +139,6 @@ func _som_do_lugar(chip: Rect2, l: int, papel: int) -> void:
 		var trilho := Rect2(Vector2(x, y_como + 14.0), Vector2(w, 8))
 		draw_rect(trilho, Tema.TRILHO)
 		draw_rect(Rect2(trilho.position, Vector2(w * clampf(nivel, 0.0, 1.0), 8)), Tema.VERDE)
-
-
-func _nome_da_feature(chave: String) -> String:
-	for f in Forja.features():
-		if f.chave == chave:
-			return f.nome
-	return chave
 
 
 ## As dicas de cada lugar, embaixo da raia de cada um: uma pílula com a frase
@@ -340,7 +335,9 @@ func _tempo() -> void:
 			Desenho.texto(self, q.position + Vector2(22, 34), linha, fp, Tema.T_SELO, Tema.SUAVE)
 		return
 	# o tempo que resta, logo abaixo do nome da sala (o quadro da HUD)
-	var resta := maxf(0.0, d - float(sala.t_fase))
+	if sala.treinando:
+		return  # o treino não gasta o relógio: a barra só aparece valendo
+	var resta := maxf(0.0, d - float(sala.t_jogo))
 	var larg := 480.0
 	var p := Vector2(Tema.MARGEM_X - 28, 184)
 	var cor := Tema.LARANJA if resta < 15.0 else Tema.ROXO
@@ -352,103 +349,6 @@ func _tempo() -> void:
 	var s := "%d s" % int(ceil(resta))
 	var f := Tema.mono(500)
 	Desenho.texto(self, Vector2(trilho.end.x + 18, p.y + 12), s, f, Tema.T_SELO, cor)
-
-
-func _fim() -> void:
-	if not Forja.bancada:
-		_fim_do_jogo()
-		return
-	# o veredito enxuto: uma linha por feature (o glifo e o nome), uma coluna
-	# por lugar; na célula, o selo com ícone e palavra. O porquê só aparece no
-	# que não passou — o resto mora no livro da sessão.
-	draw_rect(Rect2(Vector2.ZERO, size), Color(Tema.CASA, 0.6))
-	var lugares: Array = []
-	for l in 4:
-		if sala.vereditos.has(l):
-			lugares.append(l)
-	var col_nome := 440.0
-	var coluna := 300.0
-	var linhas: Array = []  # as features, na ordem da sala, com a altura de cada linha
-	for f in sala.features:
-		var alta := false
-		for l in lugares:
-			var v := _veredito_de(l, f)
-			if not v.is_empty() and int(v.get("resultado", 0)) != Forja.PASSOU:
-				alta = true
-		linhas.append([f, 156.0 if alta else 76.0])
-	var alt := 200.0
-	for li in linhas:
-		alt += li[1]
-	var larg := maxf(900.0, 96.0 + col_nome + coluna * lugares.size())
-	var r := Rect2(Vector2((size.x - larg) * 0.5, (size.y - alt) * 0.5), Vector2(larg, alt))
-	Desenho.moldura(self, r, Color(Tema.PAINEL, 0.97), Tema.LINHA, 2, Tema.RAIO_QUADRO)
-	Desenho.texto(self, r.position + Vector2(48, 84), str(sala.nome), Tema.fonte(700), 52, Tema.FG)
-	var x0 := r.position.x + 48 + col_nome
-	for i in lugares.size():
-		var l: int = lugares[i]
-		var cor_id := Tema.tom_para_a_borda(Forja.cor_do_lugar(l))
-		var x := x0 + i * coluna
-		Desenho.texto(self, Vector2(x, r.position.y + 150), "P%d" % (l + 1), Tema.fonte(700), Tema.T_CORPO, cor_id)
-		Desenho.texto(self, Vector2(x + 60, r.position.y + 150), "%d" % sala.pontos[l], Tema.mono(500), Tema.T_MONO, Tema.SUAVE)
-	var y := r.position.y + 180
-	for li in linhas:
-		var f: String = li[0]
-		var tex := Desenho.glifo(Desenho.GLIFO_DA_FEATURE.get(f, ""))
-		if tex:
-			draw_texture_rect(tex, Rect2(Vector2(r.position.x + 48, y + 8), Vector2(40, 40)), false, Tema.CIANO)
-		var nome := _nome_da_feature(f)
-		var tam := Tema.T_ROTULO
-		while tam > 20 and Desenho.largura(nome, Tema.fonte(500), tam) > col_nome - 76:
-			tam -= 1
-		Desenho.texto(self, Vector2(r.position.x + 100, y + 40), nome, Tema.fonte(500), tam, Tema.FG)
-		for i in lugares.size():
-			var v := _veredito_de(lugares[i], f)
-			if v.is_empty():
-				continue
-			var x := x0 + i * coluna
-			var res := clampi(int(v.get("resultado", 0)), 0, 2)
-			var cor: Color = [Tema.MUDO, Tema.VERDE, Tema.VERMELHO][res]
-			var palavra: String = ["— NÃO MEDIDO", "✓ PASSOU", "✗ FALHOU"][res]
-			Desenho.selo(self, Vector2(x, y + 10), palavra, cor, Tema.T_SELO)
-			if res != 1:
-				var porque := str(v.get("obs", "")) if str(v.get("obs", "")) != "" else str(v.get("medido", ""))
-				porque = Desenho.caber(porque, Tema.fonte(400), Tema.T_SELO, coluna - 24, 2)
-				Desenho.paragrafo(self, Vector2(x, y + 70), porque, Tema.fonte(400), Tema.T_SELO, Tema.SUAVE, coluna - 24, 2)
-		y += li[1]
-	if float(sala.t_fase) > 0.8:
-		Desenho.dicas_a_direita(self, Vector2(r.end.x - 48, r.position.y + 84), [["cruz", str(sala.seguir)]], Tema.T_ROTULO)
-
-
-## O fim sem o Modo bancada: o nome da sala e os pontos de quem jogou, do
-## maior para o menor. Nenhuma palavra de veredito. (A tela de resultado, F03.)
-func _fim_do_jogo() -> void:
-	draw_rect(Rect2(Vector2.ZERO, size), Color(Tema.CASA, 0.6))
-	var lugares: Array = []
-	for l in 4:
-		if sala.jogando[l]:
-			lugares.append(l)
-	lugares.sort_custom(func(a: int, b: int) -> bool:
-		return int(sala.pontos[a]) > int(sala.pontos[b]) or (int(sala.pontos[a]) == int(sala.pontos[b]) and a < b))
-	var larg := 900.0
-	var alt := 200.0 + 76.0 * lugares.size()
-	var r := Rect2(Vector2((size.x - larg) * 0.5, (size.y - alt) * 0.5), Vector2(larg, alt))
-	Desenho.moldura(self, r, Color(Tema.PAINEL, 0.97), Tema.LINHA, 2, Tema.RAIO_QUADRO)
-	Desenho.texto(self, r.position + Vector2(48, 84), str(sala.nome), Tema.fonte(700), 52, Tema.FG)
-	var y := r.position.y + 150
-	for l in lugares:
-		var cor_id := Tema.tom_para_a_borda(Forja.cor_do_lugar(l))
-		Desenho.texto(self, Vector2(r.position.x + 48, y + 36), "P%d" % (l + 1), Tema.fonte(700), Tema.T_CORPO, cor_id)
-		Desenho.texto(self, Vector2(r.position.x + 150, y + 36), "%d" % sala.pontos[l], Tema.mono(500), Tema.T_MONO, Tema.SUAVE)
-		y += 76.0
-	if float(sala.t_fase) > 0.8:
-		Desenho.dicas_a_direita(self, Vector2(r.end.x - 48, r.position.y + 84), [["cruz", str(sala.seguir)]], Tema.T_ROTULO)
-
-
-func _veredito_de(l: int, f: String) -> Dictionary:
-	for v in sala.vereditos.get(l, []):
-		if str(v.get("feature", "")) == f:
-			return v
-	return {}
 
 
 ## O selo do treino no alto, e o "Valendo!" grande quando ele acaba.

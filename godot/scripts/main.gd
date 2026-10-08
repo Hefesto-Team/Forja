@@ -46,6 +46,7 @@ var titulo: TelaTitulo
 var lobby: TelaLobby
 var hud: HudJogo
 var painel: PainelSala
+var resultado: TelaResultado
 var diagnostico: Diagnostico
 var livro: Livro
 var pausa: Pausa
@@ -125,6 +126,7 @@ func _interface() -> void:
 	lobby = TelaLobby.new()
 	hud = HudJogo.new()
 	painel = PainelSala.new()
+	resultado = TelaResultado.new()
 	diagnostico = Diagnostico.new()
 	livro = Livro.new()
 	pausa = Pausa.new()
@@ -132,13 +134,14 @@ func _interface() -> void:
 	placar = Placar.new()
 	tela_opcoes = TelaOpcoes.new()
 	creditos = TelaCreditos.new()
-	for c in [titulo, lobby, hud, painel, diagnostico, livro, pausa, escolha, placar, tela_opcoes, creditos]:
+	for c in [titulo, lobby, hud, painel, resultado, diagnostico, livro, pausa, escolha, placar, tela_opcoes, creditos]:
 		ui.add_child(c)
 	cortina = ColorRect.new()
 	cortina.color = Color(Tema.CASA, 0.0)
 	cortina.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	cortina.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	ui.add_child(cortina)
+	resultado.visible = false
 	diagnostico.visible = false
 	livro.visible = false
 	pausa.visible = false
@@ -341,6 +344,8 @@ func _ao_terminar_a_sala() -> void:
 	# o robô aperta ✕ a cada quadro até a cortina fechar: uma troca só
 	if estado != "sala" or overlay != "" or _trocando:
 		return
+	if sala_id == "bancada":
+		return  # a bancada fica no painel dela: ✕ repete, ○ fecha
 	if partida and sala is SalaJogo:
 		_placar_da_sala(sala as SalaJogo)
 		return
@@ -521,6 +526,7 @@ func _sair_do_podio() -> void:
 
 func _sair_da_sala() -> void:
 	painel.sala = null
+	resultado.fechar()
 	hud.create_livre = true
 	if sala:
 		sala.sair()
@@ -705,6 +711,11 @@ func _perto_da_bigorna() -> void:
 
 
 func _quadro_sala() -> void:
+	# o fim da sala: a tela de resultado abre sozinha (e reabre ao sair da pausa)
+	if sala is SalaJogo and (sala as SalaJogo).fase == "fim" and not resultado.visible and overlay == "":
+		var sj := sala as SalaJogo
+		resultado.abrir(sj.colocacao, sj.pontos, sj.coop, sj.coop_venceu, sj.nome)
+		resultado.sala_da_bancada = sj if Forja.bancada else null
 	_atalhos_de_overlay()
 
 
@@ -733,6 +744,7 @@ func _abrir_overlay(qual: String, lugar: int) -> void:
 		hud.mostrar_aviso("prova às cegas: o diagnóstico volta no fim da sala")
 		return
 	overlay = qual
+	resultado.fechar()
 	diagnostico.visible = qual == "diagnostico"
 	livro.visible = qual == "livro"
 	pausa.visible = qual == "pausa"

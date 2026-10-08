@@ -320,3 +320,38 @@ A linha do tempo, na função `_prova_do_modo()` da F01 (ou numa nova, no fim):
 
 - No [quadro](README.md), a linha da F03: estado **feito** (com o commit).
 - Commit sugerido: `feat: todo minigame fecha — apito, vencedor e a volta sozinha em 6 s`
+
+## O que foi feito (leva 1, a-fundacao)
+
+- Entrou o apito (`som.gd`) e a `TelaResultado` (`ui/resultado.gd`): nome da
+  sala, quem venceu numa frase («P4 venceu!», «P1 e P2 empatam!», «Empate!»
+  quando três ou mais dividem o topo; coop: «Vocês venceram!» / «Não deu desta
+  vez.»), a colocação de quem jogou com os pontos, «Continuar» depois de 0,8 s.
+  Com `--bancada`, a tabela de veredito vem embaixo do quadro (o corpo do
+  antigo `_fim` do painel, movido). O painel não desenha mais nada no fim.
+- `SalaJogo`: `vencedor()`, `colocacao`, `coop`, `coop_venceu`, `t_jogo` (o
+  relógio só corre fora do treino; o `duracao` não muda mais depois de
+  `entrar`), `AVISO_MAX` de 8 s (o aviso começa sozinho; a barra do painel tem
+  um trilho que esvazia sem texto), `_celebrar()` no lugar de
+  `_reagir_ao_veredito()` (só quem venceu pula, com faíscas; ninguém balança a
+  cabeça), e a volta sozinha em 6 s, igual para robô e para gente. O atalho do
+  robô de 3 s no fim saiu; o do aviso (F08) ficou.
+- A bancada de experimentos emite `terminou` e o `main.gd` o ignora para ela
+  (✕ repete, ○ fecha). A linha do tempo ganhou `minigame` (`comecou` e
+  `terminou` com vencedor, pontos e duração; os pontos saem como texto até a F06).
+- A prova do jogo ganhou, por sala: o relógio nunca volta a encher, o resultado
+  mostra o vencedor e os quatro, o fim avança em 6 s; o aviso sozinho em 8 s
+  (480 quadros); e, na linha do tempo, um `comecou` e um `terminou` por sala.
+- Mordidas: devolver `duracao += t_fase`, o atalho do robô de 3 s e a espera
+  sem `AVISO_MAX` reprovaram 13 linhas (relógio, 3,02 s no lugar de 6, aviso
+  sozinho); devolvidos, a prova passa nas duas rodadas (`prova_do_jogo.sh` rc=0).
+  O quadro foi visto em foto (`captura_jogo`, sala Centelha), com e sem bancada.
+- Dois detalhes: o botão usa a chave que já existia, «Continuar» (a F07
+  acerta o formato); `seguir` (o texto do ✕ do veredito) ficou como variável
+  sem uso, para a limpeza da F08.
+- Para a mão dela ou do André: `./run-local.sh -- --partida=3` (o apito, a
+  música que para, o vencedor pulando com faíscas, a volta sozinha em 6 s, o ✕
+  que pula), `./run-local.sh -- --sala=centelha` (o relógio não volta a encher
+  depois do «Valendo!»; um controle parado no aviso e a sala começa em 8 s),
+  `scripts/gauntlet.sh` e `bash tests/prova_de_poucos.sh` (seis segundos a mais
+  por sala).

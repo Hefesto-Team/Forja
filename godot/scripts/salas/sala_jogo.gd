@@ -16,6 +16,18 @@ var fase := "aviso"
 var t_fase := 0.0
 ## O tempo da sala, em segundos (0: sem limite).
 var duracao := 90.0
+## O tempo que vale, em segundos: só corre fora do treino, e é o que o relógio
+## do painel e o fim por tempo leem. O `duracao` nunca muda depois de `entrar`.
+var t_jogo := 0.0
+## Quanto o aviso espera: sem ✕ de todos, a sala começa sozinha.
+const AVISO_MAX := 8.0
+## Os lugares que jogaram, do primeiro ao último (a `vencedor()` do fim).
+var colocacao: Array = []
+## Sala cooperativa: o resultado diz "venceram" ou não (a Prova e as salas
+## futuras ligam).
+var coop := false
+var coop_venceu := false
+var _celebrou := false
 ## As regras por extenso, para quem desenha a sala (o docs/SALAS.md). A tela
 ## não as mostra: o aviso diz o verbo (`acao`) e a sala ensina jogando.
 var objetivo := ""
@@ -59,9 +71,10 @@ var papel_som := -1
 var sfx_no_controle := true
 ## A rodada de treino: o jogo começa valendo nada. Os acertos ensinam (a dica
 ## segue cheia) e não somam, o erro não tira; acaba quando cada um acertou
-## TREINO_ACERTOS vezes, ou em TREINO_MAX s — e aí "Valendo!". O relógio da sala devolve o
-## tempo do treino. As medidas seguem contando: uma tentativa de treino também
-## é uma tentativa honesta do controle. false: a sala tem o treino dela.
+## TREINO_ACERTOS vezes, ou em TREINO_MAX s — e aí "Valendo!". O relógio da
+## sala (`t_jogo`) não conta o tempo do treino. As medidas seguem contando: uma
+## tentativa de treino também é uma tentativa honesta do controle. false: a sala
+## tem o treino dela.
 var com_treino := true
 var treinando := false
 var valendo_t := 0.0  ## o "Valendo!" na tela (s que faltam)
@@ -212,12 +225,14 @@ func _process(dt: float) -> void:
 				_quadro_treino()
 			if valendo_t > 0.0:
 				valendo_t -= dt
+			if not treinando:
+				t_jogo += dt
 			jogar(dt)
 			var todos := true
 			for p in jogadores:
 				if jogando[p.lugar] and not acabou[p.lugar] and Forja.lugar(p.lugar).get("conectado", false):
 					todos = false
-			if todos or (duracao > 0.0 and t_fase >= duracao):
+			if todos or (duracao > 0.0 and t_jogo >= duracao):
 				terminar()
 		"fim":
 			_quadro_fim()
@@ -242,7 +257,7 @@ func _quadro_aviso() -> void:
 			n_prontos += 1
 		elif gesto_do_aviso != "":
 			_mostrar_o_gesto(l, p)
-	if presentes > 0 and n_prontos == presentes and t_fase > 0.9:
+	if presentes > 0 and (n_prontos == presentes or t_fase >= AVISO_MAX) and t_fase > 0.9:
 		comecar()
 
 
@@ -282,6 +297,7 @@ func _afinar_som(l: int, p: ForjaPlayer) -> void:
 func comecar() -> void:
 	fase = "jogo"
 	t_fase = 0.0
+	t_jogo = 0.0
 	treinando = com_treino
 	_treino_ok = [false, false, false, false]
 	_treino_acertos = [0, 0, 0, 0]
@@ -289,6 +305,7 @@ func comecar() -> void:
 		jogando[p.lugar] = true
 		Forja.med_repouso(p.lugar, false)
 	Forja.evento("sala", 0, {"sala": id, "evento": "jogo_comecou"})
+	Forja.evento("minigame", 0, {"slot": id, "evento": "comecou"})
 	Som.tocar("confirma")
 	iniciar_jogo()
 
@@ -319,6 +336,8 @@ func terminar() -> void:
 		return
 	fase = "fim"
 	t_fase = 0.0
+	_celebrou = false
+	colocacao = vencedor()
 	for p in jogadores:
 		var l: int = p.lugar
 		if jogando[l]:
@@ -326,32 +345,39 @@ func terminar() -> void:
 		Forja.med_parar(l)
 		Forja.silencio(l)
 	Forja.evento("sala", 0, {"sala": id, "evento": "jogo_terminou"})
+	Forja.evento("minigame", 0, {"slot": id, "evento": "terminou",
+		"vencedor": colocacao[0] if not colocacao.is_empty() else -1,
+		"pontos": pontos, "duracao": snappedf(t_jogo, 0.1)})
 	Forja.gravar_relatorio()
-	Som.tocar("sucesso")
-	_reagir_ao_veredito()
+	# o apito fecha a sala: a música para e o resultado vem em seguida
+	Musica.calar()
+	Som.tocar("apito")
 	pulso_de_luz(Tema.AMARELO, 1.6)
 	ao_terminar()
 
 
-## Mostrar, não contar: os bonecos reagem ao veredito. Quem passou em tudo
-## comemora, quem teve algo falho balança a cabeça; quem fez mais pontos na
-## sala ganha as faíscas na cor do lugar.
-func _reagir_ao_veredito() -> void:
-	var melhor := 0
-	for p in jogadores:
-		if jogando[p.lugar]:
-			melhor = maxi(melhor, int(pontos[p.lugar]))
-	for p in jogadores:
-		var l: int = p.lugar
-		if not jogando[l] or not is_instance_valid(p):
-			continue
-		var falhou := false
-		for v in vereditos.get(l, []):
-			if int(v.get("resultado", 0)) == Forja.FALHOU:
-				falhou = true
-		p.gesto("emote-no" if falhou else "emote-yes", 1.4)
-		if melhor > 0 and int(pontos[l]) == melhor:
+## Os lugares que jogaram, do maior ponto ao menor; no empate, o lugar menor
+## primeiro. A Prova e as salas futuras podem trocar a regra.
+func vencedor() -> Array:
+	var lugares: Array = []
+	for l in 4:
+		if jogando[l]:
+			lugares.append(l)
+	lugares.sort_custom(func(a: int, b: int) -> bool:
+		return int(pontos[a]) > int(pontos[b]) or (int(pontos[a]) == int(pontos[b]) and a < b))
+	return lugares
+
+
+## Quem venceu pula de alegria, com faíscas na cor do lugar. Ninguém balança a
+## cabeça: o veredito é do Modo bancada, não do boneco.
+func _celebrar() -> void:
+	if not colocacao.is_empty():
+		var l: int = colocacao[0]
+		var p := jogador(l)
+		if p != null and is_instance_valid(p):
+			p.gesto("emote-yes", 1.4)
 			Efeitos.faiscas(self, p.global_position + Vector3(0, 2.2, 0), Forja.cor_do_lugar(l), 40, 1.3)
+	Som.tocar("sucesso")
 
 
 ## O recurso desligado nas opções do lugar (a vibração em 0%, o gatilho
@@ -376,14 +402,18 @@ func ao_terminar() -> void:
 
 
 func _quadro_fim() -> void:
+	if t_fase >= TelaResultado.APITO_S and not _celebrou:
+		_celebrou = true
+		_celebrar()
+	if t_fase >= TelaResultado.AVANCA_S:
+		terminou.emit()
+		return
 	if t_fase < 0.8:
 		return
 	for p in jogadores:
 		if Forja.apertou(p.lugar, Forja.CRUZ):
 			terminou.emit()
 			return
-	if Forja.robo and t_fase > 3.0:
-		terminou.emit()
 
 
 ## A linha da HUD de cada lugar: pontos, ou "terminou".
@@ -423,8 +453,6 @@ func _quadro_treino() -> void:
 	if todos or t_fase >= TREINO_MAX * ritmo_nivel:
 		treinando = false
 		valendo_t = 1.4
-		if duracao > 0.0:
-			duracao += t_fase  # o tempo do treino volta para o relógio
 		Som.tocar("especial")
 		pulso_de_luz(Tema.ROSA)
 		Forja.evento("sala", 0, {"sala": id, "evento": "valendo", "treino_s": snappedf(t_fase, 0.1)})

@@ -59,6 +59,7 @@ func _ready() -> void:
 	jogo = load("res://scenes/main.tscn").instantiate()
 	add_child(jogo)
 	await _prova_do_percurso()
+	await _prova_do_aviso_sozinho()
 	await _prova_do_relatorio()
 	await _prova_de_fogo()
 	_prova_das_contas_da_partida()
@@ -317,6 +318,11 @@ func _comeca_a_sala(id: String):
 	_esperar(sala is SalaJogo and sala.id == id, "%s: a sala abriu" % id)
 	if not sala is SalaJogo:
 		return null
+	# o fim: quando a sala emitir `terminou` e quanto era o relógio no começo
+	var fim := [-1.0]  # o t_fase da sala quando ela emitiu terminou
+	sala.terminou.connect(func() -> void: fim[0] = float(sala.t_fase))
+	sala.set_meta("fim", fim)
+	sala.set_meta("duracao_no_inicio", float(sala.duracao))
 	var q := 0
 	while is_instance_valid(sala) and sala.fase == "aviso" and q < 600:
 		await _quadros(1)
@@ -331,9 +337,17 @@ func _termina_a_sala(sala, features: Array) -> void:
 	var id: String = sala.id
 	var q := 0
 	var viu_pergunta := false
+	var fim: Array = sala.get_meta("fim")  # pega antes: depois do `terminou` a sala é liberada
+	var duracao_no_inicio: float = sala.get_meta("duracao_no_inicio")
+	var resta_antes := INF
+	var subiu := false
 	while is_instance_valid(sala) and sala.fase != "fim" and q < 12000:
 		await _quadros(10)
 		q += 10
+		if is_instance_valid(sala) and sala.duracao > 0.0 and not sala.treinando:
+			var resta: float = sala.duracao - sala.t_jogo
+			subiu = subiu or resta > resta_antes + 0.01
+			resta_antes = resta
 		if not Forja.bancada and is_instance_valid(sala) and sala.fase == "jogo":
 			viu_pergunta = viu_pergunta or _em_pergunta(sala)
 	if not Forja.bancada:
@@ -355,6 +369,23 @@ func _termina_a_sala(sala, features: Array) -> void:
 			_esperar(ok, "%s P%d: %s → %s (%s)" % [id, l + 1, f, str(v.get("rotulo", "sem veredito")), porque])
 			var gravado := Forja.ultimo_veredito(l, f)
 			_esperar(int(gravado.get("resultado", -1)) == int(v.get("resultado", -2)), "%s P%d: %s gravado no relatório" % [id, l + 1, f])
+	# o fechamento é o mesmo para todos: o relógio não volta a encher, o
+	# resultado mostra quem venceu e os quatro, e a sala avança sozinha em 6 s
+	_esperar(not subiu and is_equal_approx(float(sala.duracao), duracao_no_inicio),
+		"%s: o relógio nunca volta a encher" % id)
+	await _quadros(40)
+	var col: Array = jogo.resultado.colocacao
+	var melhor := -1
+	for l in 4:
+		melhor = maxi(melhor, int(sala.pontos[l]))
+	_esperar(jogo.resultado.visible and col.size() == 4 and int(sala.pontos[col[0]]) == melhor,
+		"%s: o resultado mostra quem venceu (P%d) e os quatro" % [id, int(col[0]) + 1 if not col.is_empty() else 0])
+	q = 0
+	while fim[0] < 0.0 and q < 900:
+		await _quadros(1)
+		q += 1
+	_esperar(fim[0] >= TelaResultado.AVANCA_S - 0.05 and fim[0] <= TelaResultado.AVANCA_S + 0.1,
+		"%s: o fim avança sozinho em 6 s, robô ou não (%.2f s)" % [id, fim[0]])
 	# o robô aperta ✕ no veredito; a cortina leva de volta ao salão
 	q = 0
 	while (jogo.estado != "salao" or jogo._trocando) and q < 600:
@@ -872,3 +903,31 @@ func _prova_do_modo() -> void:
 			_esperar(perguntas.any(func(e): return e.get("sala") == id), "bancada: %s perguntou às cegas" % id)
 	else:
 		_esperar(perguntas.is_empty(), "jogo: nenhuma pergunta sobre o controle (%d)" % perguntas.size())
+	# a linha do tempo tem o tipo `minigame`: cada sala começou e terminou com vencedor
+	var mg := linhas.filter(func(e): return e.get("tipo") == "minigame")
+	for id in ["centelha", "viga", "molde", "impacto", "galeria", "canto", "caminhos", "voz", "prova"]:
+		var c := mg.filter(func(e): return e.get("slot") == id and e.get("evento") == "comecou").size()
+		var t := mg.filter(func(e): return e.get("slot") == id and e.get("evento") == "terminou" and int(e.get("vencedor", -1)) >= 0).size()
+		_esperar(c >= 1 and t >= 1, "linha do tempo: %s começou e terminou com vencedor" % id)
+
+
+## O aviso não espera ninguém para sempre: sem ✕ de ninguém, começa em 8 s.
+func _prova_do_aviso_sozinho() -> void:
+	jogo._entrar_na_sala("centelha", false)
+	await _quadros(2)
+	var sala = jogo.sala
+	# segura o ✕ do robô: nenhum lugar fica pronto no aviso
+	var robo := Forja.robo
+	Forja.robo = false
+	var q := 0
+	while is_instance_valid(sala) and sala.fase == "aviso" and q < 900:
+		await _quadros(1)
+		q += 1
+	Forja.robo = robo
+	_esperar(is_instance_valid(sala) and sala.fase == "jogo" and q >= int(SalaJogo.AVISO_MAX * 60) - 2,
+		"o aviso começa sozinho em 8 s (%d quadros)" % q)
+	sala.terminar()
+	q = 0
+	while (jogo.estado != "salao" or jogo._trocando) and q < 900:
+		await _quadros(5)
+		q += 5

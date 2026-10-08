@@ -20,6 +20,7 @@ const RECEITAS := {
 	"sino": ["bigorna", {"freq": 1318.5, "dur": 2.2, "brilho": 0.9, "semente": 9}],
 	"martelo": ["martelada", {"freq": 196.0, "semente": 2}],
 	"tique": ["blip", {"freq": 1760.0, "dur": 0.035}],
+	"apito": ["tom", {"freq": 2400.0, "dur": 0.45, "rampa": 0.01}],
 	"falha": ["tom", {"freq": 150.0, "dur": 0.22, "rampa": 0.02}],
 	"confirma": ["acorde", {"freqs": [659.25, 987.77], "espaco": 0.06, "dur_nota": 0.25}],
 	"sucesso": ["acorde", {"freqs": [523.25, 659.25, 783.99, 1046.5], "espaco": 0.08, "dur_nota": 0.45}],
