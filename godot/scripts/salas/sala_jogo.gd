@@ -10,7 +10,7 @@ extends Sala
 ##   fim    o veredito de cada um, por feature, com o que foi medido. ✕ volta
 ##          ao salão.
 ##
-## Com --robo, o robô fica pronto sozinho e joga nos controles simulados.
+## Com --robo, o robô aperta ✕ no aviso e joga nos controles simulados.
 
 var fase := "aviso"
 var t_fase := 0.0
@@ -28,6 +28,7 @@ var colocacao: Array = []
 var coop := false
 var coop_venceu := false
 var _celebrou := false
+var _robo_confirmou := false
 ## As regras por extenso, para quem desenha a sala (o docs/SALAS.md). A tela
 ## não as mostra: o aviso diz o verbo (`acao`) e a sala ensina jogando.
 var objetivo := ""
@@ -222,6 +223,8 @@ func _process(dt: float) -> void:
 	t_fase += dt
 	match fase:
 		"aviso":
+			if Forja.robo:
+				_robo_do_aviso()
 			_quadro_aviso()
 		"jogo":
 			if treinando:
@@ -241,6 +244,16 @@ func _process(dt: float) -> void:
 			_quadro_fim()
 
 
+## O robô do aviso: aperta ✕ no controle simulado de cada lugar, uma vez, depois
+## de ler (a F08: nenhum atalho, o ✕ chega pelo mesmo caminho do dedo).
+func _robo_do_aviso() -> void:
+	if _robo_confirmou:
+		return
+	_robo_confirmou = true
+	for p in jogadores:
+		Forja.robo_confirmar(p.lugar, 1.4 + 0.2 * p.lugar, self)
+
+
 func _quadro_aviso() -> void:
 	var presentes := 0
 	var n_prontos := 0
@@ -252,7 +265,7 @@ func _quadro_aviso() -> void:
 		if papel_som >= 0 and Forja.bancada:
 			_afinar_som(l, p)
 		if not prontos[l] and t_fase > 0.5:
-			if Forja.apertou(l, Forja.CRUZ) or (Forja.robo and t_fase > 1.4 + 0.2 * l):
+			if Forja.apertou(l, Forja.CRUZ):
 				prontos[l] = true
 				Forja.sentir(l, "toque")
 				Som.tocar("tique", p.global_position + Vector3(0, 1, 0))

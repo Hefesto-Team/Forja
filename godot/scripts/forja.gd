@@ -82,6 +82,9 @@ var ctl = null  ## o ForjaControles, ou null sem o módulo (sem tipo: os método
 var modulo := false
 var simular := 0
 var robo := false
+## O robô aperta o ✕ do fluxo (o aviso, o placar)? A prova que quer «ninguém
+## apertou» desliga aqui; o jogo não sabe de nada (F08).
+var robo_confirma := true
 var semente := 0
 var pasta_relatorios := ""
 var sala_pedida := ""
@@ -962,6 +965,9 @@ func chao_do_envelope(env: PackedFloat32Array) -> int:
 # ---------------------------------------------------------------- o robô --
 # Com --robo, o robô joga nos controles simulados apertando os botões DELES
 # (o caminho inteiro do módulo roda, e os defeitos de mentira pegam).
+# O robô só age pelo controle simulado: nenhum atalho no código do jogo, e
+# `Forja.robo` só aparece no gancho do robô (docs/jogo/13-arquitetura.md,
+# «A paridade entre a prova e o jogo»; a prova do jogo confere com um grep).
 
 func robo_apertar(l: int, botao: int, segundos := 0.09) -> void:
 	var p := pad_do_lugar(l)
@@ -998,6 +1004,21 @@ func robo_falar(l: int, nivel: float, segundos: float) -> void:
 	var p := pad_do_lugar(l)
 	if modulo and p >= 0:
 		ctl.robo_falar(p, nivel, segundos)
+
+
+## O robô de fluxo: aperta ✕ no controle simulado do lugar, depois de um
+## atraso, como uma pessoa que leu a tela e confirma. Se vier um `dono` (a
+## tela que pediu o ✕) e ele já saiu da árvore na hora de apertar, o robô
+## desiste: o ✕ não cai na tela seguinte.
+func robo_confirmar(l: int, depois_s: float, dono: Node = null) -> void:
+	if not robo_confirma:
+		return
+	if depois_s <= 0.0:
+		robo_apertar(l, CRUZ)
+		return
+	get_tree().create_timer(depois_s).timeout.connect(func() -> void:
+		if dono == null or (is_instance_valid(dono) and dono.is_inside_tree()):
+			robo_apertar(l, CRUZ))
 
 
 ## As capacidades do controle do lugar (giro, acel, toque, efeitos...).

@@ -304,8 +304,9 @@ func _quatro_mics(dt: float) -> bool:
 		_te = 0.0
 		_amostras = 0
 		_soma = [0.0, 0.0, 0.0, 0.0]
-		if _vez < n and Forja.robo:
-			Forja.robo_falar(ordem[_vez], 0.8, 2.2)
+		if Forja.robo:
+			if _vez < n:
+				Forja.robo_falar(ordem[_vez], 0.8, 2.2)
 		if _vez >= n:
 			for i in n:
 				var l: int = ordem[i]
@@ -492,14 +493,15 @@ func _haptica_nomeada(dt: float) -> bool:
 			elif Forja.apertou(l, F.TOUCHPAD):
 				_resp[l] = 2
 		# o robô sente os atuadores do controle dele na hora do pulso
-		if Forja.robo and tj >= 0.62 and tj < 0.9:
-			var v := Forja.som_virtual(l)
-			var e := float(v.get("esq", 0.0))
-			var d := float(v.get("dir", 0.0))
-			if maxf(e, d) > 0.05:
-				_robo[l] = 10 if e > d else 11
-		if Forja.robo and t0 < 1.3 and tj >= 1.3 and int(_resp[l]) < 0:
-			Forja.robo_apertar(l, F.L1 if int(_robo[l]) == 10 else (F.R1 if int(_robo[l]) == 11 else F.TOUCHPAD), 0.08)
+		if Forja.robo:
+			if tj >= 0.62 and tj < 0.9:
+				var v := Forja.som_virtual(l)
+				var e := float(v.get("esq", 0.0))
+				var d := float(v.get("dir", 0.0))
+				if maxf(e, d) > 0.05:
+					_robo[l] = 10 if e > d else 11
+			if t0 < 1.3 and tj >= 1.3 and int(_resp[l]) < 0:
+				Forja.robo_apertar(l, F.L1 if int(_robo[l]) == 10 else (F.R1 if int(_robo[l]) == 11 else F.TOUCHPAD), 0.08)
 		if int(_resp[l]) >= 0 or tj >= 6.0:
 			var c: Dictionary = _lado[l]
 			if int(_resp[l]) == lado:

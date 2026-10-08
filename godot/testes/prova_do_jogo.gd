@@ -56,6 +56,7 @@ func _ready() -> void:
 	await _prova_do_relogio()
 	_prova_das_janelas()
 	_prova_das_faixas()
+	_prova_da_paridade()
 	Desenho._coletar = "memoria"  # colhe cada frase desenhada (F02, F07)
 	jogo = load("res://scenes/main.tscn").instantiate()
 	add_child(jogo)
@@ -393,6 +394,8 @@ func _comeca_a_sala(id: String):
 		await _quadros(1)
 		q += 1
 	_esperar(is_instance_valid(sala) and sala.fase == "jogo", "%s: o aviso passou com os quatro prontos" % id)
+	# o ✕ do robô chegou pelo controle simulado (F08): passou antes dos 8 s do relógio
+	_esperar(q < int(SalaJogo.AVISO_MAX * 60) - 60, "%s: o ✕ dos quatro veio do controle, não do relógio (%d quadros)" % [id, q])
 	return sala if is_instance_valid(sala) else null
 
 
@@ -1071,19 +1074,18 @@ func _prova_do_modo() -> void:
 
 ## O aviso não espera ninguém para sempre: sem ✕ de ninguém, começa em 8 s.
 func _prova_do_aviso_sozinho() -> void:
+	# um robô que simplesmente não aperta: nenhum lugar fica pronto no aviso
+	Forja.robo_confirma = false
 	jogo._entrar_na_sala("centelha", false)
 	await _quadros(2)
 	var sala = jogo.sala
-	# segura o ✕ do robô: nenhum lugar fica pronto no aviso
-	var robo := Forja.robo
-	Forja.robo = false
 	var q := 0
 	while is_instance_valid(sala) and sala.fase == "aviso" and q < 900:
 		await _quadros(1)
 		q += 1
-	Forja.robo = robo
 	_esperar(is_instance_valid(sala) and sala.fase == "jogo" and q >= int(SalaJogo.AVISO_MAX * 60) - 2,
 		"o aviso começa sozinho em 8 s (%d quadros)" % q)
+	Forja.robo_confirma = true
 	sala.terminar()
 	q = 0
 	while (jogo.estado != "salao" or jogo._trocando) and q < 900:
@@ -1211,3 +1213,80 @@ func _prova_do_registro_v2() -> void:
 	_esperar(dupla.size() == 1 and int(dupla[0].get("lugar", -1)) == 2 and int(dupla[0].get("jogador", -1)) == 3
 		and is_equal_approx(float(dupla[0].get("t_musica", -1.0)), 3.0),
 		"o campo repetido cede à cabeça: lugar 2, jogador 3 e t_musica 3")
+
+
+## A paridade (F08): `Forja.robo` só aparece no gancho do robô. Nenhum script do
+## jogo sabe que é um robô fora de `forja.gd`, de uma linha `if Forja.robo:` (o
+## gancho, que chama o robô da sala ou da tela) e das funções `_robo*`/`robo*`.
+## O resto é atalho: a prova passaria por um caminho que ninguém joga.
+## O único aceito de fora é `Opcoes.gravar(Forja.robo)` (não sujar o opcoes.cfg).
+const ROBO_PERMITIDO_FORA := {"main.gd": ["Opcoes.gravar(Forja.robo)"]}
+
+
+func _prova_da_paridade() -> void:
+	var arquivos := _scripts_do_jogo("res://scripts")
+	_esperar(arquivos.size() > 40, "paridade: os scripts do jogo foram lidos (%d)" % arquivos.size())
+	var achados: Array = []
+	for caminho in arquivos:
+		if caminho.get_file() == "forja.gd":
+			continue
+		var f := FileAccess.open(caminho, FileAccess.READ)
+		achados.append_array(atalhos_do_robo(f.get_as_text(), caminho.get_file()))
+	_esperar(achados.is_empty(), "paridade: nenhum atalho do robô no código do jogo (%s)" % [achados])
+	# a régua morde: um atalho plantado de propósito reprova, o gancho passa
+	var plantado := "func _quadro_aviso() -> void:\n\tif Forja.apertou(0, 0) or (Forja.robo and t_fase > 1.4):\n\t\tpass\n"
+	_esperar(atalhos_do_robo(plantado, "plantado.gd").size() == 1, "paridade: a régua reprova um atalho plantado")
+	var gancho := "func jogar(dt):\n\tif Forja.robo:\n\t\t_robo(dt)\nfunc _robo_do_aviso():\n\tif not Forja.robo:\n\t\treturn\n"
+	_esperar(atalhos_do_robo(gancho, "gancho.gd").is_empty(), "paridade: a régua aceita o gancho e as funções do robô")
+	var comentario := "# Forja.robo fica no gancho\nvar a := 1  # e Forja.robo aqui é só prosa\n"
+	_esperar(atalhos_do_robo(comentario, "prosa.gd").is_empty(), "paridade: a régua ignora comentário")
+
+
+func _scripts_do_jogo(pasta_res: String) -> Array:
+	var achados: Array = []
+	for d in DirAccess.get_directories_at(pasta_res):
+		achados.append_array(_scripts_do_jogo(pasta_res.path_join(d)))
+	for a in DirAccess.get_files_at(pasta_res):
+		if a.ends_with(".gd"):
+			achados.append(pasta_res.path_join(a))
+	return achados
+
+
+## As linhas de um script que usam `Forja.robo` fora do que a paridade aceita.
+static func atalhos_do_robo(texto: String, arquivo: String) -> Array:
+	var r := RegEx.create_from_string("Forja\\.robo(?![\\w])")
+	var funcao := RegEx.create_from_string("^\\s*(?:static\\s+)?func\\s+(\\w+)")
+	var atual := ""
+	var achados: Array = []
+	var n := 0
+	for linha in texto.split("\n"):
+		n += 1
+		var m := funcao.search(linha)
+		if m != null:
+			atual = m.get_string(1)
+		var codigo := _sem_comentario(linha).strip_edges()
+		if r.search(codigo) == null:
+			continue
+		if codigo == "if Forja.robo:":
+			continue
+		if atual.begins_with("_robo") or atual.begins_with("robo"):
+			continue
+		if codigo in ROBO_PERMITIDO_FORA.get(arquivo, []):
+			continue
+		achados.append("%s:%d %s" % [arquivo, n, codigo])
+	return achados
+
+
+## A linha sem o comentário `#` (que não esteja dentro de um texto entre aspas).
+static func _sem_comentario(linha: String) -> String:
+	var aspas := ""
+	for i in linha.length():
+		var c := linha[i]
+		if aspas != "":
+			if c == aspas and (i == 0 or linha[i - 1] != "\\"):
+				aspas = ""
+		elif c == "\"" or c == "'":
+			aspas = c
+		elif c == "#":
+			return linha.substr(0, i)
+	return linha

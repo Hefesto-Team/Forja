@@ -103,3 +103,46 @@ passa pelas mesmas telas que a prova percorreu.
 
 Marcar F08 como **feito** no [quadro](README.md), com o gasto. Commit
 sugerido: `fix: o robô só joga pelo controle, e a prova percorre o jogo que se joga`.
+
+## O que foi feito (leva 1, as-provas)
+
+- Medido antes: a prova rápida passava verde (as duas rodadas) com os atalhos no
+  lugar. Dos quatro atalhos da tabela, o de `sala_jogo.gd:385` já tinha saído
+  com a F03 (o fim avança em 6 s para todo mundo); restavam o do aviso e o do
+  placar, mais o `--sair-no-fim` do pódio.
+- `Forja.robo_confirmar(l, depois_s, dono)` (em `forja.gd`): o robô aperta ✕ no
+  controle simulado do lugar depois de um atraso; `Forja.robo_confirma` (padrão
+  ligado) deixa a prova ter «um robô que não aperta».
+- O aviso: `sala_jogo.gd` perdeu o `or (Forja.robo and …)`; o gancho
+  `if Forja.robo: _robo_do_aviso()` pede o ✕ de cada lugar uma vez.
+- O placar: `main.gd` perdeu o avanço direto; `_robo_do_placar()` aperta ✕ no
+  primeiro lugar ocupado, uma vez por placar. O pódio com `--sair-no-fim` virou
+  `_robo_do_podio()`: é o fim do processo da prova, não um passo do jogo (o
+  pódio não tem botão que feche o jogo).
+- A régua: `_prova_da_paridade` em `prova_do_jogo.gd` lê os 44 `.gd` de
+  `res://scripts/` e reprova `Forja.robo` fora de `forja.gd`, de `if Forja.robo:`
+  sozinho na linha (o gancho), de funções `_robo*`/`robo*` e de
+  `Opcoes.gravar(Forja.robo)`. Em `bancada.gd` três condições misturadas viraram
+  gancho (`if Forja.robo:` com o resto dentro), sem mudar o comportamento.
+- A prova do aviso de 8 s usa `Forja.robo_confirma = false` em vez de desligar
+  `Forja.robo`; e cada sala confere que o aviso passou pelo ✕ do controle
+  (antes dos 8 s), não pelo relógio.
+- `tests/prova_da_exportacao.sh`: além da Prova de Fogo, o binário Linux joga uma
+  partida de 3 pelo robô (✕ do aviso e do placar, fim em 6 s) até o pódio, e a
+  linha do tempo confere as 3 salas, os 3 placares e a partida terminada.
+- O passo 7 (as duas rodadas; `--bancada` no gauntlet e na prova de poucos) já
+  estava pronto pela F01: conferido, não refeito.
+
+**As provas.** `bash tests/prova_do_jogo.sh` verde nas duas rodadas. A régua
+morde: com um atalho plantado em `viga.gd` ela reprovou
+(`viga.gd:283 … (Forja.robo and t_fase > 1.4)`), e com `robo_confirmar` sem
+apertar as nove salas reprovaram («o ✕ veio do controle, não do relógio»);
+devolvidos, voltou o verde. A partida de 3 pelo robô, na fonte, deu 3 salas, 3
+placares e o fim em 43 s.
+
+**Fica para a mão dela ou do André.** Rodar `scripts/exportar.sh linux && bash
+tests/prova_da_exportacao.sh` (precisa dos modelos de exportação e, para o
+`.exe`, do Wine do GE-Proton), `scripts/gauntlet.sh` e `bash tests/prova_de_poucos.sh`
+com o aparelho; e jogar uma partida à mão conferindo que passa pelas mesmas
+telas que a prova percorreu. A escolha a validar por ela: o fechamento do
+processo no pódio com `--sair-no-fim` ficou como fim da prova, e não como ✕.

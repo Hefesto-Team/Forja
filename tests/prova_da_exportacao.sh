@@ -94,6 +94,34 @@ print(f"    {nome}: {s['plataforma']}, versão {s['versao_do_jogo']}, SDL {s['sd
 PY
 }
 
+# $1 = nome, $2 = a pasta dos relatórios: a partida de 3 jogada pelo robô só
+# pelo controle simulado (o ✕ do aviso e do placar) até o pódio. A linha do
+# tempo diz as três salas, os três placares e o fim da partida (F08).
+conferir_partida() {
+  python3 - "$@" <<'PY'
+import glob, json, sys
+nome, pasta = sys.argv[1:3]
+def falha(msg):
+    print(f"FAIL {nome}: {msg}")
+    sys.exit(1)
+arqs = glob.glob(pasta + "/relatorio-*.json")
+if len(arqs) != 1:
+    falha(f"{len(arqs)} relatórios JSON (tinha de ser 1)")
+if not json.load(open(arqs[0], encoding="utf-8"))["sessao"]["fim"]:
+    falha("a sessão não fechou (o relatório não tem fim)")
+ev = []
+for arq in glob.glob(pasta + "/linha-do-tempo-*.jsonl"):
+    ev += [json.loads(l) for l in open(arq, encoding="utf-8")]
+def conta(e, o=None):
+    return sum(1 for x in ev if x.get("evento") == e and (o is None or x.get("o") == o))
+if conta("partida", "começou") != 1 or conta("partida", "terminou") != 1:
+    falha("a partida não começou e terminou uma vez na linha do tempo")
+if conta("partida", "placar") != 3 or conta("terminou") != 3:
+    falha(f"{conta('partida', 'placar')} placares e {conta('terminou')} salas terminadas (tinham de ser 3 e 3)")
+print(f"    {nome}: a partida de 3 foi do aviso ao pódio, só pelo controle simulado")
+PY
+}
+
 # $1 = o log do .exe com +seh,+loaddll: diz o endereço da queda, a dll em que
 # ele mora e as últimas dll carregadas antes dela.
 onde_caiu() {
@@ -149,6 +177,19 @@ if [ "$rc" -ne 0 ]; then
   falha "o binário Linux saiu com $rc"
 else
   conferir linux "$TMP/linux" Linux || FALHAS=$((FALHAS + 1))
+fi
+
+echo "==> o binário Linux exportado: uma partida de 3 jogada pelo robô, só pelo controle"
+mkdir -p "$TMP/linux-partida"
+timeout 900 "${CAIXA[@]}" "$LINUX" --headless --fixed-fps 60 -- --simular=4 --robo --semente=7 --partida=3 --sair-no-fim \
+  --relatorios="$TMP/linux-partida" > "$TMP/linux-partida.log" 2>&1
+rc=$?
+grep -E "SCRIPT ERROR|^ERROR" "$TMP/linux-partida.log" | head -20
+if [ "$rc" -ne 0 ]; then
+  tail -n 40 "$TMP/linux-partida.log"
+  falha "o binário Linux saiu com $rc na partida"
+else
+  conferir_partida linux-partida "$TMP/linux-partida" || FALHAS=$((FALHAS + 1))
 fi
 
 echo "==> o que vai junto: as licenças nos dois pacotes, o ícone e o .desktop no Linux"

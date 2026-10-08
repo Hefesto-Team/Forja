@@ -59,6 +59,7 @@ var overlay := ""  ## "", "diagnostico", "livro", "pausa", "partida" (a escolha)
 var _trocando := false
 var _stick_antes := [Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO]
 var _portao_perto := ""
+var _robo_placar_rodada := -1  ## o placar em que o robô já apertou ✕ (partida × 100 + sala)
 
 
 func _ready() -> void:
@@ -495,9 +496,9 @@ func _quadro_podio() -> void:
 			if int(e.degrau) == 1:
 				var alto: Vector3 = jogadores[int(e.lugar)].global_position + Vector3(randf_range(-1.2, 1.2), 3.2, randf_range(-0.6, 0.6))
 				Efeitos.faiscas(salao, alto, Forja.cor_do_lugar(randi() % 4), 22, 0.9)
-	if Forja.robo and "--sair-no-fim" in OS.get_cmdline_user_args() and placar._t > 3.0:
-		get_tree().quit()
-		return
+	if Forja.robo:
+		if _robo_do_podio():
+			return
 	for l in 4:
 		if not Forja.ocupado(l):
 			continue
@@ -511,6 +512,29 @@ func _quadro_podio() -> void:
 			_sair_do_podio()
 			partida = null
 			_ir_para_o_salao()
+			return
+
+
+## O robô do pódio: com --sair-no-fim, fecha o processo depois de olhar o
+## pódio por 3 s. Não é um caminho do jogo, é o fim da prova: nenhuma tela é
+## pulada (o jogo não tem botão que feche o pódio sozinho).
+func _robo_do_podio() -> bool:
+	if "--sair-no-fim" in OS.get_cmdline_user_args() and placar._t > 3.0:
+		get_tree().quit()
+		return true
+	return false
+
+
+## O robô do placar: depois da conta, aperta ✕ no controle simulado do primeiro
+## lugar (uma vez por placar), como quem leu e quer seguir (F08).
+func _robo_do_placar() -> void:
+	var rodada: int = _partidas * 100 + partida.historico.size() if partida else -1
+	if placar._t <= Placar.T_PRONTO + 0.6 or rodada == _robo_placar_rodada:
+		return
+	_robo_placar_rodada = rodada
+	for l in 4:
+		if Forja.ocupado(l):
+			Forja.robo_confirmar(l, 0.0)
 			return
 
 
@@ -900,9 +924,8 @@ func _quadro_overlay() -> void:
 					if Forja.ocupado(l) and Forja.apertou(l, Forja.CRUZ):
 						placar.pular()
 				return
-			if Forja.robo and placar._t > Placar.T_PRONTO + 0.6:
-				_seguir_a_partida()
-				return
+			if Forja.robo:
+				_robo_do_placar()
 			for l in 4:
 				if Forja.ocupado(l) and Forja.apertou(l, Forja.CRUZ):
 					_seguir_a_partida()

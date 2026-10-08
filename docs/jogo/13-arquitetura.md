@@ -481,16 +481,17 @@ nada. As regras:
 1. **O robô só age pelo controle.** Ele aperta, inclina, toca e fala pelos
    controles simulados (`Forja.robo_apertar`, `robo_eixo`, `robo_girar`,
    `robo_tocar`, `robo_falar`, `robo_sacudir`) — nunca por um atalho no
-   código do jogo. **Hoje há atalhos**: o aviso marca o robô como pronto sem
-   ✕ (`godot/scripts/salas/sala_jogo.gd:237`), o fim da sala avança sozinho
-   (`sala_jogo.gd:385`), o placar e o pódio também (`godot/scripts/main.gd:493`,
-   `main.gd:873`). A F08 os troca por ✕ apertado no controle simulado.
+   código do jogo. A F08 tirou os que havia (o aviso que marcava o robô pronto
+   sem ✕ e o placar que avançava sozinho): o ✕ chega por
+   `Forja.robo_confirmar(l, depois_s)`, pelo controle simulado, e o fim da sala
+   avança em 6 s para todo mundo.
 2. **`Forja.robo` só aparece em um lugar por minigame:** no gancho `robo(l, dt)`
    (e, até o kit, na função `_robo` de cada sala). Nas telas com entrada no
    tempo, o mesmo: `main._robo(dt)` e `TelaLobby.robo(l, dt)`, chamados numa
    linha `if Forja.robo: _robo(dt)`. Fora disso, o jogo não sabe que é um
-   robô. A prova do jogo confere isso com `grep`, aceitando só essa linha e
-   as funções do robô.
+   robô. A prova do jogo confere isso lendo cada `.gd` de `res://scripts/`
+   (`atalhos_do_robo`), aceitando só essa linha, as funções `_robo*`/`robo*` e
+   `Opcoes.gravar(Forja.robo)`; a régua reprova um atalho plantado.
 3. **O modo do jogador é o modo provado.** A prova do jogo roda **sem**
    `--bancada`, pelo fluxo inteiro (título → construção → salão → partida →
    pódio). O Modo bancada tem a sua própria prova, e só **acrescenta** camadas
