@@ -81,6 +81,7 @@ func _prova_do_percurso() -> void:
 	await _quadros(4)
 	_esperar(Forja.jogadores() == 4, "os quatro entraram")
 	_prova_da_calibracao()
+	await _prova_do_tempo_nas_opcoes()
 	for l in 4:
 		var e: Dictionary = Forja.estado_saida(l)
 		var p := _perc(l)
@@ -633,12 +634,12 @@ func _prova_da_calibracao() -> void:
 		Ritmo.definir_desvio(1, -0.150, "opcoes")
 		tela.trocar(-1)
 		_esperar(Opcoes.tempo_ms[1] == Opcoes.TEMPO_MIN, "calibração: para em %d ms" % Opcoes.TEMPO_MIN)
-		# o metrônomo: ✕ 30 ms depois da batida e ✕ 70 ms antes da próxima, já corrigidos pelo tempo do lugar
+		# o metrônomo: ✕ 30 ms depois do tique ouvido e ✕ 70 ms antes do próximo, já corrigidos pelo tempo do lugar
 		Ritmo.definir_desvio(1, 0.020, "opcoes")
 		tela._toques = []
-		tela._metronomo_us = Time.get_ticks_usec() - 30000
+		tela._ouvido_us = Time.get_ticks_usec() - 30000
 		tela.tocou()
-		tela._metronomo_us = Time.get_ticks_usec() - (tela._periodo_us() - 70000)
+		tela._ouvido_us = Time.get_ticks_usec() - (tela._periodo_us() - 70000)
 		tela.tocou()
 		_esperar(tela._toques.size() == 2 and absf(float(tela._toques[0]) - 10.0) < 5.0 and absf(float(tela._toques[1]) + 90.0) < 5.0,
 			"calibração: o metrônomo mede o toque contra a batida mais perto, menos o tempo do lugar (%s)" % [tela._toques])
@@ -649,6 +650,19 @@ func _prova_da_calibracao() -> void:
 		for k in 9:
 			tela.tocou()
 		_esperar(tela._toques.size() == 8, "calibração: a régua guarda os últimos 8 toques")
+		# o tique: um por batida, só no começo dela; a batida achada tarde passa calada
+		var per := tela._periodo_us()
+		tela._metronomo_us = 0
+		tela._batida_tocada = -1
+		var t1 := tela._tique(10000)
+		var t2 := tela._tique(20000)
+		var t3 := tela._tique(3 * per + 250000)
+		var t4 := tela._tique(4 * per + 5000)
+		_esperar(t1 and not t2 and not t3 and t4,
+			"calibração: o tique soa uma vez por batida e nunca fora dela (%s %s %s %s)" % [t1, t2, t3, t4])
+		# o ✕ se mede contra o tique que se ouve: o som sai depois da latência de saída, como no Ritmo
+		tela._latencia = 0.030
+		_esperar(tela._ate_o_ouvido_us() >= 30000, "calibração: o tique ouvido conta a latência de saída (%d µs)" % tela._ate_o_ouvido_us())
 	tela.free()
 	# o tempo sobrevive a fechar e abrir (num arquivo da prova, nunca o da pessoa); e o que passa da borda volta para ela
 	var arquivo := "user://opcoes-da-prova-h03.cfg"
@@ -671,6 +685,29 @@ func _prova_da_calibracao() -> void:
 		"calibração: o Ritmo lê o desvio de cada lugar das opções (%s)" % [Ritmo.desvio])
 	for l in 4:
 		Ritmo.definir_desvio(l, int(guardado[l]) / 1000.0, "opcoes")
+
+
+## O Tempo pelas opções de verdade (H03): ▼ chega à linha Tempo, ▶ soma 10 ms,
+## o ✕ de quem abriu deixa um ponto na régua e o de outro lugar não. Devolve
+## tudo como achou.
+func _prova_do_tempo_nas_opcoes() -> void:
+	var antes := int(Opcoes.tempo_ms[1])
+	jogo._abrir_overlay("opcoes", 1)
+	await _quadros(2)
+	var t: TelaOpcoes = jogo.tela_opcoes
+	for k in 2:
+		await _aperta(1, Forja.BAIXO)
+	_esperar(jogo.overlay == "opcoes" and t._linhas[t.linha][0] == "tempo", "opções: ▼▼ chega à linha Tempo (%s)" % [t._linhas[t.linha]])
+	await _aperta(1, Forja.DIREITA)
+	_esperar(int(Opcoes.tempo_ms[1]) == antes + Opcoes.TEMPO_PASSO, "opções: ▶ na linha Tempo soma 10 ms (%d)" % Opcoes.tempo_ms[1])
+	await _aperta(1, Forja.ESQUERDA)
+	await _aperta(1, Forja.CRUZ)
+	_esperar(t._toques.size() == 1, "opções: o ✕ de quem abriu deixa um ponto na régua (%d)" % t._toques.size())
+	await _aperta(0, Forja.CRUZ)
+	_esperar(t._toques.size() == 1, "opções: o ✕ de outro lugar não deixa ponto")
+	jogo._fechar_overlay()
+	await _quadros(2)
+	_esperar(int(Opcoes.tempo_ms[1]) == antes and jogo.estado == "lobby", "opções: fechadas, o tempo volta ao que era e o lobby segue")
 
 
 ## As janelas (H02): as bordas de cada julgamento, a folga de quem está

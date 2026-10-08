@@ -17,8 +17,15 @@ const METRONOMO_BPM := 100.0
 const REGUA_MS := 200.0  ## a régua vai de −REGUA_MS a +REGUA_MS
 const REGUA_RESERVA := 48.0  ## o espaço sempre guardado embaixo da linha Tempo (a lista não pula ao navegar)
 const CAIXA := 66.0  ## a altura da caixa de cada linha
+## Uma batida achada mais tarde que isto (a linha Tempo acabou de ser escolhida,
+## um quadro preso) passa calada: o tique nunca soa fora da batida.
+const TIQUE_TARDE_US := 50000
 var _metronomo_us := 0
 var _batida_tocada := -1
+## O instante em que o último tique chega ao ouvido: o som sai no próximo mix,
+## mais a latência de saída, como o zero do Ritmo. O ✕ se mede contra ele.
+var _ouvido_us := 0
+var _latencia := 0.0
 var _toques: Array = []  ## os últimos 8 desvios, em ms, já corrigidos pelo tempo do lugar
 
 
@@ -43,7 +50,9 @@ func abrir(lugar: int) -> void:
 		["idioma", "Idioma", "sessao"],
 	]
 	_toques = []
+	_latencia = AudioServer.get_output_latency()  # cara: uma vez ao abrir, nunca por quadro
 	_metronomo_us = Time.get_ticks_usec()
+	_ouvido_us = _metronomo_us + _ate_o_ouvido_us()
 	_batida_tocada = -1
 
 
@@ -109,12 +118,26 @@ func _periodo_us() -> int:
 	return int(60.0 / METRONOMO_BPM * 1000000.0)
 
 
-## ✕ na linha Tempo: onde o toque caiu em relação à batida mais perto.
+## Do tique tocado agora até ele chegar ao ouvido, em µs.
+func _ate_o_ouvido_us() -> int:
+	return int((AudioServer.get_time_to_next_mix() + _latencia) * 1000000.0)
+
+
+## true quando uma batida nova do metrônomo começou agora e o tique deve soar.
+func _tique(agora_us: int) -> bool:
+	var desde := agora_us - _metronomo_us
+	var batida := floori(float(desde) / float(_periodo_us()))
+	if batida <= _batida_tocada:
+		return false
+	_batida_tocada = batida
+	return posmod(desde, _periodo_us()) < TIQUE_TARDE_US
+
+
+## ✕ na linha Tempo: onde o toque caiu em relação à batida ouvida mais perto.
 func tocou() -> void:
 	if _linhas.is_empty() or _linhas[linha][0] != "tempo":
 		return
-	var desde := Time.get_ticks_usec() - _metronomo_us
-	var fase := desde % _periodo_us()
+	var fase := posmod(Time.get_ticks_usec() - _ouvido_us, _periodo_us())
 	var ms := fase / 1000.0
 	if ms > _periodo_us() / 2000.0:
 		ms -= _periodo_us() / 1000.0
@@ -126,11 +149,10 @@ func tocou() -> void:
 func _process(_dt: float) -> void:
 	if visible:
 		# o tique da linha Tempo: o relógio do sistema, não o Ritmo (que está pausado aqui)
-		if not _linhas.is_empty() and _linhas[linha][0] == "tempo":
-			var batida := floori(float(Time.get_ticks_usec() - _metronomo_us) / float(_periodo_us()))
-			if batida > _batida_tocada:
-				_batida_tocada = batida
-				Som.tocar("tique", null, -4.0)
+		var agora := Time.get_ticks_usec()
+		if not _linhas.is_empty() and _linhas[linha][0] == "tempo" and _tique(agora):
+			_ouvido_us = agora + _ate_o_ouvido_us()
+			Som.tocar("tique", null, -4.0)
 		queue_redraw()
 
 
@@ -182,12 +204,12 @@ func _draw() -> void:
 
 
 ## A régua da linha Tempo: 440 × 8 px no meio do quadro, com o traço do tempo
-## no centro (pisca no começo de cada batida) e um ponto por toque. Nada de número.
+## no centro (pisca quando o tique chega ao ouvido) e um ponto por toque. Nada de número.
 func _desenhar_regua(caixa: Rect2) -> void:
 	var cx := size.x * 0.5
 	var y := caixa.end.y + 22.0
 	draw_rect(Rect2(Vector2(cx - 220.0, y), Vector2(440, 8)), Tema.TRILHO)
-	var na_batida := (Time.get_ticks_usec() - _metronomo_us) % _periodo_us()
+	var na_batida := posmod(Time.get_ticks_usec() - _ouvido_us, _periodo_us())
 	var cor_traco := Tema.AMARELO if na_batida < 80000 else Tema.LINHA
 	draw_rect(Rect2(Vector2(cx - 2.0, y - 10.0), Vector2(4, 28)), cor_traco)
 	var cor := Forja.cor_do_lugar(quem)
