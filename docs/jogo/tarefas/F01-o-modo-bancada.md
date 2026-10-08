@@ -347,3 +347,10 @@ func _prova_do_modo() -> void:
   `./run-local.sh -- --bancada --partida=5` (as perguntas e a tabela de volta);
   `scripts/gauntlet.sh` e `bash tests/prova_de_poucos.sh` ficam com o André.
 - Para o André: as duas rodadas da prova (o passo 7 da F08) já ficaram prontas aqui.
+- Na conferência final: sem a pergunta da luz, A Voz não dava ponto a ninguém
+  (o chamado e o mudo são um acerto cada, nunca os três do treino, e caíam
+  todos nele). Sem a bancada ela não tem treino (`com_treino = Forja.bancada`),
+  e a prova do jogo exige que alguém faça ponto em cada sala. Mordida: com o
+  treino religado, a rodada `forma-a` reprova em «em voz alguém fez ponto».
+  Como a Voz pontua sem a luz (todo mundo que chama e fica mudo empata em 250)
+  fica a validar por ela.
