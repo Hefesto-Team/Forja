@@ -42,6 +42,7 @@ Estados: **a fazer**, **fazendo** (com o nome de quem pegou), **feito**
 | [G09](G09-o-teclado-do-nome.md) | O teclado de tela para o nome | M | F00, F07, F08, F09, G02 | a fazer |
 | [G10](G10-a-biblioteca-kenney.md) | A biblioteca Kenney | G | F00, G08 (a parte A e o `scripts/conferir_bonecos.py`) | a fazer |
 | [G11](G11-a-interface-com-o-ui-pack.md) | A interface com o UI Pack e os prompts | M | F00, F07, F09, G04, G10 | a fazer |
+| [G12](G12-a-apresentacao-do-minigame.md) | A apresentação do minigame | M | H04, H06, G08, G11, F07, F09 | a fazer |
 
 ## H — O ritmo, o som e o kit
 
@@ -62,7 +63,7 @@ Estados: **a fazer**, **fazendo** (com o nome de quem pegou), **feito**
 
 | ficha | título | tamanho | depende de | estado |
 | --- | --- | --- | --- | --- |
-| [I1](I1-o-martelo-de-hefesto.md) | O Martelo de Hefesto | G | H04, H08, F09, F03, F05, H07, G05 | a fazer |
+| [I1](I1-o-martelo-de-hefesto.md) | O Martelo de Hefesto | G | H04, H08, F09, F03, F05, H07, G05, G12 | a fazer |
 | [I2](I2-marcha-dos-escudeiros.md) | Marcha dos Escudeiros | M | H04, H08, F09, F03, H07, I1 (o `secao.gd`) | a fazer |
 | [I3](I3-portoes-de-neon.md) | Portões de Néon | M | H04, H08, F09, F03, H07, I1 (o `secao.gd`) | a fazer |
 | [I4](I4-o-fole.md) | O Fole | M | H04, H08, F09, F03, H07, G03 (o L2 é do item), I1 (o `secao.gd`) | a fazer |
@@ -72,7 +73,7 @@ Estados: **a fazer**, **fazendo** (com o nome de quem pegou), **feito**
 
 | ficha | título | tamanho | depende de | estado |
 | --- | --- | --- | --- | --- |
-| [J1](J1-a-viga.md) | A Viga | G | H04, H08, F09, F03, F05, H07, G05 | a fazer |
+| [J1](J1-a-viga.md) | A Viga | G | H04, H08, F09, F03, F05, H07, G05, G12 | a fazer |
 | [J2](J2-pendulos-do-caos.md) | Pêndulos do Caos | M | H04, H08, F09, F03, H07, J1 (o `secao.gd`) | a fazer |
 | [J3](J3-patinacao-de-dados.md) | Patinação de Dados | M | H04, H08, F09, F03, H07, J1 (o `secao.gd`) | a fazer |
 | [J4](J4-o-balao-dos-foles.md) | O Balão dos Foles | M | H04, H08, F09, F03, H07, J1 (o `secao.gd`) | a fazer |
@@ -82,7 +83,7 @@ Estados: **a fazer**, **fazendo** (com o nome de quem pegou), **feito**
 
 | ficha | título | tamanho | depende de | estado |
 | --- | --- | --- | --- | --- |
-| [K1](K1-o-molde.md) | O Molde | G | H04, H08, F09, F03, F05, H07, G05 | a fazer |
+| [K1](K1-o-molde.md) | O Molde | G | H04, H08, F09, F03, F05, H07, G05, G12 | a fazer |
 | [K2](K2-quebra-gelo.md) | Quebra-Gelo | M | H04, H08, F09, F03, H07, K1 (o `secao.gd`) | a fazer |
 | [K3](K3-hackeando-o-terminal.md) | Hackeando o Terminal | M | H04, H08, F09, F03, H07, K1 (o `secao.gd`) | a fazer |
 | [K4](K4-a-pinca.md) | A Pinça | M | H04, H08, F09, F03, H07, K1 (o `secao.gd`) | a fazer |
@@ -92,7 +93,7 @@ Estados: **a fazer**, **fazendo** (com o nome de quem pegou), **feito**
 
 | ficha | título | tamanho | depende de | estado |
 | --- | --- | --- | --- | --- |
-| [L1](L1-o-cerco.md) | O Cerco | G | H04, H08, F09, F01, F04, F05, F06, H06, H07, G04, G05, G08 | a fazer |
+| [L1](L1-o-cerco.md) | O Cerco | G | H04, H08, F09, F01, F04, F05, F06, H06, H07, G04, G05, G08, G12 | a fazer |
 | [L2](L2-fuga-do-tita.md) | Fuga do Titã | M | H04, H08, F09, L1 | a fazer |
 | [L3](L3-curto-circuito.md) | Curto-Circuito | M | H04, H08, F09, L1 | a fazer |
 | [L4](L4-martelos-termicos.md) | Martelos Térmicos | M | H04, H08, F09, L1, G08 | a fazer |
@@ -102,7 +103,7 @@ Estados: **a fazer**, **fazendo** (com o nome de quem pegou), **feito**
 
 | ficha | título | tamanho | depende de | estado |
 | --- | --- | --- | --- | --- |
-| [M1](M1-a-galeria.md) | A Galeria | G | H04, H08, F09, F01, F04, F05, F06, H06, H07, G03, G08 | a fazer |
+| [M1](M1-a-galeria.md) | A Galeria | G | H04, H08, F09, F01, F04, F05, F06, H06, H07, G03, G08, G12 | a fazer |
 | [M2](M2-arco-de-neon.md) | Arco de Néon | M | H04, H08, F09, M1 | a fazer |
 | [M3](M3-metralhadora-de-feiticos.md) | Metralhadora de Feitiços | M | H04, H08, F09, M1 | a fazer |
 | [M4](M4-espada-de-fita.md) | Espada de Fita | M | H04, H08, F09, M1 | a fazer |
@@ -112,7 +113,7 @@ Estados: **a fazer**, **fazendo** (com o nome de quem pegou), **feito**
 
 | ficha | título | tamanho | depende de | estado |
 | --- | --- | --- | --- | --- |
-| [N1](N1-o-canto.md) | O Canto | G | H04, H08, F09, F01, F02, F05, H06, H07, G08 | a fazer |
+| [N1](N1-o-canto.md) | O Canto | G | H04, H08, F09, F01, F02, F05, H06, H07, G08, G12 | a fazer |
 | [N2](N2-eco-do-abismo.md) | Eco do Abismo | M | H04, H08, F09, N1 | a fazer |
 | [N3](N3-coral-dos-quatro.md) | Coral dos Quatro | M | H04, H08, F09, N1, H07 | a fazer |
 | [N4](N4-codigo-do-dragao.md) | Código do Dragão | M | H04, H08, F09, N1, H07 | a fazer |
@@ -122,7 +123,7 @@ Estados: **a fazer**, **fazendo** (com o nome de quem pegou), **feito**
 
 | ficha | título | tamanho | depende de | estado |
 | --- | --- | --- | --- | --- |
-| [O1](O1-os-caminhos.md) | Os Caminhos | G | H04, H08, F09, F01, H07, G08 | a fazer |
+| [O1](O1-os-caminhos.md) | Os Caminhos | G | H04, H08, F09, F01, H07, G08, G12 | a fazer |
 | [O2](O2-neblina-de-dados.md) | Neblina de Dados | M | H04, H08, F09, H07, O1 | a fazer |
 | [O3](O3-passo-no-fosso.md) | Passo no Fosso | M | H04, H08, F09, H07, O1 | a fazer |
 | [O4](O4-fuga-do-mecha-cego.md) | Fuga do Mecha Cego | M | H04, H08, F09, H07, O1 | a fazer |
@@ -132,7 +133,7 @@ Estados: **a fazer**, **fazendo** (com o nome de quem pegou), **feito**
 
 | ficha | título | tamanho | depende de | estado |
 | --- | --- | --- | --- | --- |
-| [P1](P1-a-voz.md) | A Voz | G | H04, H08, F09, F01, H07, G08 | a fazer |
+| [P1](P1-a-voz.md) | A Voz | G | H04, H08, F09, F01, H07, G08, G12 | a fazer |
 | [P2](P2-o-sopro-no-fole.md) | O Sopro no Fole | M | H04, H08, F09, H07, P1 | a fazer |
 | [P3](P3-zero-absoluto.md) | Zero Absoluto | M | H04, H08, F09, H07, G08, P1 | a fazer |
 | [P4](P4-grito-de-guerra.md) | Grito de Guerra | M | H04, H08, F09, H07, P1 | a fazer |
@@ -142,7 +143,7 @@ Estados: **a fazer**, **fazendo** (com o nome de quem pegou), **feito**
 
 | ficha | título | tamanho | depende de | estado |
 | --- | --- | --- | --- | --- |
-| [Q1](Q1-a-prova.md) | A Prova | G | H04, H08, F09, F01, F04, H07, G03, O1 | a fazer |
+| [Q1](Q1-a-prova.md) | A Prova | G | H04, H08, F09, F01, F04, H07, G03, O1, G12 | a fazer |
 | [Q2](Q2-roubo-de-bateria.md) | Roubo de Bateria | M | H04, H08, F09, H07, G03, Q1 | a fazer |
 | [Q3](Q3-mecha-de-dois-pilotos.md) | Mecha de Dois Pilotos | M | H04, H08, F09, H07, G03, Q1 | a fazer |
 | [Q4](Q4-ruge-o-reator.md) | Ruge o Reator | G | H04, H08, F09, H07, G03, Q1, O1 (o `_pista`), e as seções S1 a S4 prontas (as mecânicas que as estações resumem) | a fazer |
