@@ -913,6 +913,13 @@ func _prova_do_modo() -> void:
 		var c := mg.filter(func(e): return e.get("slot") == id and e.get("evento") == "comecou").size()
 		var t := mg.filter(func(e): return e.get("slot") == id and e.get("evento") == "terminou" and int(e.get("vencedor", -1)) >= 0).size()
 		_esperar(c >= 1 and t >= 1, "linha do tempo: %s começou e terminou com vencedor" % id)
+		# vencer é fazer ponto: a sala em que ninguém soma (A Voz sem a pergunta,
+		# com o treino engolindo o chamado e o mudo) acaba sempre em zero a zero
+		var somou := mg.any(func(e):
+			var pts = JSON.parse_string(str(e.get("pontos", "[]")))
+			return e.get("slot") == id and e.get("evento") == "terminou" and pts is Array \
+				and pts.any(func(v): return int(v) > 0))
+		_esperar(somou, "linha do tempo: em %s alguém fez ponto" % id)
 
 
 ## O aviso não espera ninguém para sempre: sem ✕ de ninguém, começa em 8 s.

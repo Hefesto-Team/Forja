@@ -61,6 +61,10 @@ func _init() -> void:
 	objetivo = "O guardião da cripta escuta pelo microfone do controle. Primeiro, todos em silêncio. Depois, cada um na sua vez chama o guardião falando alto — os outros, quietos. Quando ele acordar, fiquem mudos com o botão do microfone; e digam, olhando o controle, como está a luz dele: ✕ apagada, ○ acesa, □ piscando. Confira o seu microfone aqui embaixo: fale e a barra sobe; ◀ ▶ troca."
 	features = ["microfone", "microfone_mudo", "led_microfone"]
 	cega = true
+	# Sem o Modo bancada não há a luz para dizer: o chamado e o mudo são uma vez
+	# só por pessoa, nunca os três acertos do treino. Com treino, eles cairiam
+	# nele e não somariam — a sala acabaria sempre em zero a zero.
+	com_treino = Forja.bancada
 	papel_som = F.PAPEL_MICROFONE
 	botoes_pedidos = F.mascara([F.MICROFONE, F.CRUZ, F.CIRCULO, F.QUADRADO])
 	duracao = 0.0
