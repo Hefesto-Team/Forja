@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>A Forja em Fita</title>
+<style>
+@font-face { font-family: "Bungee"; src: url("../../godot/assets/fontes/Bungee-Regular.ttf"); }
+@font-face { font-family: "VT323"; src: url("../../godot/assets/fontes/VT323-Regular.ttf"); }
+@font-face { font-family: "Archivo Narrow"; src: url("../../godot/assets/fontes/ArchivoNarrow-wght.ttf"); font-weight: 400 700; }
+@font-face { font-family: "Permanent Marker"; src: url("../../godot/assets/fontes/PermanentMarker-Regular.ttf"); }
+/* A direção de arte da Forja, a página que manda. Abre direto no navegador (file://): as imagens e as fontes são as do repositório.
+   As cores daqui são as do estudo (godot/estudos/direcao/fita.gd); quando os tokens forem para o tema.gd, este arquivo segue o tema.gd. */
+:root {
+  color-scheme: dark;
+  --fita: #0d0a16;
+  --casco: #17121f;
+  --casco-alto: #241c30;
+  --grafite: #3a3346;
+  --etiqueta: #efe4c8;
+  --etiqueta-sombra: #cfc2a0;
+  --tinta: #1c1626;
+  --tinta-suave: #5a4f66;
+  --violeta: #4a3aa8;
+  --texto: #efe4c8;
+  --suave: #b9aec8;
+  --mudo: #857a95;
+  --vermelhao: #c8432f;
+  --f-titulo: "Bungee", Impact, sans-serif;
+  --f-vt: "VT323", ui-monospace, monospace;
+  --f-texto: "Archivo Narrow", "Arial Narrow", system-ui, sans-serif;
+  --f-mao: "Permanent Marker", "Comic Sans MS", cursive;
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--fita); color: var(--texto); font-family: var(--f-texto); font-size: 19px; line-height: 1.5; }
+.pagina { max-width: 1280px; margin: 0 auto; padding: 40px 16px 96px; display: grid; gap: 88px; }
+h1, h2, h3 { margin: 0; line-height: 1.05; text-wrap: balance; font-weight: 400; }
+p { margin: 0; max-width: 68ch; }
+img { display: block; width: 100%; height: auto; }
+
+/* a etiqueta: o cabeçalho de cada lado da fita */
+.etiqueta { background: var(--etiqueta); color: var(--tinta); border-radius: 4px; padding: 14px 22px 12px; box-shadow: 0 6px 0 rgba(0,0,0,.35); position: relative; width: fit-content; max-width: 100%; }
+.etiqueta::before { content: ""; position: absolute; inset: 10px 0 auto; height: 7px; background: var(--faixa, var(--vermelhao)); }
+.etiqueta h2, .etiqueta h1 { font-family: var(--f-mao); padding-top: 14px; border-bottom: 1px solid var(--etiqueta-sombra); padding-bottom: 4px; }
+.etiqueta h1 { font-size: clamp(34px, 7vw, 64px); }
+.etiqueta h2 { font-size: clamp(26px, 4.4vw, 40px); }
+.etiqueta .lado { font-family: var(--f-vt); font-size: 22px; letter-spacing: .08em; color: var(--tinta-suave); text-transform: uppercase; margin-top: 4px; display: block; }
+
+.secao { display: grid; gap: 28px; }
+.lede { font-size: 22px; color: var(--suave); }
+.vt { font-family: var(--f-vt); font-size: 22px; letter-spacing: .06em; text-transform: uppercase; color: var(--mudo); }
+
+/* abertura */
+.abertura { display: grid; gap: 30px; }
+.abertura .play { display: flex; justify-content: space-between; font-family: var(--f-vt); font-size: 26px; color: var(--suave); }
+.abertura .play span:first-child::before { content: ""; display: inline-block; border-left: 16px solid var(--suave); border-block: 10px solid transparent; margin-right: 10px; vertical-align: -1px; }
+
+/* antes e depois */
+.par { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 18px; }
+.par figure, .quadro { margin: 0; display: grid; gap: 10px; }
+.par img, .quadro img { border-radius: 6px; border: 1px solid var(--grafite); }
+figcaption { font-size: 17px; color: var(--suave); }
+figcaption b { font-family: var(--f-vt); font-weight: 400; font-size: 22px; letter-spacing: .06em; color: var(--texto); margin-right: 8px; }
+.antes img { filter: none; }
+
+/* os quadros */
+.grade { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 34px 22px; }
+.grade .largo { grid-column: 1 / -1; }
+.empresta { font-size: 15.5px; color: var(--mudo); }
+.empresta em { font-style: normal; color: var(--suave); }
+
+/* paleta */
+.paleta { display: grid; gap: 26px; }
+.familia { display: grid; gap: 10px; }
+.familia h3 { font-family: var(--f-vt); font-size: 24px; letter-spacing: .06em; text-transform: uppercase; color: var(--suave); }
+.familia p { font-size: 16.5px; color: var(--mudo); }
+.amostras { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+.amostra { border-radius: 5px; overflow: hidden; border: 1px solid var(--grafite); background: var(--casco); }
+.amostra i { display: block; height: 64px; }
+.amostra span { display: block; padding: 6px 10px 8px; font-size: 15px; line-height: 1.3; }
+.amostra code { font-family: var(--f-vt); font-size: 19px; color: var(--mudo); }
+
+/* listas */
+.duas { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 22px 40px; }
+.itens { list-style: none; margin: 0; padding: 0; display: grid; gap: 16px; }
+.itens li { padding-left: 16px; border-left: 3px solid var(--grafite); }
+.itens b { font-family: var(--f-vt); font-weight: 400; font-size: 23px; letter-spacing: .05em; text-transform: uppercase; display: block; line-height: 1.1; }
+.itens span { color: var(--suave); font-size: 17px; }
+
+/* decisões */
+.decide { display: grid; gap: 14px; counter-reset: d; list-style: none; margin: 0; padding: 0; }
+.decide li { counter-increment: d; background: var(--casco); border: 1px solid var(--grafite); border-radius: 6px; padding: 16px 18px 16px 64px; position: relative; }
+.decide li::before { content: counter(d, decimal-leading-zero); position: absolute; left: 16px; top: 12px; font-family: var(--f-vt); font-size: 30px; color: var(--violeta); filter: brightness(1.6); }
+.decide b { display: block; font-size: 21px; font-weight: 700; margin-bottom: 2px; }
+.decide span { color: var(--suave); font-size: 17px; }
+.chip { display: inline-block; width: 14px; height: 14px; border-radius: 3px; vertical-align: -1px; margin: 0 3px 0 6px; }
+
+@media (max-width: 760px) {
+  body { font-size: 17.5px; }
+  .pagina { gap: 64px; }
+  .par, .grade, .duas { grid-template-columns: minmax(0, 1fr); }
+  .abertura .play { font-size: 20px; }
+  .decide li { padding-left: 54px; }
+}
+</style>
+</head>
+<body>
+<main class="pagina">
+
+<header class="abertura">
+  <div class="play"><span>PLAY</span><span>SP 0:00:00</span></div>
+  <div class="etiqueta" style="--faixa: var(--vermelhao)">
+    <h1>A Forja em fita</h1>
+    <span class="lado">Direção de arte · lado A · os quadros de verdade</span>
+  </div>
+  <p class="lede">Os dez quadros abaixo saíram do Godot, no renderizador do jogo (Compatibility), com os pacotes Kenney que já estão no projeto, recoloridos por papel. Nenhuma imagem foi gerada por IA. Épico com respiros de humor: o mundo é escuro e quieto, os jogadores são as únicas luzes fortes, e a etiqueta de papel é onde o jogo escreve.</p>
+</header>
+
+<section class="secao">
+  <div class="etiqueta" style="--faixa: #2f55c4"><h2>Antes e depois</h2><span class="lado">A Centelha · faixa 01</span></div>
+  <div class="par">
+    <figure class="antes"><img src="../imagens/centelha.jpg" alt="A Centelha hoje: quatro cavaleiros num salão escuro, runas coloridas e placar simples"><figcaption><b>HOJE</b>Kenney cru, cada pacote com a própria paleta, o texto solto sobre a cena.</figcaption></figure>
+    <figure><img src="../imagens/direcao/01_centelha_depois.jpg" alt="A Centelha na Fita: HUD em placas de casco com VU, etiqueta da faixa, cassete com contador, PERFEITO e ÓTIMO carimbados"><figcaption><b>FITA</b>As placas de casco com VU, a etiqueta da faixa, o cassete que conta a batida e o julgamento carimbado.</figcaption></figure>
+  </div>
+</section>
+
+<section class="secao">
+  <div class="etiqueta" style="--faixa: #1f8a7e"><h2>Os quadros-chave</h2><span class="lado">Do título ao pódio</span></div>
+  <div class="grade">
+    <figure class="quadro"><img src="../imagens/direcao/07_titulo.jpg" alt="Título: um cassete com a etiqueta A FORJA e o botão Começar"><figcaption><b>07 TÍTULO</b>O cassete é a capa. PLAY e o contador no canto como no vídeo de casa.</figcaption><span class="empresta">Empresta de <em>Hotline Miami</em>: o PLAY, o contraste duro.</span></figure>
+    <figure class="quadro"><img src="../imagens/direcao/02_salao.jpg" alt="Salão: os portões-etiqueta e as barras de pronto"><figcaption><b>02 SALÃO</b>Os portões são etiquetas, cada um com a cor da sua seção. As barras Pronto por jogador.</figcaption><span class="empresta">Empresta de <em>Mario Party</em>: os portões. De <em>Astro Bot</em>: a câmera baixa.</span></figure>
+    <figure class="quadro"><img src="../imagens/direcao/03_entrada.jpg" alt="Entrada do minigame: cortina vermelhão diagonal e MARTELE! com rasgo de VHS"><figcaption><b>03 ENTRADA</b>A cortina diagonal entra, o verbo treme grande, a fita rasga. Dura menos de dois segundos.</figcaption><span class="empresta">Empresta de <em>Hotline Miami</em> e <em>Rhythm Heaven</em>: um verbo, grande.</span></figure>
+    <figure class="quadro"><img src="../imagens/direcao/04_cartao.jpg" alt="Cartão de como jogar no formato J-card, com treino e chips dos jogadores"><figcaption><b>04 CARTÃO</b>O Como jogar é o encarte da fita (J-card): o que fazer, o botão, e o treino antes de valer.</figcaption><span class="empresta">Empresta de <em>Mario Party</em>: o cartão com treino.</span></figure>
+    <figure class="quadro"><img src="../imagens/direcao/05_dissonancia.jpg" alt="Dissonância: a fita enrosca, a imagem desregistra em vermelho e azul"><figcaption><b>05 DISSONÂNCIA</b>O erro coletivo: a fita enrosca e solta do carretel, a imagem desregistra. Só aqui entram o vermelho e o azul do erro.</figcaption><span class="empresta">Empresta de <em>Sackboy</em>: o desregistro do papel. De <em>Hi-Fi Rush</em>: o mundo na batida.</span></figure>
+    <figure class="quadro"><img src="../imagens/direcao/06_podio.jpg" alt="Pódio: FAÍSCA! em magenta, os cavaleiros nos degraus e o último emburrado no canto"><figcaption><b>06 PÓDIO</b>O nome do vencedor na cor dele, confete de fita, e o último lugar emburrado no canto.</figcaption><span class="empresta">Empresta de <em>Mario Party</em>: o último emburrado. Respiro de humor.</span></figure>
+    <figure class="quadro largo"><img src="../imagens/direcao/08_cavaleiros.jpg" alt="Prancha dos quatro cavaleiros nas cores ciano, magenta, limão e âmbar"><figcaption><b>08 CAVALEIROS</b>Mini Characters da Kenney, o corpo tingido pela cor do lugar, contorno e aro no chão. Embaixo de cada um, as lâmpadas do controle (1 a 4): a cor nunca vem sozinha.</figcaption></figure>
+    <figure class="quadro largo"><img src="../imagens/direcao/08b_daltonismo.jpg" alt="A Centelha simulada em visão normal, protanopia, deuteranopia e tritanopia"><figcaption><b>08B DALTONISMO</b>A mesma cena nas três simulações. Onde duas cores se aproximam (P1 e P2 na deuteranopia, P2 e P4 na tritanopia), o P# e as lâmpadas seguram a leitura.</figcaption></figure>
+  </div>
+</section>
+
+<section class="secao">
+  <div class="etiqueta" style="--faixa: #c79a2a"><h2>A Kenney na fita</h2><span class="lado">Colormap · antes e depois</span></div>
+  <p>Os pacotes não são trocados, são recoloridos. Cada pacote ganha um papel, e a cor dele passa pelo OKLab: a claridade cai na faixa do papel, o croma encolhe, e um fio do violeta do cenário entra por cima. Assim cinco pacotes de paletas diferentes viram um lugar só, e os jogadores continuam sendo o que mais brilha.</p>
+  <figure class="quadro"><img src="../imagens/direcao/09_paleta_kenney.jpg" alt="Os colormaps de cinco pacotes Kenney antes e depois, com um fliperama, uma bigorna e um personagem"><figcaption><b>09 PALETA</b>Cenário (Mini Dungeon, Mini Arena) 16 a 44 %, máquina (Mini Arcade) 18 a 60 %, objeto (Survival Kit) 22 a 78 %, personagem (Mini Characters) 6 a 92 %.</figcaption></figure>
+</section>
+
+<section class="secao">
+  <div class="etiqueta" style="--faixa: #86409a"><h2>A paleta</h2><span class="lado">Cada cor com um trabalho</span></div>
+  <div class="paleta">
+    <div class="familia"><h3>A fita e o casco</h3><p>O fundo e as placas. Nada aqui brilha.</p><div class="amostras"><div class="amostra"><i style="background:#0d0a16"></i><span>Fita<br><code>#0d0a16</code></span></div><div class="amostra"><i style="background:#17121f"></i><span>Casco<br><code>#17121f</code></span></div><div class="amostra"><i style="background:#241c30"></i><span>Casco alto<br><code>#241c30</code></span></div><div class="amostra"><i style="background:#3a3346"></i><span>Grafite<br><code>#3a3346</code></span></div></div></div>
+    <div class="familia"><h3>A etiqueta</h3><p>O papel onde o jogo escreve: títulos, cartões, o pódio.</p><div class="amostras"><div class="amostra"><i style="background:#efe4c8"></i><span>Etiqueta<br><code>#efe4c8</code></span></div><div class="amostra"><i style="background:#cfc2a0"></i><span>Dobra<br><code>#cfc2a0</code></span></div><div class="amostra"><i style="background:#1c1626"></i><span>Tinta<br><code>#1c1626</code></span></div><div class="amostra"><i style="background:#5a4f66"></i><span>Tinta suave<br><code>#5a4f66</code></span></div></div></div>
+    <div class="familia"><h3>A luz do lugar</h3><p>O violeta é o único néon da arquitetura e nunca passa de L 50. O tungstênio é luz, nunca traço.</p><div class="amostras"><div class="amostra"><i style="background:#4a3aa8"></i><span>Violeta<br><code>#4a3aa8</code></span></div><div class="amostra"><i style="background:#1d1638"></i><span>Violeta fundo<br><code>#1d1638</code></span></div><div class="amostra"><i style="background:#ffd9a8"></i><span>Tungstênio<br><code>#ffd9a8</code></span></div></div></div>
+    <div class="familia"><h3>Os jogadores</h3><p>Os únicos néons saturados da tela. Nenhuma dessas quatro cores aparece fora do jogador dono dela.</p><div class="amostras"><div class="amostra"><i style="background:#29e6ff"></i><span>P1 ciano<br><code>#29e6ff</code></span></div><div class="amostra"><i style="background:#ff3ea5"></i><span>P2 magenta<br><code>#ff3ea5</code></span></div><div class="amostra"><i style="background:#d4ff4a"></i><span>P3 limão<br><code>#d4ff4a</code></span></div><div class="amostra"><i style="background:#ee9a1e"></i><span>P4 âmbar<br><code>#ee9a1e</code></span></div></div></div>
+    <div class="familia"><h3>As seções</h3><p>Tinta impressa, nunca néon: a faixa da etiqueta de cada lado.</p><div class="amostras"><div class="amostra"><i style="background:#c8432f"></i><span>1 vermelhão<br><code>#c8432f</code></span></div><div class="amostra"><i style="background:#2f55c4"></i><span>2 cobalto<br><code>#2f55c4</code></span></div><div class="amostra"><i style="background:#1f8a7e"></i><span>3 petróleo<br><code>#1f8a7e</code></span></div><div class="amostra"><i style="background:#c79a2a"></i><span>4 mostarda<br><code>#c79a2a</code></span></div><div class="amostra"><i style="background:#86409a"></i><span>5 ameixa<br><code>#86409a</code></span></div></div></div>
+    <div class="familia"><h3>O erro</h3><p>Só no desregistro da Dissonância.</p><div class="amostras"><div class="amostra"><i style="background:#ff2a4a"></i><span>Erro vermelho<br><code>#ff2a4a</code></span></div><div class="amostra"><i style="background:#2a6bff"></i><span>Erro azul<br><code>#2a6bff</code></span></div></div></div>
+  </div>
+</section>
+
+<section class="secao">
+  <div class="etiqueta" style="--faixa: #2f55c4"><h2>As letras e a luz</h2><span class="lado">Quatro fontes · o que o Godot dá</span></div>
+  <div class="duas">
+    <ul class="itens">
+      <li><b style="font-family: var(--f-titulo); text-transform: none">Bungee</b><span>O grito: MARTELE!, FAÍSCA!, A FORJA. Só em caixa alta, só grande.</span></li>
+      <li><b>VT323</b><span>A máquina: placar, contador, LADO A · FAIXA 01, PLAY.</span></li>
+      <li><b style="font-family: var(--f-texto); font-weight: 700; text-transform: none">Archivo Narrow</b><span>A fala: instrução, botão, menu. Todo texto que se lê inteiro.</span></li>
+      <li><b style="font-family: var(--f-mao); text-transform: none">Permanent Marker</b><span>A caneta na etiqueta: o nome do minigame, o subtítulo. Nunca em instrução.</span></li>
+    </ul>
+    <ul class="itens">
+      <li><b>Glow funciona</b><span>No Compatibility o glow clareia o fundo cerca de 3,5 vezes; o estudo compensa com 0,45 no fundo.</span></li>
+      <li><b>Sem SSAO</b><span>O contato no chão vem do aro do jogador e de sombra pintada, não de oclusão.</span></li>
+      <li><b>Uma sombra</b><span>Só a luz direcional projeta sombra. As outras luzes são de cor, não de forma.</span></li>
+      <li><b>Pós-processo da fita</b><span>Grão, linha de varredura leve e o rasgo de VHS nas transições. Quatro shaders: contorno, cavaleiro, néon e pós da fita.</span></li>
+    </ul>
+  </div>
+</section>
+
+<section class="secao">
+  <div class="etiqueta" style="--faixa: #c8432f"><h2>As decisões</h2><span class="lado">08/10/2026</span></div>
+  <ol class="decide">
+    <li><b>A direção</b><span>Escolhida a Fita Magnética com a Kenney recolorida. Esta página mora no repositório e guia todo trabalho visual da Forja. A bíblia de arte (o texto, os tokens no <code>tema.gd</code> e os portões que reprovam cor fora de token, fonte fora das quatro e texto abaixo de 30 px) sai desta página.</span></li>
+    <li><b>As cores dos jogadores</b><span>Trocadas nos dois lugares, na tela e na luz do controle: ciano<i class="chip" style="background:#29e6ff"></i>magenta<i class="chip" style="background:#ff3ea5"></i>limão<i class="chip" style="background:#d4ff4a"></i>âmbar<i class="chip" style="background:#ee9a1e"></i>. Saem o azul, o vermelho, o verde e o rosa de hoje.</span></li>
+    <li><b>O logo</b><span>Fica o logo de hoje (a gota com os martelos), ajustado para funcionar na etiqueta: as cores dele passam para os tokens da Fita.</span></li>
+    <li><b>A bigorna</b><span>Uma bigorna própria, modelada com o chifre visível, no estilo da Kenney. A do Survival Kit lê como bloco de longe.</span></li>
+  </ol>
+</section>
+
+</main>
+</body>
+</html>
