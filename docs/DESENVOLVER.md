@@ -38,6 +38,24 @@ scripts/compilar.sh tudo       # os três
 
 Rodando do código, os relatórios vão para `relatorios/`, na raiz.
 
+### Na nuvem
+
+Uma sessão nova na nuvem começa sem os pacotes, sem o módulo e sem o Godot. O
+gancho de início de sessão (registrado na configuração da própria sessão, não
+no repositório) chama `FORJA_NUVEM=1 scripts/preparar_sessao.sh`, que:
+
+- sai logo sem `FORJA_NUVEM=1`: na máquina de quem desenvolve não faz nada;
+- instala os pacotes da lista acima, mais `bubblewrap` e `xvfb`, só os que
+  faltam;
+- baixa para `tools/` o Godot que o `scripts/engine.sh` fixa, se não existir
+  (e, se a rede falhar, avisa e sai com erro, sem deixar meio arquivo);
+- compila o módulo (`scripts/compilar.sh linux`) se `godot/bin/` não o tem;
+- termina com uma linha: "Ambiente pronto: módulo, Godot, pacotes."
+
+É idempotente: com tudo pronto, leva menos de um segundo. Depois dele, a
+primeira coisa de qualquer ficha é `bash tests/prova_do_jogo.sh`. Nunca rode o
+`./run-local.sh` na nuvem: ele abre a janela do jogo no fim.
+
 ### Exportar o jogo
 
 ```sh

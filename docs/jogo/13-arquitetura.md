@@ -70,20 +70,19 @@ tests/*.sh                 as provas; scripts/*.sh a compilação, o gauntlet, a
 
 ## O ambiente de uma sessão
 
-Hoje uma sessão nova na nuvem começa sem o Godot e sem o módulo. A ficha
-[F00](tarefas/F00-o-ambiente-da-sessao.md) põe um gancho de início de sessão
-que deixa tudo pronto. Até ela existir, os passos são:
+Uma sessão nova na nuvem começa sem os pacotes de sistema, sem o módulo e sem
+o Godot. A ficha [F00](tarefas/F00-o-ambiente-da-sessao.md) põe um gancho de
+início de sessão (na configuração da própria sessão, fora do repositório) que
+chama `scripts/preparar_sessao.sh`: ele instala o que falta, baixa o Godot que
+o `scripts/engine.sh` fixa e compila o módulo. Depois dele, a primeira coisa
+de qualquer ficha é a prova rápida:
 
 ```bash
-scripts/compilar.sh linux                    # o módulo (SDL3 + godot-cpp); a primeira vez baixa e compila
-mkdir -p tools && curl -fsSL -o /tmp/g.zip \
-  https://github.com/godotengine/godot/releases/download/4.4.1-stable/Godot_v4.4.1-stable_linux.x86_64.zip \
-  && unzip -o -q /tmp/g.zip -d tools
-bash tests/prova_do_jogo.sh                  # a prova rápida
+bash tests/prova_do_jogo.sh
 ```
 
-Nunca rode `./run-local.sh` numa sessão da nuvem: ele abre a janela do jogo
-no fim.
+Fora da nuvem o script não faz nada. Nunca rode `./run-local.sh` numa sessão
+da nuvem: ele abre a janela do jogo no fim.
 
 ## Os contratos internos
 

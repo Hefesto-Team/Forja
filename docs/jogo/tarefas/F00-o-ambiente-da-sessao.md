@@ -87,3 +87,26 @@ Nada além de conferir que `./run-local.sh` não mudou.
 
 Marcar F00 como **feito** no [quadro](README.md), com o gasto. Commit
 sugerido: `feat: a sessão da nuvem se prepara sozinha — pacotes, módulo e Godot`.
+
+## O que foi feito (leva 1, a-fundacao)
+
+- `scripts/preparar_sessao.sh`: sai logo fora da nuvem (sem `FORJA_NUVEM=1`, que o gancho põe),
+  instala só os pacotes que faltam (a lista do DESENVOLVER mais `bubblewrap` e
+  `xvfb`), baixa o Godot que o `scripts/engine.sh` fixa (4.7.2, não o 4.4.1 que
+  a ficha citava), compila o módulo se falta e imprime "Ambiente pronto: módulo,
+  Godot, pacotes.". A variável é nossa e neutra: o gancho chama
+  `FORJA_NUVEM=1 scripts/preparar_sessao.sh`. A escolha é a validar por ela: a
+  variável que a própria sessão da nuvem define leva o nome da ferramenta, e a
+  prova sem rastro reprova esse nome em texto versionado.
+- Provas: com `dpkg`, `sudo` e `apt-get` falsos no PATH, o script pede só o que
+  falta e sai em 0,3 s quando está tudo pronto; com uma versão de engine que
+  não existe, avisa com erro claro (código 1) e não deixa nada em `tools/`.
+- `docs/DESENVOLVER.md` ganhou a seção "Na nuvem"; o `13-arquitetura.md` troca
+  os passos manuais por "o gancho prepara".
+- Fica de fora (não é do repositório): registrar o gancho na configuração da
+  sessão na nuvem, chamando `FORJA_NUVEM=1 bash scripts/preparar_sessao.sh`.
+- Para o André: conferir que `./run-local.sh` não mudou (o script não é chamado por ele).
+- Anotado, não mexido: o `run-local.sh` usa `$GODOT_URL`, que ele não define
+  (só o `engine.sh` define `FORJA_GODOT_URL`); com `set -u`, a primeira baixada
+  do Godot por ele quebra. O `preparar_sessao.sh` usa o `forja_baixar_engine`
+  do `engine.sh` e não tem esse problema.
