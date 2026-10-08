@@ -186,6 +186,8 @@ const EN := {
 	"janela": "window",
 	"tela cheia": "fullscreen",
 	"grande": "large",
+	"Tempo": "Timing",
+	"tocar no tempo": "tap on the beat",
 	# O Canto, Os Caminhos, A Voz, A Prova
 	"Alto-falante": "Speaker",
 	"O canto saiu do seu controle?": "Did the song come from your controller?",

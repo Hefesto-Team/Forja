@@ -39,6 +39,13 @@ func _ready() -> void:
 	process_priority = -90  # depois do Forja (-101) e do módulo (-100), antes das salas (0)
 	Input.use_accumulated_input = false
 	_base_us = Time.get_ticks_usec()
+	ler_das_opcoes()
+
+
+## O desvio de cada lugar volta a ser o das opções (o `_ready` e a prova chamam).
+func ler_das_opcoes() -> void:
+	for l in 4:
+		desvio[l] = int(Opcoes.tempo_ms[l]) / 1000.0
 
 
 func _process(_dt: float) -> void:
@@ -212,6 +219,21 @@ func contar_para_ajuda(l: int, j: int) -> void:
 		_erros_seguidos[l] = 0
 		if simples[l] and _acertos_seguidos[l] >= ACERTOS_PARA_VOLTAR:
 			simples[l] = false
+
+
+## A calibração de um lugar: vale no julgamento, fica nas opções (sem gravar:
+## quem grava é quem chama — as opções gravam ao fechar) e vai para o
+## registro, com o transporte do controle. `origem`: "opcoes" (à mão) ou
+## "construcao" (as oito marteladas da G02); `amostras`: quantos golpes mediram.
+func definir_desvio(l: int, segundos: float, origem: String, amostras := 0) -> void:
+	l = clampi(l, 0, 3)
+	var ms := clampi(roundi(segundos * 1000.0), Opcoes.TEMPO_MIN, Opcoes.TEMPO_MAX)
+	desvio[l] = ms / 1000.0
+	Opcoes.tempo_ms[l] = ms
+	var p := Forja.pad_do_lugar(l)
+	var transporte := str(Forja.pad(p).get("conexao_curta", "")) if p >= 0 else ""
+	Forja.evento("calibracao", l + 1, {"lugar": l, "desvio_ms": ms, "amostras": amostras, "origem": origem,
+		"transporte": transporte})
 
 
 ## Todo minigame começa sem ajuda.

@@ -80,6 +80,7 @@ func _prova_do_percurso() -> void:
 		await _aperta(s, Forja.CRUZ)
 	await _quadros(4)
 	_esperar(Forja.jogadores() == 4, "os quatro entraram")
+	_prova_da_calibracao()
 	for l in 4:
 		var e: Dictionary = Forja.estado_saida(l)
 		var p := _perc(l)
@@ -380,6 +381,7 @@ func _prova_do_relatorio() -> void:
 	var julgado := {}
 	var perdido := {}
 	var ruins: Array = []
+	var calibracoes: Array = []
 	for f in arquivos:
 		if not (f.begins_with("linha-do-tempo-") and f.ends_with(".jsonl")):
 			continue
@@ -392,11 +394,15 @@ func _prova_do_relatorio() -> void:
 					julgado = ev
 				elif int(ev.get("n", -1)) == 901:
 					perdido = ev
+			elif ev.get("tipo", "") == "calibracao":
+				calibracoes.append(ev)
 	_esperar(ruins.is_empty(), "linha do tempo: toda linha é JSON (%d não: %s)" % [ruins.size(), ruins.slice(0, 2)])
 	_esperar(julgado.get("julgamento", "") == "perfeito" and absf(float(julgado.get("desvio_ms", 0.0)) - 12.0) < 0.01,
 		"registro: o toque julgado, com o desvio (%s)" % [julgado])
 	_esperar(perdido.get("julgamento", "") == "erro" and perdido.get("perdida", false) and not perdido.has("desvio_ms"),
 		"registro: a nota perdida, sem desvio (%s)" % [perdido])
+	_esperar(calibracoes.any(func(ev): return int(ev.get("desvio_ms", 0)) == 80 and ev.get("transporte", "") == "simulado"),
+		"registro: a calibração de +80 ms, com o transporte do controle")
 	var json := ""
 	for f in arquivos:
 		if f.begins_with("relatorio-") and f.ends_with(".json"):
@@ -597,6 +603,74 @@ func _medir_o_relogio(slot: String, segundos: float, rotulo: String, pela_placa:
 		"relógio %s: andou %.3f s em %.1f s de relógio" % [rotulo, andou, segundos])
 	var tempos := int(floor(andou * float(mapa.bpm) / 60.0)) + 1  # o tempo 0 também conta
 	_esperar(absi(sinais[0] - tempos) <= 1, "relógio %s: um sinal por tempo (%d sinais, %d tempos)" % [rotulo, sinais[0], tempos])
+
+
+## A calibração (H03): o desvio do lugar vale no julgamento, a linha Tempo
+## das opções anda de 10 em 10 e para nas bordas. Devolve tudo como achou.
+func _prova_da_calibracao() -> void:
+	var guardado: Array = Opcoes.tempo_ms.duplicate()
+	Ritmo.definir_desvio(2, 0.080, "opcoes")
+	_esperar(Opcoes.tempo_ms[2] == 80 and is_equal_approx(Ritmo.desvio[2], 0.080), "calibração: +80 ms nas opções e no Ritmo")
+	_esperar(Ritmo.julgar(2, 10.080, 10.0) == Ritmo.PERFEITO, "calibração: com +80 ms, 80 ms atrasado é perfeito")
+	var tela := TelaOpcoes.new()
+	tela.abrir(1)
+	var i := -1
+	for k in tela._linhas.size():
+		if tela._linhas[k][0] == "tempo":
+			i = k
+	_esperar(i >= 0 and tela._linhas[i][2] == "P2", "calibração: a linha Tempo é do lugar que abriu")
+	if i >= 0:
+		tela.linha = i
+		Ritmo.definir_desvio(1, 0.0, "opcoes")
+		tela.trocar(1)
+		_esperar(Opcoes.tempo_ms[1] == 10 and is_equal_approx(Ritmo.desvio[1], 0.010), "calibração: ▶ soma 10 ms")
+		tela.trocar(-1)
+		tela.trocar(-1)
+		_esperar(Opcoes.tempo_ms[1] == -10 and tela.valor("tempo") == "-10 ms", "calibração: ◀ tira 10 ms, e a linha mostra")
+		Ritmo.definir_desvio(1, 0.250, "opcoes")
+		tela.trocar(1)
+		_esperar(Opcoes.tempo_ms[1] == Opcoes.TEMPO_MAX, "calibração: para em +%d ms" % Opcoes.TEMPO_MAX)
+		Ritmo.definir_desvio(1, -0.150, "opcoes")
+		tela.trocar(-1)
+		_esperar(Opcoes.tempo_ms[1] == Opcoes.TEMPO_MIN, "calibração: para em %d ms" % Opcoes.TEMPO_MIN)
+		# o metrônomo: ✕ 30 ms depois da batida e ✕ 70 ms antes da próxima, já corrigidos pelo tempo do lugar
+		Ritmo.definir_desvio(1, 0.020, "opcoes")
+		tela._toques = []
+		tela._metronomo_us = Time.get_ticks_usec() - 30000
+		tela.tocou()
+		tela._metronomo_us = Time.get_ticks_usec() - (tela._periodo_us() - 70000)
+		tela.tocou()
+		_esperar(tela._toques.size() == 2 and absf(float(tela._toques[0]) - 10.0) < 5.0 and absf(float(tela._toques[1]) + 90.0) < 5.0,
+			"calibração: o metrônomo mede o toque contra a batida mais perto, menos o tempo do lugar (%s)" % [tela._toques])
+		tela.linha = 0
+		tela.tocou()
+		_esperar(tela._toques.size() == 2, "calibração: ✕ fora da linha Tempo não deixa ponto")
+		tela.linha = i
+		for k in 9:
+			tela.tocou()
+		_esperar(tela._toques.size() == 8, "calibração: a régua guarda os últimos 8 toques")
+	tela.free()
+	# o tempo sobrevive a fechar e abrir (num arquivo da prova, nunca o da pessoa); e o que passa da borda volta para ela
+	var arquivo := "user://opcoes-da-prova-h03.cfg"
+	Opcoes.tempo_ms = [-150, 0, 80, 250]
+	Opcoes.gravar(false, arquivo)
+	Opcoes.tempo_ms = [0, 0, 0, 0]
+	Opcoes.ler(arquivo)
+	_esperar(Opcoes.tempo_ms == [-150, 0, 80, 250], "calibração: o tempo de cada lugar volta do arquivo (%s)" % [Opcoes.tempo_ms])
+	var cfg := ConfigFile.new()
+	cfg.set_value("P1", "tempo_ms", 9999)
+	cfg.set_value("P2", "tempo_ms", -9999)
+	cfg.save(arquivo)
+	Opcoes.ler(arquivo)
+	_esperar(Opcoes.tempo_ms[0] == Opcoes.TEMPO_MAX and Opcoes.tempo_ms[1] == Opcoes.TEMPO_MIN, "calibração: um arquivo fora da régua volta para as bordas (%s)" % [Opcoes.tempo_ms])
+	DirAccess.remove_absolute(ProjectSettings.globalize_path(arquivo))
+	# o Ritmo começa com o que as opções guardam
+	Opcoes.tempo_ms = [0, 30, 0, -20]
+	Ritmo.ler_das_opcoes()
+	_esperar(is_equal_approx(Ritmo.desvio[1], 0.030) and is_equal_approx(Ritmo.desvio[3], -0.020) and Ritmo.desvio[0] == 0.0,
+		"calibração: o Ritmo lê o desvio de cada lugar das opções (%s)" % [Ritmo.desvio])
+	for l in 4:
+		Ritmo.definir_desvio(l, int(guardado[l]) / 1000.0, "opcoes")
 
 
 ## As janelas (H02): as bordas de cada julgamento, a folga de quem está

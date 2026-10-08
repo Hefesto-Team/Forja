@@ -856,6 +856,8 @@ func _quadro_overlay() -> void:
 			var dxo := _passo(qo, false)
 			if dxo != 0:
 				tela_opcoes.trocar(dxo)
+			if Forja.apertou(qo, Forja.CRUZ):
+				tela_opcoes.tocou()
 			if Forja.apertou(qo, Forja.CIRCULO) or Forja.apertou(qo, Forja.OPTIONS):
 				_fechar_overlay()
 		"creditos":

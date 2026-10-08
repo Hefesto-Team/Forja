@@ -284,3 +284,29 @@ rádio +Y ms"). Feche e abra o jogo: os valores ficaram.
   real.
 - Commit sugerido (sem trailer):
   `feat: a calibração de cada lugar — o Tempo nas opções, no julgamento e no registro`
+
+## O que foi feito (leva 1, o-ritmo)
+
+- **Sem a G02**, como o escopo da leva manda: o desvio de cada lugar vem das opções e começa em 0; a
+  medida automática pelas oito marteladas fica para quando a G02 chegar (ela chama
+  `Ritmo.definir_desvio(l, mediana_s, "construcao", 8)` e grava as opções, como diz «Sem a G02»). A G02
+  ainda escreve `Opcoes.desvio_ms` nos trechos dela (linhas 124, 325-327 e 476 da ficha): ao fazê-la, o
+  nome é `Opcoes.tempo_ms` e a escrita é a chamada acima (o 13 já diz isso).
+- Entrou: `Opcoes.tempo_ms` (−150 a +250 ms, passo 10, gravado e lido por lugar), `Ritmo.definir_desvio`
+  e `Ritmo.ler_das_opcoes` (o `_ready` chama), a linha «Tempo» e o metrônomo nas opções, o ✕ no
+  `_quadro_overlay` das opções e as duas chaves em inglês.
+- Além do alvo, duas coisas pela mesma causa: `Opcoes.ler(arquivo)` e `Opcoes.gravar(robo, arquivo)`
+  ganharam o caminho (padrão: o arquivo de sempre), para a prova provar «sobrevive a fechar e abrir»
+  num arquivo dela, nunca no da pessoa; e a tela de opções refez a altura das linhas (de 76 para 72 px,
+  com a caixa de 66 px intacta, ainda focável) e levou as dicas para dentro do quadro. Medido numa foto
+  (Xvfb, GL por software): com a décima linha, o desenho do alvo empurrava as dicas para fora dos 1080 px
+  e a régua caía em cima do título «Sessão». Agora cabe tudo, com a régua num espaço sempre guardado
+  embaixo do Tempo (a lista não pula ao navegar).
+- Provas: `_prova_da_calibracao()` (a calibração no julgamento, a linha Tempo de 10 em 10 e as duas
+  bordas, o arquivo de ida e volta e fora da régua, o metrônomo, o limite de 8 toques, o `Ritmo` lendo as
+  opções) e a linha `calibracao` de +80 ms com o transporte `simulado` no registro. A prova do jogo
+  ficou verde; cada régua morde (a cura arrancada reprova, devolvida volta).
+- Fica para a mão dela ou do André: abrir Opções › Tempo num controle no cabo e noutro no rádio, tocar ✕
+  junto com o tique uns dez segundos, ajustar até os pontos ficarem no centro da régua e conferir que o
+  valor fica depois de fechar e abrir o jogo (o roteiro está em «Para o André»). O tique é um som curto
+  na TV: se ele sai com atraso do som da TV, o ponto no centro inclui esse atraso.

@@ -190,7 +190,7 @@ Os tipos, e quem os escreve:
 | `minigame` | `slot`, `evento` (`comecou`/`terminou`), `vencedor` (o lugar 0..3, ou -1 no coop), `pontos`, `itens`, `duracao` | F03 |
 | `nota` | `slot`, `n` (índice), `t_alvo` (em tempo de música) | H01 |
 | `toque` | `slot`, `faixa`, `lugar`, `n`, `t_musica`, `julgamento` (`perfeito`/`otimo`/`bom`/`erro`), `desvio_ms`; `perdida` (`true`) no lugar de `desvio_ms` quando a nota passou sem toque | H02 |
-| `calibracao` | `desvio_ms`, `amostras`, `transporte` (o mesmo da linha `conexao`, repetido para o cruzamento não precisar juntar) | G02 |
+| `calibracao` | `lugar`, `desvio_ms`, `amostras`, `origem` (`opcoes`/`construcao`), `transporte` (o `conexao_curta` do controle do lugar, repetido para o cruzamento não precisar juntar) | H03 (à mão), G02 (a construção) |
 | `item` | `item`, `efeito` | G03 |
 | `sessao` | amplia o de hoje com `escala_vibracao` e `gatilho` de cada lugar | F05 |
 | `cavaleiro` | `boneco`, `acabamento`, `peca`, `item`, `nome` | G02 |
@@ -228,8 +228,13 @@ static func folga_para(l: int, pontos: Array, presentes: Array) -> float   # FOL
 var desvio := [0.0, 0.0, 0.0, 0.0]   # a calibração de cada lugar, em s, lida de Opcoes.tempo_ms (G02/H03)
 ```
 
-A calibração **persiste** em `Opcoes.desvio_ms[l]` (gravada pela construção
-do cavaleiro, G02); o `Ritmo` lê dali ao começar. O cavaleiro inteiro
+A calibração **persiste** em `Opcoes.tempo_ms[l]` (em ms, de `TEMPO_MIN` −150
+a `TEMPO_MAX` +250, no `user://opcoes.cfg`, seção do lugar). Quem muda o
+tempo chama `Ritmo.definir_desvio(l, segundos, origem, amostras)`: ela põe o
+desvio no `Ritmo`, o tempo nas `Opcoes` (quem grava o arquivo é quem chama) e
+escreve a linha `calibracao`; as opções chamam com `"opcoes"` (a linha Tempo,
+de 10 em 10 ms) e a construção do cavaleiro (G02) com `"construcao"`. O
+`Ritmo` lê `Opcoes.tempo_ms` ao começar (`ler_das_opcoes`). O cavaleiro inteiro
 também vive em `Opcoes`: `Opcoes.cavaleiro[l]`, `Opcoes.noite()` (o que vale
 só para a noite corrente) e `Opcoes.guardar()` — que as telas chamam sem
 saber se é robô (quem não grava com robô é o próprio `Opcoes`).

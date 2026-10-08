@@ -26,8 +26,16 @@ const NOMES_DOS_IDIOMAS := ["português", "English"]
 const FEATURES_DA_VIBRACAO := ["vibracao_forte", "vibracao_fraca", "vibracao_isolamento", "haptica_audio"]
 const FEATURES_DO_GATILHO := ["gatilho_resistencia", "gatilho_arma", "gatilho_vibracao"]
 
+## O tempo de cada lugar (a calibração), em ms: o quanto o toque daquele
+## controle chega atrasado (negativo: adiantado). A construção do cavaleiro
+## mede (G02); as opções ajustam à mão, de 10 em 10.
+const TEMPO_PASSO := 10
+const TEMPO_MIN := -150
+const TEMPO_MAX := 250
+
 static var gatilho := [GATILHO_FORTE, GATILHO_FORTE, GATILHO_FORTE, GATILHO_FORTE]
 static var vibracao := [100, 100, 100, 100]
+static var tempo_ms := [0, 0, 0, 0]
 static var volume_tv := 100
 static var volume_controle := 100
 static var tremor := true
@@ -41,6 +49,7 @@ static var _carregou := false
 static func de_fabrica() -> void:
 	gatilho = [GATILHO_FORTE, GATILHO_FORTE, GATILHO_FORTE, GATILHO_FORTE]
 	vibracao = [100, 100, 100, 100]
+	tempo_ms = [0, 0, 0, 0]
 	volume_tv = 100
 	volume_controle = 100
 	tremor = true
@@ -57,12 +66,18 @@ static func carregar(robo: bool) -> void:
 	de_fabrica()
 	if robo:
 		return
+	ler(ARQUIVO)
+
+
+## Lê o arquivo por cima do que há (a prova lê um arquivo dela, não o da pessoa).
+static func ler(arquivo: String) -> void:
 	var cfg := ConfigFile.new()
-	if cfg.load(ARQUIVO) != OK:
+	if cfg.load(arquivo) != OK:
 		return
 	for l in 4:
 		gatilho[l] = clampi(int(cfg.get_value("P%d" % (l + 1), "gatilho", GATILHO_FORTE)), 0, 2)
 		vibracao[l] = _passo(int(cfg.get_value("P%d" % (l + 1), "vibracao", 100)))
+		tempo_ms[l] = clampi(int(cfg.get_value("P%d" % (l + 1), "tempo_ms", 0)), TEMPO_MIN, TEMPO_MAX)
 	volume_tv = _passo(int(cfg.get_value("sessao", "volume_tv", 100)))
 	volume_controle = _passo(int(cfg.get_value("sessao", "volume_controle", 100)))
 	tremor = bool(cfg.get_value("sessao", "tremor", true))
@@ -72,13 +87,14 @@ static func carregar(robo: bool) -> void:
 	idioma = clampi(int(cfg.get_value("sessao", "idioma", 0)), 0, IDIOMAS.size() - 1)
 
 
-static func gravar(robo: bool) -> void:
+static func gravar(robo: bool, arquivo := ARQUIVO) -> void:
 	if robo:
 		return
 	var cfg := ConfigFile.new()
 	for l in 4:
 		cfg.set_value("P%d" % (l + 1), "gatilho", gatilho[l])
 		cfg.set_value("P%d" % (l + 1), "vibracao", vibracao[l])
+		cfg.set_value("P%d" % (l + 1), "tempo_ms", tempo_ms[l])
 	cfg.set_value("sessao", "volume_tv", volume_tv)
 	cfg.set_value("sessao", "volume_controle", volume_controle)
 	cfg.set_value("sessao", "tremor", tremor)
@@ -86,7 +102,7 @@ static func gravar(robo: bool) -> void:
 	cfg.set_value("sessao", "tela_cheia", tela_cheia)
 	cfg.set_value("sessao", "texto", texto)
 	cfg.set_value("sessao", "idioma", idioma)
-	cfg.save(ARQUIVO)
+	cfg.save(arquivo)
 
 
 static func _passo(v: int) -> int:
