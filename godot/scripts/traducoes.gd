@@ -262,6 +262,23 @@ const EN := {
 	# o botão, em toda dica: "Botão ✕ (Iniciar)"
 	"Botão": "Button",
 	"Fechar": "Close",
+	# as frases montadas que ainda não tinham tradução (o tropeço, os poucos, a pedra, o chamado)
+	"A pedra era da esquerda": "The stone was on the left",
+	"A pedra era da direita": "The stone was on the right",
+	"Você contra 2 bonecos": "You against 2 dummies",
+	"1 contra 1": "1 against 1",
+	"2 contra 1 + boneco": "2 against 1 + dummy",
+	"Martela": "Hammer",
+	"O chamado": "The call",
+	"Sem resposta": "No answer",
+	"Parede e clique": "Wall and click",
+	"O tremor": "The tremor",
+	"O peso": "The weight",
+	"Solto": "Loose",
+	"Um baque macio": "A soft thud",
+	"Quatro estalos": "Four clicks",
+	"Um golpe que ressoa": "A ringing blow",
+	"Duas ondas": "Two waves",
 }
 
 ## Os textos com número: [padrão, substituição] (a substituição usa $1, $2…).
@@ -321,6 +338,19 @@ const EN_PADROES := [
 	["^Isso: era do P(\\d)$", "Right: it was P$1's"],
 	["^O chamado · P(\\d)$", "The call · P$1"],
 	["^Quieto: é a vez do P(\\d)$", "Quiet: it's P$1's turn"],
+	# os rodapés das perguntas às cegas (Modo bancada): o mais certo antes do mais largo
+	["^Sem resposta — era seu$", "No answer — it was yours"],
+	["^Sem resposta — era da TV$", "No answer — it was the TV"],
+	["^Sem resposta — era do P(\\d)$", "No answer — it was P$1's"],
+	["^Não — era seu$", "No — it was yours"],
+	["^Não — era da TV$", "No — it was the TV"],
+	["^Não — era do P(\\d)$", "No — it was P$1's"],
+	["^Sem resposta — eram (\\d+)$", "No answer — there were $1"],
+	["^Sem resposta — era (.+)$", "No answer — it was $1"],
+	["^Sem resposta — estava (.+)$", "No answer — it was $1"],
+	["^Era (.+) \\((.+)\\)$", "It was $1 ($2)"],
+	["^Não — o jogo acendeu (\\d+)$", "No — the game lit $1"],
+	["^Não — o jogo mandou (.+)$", "No — the game sent $1"],
 ]
 
 

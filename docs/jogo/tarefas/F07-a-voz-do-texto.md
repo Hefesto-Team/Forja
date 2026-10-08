@@ -264,6 +264,12 @@ func _prova_das_maiusculas() -> void:
   na dica) e `opcoes.gd` ficam como estão, a cargo do conjunto o-ritmo; o texto do
   núcleo (vereditos) continua em minúscula, só na bancada. `hud.gd`/`main.gd` ainda
   têm «P2 saiu do cabo: ligue de novo…» (começa com P; o texto é assunto da G04).
+- **Na conferência**: as frases montadas que ainda não tinham entrada em inglês
+  ganharam a sua (passo 4): «A pedra era da esquerda/direita», os títulos dos
+  poucos da Prova («Você contra 2 bonecos», «1 contra 1», «2 contra 1 + boneco»),
+  «Martela», «O chamado», e os rodapés das perguntas às cegas da bancada
+  («Sem resposta — …», «Não — …», «Era … (…)»), com o que se sente nas armas e
+  nos chãos escrito com maiúscula na tabela.
 - **Para o André**: `bash tests/telas.sh fotos <pasta>` em português e com
   `FORJA_IDIOMA=en` (título, lobby, salão, aviso, resultado, pódio; nada cortado
   nos cartões; fotos desta leva vistas: título, lobby, salão e aviso, nas duas
