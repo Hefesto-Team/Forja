@@ -58,7 +58,8 @@ var _notas_no_ar: Array = []  ## [Label3D, idade, lado]
 func _init() -> void:
 	id = "canto"
 	nome = "O Canto"
-	acao = "Ouça: o canto saiu da sua mão?"
+	acao = "Ouça o canto e repita o ritmo."
+	icone = "alto-falante"
 	objetivo = "A bigorna canta um ritmo: às vezes no alto-falante de UM controle, às vezes na TV. Todo mundo ouve — a pergunta é outra: o canto saiu da SUA mão? ✕ foi no meu, ○ não foi. Depois, o dono do canto repete o ritmo com ✕. Confira o seu alto-falante aqui embaixo: △ toca um sino nele, ◀ ▶ troca."
 	features = ["alto_falante"]
 	cega = true
@@ -538,7 +539,7 @@ func dica(lugar: int) -> Dictionary:
 	if estado == REPETE and fonte == lugar:
 		return {"partes": ["@cross", "repita o ritmo"], "pos": pos}
 	if estado == CANTO:
-		return {"partes": ["ouça: de onde vem?"], "pos": pos}
+		return {"partes": ["Ouça o canto"], "pos": pos}
 	return {}
 
 
@@ -607,5 +608,5 @@ func _robo(l: int, e: Dictionary, dt: float) -> void:
 
 func com_poucos() -> String:
 	match jogadores.size():
-		1: return "3 cantos no seu controle"
+		1: return "3 cantos seus"
 	return ""

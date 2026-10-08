@@ -2,7 +2,7 @@ class_name TelaLobby
 extends Control
 ## O lobby: quem joga. Cada controle aperta ✕ e ganha um lugar (P1..P4): o
 ## módulo acende a barra de luz na cor do lugar e as lâmpadas no padrão dele,
-## e o cartão mostra o que foi lido e o que foi mandado. Com todos prontos, a
+## e o cartão mostra o nome do controle e se está pronto. Com todos prontos, a
 ## partida começa.
 
 var prontos := [false, false, false, false]

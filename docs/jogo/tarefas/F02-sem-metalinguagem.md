@@ -235,3 +235,37 @@ E, em
 
 - No [quadro](README.md), a linha da F02: estado **feito** (com o commit).
 - Commit sugerido: `feat: a tela do jogador fala do mundo, não do controle`
+
+## O que foi feito (leva 1, a-fundacao)
+
+- **Medido antes:** a coleta das frases desenhadas (776 a 806 por rodada)
+  achava 14 que o jogador não deve ler: os verbos «olhe a luz» e «o canto saiu
+  da sua mão?», os cinco `sobre` de hardware do salão, a lista de features do
+  aviso (Giroscópio, Acelerômetro, Alto-falante, Háptica por áudio…) e o
+  rodapé «relatórios ao lado do jogo». Depois: zero.
+- `Desenho.t()` ganhou o modo `"memoria"` (só guarda em `_coletados`); as
+  placas do salão e a do chão d'Os Caminhos agora passam por ele, e entram na coleta.
+- Os sete verbos, as quatro dicas e selos da lista da ficha, e os portões do
+  salão («Seção N», a bigorna «Seção 9 · □ a partida · △ a Prova de Fogo») mudaram,
+  com as chaves de `traducoes.gd` trocadas (as de hardware, as do título e a do
+  rodapé saíram; entraram «Seção N», «Nenhum controle encontrado.» e as frases novas).
+- O aviso mostra o nome, o verbo e **um** ícone (`SalaJogo.icone`, 96 px, um por
+  sala, o da lista da ficha); a lista de features saiu do desenho (a medida
+  continua usando `features`). O dispositivo de som, o chip e o ◀ ▶ △ do aviso só
+  existem com `--bancada`, e o `_afinar_som` também. O quadro do aviso ficou mais
+  baixo e a dica «✕ pronto» desceu para a base, com o trilho dos 8 s da F03 em cima.
+- O título perdeu as duas linhas do módulo e o rodapé de relatórios; o cartão do
+  lobby perdeu VID:PID, a origem e a fileira Luz/LEDs (comentários acertados).
+- A prova do jogo: `Desenho._coletar = "memoria"` no começo, `_prova_das_frases`
+  com a lista da ficha **mais** a forma do VID:PID, «só a entrada» e «LEDs» (para
+  a régua cobrir o cartão), e o ícone checado em cada sala.
+- Mordidas: devolvidos o «olhe a luz» da Voz, o `sobre` «vibração e barra de luz», o
+  rodapé de relatórios, a linha do VID:PID e o ícone vazio da Centelha, a prova
+  reprovou os quatro textos e o ícone; devolvidas as curas, passa (as duas rodadas
+  de `prova_do_jogo.sh` rc=0). Fotos vistas com a captura: aviso (Centelha e Canto,
+  com e sem bancada), lobby e salão.
+- Para a mão dela ou do André: `./run-local.sh` (título, lobby, as placas «Seção N»
+  e o aviso de duas salas) e `./run-local.sh -- --bancada --sala=canto` (o chip do
+  alto-falante de volta). `FORJA_IDIOMA=en` para o inglês das frases novas.
+- Anotado, não mexido: `hud.gd` e `main.gd` ainda trazem avisos como «P2 saiu do
+  cabo» (assunto da F07/G04); `Desenho.leds` ficou sem uso na tela, só a bancada o usaria.

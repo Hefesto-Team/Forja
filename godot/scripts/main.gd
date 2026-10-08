@@ -692,7 +692,7 @@ func _perto_da_bigorna() -> void:
 			continue
 		if Vector2(p.global_position.x - centro.x, p.global_position.z - centro.z).length() > 3.1:
 			continue
-		hud.placa = {"nome": "A Prova", "sobre": "tudo junto, duas equipes · □ a partida · △ a Prova de Fogo", "aberta": true}
+		hud.placa = {"nome": "A Prova", "sobre": "Seção 9 · □ a partida · △ a Prova de Fogo", "aberta": true}
 		for q in jogadores:
 			if not q.visible:
 				continue

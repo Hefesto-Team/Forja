@@ -78,7 +78,8 @@ var fin := {}  ## lugar -> a prova final e o que ela precisa
 func _init() -> void:
 	id = "prova"
 	nome = "A Prova"
-	acao = "Brasa contra Maré, com tudo ligado."
+	acao = "Brasa contra Maré."
+	icone = "stick_l"
 	gesto_do_aviso = "holding-right-shoot"
 	objetivo = "Noventa segundos de partida com tudo ligado: o analógico esquerdo anda, o direito e o giroscópio miram (L2 afina, e o gatilho resiste), R2 atira com a parede e o clique da arma. A munição está nas cinco luzinhas; vazia, o gatilho solta e o clique sai no controle — □ recarrega. ✕ corre. O tiro da esquerda treme o motor da esquerda; a luz é a da sua equipe e apaga com a vida. Quando o sino tocar no seu controle, o clique do touchpad solta a martelada. No fim, diga as luzinhas e a cor do controle, sem olhar a tela."
 	features = ["tudo_junto"]

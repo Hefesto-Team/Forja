@@ -56,6 +56,7 @@ func _ready() -> void:
 	await _prova_do_relogio()
 	_prova_das_janelas()
 	_prova_das_faixas()
+	Desenho._coletar = "memoria"  # colhe cada frase desenhada (F02, F07)
 	jogo = load("res://scenes/main.tscn").instantiate()
 	add_child(jogo)
 	await _prova_do_percurso()
@@ -65,6 +66,7 @@ func _ready() -> void:
 	_prova_das_contas_da_partida()
 	await _prova_da_partida()
 	_prova_do_modo()
+	_prova_das_frases()
 	if falhas > 0:
 		printerr("%d falha(s)" % falhas)
 		get_tree().quit(1)
@@ -318,6 +320,7 @@ func _comeca_a_sala(id: String):
 	_esperar(sala is SalaJogo and sala.id == id, "%s: a sala abriu" % id)
 	if not sala is SalaJogo:
 		return null
+	_esperar(str(sala.icone) != "" and Desenho.glifo(str(sala.icone)) != null, "%s: o aviso tem o ícone da parte do controle" % id)
 	# o fim: quando a sala emitir `terminou` e quanto era o relógio no começo
 	var fim := [-1.0]  # o t_fase da sala quando ela emitiu terminou
 	sala.terminou.connect(func() -> void: fim[0] = float(sala.t_fase))
@@ -931,3 +934,21 @@ func _prova_do_aviso_sozinho() -> void:
 	while (jogo.estado != "salao" or jogo._trocando) and q < 900:
 		await _quadros(5)
 		q += 5
+
+
+## O que nunca aparece na tela do jogador (06, a voz do texto; as regras de ouro).
+const PROIBIDAS := "(?i)\\b(olhe|relatórios?|veredito|módulo|vid|hidraw|uinput|mac|mesa|vibração|giroscópio|acelerômetro|háptica|barra de luz|luzinhas?|alto-falante|gatilhos? adaptativos?|não medido)\\b|saiu d[oa] s(eu|ua)|\\b[0-9a-f]{4}:[0-9a-f]{4}\\b|só a entrada|\\bleds?\\b"
+
+
+## Tudo o que o jogo desenhou até aqui (as telas, as salas e as placas do salão)
+## não fala do controle como prova. A bancada mostra o que o jogador não vê.
+func _prova_das_frases() -> void:
+	if Forja.bancada:
+		return
+	var r := RegEx.create_from_string(PROIBIDAS)
+	var achadas: Array = []
+	for s in Desenho._coletados:
+		if r.search(str(s)) != null:
+			achadas.append(s)
+	_esperar(Desenho._coletados.size() > 50, "as frases da tela foram colhidas (%d)" % Desenho._coletados.size())
+	_esperar(achadas.is_empty(), "jogo: nenhuma frase fala do controle como prova (%s)" % [achadas])

@@ -59,7 +59,8 @@ static func tracejado(ci: CanvasItem, r: Rect2, cor: Color, largura := 2.0, trac
 ## A língua das telas: todo texto passa por aqui (e pelo Glifo) e sai
 ## traduzido pela tabela do idioma escolhido (scripts/traducoes.gd); o que
 ## não tem tradução sai como está. Com FORJA_COLETAR_TEXTOS=<arquivo>, anota
-## cada texto desenhado (para montar a tabela).
+## cada texto desenhado (para montar a tabela). Com FORJA_COLETAR_TEXTOS=memoria
+## (ou `_coletar = "memoria"`, como a prova faz), só guarda em `_coletados`.
 static var _coletar := ""
 static var _coletados := {}
 
@@ -71,6 +72,8 @@ static func t(s: String) -> String:
 			_coletar = "-"
 	if _coletar != "-" and not _coletados.has(s):
 		_coletados[s] = true
+		if _coletar == "memoria":
+			return Traducoes.traduzir(s)  # só na memória: a prova lê `_coletados`
 		var f := FileAccess.open(_coletar, FileAccess.READ_WRITE if FileAccess.file_exists(_coletar) else FileAccess.WRITE)
 		if f:
 			f.seek_end()

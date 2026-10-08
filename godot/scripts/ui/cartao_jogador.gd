@@ -1,9 +1,9 @@
 class_name CartaoJogador
 extends Control
-## O cartão do lugar no lobby, como o cartão de jogador do app: a borda na cor
-## de luz do lugar diz QUAL; dentro, o que o módulo leu do controle — nome,
-## VID:PID, USB ou BT, a origem (DualSense nativo, Edge virtual, Xbox virtual),
-## a bateria — e o que o jogo mandou: a cor da barra de luz e as cinco lâmpadas.
+## O cartão do lugar no lobby: a borda na cor do lugar diz QUAL; dentro, só o
+## que o jogador entende — o nome do controle, USB ou BT, a bateria e se está
+## pronto. O que o aparelho é por dentro (VID:PID, a origem, o que o jogo
+## mandou à luz) é do Modo bancada, não deste cartão.
 ## Lugar vazio: borda sutil e travessão, sem desenho de controle.
 
 var lugar := 0
@@ -28,7 +28,6 @@ func _draw() -> void:
 	var rotulo := "P%d" % (lugar + 1)
 	var x := 28.0
 	var fonte := Tema.fonte(600)
-	var mono := Tema.mono(400)
 
 	if not ocupado:
 		Desenho.moldura(self, r, Color(Tema.APP, 0.92), Tema.SUTIL, 2, Tema.RAIO_CARTAO)
@@ -67,24 +66,6 @@ func _draw() -> void:
 	while tam_nome > 22 and Desenho.largura(nome, Tema.fonte(500), tam_nome) > size.x - 56:
 		tam_nome -= 1
 	Desenho.texto(self, Vector2(x, 98), nome, Tema.fonte(500), tam_nome, Tema.FG, HORIZONTAL_ALIGNMENT_LEFT, size.x - 56)
-	# linha 3: VID:PID; linha 4: a origem (o que o jogo concluiu do aparelho)
-	Desenho.texto(self, Vector2(x, 136), p.get("vidpid", "----:----"), mono, Tema.T_SELO, Tema.SUAVE)
-	var origem: String = p.get("origem_curta", "")
-	if p.get("so_entrada", false):
-		origem += " · no rádio, só a entrada"
-	Desenho.texto(self, Vector2(x, 172), origem, Tema.fonte(600), Tema.T_SELO,
-		Tema.LARANJA if p.get("so_entrada", false) else Tema.CIANO, HORIZONTAL_ALIGNMENT_LEFT, size.x - 56)
-
-	# linha 4: a barra de luz (a cor que o jogo mandou) e as cinco lâmpadas
-	var saida: Dictionary = Forja.estado_saida(lugar)
-	var luz: Color = saida.get("luz", cor_luz)
-	var y4 := size.y - 104
-	Desenho.texto(self, Vector2(x, y4 + 22), "Luz", Tema.fonte(600), Tema.T_SELO, Tema.VERDE)
-	var chip := Rect2(Vector2(x + Desenho.largura("Luz", Tema.fonte(600), Tema.T_SELO) + 14, y4), Vector2(64, 30))
-	Desenho.moldura(self, chip, luz, Tema.LINHA, 2, 8)
-	var xl := chip.end.x + 24
-	Desenho.texto(self, Vector2(xl, y4 + 22), "LEDs", Tema.fonte(600), Tema.T_SELO, Tema.VERDE)
-	Desenho.leds(self, Vector2(xl + Desenho.largura("LEDs", Tema.fonte(600), Tema.T_SELO) + 14, y4 + 8), int(saida.get("leds_jogador", info.get("leds", 0))), 14.0)
 
 	# rodapé: pronto, ou as ações do dono do lugar
 	if pronto:

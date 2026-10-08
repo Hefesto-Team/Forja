@@ -33,20 +33,13 @@ func _aviso() -> void:
 	# a arena fica à mostra: o quadro sobe e o boneco de cada um mostra o gesto
 	draw_rect(Rect2(Vector2.ZERO, size), Color(Tema.CASA, 0.25))
 	var larg := 1120.0
-	# mostrar, não contar: o nome, o verbo numa linha e o que se sente na mão
-	# (os glifos). O resto a sala ensina jogando, pelas dicas curtas na raia.
+	# mostrar, não contar: o nome, o verbo numa linha e um ícone da parte do
+	# controle que a sala usa. O resto a sala ensina jogando, pelas dicas curtas
+	# na raia. O dispositivo de som achado é ferramenta: só no Modo bancada.
 	var poucos := str(sala.com_poucos())
 	var papel: int = sala.papel_som
-	# os glifos das features, em quantas linhas couberem na largura
-	var filas := 1
-	var fila_x := 0.0
-	for f in sala.features:
-		var w := 64.0 + Desenho.largura(TelaResultado.nome_da_feature(f), Tema.fonte(500), Tema.T_ROTULO) + 48.0
-		if fila_x > 0.0 and fila_x + w - 48.0 > larg - 96.0:
-			filas += 1
-			fila_x = 0.0
-		fila_x += w
-	var alt := 410.0 + 64.0 * (filas - 1) + (40.0 if poucos != "" else 0.0) + (ALTURA_SOM if papel >= 0 else 0.0)
+	var som := papel >= 0 and Forja.bancada
+	var alt := 368.0 + (40.0 if poucos != "" else 0.0) + (ALTURA_SOM if som else 0.0)
 	var r := Rect2(Vector2((size.x - larg) * 0.5, 176), Vector2(larg, alt))
 	# o quadro entra deslizando (a sala nova chega, não aparece)
 	var k := clampf(float(sala.t_fase) / 0.35, 0.0, 1.0)
@@ -62,29 +55,19 @@ func _aviso() -> void:
 	# com menos de quatro, o que muda: um selo, não uma frase
 	if poucos != "":
 		Desenho.selo(self, Vector2(x, r.position.y + 180), poucos, Tema.CIANO, Tema.T_SELO)
-	# o que a sala prova: glifo e nome
-	var y := r.position.y + 186 + (40.0 if poucos != "" else 0.0)
-	var fx := x
-	for f in sala.features:
-		var tex := Desenho.glifo(Desenho.GLIFO_DA_FEATURE.get(f, ""))
-		var nome := TelaResultado.nome_da_feature(f)
-		var w := 64.0 + Desenho.largura(nome, Tema.fonte(500), Tema.T_ROTULO) + 48.0
-		if fx > x and fx + w - 48.0 > x + larg - 96.0:
-			fx = x
-			y += 64.0
-		if tex:
-			draw_texture_rect(tex, Rect2(Vector2(fx, y + 8), Vector2(48, 48)), false, Tema.CIANO)
-		Desenho.texto(self, Vector2(fx + 60, y + 44), nome, Tema.fonte(500), Tema.T_ROTULO, Tema.FG)
-		fx += w
+	# o ícone da parte do controle que a sala usa
+	var icone := Desenho.glifo(str(sala.icone))
+	if icone:
+		draw_texture_rect(icone, Rect2(Vector2(r.end.x - 48 - 96, r.position.y + 40), Vector2(96, 96)), false, Tema.CIANO)
 	# quem já está pronto, na ordem dos lugares
-	y += 120
+	var y := r.position.y + 216 + (40.0 if poucos != "" else 0.0)
 	var cx := x
 	for l in 4:
 		if not Forja.ocupado(l):
 			continue
 		var cor_id := Tema.tom_para_a_borda(Forja.cor_do_lugar(l))
 		var pronto: bool = sala.prontos[l]
-		var chip := Rect2(Vector2(cx, y), Vector2(250, 64.0 + (ALTURA_SOM if papel >= 0 else 0.0)))
+		var chip := Rect2(Vector2(cx, y), Vector2(250, 64.0 + (ALTURA_SOM if som else 0.0)))
 		Desenho.moldura(self, chip, Tema.SEL if pronto else Tema.APP, cor_id, 3, 12)
 		Desenho.texto(self, chip.position + Vector2(20, 42), "P%d" % (l + 1), Tema.fonte(700), Tema.T_ROTULO, cor_id)
 		if pronto:
@@ -95,21 +78,21 @@ func _aviso() -> void:
 			while tam_ag > 20 and Desenho.largura("aguardando", Tema.fonte(400), tam_ag) > 180.0:
 				tam_ag -= 1
 			Desenho.texto(self, chip.position + Vector2(62, 42), "aguardando", Tema.fonte(400), tam_ag, Tema.MUDO, HORIZONTAL_ALIGNMENT_LEFT, 180)
-		if papel >= 0:
+		if som:
 			_som_do_lugar(chip, l, papel)
 		cx += 258
 	# o aviso não espera para sempre: o trilho esvazia até a sala começar sozinha
-	var trilho := Rect2(Vector2(x, y + 64.0 + (ALTURA_SOM if papel >= 0 else 0.0) + 14.0), Vector2(larg - 96.0, 8.0))
+	var trilho := Rect2(Vector2(x, y + 64.0 + (ALTURA_SOM if som else 0.0) + 16.0), Vector2(larg - 96.0, 8.0))
 	draw_rect(trilho, Tema.TRILHO)
 	var resta := 1.0 - clampf(float(sala.t_fase) / SalaJogo.AVISO_MAX, 0.0, 1.0)
 	draw_rect(Rect2(trilho.position, Vector2(trilho.size.x * resta, 8.0)), Tema.ROXO)
-	# os botões, no alto à direita (a linha dos lugares é dos quatro)
+	# os botões, embaixo à direita (a linha dos lugares é dos quatro)
 	var dicas := [["cruz", "pronto"]]
-	if papel >= 0:
+	if som:
 		dicas = [["esquerda", "trocar"], ["triangulo", "testar"], ["cruz", "pronto"]]
 		if papel == Forja.PAPEL_MICROFONE:
 			dicas = [["esquerda", "trocar"], ["cruz", "pronto"]]
-	Desenho.dicas_a_direita(self, Vector2(r.end.x - 48, r.position.y + 84), dicas, Tema.T_ROTULO)
+	Desenho.dicas_a_direita(self, Vector2(r.end.x - 48, trilho.position.y + 52), dicas, Tema.T_ROTULO)
 
 
 ## O que o chip de cada lugar cresce numa sala de som.

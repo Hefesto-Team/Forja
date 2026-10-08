@@ -35,13 +35,11 @@ func _draw() -> void:
 	# o que o jogo vê
 	var y := 770.0
 	var n := Forja.conectados()
-	if not Forja.modulo:
-		Desenho.texto(self, Vector2(x, y), "O módulo nativo não carregou: só o teclado joga.", Tema.fonte(600), Tema.T_ROTULO, Tema.LARANJA)
-		Desenho.texto(self, Vector2(x, y + 40), "Compile com scripts/compilar.sh linux.", Tema.fonte(400), Tema.T_ROTULO, Tema.SUAVE)
-	elif n == 0:
-		Desenho.texto(self, Vector2(x, y), "Nenhum controle.", Tema.fonte(600), Tema.T_CORPO, Tema.LARANJA)
+	# sem o módulo, nada a dizer na tela (o forja.gd já registra o aviso)
+	if Forja.modulo and n == 0:
+		Desenho.texto(self, Vector2(x, y), "Nenhum controle encontrado.", Tema.fonte(600), Tema.T_CORPO, Tema.LARANJA)
 		Desenho.texto(self, Vector2(x, y + 44), "Conecte um DualSense por USB ou Bluetooth.", Tema.fonte(400), Tema.T_ROTULO, Tema.SUAVE)
-	else:
+	elif Forja.modulo:
 		var usb := 0
 		var bt := 0
 		var sim := 0
@@ -68,5 +66,5 @@ func _draw() -> void:
 		Glifo.dica(self, Vector2(x + wc + 56, yb), "triangulo", "créditos", Tema.T_ROTULO, Tema.ROSA, Tema.SUAVE)
 
 	# o rodapé
-	var rodape := "FORJA %s  ·  relatórios ao lado do jogo" % Forja.versao()
+	var rodape := "FORJA %s" % Forja.versao()
 	Desenho.texto(self, Vector2(x, h - 56), rodape, Tema.mono(400), Tema.T_SELO, Tema.MUDO)

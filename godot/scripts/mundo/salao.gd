@@ -13,14 +13,14 @@ const KIT := "res://assets/kenney/%s.glb"
 ## As salas, na ordem do percurso. `lado`: a parede do portão; `aberta`: a sala
 ## já existe neste marco (as outras ficam de portão fechado).
 const PORTOES := [
-	{"id": "centelha", "nome": "A Centelha", "sobre": "botões, analógicos e gatilhos", "icone": "stick_l", "lado": "oeste", "t": 3.0, "aberta": true},
-	{"id": "viga", "nome": "A Viga", "sobre": "giroscópio e acelerômetro", "icone": "giroscopio", "lado": "oeste", "t": -3.0, "aberta": true},
-	{"id": "molde", "nome": "O Molde", "sobre": "touchpad: dois dedos e clique", "icone": "touchpad", "lado": "norte", "t": -6.0, "aberta": true},
-	{"id": "impacto", "nome": "O Impacto", "sobre": "vibração e barra de luz", "icone": "rumble_esquerdo", "lado": "norte", "t": -2.0, "aberta": true},
-	{"id": "galeria", "nome": "A Galeria", "sobre": "gatilhos adaptativos", "icone": "r2", "lado": "norte", "t": 2.0, "aberta": true},
-	{"id": "voz", "nome": "A Voz", "sobre": "microfone e mudo", "icone": "mic", "lado": "norte", "t": 6.0, "aberta": true},
-	{"id": "caminhos", "nome": "Os Caminhos", "sobre": "háptica por áudio", "icone": "rumble_direito", "lado": "leste", "t": -3.0, "aberta": true},
-	{"id": "canto", "nome": "O Canto", "sobre": "alto-falante", "icone": "alto-falante", "lado": "leste", "t": 3.0, "aberta": true},
+	{"id": "centelha", "nome": "A Centelha", "sobre": "Seção 1", "icone": "stick_l", "lado": "oeste", "t": 3.0, "aberta": true},
+	{"id": "viga", "nome": "A Viga", "sobre": "Seção 2", "icone": "giroscopio", "lado": "oeste", "t": -3.0, "aberta": true},
+	{"id": "molde", "nome": "O Molde", "sobre": "Seção 3", "icone": "touchpad", "lado": "norte", "t": -6.0, "aberta": true},
+	{"id": "impacto", "nome": "O Impacto", "sobre": "Seção 4", "icone": "rumble_esquerdo", "lado": "norte", "t": -2.0, "aberta": true},
+	{"id": "galeria", "nome": "A Galeria", "sobre": "Seção 5", "icone": "r2", "lado": "norte", "t": 2.0, "aberta": true},
+	{"id": "voz", "nome": "A Voz", "sobre": "Seção 8", "icone": "mic", "lado": "norte", "t": 6.0, "aberta": true},
+	{"id": "caminhos", "nome": "Os Caminhos", "sobre": "Seção 7", "icone": "rumble_direito", "lado": "leste", "t": -3.0, "aberta": true},
+	{"id": "canto", "nome": "O Canto", "sobre": "Seção 6", "icone": "alto-falante", "lado": "leste", "t": 3.0, "aberta": true},
 ]
 
 const X_OESTE := -12.0
@@ -167,7 +167,7 @@ func _portao(p: Dictionary) -> void:
 	placa.rotation.y = rot
 	add_child(placa)
 	var nome := Label3D.new()
-	nome.text = Traducoes.traduzir(p.nome)
+	nome.text = Desenho.t(p.nome)
 	nome.font = Tema.fonte(700)
 	nome.font_size = 96
 	nome.pixel_size = 0.004
@@ -184,7 +184,7 @@ func _portao(p: Dictionary) -> void:
 	icone.texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
 	placa.add_child(icone)
 	var sobre := Label3D.new()
-	sobre.text = Traducoes.traduzir(p.sobre) if p.aberta else Traducoes.traduzir(p.sobre) + " · " + Traducoes.traduzir("em breve")
+	sobre.text = Desenho.t(p.sobre) if p.aberta else Desenho.t(p.sobre) + " · " + Desenho.t("em breve")
 	sobre.font = Tema.fonte(500)
 	sobre.font_size = 64
 	sobre.pixel_size = 0.004

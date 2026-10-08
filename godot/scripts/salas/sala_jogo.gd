@@ -33,6 +33,9 @@ var _celebrou := false
 var objetivo := ""
 ## As features que a sala mede (chaves do catálogo), na ordem do veredito.
 var features: Array = []
+## O glifo da parte do controle que a sala usa (assets/glifos/): o único ícone do
+## aviso. A `FICHA.icone` do kit, na H04.
+var icone := ""
 ## A máscara dos botões que a sala vai pedir (Forja.mascara).
 var botoes_pedidos := 0
 var prontos := [false, false, false, false]
@@ -246,7 +249,7 @@ func _quadro_aviso() -> void:
 		if not Forja.lugar(l).get("conectado", false):
 			continue
 		presentes += 1
-		if papel_som >= 0:
+		if papel_som >= 0 and Forja.bancada:
 			_afinar_som(l, p)
 		if not prontos[l] and t_fase > 0.5:
 			if Forja.apertou(l, Forja.CRUZ) or (Forja.robo and t_fase > 1.4 + 0.2 * l):

@@ -38,6 +38,7 @@ func _init() -> void:
 	id = "centelha"
 	nome = "A Centelha"
 	acao = "Aperte o botão da runa antes do anel fechar."
+	icone = "cross"
 	gesto_do_aviso = "attack-melee-right"
 	objetivo = "Aperte o botão da runa antes do anel fechar. Na runa do analógico, gire até a borda; no fole, segure o gatilho na faixa e aperte até o fundo."
 	features = ["botoes", "analogicos", "gatilhos_analogicos"]

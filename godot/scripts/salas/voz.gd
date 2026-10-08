@@ -56,7 +56,8 @@ var g := {}  ## os nós do guardião
 func _init() -> void:
 	id = "voz"
 	nome = "A Voz"
-	acao = "Chame o guardião, fique mudo, olhe a luz."
+	acao = "Chame o guardião e fique mudo."
+	icone = "mic"
 	objetivo = "O guardião da cripta escuta pelo microfone do controle. Primeiro, todos em silêncio. Depois, cada um na sua vez chama o guardião falando alto — os outros, quietos. Quando ele acordar, fiquem mudos com o botão do microfone; e digam, olhando o controle, como está a luz dele: ✕ apagada, ○ acesa, □ piscando. Confira o seu microfone aqui embaixo: fale e a barra sobe; ◀ ▶ troca."
 	features = ["microfone", "microfone_mudo", "led_microfone"]
 	cega = true
@@ -585,7 +586,7 @@ func dica(lugar: int) -> Dictionary:
 			return {"partes": ["silêncio: o guardião dorme"], "pos": pos}
 		CHAMADO:
 			if _mudo_no_sistema(e):
-				return {"partes": ["@mic", "mudo no sistema: a sua vez passa"], "pos": pos}
+				return {"partes": ["@mic", "A sua vez passa"], "pos": pos}
 			if vez == lugar:
 				return {"partes": ["fale alto: chame o guardião"], "pos": pos}
 			return {"partes": ["quieto: é a vez do P%d" % (vez + 1)], "pos": pos}

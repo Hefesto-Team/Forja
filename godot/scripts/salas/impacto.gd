@@ -58,6 +58,7 @@ func _init() -> void:
 	id = "impacto"
 	nome = "O Impacto"
 	acao = "Sinta o golpe e levante o escudo do lado."
+	icone = "rumble_esquerdo"
 	gesto_do_aviso = "lados"
 	objetivo = "No escuro, os golpes vêm um de cada vez, para um controle só, e a tela não diz o lado: sinta no controle e levante o escudo — L1 esquerda, R1 direita. Só no seu golpe! A luz do controle pisca vermelho no golpe e apaga com a vida; no fim de cada onda, diga a cor dela."
 	features = ["vibracao_forte", "vibracao_fraca", "vibracao_isolamento", "lightbar"]
@@ -610,5 +611,5 @@ static func _cor_mais_perto(c: Color) -> int:
 
 func com_poucos() -> String:
 	match jogadores.size():
-		1: return "sozinho: isolamento não medido"
+		1: return "Só você na arena"
 	return ""

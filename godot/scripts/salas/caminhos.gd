@@ -52,7 +52,8 @@ var _escuro: StandardMaterial3D
 func _init() -> void:
 	id = "caminhos"
 	nome = "Os Caminhos"
-	acao = "Sinta o chão na mão e diga qual é."
+	acao = "Ande no escuro e sinta o caminho."
+	icone = "rumble_direito"
 	objetivo = "No escuro, o chão só existe no controle: a grama é um baque macio, o cascalho são quatro estalos, o metal um golpe que ressoa, a água duas ondas. Primeiro o treino, com o chão à vista; depois, a cada três passos, diga o chão — ✕ grama, ○ cascalho, □ metal, △ água, o touchpad é \"não senti\". Se tropeçar numa pedra, diga o lado que tremeu: L1 esquerda, R1 direita. Confira a sua háptica aqui embaixo: △ dá um pulso na esquerda e outro na direita, ◀ ▶ troca."
 	features = ["haptica_audio"]
 	cega = true
@@ -448,7 +449,7 @@ func _mostrar(p: ForjaPlayer, dt: float) -> void:
 	var placa: Label3D = nos.placa
 	placa.visible = fase == "jogo" and int(e.estado) == TREINO
 	if placa.visible:
-		placa.text = Traducoes.traduzir(NOME_CHAO[int(e.treino)])
+		placa.text = Desenho.t(NOME_CHAO[int(e.treino)])
 		placa.modulate = COR_CHAO[int(e.treino)].lightened(0.35)
 	var aviso: Label3D = nos.aviso
 	aviso.visible = e.trop_aberto
