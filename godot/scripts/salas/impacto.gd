@@ -318,6 +318,7 @@ func _iniciar_pergunta() -> void:
 		e.pisca = 0.0
 		_luz(l, CORES[c].cor)
 		Forja.evento("jogo", l + 1, {"sala": id, "o": "pergunta_cor", "cor": CORES[c].nome})
+		Forja.evento("jogo", l + 1, {"sala": id, "o": "pergunta", "qual": "cor"})
 	Som.tocar("confirma", null, -6.0)
 
 
@@ -387,12 +388,13 @@ func jogar(dt: float) -> void:
 				return
 			if onda < ONDAS and i_plano >= fim_onda[onda]:
 				onda += 1
-				_iniciar_pergunta()
-				if not _alguem_pergunta():
-					estado = PAUSA
+				if Forja.bancada:  # a pergunta da cor é do Modo bancada
+					_iniciar_pergunta()
+					if not _alguem_pergunta():
+						estado = PAUSA
 			elif i_plano < plano.size():
 				_iniciar_golpe()
-			elif _precisa_mais_cor():
+			elif Forja.bancada and _precisa_mais_cor():
 				_iniciar_pergunta()
 			else:
 				_acabar()
@@ -537,6 +539,8 @@ func dica(lugar: int) -> Dictionary:
 
 
 func pergunta(lugar: int) -> Dictionary:
+	if not Forja.bancada:
+		return {}  # a pergunta às cegas é do Modo bancada
 	if not j.has(lugar):
 		return {}
 	var e: Dictionary = j[lugar]

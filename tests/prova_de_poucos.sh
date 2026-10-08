@@ -33,7 +33,7 @@ rodar() {
   shift
   mkdir -p "$TMP/rel-$nome"
   timeout 600 "${CAIXA[@]}" "$GODOT" --headless --fixed-fps 60 --path "$RAIZ/godot" res://testes/prova_de_poucos.tscn \
-    -- --robo --semente=7 --relatorios="$TMP/rel-$nome" "$@" > "$TMP/$nome.log" 2>&1
+    -- --robo --semente=7 --relatorios="$TMP/rel-$nome" --bancada "$@" > "$TMP/$nome.log" 2>&1
   local rc=$?
   grep -E "FAIL|SCRIPT ERROR|prova de poucos ok" "$TMP/$nome.log"
   [ "$rc" -eq 0 ] || { echo "FAIL a prova de poucos «$nome» (rc=$rc)"; return 1; }

@@ -156,16 +156,17 @@ func _dicas() -> void:
 	var tam := Tema.T_SELO
 	# as perguntas primeiro: onde cada uma cairia, e depois lado a lado, sem
 	# uma cobrir a outra (numa câmera mais perto, as raias vizinhas se tocam)
-	var perguntas: Array = []  # [lugar, pergunta, retângulo]
-	for l in 4:
-		if not Forja.ocupado(l):
-			continue
-		var q: Dictionary = sala.pergunta(l)
-		if not q.is_empty():
-			perguntas.append([l, q, _rect_pergunta(cam, q)])
-	_afastar(perguntas)
-	for item in perguntas:
-		_pergunta(item[0], item[1], item[2])
+	if Forja.bancada:  # a pergunta às cegas é do Modo bancada
+		var perguntas: Array = []  # [lugar, pergunta, retângulo]
+		for l in 4:
+			if not Forja.ocupado(l):
+				continue
+			var q: Dictionary = sala.pergunta(l)
+			if not q.is_empty():
+				perguntas.append([l, q, _rect_pergunta(cam, q)])
+		_afastar(perguntas)
+		for item in perguntas:
+			_pergunta(item[0], item[1], item[2])
 	# as dicas: onde cada uma cairia, afastadas como as perguntas, e desenhadas
 	var pilulas: Array = []  # [lugar, partes, retângulo]
 	for l in 4:
@@ -354,6 +355,9 @@ func _tempo() -> void:
 
 
 func _fim() -> void:
+	if not Forja.bancada:
+		_fim_do_jogo()
+		return
 	# o veredito enxuto: uma linha por feature (o glifo e o nome), uma coluna
 	# por lugar; na célula, o selo com ícone e palavra. O porquê só aparece no
 	# que não passou — o resto mora no livro da sessão.
@@ -411,6 +415,31 @@ func _fim() -> void:
 				porque = Desenho.caber(porque, Tema.fonte(400), Tema.T_SELO, coluna - 24, 2)
 				Desenho.paragrafo(self, Vector2(x, y + 70), porque, Tema.fonte(400), Tema.T_SELO, Tema.SUAVE, coluna - 24, 2)
 		y += li[1]
+	if float(sala.t_fase) > 0.8:
+		Desenho.dicas_a_direita(self, Vector2(r.end.x - 48, r.position.y + 84), [["cruz", str(sala.seguir)]], Tema.T_ROTULO)
+
+
+## O fim sem o Modo bancada: o nome da sala e os pontos de quem jogou, do
+## maior para o menor. Nenhuma palavra de veredito. (A tela de resultado, F03.)
+func _fim_do_jogo() -> void:
+	draw_rect(Rect2(Vector2.ZERO, size), Color(Tema.CASA, 0.6))
+	var lugares: Array = []
+	for l in 4:
+		if sala.jogando[l]:
+			lugares.append(l)
+	lugares.sort_custom(func(a: int, b: int) -> bool:
+		return int(sala.pontos[a]) > int(sala.pontos[b]) or (int(sala.pontos[a]) == int(sala.pontos[b]) and a < b))
+	var larg := 900.0
+	var alt := 200.0 + 76.0 * lugares.size()
+	var r := Rect2(Vector2((size.x - larg) * 0.5, (size.y - alt) * 0.5), Vector2(larg, alt))
+	Desenho.moldura(self, r, Color(Tema.PAINEL, 0.97), Tema.LINHA, 2, Tema.RAIO_QUADRO)
+	Desenho.texto(self, r.position + Vector2(48, 84), str(sala.nome), Tema.fonte(700), 52, Tema.FG)
+	var y := r.position.y + 150
+	for l in lugares:
+		var cor_id := Tema.tom_para_a_borda(Forja.cor_do_lugar(l))
+		Desenho.texto(self, Vector2(r.position.x + 48, y + 36), "P%d" % (l + 1), Tema.fonte(700), Tema.T_CORPO, cor_id)
+		Desenho.texto(self, Vector2(r.position.x + 150, y + 36), "%d" % sala.pontos[l], Tema.mono(500), Tema.T_MONO, Tema.SUAVE)
+		y += 76.0
 	if float(sala.t_fase) > 0.8:
 		Desenho.dicas_a_direita(self, Vector2(r.end.x - 48, r.position.y + 84), [["cruz", str(sala.seguir)]], Tema.T_ROTULO)
 

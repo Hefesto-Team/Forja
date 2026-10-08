@@ -14,13 +14,14 @@ func _ready() -> void:
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 
 
-func abrir(lugar: int, na_sala: bool, com_diagnostico := true) -> void:
+func abrir(lugar: int, na_sala: bool, com_diagnostico := true, bancada := true) -> void:
 	quem = lugar
 	escolhida = 0
 	opcoes = [["continuar", "Continuar"]]
-	if com_diagnostico:
+	if com_diagnostico and bancada:
 		opcoes.append(["diagnostico", "Diagnóstico"])
-	opcoes.append(["livro", "O livro da sessão"])
+	if bancada:
+		opcoes.append(["livro", "O livro da sessão"])
 	opcoes.append(["opcoes", "Opções"])
 	if na_sala:
 		opcoes.append(["salao", "Voltar ao salão"])

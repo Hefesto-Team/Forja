@@ -87,6 +87,7 @@ exporta o jogo e deixa os módulos e os pacotes como artefatos.
 Depois de `--`, na linha de comando (e em **Opções de inicialização**, na Steam):
 
 ```sh
+./forja.x86_64 -- --bancada               # o Modo bancada: as perguntas às cegas, o veredito, o diagnóstico (Create) e o livro
 ./forja.x86_64 -- --prova-de-fogo          # todas as salas, na ordem, e o livro no fim
 ./forja.x86_64 -- --partida=5 --sorteada   # uma partida de cinco salas sorteadas, e o pódio
 ./forja.x86_64 -- --nivel=0                # o ritmo: 0 primeira vez, 1 normal, 2 rápido
@@ -96,6 +97,13 @@ Depois de `--`, na linha de comando (e em **Opções de inicialização**, na St
 ./forja.x86_64 -- --experimento=quatro-mics  # a bancada do experimental/
 ./forja.x86_64 -- --relatorios=/uma/pasta
 ```
+
+O **Modo bancada** (`--bancada`) é a camada de validação: as salas às cegas
+perguntam o que o controle fez, o fim da sala mostra a tabela de veredito, e o
+diagnóstico (Create) e o livro da sessão abrem. Sem ele o jogo é só o jogo, sem
+nenhuma dessas camadas. `--experimento=` e `--prova-de-fogo` ligam a bancada
+sozinhos. Os vereditos são calculados e gravados nos dois modos; sem a bancada,
+o que só a pergunta mede sai «não medido».
 
 Para ler e escrever o hidraw do DualSense no cabo sem root (o report cru do
 jack do fone, e as ferramentas de bancada), a regra do udev:

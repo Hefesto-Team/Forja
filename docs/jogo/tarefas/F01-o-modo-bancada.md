@@ -317,3 +317,33 @@ func _prova_do_modo() -> void:
 - Dizer ao André, no fim da sessão, que as duas rodadas da prova (o passo 7 da
   F08) já ficaram prontas aqui.
 - Commit sugerido: `feat: o Modo bancada — perguntas, veredito, diagnóstico e livro só com --bancada`
+
+## O que foi feito (leva 1, a-fundacao)
+
+- `Forja.bancada`, ligado por `--bancada`, `--experimento=` ou `--prova-de-fogo`;
+  a linha do tempo diz o modo (`sessao`, `"evento": "modo"`) e cada pergunta
+  aberta (`"o": "pergunta"`, com o `qual`).
+- Sem a bancada: Create não abre o diagnóstico, a pausa não tem o livro nem o
+  diagnóstico, o HUD não anuncia o Create, o painel não desenha pergunta e o
+  fim da sala é o quadro provisório de pontos (a F03 troca). Com a bancada,
+  tudo como antes.
+- As seis salas às cegas pulam o estado de pergunta sem a bancada
+  (Galeria, Impacto, Canto, Caminhos, Voz, Prova); o escudo do Impacto e o
+  tropeço dos Caminhos ficam nos dois modos. O `pergunta()` de cada sala
+  devolve vazio sem a bancada (a cura na origem: o Canto, a Galeria e os
+  Caminhos desenhavam a revelação como pergunta mesmo sem ela).
+- `tests/prova_do_jogo.sh`: a rodada `forma-a` é o jogo, a `antes` é a
+  bancada; `scripts/gauntlet.sh` e `tests/prova_de_poucos.sh` rodam com
+  `--bancada`. `captura_jogo.gd` pula as fotos do diagnóstico e do livro sem a
+  bancada (e os botões que levariam a elas).
+- A prova do jogo ganhou: o modo na linha do tempo, nenhuma pergunta sem a
+  bancada (pelo registro e pelo estado de cada sala, não só por `pergunta()`),
+  seis salas perguntando com a bancada, e as features que só a pergunta mede
+  saindo «não medido» no jogo. Mordida: a pergunta da Voz e do Canto religadas
+  e o guarda do livro arrancado reprovaram; devolvidos, passa.
+- Provas: `bash tests/prova_do_jogo.sh` verde nas duas rodadas.
+- Para a mão dela ou do André: `./run-local.sh -- --partida=5` (nenhuma sala
+  pergunta, o fim sem tabela, Create não abre nada) e
+  `./run-local.sh -- --bancada --partida=5` (as perguntas e a tabela de volta);
+  `scripts/gauntlet.sh` e `bash tests/prova_de_poucos.sh` ficam com o André.
+- Dito ao André: as duas rodadas da prova (o passo 7 da F08) já ficaram prontas aqui.

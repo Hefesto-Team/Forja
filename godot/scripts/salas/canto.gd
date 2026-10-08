@@ -342,6 +342,12 @@ func _fechar_pergunta() -> void:
 			else:
 				res = "perdido"
 		Forja.evento("jogo", l + 1, {"sala": id, "o": "resposta", "resultado": res})
+	_revelar()
+
+
+## O canto se revela: o sino na TV ou as faíscas de quem era a fonte. Depois da
+## pergunta (Modo bancada) ou direto do canto (o jogo).
+func _revelar() -> void:
 	estado = REVELA
 	t_estado = 0.0
 	if fonte == TV:
@@ -404,8 +410,12 @@ func jogar(dt: float) -> void:
 				_tocar_nota(notas_tocadas)
 				notas_tocadas += 1
 			if t_estado >= float(ritmo[NOTAS - 1]) + 0.5:
-				estado = PERGUNTA
-				t_estado = 0.0
+				if Forja.bancada:  # a pergunta às cegas é do Modo bancada
+					estado = PERGUNTA
+					t_estado = 0.0
+					Forja.evento("jogo", 0, {"sala": id, "o": "pergunta", "qual": "canto"})
+				else:
+					_revelar()
 		PERGUNTA:
 			var todos := true
 			for p in jogadores:
@@ -533,6 +543,8 @@ func dica(lugar: int) -> Dictionary:
 
 
 func pergunta(lugar: int) -> Dictionary:
+	if not Forja.bancada:
+		return {}  # a pergunta às cegas é do Modo bancada
 	if not j.has(lugar) or fase != "jogo" or not (estado == PERGUNTA or estado == REVELA):
 		return {}
 	var e: Dictionary = j[lugar]

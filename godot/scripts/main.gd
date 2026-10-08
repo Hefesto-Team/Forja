@@ -165,12 +165,12 @@ func _abrir_pelos_args() -> void:
 	if sala_pedida == "giro":
 		sala_pedida = "viga"
 	var pede_o_fogo := "--prova-de-fogo" in OS.get_cmdline_user_args()
-	var bancada := Forja.experimento != ""
-	if sala_pedida != "" or pede_o_fogo or bancada or n_partida > 0 or tela in ["lobby", "salao", "diagnostico", "livro"]:
+	var experimento := Forja.experimento != ""
+	if sala_pedida != "" or pede_o_fogo or experimento or n_partida > 0 or tela in ["lobby", "salao", "diagnostico", "livro"]:
 		await get_tree().process_frame
 		await get_tree().process_frame
 		_todos_entram()
-	if bancada:
+	if experimento:
 		# a bancada do experimental/ no lugar do salão
 		_ir_para_o_salao(false)
 		_entrar_na_sala("bancada", false)
@@ -713,7 +713,7 @@ func _quadro_sala() -> void:
 ## Numa sala que pede o Create (a runa d'A Centelha), ele é da sala: o
 ## diagnóstico abre pela pausa.
 func _atalhos_de_overlay() -> bool:
-	var create_livre := not (sala is SalaJogo and ((sala as SalaJogo).botoes_pedidos >> Forja.CREATE) & 1)
+	var create_livre := Forja.bancada and not (sala is SalaJogo and ((sala as SalaJogo).botoes_pedidos >> Forja.CREATE) & 1)
 	for l in 4:
 		if not Forja.ocupado(l):
 			continue
@@ -727,6 +727,8 @@ func _atalhos_de_overlay() -> bool:
 
 
 func _abrir_overlay(qual: String, lugar: int) -> void:
+	if qual in ["diagnostico", "livro"] and not Forja.bancada:
+		return  # o diagnóstico e o livro são do Modo bancada
 	if qual == "diagnostico" and not _diagnostico_livre():
 		hud.mostrar_aviso("prova às cegas: o diagnóstico volta no fim da sala")
 		return
@@ -750,7 +752,7 @@ func _abrir_overlay(qual: String, lugar: int) -> void:
 	if qual == "livro":
 		livro.abrir()
 	if qual == "pausa":
-		pausa.abrir(lugar, estado == "sala", _diagnostico_livre())
+		pausa.abrir(lugar, estado == "sala", _diagnostico_livre(), Forja.bancada)
 	if qual == "partida":
 		escolha.abrir(lugar, Forja.semente + _partidas, ORDEM_DO_FOGO)
 	if qual == "placar":

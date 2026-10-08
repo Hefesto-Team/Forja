@@ -555,6 +555,8 @@ func _perguntar_leds() -> void:
 		f.t = 0.0
 		f.robo_espera = -1.0
 		f.leds_pedido = k if Forja.leds_jogador(l, _mascara(k)) else -1
+		if int(f.leds_pedido) >= 0:
+			Forja.evento("jogo", l + 1, {"sala": id, "o": "pergunta", "qual": "leds"})
 	etapa = LEDS
 	t_etapa = 0.0
 
@@ -572,6 +574,8 @@ func _perguntar_cor() -> void:
 		f.t = 0.0
 		f.robo_espera = -1.0
 		f.cor_pedida = c if Forja.luz(l, CORES[c].cor) else -1
+		if int(f.cor_pedida) >= 0:
+			Forja.evento("jogo", l + 1, {"sala": id, "o": "pergunta", "qual": "cor"})
 	etapa = COR
 	t_etapa = 0.0
 
@@ -651,22 +655,29 @@ func jogar(dt: float) -> void:
 						_armar(e, false)
 						Forja.carga_parar(e.lugar)
 				Som.tocar("sucesso", null, -4.0)
-				_perguntar_leds()
+				if Forja.bancada:  # a prova final às cegas é do Modo bancada
+					_perguntar_leds()
+				else:
+					_ir_para_o_placar()
 		LEDS:
 			if _rodada_final(true, dt) and _sem_revelar():
 				_perguntar_cor()
 		COR:
 			if _rodada_final(false, dt) and _sem_revelar():
-				etapa = PLACAR
-				t_etapa = 0.0
-				for l in fin:
-					if _conectado(l):
-						Forja.luz_do_lugar(l)
+				_ir_para_o_placar()
 		PLACAR:
 			if t_etapa >= PLACAR_S:
 				etapa = ACABOU
 				for p in jogadores:
 					acabou[p.lugar] = true
+
+
+func _ir_para_o_placar() -> void:
+	etapa = PLACAR
+	t_etapa = 0.0
+	for l in fin:
+		if _conectado(l):
+			Forja.luz_do_lugar(l)
 
 
 func _sem_revelar() -> bool:
@@ -773,6 +784,8 @@ func dica(lugar: int) -> Dictionary:
 
 
 func pergunta(lugar: int) -> Dictionary:
+	if not Forja.bancada:
+		return {}  # a pergunta às cegas é do Modo bancada
 	if fase != "jogo" or not (etapa == LEDS or etapa == COR) or not fin.has(lugar):
 		return {}
 	var f: Dictionary = fin[lugar]

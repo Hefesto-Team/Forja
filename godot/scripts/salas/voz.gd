@@ -265,6 +265,7 @@ func _luz_rodada(l: int, e: Dictionary) -> void:
 	var ok := Forja.led_mic(l, int(e.modo))
 	if ok:
 		e.luz_ok = true
+		Forja.evento("jogo", l + 1, {"sala": id, "o": "pergunta", "qual": "luz_mic"})
 	else:
 		e.fase = FIM_LUZ  # o que o SDL não manda não se pergunta
 
@@ -408,7 +409,8 @@ func jogar(dt: float) -> void:
 					e.mudo = true
 					e.mexeu = true
 					# o jogo fica mudo: a luz laranja acende, como no console
-					Forja.led_mic(l, 1)
+					if Forja.led_mic(l, 1):
+						e.luz_ok = true
 					Som.tocar("tique", p.global_position + Vector3(0, 1, 0), -4.0)
 					marcar(l, 100)
 				if not e.apertou_mudo:
@@ -420,7 +422,11 @@ func jogar(dt: float) -> void:
 					j[l].robo_falou = false
 		SUSSURRO:
 			if t_estado >= SUSSURRO_S:
-				_comecar_luz()
+				if Forja.bancada:  # a pergunta da luz do microfone é do Modo bancada
+					_comecar_luz()
+				else:
+					estado = ESPERA
+					t_estado = 0.0
 		LUZ:
 			var todos := true
 			for p in jogadores:
@@ -595,6 +601,8 @@ func dica(lugar: int) -> Dictionary:
 
 
 func pergunta(lugar: int) -> Dictionary:
+	if not Forja.bancada:
+		return {}  # a pergunta às cegas é do Modo bancada
 	if not j.has(lugar) or fase != "jogo" or estado != LUZ:
 		return {}
 	var e: Dictionary = j[lugar]

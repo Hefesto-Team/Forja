@@ -48,7 +48,8 @@ Cada uma nasceu de um defeito real.
 
 - **Jogar do código:** `./run-local.sh`; os argumentos do jogo vêm depois de
   `--` (`--simular=4 --robo`, `--sala=ID`, `--prova-de-fogo`,
-  `--partida=5 --sorteada`, `--semente=N`, `--experimento=ID`).
+  `--partida=5 --sorteada`, `--semente=N`, `--experimento=ID`, `--bancada`:
+  as perguntas, o veredito, o diagnóstico e o livro; sem ele, o jogo é só o jogo).
 - **O módulo nativo:** `scripts/compilar.sh linux|windows|testes`. Não
   recompile com um Godot rodando o jogo: ele segura o `.so`.
 - **Antes de todo push:** `bash tests/prova_do_jogo.sh`. Mexeu numa sala ou no

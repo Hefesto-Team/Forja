@@ -34,7 +34,7 @@ rodar() {
   shift
   mkdir -p "$SAIDA/$nome"
   timeout 600 "$GODOT" --headless --fixed-fps 60 --path "$RAIZ/godot" res://testes/prova_do_jogo.tscn \
-    -- --simular=4 --robo --semente="$SEMENTE" --relatorios="$SAIDA/$nome" "$@" >"$SAIDA/$nome.log" 2>&1
+    -- --simular=4 --robo --semente="$SEMENTE" --relatorios="$SAIDA/$nome" --bancada "$@" >"$SAIDA/$nome.log" 2>&1
 }
 
 "$GODOT" --headless --path "$RAIZ/godot" --import >/dev/null 2>&1 || true

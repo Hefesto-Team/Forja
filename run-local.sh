@@ -7,7 +7,7 @@
 #   ./run-local.sh bancada             só as ferramentas de bancada (forja-send e cia.)
 #
 # Sem controle nenhum, o título oferece jogar no teclado (um DualSense simulado).
-# Argumentos do jogo: --simular[=N] --robo --semente=N --relatorios=PASTA --sala=ID
+# Argumentos do jogo: --simular[=N] --robo --semente=N --relatorios=PASTA --sala=ID --bancada
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")" && pwd)"
 cd "$ROOT"
@@ -42,7 +42,7 @@ echo "==> importando os assets (a primeira vez demora)"
 "$GODOT_BIN" --headless --path "$ROOT/godot" --import >"$ROOT/build/godot-import.log" 2>&1 || true
 
 echo "==> abrindo o FORJA"
-echo "    ✕ entra e fica pronto · Create diagnóstico · Options pausa"
+echo "    ✕ entra e fica pronto · Options pausa · com -- --bancada, Create abre o diagnóstico"
 echo "    sem controle: Enter no título (o teclado vira um DualSense simulado)"
 echo "    relatórios em relatorios/"
 exec "$GODOT_BIN" --path "$ROOT/godot" -- --relatorios="$ROOT/relatorios" "$@"

@@ -298,11 +298,17 @@ func _fechar_pergunta(l: int, e: Dictionary) -> void:
 	else:
 		Cega.perdido(e.chao)
 		res = "perdido"
-	# o chão do trecho aparece
-	_vestir_ladrilho(n[l].ladrilhos[4 + r], certo, true)
+	_revelar_trecho(l, e)
+	Forja.evento("jogo", l + 1, {"sala": id, "o": "resposta", "chão": NOME_CHAO[certo], "resultado": res})
+
+
+## O chão do trecho aparece. Depois da pergunta (Modo bancada) ou direto da
+## caminhada (o jogo).
+func _revelar_trecho(l: int, e: Dictionary) -> void:
+	var r: int = e.rodada
+	_vestir_ladrilho(n[l].ladrilhos[4 + r], int(e.plano[r]), true)
 	e.estado = REVELA
 	e.t = 0.0
-	Forja.evento("jogo", l + 1, {"sala": id, "o": "resposta", "chão": NOME_CHAO[certo], "resultado": res})
 
 
 func jogar(dt: float) -> void:
@@ -359,8 +365,12 @@ func _atualizar_jogador(l: int, e: Dictionary, dt: float) -> void:
 					_tocar_passo(l, int(e.plano[r]), int(e.passos) + r)
 				e.passos = int(e.passos) + 1
 			if int(e.passos) >= PASSOS and not e.trop_aberto and float(e.t) >= PRIMEIRO_S + (PASSOS - 1) * PASSO_S + 0.7:
-				e.estado = PERGUNTA
-				e.t = 0.0
+				if Forja.bancada:  # a pergunta às cegas é do Modo bancada
+					e.estado = PERGUNTA
+					e.t = 0.0
+					Forja.evento("jogo", l + 1, {"sala": id, "o": "pergunta", "qual": "chao"})
+				else:
+					_revelar_trecho(l, e)
 		PERGUNTA:
 			if e.resp < 0 and float(e.t) > 0.25:
 				for c in 4:
@@ -487,6 +497,8 @@ func dica(lugar: int) -> Dictionary:
 
 
 func pergunta(lugar: int) -> Dictionary:
+	if not Forja.bancada:
+		return {}  # a pergunta às cegas é do Modo bancada
 	if not j.has(lugar) or fase != "jogo":
 		return {}
 	var e: Dictionary = j[lugar]

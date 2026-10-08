@@ -84,7 +84,7 @@ func _draw() -> void:
 			Desenho.texto(self, Vector2(r.end.x - 32 - wd, r.position.y + 84), s, fs, Tema.T_ROTULO, Tema.COMMENT)
 
 	# as dicas de baixo
-	var pares := [["create", "diagnóstico"], ["options", "pausa"]] if create_livre else [["options", "pausa"]]
+	var pares := [["create", "diagnóstico"], ["options", "pausa"]] if create_livre and Forja.bancada else [["options", "pausa"]]
 	Desenho.dicas_a_direita(self, Vector2(w - Tema.MARGEM_X, h - Tema.MARGEM_Y), pares, Tema.T_SELO)
 
 	# os avisos

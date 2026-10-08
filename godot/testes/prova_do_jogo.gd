@@ -17,6 +17,15 @@ var falhas := 0
 var jogo: Node
 var pasta := ""
 
+## As features que só a pergunta às cegas mede: fora do Modo bancada, «não medido».
+const SO_COM_PERGUNTA := {
+	"galeria": ["gatilho_resistencia", "gatilho_arma", "gatilho_vibracao", "leds_jogador"],
+	"impacto": ["lightbar"],
+	"canto": ["alto_falante"],
+	"voz": ["led_microfone"],
+	"prova": ["tudo_junto"],
+}
+
 
 func _esperar(cond: bool, msg: String) -> void:
 	if cond:
@@ -54,6 +63,7 @@ func _ready() -> void:
 	await _prova_de_fogo()
 	_prova_das_contas_da_partida()
 	await _prova_da_partida()
+	_prova_do_modo()
 	if falhas > 0:
 		printerr("%d falha(s)" % falhas)
 		get_tree().quit(1)
@@ -110,9 +120,18 @@ func _prova_do_percurso() -> void:
 	_esperar(jogo.estado == "salao", "com os quatro prontos, o salão")
 
 	await _aperta(0, Forja.CREATE)
-	_esperar(jogo.overlay == "diagnostico", "Create abre o diagnóstico")
-	await _aperta(0, Forja.CIRCULO)
-	_esperar(jogo.overlay == "", "○ fecha o diagnóstico")
+	if Forja.bancada:
+		_esperar(jogo.overlay == "diagnostico", "bancada: Create abre o diagnóstico")
+		await _aperta(0, Forja.CIRCULO)
+		_esperar(jogo.overlay == "", "○ fecha o diagnóstico")
+	else:
+		_esperar(jogo.overlay == "", "jogo: Create não abre o diagnóstico")
+	jogo._abrir_overlay("pausa", 0)
+	await _quadros(2)
+	var acoes: Array = jogo.pausa.opcoes.map(func(o): return o[0])
+	_esperar(("livro" in acoes) == Forja.bancada and ("diagnostico" in acoes) == Forja.bancada,
+		"a pausa tem o livro e o diagnóstico só na bancada (%s)" % [acoes])
+	jogo._fechar_overlay()
 
 	# As salas de entrada, jogadas pelo robô do começo ao fim: cada lugar sai
 	# com PASSOU em cada feature da sala. Com um defeito de mentira ligado, a
@@ -157,13 +176,13 @@ func _prova_do_percurso() -> void:
 			else:
 				_esperar(forte == 0.0 and fraco == 0.0, "Impacto: o golpe no P%d não treme o P%d" % [alvo + 1, l + 1])
 		q = 0
-		while impacto.estado != SalaImpacto.PERGUNTA and q < 3000:
+		while Forja.bancada and impacto.estado != SalaImpacto.PERGUNTA and q < 3000:
 			await _quadros(1)
 			q += 1
 		await _quadros(2)
 		for l in 4:
 			var pedida: int = impacto.j[l].cor_pedida
-			if pedida < 0:
+			if pedida < 0 or not Forja.bancada:
 				continue
 			var luz: Color = _perc(l).get("luz", Color.BLACK)
 			var cor: Color = SalaImpacto.CORES[pedida].cor
@@ -276,8 +295,9 @@ func _prova_do_percurso() -> void:
 		_esperar(int(p.get("gatilho_dir", 0)) == 0x05, "de volta ao salão, o R2 do P%d solto" % (l + 1))
 	jogo._abrir_overlay("livro", 0)
 	await _quadros(2)
-	_esperar(jogo.overlay == "livro", "o livro abre")
-	jogo._fechar_overlay()
+	_esperar(jogo.overlay == ("livro" if Forja.bancada else ""), "o livro abre só na bancada")
+	if jogo.overlay != "":
+		jogo._fechar_overlay()
 
 
 ## Entra na sala, espera o aviso (o robô fica pronto sozinho), o jogo e o
@@ -310,9 +330,14 @@ func _comeca_a_sala(id: String):
 func _termina_a_sala(sala, features: Array) -> void:
 	var id: String = sala.id
 	var q := 0
+	var viu_pergunta := false
 	while is_instance_valid(sala) and sala.fase != "fim" and q < 12000:
 		await _quadros(10)
 		q += 10
+		if not Forja.bancada and is_instance_valid(sala) and sala.fase == "jogo":
+			viu_pergunta = viu_pergunta or _em_pergunta(sala)
+	if not Forja.bancada:
+		_esperar(not viu_pergunta, "%s: nenhuma pergunta na tela" % id)
 	_esperar(is_instance_valid(sala) and sala.fase == "fim", "%s: o robô jogou até o fim (%d quadros)" % [id, q])
 	if not is_instance_valid(sala):
 		return
@@ -323,7 +348,9 @@ func _termina_a_sala(sala, features: Array) -> void:
 			for item in lista:
 				if item.get("feature", "") == f:
 					v = item
-			var ok := int(v.get("resultado", -1)) == Forja.PASSOU
+			var so_pergunta: Array = [] if Forja.bancada else SO_COM_PERGUNTA.get(id, [])
+			var esperado := Forja.NAO_MEDIDO if f in so_pergunta else Forja.PASSOU
+			var ok := int(v.get("resultado", -1)) == esperado
 			var porque := str(v.get("obs", "")) if str(v.get("obs", "")) != "" else str(v.get("medido", "sem veredito"))
 			_esperar(ok, "%s P%d: %s → %s (%s)" % [id, l + 1, f, str(v.get("rotulo", "sem veredito")), porque])
 			var gravado := Forja.ultimo_veredito(l, f)
@@ -791,3 +818,57 @@ func _prova_das_faixas() -> void:
 		var volta: bool = not String(slot).begins_with("MUS_S")
 		_esperar(s != null and s.loop == volta and is_zero_approx(s.loop_offset),
 			"faixas: %s com o laço do tipo dela (volta: %s)" % [slot, volta])
+
+
+## A sala está num estado de pergunta às cegas, ou desenha uma? Só a bancada deixa.
+func _em_pergunta(sala) -> bool:
+	for l in 4:
+		if not sala.pergunta(l).is_empty():
+			return true
+	match sala.id:
+		"galeria":
+			for l in sala.j:
+				if int(sala.j[l].passo) in [SalaGaleria.IDENTIFICAR, SalaGaleria.MUNICAO, SalaGaleria.MUNICAO_RESP]:
+					return true
+		"impacto":
+			return sala.estado in [SalaImpacto.PERGUNTA, SalaImpacto.RESPOSTA]
+		"canto":
+			return sala.estado == SalaCanto.PERGUNTA
+		"caminhos":
+			for l in sala.j:
+				if int(sala.j[l].estado) == SalaCaminhos.PERGUNTA:
+					return true
+		"voz":
+			return sala.estado == SalaVoz.LUZ
+		"prova":
+			return sala.etapa in [SalaProva.LEDS, SalaProva.COR]
+	return false
+
+
+## As linhas da linha do tempo desta sessão, na ordem (as fichas seguintes usam também).
+func _linha_do_tempo() -> Array:
+	var linhas: Array = []
+	if pasta == "":
+		return linhas
+	for f in DirAccess.get_files_at(pasta):
+		if f.begins_with("linha-do-tempo-") and f.ends_with(".jsonl"):
+			for s in FileAccess.get_file_as_string(pasta.path_join(f)).split("\n", false):
+				var e = JSON.parse_string(s)
+				if e is Dictionary:
+					linhas.append(e)
+	return linhas
+
+
+## O Modo bancada, pelo registro: a linha do tempo diz o modo, e só na bancada
+## as salas às cegas perguntam.
+func _prova_do_modo() -> void:
+	var linhas := _linha_do_tempo()
+	var modo := linhas.filter(func(e): return e.get("tipo") == "sessao" and e.get("evento") == "modo")
+	_esperar(modo.size() == 1 and bool(modo[0].get("bancada", false)) == Forja.bancada,
+		"a linha do tempo diz o modo (bancada: %s)" % Forja.bancada)
+	var perguntas := linhas.filter(func(e): return e.get("o") == "pergunta")
+	if Forja.bancada:
+		for id in ["galeria", "impacto", "canto", "caminhos", "voz", "prova"]:
+			_esperar(perguntas.any(func(e): return e.get("sala") == id), "bancada: %s perguntou às cegas" % id)
+	else:
+		_esperar(perguntas.is_empty(), "jogo: nenhuma pergunta sobre o controle (%d)" % perguntas.size())

@@ -229,6 +229,15 @@ func _nova_rodada(l: int) -> void:
 	Forja.leds_do_lugar(l)  # na identificação, as luzinhas não contam nada
 	_fechar_bau(l)
 	Forja.evento("jogo", l + 1, {"sala": id, "o": "arma_no_escuro", "arma": NOME_ARMA[e.arma]})
+	if not Forja.bancada:
+		if e.arma == NENHUMA:
+			_proxima_rodada(l)  # sem pergunta, a rodada sem arma não tem jogo
+			return
+		e.passo = REVELANDO  # o baú abre na hora; REVELANDO leva a ATIRAR
+		e.t = 0.0
+		_abrir_bau(l, e.arma)
+		return
+	Forja.evento("jogo", l + 1, {"sala": id, "o": "pergunta", "qual": "arma"})
 
 
 func jogar(dt: float) -> void:
@@ -446,6 +455,11 @@ func _responder_arma(l: int, p: ForjaPlayer, r: int) -> void:
 func _perguntar_municao(l: int) -> void:
 	# o armeiro recarregou no escuro: quantas balas há agora?
 	var e: Dictionary = j[l]
+	if not Forja.bancada:
+		_guardar_arma(l)
+		_gatilho(l, NENHUMA)
+		_proxima_rodada(l)
+		return
 	var quantas := rng.randi_range(1, 5)
 	e.leds_pedido = quantas
 	e.leds_resposta = -1
@@ -468,6 +482,7 @@ func _perguntar_municao(l: int) -> void:
 	e.passo = MUNICAO
 	e.t = 0.0
 	Forja.evento("jogo", l + 1, {"sala": id, "o": "pergunta_municao", "luzes": quantas})
+	Forja.evento("jogo", l + 1, {"sala": id, "o": "pergunta", "qual": "luzes"})
 
 
 func _proxima_rodada(l: int) -> void:
@@ -613,6 +628,8 @@ func dica(lugar: int) -> Dictionary:
 
 
 func pergunta(lugar: int) -> Dictionary:
+	if not Forja.bancada:
+		return {}  # a pergunta às cegas é do Modo bancada
 	if not j.has(lugar) or fase != "jogo":
 		return {}
 	var e: Dictionary = j[lugar]

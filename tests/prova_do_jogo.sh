@@ -68,16 +68,19 @@ else
   echo "sem git aqui: a prova sem rastro foi pulada (ela lê o que o git versiona)"
 fi
 rodar() {
-  local rel="$TMP/relatorios-$1"
+  local nome=$1 esperado=$2
+  shift 2
+  local rel="$TMP/relatorios-$nome"
   mkdir -p "$rel"
-  SERVIDOR_DE_MENTIRA="$TMP/$1" ESPERADO="$2" \
+  SERVIDOR_DE_MENTIRA="$TMP/$nome" ESPERADO="$esperado" \
     timeout 1200 "${CAIXA[@]}" "$GODOT" --headless --fixed-fps 60 --path "$RAIZ/godot" res://testes/prova_do_jogo.tscn \
-    -- --simular=4 --robo --semente=7 --relatorios="$rel" > "$TMP/$1.log" 2>&1
+    -- --simular=4 --robo --semente=7 --relatorios="$rel" "$@" > "$TMP/$nome.log" 2>&1
   local rc=$?
-  grep -E "alto-falante do sistema|FAIL|SCRIPT ERROR|prova do jogo ok" "$TMP/$1.log"
-  [ "$rc" -eq 0 ] || { echo "FAIL a prova com o servidor «$1» (rc=$rc)"; FALHAS=$((FALHAS + 1)); }
+  grep -E "alto-falante do sistema|FAIL|SCRIPT ERROR|prova do jogo ok" "$TMP/$nome.log"
+  [ "$rc" -eq 0 ] || { echo "FAIL a prova com o servidor «$nome» (rc=$rc)"; FALHAS=$((FALHAS + 1)); }
 }
+# a rodada «forma-a» é o jogo (sem o Modo bancada); a «antes» é a camada de validação (--bancada)
 rodar forma-a "alto-falante: Alto-falante do Controle 1 (DualSense Wireless Controller)"
-rodar antes "nenhum alto-falante de controle na lista (2 dispositivos)"
+rodar antes "nenhum alto-falante de controle na lista (2 dispositivos)" --bancada
 [ "$FALHAS" -eq 0 ] || exit 1
 echo "prova do jogo ok — os quatro lugares, as salas e o relatório; com o nome da Sony o jogo acha o alto-falante, sem ele diz que não achou"

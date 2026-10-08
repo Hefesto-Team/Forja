@@ -12,6 +12,7 @@ extends Node
 ## ROTEIRO=salas passa pelas salas que medem (aviso, jogo e veredito de cada
 ## uma, com o robô jogando); SALAS=impacto,galeria escolhe quais. SEM_TREMOR=1
 ## desliga o tremor da câmera (para medir o clarão d'A Voz).
+## O diagnóstico e o livro, só com `-- --bancada` (sem ele o jogo não os tem).
 ## ROTEIRO=bancada, com -- --experimento=ID, fotografa a bancada do
 ## experimental/. ROTEIRO=partida joga uma partida curta: a placa da bigorna,
 ## a escolha, o placar entre as salas e o pódio. RAPIDO=1 roda numa janela pequena entre as fotos e volta ao
@@ -76,13 +77,15 @@ func _roteiro_das_telas() -> Array:
 		["espera", 12], ["foto", "aviso"],
 		["segura", 0, Forja.CRUZ, true], ["eixo", 1, Forja.R2, 0.8], ["eixo", 0, Forja.LX, -0.9],
 		["dedo", 2, 0, true, 0.3, 0.4], ["dedo", 2, 1, true, 0.72, 0.62],
-		["aperta", 0, Forja.CREATE], ["espera", 30], ["foto", "diagnostico"],
+		["aperta", 0, Forja.CREATE], ["espera", 30], ["foto", "diagnostico"] if Forja.bancada else ["espera", 1],
 		["segura", 0, Forja.CRUZ, false], ["eixo", 1, Forja.R2, 0.0], ["eixo", 0, Forja.LX, 0.0],
 		["dedo", 2, 0, false, 0.0, 0.0], ["dedo", 2, 1, false, 0.0, 0.0],
 		["aperta", 0, Forja.CIRCULO], ["espera", 20],
 		["vereditos"], ["aperta", 0, Forja.OPTIONS], ["espera", 20], ["foto", "pausa"],
-		["aperta", 0, Forja.BAIXO], ["espera", 6], ["aperta", 0, Forja.BAIXO], ["espera", 6],
-		["aperta", 0, Forja.CRUZ], ["espera", 40], ["foto", "livro"],
+		["aperta", 0, Forja.BAIXO] if Forja.bancada else ["espera", 1], ["espera", 6],
+		["aperta", 0, Forja.BAIXO] if Forja.bancada else ["espera", 1], ["espera", 6],
+		["aperta", 0, Forja.CRUZ] if Forja.bancada else ["espera", 1], ["espera", 40],
+		["foto", "livro"] if Forja.bancada else ["espera", 1],
 		["aperta", 0, Forja.CIRCULO], ["espera", 20],
 		["sala", "galeria"], ["espera", 70], ["eixo", 0, Forja.R2, 1.0], ["eixo", 2, Forja.R2, 1.0], ["espera", 14], ["foto", "sala_galeria"],
 		["eixo", 0, Forja.R2, 0.0], ["eixo", 2, Forja.R2, 0.0],

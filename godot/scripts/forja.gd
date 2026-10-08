@@ -17,6 +17,8 @@ extends Node
 ##   --nivel=N          o ritmo das salas: 0 primeira vez, 1 normal, 2 rápido
 ##   --relatorios=PASTA onde gravar o relatório (sem ele: ao lado do jogo)
 ##   --sala=ID          abre direto numa sala
+##   --bancada          o Modo bancada: as perguntas às cegas, o veredito na tela, o diagnóstico e o livro
+##                      (ligado também por --experimento e --prova-de-fogo); sem ele, o jogo é só o jogo
 ##   --prova-de-fogo    abre na Prova de Fogo: todas as salas, na ordem, e o livro
 ##   --partida=N        abre numa partida de N salas (3, 5 ou 9); --sorteada: na ordem do sorteio
 ##   --sair-no-fim      no fim da Prova de Fogo (ou no pódio, com --robo), grava o relatório e fecha o jogo
@@ -82,6 +84,7 @@ var semente := 0
 var pasta_relatorios := ""
 var sala_pedida := ""
 var experimento := ""  ## --experimento=CHAVE: a bancada do experimental/ no lugar do salão
+var bancada := false  ## --bancada, --experimento ou --prova-de-fogo: as perguntas, o veredito, o diagnóstico e o livro
 var sim_teclado := 0  ## qual controle simulado o teclado dirige
 ## O ritmo das salas: as janelas de tempo (a runa, o escudo, o tiro, a
 ## partida) se esticam para quem joga pela primeira vez e encurtam no rápido.
@@ -115,6 +118,8 @@ func _ready() -> void:
 		if modulo:
 			_conferir_numeros()
 			semente = ctl.semente()
+	evento("sessao", 0, {"evento": "modo", "bancada": bancada})
+	registrar("Modo bancada: %s" % ("ligado" if bancada else "desligado"))
 	if not modulo:
 		push_warning("FORJA sem o módulo nativo: só o teclado, e nenhuma saída chega a controle")
 	Opcoes.carregar(robo)
@@ -157,6 +162,7 @@ func _ler_args() -> void:
 	semente = int(_args.get("semente", "0"))
 	sala_pedida = str(_args.get("sala", ""))
 	experimento = str(_args.get("experimento", ""))
+	bancada = _args.has("bancada") or experimento != "" or _args.has("prova-de-fogo")
 	nivel = clampi(int(_args.get("nivel", "1")), 0, NIVEIS.size() - 1)
 
 
