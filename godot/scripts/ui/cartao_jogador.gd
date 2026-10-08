@@ -33,7 +33,7 @@ func _draw() -> void:
 		Desenho.moldura(self, r, Color(Tema.APP, 0.92), Tema.SUTIL, 2, Tema.RAIO_CARTAO)
 		Desenho.texto(self, Vector2(x, 52), rotulo, Tema.fonte(700), Tema.T_CORPO, Tema.MUDO)
 		Desenho.texto(self, Vector2(x + 52, 52), "·  —", fonte, Tema.T_ROTULO, Tema.MUDO)
-		Glifo.dica(self, Vector2(x, size.y - 40), "cruz", "entrar", Tema.T_ROTULO, Tema.SUAVE, Tema.MUDO)
+		_dica(Vector2(x, size.y - 40), "cruz", "Entrar", Tema.SUAVE, Tema.MUDO)
 		return
 
 	var p: Dictionary = Forja.pad(int(info.get("pad", -1))) if conectado else {}
@@ -45,7 +45,7 @@ func _draw() -> void:
 
 	# linha 1: "P1 · USB" e a bateria
 	Desenho.texto(self, Vector2(x, 52), rotulo, Tema.fonte(700), Tema.T_CORPO, cor_id)
-	var conexao: String = p.get("conexao_curta", "sem controle") if conectado else "sem controle"
+	var conexao: String = p.get("conexao_curta", "Sem controle") if conectado else "Sem controle"
 	Desenho.texto(self, Vector2(x + 52, 52), "·  " + conexao, fonte, Tema.T_ROTULO, Tema.FG if conectado else Tema.LARANJA)
 	if conectado:
 		var pct: int = p.get("bateria", -1)
@@ -56,7 +56,7 @@ func _draw() -> void:
 	if not conectado:
 		Desenho.texto(self, Vector2(x, 104), "O controle saiu.", fonte, Tema.T_ROTULO, Tema.FG)
 		Desenho.texto(self, Vector2(x, 144), "Religue o mesmo para voltar.", Tema.fonte(400), Tema.T_ROTULO, Tema.SUAVE)
-		Glifo.dica(self, Vector2(x, size.y - 40), "circulo", "liberar o lugar", Tema.T_ROTULO, Tema.SUAVE, Tema.MUDO)
+		_dica(Vector2(x, size.y - 40), "circulo", "Liberar o lugar", Tema.SUAVE, Tema.MUDO)
 		return
 
 	# linha 2: o nome que o controle dá
@@ -68,10 +68,18 @@ func _draw() -> void:
 	Desenho.texto(self, Vector2(x, 98), nome, Tema.fonte(500), tam_nome, Tema.FG, HORIZONTAL_ALIGNMENT_LEFT, size.x - 56)
 
 	# rodapé: pronto, ou as ações do dono do lugar
+	# as ações vão uma sob a outra: "Botão ✕ (Pronto)" não cabe ao lado de outra em 384 px
 	if pronto:
-		Desenho.selo(self, Vector2(x, size.y - 62), "✓ PRONTO", Tema.VERDE)
-		Glifo.dica(self, Vector2(size.x - 28 - Glifo.largura_dica("circulo", "voltar", Tema.T_ROTULO), size.y - 32),
-			"circulo", "voltar", Tema.T_ROTULO, Tema.SUAVE, Tema.MUDO)
+		Desenho.selo(self, Vector2(x, size.y - 100), "✓ Pronto", Tema.VERDE)
+		_dica(Vector2(x, size.y - 32), "circulo", "Voltar", Tema.SUAVE, Tema.MUDO)
 	else:
-		var w := Glifo.dica(self, Vector2(x, size.y - 32), "cruz", "pronto", Tema.T_ROTULO, Tema.FG, Tema.SUAVE)
-		Glifo.dica(self, Vector2(x + w + 36, size.y - 32), "circulo", "sair", Tema.T_ROTULO, Tema.SUAVE, Tema.MUDO)
+		_dica(Vector2(x, size.y - 70), "cruz", "Pronto", Tema.FG, Tema.SUAVE)
+		_dica(Vector2(x, size.y - 32), "circulo", "Sair", Tema.SUAVE, Tema.MUDO, false)
+
+
+## Uma dica do rodapé do cartão: encolhe até caber na largura do cartão.
+func _dica(pos: Vector2, glifo: String, texto: String, cor_glifo: Color, cor_texto: Color, com_botao := true) -> void:
+	var tam := Tema.T_ROTULO
+	while tam > 18 and Glifo.largura_dica(glifo, texto, tam, com_botao) > size.x - 2.0 * pos.x:
+		tam -= 1
+	Glifo.dica(self, pos, glifo, texto, tam, cor_glifo, cor_texto, com_botao)

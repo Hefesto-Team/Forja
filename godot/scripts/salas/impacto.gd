@@ -523,20 +523,20 @@ func _mostrar(l: int, dt: float) -> void:
 
 func status(lugar: int) -> String:
 	if fase == "jogo" and j.has(lugar):
-		return "vida %d%% · %d ✓" % [int(float(j[lugar].vida) * 100.0), j[lugar].bloqueios]
+		return "Vida %d%% · %d ✓" % [int(float(j[lugar].vida) * 100.0), j[lugar].bloqueios]
 	return super(lugar)
 
 
 func progresso() -> String:
 	if fase != "jogo" or plano.is_empty():
 		return ""
-	return "onda %d de %d · golpe %d de %d" % [mini(onda + 1, ONDAS), ONDAS, mini(i_plano, plano.size()), plano.size()]
+	return "Onda %d de %d · golpe %d de %d" % [mini(onda + 1, ONDAS), ONDAS, mini(i_plano, plano.size()), plano.size()]
 
 
 func dica(lugar: int) -> Dictionary:
 	if not j.has(lugar) or estado == ACABOU:
 		return {}
-	return {"partes": ["@l1", "esquerda", "@r1", "direita"], "pos": Vector3(RAIAS[lugar], 0.0, 4.6)}
+	return {"partes": ["@l1", "Esquerda", "@r1", "Direita"], "pos": Vector3(RAIAS[lugar], 0.0, 4.6)}
 
 
 func pergunta(lugar: int) -> Dictionary:
@@ -549,17 +549,17 @@ func pergunta(lugar: int) -> Dictionary:
 		return {}
 	var opcoes: Array = []
 	for c in 4:
-		opcoes.append([GLIFO_COR[c], CORES[c].cor, CORES[c].nome])
+		opcoes.append([GLIFO_COR[c], CORES[c].cor, Desenho.maiusc(CORES[c].nome)])
 	var rodape := ""
 	var certa := -1
 	if estado == RESPOSTA:
 		certa = e.cor_pedida
 		if e.cor_resposta < 0:
-			rodape = "sem resposta — era %s" % CORES[e.cor_pedida].nome
+			rodape = "Sem resposta — era %s" % CORES[e.cor_pedida].nome
 		elif e.cor_resposta == e.cor_pedida:
-			rodape = "isso: a luz obedeceu"
+			rodape = "Isso: a luz obedeceu"
 		else:
-			rodape = "não — o jogo mandou %s" % CORES[e.cor_pedida].nome
+			rodape = "Não — o jogo mandou %s" % CORES[e.cor_pedida].nome
 	return {"titulo": "Que cor está a sua luz?", "opcoes": opcoes, "escolhida": e.cor_resposta,
 		"certa": certa, "rodape": rodape, "pos": Vector3(RAIAS[lugar], 0.0, 3.8)}
 

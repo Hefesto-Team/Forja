@@ -32,15 +32,15 @@ const N_RASTRO := 14
 
 ## As letras: cada uma leva o dedo aos quatro cantos do touchpad.
 const LETRAS := [
-	{"nome": "zeta", "dica": "trace o zeta, em ordem",
+	{"nome": "zeta", "dica": "Trace o zeta, em ordem",
 		"x": [0.10, 0.90, 0.10, 0.90], "y": [0.14, 0.14, 0.86, 0.86]},
-	{"nome": "lambda", "dica": "trace o lambda, em ordem",
+	{"nome": "lambda", "dica": "Trace o lambda, em ordem",
 		"x": [0.08, 0.50, 0.92], "y": [0.88, 0.12, 0.88]},
-	{"nome": "sigma", "dica": "trace o sigma, em ordem",
+	{"nome": "sigma", "dica": "Trace o sigma, em ordem",
 		"x": [0.88, 0.12, 0.50, 0.12, 0.88], "y": [0.14, 0.14, 0.50, 0.86, 0.86]},
-	{"nome": "eta", "dica": "trace o eta, o H de Hefesto",
+	{"nome": "eta", "dica": "Trace o eta, o H de Hefesto",
 		"x": [0.12, 0.12, 0.12, 0.88, 0.88, 0.88], "y": [0.12, 0.88, 0.50, 0.50, 0.12, 0.88]},
-	{"nome": "mi", "dica": "trace o mi, em ordem",
+	{"nome": "mi", "dica": "Trace o mi, em ordem",
 		"x": [0.10, 0.10, 0.50, 0.90, 0.90], "y": [0.86, 0.14, 0.62, 0.14, 0.86]},
 ]
 
@@ -439,7 +439,7 @@ func status(lugar: int) -> String:
 			CARIMBAR:
 				return "3 · carimbo %d de %d" % [e.carimbos, CARIMBOS]
 	if j.has(lugar) and j[lugar].sem_touchpad:
-		return "sem touchpad"
+		return "Sem touchpad"
 	return super(lugar)
 
 
@@ -449,17 +449,17 @@ func dica(lugar: int) -> Dictionary:
 	var e: Dictionary = j[lugar]
 	var partes: Array = []
 	if e.sem_touchpad:
-		partes = ["este controle não tem touchpad"]
+		partes = ["Este controle não tem touchpad"]
 	else:
 		match int(e.passo):
 			TRACAR:
 				partes = ["@touchpad", str(LETRAS[e.letra].dica)]
 			ABRIR:
-				partes = ["agora junte os dedos"] if e.aberto else ["dois dedos: afaste"]
+				partes = ["Agora junte os dedos"] if e.aberto else ["Dois dedos: afaste"]
 			CARIMBAR:
-				partes = ["@touchpad", "clique quando brilhar"]
+				partes = ["@touchpad", "Clique quando brilhar"]
 			PRONTO:
-				partes = ["peça forjada!"]
+				partes = ["Peça forjada!"]
 	return {"partes": partes, "pos": Vector3(RAIAS[lugar] + 0.45, 0.0, 2.3)}
 
 

@@ -98,7 +98,8 @@ func _seletor(l: int) -> void:
 	var leva: String = visual[l][1]
 	var f1 := Tema.fonte(600)
 	var f2 := Tema.fonte(500)
-	var larg := maxf(Desenho.largura(boneco, f1, 26), Desenho.largura(leva, f2, 24)) + 120.0
+	var wd := Glifo.largura_dica("triangulo", "Opções", Tema.T_SELO)
+	var larg := maxf(maxf(Desenho.largura(boneco, f1, 26), Desenho.largura(leva, f2, 24)) + 120.0, wd + 48.0)
 	var r := Rect2(Vector2(pes[l].x - larg * 0.5, pes[l].y - 36), Vector2(larg, 124))
 	Desenho.moldura(self, r, Color(Tema.PAINEL, 0.94), Tema.ROXO, 2, 12)
 	var cx := r.get_center().x
@@ -109,5 +110,4 @@ func _seletor(l: int) -> void:
 	Glifo.desenhar(self, "baixo", Rect2(Vector2(r.end.x - 42, r.position.y + 48), Vector2(30, 30)), Tema.SUAVE)
 	Desenho.texto(self, Vector2(cx - Desenho.largura(leva, f2, 24) * 0.5, r.position.y + 72), leva, f2, 24, Tema.ROXO)
 	# as opções do lugar (o gatilho e a vibração) antes de ficar pronto
-	var wd := Glifo.largura_dica("triangulo", "opções", Tema.T_SELO)
-	Glifo.dica(self, Vector2(cx - wd * 0.5, r.position.y + 112), "triangulo", "opções", Tema.T_SELO, Tema.ROSA, Tema.SUAVE)
+	Glifo.dica(self, Vector2(cx - wd * 0.5, r.position.y + 112), "triangulo", "Opções", Tema.T_SELO, Tema.ROSA, Tema.SUAVE)

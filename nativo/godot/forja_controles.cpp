@@ -41,16 +41,16 @@ Color cor(SDL_Color c) { return Color(c.r / 255.0f, c.g / 255.0f, c.b / 255.0f, 
 
 const char *conexao_curta(const Pad *p) {
   if (p->simulado)
-    return "simulado";
+    return "Simulado";
   switch (p->origem.conexao) {
   case CONEXAO_USB:
     return "USB";
   case CONEXAO_BT:
     return "BT";
   case CONEXAO_VIRTUAL_USB:
-    return "declara USB";
+    return "Declara USB";
   default:
-    return "virtual";
+    return "Virtual";
   }
 }
 

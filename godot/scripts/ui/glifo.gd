@@ -94,20 +94,35 @@ static func _retangulo_arred(ci: CanvasItem, r: Rect2, raio: float, cor: Color, 
 	ci.draw_style_box(s, r)
 
 
-## Largura de uma dica "[glifo] texto" no tamanho `tam`.
-static func largura_dica(glifo: String, texto: String, tam: int) -> float:
+## O texto de uma dica de botão: "(Iniciar)", entre parênteses.
+static func _acao(texto: String) -> String:
+	return "(%s)" % Desenho.t(texto)
+
+
+## Largura de uma dica "Botão [glifo] (ação)" no tamanho `tam`. `com_botao` é
+## falso na segunda dica em diante de uma fileira: só a primeira diz "Botão".
+static func largura_dica(glifo: String, texto: String, tam: int, com_botao := true) -> float:
 	var f := Tema.fonte(600)
 	tam = Tema.t(tam)
-	texto = Traducoes.traduzir(texto)
-	return tam * 1.25 + 10.0 + f.get_string_size(texto, HORIZONTAL_ALIGNMENT_LEFT, -1, tam).x
+	var acao := "(%s)" % Traducoes.traduzir(texto)
+	var w := tam * 1.25 + 10.0 + f.get_string_size(acao, HORIZONTAL_ALIGNMENT_LEFT, -1, tam).x
+	if com_botao:
+		w += f.get_string_size(Traducoes.traduzir("Botão"), HORIZONTAL_ALIGNMENT_LEFT, -1, tam).x + 10.0
+	return w
 
 
-## Uma dica: o glifo e a palavra, na linha de base `pos` (canto esquerdo).
-static func dica(ci: CanvasItem, pos: Vector2, glifo: String, texto: String, tam: int, cor_glifo: Color, cor_texto: Color) -> float:
+## Uma dica: "Botão ✕ (Iniciar)", na linha de base `pos` (canto esquerdo).
+static func dica(ci: CanvasItem, pos: Vector2, glifo: String, texto: String, tam: int, cor_glifo: Color,
+		cor_texto: Color, com_botao := true) -> float:
 	tam = Tema.t(tam)
-	texto = Desenho.t(texto)
+	var acao := _acao(texto)
 	var lado := tam * 1.25
-	desenhar(ci, glifo, Rect2(pos + Vector2(0, -lado * 0.82), Vector2(lado, lado)), cor_glifo)
 	var f := Tema.fonte(600)
-	ci.draw_string(f, pos + Vector2(lado + 10.0, 0), texto, HORIZONTAL_ALIGNMENT_LEFT, -1, tam, cor_texto)
-	return lado + 10.0 + f.get_string_size(texto, HORIZONTAL_ALIGNMENT_LEFT, -1, tam).x
+	var x := 0.0
+	if com_botao:
+		var botao := Desenho.t("Botão")
+		ci.draw_string(f, pos, botao, HORIZONTAL_ALIGNMENT_LEFT, -1, tam, cor_texto)
+		x += f.get_string_size(botao, HORIZONTAL_ALIGNMENT_LEFT, -1, tam).x + 10.0
+	desenhar(ci, glifo, Rect2(pos + Vector2(x, -lado * 0.82), Vector2(lado, lado)), cor_glifo)
+	ci.draw_string(f, pos + Vector2(x + lado + 10.0, 0), acao, HORIZONTAL_ALIGNMENT_LEFT, -1, tam, cor_texto)
+	return x + lado + 10.0 + f.get_string_size(acao, HORIZONTAL_ALIGNMENT_LEFT, -1, tam).x

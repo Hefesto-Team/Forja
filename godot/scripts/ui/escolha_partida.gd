@@ -7,8 +7,8 @@ extends Control
 
 signal escolheu(n: int, sorteada: bool)
 
-const TAMANHOS := [[3, "3 salas", "uns 10 min"], [5, "5 salas", "uns 15 min"], [9, "as 9 salas", "uns 30 min"]]
-const ORDENS := ["a do percurso", "sorteada"]
+const TAMANHOS := [[3, "3 salas", "Uns 10 min"], [5, "5 salas", "Uns 15 min"], [9, "As 9 salas", "Uns 30 min"]]
+const ORDENS := ["A do percurso", "Sorteada"]
 
 var quem := 0  ## o lugar que abriu
 var linha := 0  ## 0 salas, 1 ordem, 2 nível
@@ -93,4 +93,4 @@ func _draw() -> void:
 		Desenho.texto(self, Vector2(x2, y), "%d" % (i + 1), Tema.mono(500), tam, Tema.CIANO)
 		Desenho.texto(self, Vector2(x2 + 48, y), str(Partida.NOMES.get(salas[i], salas[i])), Tema.fonte(500), tam, Tema.FG)
 	Desenho.dicas_a_direita(self, Vector2(r.end.x - 48, r.end.y + 60),
-		[["cima", "linha"], ["esquerda", "trocar"], ["cruz", "começar"], ["circulo", "voltar"]], Tema.T_SELO)
+		[["cima", "Linha"], ["esquerda", "Trocar"], ["cruz", "Começar"], ["circulo", "Voltar"]], Tema.T_SELO)

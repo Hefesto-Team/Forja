@@ -316,11 +316,11 @@ func _entrar_na_sala(id: String, com_cortina := true) -> void:
 		if fogo >= 0 and sala is SalaJogo:
 			var sj := sala as SalaJogo
 			sj.na_prova_de_fogo = "Prova de Fogo · sala %d de %d" % [fogo + 1, ORDEM_DO_FOGO.size()]
-			sj.seguir = "seguir a Prova de Fogo" if fogo + 1 < ORDEM_DO_FOGO.size() else "o livro da sessão"
+			sj.seguir = "Seguir a Prova de Fogo" if fogo + 1 < ORDEM_DO_FOGO.size() else "O livro da sessão"
 		elif partida and sala is SalaJogo:
 			var sj := sala as SalaJogo
 			sj.na_prova_de_fogo = partida.rotulo()
-			sj.seguir = "o placar"
+			sj.seguir = "O placar"
 		painel.escondido = false
 		sala.entrar(js)
 		sala.terminou.connect(_ao_terminar_a_sala)
@@ -546,7 +546,7 @@ func _process(dt: float) -> void:
 	if estado == "lobby":
 		for l in 4:
 			lobby.pes[l] = camera.unproject_position(salao.pedestais[l])
-			lobby.visual[l] = [ForjaPlayer.NOME_DO_MODELO[jogadores[l].modelo_i], ForjaPlayer.ITENS[jogadores[l].item_i].nome]
+			lobby.visual[l] = [Desenho.maiusc(ForjaPlayer.NOME_DO_MODELO[jogadores[l].modelo_i]), Desenho.maiusc(ForjaPlayer.ITENS[jogadores[l].item_i].nome)]
 	if not _trocando:
 		if overlay != "":
 			_quadro_overlay()
@@ -741,7 +741,7 @@ func _abrir_overlay(qual: String, lugar: int) -> void:
 	if qual in ["diagnostico", "livro"] and not Forja.bancada:
 		return  # o diagnóstico e o livro são do Modo bancada
 	if qual == "diagnostico" and not _diagnostico_livre():
-		hud.mostrar_aviso("prova às cegas: o diagnóstico volta no fim da sala")
+		hud.mostrar_aviso("Prova às cegas: o diagnóstico volta no fim da sala")
 		return
 	overlay = qual
 	resultado.fechar()

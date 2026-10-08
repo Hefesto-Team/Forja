@@ -377,7 +377,7 @@ func _proxima(l: int) -> void:
 func status(lugar: int) -> String:
 	if fase == "jogo" and j.has(lugar) and not acabou[lugar]:
 		var e: Dictionary = j[lugar]
-		return "runa %d de %d · %d" % [mini(int(e.atual) + 1, e.fila.size()), e.fila.size(), pontos[lugar]]
+		return "Runa %d de %d · %d" % [mini(int(e.atual) + 1, e.fila.size()), e.fila.size(), pontos[lugar]]
 	return super(lugar)
 
 

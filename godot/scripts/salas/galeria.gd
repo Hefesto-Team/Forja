@@ -614,7 +614,7 @@ func _mostrar(l: int, p: ForjaPlayer) -> void:
 func status(lugar: int) -> String:
 	if fase == "jogo" and j.has(lugar) and not acabou[lugar]:
 		var e: Dictionary = j[lugar]
-		return "rodada %d de %d · %d ✓" % [int(e.rodada) + 1, e.plano.size(), e.acertos]
+		return "Rodada %d de %d · %d ✓" % [int(e.rodada) + 1, e.plano.size(), e.acertos]
 	return super(lugar)
 
 
@@ -624,7 +624,7 @@ func dica(lugar: int) -> Dictionary:
 	var e: Dictionary = j[lugar]
 	if int(e.passo) != ATIRAR:
 		return {}
-	var partes: Array = ["@square", "recarrega"] if _vazia(e) else ["@stick_l", "mira", "@r2", "atira"]
+	var partes: Array = ["@square", "Recarrega"] if _vazia(e) else ["@stick_l", "Mira", "@r2", "Atira"]
 	return {"partes": partes, "pos": Vector3(RAIAS[lugar], 0.0, 4.6)}
 
 
@@ -639,18 +639,18 @@ func pergunta(lugar: int) -> Dictionary:
 		IDENTIFICAR, REVELANDO:
 			var opcoes: Array = []
 			for k in 4:
-				opcoes.append([GLIFO_OPCAO[k], NOME_ARMA[k]])
+				opcoes.append([GLIFO_OPCAO[k], Desenho.maiusc(NOME_ARMA[k])])
 			var titulo := "Aperte R2 e sinta: que arma é?" if e.puxou or int(e.passo) == REVELANDO else "Aperte R2 e sinta o gatilho."
 			var certa := -1
 			var rodape := ""
 			if int(e.passo) == REVELANDO:
 				certa = int(e.arma)
 				if e.resposta < 0:
-					rodape = "sem resposta — era %s" % NOME_ARMA[e.arma]
+					rodape = "Sem resposta — era %s" % NOME_ARMA[e.arma]
 				elif e.resposta == e.arma:
-					rodape = "isso: %s" % SENTE[e.arma]
+					rodape = "Isso: %s" % SENTE[e.arma]
 				else:
-					rodape = "era %s (%s)" % [NOME_ARMA[e.arma], SENTE[e.arma]]
+					rodape = "Era %s (%s)" % [NOME_ARMA[e.arma], SENTE[e.arma]]
 			return {"titulo": titulo, "opcoes": opcoes, "escolhida": e.resposta, "certa": certa, "rodape": rodape, "pos": pos}
 		MUNICAO, MUNICAO_RESP:
 			var opcoes2: Array = []
@@ -661,11 +661,11 @@ func pergunta(lugar: int) -> Dictionary:
 			if int(e.passo) == MUNICAO_RESP:
 				certa2 = e.opcoes.find(e.leds_pedido)
 				if e.leds_resposta < 0:
-					rodape2 = "sem resposta — eram %d" % e.leds_pedido
+					rodape2 = "Sem resposta — eram %d" % e.leds_pedido
 				elif int(e.opcoes[e.leds_resposta]) == int(e.leds_pedido):
-					rodape2 = "isso: as luzinhas obedeceram"
+					rodape2 = "Isso: as luzinhas obedeceram"
 				else:
-					rodape2 = "não — o jogo acendeu %d" % e.leds_pedido
+					rodape2 = "Não — o jogo acendeu %d" % e.leds_pedido
 			return {"titulo": "O armeiro recarregou. Quantas luzinhas acesas?", "opcoes": opcoes2,
 				"escolhida": e.leds_resposta, "certa": certa2, "rodape": rodape2, "pos": pos}
 	return {}

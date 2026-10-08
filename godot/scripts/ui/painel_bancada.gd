@@ -57,5 +57,5 @@ func _draw() -> void:
 		Desenho.selo(self, Vector2(cx + 80, y + 2), SalaBancada.NOME_RES[res], cores[res], 20)
 		Desenho.paragrafo(self, Vector2(cx + 280, y + 22), texto, ft, 22, Tema.FG, larg - 400)
 		y += maxf(alt, 32.0) + 8
-	var dicas := [["cruz", "repetir"], ["circulo", "sair"]] if bancada.acabou else [["options", "pausa"]]
+	var dicas := [["cruz", "Repetir"], ["circulo", "Sair"]] if bancada.acabou else [["options", "Pausa"]]
 	Desenho.dicas_a_direita(self, Vector2(size.x - Tema.MARGEM_X, size.y - Tema.MARGEM_Y), dicas, Tema.T_SELO)

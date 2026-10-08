@@ -232,3 +232,40 @@ func _prova_das_maiusculas() -> void:
 
 - No [quadro](README.md), a linha da F07: estado **feito** (com o commit).
 - Commit sugerido: `feat: a voz do texto — maiúscula em toda frase e "Botão ✕ (Iniciar)"`
+
+## O que foi feito (leva 1, a-fundacao)
+
+- **O portão** `scripts/check_texto_de_tela.py` (código da ficha, mais a checagem de
+  chave repetida, que o Godot não perdoa): medido antes, reprovava 152 frases e
+  padrões (a ficha dizia 163: a F02 e a F03 mexeram na tabela); agora passa
+  (235 frases, 55 padrões, 0 com minúscula). Ligado em `tests/prova_do_jogo.sh`,
+  logo depois da guarda do Godot.
+- **A tabela** `traducoes.gd`: todas as chaves, valores e padrões em maiúscula, e a
+  frase do código virou junto (dicas, status, pílulas das salas, rodapés das
+  perguntas, nomes do salão e do placar). Entraram «Botão», «Fechar», «Jogar no
+  teclado · Enter», «✓ Pronto» e as frases de dica que não tinham tradução. A
+  tradução ganhou um fallback documentado: a frase que vem no meio de outra
+  («era pistola», o grupo de um padrão) acha a entrada pela forma maiúscula e
+  volta com a inicial minúscula; o que cumpre também enquanto `tela_opcoes.gd` e
+  `opcoes.gd` (do conjunto o-ritmo, fora desta leva) ainda escrevem em minúscula.
+- **O botão** (`ui/glifo.gd`, `ui/desenho.gd`): «Botão ✕ (Iniciar)»; numa fileira só a
+  primeira diz «Botão». O cartão do lobby empilha as duas ações e encolhe a
+  dica até caber nos 384 px; o seletor do pedestal alargou para a dica. O selo
+  «✓ Pronto» subiu para não pisar na dica.
+- **Do C**: `conexao_curta()` devolve «Simulado», «Declara USB», «Virtual»
+  (módulo recompilado); `tela_titulo.gd` casa «Simulado»; a ficha H03 citava o
+  texto antigo e foi acertada.
+- **A prova** (`prova_do_jogo.gd`): `_prova_das_maiusculas()` reprova qualquer frase
+  colhida que comece com minúscula (rodada sem `--bancada`) e exige «Botão».
+  Mordidas: «Começar» do título voltou para minúscula e a dica sem «Botão» →
+  a prova reprovou as duas; uma chave da tabela em minúscula → o portão reprovou
+  (rc=1); devolvido, tudo passa (as duas rodadas rc=0).
+- **Fora do alcance, anotado**: `tela_opcoes.gd` («ligado», «tela cheia», «Trocar»
+  na dica) e `opcoes.gd` ficam como estão, a cargo do conjunto o-ritmo; o texto do
+  núcleo (vereditos) continua em minúscula, só na bancada. `hud.gd`/`main.gd` ainda
+  têm «P2 saiu do cabo: ligue de novo…» (começa com P; o texto é assunto da G04).
+- **Para o André**: `bash tests/telas.sh fotos <pasta>` em português e com
+  `FORJA_IDIOMA=en` (título, lobby, salão, aviso, resultado, pódio; nada cortado
+  nos cartões; fotos desta leva vistas: título, lobby, salão e aviso, nas duas
+  línguas); `./run-local.sh -- --bancada --sala=galeria` (perguntas e tabela com
+  maiúscula).

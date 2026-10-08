@@ -89,7 +89,7 @@ var sim_teclado := 0  ## qual controle simulado o teclado dirige
 ## O ritmo das salas: as janelas de tempo (a runa, o escudo, o tiro, a
 ## partida) se esticam para quem joga pela primeira vez e encurtam no rápido.
 ## A quantidade de medidas nunca muda: o veredito vale nos três.
-const NIVEIS := ["primeira vez", "normal", "rápido"]
+const NIVEIS := ["Primeira vez", "Normal", "Rápido"]
 const RITMO_DO_NIVEL := [1.35, 1.0, 0.8]
 var nivel := 1
 

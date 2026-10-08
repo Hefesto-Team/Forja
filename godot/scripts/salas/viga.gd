@@ -620,13 +620,13 @@ func dica(lugar: int) -> Dictionary:
 	var partes: Array = []
 	match int(e.trecho):
 		VIGA:
-			partes = ["incline contra o vento"] if e.tem_giro or e.tem_acel else ["@stick_l", "contra o vento"]
+			partes = ["Incline contra o vento"] if e.tem_giro or e.tem_acel else ["@stick_l", "Contra o vento"]
 		SINOS:
-			partes = ["gire para mirar", "@r1", "arremessa"] if e.tem_giro else ["@stick_r", "mira", "@r1", "arremessa"]
+			partes = ["Gire para mirar", "@r1", "Arremessa"] if e.tem_giro else ["@stick_r", "Mira", "@r1", "Arremessa"]
 		PEDRA:
-			partes = ["sacuda para baixo"] if e.tem_acel else ["@cross", "martela"]
+			partes = ["Sacuda para baixo"] if e.tem_acel else ["@cross", "Martela"]
 		FIM:
-			partes = ["atravessou!"]
+			partes = ["Atravessou!"]
 	return {"partes": partes, "pos": Vector3(RAIAS[lugar], 0.0, 5.0)}
 
 

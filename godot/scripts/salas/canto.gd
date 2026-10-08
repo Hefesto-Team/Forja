@@ -529,7 +529,7 @@ func status(lugar: int) -> String:
 func progresso() -> String:
 	if fase != "jogo" or plano.is_empty():
 		return ""
-	return "canto %d de %d" % [mini(rodada + 1, plano.size()), plano.size()]
+	return "Canto %d de %d" % [mini(rodada + 1, plano.size()), plano.size()]
 
 
 func dica(lugar: int) -> Dictionary:
@@ -537,7 +537,7 @@ func dica(lugar: int) -> Dictionary:
 		return {}
 	var pos := Vector3(RAIAS[lugar], 0.0, 4.4)
 	if estado == REPETE and fonte == lugar:
-		return {"partes": ["@cross", "repita o ritmo"], "pos": pos}
+		return {"partes": ["@cross", "Repita o ritmo"], "pos": pos}
 	if estado == CANTO:
 		return {"partes": ["Ouça o canto"], "pos": pos}
 	return {}
@@ -560,12 +560,12 @@ func pergunta(lugar: int) -> Dictionary:
 		certa = 0 if fonte == lugar else 1
 		var de := "era seu" if fonte == lugar else ("era da TV" if fonte == TV else "era do P%d" % (fonte + 1))
 		if e.resposta < 0:
-			rodape = "sem resposta — %s" % de
+			rodape = "Sem resposta — %s" % de
 		elif escolhida == certa:
-			rodape = "isso: %s" % de
+			rodape = "Isso: %s" % de
 		else:
-			rodape = "não — %s" % de
-	return {"titulo": "O canto saiu do seu controle?", "opcoes": [["cross", null, "foi no meu"], ["circle", null, "não foi"]],
+			rodape = "Não — %s" % de
+	return {"titulo": "O canto saiu do seu controle?", "opcoes": [["cross", null, "Foi no meu"], ["circle", null, "Não foi"]],
 		"escolhida": escolhida, "certa": certa, "rodape": rodape, "pos": Vector3(RAIAS[lugar], 0.0, 3.9)}
 
 

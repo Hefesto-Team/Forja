@@ -47,7 +47,7 @@ func _draw() -> void:
 			match str(p.conexao_curta):
 				"USB": usb += 1
 				"BT": bt += 1
-				"simulado": sim += 1
+				"Simulado": sim += 1
 		var partes: PackedStringArray = []
 		if usb: partes.append("%d USB" % usb)
 		if bt: partes.append("%d BT" % bt)
@@ -60,10 +60,10 @@ func _draw() -> void:
 	var pulso := 0.75 + 0.25 * sin(_t * 3.0)
 	var yb := 900.0
 	if Forja.modulo and n == 0:
-		Glifo.dica(self, Vector2(x, yb), "cruz", "jogar no teclado (Enter)", Tema.T_CORPO, Color(Tema.FG, pulso), Tema.FG)
+		Glifo.dica(self, Vector2(x, yb), "cruz", "Jogar no teclado · Enter", Tema.T_CORPO, Color(Tema.FG, pulso), Tema.FG)
 	else:
-		var wc := Glifo.dica(self, Vector2(x, yb), "cruz", "começar", 40, Color(Tema.ROSA, pulso), Tema.FG)
-		Glifo.dica(self, Vector2(x + wc + 56, yb), "triangulo", "créditos", Tema.T_ROTULO, Tema.ROSA, Tema.SUAVE)
+		var wc := Glifo.dica(self, Vector2(x, yb), "cruz", "Começar", 40, Color(Tema.ROSA, pulso), Tema.FG)
+		Glifo.dica(self, Vector2(x + wc + 56, yb), "triangulo", "Créditos", Tema.T_ROTULO, Tema.ROSA, Tema.SUAVE, false)
 
 	# o rodapé
 	var rodape := "FORJA %s" % Forja.versao()

@@ -147,7 +147,7 @@ func _draw() -> void:
 			py = _paragrafo(Vector2(px, py), str(c[1]), dr.size.x - 56, dr.end.y - 24)
 			py += 14
 
-	Desenho.dicas_a_direita(self, Vector2(size.x - Tema.MARGEM_X, size.y - 40), [["cima", "linha"], ["esquerda", "lugar"], ["circulo", "fechar"]], Tema.T_SELO)
+	Desenho.dicas_a_direita(self, Vector2(size.x - Tema.MARGEM_X, size.y - 40), [["cima", "Linha"], ["esquerda", "Lugar"], ["circulo", "Fechar"]], Tema.T_SELO)
 
 
 func _celula(r: Rect2, v: Dictionary, ocupado: bool) -> void:

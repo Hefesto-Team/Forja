@@ -449,7 +449,7 @@ func _mostrar(p: ForjaPlayer, dt: float) -> void:
 	var placa: Label3D = nos.placa
 	placa.visible = fase == "jogo" and int(e.estado) == TREINO
 	if placa.visible:
-		placa.text = Desenho.t(NOME_CHAO[int(e.treino)])
+		placa.text = Desenho.t(Desenho.maiusc(NOME_CHAO[int(e.treino)]))
 		placa.modulate = COR_CHAO[int(e.treino)].lightened(0.35)
 	var aviso: Label3D = nos.aviso
 	aviso.visible = e.trop_aberto
@@ -467,10 +467,10 @@ func status(lugar: int) -> String:
 	if fase == "jogo" and j.has(lugar):
 		var e: Dictionary = j[lugar]
 		if int(e.estado) == TREINO:
-			return "treino · %s" % NOME_CHAO[mini(int(e.treino), 3)]
+			return "Treino · %s" % NOME_CHAO[mini(int(e.treino), 3)]
 		if int(e.estado) == FIM:
-			return "chegou · %d ✓" % int(e.certos)
-		return "trecho %d de %d · %d ✓" % [mini(int(e.rodada) + 1, RODADAS), RODADAS, int(e.certos)]
+			return "Chegou · %d ✓" % int(e.certos)
+		return "Trecho %d de %d · %d ✓" % [mini(int(e.rodada) + 1, RODADAS), RODADAS, int(e.certos)]
 	return super(lugar)
 
 
@@ -480,20 +480,20 @@ func dica(lugar: int) -> Dictionary:
 	var e: Dictionary = j[lugar]
 	var pos := Vector3(RAIAS[lugar], 0.0, 4.6)
 	if e.trop_aberto:
-		return {"partes": ["tropeçou!", "@l1", "esquerda", "@r1", "direita"], "pos": pos}
+		return {"partes": ["Tropeçou!", "@l1", "Esquerda", "@r1", "Direita"], "pos": pos}
 	if float(e.trop_msg) > 0.0:
 		var lado := "esquerda" if int(e.trop_agora) == 0 else "direita"
 		var disse: int = e.trop_disse
 		if disse == int(e.trop_agora):
-			return {"partes": ["isso: a pedra era da %s" % lado], "pos": pos}
-		return {"partes": ["a pedra era da %s" % lado], "pos": pos}
+			return {"partes": ["Isso: a pedra era da %s" % lado], "pos": pos}
+		return {"partes": ["A pedra era da %s" % lado], "pos": pos}
 	match int(e.estado):
 		TREINO:
-			return {"partes": ["treino: sinta %s" % SENTE[mini(int(e.treino), 3)]], "pos": pos}
+			return {"partes": ["Treino: sinta %s" % SENTE[mini(int(e.treino), 3)]], "pos": pos}
 		ANDA:
-			return {"partes": ["ande e sinta o chão"], "pos": pos}
+			return {"partes": ["Ande e sinta o chão"], "pos": pos}
 		FIM:
-			return {"partes": ["chegou"], "pos": pos}
+			return {"partes": ["Chegou"], "pos": pos}
 	return {}
 
 
@@ -507,8 +507,8 @@ func pergunta(lugar: int) -> Dictionary:
 		return {}
 	var opcoes: Array = []
 	for c in 4:
-		opcoes.append([GLIFO_CHAO[c], COR_CHAO[c], NOME_CHAO[c]])
-	opcoes.append(["touchpad", null, "não senti"])
+		opcoes.append([GLIFO_CHAO[c], COR_CHAO[c], Desenho.maiusc(NOME_CHAO[c])])
+	opcoes.append(["touchpad", null, "Não senti"])
 	var escolhida: int = e.resp
 	var certa := -1
 	var rodape := ""
@@ -516,11 +516,11 @@ func pergunta(lugar: int) -> Dictionary:
 		var c2: int = e.plano[int(e.rodada)]
 		certa = c2
 		if e.resp < 0:
-			rodape = "sem resposta — era %s" % NOME_CHAO[c2]
+			rodape = "Sem resposta — era %s" % NOME_CHAO[c2]
 		elif e.resp == c2:
-			rodape = "isso: %s" % SENTE[c2]
+			rodape = "Isso: %s" % SENTE[c2]
 		else:
-			rodape = "era %s (%s)" % [NOME_CHAO[c2], SENTE[c2]]
+			rodape = "Era %s (%s)" % [NOME_CHAO[c2], SENTE[c2]]
 	return {"titulo": "Que chão é esse?", "opcoes": opcoes, "escolhida": escolhida, "certa": certa,
 		"rodape": rodape, "pos": Vector3(RAIAS[lugar], 0.0, 4.0)}
 

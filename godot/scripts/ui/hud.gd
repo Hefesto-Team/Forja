@@ -68,9 +68,9 @@ func _draw() -> void:
 		var sobre := str(placa.get("sobre", ""))
 		var fn_p := Tema.fonte(700)
 		var fs_p := Tema.fonte(500)
-		var s := "em breve"
+		var s := "Em breve"
 		var fs := Tema.fonte(600)
-		var wd := Glifo.largura_dica("cruz", "entrar", Tema.T_CORPO) if aberta else Desenho.largura(s, fs, Tema.T_ROTULO)
+		var wd := Glifo.largura_dica("cruz", "Entrar", Tema.T_CORPO) if aberta else Desenho.largura(s, fs, Tema.T_ROTULO)
 		# a placa cresce com o texto: o "✕ entrar" nunca fica por cima do que ela diz
 		var texto_w := maxf(Desenho.largura(nome_p, fn_p, 40), Desenho.largura(sobre, fs_p, Tema.T_ROTULO))
 		var larg_p := clampf(texto_w + wd + 32 * 2 + 40, 620.0, w - 2 * Tema.MARGEM_X)
@@ -79,12 +79,12 @@ func _draw() -> void:
 		Desenho.texto(self, r.position + Vector2(32, 58), nome_p, fn_p, 40, Tema.FG)
 		Desenho.texto(self, r.position + Vector2(32, 100), sobre, fs_p, Tema.T_ROTULO, Tema.ROXO)
 		if aberta:
-			Glifo.dica(self, Vector2(r.end.x - 32 - wd, r.position.y + 84), "cruz", "entrar", Tema.T_CORPO, Tema.ROSA, Tema.FG)
+			Glifo.dica(self, Vector2(r.end.x - 32 - wd, r.position.y + 84), "cruz", "Entrar", Tema.T_CORPO, Tema.ROSA, Tema.FG)
 		else:
 			Desenho.texto(self, Vector2(r.end.x - 32 - wd, r.position.y + 84), s, fs, Tema.T_ROTULO, Tema.COMMENT)
 
 	# as dicas de baixo
-	var pares := [["create", "diagnóstico"], ["options", "pausa"]] if create_livre and Forja.bancada else [["options", "pausa"]]
+	var pares := [["create", "Diagnóstico"], ["options", "Pausa"]] if create_livre and Forja.bancada else [["options", "Pausa"]]
 	Desenho.dicas_a_direita(self, Vector2(w - Tema.MARGEM_X, h - Tema.MARGEM_Y), pares, Tema.T_SELO)
 
 	# os avisos
@@ -121,7 +121,7 @@ func _lugares(fim: Vector2) -> void:
 		Desenho.moldura(self, r, Color(Tema.APP, 0.9), cor_id if conectado else Tema.LARANJA, 3, 12)
 		Desenho.texto(self, r.position + Vector2(20, 40), "P%d" % (l + 1), Tema.fonte(700), Tema.T_ROTULO, cor_id)
 		if not conectado:
-			Desenho.texto(self, r.position + Vector2(66, 40), "sem controle", Tema.fonte(600), Tema.T_SELO, Tema.LARANJA)
+			Desenho.texto(self, r.position + Vector2(66, 40), "Sem controle", Tema.fonte(600), Tema.T_SELO, Tema.LARANJA)
 			continue
 		var p: Dictionary = Forja.pad(int(info.get("pad", -1)))
 		Desenho.texto(self, r.position + Vector2(66, 40), str(p.get("conexao_curta", "")), Tema.fonte(600), Tema.T_SELO, Tema.FG)

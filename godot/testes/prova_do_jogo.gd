@@ -67,6 +67,7 @@ func _ready() -> void:
 	await _prova_da_partida()
 	_prova_do_modo()
 	_prova_das_frases()
+	_prova_das_maiusculas()
 	if falhas > 0:
 		printerr("%d falha(s)" % falhas)
 		get_tree().quit(1)
@@ -952,3 +953,25 @@ func _prova_das_frases() -> void:
 			achadas.append(s)
 	_esperar(Desenho._coletados.size() > 50, "as frases da tela foram colhidas (%d)" % Desenho._coletados.size())
 	_esperar(achadas.is_empty(), "jogo: nenhuma frase fala do controle como prova (%s)" % [achadas])
+
+
+## A primeira letra de uma frase de tela é maiúscula; número no começo vale (F07).
+static func _comeca_com_maiuscula(s: String) -> bool:
+	for i in s.length():
+		var c := s.substr(i, 1)
+		if c >= "0" and c <= "9":
+			return true
+		if c.to_upper() != c.to_lower():  # é letra
+			return c == c.to_upper()
+	return true  # só símbolos
+
+
+func _prova_das_maiusculas() -> void:
+	if Forja.bancada:
+		return  # o texto do núcleo (os vereditos) fica como está
+	var achadas: Array = []
+	for s in Desenho._coletados:
+		if not _comeca_com_maiuscula(str(s)):
+			achadas.append(s)
+	_esperar(achadas.is_empty(), "jogo: toda frase de tela começa com maiúscula (%d: %s)" % [achadas.size(), achadas.slice(0, 60)])
+	_esperar(Desenho._coletados.has("Botão"), "as dicas de botão dizem \"Botão\"")

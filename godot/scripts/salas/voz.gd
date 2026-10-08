@@ -545,15 +545,15 @@ func status(lugar: int) -> String:
 	var e: Dictionary = j[lugar]
 	match estado:
 		SILENCIO:
-			return "silêncio"
+			return "Silêncio"
 		CHAMADO:
 			if _mudo_no_sistema(e):
-				return "microfone mudo"
+				return "Microfone mudo"
 			if vez == lugar:
-				return "chamou ✓" if e.chamou else "sua vez: chame!"
-			return "chamou ✓" if e.chamou else "quieto"
+				return "Chamou ✓" if e.chamou else "Sua vez: chame!"
+			return "Chamou ✓" if e.chamou else "Quieto"
 		MUDO, SUSSURRO:
-			return "mudo ✓" if e.apertou_mudo else "fique mudo"
+			return "Mudo ✓" if e.apertou_mudo else "Fique mudo"
 		LUZ:
 			return "%d ✓" % int(e.luz.certos)
 	return "%d pontos" % pontos[lugar]
@@ -564,15 +564,15 @@ func progresso() -> String:
 		return ""
 	match estado:
 		SILENCIO:
-			return "o silêncio de todos"
+			return "O silêncio de todos"
 		CHAMADO:
-			return "o chamado · P%d" % (vez + 1) if vez >= 0 else "o chamado"
+			return "O chamado · P%d" % (vez + 1) if vez >= 0 else "O chamado"
 		MUDO:
-			return "o mudo"
+			return "O mudo"
 		SUSSURRO:
-			return "mudos, sussurrem"
+			return "Mudos, sussurrem"
 		LUZ:
-			return "a luz do microfone"
+			return "A luz do microfone"
 	return ""
 
 
@@ -583,19 +583,19 @@ func dica(lugar: int) -> Dictionary:
 	var pos := Vector3(RAIAS[lugar], 0.0, 4.4)
 	match estado:
 		SILENCIO:
-			return {"partes": ["silêncio: o guardião dorme"], "pos": pos}
+			return {"partes": ["Silêncio: o guardião dorme"], "pos": pos}
 		CHAMADO:
 			if _mudo_no_sistema(e):
 				return {"partes": ["@mic", "A sua vez passa"], "pos": pos}
 			if vez == lugar:
-				return {"partes": ["fale alto: chame o guardião"], "pos": pos}
-			return {"partes": ["quieto: é a vez do P%d" % (vez + 1)], "pos": pos}
+				return {"partes": ["Fale alto: chame o guardião"], "pos": pos}
+			return {"partes": ["Quieto: é a vez do P%d" % (vez + 1)], "pos": pos}
 		MUDO:
 			if not e.apertou_mudo:
-				return {"partes": ["@mic", "fique mudo"], "pos": pos}
-			return {"partes": ["mudo"], "pos": pos}
+				return {"partes": ["@mic", "Fique mudo"], "pos": pos}
+			return {"partes": ["Mudo"], "pos": pos}
 		SUSSURRO:
-			return {"partes": ["mudo, sussurre baixinho"], "pos": pos}
+			return {"partes": ["Mudo, sussurre baixinho"], "pos": pos}
 		ESPERA:
 			return {"partes": ["…"], "pos": pos}
 	return {}
@@ -611,19 +611,19 @@ func pergunta(lugar: int) -> Dictionary:
 		return {}
 	var opcoes: Array = []
 	for k in 3:
-		opcoes.append([GLIFO_LUZ[k], null, NOME_LUZ[k]])
+		opcoes.append([GLIFO_LUZ[k], null, Desenho.maiusc(NOME_LUZ[k])])
 	var certa := -1
 	var rodape := ""
 	if int(e.fase) == REVELA_LUZ:
 		certa = e.modo
 		if e.resp < 0:
-			rodape = "sem resposta — estava %s" % NOME_LUZ[int(e.modo)]
+			rodape = "Sem resposta — estava %s" % NOME_LUZ[int(e.modo)]
 		elif e.resp == e.modo:
-			rodape = "isso: a luz obedeceu"
+			rodape = "Isso: a luz obedeceu"
 		else:
-			rodape = "não — o jogo mandou %s" % NOME_LUZ[int(e.modo)]
+			rodape = "Não — o jogo mandou %s" % NOME_LUZ[int(e.modo)]
 	elif float(e.t) < LUZ_ESPERA:
-		rodape = "olhe o controle…"
+		rodape = "Olhe o controle…"
 	return {"titulo": "Como está a luz do microfone?", "opcoes": opcoes, "escolhida": e.resp, "certa": certa,
 		"rodape": rodape, "pos": Vector3(RAIAS[lugar], 0.0, 3.9)}
 

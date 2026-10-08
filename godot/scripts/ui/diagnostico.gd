@@ -54,7 +54,7 @@ func _draw() -> void:
 		Tema.fonte(400), Tema.T_ROTULO, Tema.SUAVE)
 	for l in 4:
 		_coluna(l, Vector2(_x0() + l * (COLUNA + CALHA), TOPO))
-	Desenho.dicas_a_direita(self, Vector2(size.x - Tema.MARGEM_X, size.y - 40), [["circulo", "fechar"]], Tema.T_SELO)
+	Desenho.dicas_a_direita(self, Vector2(size.x - Tema.MARGEM_X, size.y - 40), [["circulo", "Fechar"]], Tema.T_SELO)
 
 
 ## Um número sem o "-0" do zero negativo.
@@ -108,7 +108,7 @@ func _coluna(l: int, o: Vector2) -> void:
 	Desenho.moldura(self, r, Tema.PAINEL, cor_id if conectado else Tema.LARANJA, 3, Tema.RAIO_QUADRO)
 	var p: Dictionary = Forja.pad(int(info.get("pad", -1))) if conectado else {}
 	Desenho.texto(self, o + Vector2(24, 46), "P%d" % (l + 1), Tema.fonte(700), Tema.T_CORPO, cor_id)
-	var cabeca := "%s  ·  %s" % [p.get("conexao_curta", "sem controle"), p.get("origem_curta", "")] if conectado else "sem controle"
+	var cabeca := "%s  ·  %s" % [p.get("conexao_curta", "Sem controle"), p.get("origem_curta", "")] if conectado else "Sem controle"
 	Desenho.texto(self, o + Vector2(76, 46), cabeca, Tema.fonte(600), 22, Tema.FG if conectado else Tema.LARANJA, HORIZONTAL_ALIGNMENT_LEFT, COLUNA - 100)
 	if not conectado:
 		return

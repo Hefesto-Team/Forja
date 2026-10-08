@@ -71,13 +71,13 @@ func _aviso() -> void:
 		Desenho.moldura(self, chip, Tema.SEL if pronto else Tema.APP, cor_id, 3, 12)
 		Desenho.texto(self, chip.position + Vector2(20, 42), "P%d" % (l + 1), Tema.fonte(700), Tema.T_ROTULO, cor_id)
 		if pronto:
-			Desenho.texto(self, chip.position + Vector2(62, 42), "✓ pronto", Tema.fonte(600), Tema.T_SELO, Tema.VERDE, HORIZONTAL_ALIGNMENT_LEFT, 180)
+			Desenho.texto(self, chip.position + Vector2(62, 42), "✓ Pronto", Tema.fonte(600), Tema.T_SELO, Tema.VERDE, HORIZONTAL_ALIGNMENT_LEFT, 180)
 		else:
 			# encolhe em vez de cortar (com o texto grande não caberia)
 			var tam_ag := Tema.T_SELO
-			while tam_ag > 20 and Desenho.largura("aguardando", Tema.fonte(400), tam_ag) > 180.0:
+			while tam_ag > 20 and Desenho.largura("Aguardando", Tema.fonte(400), tam_ag) > 180.0:
 				tam_ag -= 1
-			Desenho.texto(self, chip.position + Vector2(62, 42), "aguardando", Tema.fonte(400), tam_ag, Tema.MUDO, HORIZONTAL_ALIGNMENT_LEFT, 180)
+			Desenho.texto(self, chip.position + Vector2(62, 42), "Aguardando", Tema.fonte(400), tam_ag, Tema.MUDO, HORIZONTAL_ALIGNMENT_LEFT, 180)
 		if som:
 			_som_do_lugar(chip, l, papel)
 		cx += 258
@@ -87,11 +87,11 @@ func _aviso() -> void:
 	var resta := 1.0 - clampf(float(sala.t_fase) / SalaJogo.AVISO_MAX, 0.0, 1.0)
 	draw_rect(Rect2(trilho.position, Vector2(trilho.size.x * resta, 8.0)), Tema.ROXO)
 	# os botões, embaixo à direita (a linha dos lugares é dos quatro)
-	var dicas := [["cruz", "pronto"]]
+	var dicas := [["cruz", "Pronto"]]
 	if som:
-		dicas = [["esquerda", "trocar"], ["triangulo", "testar"], ["cruz", "pronto"]]
+		dicas = [["esquerda", "Trocar"], ["triangulo", "Testar"], ["cruz", "Pronto"]]
 		if papel == Forja.PAPEL_MICROFONE:
-			dicas = [["esquerda", "trocar"], ["cruz", "pronto"]]
+			dicas = [["esquerda", "Trocar"], ["cruz", "Pronto"]]
 	Desenho.dicas_a_direita(self, Vector2(r.end.x - 48, trilho.position.y + 52), dicas, Tema.T_ROTULO)
 
 
@@ -114,7 +114,7 @@ func _som_do_lugar(chip: Rect2, l: int, papel: int) -> void:
 	var topo := chip.position.y + 64.0 + 8.0
 	var alt_nome := Desenho.paragrafo(self, Vector2(x, topo + f.get_ascent(Tema.t(tam))), nome_cabe, f, tam,
 		Tema.FG if tem else Tema.LARANJA, w, 3)
-	var como := Forja.som_como(l, papel) if tem else "não achado"
+	var como := Forja.som_como(l, papel) if tem else "Não achado"
 	var y_como := topo + alt_nome + f2.get_ascent(Tema.t(tam))
 	Desenho.texto(self, Vector2(x, y_como), Desenho.caber(como, f2, tam, w, 1), f2, tam, Tema.MUDO)
 	if papel == Forja.PAPEL_MICROFONE and tem:
@@ -337,7 +337,7 @@ func _tempo() -> void:
 ## O selo do treino no alto, e o "Valendo!" grande quando ele acaba.
 func _treino_e_valendo() -> void:
 	if sala.treinando:
-		var s := "treino — não vale ponto"
+		var s := "Treino — não vale ponto"
 		var f := Tema.fonte(600)
 		var w := Desenho.largura(s, f, Tema.T_ROTULO) + 56
 		var r := Rect2(Vector2((size.x - w) * 0.5, 176), Vector2(w, 56))

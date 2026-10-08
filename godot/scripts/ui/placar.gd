@@ -143,22 +143,22 @@ func _draw() -> void:
 		Desenho.texto(self, Vector2(x, r.position.y + 140), frase_do_vencedor(lista), Tema.fonte(600), Tema.T_CORPO, Tema.VERDE)
 	else:
 		Desenho.texto(self, Vector2(x, r.position.y + 84), "O placar", Tema.fonte(700), Tema.T_TITULO, Tema.FG)
-		var depois := "depois d%s · sala %d de %d" % [_contracao(str(ultima.nome)), partida.historico.size(), partida.salas.size()]
+		var depois := "Depois d%s · sala %d de %d" % [_contracao(str(ultima.nome)), partida.historico.size(), partida.salas.size()]
 		Desenho.texto(self, Vector2(x, r.position.y + 140), depois, Tema.fonte(500), Tema.T_ROTULO, Tema.ROXO)
 		if _virada and _t >= T_LIDER:
 			var fv := Tema.fonte(700)
 			var pulso := 1.0 + 0.06 * sin(_t * 8.0)
 			var tv := int(Tema.T_SUBTITULO * pulso)
-			Desenho.texto(self, Vector2(r.end.x - 48 - Desenho.largura("virada!", fv, tv), r.position.y + 90), "virada!", fv, tv, Tema.ROSA)
+			Desenho.texto(self, Vector2(r.end.x - 48 - Desenho.largura("Virada!", fv, tv), r.position.y + 90), "Virada!", fv, tv, Tema.ROSA)
 	# o cabeçalho das colunas
 	var y0 := r.position.y + 206
 	var c_total := r.end.x - 48 - 150
 	var c_sala := c_total - 300
 	if no_podio:
-		Desenho.texto(self, Vector2(c_sala, y0), "salas vencidas", Tema.fonte(600), Tema.T_SELO, Tema.MUDO)
+		Desenho.texto(self, Vector2(c_sala, y0), "Salas vencidas", Tema.fonte(600), Tema.T_SELO, Tema.MUDO)
 	else:
-		Desenho.texto(self, Vector2(c_sala, y0), "nesta sala", Tema.fonte(600), Tema.T_SELO, Tema.MUDO)
-	Desenho.texto(self, Vector2(c_total, y0), "da noite", Tema.fonte(600), Tema.T_SELO, Tema.MUDO)
+		Desenho.texto(self, Vector2(c_sala, y0), "Nesta sala", Tema.fonte(600), Tema.T_SELO, Tema.MUDO)
+	Desenho.texto(self, Vector2(c_total, y0), "Da noite", Tema.fonte(600), Tema.T_SELO, Tema.MUDO)
 	y0 += 22
 	# a posição de cada lugar antes e depois (as linhas deslizam entre as duas)
 	var pos_antes := {}
@@ -182,7 +182,7 @@ func _draw() -> void:
 			Tema.VERDE if primeiro else Tema.FG)
 		Desenho.texto(self, Vector2(b.position.x + 110, cy), "P%d" % (l + 1), Tema.fonte(700), Tema.T_CORPO, cor_id)
 		if primeiro and not no_podio:
-			Desenho.selo(self, Vector2(b.position.x + 180, cy - 30), "lidera", Tema.VERDE)
+			Desenho.selo(self, Vector2(b.position.x + 180, cy - 30), "Lidera", Tema.VERDE)
 		if no_podio:
 			Desenho.texto(self, Vector2(c_sala, cy), "%d" % int(e.vitorias), Tema.mono(500), Tema.T_MONO, Tema.SUAVE)
 		else:
@@ -206,10 +206,10 @@ func _draw() -> void:
 		return
 	if no_podio:
 		Desenho.dicas_a_esquerda(self, Vector2(r.position.x + 48, r.end.y + 60),
-			[["cruz", "outra partida"], ["circulo", "voltar ao salão"]], Tema.T_ROTULO)
+			[["cruz", "Outra partida"], ["circulo", "Voltar ao salão"]], Tema.T_ROTULO)
 	else:
 		var seguinte := partida.sala_atual()
-		var texto := "a seguir: %s" % Partida.NOMES.get(seguinte, seguinte) if seguinte != "" else "o pódio"
+		var texto := "A seguir: %s" % Partida.NOMES.get(seguinte, seguinte) if seguinte != "" else "O pódio"
 		Desenho.dicas_a_direita(self, Vector2(r.end.x - 48, r.end.y + 60), [["cruz", texto]], Tema.T_ROTULO)
 
 

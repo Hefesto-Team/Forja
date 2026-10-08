@@ -184,7 +184,7 @@ func _portao(p: Dictionary) -> void:
 	icone.texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
 	placa.add_child(icone)
 	var sobre := Label3D.new()
-	sobre.text = Desenho.t(p.sobre) if p.aberta else Desenho.t(p.sobre) + " · " + Desenho.t("em breve")
+	sobre.text = Desenho.t(p.sobre) if p.aberta else Desenho.t(p.sobre) + " · " + Desenho.t("Em breve")
 	sobre.font = Tema.fonte(500)
 	sobre.font_size = 64
 	sobre.pixel_size = 0.004

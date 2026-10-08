@@ -39,4 +39,4 @@ func _draw() -> void:
 	Desenho.texto(self, Vector2(c.x - Desenho.largura(nome, f, Tema.T_DISPLAY) * 0.5, c.y + 110.0), nome, f, Tema.T_DISPLAY,
 		Color(Tema.FG, a))
 	if _t > 1.0:
-		Desenho.dicas_a_direita(self, Vector2(size.x - Tema.MARGEM_X, size.y - Tema.MARGEM_Y), [["circulo", "voltar"]], Tema.T_SELO)
+		Desenho.dicas_a_direita(self, Vector2(size.x - Tema.MARGEM_X, size.y - Tema.MARGEM_Y), [["circulo", "Voltar"]], Tema.T_SELO)

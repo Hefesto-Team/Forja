@@ -88,7 +88,7 @@ const TREINO_MAX := 15.0
 ## Na Prova de Fogo: "Prova de Fogo · sala 3 de 9" (vazio fora dela), e o que
 ## o ✕ do veredito faz.
 var na_prova_de_fogo := ""
-var seguir := "voltar ao salão"
+var seguir := "Voltar ao salão"
 var _teste_dir := [0.0, 0.0, 0.0, 0.0]  ## o segundo pulso do teste da háptica
 
 
@@ -422,13 +422,13 @@ func _quadro_fim() -> void:
 ## A linha da HUD de cada lugar: pontos, ou "terminou".
 func status(lugar: int) -> String:
 	if fase == "aviso":
-		return "pronto" if prontos[lugar] else "✕ quando pronto"
+		return "Pronto" if prontos[lugar] else "✕ Quando pronto"
 	if fase == "fim":
 		return "%d pontos" % pontos[lugar]
 	if acabou[lugar]:
-		return "terminou · %d" % pontos[lugar]
+		return "Terminou · %d" % pontos[lugar]
 	if treinando:
-		return "treino ✓" if _treino_ok[lugar] else "treino"
+		return "Treino ✓" if _treino_ok[lugar] else "Treino"
 	return "%d pontos" % pontos[lugar]
 
 

@@ -761,12 +761,12 @@ func progresso() -> String:
 		return ""
 	match etapa:
 		CONTAGEM:
-			return "a partida começa em %d" % ceili(CONTAGEM_S - t_etapa)
+			return "A partida começa em %d" % ceili(CONTAGEM_S - t_etapa)
 		PARTIDA:
 			var resta := maxi(0, ceili(PARTIDA_S * ritmo_nivel - t_etapa))
 			return "Brasa %d × %d Maré · %d:%02d" % [placar[0], placar[1], resta / 60, resta % 60]
 		LEDS, COR:
-			return "a prova final, às cegas"
+			return "A prova final, às cegas"
 		PLACAR:
 			return "Brasa %d × %d Maré" % [placar[0], placar[1]]
 	return ""
@@ -778,9 +778,9 @@ func dica(lugar: int) -> Dictionary:
 	var e: Dictionary = lut[lut_do_lugar[lugar]]
 	var pos := Vector3(e.pos.x, 0.0, e.pos.z + 1.6)
 	if float(e.especial) >= 1.0:
-		return {"partes": ["@touchpad", "martelada!"], "pos": pos}
+		return {"partes": ["@touchpad", "Martelada!"], "pos": pos}
 	if int(e.municao) == 0 and float(e.recarga) <= 0.0:
-		return {"partes": ["@square", "recarregue"], "pos": pos}
+		return {"partes": ["@square", "Recarregue"], "pos": pos}
 	return {}
 
 
@@ -799,7 +799,7 @@ func pergunta(lugar: int) -> Dictionary:
 		if leds:
 			opcoes.append([GLIFO[k], null, "%d luzinha%s" % [k + 1, "" if k == 0 else "s"]])
 		else:
-			opcoes.append([GLIFO[k], CORES[k].cor, CORES[k].nome])
+			opcoes.append([GLIFO[k], CORES[k].cor, Desenho.maiusc(CORES[k].nome)])
 	var escolhida := int(f.resp)
 	var certa := -1
 	var rodape := ""
@@ -807,13 +807,13 @@ func pergunta(lugar: int) -> Dictionary:
 		escolhida = int(f.get("ultima", -1))
 		certa = int(f.get("certa", -1))
 		if escolhida < 0:
-			rodape = "sem resposta"
+			rodape = "Sem resposta"
 		elif escolhida == certa:
-			rodape = "isso: obedeceu, mesmo com tudo ligado"
+			rodape = "Isso: obedeceu, mesmo com tudo ligado"
 		else:
-			rodape = "não — o jogo mandou %s" % (("%d" % pedido) if leds else CORES[pedido].nome)
+			rodape = "Não — o jogo mandou %s" % (("%d" % pedido) if leds else CORES[pedido].nome)
 	elif float(f.t) < PERGUNTA_ESPERA:
-		rodape = "olhe o controle…"
+		rodape = "Olhe o controle…"
 	var col: Dictionary = lut[lut_do_lugar[lugar]]
 	return {"titulo": "Quantas luzinhas acesas?" if leds else "Que cor está a sua luz?", "opcoes": opcoes,
 		"escolhida": escolhida, "certa": certa, "rodape": rodape, "pos": Vector3(col.pos.x, 0.0, col.pos.z + 1.2)}
@@ -905,7 +905,7 @@ func _robo(i: int, dt: float) -> void:
 
 func com_poucos() -> String:
 	match jogadores.size():
-		1: return "você contra 2 bonecos"
+		1: return "Você contra 2 bonecos"
 		2: return "1 contra 1"
 		3: return "2 contra 1 + boneco"
 	return ""

@@ -65,6 +65,11 @@ static var _coletar := ""
 static var _coletados := {}
 
 
+## A frase com a primeira letra em maiúscula (o nome solto, em lista ou botão).
+static func maiusc(s: String) -> String:
+	return s.substr(0, 1).to_upper() + s.substr(1)
+
+
 static func t(s: String) -> String:
 	if _coletar == "":
 		_coletar = OS.get_environment("FORJA_COLETAR_TEXTOS")
@@ -182,14 +187,15 @@ static func dicas_a_direita(ci: CanvasItem, fim: Vector2, pares: Array, tam := T
 	var x := fim.x
 	for i in range(pares.size() - 1, -1, -1):
 		var par: Array = pares[i]
-		var w := Glifo.largura_dica(par[0], par[1], tam)
+		var w := Glifo.largura_dica(par[0], par[1], tam, i == 0)
 		x -= w
-		Glifo.dica(ci, Vector2(x, fim.y), par[0], par[1], tam, Tema.FG, Tema.SUAVE)
+		Glifo.dica(ci, Vector2(x, fim.y), par[0], par[1], tam, Tema.FG, Tema.SUAVE, i == 0)
 		x -= 40.0
 
 
 static func dicas_a_esquerda(ci: CanvasItem, inicio: Vector2, pares: Array, tam := Tema.T_ROTULO) -> void:
 	var x := inicio.x
-	for par in pares:
-		x += Glifo.dica(ci, Vector2(x, inicio.y), par[0], par[1], tam, Tema.FG, Tema.SUAVE)
+	for i in pares.size():
+		var par: Array = pares[i]
+		x += Glifo.dica(ci, Vector2(x, inicio.y), par[0], par[1], tam, Tema.FG, Tema.SUAVE, i == 0)
 		x += 40.0

@@ -31,14 +31,14 @@ de seis horas compara.
   ◯/Options fecha. O ✕ não faz nada ali. As opções gravam ao fechar
   (`main.gd:791`, `Opcoes.gravar(Forja.robo)`).
 - O transporte do controle já está no módulo: `Forja.pad(Forja.pad_do_lugar(l))`
-  tem `conexao_curta` = `"USB"`, `"BT"`, `"declara USB"`, `"virtual"` ou
-  `"simulado"` (`nativo/godot/forja_controles.cpp:42-55`).
+  tem `conexao_curta` = `"USB"`, `"BT"`, `"Declara USB"`, `"Virtual"` ou
+  `"Simulado"` (maiúscula desde a F07) (`nativo/godot/forja_controles.cpp:42-55`).
 - A construção do cavaleiro (G02) ainda pode não existir: é ela que mede o
   desvio com as oito marteladas.
 - **Provado nesta preparação**, numa cópia do projeto com a H01 e a H02: o
   código de "O alvo" (menos o desenho da régua) e as checagens de "Provas"
   passam na prova do jogo, com a linha `calibracao` de +80 ms e o
-  transporte `"simulado"` no registro.
+  transporte `"Simulado"` no registro.
 
 ## O alvo
 
@@ -265,7 +265,7 @@ laço; `elif ev.get("tipo", "") == "calibracao": calibracoes.append(ev)`
 dentro) e confira depois dele:
 
 ```gdscript
-	_esperar(calibracoes.any(func(ev): return int(ev.get("desvio_ms", 0)) == 80 and ev.get("transporte", "") == "simulado"),
+	_esperar(calibracoes.any(func(ev): return int(ev.get("desvio_ms", 0)) == 80 and ev.get("transporte", "") == "Simulado"),
 		"registro: a calibração de +80 ms, com o transporte do controle")
 ```
 

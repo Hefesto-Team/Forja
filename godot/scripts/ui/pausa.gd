@@ -63,4 +63,4 @@ func _draw() -> void:
 		if opcoes[i][0] == "sair":
 			cor = Tema.VERMELHO
 		Desenho.texto(self, b.position + Vector2(28, 45), opcoes[i][1], Tema.fonte(600 if i == escolhida else 500), Tema.T_CORPO, cor)
-	Desenho.dicas_a_direita(self, Vector2(r.end.x - 40, r.end.y + 60), [["cruz", "escolher"], ["circulo", "voltar"]], Tema.T_SELO)
+	Desenho.dicas_a_direita(self, Vector2(r.end.x - 40, r.end.y + 60), [["cruz", "Escolher"], ["circulo", "Voltar"]], Tema.T_SELO)
