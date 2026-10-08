@@ -87,6 +87,7 @@ typedef struct Pad {
   int saidas_falhas;
 
   int slot;          /* -1 fora da mesa */
+  int reserva;       /* o lugar dado na conexão, -1 nenhum; o ✕ do lobby confirma */
   int espelho_de;    /* slot de quem ele parece espelho, -1 nenhum */
   float visto_em;    /* app->t da conexão */
 } Pad;
@@ -98,6 +99,7 @@ typedef struct Slot {
   float desconectado_em;   /* app->t; 0 conectado */
   int pontos;
   int reconexoes;
+  int reservado_por;       /* o pad que reservou este lugar, -1 nenhum */
 } Slot;
 
 typedef struct Pads {
@@ -134,8 +136,13 @@ const char *pad_origem_rotulo(const Pad *p);        /* "DualSense nativo", "simu
  * mais rápido que o tempo real e a captura de tela mais devagar. */
 Uint64 pad_agora_ns(const struct Forja *a, const Pad *p);
 
+/* O lugar do controle: o slot, ou a reserva dada na conexão, ou -1 */
+int pad_lugar(const Pad *p);
+
 /* A mesa */
-int pads_entrar(struct Forja *a, int pad);   /* devolve o slot, -1 cheio */
+int pads_entrar(struct Forja *a, int pad);   /* o ✕ confirma a reserva; devolve o slot, -1 cheio */
+/* Passa a reserva do pad para o próximo lugar livre; devolve a reserva (a mesma, se não há outro) */
+int pads_trocar_reserva(struct Forja *a, int pad);
 void pads_sair(struct Forja *a, int slot);
 void pads_silencio(struct Forja *a, int slot); /* tudo desligado, cor e LED do lugar */
 void pads_silencio_todos(struct Forja *a);

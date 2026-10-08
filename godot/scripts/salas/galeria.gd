@@ -198,6 +198,8 @@ func _gatilho(l: int, arma: int) -> void:
 
 
 func _leds(l: int, quantos: int) -> void:
+	if not Forja.bancada:
+		return  # as luzinhas são o número do lugar; só a bancada as usa de munição
 	var mascara := (1 << clampi(quantos, 0, 5)) - 1
 	if Forja.leds_jogador(l, mascara):
 		j[l].leds_ok = true
@@ -516,7 +518,7 @@ func dar_vereditos(l: int) -> Array:
 		Forja.cega_veredito(l, "gatilho_resistencia", {"cega": e.cegas[ARCO], "nenhuma": e.cegas[NENHUMA], "sdl_aceitou": e.efeito_ok}),
 		Forja.cega_veredito(l, "gatilho_arma", {"cega": e.cegas[PISTOLA], "nenhuma": e.cegas[NENHUMA], "sdl_aceitou": e.efeito_ok}),
 		Forja.cega_veredito(l, "gatilho_vibracao", {"cega": e.cegas[METRALHADORA], "nenhuma": e.cegas[NENHUMA], "sdl_aceitou": e.efeito_ok}),
-		Forja.cega_veredito(l, "leds_jogador", {"cega": e.leds, "sdl_aceitou": e.leds_ok}),
+		Forja.cega_veredito(l, "leds_jogador", {"cega": e.leds, "sdl_aceitou": e.leds_ok or not Forja.bancada}),
 	]
 	return lista.filter(func(v): return not v.is_empty())
 
@@ -614,6 +616,8 @@ func _mostrar(l: int, p: ForjaPlayer) -> void:
 func status(lugar: int) -> String:
 	if fase == "jogo" and j.has(lugar) and not acabou[lugar]:
 		var e: Dictionary = j[lugar]
+		if int(e.passo) == ATIRAR:
+			return "%d balas" % (int(e.balas_mg) if int(e.arma) == METRALHADORA else int(e.balas))
 		return "Rodada %d de %d · %d ✓" % [int(e.rodada) + 1, e.plano.size(), e.acertos]
 	return super(lugar)
 

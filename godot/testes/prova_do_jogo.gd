@@ -68,12 +68,44 @@ func _ready() -> void:
 	_prova_do_modo()
 	_prova_das_frases()
 	_prova_das_maiusculas()
+	_prova_da_identidade()
 	if falhas > 0:
 		printerr("%d falha(s)" % falhas)
 		get_tree().quit(1)
 	else:
 		print("prova do jogo ok — lobby, player index, salas, diagnóstico e relatório")
 		get_tree().quit(0)
+
+
+## O pad (o índice do módulo) do controle simulado `s` (0..3).
+func _pad_do_sim(s: int) -> int:
+	for p in Forja.pads():
+		if str(p.nome) == "DualSense simulado %d" % (s + 1):
+			return int(p.pad)
+	return -1
+
+
+func _perc_do_sim(s: int) -> Dictionary:
+	return Forja.ctl.percepcao(_pad_do_sim(s))
+
+
+## Os simulados `sims`, tirados e postos de volta nessa ordem.
+func _religar(sims: Array) -> void:
+	for s in sims:
+		Forja.ctl.simulador_cabo(s, false)
+	await _quadros(4)
+	for s in sims:
+		Forja.ctl.simulador_cabo(s, true)
+		await _quadros(4)
+
+
+## A mesma cor, com outro brilho (a barra de luz escurece com a vida, mas não muda de cor).
+func _mesmo_tom(a: Color, b: Color) -> bool:
+	var ma := maxf(a.r, maxf(a.g, a.b))
+	var mb := maxf(b.r, maxf(b.g, b.b))
+	if ma < 0.01 or mb < 0.01:
+		return false
+	return absf(a.r / ma - b.r / mb) < 0.08 and absf(a.g / ma - b.g / mb) < 0.08 and absf(a.b / ma - b.b / mb) < 0.08
 
 
 func _perc(lugar: int) -> Dictionary:
@@ -86,13 +118,42 @@ func _prova_do_percurso() -> void:
 	_esperar(Forja.conectados() == 4, "quatro DualSense simulados (%d)" % Forja.conectados())
 	_esperar(Forja.jogadores() == 0, "ninguém no lugar antes do lobby")
 	_esperar(jogo.estado == "titulo", "o jogo abre no título")
+	for s in 4:
+		var p := _perc_do_sim(s)
+		_esperar(int(p.get("player_index", -9)) == s and int(p.get("leds_jogador", 0)) == Forja.LEDS_DO_LUGAR[s]
+			and (p.get("luz", Color.BLACK) as Color).is_equal_approx(Forja.cor_do_lugar(s)),
+			"conexão: o simulado %d já é P%d, com as luzinhas e a cor, antes de qualquer botão" % [s + 1, s + 1])
+	# conectar na ordem 3, 2, 1 (os simulados de índice 2, 1 e 0): P1, P2 e P3
+	await _religar([2, 1, 0])
+	for par in [[2, 0], [1, 1], [0, 2]]:
+		var s: int = par[0]
+		var l: int = par[1]
+		_esperar(int(Forja.pad(_pad_do_sim(s)).get("reserva", -9)) == l and int(_perc_do_sim(s).get("player_index", -9)) == l
+			and int(_perc_do_sim(s).get("leds_jogador", 0)) == Forja.LEDS_DO_LUGAR[l],
+			"ordem trocada: o simulado %d, o %dº a chegar, é P%d" % [s + 1, l + 1, l + 1])
+	await _religar([0, 1, 2])  # de volta: o simulado N é o PN
 
 	await _aperta(0, Forja.CRUZ)
 	await _quadros(40)
 	_esperar(jogo.estado == "lobby", "✕ no título leva ao lobby")
-	for s in 4:
+	# ◻ segurado um segundo, antes de confirmar: a reserva passa ao próximo lugar livre
+	Forja.ctl.simulador_cabo(1, false)  # o P2 vaga
+	await _quadros(4)
+	Forja.ctl.simulador_botao(3, Forja.QUADRADO, true)
+	await _quadros(70)
+	Forja.ctl.simulador_botao(3, Forja.QUADRADO, false)
+	await _quadros(2)
+	_esperar(int(Forja.pad(_pad_do_sim(3)).get("reserva", -9)) == 1 and int(_perc_do_sim(3).get("player_index", -9)) == 1,
+		"◻ por um segundo: o simulado 4 passa de P4 para P2, o próximo livre")
+	Forja.ctl.simulador_cabo(3, false)
+	await _quadros(4)
+	await _religar([1, 3])  # o simulado 2 volta a P2 e o 4 a P4
+	# o ✕ só confirma: em ordem inversa, cada um fica com o lugar que a conexão deu
+	for s in [3, 2, 1, 0]:
 		await _aperta(s, Forja.CRUZ)
 	await _quadros(4)
+	for s in 4:
+		_esperar(Forja.pad_do_lugar(s) == _pad_do_sim(s), "o ✕ confirma: o simulado %d é P%d, mesmo apertando por último" % [s + 1, s + 1])
 	_esperar(Forja.jogadores() == 4, "os quatro entraram")
 	_prova_da_calibracao()
 	await _prova_do_tempo_nas_opcoes()
@@ -287,11 +348,8 @@ func _prova_do_percurso() -> void:
 			var p := _perc(l)
 			_esperar(int(p.get("gatilho_dir", 0)) == 0x25, "Prova P%d: R2 arma (0x25)" % (l + 1))
 			_esperar(int(p.get("gatilho_esq", 0)) == 0x21, "Prova P%d: L2 resistência (0x21)" % (l + 1))
-			var equipe: int = prova.lut[prova.lut_do_lugar[l]].equipe
 			var luz: Color = p.get("luz", Color.BLACK)
-			var cor: Color = SalaProva.LUZ_EQUIPE[equipe]
-			_esperar(absf(luz.r - cor.r) < 0.01 and absf(luz.g - cor.g) < 0.01 and absf(luz.b - cor.b) < 0.01,
-				"Prova P%d: a luz é a da %s" % [l + 1, SalaProva.NOME_EQUIPE[equipe]])
+			_esperar(_mesmo_tom(luz, Forja.cor_do_lugar(l)), "Prova P%d: a luz é a do lugar, não a da equipe" % (l + 1))
 		await _termina_a_sala(prova, ["tudo_junto"])
 
 	for l in 4:
@@ -345,9 +403,19 @@ func _termina_a_sala(sala, features: Array) -> void:
 	var duracao_no_inicio: float = sala.get_meta("duracao_no_inicio")
 	var resta_antes := INF
 	var subiu := false
+	var amostras := 0
+	var fora_do_tom := 0
+	var leds_ok := true
 	while is_instance_valid(sala) and sala.fase != "fim" and q < 12000:
 		await _quadros(10)
 		q += 10
+		if not Forja.bancada:
+			for l in 4:
+				var pc := _perc(l)
+				amostras += 1
+				leds_ok = leds_ok and int(pc.get("leds_jogador", 0)) == Forja.LEDS_DO_LUGAR[l] and int(pc.get("player_index", -9)) == l
+				if not _mesmo_tom(pc.get("luz", Color.BLACK), Forja.cor_do_lugar(l)):
+					fora_do_tom += 1
 		if is_instance_valid(sala) and sala.duracao > 0.0 and not sala.treinando:
 			var resta: float = sala.duracao - sala.t_jogo
 			subiu = subiu or resta > resta_antes + 0.01
@@ -356,6 +424,8 @@ func _termina_a_sala(sala, features: Array) -> void:
 			viu_pergunta = viu_pergunta or _em_pergunta(sala)
 	if not Forja.bancada:
 		_esperar(not viu_pergunta, "%s: nenhuma pergunta na tela" % id)
+		_esperar(leds_ok, "%s: as luzinhas e o player index de cada um nunca mudaram" % id)
+		_esperar(fora_do_tom * 4 <= amostras, "%s: a barra de luz ficou na cor do lugar (%d de %d amostras fora)" % [id, fora_do_tom, amostras])
 	_esperar(is_instance_valid(sala) and sala.fase == "fim", "%s: o robô jogou até o fim (%d quadros)" % [id, q])
 	if not is_instance_valid(sala):
 		return
@@ -892,6 +962,13 @@ func _linha_do_tempo() -> Array:
 				if e is Dictionary:
 					linhas.append(e)
 	return linhas
+
+
+## O lugar nasce na conexão (F04): a linha do tempo diz que os quatro reservaram P1..P4, na ordem.
+func _prova_da_identidade() -> void:
+	var reservas := _linha_do_tempo().filter(func(e): return e.get("tipo") == "conexao" and e.get("evento") == "reservou")
+	_esperar(reservas.size() >= 4 and reservas.slice(0, 4).map(func(e): return int(e.get("lugar", -1))) == [0, 1, 2, 3],
+		"linha do tempo: os quatro reservaram P1..P4 na conexão, na ordem")
 
 
 ## O Modo bancada, pelo registro: a linha do tempo diz o modo, e só na bancada

@@ -224,6 +224,8 @@ static func _mascara(n: int) -> int:
 
 
 func _mostrar_municao(e: Dictionary) -> void:
+	if not Forja.bancada:
+		return  # o status já mostra as balas; as luzinhas são o número do lugar
 	if e.lugar >= 0:
 		_saida(e.lugar, Forja.leds_jogador(e.lugar, _mascara(int(e.municao))))
 
@@ -243,22 +245,22 @@ func _armar(e: Dictionary, arma: bool) -> void:
 func _atualizar_luz(e: Dictionary, dt: float) -> void:
 	e.luz_pisca = maxf(0.0, float(e.luz_pisca) - dt)
 	e.pulso_t = float(e.pulso_t) + dt
-	var c: Color = LUZ_EQUIPE[e.equipe]
+	var c: Color = Forja.cor_do_lugar(e.lugar)  # a cor do lugar; a da equipe vai para o mundo
 	var estado := 0
 	var k := 1.0
 	if float(e.fora) > 0.0:
 		estado = 10
-		k = 0.04
+		k = 0.3
 	elif float(e.luz_pisca) > 0.0:
 		estado = 11
 		c = Color(1, 0, 0)
 	elif int(e.vida) <= 1:
 		var fase_p := int(float(e.pulso_t) * 4.0) % 2
 		estado = 20 + fase_p
-		k = 0.25 if fase_p == 1 else 0.06
+		k = 0.6 if fase_p == 1 else 0.35
 	else:
 		estado = int(e.vida)
-		k = 1.0 if int(e.vida) >= 3 else 0.45
+		k = 1.0 if int(e.vida) >= 3 else 0.7
 	if estado == int(e.luz_estado):
 		return
 	e.luz_estado = estado

@@ -51,8 +51,10 @@ const char *pads_rotulo_slot(int slot) {
 
 void pads_iniciar(Forja *a) {
   SDL_memset(&a->pads, 0, sizeof(a->pads));
-  for (int s = 0; s < MAX_JOGADORES; s++)
+  for (int s = 0; s < MAX_JOGADORES; s++) {
     a->pads.slot[s].pad = -1;
+    a->pads.slot[s].reservado_por = -1;
+  }
   a->pads.ultimo_join_pad = -1;
   const char *h = SDL_GetHint(SDL_HINT_JOYSTICK_ENHANCED_REPORTS);
   a->pads.contrato_estrito = h && SDL_strcmp(h, "0") == 0;
@@ -113,6 +115,8 @@ bool pad_segura(const Pad *p, SDL_GamepadButton b) {
 
 bool pad_fala_dualsense(const Pad *p) { return p && p->cap_efeitos; }
 
+int pad_lugar(const Pad *p) { return !p ? -1 : p->slot >= 0 ? p->slot : p->reserva; }
+
 /* ---------- anotação ---------- */
 
 void pad_anotar(Forja *a, Pad *p, bool ok, const char *formato, ...) {
@@ -146,6 +150,53 @@ static void ev_saida(Forja *a, const Pad *p, const char *o, bool ok, Evento *ev)
 
 static void assinatura(const Pad *p, char *out, size_t tam) {
   snprintf(out, tam, "%s|%d|%s", p->vidpid, (int)p->origem.tipo, p->nome);
+}
+
+/* ---------- a reserva (F04) ---------- */
+
+/* O primeiro lugar que ninguém ocupa nem reservou, ou -1. */
+static int lugar_livre(const Forja *a) {
+  for (int s = 0; s < MAX_JOGADORES; s++)
+    if (!a->pads.slot[s].ocupado && a->pads.slot[s].reservado_por < 0)
+      return s;
+  return -1;
+}
+
+static void soltar_reserva(Forja *a, Pad *p) {
+  if (p->reserva >= 0) {
+    a->pads.slot[p->reserva].reservado_por = -1;
+    p->reserva = -1;
+  }
+}
+
+/* Dá o lugar `s` ao pad `idx` como reserva: o player index, a luz e as luzinhas
+ * do lugar chegam ao controle na hora, antes de qualquer botão. */
+static void dar_reserva(Forja *a, int idx, int s, const char *evento) {
+  Pad *p = &a->pads.pad[idx];
+  p->reserva = s;
+  a->pads.slot[s].reservado_por = idx;
+  pad_luz_do_slot(a, p);
+  pad_leds_do_slot(a, p);
+  Evento ev;
+  ev_iniciar(&ev, &a->lt, "conexao", s + 1);
+  ev_str(&ev, "evento", evento);
+  ev_int(&ev, "lugar", s);
+  ev_str(&ev, "nome", p->nome);
+  ev_fim(&ev, &a->lt);
+  reg_linha(&a->reg, "%s %s %s", pads_rotulo_slot(s), SDL_strcmp(evento, "trocou") == 0 ? "passou a ser de" : "reservou", p->nome);
+}
+
+/* O primeiro lugar livre vira a reserva do pad; sem lugar, o controle espera
+ * com o player index -1 (as luzinhas apagadas). */
+static bool reservar(Forja *a, int idx) {
+  Pad *p = &a->pads.pad[idx];
+  int s = lugar_livre(a);
+  if (s < 0) {
+    SDL_SetGamepadPlayerIndex(p->gp, -1);
+    return false;
+  }
+  dar_reserva(a, idx, s, "reservou");
+  return true;
 }
 
 static void preencher_relatorio(Forja *a, int slot) {
@@ -210,6 +261,7 @@ static void conectou(Forja *a, SDL_JoystickID id) {
   p->id = id;
   p->gp = gp;
   p->slot = -1;
+  p->reserva = -1;
   p->espelho_de = -1;
   p->bateria = -1;
   p->visto_em = a->t;
@@ -325,6 +377,10 @@ static void conectou(Forja *a, SDL_JoystickID id) {
     reg_linha(&a->reg, "%s voltou ao lugar (reconexão %d)", pads_rotulo_slot(candidato), sl->reconexoes);
     forja_avisar(a, "%s voltou ao lugar", pads_rotulo_slot(candidato));
   }
+  /* quem chega pela primeira vez recebe o primeiro lugar livre já na conexão
+   * (depois da volta: quem caiu reencontra o seu) */
+  if (p->slot < 0)
+    reservar(a, livre);
 }
 
 static void desconectou(Forja *a, SDL_JoystickID id) {
@@ -351,8 +407,10 @@ static void desconectou(Forja *a, SDL_JoystickID id) {
   if (p->hid)
     SDL_hid_close(p->hid);
   SDL_CloseGamepad(p->gp);
+  soltar_reserva(a, p);
   SDL_memset(p, 0, sizeof(*p));
   p->slot = -1;
+  p->reserva = -1;
   for (int b = 0; b < SDL_GAMEPAD_BUTTON_COUNT; b++)
     g_apertou[i][b] = g_soltou[i][b] = false;
 }
@@ -493,6 +551,12 @@ void pads_atualizar(Forja *a, float dt) {
       snprintf(c->bateria, sizeof(c->bateria), "%d%%%s", p->bateria, estado);
     }
   }
+  /* um lugar vagou: quem esperava sem lugar (o quinto controle) recebe */
+  for (int i = 0; i < MAX_PADS && lugar_livre(a) >= 0; i++) {
+    Pad *p = &a->pads.pad[i];
+    if (p->usado && p->slot < 0 && p->reserva < 0 && p->espelho_de < 0)
+      reservar(a, i);
+  }
 }
 
 void pads_fim_do_quadro(Forja *a) {
@@ -523,6 +587,10 @@ int pads_entrar(Forja *a, int idx) {
       reg_linha(&a->reg, "%s parece espelho de %s (o mesmo ✕ em %.1f ms): fica de fora", p->nome,
                 pads_rotulo_slot(s), d / 1e6);
       forja_avisar(a, "Esse controle parece espelho de %s — ficou de fora", pads_rotulo_slot(s));
+      /* os dois caminhos do mesmo aparelho dizem o mesmo lugar */
+      soltar_reserva(a, p);
+      SDL_SetGamepadPlayerIndex(p->gp, s);
+      pad_luz(a, p, LUZ_DO_LUGAR[s]);
       return -1;
     }
   }
@@ -533,18 +601,19 @@ int pads_entrar(Forja *a, int idx) {
   for (int s = 0; s < MAX_JOGADORES && alvo < 0; s++)
     if (a->pads.slot[s].ocupado && a->pads.slot[s].pad < 0 && strcmp(a->pads.slot[s].assinatura, sig) == 0)
       alvo = s;
-  /* depois, um lugar vazio */
+  /* depois, o lugar que a conexão deu a ele (o ✕ só confirma) */
+  if (alvo < 0 && p->reserva >= 0 && !a->pads.slot[p->reserva].ocupado)
+    alvo = p->reserva;
+  /* por fim, um lugar que ninguém ocupa nem reservou. Um controle estranho
+   * nunca herda o lugar de quem caiu: esse só volta pela assinatura. */
   for (int s = 0; s < MAX_JOGADORES && alvo < 0; s++)
-    if (!a->pads.slot[s].ocupado)
-      alvo = s;
-  /* por fim, qualquer lugar de quem caiu */
-  for (int s = 0; s < MAX_JOGADORES && alvo < 0; s++)
-    if (a->pads.slot[s].ocupado && a->pads.slot[s].pad < 0)
+    if (!a->pads.slot[s].ocupado && a->pads.slot[s].reservado_por < 0)
       alvo = s;
   if (alvo < 0)
     return -1;
   Slot *sl = &a->pads.slot[alvo];
   bool volta = sl->ocupado;
+  soltar_reserva(a, p);
   sl->ocupado = true;
   sl->pad = idx;
   sl->desconectado_em = 0;
@@ -581,14 +650,36 @@ void pads_sair(Forja *a, int slot) {
   if (!sl->ocupado)
     return;
   Pad *p = pads_do_slot(a, slot);
-  if (p) {
+  if (p)
     pads_silencio(a, slot);
-    p->slot = -1;
-    SDL_SetGamepadPlayerIndex(p->gp, -1);
-  }
   reg_linha(&a->reg, "%s deixou o lugar", pads_rotulo_slot(slot));
   SDL_memset(sl, 0, sizeof(*sl));
   sl->pad = -1;
+  sl->reservado_por = -1;
+  if (p) {
+    /* o controle continua com o número e a cor: o lugar vira a reserva dele */
+    p->slot = -1;
+    p->reserva = slot;
+    sl->reservado_por = indice_do_pad(p);
+  }
+}
+
+int pads_trocar_reserva(Forja *a, int idx) {
+  if (idx < 0 || idx >= MAX_PADS || !a->pads.pad[idx].usado)
+    return -1;
+  Pad *p = &a->pads.pad[idx];
+  if (p->slot >= 0)
+    return p->slot;
+  int base = p->reserva >= 0 ? p->reserva : -1;
+  for (int k = 1; k <= MAX_JOGADORES; k++) {
+    int s = (base + k) % MAX_JOGADORES;
+    if (s == p->reserva || a->pads.slot[s].ocupado || a->pads.slot[s].reservado_por >= 0)
+      continue;
+    soltar_reserva(a, p);
+    dar_reserva(a, idx, s, "trocou");
+    return s;
+  }
+  return p->reserva;
 }
 
 void pads_silencio(Forja *a, int slot) {
@@ -669,9 +760,10 @@ bool pad_luz(Forja *a, Pad *p, SDL_Color c) {
 }
 
 bool pad_luz_do_slot(Forja *a, Pad *p) {
-  if (!p || p->slot < 0)
+  int l = pad_lugar(p);
+  if (l < 0)
     return false;
-  return pad_luz(a, p, LUZ_DO_LUGAR[p->slot]);
+  return pad_luz(a, p, LUZ_DO_LUGAR[l]);
 }
 
 static const char *nome_modo(ForjaTriggerMode m) {
@@ -771,17 +863,18 @@ bool pad_leds_jogador(Forja *a, Pad *p, int mascara) {
 }
 
 bool pad_leds_do_slot(Forja *a, Pad *p) {
-  if (!p || !p->gp || p->slot < 0)
+  int l = pad_lugar(p);
+  if (!p || !p->gp || l < 0)
     return false;
-  bool ok = SDL_SetGamepadPlayerIndex(p->gp, p->slot);
-  p->leds_jogador = forja_leds_do_jogador(p->slot);
+  bool ok = SDL_SetGamepadPlayerIndex(p->gp, l);
+  p->leds_jogador = forja_leds_do_jogador(l);
   p->sombra.leds_jogador = (Uint8)(p->leds_jogador | 0x20);
   Evento ev;
   ev_saida(a, p, "player_index", ok, &ev);
-  ev_int(&ev, "indice", p->slot);
+  ev_int(&ev, "indice", l);
   ev_fim(&ev, &a->lt);
-  pad_anotar(a, p, ok, "player index %d (LEDs %s)", p->slot,
-             p->slot == 0 ? "--x--" : p->slot == 1 ? "-x-x-" : p->slot == 2 ? "x-x-x" : "xx-xx");
+  pad_anotar(a, p, ok, "player index %d (LEDs %s)", l,
+             l == 0 ? "--x--" : l == 1 ? "-x-x-" : l == 2 ? "x-x-x" : "xx-xx");
   return ok;
 }
 

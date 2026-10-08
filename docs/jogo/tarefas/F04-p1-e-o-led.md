@@ -363,3 +363,33 @@ A linha do tempo, no fim (com o `_linha_do_tempo()` da F01):
 - Se a API da reserva ainda não estiver no 13 ("A identidade — F04"),
   acrescentá-la no mesmo commit (a regra do 13).
 - Commit sugerido: `feat: o lugar nasce na conexão — player index, luzinhas e cor antes do primeiro botão`
+
+## O que foi feito (leva 1, o-controle)
+
+- **A reserva na conexão** (`nativo/nucleo/pads.c`, `pads.h`): `Pad.reserva`, `Slot.reservado_por`,
+  `pad_lugar()` e `pads_trocar_reserva()`. O controle que chega recebe o primeiro lugar livre, com o
+  player index, as luzinhas e a cor na hora; sem lugar livre espera com o índice -1 e o
+  `pads_atualizar` o atende quando um lugar vaga. O ✕ do lobby só confirma a reserva; a regra de
+  herdar o lugar de quem caiu foi apagada (quem caiu só volta pela assinatura). O espelho solta a
+  reserva e recebe o índice e a cor do original. `pads_sair` devolve o lugar como reserva do mesmo
+  controle (ele não perde o número nem a cor ao sair do lobby).
+- **O gesto de trocar** (`main.gd`, `cartao_jogador.gd`, `forja.gd`): ◻ segurado um segundo, antes de
+  confirmar, passa a reserva ao próximo lugar livre; o cartão do lugar reservado ganha o número na
+  cor do lugar e a dica "Segure para trocar".
+- **Nada apaga a identidade** (fora do Modo bancada): a Galeria não usa as luzinhas de munição (o
+  status diz as balas) e o veredito de luzinhas não acusa o SDL; a Prova usa a cor do lugar na barra
+  (a da equipe fica no disco, nas balas e nas faíscas) e a Prova e o Impacto nunca descem de 30% de
+  brilho; a Voz devolve a cor do lugar 0,4 s depois do vermelho do susto.
+- **Registro:** `conexao` com `"evento": "reservou"` (e `"trocou"`), `lugar` e `nome`.
+
+**Provas:** `bash tests/prova_do_jogo.sh` verde; `scripts/compilar.sh testes` verde. Réguas novas em
+`godot/testes/prova_do_jogo.gd`: o número e a cor antes de qualquer botão, a ordem de chegada
+trocada, o ◻ por um segundo, o ✕ em ordem inversa que só confirma, a luz do lugar na Prova, as
+luzinhas e a cor em cada sala (amostradas a cada 10 quadros) e a linha do tempo com as quatro
+reservas. Mordida medida: com a base antiga, 4+3+1+4 checagens de conexão, ordem, ◻ e ✕ reprovam
+(e todas as salas na checagem de luzinhas); só com as salas de antes (reverti Galeria, Prova,
+Impacto e Voz) reprovam as luzinhas de cada sala e a luz da Prova.
+
+**Para o André (local):** o que está em «Para o André (local)» acima. O jogo ao fechar não apaga as
+luzinhas de um controle reservado e não confirmado (só os lugares ocupados são silenciados): conferir
+com o aparelho se isso incomoda.

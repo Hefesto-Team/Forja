@@ -31,9 +31,14 @@ func _draw() -> void:
 
 	if not ocupado:
 		Desenho.moldura(self, r, Color(Tema.APP, 0.92), Tema.SUTIL, 2, Tema.RAIO_CARTAO)
-		Desenho.texto(self, Vector2(x, 52), rotulo, Tema.fonte(700), Tema.T_CORPO, Tema.MUDO)
+		var reservado: bool = info.get("reservado", false)
+		Desenho.texto(self, Vector2(x, 52), rotulo, Tema.fonte(700), Tema.T_CORPO, cor_id if reservado else Tema.MUDO)
 		Desenho.texto(self, Vector2(x + 52, 52), "·  —", fonte, Tema.T_ROTULO, Tema.MUDO)
-		_dica(Vector2(x, size.y - 40), "cruz", "Entrar", Tema.SUAVE, Tema.MUDO)
+		if reservado:
+			_dica(Vector2(x, size.y - 70), "cruz", "Entrar", Tema.SUAVE, Tema.MUDO)
+			_dica(Vector2(x, size.y - 32), "quadrado", "Segure para trocar", Tema.SUAVE, Tema.MUDO, false)
+		else:
+			_dica(Vector2(x, size.y - 40), "cruz", "Entrar", Tema.SUAVE, Tema.MUDO)
 		return
 
 	var p: Dictionary = Forja.pad(int(info.get("pad", -1))) if conectado else {}

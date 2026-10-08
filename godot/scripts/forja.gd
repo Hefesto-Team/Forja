@@ -333,6 +333,12 @@ func entrar(indice: int) -> int:
 	return ctl.entrar(indice) if modulo else -1
 
 
+## Passa a reserva do controle para o próximo lugar livre (◻ segurado no lobby).
+## Devolve a reserva nova, ou a mesma quando não há outro lugar livre.
+func trocar_lugar(indice: int) -> int:
+	return ctl.trocar_lugar(indice) if modulo else -1
+
+
 func sair(l: int) -> void:
 	if modulo:
 		ctl.sair(l)
@@ -370,6 +376,10 @@ func soltou(l: int, botao: int) -> bool:
 
 func pad_apertou(indice: int, botao: int) -> bool:
 	return ctl.pad_apertou(indice, botao) if modulo else false
+
+
+func pad_segura(indice: int, botao: int) -> bool:
+	return ctl.pad_segura(indice, botao) if modulo else false
 
 
 ## Algum lugar apertou o botão? Devolve o lugar, ou -1.

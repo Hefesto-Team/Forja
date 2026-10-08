@@ -179,7 +179,7 @@ func _montar_raia(l: int, p: ForjaPlayer) -> Dictionary:
 # ------------------------------------------------------------------ as saídas --
 
 func _cor_da_vida(l: int) -> Color:
-	var k := 0.12 + 0.88 * clampf(float(j[l].vida), 0.0, 1.0)
+	var k := 0.3 + 0.7 * clampf(float(j[l].vida), 0.0, 1.0)
 	return Forja.cor_do_lugar(l) * k
 
 

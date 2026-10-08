@@ -62,6 +62,7 @@ public:
   int pad_do_lugar(int lugar) const;
   Dictionary lugar(int lugar) const;
   int entrar(int indice);
+  int trocar_lugar(int indice);
   void sair(int lugar);
 
   /* a entrada */

@@ -42,6 +42,7 @@ enum { OLHAR, REVELA_LUZ, FIM_LUZ }
 
 var estado := SILENCIO
 var t_estado := 0.0
+var _luz_do_susto := false  ## o vermelho do susto ainda está aceso (a cor do lugar volta aos 0,4 s)
 var vez := -1  ## no chamado: o lugar que fala
 var ordem: Array = []  ## os lugares, na ordem do chamado
 var i_vez := 0
@@ -294,6 +295,7 @@ func _susto() -> void:
 			continue
 		Forja.vibrar(l, 1.0, 1.0, 700)
 		Forja.luz(l, Color(1.0, 0.08, 0.04))
+		_luz_do_susto = true
 		Forja.som_falante(l, "grito", 1.0)
 		p.gesto("emote-no", 1.2)
 	Som.tocar("grito", GUARDIAO, 0.0)
@@ -452,6 +454,12 @@ func jogar(dt: float) -> void:
 				t_estado = 0.0
 				_susto()
 		SUSTO:
+			# o vermelho do susto dura 0,4 s; a cor do lugar nunca fica de fora
+			if t_estado >= 0.4 and _luz_do_susto:
+				_luz_do_susto = false
+				for l in j:
+					if _conectado(l):
+						Forja.luz_do_lugar(l)
 			if t_estado >= SUSTO_S:
 				for l in j:
 					if _conectado(l):

@@ -589,7 +589,20 @@ func _quadro_titulo() -> void:
 		_trocar(_ir_para_o_lobby)
 
 
+var _quadrado_t := {}  ## pad → quanto tempo o ◻ está segurado (antes de confirmar o lugar)
+
+
 func _quadro_lobby(dt: float) -> void:
+	# ◻ segurado um segundo, antes de confirmar: a reserva passa ao próximo lugar livre
+	for p in Forja.pads():
+		var i := int(p.pad)
+		if int(p.lugar) >= 0 or not Forja.pad_segura(i, Forja.QUADRADO):
+			_quadrado_t.erase(i)
+			continue
+		_quadrado_t[i] = float(_quadrado_t.get(i, 0.0)) + dt
+		if float(_quadrado_t[i]) >= 1.0:
+			Forja.trocar_lugar(i)
+			_quadrado_t[i] = -INF  # só de novo depois de soltar
 	# quem ainda não tem lugar entra com ✕ (e esse ✕ não conta como pronto)
 	var chegou := [false, false, false, false]
 	for p in Forja.pads():

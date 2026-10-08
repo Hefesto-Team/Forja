@@ -68,6 +68,7 @@ Dictionary info_do_pad(int i, const Pad *p) {
   d["virtual"] = p->simulado || origem_eh_virtual(p->origem.tipo) != 0;
   d["simulado"] = p->simulado;
   d["lugar"] = p->slot;
+  d["reserva"] = p->reserva;
   d["espelho_de"] = p->espelho_de;
   d["bateria"] = p->bateria;
   d["carregando"] = p->energia == SDL_POWERSTATE_CHARGING;
@@ -187,10 +188,12 @@ Dictionary ForjaControles::lugar(int lugar) const {
   d["reconexoes"] = sl->reconexoes;
   d["cor"] = cor(LUZ_DO_LUGAR[lugar]);
   d["leds"] = (int)forja_leds_do_jogador(lugar);
+  d["reservado"] = sl->reservado_por >= 0;
   return d;
 }
 
 int ForjaControles::entrar(int indice) { return aberto_ ? pads_entrar(FORJA, indice) : -1; }
+int ForjaControles::trocar_lugar(int indice) { return aberto_ ? pads_trocar_reserva(FORJA, indice) : -1; }
 void ForjaControles::sair(int lugar) {
   if (aberto_)
     pads_sair(FORJA, lugar);
@@ -612,6 +615,7 @@ void ForjaControles::_bind_methods() {
   METODO(pad_do_lugar, "lugar");
   METODO(lugar, "lugar");
   METODO(entrar, "indice");
+  METODO(trocar_lugar, "indice");
   METODO(sair, "lugar");
 
   METODO(pad_apertou, "indice", "botao");
