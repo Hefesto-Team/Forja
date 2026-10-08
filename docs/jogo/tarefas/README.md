@@ -49,8 +49,8 @@ Estados: **a fazer**, **fazendo** (com o nome de quem pegou), **feito**
 | ficha | título | tamanho | depende de | estado |
 | --- | --- | --- | --- | --- |
 | [H01](H01-o-relogio-de-audio.md) | O relógio de áudio | M | F00 | feito |
-| [H02](H02-as-janelas.md) | As janelas de julgamento | M | F00, H01 | a fazer |
-| [H03](H03-a-calibracao.md) | A calibração | P | F00, H02 (e G02 para a medida automática — ver "Sem a G02") | a fazer |
+| [H02](H02-as-janelas.md) | As janelas de julgamento | M | F00, H01 | feito |
+| [H03](H03-a-calibracao.md) | A calibração | P | F00, H02 (e G02 para a medida automática — ver "Sem a G02") | feito, sem a medida automática da G02 |
 | [H04](H04-o-kit-do-minigame.md) | O kit do minigame | G | F00, F03, F05, F08, F09, H01, H02 | a fazer |
 | [H05](H05-o-pipeline-das-faixas.md) | O pipeline das faixas | M | F00, H01 | feito |
 | [H06](H06-os-jingles.md) | Os jingles | P | F00, F03, H01, H04, H05 | a fazer |
