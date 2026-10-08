@@ -14,14 +14,28 @@ GODOT="$FORJA_GODOT"
 [ -x "$GODOT" ] || { echo "sem Godot: rode ./run-local.sh uma vez, ou GODOT=<binário>"; exit 2; }
 TMP="$(mktemp -d /tmp/forja-prova-da-bancada-XXXXXX)"
 trap 'rm -rf "$TMP"' EXIT
-"$GODOT" --headless --path "$RAIZ/godot" --import > "$TMP/import.log" 2>&1
+# A caixa, como na prova do jogo: sem ela, o P1 vira o DualSense ligado na
+# máquina e os experimentos tocam o alto-falante, a háptica e os gatilhos dele.
+mkdir -p "$TMP/bin" "$TMP/sys-vazio"
+printf '#!/usr/bin/env bash\nexit 0\n' > "$TMP/bin/pactl"
+printf '#!/usr/bin/env bash\ncat > /dev/null\nexit 0\n' > "$TMP/bin/pw-cat"
+chmod +x "$TMP/bin/pactl" "$TMP/bin/pw-cat"
+export PATH="$TMP/bin:$PATH"
+export FORJA_SYSFS="$TMP/sys-vazio"
+[ "$(command -v pactl)" = "$TMP/bin/pactl" ] || { echo "GUARDA: pactl não é o de mentira"; exit 1; }
+CAIXA=()
+if command -v bwrap > /dev/null; then
+  CAIXA=(bwrap --dev-bind / / --dev /dev --tmpfs /run/udev --tmpfs /sys/class/input
+         --tmpfs /sys/class/hidraw)
+fi
+"${CAIXA[@]}" "$GODOT" --headless --path "$RAIZ/godot" --import > "$TMP/import.log" 2>&1
 
 FALHAS=0
 rodar() {  # $1 experimento, $2 nome da rodada, depois os argumentos a mais
   local exp="$1" nome="$2"
   shift 2
   mkdir -p "$TMP/$nome"
-  timeout 300 "$GODOT" --headless --fixed-fps 60 --path "$RAIZ/godot" -- --simular=4 --robo --semente=7 \
+  timeout 300 "${CAIXA[@]}" "$GODOT" --headless --fixed-fps 60 --path "$RAIZ/godot" -- --simular=4 --robo --semente=7 \
     --experimento="$exp" --relatorios="$TMP/$nome" "$@" > "$TMP/$nome.log" 2>&1
   local rc=$?
   cat "$TMP/$nome"/registro-*.log 2>/dev/null | grep "experimento $exp ·" > "$TMP/$nome.linhas"
