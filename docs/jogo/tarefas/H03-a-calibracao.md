@@ -306,7 +306,15 @@ rádio +Y ms"). Feche e abra o jogo: os valores ficaram.
   bordas, o arquivo de ida e volta e fora da régua, o metrônomo, o limite de 8 toques, o `Ritmo` lendo as
   opções) e a linha `calibracao` de +80 ms com o transporte `simulado` no registro. A prova do jogo
   ficou verde; cada régua morde (a cura arrancada reprova, devolvida volta).
+- Na conferência, dois defeitos do metrônomo, curados em `tela_opcoes.gd`: o primeiro tique saía no meio
+  da batida quando a linha Tempo era escolhida depois de abrir as opções (agora a batida achada mais de
+  50 ms tarde passa calada); e o ✕ se media contra o instante em que o tique saía, não contra o instante
+  em que ele chega ao ouvido, então o valor ajustado somava a latência de saída do som que o `Ritmo` já
+  desconta no jogo (agora o ✕ se mede contra o próximo mix mais `AudioServer.get_output_latency()`, como
+  o zero do `Ritmo`). A prova ganhou essas duas réguas e o caminho de verdade pelo `main.gd`: ▼▼ até o
+  Tempo, ▶ e ◀ de 10 ms, o ✕ de quem abriu deixa ponto e o de outro lugar não.
 - Fica para a mão dela ou do André: abrir Opções › Tempo num controle no cabo e noutro no rádio, tocar ✕
   junto com o tique uns dez segundos, ajustar até os pontos ficarem no centro da régua e conferir que o
   valor fica depois de fechar e abrir o jogo (o roteiro está em «Para o André»). O tique é um som curto
-  na TV: se ele sai com atraso do som da TV, o ponto no centro inclui esse atraso.
+  na TV: o atraso que a própria TV põe no som (o que o Godot não enxerga) fica no valor ajustado, e é o
+  mesmo que a música do jogo sofre, então o julgamento sai certo.
