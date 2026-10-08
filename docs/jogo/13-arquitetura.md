@@ -189,7 +189,7 @@ Os tipos, e quem os escreve:
 | `sensacao` | `nome` (da tabela de sensações), `escala`, `ms` | F05 |
 | `minigame` | `slot`, `evento` (`comecou`/`terminou`), `vencedor` (o lugar 0..3, ou -1 no coop), `pontos`, `itens`, `duracao` | F03 |
 | `nota` | `slot`, `n` (índice), `t_alvo` (em tempo de música) | H01 |
-| `toque` | `slot`, `n`, `desvio_ms`, `julgamento` (`perfeito`/`otimo`/`bom`/`erro`) | H02 |
+| `toque` | `slot`, `faixa`, `lugar`, `n`, `t_musica`, `julgamento` (`perfeito`/`otimo`/`bom`/`erro`), `desvio_ms`; `perdida` (`true`) no lugar de `desvio_ms` quando a nota passou sem toque | H02 |
 | `calibracao` | `desvio_ms`, `amostras`, `transporte` (o mesmo da linha `conexao`, repetido para o cruzamento não precisar juntar) | G02 |
 | `item` | `item`, `efeito` | G03 |
 | `sessao` | amplia o de hoje com `escala_vibracao` e `gatilho` de cada lugar | F05 |
@@ -220,8 +220,12 @@ enum { ERRO, BOM, OTIMO, PERFEITO }
 const JANELA_PERFEITO := Vector2(-0.040, 0.060)   # (adiantado, atrasado), em s
 const JANELA_OTIMO := 0.090
 const JANELA_BOM := 0.140
+const NOMES_DO_JULGAMENTO := ["erro", "bom", "otimo", "perfeito"]   # os do registro, na ordem do enum
+const FOLGA_DO_ULTIMO := 0.040                    # a ajuda escondida, só na janela BOM dos perigos físicos
 func julgar(l: int, t_toque: float, t_alvo: float, folga_bom := 0.0) -> int
-var desvio := [0.0, 0.0, 0.0, 0.0]   # a calibração de cada lugar, em s, lida de Opcoes.desvio_ms (G02/H03)
+func desvio_ms(l: int, t_toque: float, t_alvo: float) -> float   # o desvio já corrigido pelo lugar, em ms, uma casa
+static func folga_para(l: int, pontos: Array, presentes: Array) -> float   # FOLGA_DO_ULTIMO só para o último sozinho
+var desvio := [0.0, 0.0, 0.0, 0.0]   # a calibração de cada lugar, em s, lida de Opcoes.tempo_ms (G02/H03)
 ```
 
 A calibração **persiste** em `Opcoes.desvio_ms[l]` (gravada pela construção
@@ -230,8 +234,8 @@ também vive em `Opcoes`: `Opcoes.cavaleiro[l]`, `Opcoes.noite()` (o que vale
 só para a noite corrente) e `Opcoes.guardar()` — que as telas chamam sem
 saber se é robô (quem não grava com robô é o próprio `Opcoes`).
 
-`julgar` subtrai o `desvio[l]` do toque antes de comparar. O desvio e as
-bordas são **arredondados a 0,1 ms**, e a borda vale dentro: medido,
+`julgar` subtrai o `desvio[l]` do toque antes de comparar. A borda vale
+dentro; desvio e bordas arredondados a 0,1 ms: medido,
 `(10.06 - 10) * 1000` dá `60.0000000000005`, e o `Vector2` guarda 32 bits
 (−0,040 vira −39,99999); sem arredondar, o toque exato na borda seria
 reprovado.
@@ -246,6 +250,9 @@ func registrar_nota(l: int, n: int, t_alvo: float) -> void   # o tipo `nota` do 
 static func posicao_continua(pos, anterior, voltas, laco_s) -> Array  # a volta do laço; pura, para a prova
 var dono := ""                          # o slot do minigame que vai no registro (o slot do Ritmo é a faixa)
 var simples := [false, false, false, false]   # a partitura mais simples de quem está errando
+func contar_para_ajuda(l: int, j: int) -> void   # três erros seguidos ligam `simples`, quatro acertos seguidos desligam
+func zerar_ajuda() -> void                       # todo minigame começa sem ajuda (o kit chama)
+func registrar_toque(l: int, n: int, j: int, desvio_em_ms := NAN) -> void   # o tipo `toque`; sem desvio, `perdida`
 ```
 
 E a `Musica` ganha `tocar_do_zero(slot)`, `mapa(slot)`, `laco_s()`,

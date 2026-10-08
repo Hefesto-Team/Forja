@@ -312,3 +312,18 @@ onde a mão acha que acertou.
   real.
 - Commit sugerido (sem trailer):
   `feat: as janelas de julgamento — perfeito, ótimo, bom e erro no Ritmo, com a ajuda escondida`
+
+## O que foi feito (leva 1, o-ritmo)
+
+- `Ritmo` ganhou o julgamento (`julgar`, `desvio_ms`, `folga_para`, `contar_para_ajuda`,
+  `zerar_ajuda`, `registrar_toque`, o enum e as janelas) exatamente como em «O alvo». O 13 registra
+  a API nova e o tipo `toque` com `perdida`.
+- A F06 não grava `lugar` nem `t_musica` sozinha (`nativo/nucleo/linha_tempo.c` só escreve `t`, `tipo`
+  e `jogador`): os dois campos ficaram em `registrar_toque`.
+- Provas: `_prova_das_janelas()` (19 bordas, o desvio do lugar, a folga, a partitura mais simples) e a
+  checagem do registro em `_prova_do_relatorio()` (toda linha da linha do tempo é JSON; o toque julgado
+  tem `desvio_ms`; a perdida não). A prova do jogo ficou verde, antes e depois.
+- A régua morde: com a borda de +60 ms virada para fora, o arredondamento a 0,1 ms tirado, três erros
+  virados em quatro e o desvio gravado na perdida, a prova reprova as janelas de −40, +60, −140 e +140 ms,
+  a ajuda e o registro; devolvido, volta a ficar verde.
+- Fica para a mão: nada aqui (o «perfeito» cai onde a mão acha que acertou só se sente na H04).

@@ -143,3 +143,96 @@ func _para_o_sistema(agora_us: int) -> void:
 	_pelo_audio = false
 	_base_t = _t
 	_base_us = agora_us
+
+
+# ------------------------------------------------------------ o julgamento --
+# As janelas (docs/jogo/04-ritmo-e-audio.md#as-janelas), iguais nos 45
+# minigames, medidas a partir do toque corrigido pela calibração do lugar.
+
+enum { ERRO, BOM, OTIMO, PERFEITO }
+const JANELA_PERFEITO := Vector2(-0.040, 0.060)  ## (adiantado, atrasado), em s
+const JANELA_OTIMO := 0.090
+const JANELA_BOM := 0.140
+## Os nomes do registro (o tipo `toque`), na ordem do enum.
+const NOMES_DO_JULGAMENTO := ["erro", "bom", "otimo", "perfeito"]
+## A ajuda escondida (docs/jogo/02#8): o último colocado ganha isto na janela
+## BOM dos perigos físicos; nunca no perfeito, nunca nos pontos.
+const FOLGA_DO_ULTIMO := 0.040
+## A partitura mais simples: depois de tantos erros seguidos, até tantos acertos seguidos.
+const ERROS_PARA_SIMPLIFICAR := 3
+const ACERTOS_PARA_VOLTAR := 4
+
+var desvio := [0.0, 0.0, 0.0, 0.0]  ## a calibração de cada lugar, em s (H03, G02)
+## true: as notas do lugar passam das semicolcheias para as colcheias (o minigame lê).
+var simples := [false, false, false, false]
+var _erros_seguidos := [0, 0, 0, 0]
+var _acertos_seguidos := [0, 0, 0, 0]
+
+
+## O julgamento de um toque em t_toque contra a nota em t_alvo (os dois em
+## tempo de música). O desvio do lugar sai do toque antes de comparar; a
+## folga só alarga o BOM. A borda vale dentro.
+func julgar(l: int, t_toque: float, t_alvo: float, folga_bom := 0.0) -> int:
+	var d := desvio_ms(l, t_toque, t_alvo)
+	if d >= _ms(JANELA_PERFEITO.x) and d <= _ms(JANELA_PERFEITO.y):
+		return PERFEITO
+	if absf(d) <= _ms(JANELA_OTIMO):
+		return OTIMO
+	if absf(d) <= _ms(JANELA_BOM + maxf(folga_bom, 0.0)):
+		return BOM
+	return ERRO
+
+
+## O desvio do toque já corrigido pela calibração do lugar, em ms, com uma
+## casa (negativo: adiantado).
+func desvio_ms(l: int, t_toque: float, t_alvo: float) -> float:
+	return _ms(t_toque - float(desvio[clampi(l, 0, 3)]) - t_alvo)
+
+
+## A folga do lugar agora: FOLGA_DO_ULTIMO se ele está sozinho em último
+## entre os presentes; 0 se não (empate em último não é estar atrás).
+static func folga_para(l: int, pontos: Array, presentes: Array) -> float:
+	if presentes.size() < 2 or not l in presentes:
+		return 0.0
+	for o in presentes:
+		if o != l and int(pontos[o]) <= int(pontos[l]):
+			return 0.0
+	return FOLGA_DO_ULTIMO
+
+
+## Conta o julgamento para a partitura mais simples (docs/jogo/02#8).
+func contar_para_ajuda(l: int, j: int) -> void:
+	if j == ERRO:
+		_erros_seguidos[l] += 1
+		_acertos_seguidos[l] = 0
+		if _erros_seguidos[l] >= ERROS_PARA_SIMPLIFICAR:
+			simples[l] = true
+	else:
+		_acertos_seguidos[l] += 1
+		_erros_seguidos[l] = 0
+		if simples[l] and _acertos_seguidos[l] >= ACERTOS_PARA_VOLTAR:
+			simples[l] = false
+
+
+## Todo minigame começa sem ajuda.
+func zerar_ajuda() -> void:
+	simples = [false, false, false, false]
+	_erros_seguidos = [0, 0, 0, 0]
+	_acertos_seguidos = [0, 0, 0, 0]
+
+
+## Um toque julgado, no registro (o tipo `toque` do registro v2). Sem
+## `desvio_em_ms` (a nota passou sem toque), a linha diz "perdida".
+func registrar_toque(l: int, n: int, j: int, desvio_em_ms := NAN) -> void:
+	var campos := {"slot": dono, "faixa": slot, "lugar": l, "n": n, "julgamento": NOMES_DO_JULGAMENTO[j],
+		"t_musica": snappedf(_t, 0.001)}
+	if is_nan(desvio_em_ms):
+		campos["perdida"] = true
+	else:
+		campos["desvio_ms"] = desvio_em_ms
+	Forja.evento("toque", l + 1, campos)
+
+
+## Segundos para ms com uma casa: tira o ruído do float (e o do Vector2 de 32 bits).
+static func _ms(s: float) -> float:
+	return roundf(s * 10000.0) / 10.0

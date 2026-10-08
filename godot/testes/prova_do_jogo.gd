@@ -45,6 +45,7 @@ func _ready() -> void:
 	_prova_a_lista()
 	_prova_o_alto_falante_do_sistema()
 	await _prova_do_relogio()
+	_prova_das_janelas()
 	_prova_das_faixas()
 	jogo = load("res://scenes/main.tscn").instantiate()
 	add_child(jogo)
@@ -375,6 +376,27 @@ func _prova_do_relatorio() -> void:
 	if pasta == "":
 		return
 	var arquivos := DirAccess.get_files_at(pasta)
+	# o registro v2 do ritmo: os toques da prova das janelas (n 900 e 901)
+	var julgado := {}
+	var perdido := {}
+	var ruins: Array = []
+	for f in arquivos:
+		if not (f.begins_with("linha-do-tempo-") and f.ends_with(".jsonl")):
+			continue
+		for linha in FileAccess.get_file_as_string(pasta.path_join(f)).split("\n", false):
+			var ev = JSON.parse_string(linha)
+			if not ev is Dictionary:
+				ruins.append(linha.left(80))
+			elif ev.get("tipo", "") == "toque":
+				if int(ev.get("n", -1)) == 900:
+					julgado = ev
+				elif int(ev.get("n", -1)) == 901:
+					perdido = ev
+	_esperar(ruins.is_empty(), "linha do tempo: toda linha é JSON (%d não: %s)" % [ruins.size(), ruins.slice(0, 2)])
+	_esperar(julgado.get("julgamento", "") == "perfeito" and absf(float(julgado.get("desvio_ms", 0.0)) - 12.0) < 0.01,
+		"registro: o toque julgado, com o desvio (%s)" % [julgado])
+	_esperar(perdido.get("julgamento", "") == "erro" and perdido.get("perdida", false) and not perdido.has("desvio_ms"),
+		"registro: a nota perdida, sem desvio (%s)" % [perdido])
 	var json := ""
 	for f in arquivos:
 		if f.begins_with("relatorio-") and f.ends_with(".json"):
@@ -575,6 +597,59 @@ func _medir_o_relogio(slot: String, segundos: float, rotulo: String, pela_placa:
 		"relógio %s: andou %.3f s em %.1f s de relógio" % [rotulo, andou, segundos])
 	var tempos := int(floor(andou * float(mapa.bpm) / 60.0)) + 1  # o tempo 0 também conta
 	_esperar(absi(sinais[0] - tempos) <= 1, "relógio %s: um sinal por tempo (%d sinais, %d tempos)" % [rotulo, sinais[0], tempos])
+
+
+## As janelas (H02): as bordas de cada julgamento, a folga de quem está
+## atrás, o desvio do lugar e a partitura mais simples. Pura: sem sala.
+func _prova_das_janelas() -> void:
+	var guardado: Array = Ritmo.desvio.duplicate()
+	Ritmo.desvio = [0.0, 0.0, 0.0, 0.0]
+	var P := Ritmo.PERFEITO
+	var O := Ritmo.OTIMO
+	var B := Ritmo.BOM
+	var E := Ritmo.ERRO
+	# [desvio do toque em s, folga, julgamento esperado]; o alvo em 10 s (o float de verdade)
+	var casos := [
+		[0.0, 0.0, P], [-0.040, 0.0, P], [0.060, 0.0, P],
+		[-0.041, 0.0, O], [0.061, 0.0, O], [-0.090, 0.0, O], [0.090, 0.0, O],
+		[-0.091, 0.0, B], [0.091, 0.0, B], [-0.140, 0.0, B], [0.140, 0.0, B],
+		[-0.141, 0.0, E], [0.141, 0.0, E], [0.500, 0.0, E],
+		[0.170, 0.040, B], [-0.180, 0.040, B], [0.181, 0.040, E],
+		[0.061, 0.040, O], [0.041, 0.040, P],
+	]
+	for c in casos:
+		var j := Ritmo.julgar(0, 10.0 + float(c[0]), 10.0, float(c[1]))
+		_esperar(j == int(c[2]), "janela: %+.0f ms (folga %.0f) → %s (deu %s)" % [
+			float(c[0]) * 1000.0, float(c[1]) * 1000.0, Ritmo.NOMES_DO_JULGAMENTO[int(c[2])], Ritmo.NOMES_DO_JULGAMENTO[j]])
+	# o desvio do lugar sai do toque: +80 ms de calibração, 80 ms atrasado é perfeito
+	Ritmo.desvio[2] = 0.080
+	_esperar(Ritmo.julgar(2, 10.080, 10.0) == P, "janela: com +80 ms de desvio, 80 ms atrasado é perfeito")
+	_esperar(Ritmo.julgar(2, 10.0, 10.0) == O, "janela: com +80 ms de desvio, o toque em cima é −80 ms (ótimo)")
+	_esperar(Ritmo.julgar(1, 10.080, 10.0) == O, "janela: o desvio de um lugar não mexe no outro")
+	_esperar(is_equal_approx(Ritmo.desvio_ms(2, 10.1, 10.0), 20.0), "janela: o desvio_ms já vem corrigido")
+	# a folga de quem está atrás: só o último, sozinho
+	_esperar(Ritmo.folga_para(3, [30, 20, 10, 0], [0, 1, 2, 3]) == Ritmo.FOLGA_DO_ULTIMO, "ajuda: o último sozinho ganha a folga")
+	_esperar(Ritmo.folga_para(2, [30, 20, 10, 0], [0, 1, 2, 3]) == 0.0, "ajuda: o penúltimo não")
+	_esperar(Ritmo.folga_para(3, [30, 0, 10, 0], [0, 1, 2, 3]) == 0.0, "ajuda: empate em último não")
+	_esperar(Ritmo.folga_para(2, [30, 20, 10, 0], [0, 1, 2]) == Ritmo.FOLGA_DO_ULTIMO, "ajuda: só conta quem está presente")
+	_esperar(Ritmo.folga_para(0, [0, 0, 0, 0], [0]) == 0.0, "ajuda: sozinho na sala, ninguém está atrás")
+	# a partitura mais simples: três erros ligam, quatro acertos desligam
+	Ritmo.zerar_ajuda()
+	for k in 2:
+		Ritmo.contar_para_ajuda(1, E)
+	_esperar(not Ritmo.simples[1], "ajuda: dois erros ainda não simplificam")
+	Ritmo.contar_para_ajuda(1, E)
+	_esperar(Ritmo.simples[1] and not Ritmo.simples[0], "ajuda: o terceiro erro seguido simplifica só aquele lugar")
+	for k in 3:
+		Ritmo.contar_para_ajuda(1, B)
+	_esperar(Ritmo.simples[1], "ajuda: três acertos ainda não devolvem")
+	Ritmo.contar_para_ajuda(1, P)
+	_esperar(not Ritmo.simples[1], "ajuda: o quarto acerto seguido devolve a partitura")
+	Ritmo.zerar_ajuda()
+	# o registro: um toque julgado e um perdido (a prova do relatório os procura)
+	Ritmo.registrar_toque(0, 900, P, Ritmo.desvio_ms(0, 10.012, 10.0))
+	Ritmo.registrar_toque(0, 901, E)
+	Ritmo.desvio = guardado
 
 
 ## As faixas (H05): o caminho de cada tipo, o mapa lido do JSON, e cada faixa
