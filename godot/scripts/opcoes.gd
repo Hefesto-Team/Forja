@@ -19,7 +19,7 @@ const ESCALA_DO_TEXTO := [1.0, 1.15]
 const ARQUIVO := "user://opcoes.cfg"
 ## As línguas das telas: o português é o padrão.
 const IDIOMAS := ["pt_BR", "en"]
-const NOMES_DOS_IDIOMAS := ["português", "English"]
+const NOMES_DOS_IDIOMAS := ["Português", "English"]
 
 ## As features que a vibração e o gatilho carregam: com o recurso desligado
 ## nas opções, o veredito delas é "não medido", nunca "falhou".

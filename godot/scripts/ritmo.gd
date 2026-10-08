@@ -231,7 +231,7 @@ func definir_desvio(l: int, segundos: float, origem: String, amostras := 0) -> v
 	desvio[l] = ms / 1000.0
 	Opcoes.tempo_ms[l] = ms
 	var p := Forja.pad_do_lugar(l)
-	var transporte := str(Forja.pad(p).get("conexao_curta", "")) if p >= 0 else ""
+	var transporte := str(Forja.pad(p).get("conexao_curta", "")).to_lower() if p >= 0 else ""  # o registro guarda o dado, não a frase da tela
 	Forja.evento("calibracao", l + 1, {"lugar": l, "desvio_ms": ms, "amostras": amostras, "origem": origem,
 		"transporte": transporte})
 

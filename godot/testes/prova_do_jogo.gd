@@ -950,13 +950,18 @@ const PROIBIDAS := "(?i)\\b(olhe|relatórios?|veredito|módulo|vid|hidraw|uinput
 
 ## Tudo o que o jogo desenhou até aqui (as telas, as salas e as placas do salão)
 ## não fala do controle como prova. A bancada mostra o que o jogador não vê.
+## O nome de um ajuste nas Opções pode dizer a parte do controle, como em todo
+## jogo de console: a régua da F02 vale para as telas do jogo, não para o ajuste.
+const PERMITIDAS_NAS_OPCOES := ["Vibração"]
+
+
 func _prova_das_frases() -> void:
 	if Forja.bancada:
 		return
 	var r := RegEx.create_from_string(PROIBIDAS)
 	var achadas: Array = []
 	for s in Desenho._coletados:
-		if r.search(str(s)) != null:
+		if r.search(str(s)) != null and not str(s) in PERMITIDAS_NAS_OPCOES:
 			achadas.append(s)
 	_esperar(Desenho._coletados.size() > 50, "as frases da tela foram colhidas (%d)" % Desenho._coletados.size())
 	_esperar(achadas.is_empty(), "jogo: nenhuma frase fala do controle como prova (%s)" % [achadas])
