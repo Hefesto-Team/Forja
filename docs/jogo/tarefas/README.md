@@ -161,6 +161,22 @@ Estados: **a fazer**, **fazendo** (com o nome de quem pegou), **feito**
 | --- | --- | --- | --- | --- |
 | [S](S-a-noite-de-seis-horas.md) | A noite de seis horas | M | F06 (o registro v2), F09, H07, as seções I a Q e a R prontas; a O1 e a P1 (as linhas `pista`, `troca`, `voz` no 13); e, com o André, a noite em si | a fazer |
 
+## V — A varredura
+
+Achados da varredura do arquiteto e DevOps (08/10/2026): o que trava a esteira, o que passa verde sem estar certo, o
+que está escrito em dois lugares. São base: vão de **a fazer** direto para **em voo**.
+
+| ficha | título | tamanho | depende de | estado |
+| --- | --- | --- | --- | --- |
+| [V01](V01-a-engine-conferida.md) | A engine conferida, num passo só | P | — | a fazer |
+| [V02](V02-a-prova-do-jogo-em-partes.md) | A prova do jogo em partes | G | F08, F09 | a fazer |
+| [V03](V03-o-texto-de-tela-inteiro.md) | O texto de tela inteiro, e a tabela em partes | G | F07, F08 | a fazer |
+| [V04](V04-as-secoes-num-lugar-so.md) | As seções num lugar só | M | H04, H08, F09 | a fazer |
+| [V05](V05-o-som-pelo-mapa.md) | O Som pelo mapa do áudio | M | H06, H07, o mapa do áudio publicado | a fazer |
+| [V06](V06-as-provas-que-ninguem-roda.md) | As provas que ninguém roda | P | — | a fazer |
+| [V07](V07-o-codigo-sem-uso.md) | O código sem uso | P | F05, F10 | a fazer |
+| [V08](V08-os-portoes-de-arte-e-som-reprovam.md) | Os portões de arte e som reprovam | M | a bíblia aprovada, a G14, V05, o mapa do áudio com os arquivos | a fazer |
+
 ## A soma
 
 Com o retrabalho, a faixa está em [Como trabalhar](../12-como-trabalhar.md#o-orçamento).
