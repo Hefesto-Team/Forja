@@ -170,8 +170,18 @@ A="$(arvore arte-jogador-hex)"; arte_tree "$A" 'var c := "#29e6ff"'
 espera 1 "arte: reprova o hex de um jogador fora do arquivo de tokens" arte "$A"
 A="$(arvore arte-jogador-indice)"; arte_tree "$A" 'draw_rect(Rect2(0, 0, 9, 9), Tema.JOGADOR[0])'
 espera 1 "arte: reprova a cor do P1 pedida por índice fixo" arte "$A"
+A="$(arvore arte-emissao)"; arte_tree "$A" 'material.emission_enabled = true'
+espera 1 "arte: reprova o brilho escrito fora do arquivo de tokens" arte "$A"
+A="$(arvore arte-sem-dono)"; arte_tree "$A" 'var m := Tema.neon(Tema.VIOLETA, 1.0)'
+espera 1 "arte: reprova o néon sem o dono" arte "$A"
+A="$(arvore arte-acima-do-teto)"; arte_tree "$A" 'var m := Tema.neon(Tema.VIOLETA, 3.0, "mundo")'
+espera 1 "arte: reprova a energia acima do teto do dono" arte "$A"
+A="$(arvore arte-shader-a-mao)"; arte_tree "$A" 'sm.shader = load("res://shaders/neon.gdshader")'
+espera 1 "arte: reprova o shader do néon montado à mão" arte "$A"
 A="$(arvore arte-boa)"; arte_tree "$A" 'Desenho.texto(self, Vector2(10, 10), "Oi", Tema.fonte(600), 30, Tema.JOGADOR[lugar]) # Color("#123456") no comentário'
 espera 0 "arte: deixa passar o token, os 30 px, a cor do dono e o comentário" arte "$A"
+A="$(arvore arte-brilho-bom)"; arte_tree "$A" 'var m := Tema.neon(Tema.VIOLETA, 1.0, "mundo"); Tema.emissivo(mat, 2.4, "forja"); Tema.contorno(c, 0.012, 2.4, lugar) # emission_enabled no comentário'
+espera 0 "arte: deixa passar o brilho com dono, no teto" arte "$A"
 espera 0 "arte: no modo aviso, o defeito não reprova" python3 "$P/arte.py" --raiz "$TMP/arte-hex" --modo aviso
 
 # --- o som ------------------------------------------------------------------------------------------------------
