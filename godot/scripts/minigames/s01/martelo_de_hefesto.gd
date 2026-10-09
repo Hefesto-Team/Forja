@@ -394,8 +394,6 @@ func status(lugar: int) -> String:
 
 
 # ------------------------------------------------------------------ o robô --
-# Vê a runa e reage como gente: às vezes o dedo escorrega para o vizinho e
-# corrige; gira o analógico em volta; segura o gatilho no meio e aperta.
 # O kit chama robo(l, dt) antes de jogar(dt), a cada quadro, de quem ainda joga.
 
 func robo(l: int, dt: float) -> void:
