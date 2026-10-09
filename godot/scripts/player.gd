@@ -308,6 +308,8 @@ func _malha_do_item(presa: Node3D, id: String, pos: Vector3, rot_graus: Vector3,
 				var peca: StandardMaterial3D = base.duplicate()
 				peca.roughness = 0.55
 				peca.metallic = 0.2
+				if peca.albedo_texture != null:   # o colormap do item, na faixa dos objetos (G08)
+					peca.albedo_texture = Pintura.textura(String(MALHA_DO_ITEM[id]).get_base_dir() + "/Textures/colormap.png", "objeto")
 				mi.set_surface_override_material(s, peca)
 	return item
 

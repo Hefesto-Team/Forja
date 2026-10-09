@@ -262,6 +262,7 @@ func _sentir_o_item(l: int) -> void:
 	Som.tocar("ui_peca", null, -12.0, 0.7492)
 	Som.no_controle(l, "ui_peca", 0.85)
 	Forja.sentir(l, "acerto")
+	jogadores[l].acender_acento()   # o acento e a runa sobem a 2,6 e voltam (G08)
 
 
 ## Uma martelada: o desvio até a batida mais perto é a medida.

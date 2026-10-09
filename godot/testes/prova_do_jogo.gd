@@ -366,6 +366,18 @@ func _prova_do_percurso() -> void:
 		_esperar(alto >= faixa.x * corpo and alto <= faixa.y * corpo,
 			"P%d: o item no tamanho (%.2f do corpo)" % [l + 1, alto / corpo])
 		_esperar(pi._mats_runa.size() >= 1, "P%d: o item tem a runa" % (l + 1))
+		if ForjaPlayer.MALHA_DO_ITEM.has(ForjaPlayer.ITENS[pi.item_i].id):
+			# a malha do Kenney leva o colormap na faixa dos objetos (G08), o do item, não o cru
+			var faixa_do_objeto := Pintura.textura(String(ForjaPlayer.MALHA_DO_ITEM[ForjaPlayer.ITENS[pi.item_i].id]).get_base_dir() + "/Textures/colormap.png", "objeto")
+			var cheio := true
+			var visto := 0
+			for mi in presa.find_children("*", "MeshInstance3D", true, false):
+				for k in (mi as MeshInstance3D).mesh.get_surface_count():
+					var mat := (mi as MeshInstance3D).get_surface_override_material(k)
+					if mat is StandardMaterial3D and (mat as StandardMaterial3D).albedo_texture != null:
+						visto += 1
+						cheio = cheio and (mat as StandardMaterial3D).albedo_texture == faixa_do_objeto
+			_esperar(visto >= 1 and cheio, "P%d: o item de malha na faixa dos objetos (%d superfícies)" % [l + 1, visto])
 		_esperar(pi._area_runa <= 0.12 * pi._area_item, "P%d: a runa em até 12 %% do item (%.3f)" % [l + 1, pi._area_runa / maxf(pi._area_item, 0.0001)])
 	_confere_a_arte(jogo.salao, "o salão")
 	for l in 4:
