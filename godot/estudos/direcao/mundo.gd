@@ -132,7 +132,7 @@ static func vestir(m: Node, cor: Color, opcoes := {}) -> void:
 			sm.shader = Fita.SH_CAVALEIRO
 			sm.set_shader_parameter("textura", base.albedo_texture)
 			sm.set_shader_parameter("tinta", cor)
-			sm.set_shader_parameter("tingir", 1.0 if corpo else 0.0)
+			sm.set_shader_parameter("tingir", 1.0 if corpo and opcoes.get("tingir", true) else 0.0)
 			sm.set_shader_parameter("aro_cor", cor)
 			sm.set_shader_parameter("aro", float(opcoes.get("aro", 0.6)))
 			sm.set_shader_parameter("brilho_proprio", float(opcoes.get("brilho", 0.10)) if corpo else 0.0)

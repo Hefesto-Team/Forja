@@ -31,7 +31,12 @@ func _ready() -> void:
 		await quadro.antes_da_foto()
 	await RenderingServer.frame_post_draw
 	var saida := OS.get_environment("SAIDA")
-	var img := get_viewport().get_texture().get_image()
+	var img: Image
+	# a prancha maior que a tela fotografa a folha dela (prancha.gd)
+	if quadro.has_method("foto"):
+		img = await quadro.foto()
+	else:
+		img = get_viewport().get_texture().get_image()
 	var arquivo: String = quadro.get("arquivo") if quadro.get("arquivo") != null else nome
 	img.save_png(saida.path_join(arquivo + ".png"))
 	print("foto: ", arquivo)
