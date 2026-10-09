@@ -26,7 +26,8 @@ escudo de ouro do meio é o único alvo que as quatro miras disputam.
 | `godot/testes/captura_jogo.gd` | os momentos de `"S02_J10"` | sim: as cinco |
 
 O `secao.gd`, `"momento"` em `TIPOS_DO_JOGO`, a linha `momento` no 13 e o
-`_linhas_do_minigame()` da prova são da J1: esta ficha só os usa.
+`_linhas_do_minigame()` e o `_notas_por_terco()` da prova são da J1: esta
+ficha só os usa.
 
 ### O estado de hoje
 
@@ -712,14 +713,15 @@ na mão, o tremor (`TREMOR_GOLPE`), o tinido no alto-falante, e o escudo voa
 girando para o painel do dono. Os outros ricocheteiam e embaçam.
 
 - **O rastro:** o ouro pendurado sob o painel do dono até o fim.
-- **Confere pelo robô (mesa padrão):** pelo menos 3 linhas `momento`
+- **Confere pelo robô (o da prova: `--robo`, o `bom` nos quatro, semente
+  7):** pelo menos 3 linhas `momento`
   `escudo_de_ouro` entre 25 e 50 s; uma linha `momento` `reta`; nos
   `momento` com `x_tela` ≥ 0, 0,2 ≤ `x_tela` ≤ 0,8 e `altura_tela` ≥ 0,08.
-- **Confere pela prancha:** o quadro de 50 s (`mira_50s`) com pelo menos 1
+- **Confere pela foto:** `mira_50s` (aos 50 s de jogo) com pelo menos 1
   ouro pendurado sob um painel.
 
 **A curva:** a tabela de **Como se joga**. Pelo robô: as notas por segundo
-do 2.º terço ≥ 1,5 × as do 1.º.
+do 2.º terço ≥ 1,5 × as do 1.º (`_notas_por_terco`).
 
 **Ensina sem falar:** o alvo acende fraco 1 tempo antes e cheio na batida
 (a prévia é o aviso); o retículo na cor do dono já se mexe com o controle
@@ -736,7 +738,7 @@ tempo antes do ouro. Pelo robô: em pelo menos 1 linha `momento`
 A mira joga do aviso ao resultado com 4, 3, 2 e 1 jogador e com o robô nos
 três temperamentos; o cabo que cai e volta recebe a arma de novo; o ouro
 sai no tempo e voa para o painel de quem levou; o fim tem sempre vencedor;
-`_prova_da_mira()` passa; e a prancha de 50 s mostra um ouro pendurado.
+`_prova_da_mira()` passa; e a foto `mira_50s` mostra um ouro pendurado.
 
 ## Provas
 
@@ -794,6 +796,8 @@ func _prova_da_mira() -> void:
 		var lider := int(reta[0].ordem[0])
 		_esperar(ouros.any(func(ev): return int(ev.lugar) != lider), "S02_J10: o ouro não é só do líder")
 	_esperar(mg.vencedor().size() == 4, "S02_J10: a colocação tem os quatro")
+	var terco := _notas_por_terco("S02_J10", mg.duracao)
+	_esperar(terco[1] >= 1.5 * terco[0], "S02_J10: o tiroteio pede 1,5 × as notas do 1.º terço (%s)" % [terco])
 ```
 
 **`godot/testes/captura_jogo.gd`**, no dicionário `momentos`:
@@ -807,15 +811,25 @@ func _prova_da_mira() -> void:
 		],
 ```
 
-**Os comandos:** `SALA=S02_J10 bash tests/prova_do_jogo.sh` e
-`SALAS=S02_J10 bash tests/prova_visual.sh`.
+**Os comandos:** `SALA=S02_J10 bash tests/prova_do_jogo.sh`;
+`bash tests/prova_visual.sh`; e as fotos da ficha, o `roteiro` do
+`tests/telas.sh` com a sala dela (cada foto num PNG em `SAIDA`:
+`S02_J10_aviso`, os momentos acima e `S02_J10_fim`):
+
+```bash
+source scripts/engine.sh
+SAIDA=/tmp/fotos-S02_J10 ROTEIRO=salas SALAS=S02_J10 RAPIDO=1 xvfb-run -a -s "-screen 0 1920x1080x24" \
+  "$FORJA_GODOT" --rendering-driver opengl3 --audio-driver Dummy --fixed-fps 60 --path godot \
+  --resolution 1920x1080 res://testes/captura_jogo.tscn -- --simular=4 --semente=7 --robo \
+  --relatorios="$(mktemp -d)"
+```
 
 **As pranchas que o jogador do time olha:**
 
 - `mira_ouro`: o disco de ouro voando, as quatro miras perto do painel do
   meio;
 - `mira_50s`: pelo menos um ouro pendurado sob um painel;
-- o boneco de cada lugar: a cabeça, o superior e o inferior em tons
+- o boneco de cada lugar, de costas na `mira_alvo`: a cabeça, o superior e o inferior em tons
   diferentes, sem a cor do lugar no corpo.
 
 **O André (local):** `./run-local.sh -- --sala=S02_J10`: girar o controle

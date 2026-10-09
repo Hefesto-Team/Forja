@@ -1,6 +1,6 @@
 # J1 — A Viga
 
-**Sprint:** J · **Slot:** S02_J06 · **Tamanho:** G · **Depende de:** H04, H08, F09, F03, F05, H07, G05, G14
+**Sprint:** J · **Slot:** S02_J06 · **Tamanho:** G · **Depende de:** H04, H08, F09, F03, F05, H07, G05, G12, G14
 
 ## Por quê
 
@@ -27,7 +27,7 @@ primeiro grito da seção.
 | `docs/jogo/13-arquitetura.md` | a linha `momento` na tabela dos eventos do jogo | sim: toda ficha que grava `momento` |
 | `godot/testes/minigame_de_tempo.gd` | uma linha `momento` no `iniciar_jogo()` (a prova da H08 conta os tipos) | sim: toda ficha que grava `momento` |
 | `godot/scripts/traducoes.gd` | o verbo, o microjogo e o status | sim: as cinco |
-| `godot/testes/prova_do_jogo.gd` | `_prova_da_viga()`, `_linhas_do_minigame()`, a Prova de Fogo e o relatório | sim: as cinco |
+| `godot/testes/prova_do_jogo.gd` | `_prova_da_viga()`, `_linhas_do_minigame()`, `_notas_por_terco()`, a Prova de Fogo e o relatório | sim: as cinco |
 | `godot/testes/captura_jogo.gd` | os três momentos de `"viga"` | sim: as cinco |
 
 Se `"momento"` já estiver em `TIPOS_DO_JOGO` quando esta ficha começar
@@ -1191,22 +1191,27 @@ por viga (48), `tremer(Sala.TREMOR_EXPLOSAO)` e 3 quadros de hit-stop. Quem
 errou: salta 0,5 m e cai sentado (degrau golpe, 2 quadros).
 
 - **O rastro:** os pinos cravados ficam na viga até o fim, um por frase.
-- **Confere pelo robô (mesa padrão):** pelo menos 3 linhas `momento` `pino`
+- **Confere pelo robô (o da prova: `--robo`, o `bom` nos quatro, semente 7):**
+  pelo menos 3 linhas `momento` `pino`
   com `t_musica` entre 10 e 80 s; a primeira entre 10 e 15 s; uma linha
   `momento` `reta`; nos `momento` com `x_tela` ≥ 0, 0,2 ≤ `x_tela` ≤ 0,8 e
   `altura_tela` ≥ 0,08.
-- **Confere pela prancha:** no quadro de 60 s, 2 ou mais pinos na viga do P1.
+- **Confere pela foto:** `viga_60s` (aos 60 s de jogo) com 2 ou mais pinos
+  na viga do P1.
 
 **O segundo grito:** a queda na lava no quarto passo (2 tempos caindo, as
 faíscas `TUNGSTENIO` na lava).
 
 **A curva:** a tabela de **Como se joga**. Pelo robô: as notas por segundo
-do 2.º terço ≥ 1,5 × as do 1.º (o pico tem o dobro). Pela prancha: o quadro
-de 40 s tem a lava visivelmente mais clara que o de 14 s.
+do 2.º terço ≥ 1,5 × as do 1.º (o pico tem o dobro; `_notas_por_terco`).
+Pelas fotos: a `viga_40s` tem a lava a 1,0 (`SECAO.lava`, o pico) e a
+câmera 10 % mais longe; a `viga_14s`, a lava a 0,6.
 
 **Quem está perdendo:** volta da lava em 8 tempos; o líder tem a viga a 90 %
-na reta. Pelo robô: o P4 (`ruim`) tem pelo menos uma linha `toque` BOM ou
-melhor em cada terço.
+na reta. Pelo robô (o da prova): cada lugar tem pelo menos uma linha
+`toque` BOM ou melhor em cada terço. O P4 `ruim` da mesa padrão espera o
+robô por lugar, que a F09 não tem: com ele, o `ruim` erraria os pinos e o
+mínimo de 3 cairia.
 
 **O que se cortou:** o volante da segunda frase em diante.
 
@@ -1216,8 +1221,8 @@ A Viga joga do aviso ao resultado com 4, 3, 2 e 1 jogador e com o robô nos
 três temperamentos; o cabo que cai e volta não derruba ninguém na lava; a
 primeira frase pede rolagem, arfagem, volante e o pino; os vereditos
 `giroscopio` e `acelerometro` passam na prova limpa; `_prova_da_viga()`
-passa; `godot/scripts/salas/viga.gd` não existe mais; e a prancha mostra 2 ou
-mais pinos na viga do P1 aos 60 s.
+passa; `godot/scripts/salas/viga.gd` não existe mais; e a foto `viga_60s`
+mostra 2 ou mais pinos na viga do P1.
 
 ## Provas
 
@@ -1239,6 +1244,16 @@ mais pinos na viga do P1 aos 60 s.
    				if ev is Dictionary and ev.get("slot", "") == slot:
    					linhas.append(ev)
    	return linhas
+
+
+   ## Quantas notas o slot pediu em cada terço da duração (pelo `t_alvo` das
+   ## linhas `nota`): a curva de J1 a J5 (o 2.º terço com 1,5 × o 1.º).
+   func _notas_por_terco(slot: String, duracao: float) -> Array:
+   	var terco := [0, 0, 0]
+   	for ev in _linhas_do_minigame(slot):
+   		if ev.get("tipo", "") == "nota":
+   			terco[clampi(int(float(ev.get("t_alvo", 0.0)) / (duracao / 3.0)), 0, 2)] += 1
+   	return terco
    ```
 
 2. A prova da ficha, no `match` de `_prova_da_ficha`:
@@ -1284,6 +1299,7 @@ mais pinos na viga do P1 aos 60 s.
    	var pinos := []
    	var reta := 0
    	var por_lugar := [0, 0, 0, 0]
+   	var bom_no_terco := {}  ## "lugar:terço" -> true
    	for ev in _linhas_do_minigame("S02_J06"):
    		if ev.get("tipo", "") == "momento" and ev.get("nome", "") == "pino":
    			pinos.append(float(ev.get("t_musica", 0.0)))
@@ -1294,11 +1310,17 @@ mais pinos na viga do P1 aos 60 s.
    			reta += 1
    		if ev.get("tipo", "") == "toque":
    			por_lugar[int(ev.get("lugar", 0))] += 1
+   			if ev.get("julgamento", "erro") != "erro":
+   				bom_no_terco["%d:%d" % [int(ev.get("lugar", 0)), clampi(int(float(ev.get("t_musica", 0.0)) / (mg.duracao / 3.0)), 0, 2)]] = true
    	_esperar(pinos.size() >= 3 and pinos.min() >= 10.0 and pinos.min() <= 15.0,
    		"S02_J06: 3 ou mais pinos, o primeiro entre 10 e 15 s (%s)" % [pinos])
    	_esperar(reta == 1, "S02_J06: a linha momento reta (%d)" % reta)
    	for l in mg.presentes():
    		_esperar(por_lugar[l] >= 6, "S02_J06 P%d: a primeira frase julgada (%d)" % [l + 1, por_lugar[l]])
+   		for k in 3:
+   			_esperar(bom_no_terco.has("%d:%d" % [l, k]), "S02_J06 P%d: um BOM ou melhor no %d.º terço" % [l + 1, k + 1])
+   	var terco := _notas_por_terco("S02_J06", mg.duracao)
+   	_esperar(terco[1] >= 1.5 * terco[0], "S02_J06: o pico pede 1,5 × as notas do 1.º terço (%s)" % [terco])
    ```
 
 3. `_prova_de_fogo()`: as duas comparações com `"viga"` passam a
@@ -1311,19 +1333,34 @@ mais pinos na viga do P1 aos 60 s.
 			["viga_rolagem", fase.call("jogo", 6.0)],
 			["viga_arfagem", p1.call(func(_sala, e) -> bool: return e.tipo == "arfagem" and float(e.b) - Ritmo.batida() < 0.5)],
 			["viga_pino", p1.call(func(_sala, e) -> bool: return e.tipo == "pino" and float(e.b) - Ritmo.batida() < 0.3)],
+			["viga_14s", fase.call("jogo", 14.0)],
+			["viga_40s", fase.call("jogo", 40.0)],
+			["viga_60s", fase.call("jogo", 60.0)],
 		],
 ```
 
-**Os comandos:** `SALA=S02_J06 bash tests/prova_do_jogo.sh` e
-`bash tests/prova_visual.sh`.
+A captura tira as fotos na ordem da lista: cada uma espera a anterior.
+
+**Os comandos:** `SALA=S02_J06 bash tests/prova_do_jogo.sh`;
+`bash tests/prova_visual.sh`; e as fotos da ficha, o `roteiro` do
+`tests/telas.sh` com a sala dela (cada foto num PNG em `SAIDA`: `viga_aviso`,
+os momentos acima e `viga_fim`):
+
+```bash
+source scripts/engine.sh
+SAIDA=/tmp/fotos-viga ROTEIRO=salas SALAS=viga RAPIDO=1 xvfb-run -a -s "-screen 0 1920x1080x24" \
+  "$FORJA_GODOT" --rendering-driver opengl3 --audio-driver Dummy --fixed-fps 60 --path godot \
+  --resolution 1920x1080 res://testes/captura_jogo.tscn -- --simular=4 --semente=7 --robo \
+  --relatorios="$(mktemp -d)"
+```
 
 **As pranchas que o jogador do time olha:**
 
-- o quadro de 60 s: 2 ou mais pinos na viga do P1 (a régua, item 4);
+- `viga_60s`: 2 ou mais pinos na viga do P1 (a régua, item 4);
 - `viga_pino`: os quatro martelos no alto, o pino parado sobre cada viga;
-- os quadros de 14 s e de 40 s: a lava do pico mais clara, a câmera mais
-  aberta;
-- o boneco de cada lugar: a cabeça, o superior e o inferior em tons
+- `viga_14s` e `viga_40s`: a lava a 0,6 e a 1,0, a câmera 10 % mais longe
+  na de 40 s;
+- o boneco de cada lugar, na `viga_rolagem`: a cabeça, o superior e o inferior em tons
   diferentes, sem a cor do lugar no corpo.
 
 **O André (local):** `scripts/gauntlet.sh` (o `giro-invertido` e o

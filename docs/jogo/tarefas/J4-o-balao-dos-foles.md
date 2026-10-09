@@ -639,9 +639,12 @@ func robo(l: int, _dt: float) -> void:
 		e.robo_feito = int(e.n)
 ```
 
-A mesa das duplas pede o robô por lugar (`--robo=bom,ruim,medio,medio
---semente=7`), que a F09 ainda não tem: até existir, a prova roda com
-`--robo=medio --semente=7`, e os mínimos valem igual.
+O `--robo` da prova é o `bom` nos quatro (a F09 não tem robô por lugar), e
+duas duplas `bom` sobem juntas: a ultrapassagem quase não sai. A prova faz
+a gangorra: de 0 a 75 s, a cada 15 s uma dupla erra toda nota (o
+`robo_mira` de 0,20 s), a Maré primeiro; depois dos 75 s, os quatro `bom`.
+A dupla que erra desce 0,4 m por nota, a outra sobe: a ordem troca perto
+dos 20, 35, 53 e 68 s, e ninguém chega às nuvens.
 
 ### O registro
 
@@ -785,11 +788,13 @@ câmera treme (`TREMOR_GOLPE`), os dois cestos param 2 quadros, a mão de
 quem passou leva o golpe e a de quem foi passado sente o vento correr.
 
 - **O rastro:** o vapor na cor da equipe sob o balão que passou, 4 s.
-- **Confere pelo robô (a mesa das duplas):** pelo menos 2 linhas `momento`
+- **Confere pelo robô (o da prova: o `bom` nos quatro e a gangorra das
+  duplas, semente 7):** pelo menos 2 linhas `momento`
   `ultrapassa` em 90 s, pelo menos 1 depois dos 30 s; nos `momento` com
   `x_tela` ≥ 0, 0,2 ≤ `x_tela` ≤ 0,8 e `altura_tela` ≥ 0,08.
-- **Confere pela prancha:** em 2 quadros seguidos, a ordem das alturas
-  troca (`balao_ultrapassa` e o quadro seguinte da sequência).
+- **Confere pela foto:** `balao_ultrapassa` (até 0,3 s depois do grito)
+  mostra o balão que passou mais alto que o outro, com o rastro de vapor da
+  cor dele embaixo.
 
 **A curva:** a tabela de **Como se joga**. Pelo robô (sem dupla nas
 nuvens): `_vale(d)` dá 0,85 para a dupla a 30 m ou mais depois dos 60 s e
@@ -811,7 +816,8 @@ diferença aos 60 s.
 O balão joga do aviso ao resultado com 4, 3, 2 e 1 jogador (o selo de
 `com_poucos()` certo em cada um, o Aprendiz no cesto) e com o robô nos três
 temperamentos; o cabo que cai e volta mantém a dupla; o fim tem sempre
-vencedor; `_prova_do_balao()` passa; e a prancha mostra a troca da ordem.
+vencedor; `_prova_do_balao()` passa; e a foto `balao_ultrapassa` mostra o
+balão que passou acima do outro.
 
 ## Provas
 
@@ -826,6 +832,13 @@ func _prova_do_balao() -> void:
 	var visto := {"golpe": {}, "pulso": {}, "maior": [0.0, 0.0], "aos_60": -1.0}
 	var olhar := func(mg: Minigame) -> void:
 		var agora := Ritmo.t_musica()
+		# a gangorra (a F09 não tem robô por lugar): até 75 s, a cada 15 s uma dupla
+		# erra toda nota, 0,20 s atrasada; a Maré nos 15 s pares, a Brasa nos ímpares
+		if agora < 75.0:
+			for l in mg.dupla[(int(agora / 15.0) + 1) % 2]:
+				var e: Dictionary = mg.j[l]
+				if int(e.robo_n) == int(e.n):
+					e.robo_mira = 0.20
 		for d in 2:
 			visto.maior[d] = maxf(float(visto.maior[d]), float(mg.altura[d]))
 		if agora >= 60.0 and float(visto.aos_60) < 0.0:
@@ -885,15 +898,27 @@ batidas: a prova pede no máximo uma.
 		],
 ```
 
-**Os comandos:** `SALA=S02_J09 bash tests/prova_do_jogo.sh` e
-`SALAS=S02_J09 bash tests/prova_visual.sh`.
+**Os comandos:** `SALA=S02_J09 bash tests/prova_do_jogo.sh`;
+`bash tests/prova_visual.sh`; e as fotos da ficha, o `roteiro` do
+`tests/telas.sh` com a sala dela, com o robô `medio` nos quatro (as duplas
+`bom` quase não se passam, e a foto `balao_ultrapassa` esperaria até o
+fim); cada foto num PNG em `SAIDA`: `S02_J09_aviso`, os momentos acima e
+`S02_J09_fim`:
+
+```bash
+source scripts/engine.sh
+SAIDA=/tmp/fotos-S02_J09 ROTEIRO=salas SALAS=S02_J09 RAPIDO=1 xvfb-run -a -s "-screen 0 1920x1080x24" \
+  "$FORJA_GODOT" --rendering-driver opengl3 --audio-driver Dummy --fixed-fps 60 --path godot \
+  --resolution 1920x1080 res://testes/captura_jogo.tscn -- --simular=4 --semente=7 --robo=medio \
+  --relatorios="$(mktemp -d)"
+```
 
 **As pranchas que o jogador do time olha:**
 
 - `balao_ultrapassa`: os dois balões no quadro, o que passou com o rastro
   de vapor da cor dele;
 - `S02_J09_fim`: o balão vencedor nas nuvens;
-- o boneco de cada lugar na gôndola: a cabeça, o superior e o inferior em
+- o boneco de cada lugar na gôndola, na `balao_fole`: a cabeça, o superior e o inferior em
   tons diferentes, a calça à vista.
 
 **O André (local):** `./run-local.sh -- --sala=S02_J09` com quatro: o tempo

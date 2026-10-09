@@ -26,7 +26,8 @@ no tempo, e o giroscópio é medido pelo pico; o arremesso do pêndulo travado
 | `godot/testes/captura_jogo.gd` | os momentos de `"S02_J07"` | sim: as cinco |
 
 O `secao.gd`, `"momento"` em `TIPOS_DO_JOGO`, a linha `momento` no 13 e o
-`_linhas_do_minigame()` da prova são da J1: esta ficha só os usa.
+`_linhas_do_minigame()` e o `_notas_por_terco()` da prova são da J1: esta
+ficha só os usa.
 
 ### O estado de hoje
 
@@ -489,7 +490,7 @@ func _soprar(l: int) -> void:
 		j[o].vento_ate = Ritmo.batida() + dura
 		var disco := (j[o].pivo as Node3D).global_position + Vector3(0, -CORDA, 0)
 		SECAO.vento(o, 0.5, RAIAS[l] < RAIAS[o])
-		anotar("pista", o, {"canal": "haptica", "o": "vento", "de": l, "tempos": dura})
+		anotar("pista", o, {"canal": "haptica", "o": "vento", "de": l, "tempos": dura, "alvos": alvos.size()})
 		# o fio lilás de ponta a ponta: 5 sopros de faísca em 400 ms
 		for i in 5:
 			var ponto := de.lerp(disco, i / 4.0)
@@ -585,9 +586,11 @@ func robo(l: int, _dt: float) -> void:
 	Forja.robo_girar(l, giro, 0.06)
 ```
 
-O robô `bom` passa de 3,5 rad/s: o vento não o derruba. O `ruim` (o P4 da
-mesa padrão) erra 1 em 3, junta dois erros, voa e vira fantasma antes do
-fim.
+O robô `bom` passa de 3,5 rad/s: o vento não o derruba. O `--robo` da
+prova é o `bom` nos quatro (a F09 não tem robô por lugar), e o `bom` quase
+nunca junta dois erros: a prova faz o P4 de `ruim` (o `robo_mira` de 0,20 s
+em 2 de cada 3 notas, `robo_n % 3 != 0`). Ele junta dois erros, voa três
+vezes e vira fantasma antes dos 60 s.
 
 ### O registro
 
@@ -598,7 +601,7 @@ fim.
   vento), `n`. Um giroscópio que nunca passa de 3 rad/s, ou que dá picos só
   num sentido, aparece aqui.
 - `pista`: `haptica` `apice` (com o `lado`), `rangido` e `vento` (`de`,
-  `tempos`).
+  `tempos`, `alvos`: quantos vivos o sopro pegou).
 - `momento`: `arremesso` (`lugar`, `queda`, `fantasma`) e `reta` (`ordem`,
   `objeto` `vidas_na_trave`).
 
@@ -733,17 +736,18 @@ dá uma volta no ar e cai na lava com 30 faíscas; a câmera treme
 - **O rastro:** a mancha de lava no disco vazio até ele voltar (8 tempos);
   a vida apagada na trave até o fim; na terceira queda, o fantasma lilás na
   frente.
-- **Confere pelo robô (mesa padrão):** pelo menos 3 linhas `momento`
+- **Confere pelo robô (o da prova: o `bom` nos quatro, o P4 de `ruim`
+  pela prova, semente 7):** pelo menos 3 linhas `momento`
   `arremesso` em 90 s, a primeira antes de 30 s; uma linha `momento` `reta`;
   nos `momento` com `x_tela` ≥ 0, 0,2 ≤ `x_tela` ≤ 0,8 e `altura_tela` ≥
   0,08.
-- **Confere pela prancha:** um disco vazio com a mancha laranja em 1 quadro
-  de cada 4.
+- **Confere pela foto:** `pendulos_arremesso` (1 tempo depois da queda) com
+  um disco vazio e a mancha `TUNGSTENIO` nele.
 
 **A curva:** a tabela de **Como se joga**. Pelo robô: as notas por segundo
-do 2.º terço ≥ 1,5 × as do 1.º. Nas últimas 16 batidas, um sopro de
-fantasma tem 2 ou mais linhas `pista` `vento` com o mesmo `de` no mesmo
-quadro (quando há 2 ou mais vivos).
+do 2.º terço ≥ 1,5 × as do 1.º (`_notas_por_terco`). Nas últimas 16
+batidas, o sopro do fantasma pega todos os vivos: com o P4 fantasma, 2 ou
+mais linhas `pista` `vento` com `alvos` ≥ 2.
 
 **Quem está perdendo:** o fantasma continua jogando, e o sopro dele pesa no
 líder; o fio lilás de ponta a ponta mostra de quem veio. Pelo robô: com o
@@ -756,8 +760,8 @@ P4 fantasma, pelo menos 1 linha `pista` `vento` com `de` = 3.
 Os pêndulos jogam do aviso ao resultado com 4, 3, 2 e 1 jogador e com o robô
 nos três temperamentos (o `ruim` vira fantasma e sopra vento); o cabo que
 cai e volta não derruba ninguém; o último em pé fecha o minigame; o fim tem
-sempre vencedor; `_prova_dos_pendulos()` passa; e a prancha mostra a
-mancha laranja num disco vazio.
+sempre vencedor; `_prova_dos_pendulos()` passa; e a foto
+`pendulos_arremesso` mostra a mancha `TUNGSTENIO` num disco vazio.
 
 ## Provas
 
@@ -771,6 +775,10 @@ func _prova_dos_pendulos() -> void:
 	var visto := {"r2": 0, "fraco": {}, "forte": {}}
 	var olhar := func(mg: Minigame) -> void:
 		var tempo := 60.0 / Ritmo.bpm
+		# o P4 de `ruim` (a F09 não tem robô por lugar): 0,20 s atrasado em 2 de cada 3 notas
+		var p4: Dictionary = mg.j.get(3, {})
+		if not p4.is_empty() and int(p4.robo_n) >= 0 and int(p4.robo_n) % 3 != 0:
+			p4.robo_mira = 0.20
 		for l in mg.presentes():
 			var e: Dictionary = mg.j[l]
 			var per := Forja.percepcao(l)
@@ -790,6 +798,7 @@ func _prova_dos_pendulos() -> void:
 	var arremessos := []
 	var reta := 0
 	var vento_do_p4 := 0
+	var vento_em_todos := 0
 	for ev in _linhas_do_minigame("S02_J07"):
 		if ev.get("tipo", "") == "momento" and ev.get("nome", "") == "arremesso":
 			arremessos.append(float(ev.get("t_musica", 0.0)))
@@ -802,11 +811,17 @@ func _prova_dos_pendulos() -> void:
 			reta += 1
 		if ev.get("tipo", "") == "pista" and ev.get("o", "") == "vento" and int(ev.get("de", -1)) == 3:
 			vento_do_p4 += 1
+			if int(ev.get("alvos", 1)) >= 2:
+				vento_em_todos += 1
 	_esperar(arremessos.size() >= 3 and arremessos.min() < 30.0,
 		"S02_J07: 3 ou mais arremessos, o primeiro antes de 30 s (%s)" % [arremessos])
 	_esperar(reta <= 1, "S02_J07: no máximo uma linha momento reta (%d)" % reta)
+	_esperar(bool(mg.j[3].fantasma), "S02_J07: o P4 `ruim` virou fantasma")
 	if bool(mg.j[3].fantasma):
 		_esperar(vento_do_p4 >= 1, "S02_J07: o P4 fantasma soprou vento")
+		_esperar(vento_em_todos >= 2, "S02_J07: nas últimas 16 batidas, o sopro pega todos os vivos (%d)" % vento_em_todos)
+	var terco := _notas_por_terco("S02_J07", mg.duracao)
+	_esperar(terco[1] >= 1.5 * terco[0], "S02_J07: o bolero pede 1,5 × as notas do 1.º terço (%s)" % [terco])
 	_esperar(mg.vencedor().size() == 4, "S02_J07: a colocação tem os quatro")
 ```
 
@@ -827,15 +842,27 @@ batidas: a prova pede no máximo uma.
 		],
 ```
 
-**Os comandos:** `SALA=S02_J07 bash tests/prova_do_jogo.sh` e
-`SALAS=S02_J07 bash tests/prova_visual.sh`.
+**Os comandos:** `SALA=S02_J07 bash tests/prova_do_jogo.sh`;
+`bash tests/prova_visual.sh`; e as fotos da ficha, o `roteiro` do
+`tests/telas.sh` com a sala dela, com o robô `ruim` nos quatro (o `bom`
+quase nunca é arremessado, e a foto `pendulos_arremesso` esperaria até o
+fim); cada foto num PNG em `SAIDA`: `S02_J07_aviso`, os momentos acima e
+`S02_J07_fim`:
+
+```bash
+source scripts/engine.sh
+SAIDA=/tmp/fotos-S02_J07 ROTEIRO=salas SALAS=S02_J07 RAPIDO=1 xvfb-run -a -s "-screen 0 1920x1080x24" \
+  "$FORJA_GODOT" --rendering-driver opengl3 --audio-driver Dummy --fixed-fps 60 --path godot \
+  --resolution 1920x1080 res://testes/captura_jogo.tscn -- --simular=4 --semente=7 --robo=ruim \
+  --relatorios="$(mktemp -d)"
+```
 
 **As pranchas que o jogador do time olha:**
 
 - `pendulos_arremesso`: o boneco no alto do arco, de cabeça para baixo, e a
-  mancha laranja no disco vazio;
+  mancha `TUNGSTENIO` no disco vazio;
 - `S02_J07_fim`: as vidas apagadas na trave de quem caiu;
-- o boneco de cada lugar: a cabeça, o superior e o inferior em tons
+- o boneco de cada lugar, na `pendulos_apice`: a cabeça, o superior e o inferior em tons
   diferentes, sem a cor do lugar no corpo.
 
 **O André (local):** `./run-local.sh -- --sala=S02_J07`: o golpe de pulso no

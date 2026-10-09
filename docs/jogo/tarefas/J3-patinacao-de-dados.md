@@ -26,7 +26,8 @@ e a trombada como grito.
 | `godot/testes/captura_jogo.gd` | os momentos de `"S02_J08"` | sim: as cinco |
 
 O `secao.gd`, `"momento"` em `TIPOS_DO_JOGO`, a linha `momento` no 13 e o
-`_linhas_do_minigame()` da prova são da J1: esta ficha só os usa.
+`_linhas_do_minigame()` e o `_notas_por_terco()` da prova são da J1: esta
+ficha só os usa.
 
 ### O estado de hoje
 
@@ -815,19 +816,24 @@ dado branco do pico junta os quatro na mesma trilha: é a trombada garantida.
 
 - **O rastro:** a espiral de patim no gelo, 4 s; a pilha de cada um no
   fundo cresce até o fim.
-- **Confere pelo robô (mesa padrão):** pelo menos 4 linhas `momento`
+- **Confere pelo robô (o da prova: o `bom` nos quatro, o P4 de `ruim`
+  pela prova, semente 7):** pelo menos 4 linhas `momento`
   `trombada` entre 30 e 60 s; fora do pico, pelo menos 1; uma linha
   `momento` `reta`; nos `momento` com `x_tela` ≥ 0, 0,2 ≤ `x_tela` ≤ 0,8 e
   `altura_tela` ≥ 0,08.
-- **Confere pela prancha:** 1 quadro de cada 3 do pico com uma espiral no
-  gelo.
+- **Confere pela foto:** `patinacao_trombada` (no pico, com uma espiral
+  viva) mostra a espiral no gelo e os dois patinadores girando.
 
 **A curva:** a tabela de **Como se joga**. Pelo robô: as notas por segundo
-do 2.º terço ≥ 1,5 × as do 1.º; pelo menos 1 linha `entrada` `branco`.
+do 2.º terço ≥ 1,5 × as do 1.º (`_notas_por_terco`); pelo menos 1 linha
+`entrada` `branco`.
 
 **Quem está perdendo:** o dado branco é de quem chega, e quem está atrás tem
 menos a perder numa trombada; a coroa mostra em quem esbarrar. Pelo robô: o
 P4 (`ruim`) tem pelo menos uma linha `toque` BOM ou melhor em cada terço.
+O `--robo` da prova é o `bom` nos quatro (a F09 não tem robô por lugar): a
+prova faz o P4 de `ruim`, o `robo_mira` de 0,20 s em 2 de cada 3 dados
+(`robo_n % 3 != 0`).
 
 **O que se cortou:** as três trilhas por pista e as quatro lajes.
 
@@ -836,7 +842,8 @@ P4 (`ruim`) tem pelo menos uma linha `toque` BOM ou melhor em cada terço.
 A patinação joga do aviso ao resultado com 4, 3, 2 e 1 jogador e com o robô
 nos três temperamentos; o cabo que cai e volta não gera erro; a trombada
 sai no tempo e gira os dois; o fim tem sempre vencedor;
-`_prova_da_patinacao()` passa; e a prancha do pico mostra a espiral.
+`_prova_da_patinacao()` passa; e a foto `patinacao_trombada` mostra a
+espiral.
 
 ## Provas
 
@@ -849,6 +856,10 @@ sai no tempo e gira os dois; o fim tem sempre vencedor;
 func _prova_da_patinacao() -> void:
 	var visto := {"golpe": {}, "gelo": 0}
 	var olhar := func(mg: Minigame) -> void:
+		# o P4 de `ruim` (a F09 não tem robô por lugar): 0,20 s atrasado em 2 de cada 3 dados
+		var p4: Dictionary = mg.j.get(3, {})
+		if not p4.is_empty() and int(p4.robo_n) >= 0 and int(p4.robo_n) % 3 != 0:
+			p4.robo_mira = 0.20
 		for l in mg.presentes():
 			var e: Dictionary = mg.j[l]
 			var t0 := float(e.trombou_t)
@@ -869,6 +880,7 @@ func _prova_da_patinacao() -> void:
 	var fora := 0
 	var reta := 0
 	var brancos := 0
+	var p4_no_terco := [false, false, false]
 	for ev in _linhas_do_minigame("S02_J08"):
 		if ev.get("tipo", "") == "momento" and ev.get("nome", "") == "trombada":
 			var t := float(ev.get("t_musica", 0.0))
@@ -885,10 +897,15 @@ func _prova_da_patinacao() -> void:
 			reta += 1
 		if ev.get("tipo", "") == "entrada" and ev.get("o", "") == "branco":
 			brancos += 1
+		if ev.get("tipo", "") == "toque" and int(ev.get("lugar", -1)) == 3 and ev.get("julgamento", "erro") != "erro":
+			p4_no_terco[clampi(int(float(ev.get("t_musica", 0.0)) / (mg.duracao / 3.0)), 0, 2)] = true
 	_esperar(no_pico >= 4, "S02_J08: 4 ou mais trombadas no pico (%d)" % no_pico)
 	_esperar(fora >= 1, "S02_J08: 1 ou mais trombadas fora do pico (%d)" % fora)
 	_esperar(reta == 1, "S02_J08: a linha momento reta (%d)" % reta)
 	_esperar(brancos >= 1, "S02_J08: alguém levou o dado branco (%d)" % brancos)
+	_esperar(p4_no_terco == [true, true, true], "S02_J08: o P4 `ruim` faz um BOM ou melhor em cada terço (%s)" % [p4_no_terco])
+	var terco := _notas_por_terco("S02_J08", mg.duracao)
+	_esperar(terco[1] >= 1.5 * terco[0], "S02_J08: o pico pede 1,5 × as notas do 1.º terço (%s)" % [terco])
 	_esperar(mg.vencedor().size() == 4, "S02_J08: a colocação tem os quatro")
 ```
 
@@ -902,15 +919,25 @@ func _prova_da_patinacao() -> void:
 		],
 ```
 
-**Os comandos:** `SALA=S02_J08 bash tests/prova_do_jogo.sh` e
-`SALAS=S02_J08 bash tests/prova_visual.sh`.
+**Os comandos:** `SALA=S02_J08 bash tests/prova_do_jogo.sh`;
+`bash tests/prova_visual.sh`; e as fotos da ficha, o `roteiro` do
+`tests/telas.sh` com a sala dela (cada foto num PNG em `SAIDA`:
+`S02_J08_aviso`, os momentos acima e `S02_J08_fim`):
+
+```bash
+source scripts/engine.sh
+SAIDA=/tmp/fotos-S02_J08 ROTEIRO=salas SALAS=S02_J08 RAPIDO=1 xvfb-run -a -s "-screen 0 1920x1080x24" \
+  "$FORJA_GODOT" --rendering-driver opengl3 --audio-driver Dummy --fixed-fps 60 --path godot \
+  --resolution 1920x1080 res://testes/captura_jogo.tscn -- --simular=4 --semente=7 --robo \
+  --relatorios="$(mktemp -d)"
+```
 
 **As pranchas que o jogador do time olha:**
 
 - `patinacao_trombada`: dois patinadores girando e a espiral no gelo;
 - `S02_J08_fim`: as pilhas no fundo em alturas diferentes, a coroa no
   líder;
-- o boneco de cada lugar: a cabeça, o superior e o inferior em tons
+- o boneco de cada lugar, na `patinacao_pista`: a cabeça, o superior e o inferior em tons
   diferentes, sem a cor do lugar no corpo.
 
 **O André (local):** `./run-local.sh -- --sala=S02_J08`: inclinar para
