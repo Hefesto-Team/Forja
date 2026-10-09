@@ -25,29 +25,29 @@ Estados: **a fazer**, **fazendo** (com o nome de quem pegou), **feito**
 | [F07](F07-a-voz-do-texto.md) | A voz nova do texto | M | F00, F02, F03 | feito |
 | [F08](F08-a-paridade.md) | A paridade entre a prova e o jogo | M | F00, F01, F03 | feito |
 | [F09](F09-a-prova-visual.md) | A prova visual | G | F00, F02 (a coleta de texto), F03 (o fim), F08 (o robô só pelo controle) | feito |
-| [F09b](F09b-os-achados-da-prova-visual.md) | Os achados da primeira prova visual | M | F09 | a fazer |
+| [F09b](F09b-os-achados-da-prova-visual.md) | Os achados da primeira prova visual | M | F09 | em voo (a-fita) |
 | [F10](F10-o-rumble-seco.md) | O rumble seco | G | F05 (a medição do háptico), F06 (o registro) | espera o André (a parte A feita: o roteiro às cegas) |
 
 ## G — As telas
 
 | ficha | título | tamanho | depende de | estado |
 | --- | --- | --- | --- | --- |
-| [G01](G01-titulo-e-introducao.md) | O título e a introdução | M | F00, F04, F07, F08, F09 | pronta |
-| [G02](G02-a-construcao-do-cavaleiro.md) | A construção do cavaleiro | G | F00, F04, F05, F06, F07, F08, G01, F09 | pronta |
-| [G03](G03-o-item-com-mecanica.md) | O item com mecânica | M | F00, F05, F06, G02, F09 | pronta |
+| [G01](G01-titulo-e-introducao.md) | O título e a introdução | M | F00, F04, F07, F08, F09 | em voo (o-cavaleiro) |
+| [G02](G02-a-construcao-do-cavaleiro.md) | A construção do cavaleiro | G | F00, F04, F05, F06, F07, F08, G01, F09 | em voo (o-cavaleiro) |
+| [G03](G03-o-item-com-mecanica.md) | O item com mecânica | M | F00, F05, F06, G02, F09 | em voo (o-cavaleiro) |
 | [G04](G04-o-hud-de-cada-jogador.md) | O HUD de cada jogador | G | F00, F02, F07, F09, G02, G03 | pronta |
-| [G05](G05-a-camera-dos-quatro.md) | A câmera dos quatro | M | F00, F09 | pronta |
-| [G06](G06-o-salao-e-a-colecao.md) | O salão e a coleção | M | F00, G02, F09 | pronta |
+| [G05](G05-a-camera-dos-quatro.md) | A câmera dos quatro | M | F00, F09 | em voo (a-fita) |
+| [G06](G06-o-salao-e-a-colecao.md) | O salão e a coleção | M | F00, G02, F09 | em voo (o-cavaleiro) |
 | [G07](G07-a-narrativa-leve.md) | A narrativa leve | P | F00, F07, G03, G04, G06, F09 | pronta |
-| [G08](G08-a-arte-bonecos-e-coerencia.md) | A arte: bonecos e coerência | G | F00, G01, G02, F09 | pronta |
-| [G09](G09-o-teclado-do-nome.md) | O teclado de tela para o nome | M | F00, F07, F08, F09, G02 | pronta |
-| [G10](G10-a-biblioteca-kenney.md) | A biblioteca Kenney | G | F00, G08 (a parte A e o `scripts/conferir_bonecos.py`) | pronta |
+| [G08](G08-a-arte-bonecos-e-coerencia.md) | A arte: bonecos e coerência | G | F00, G01, G02, F09 | em voo (o-cavaleiro) |
+| [G09](G09-o-teclado-do-nome.md) | O teclado de tela para o nome | M | F00, F07, F08, F09, G02 | em voo (o-cavaleiro) |
+| [G10](G10-a-biblioteca-kenney.md) | A biblioteca Kenney | G | F00, G08 (a parte A e o `scripts/conferir_bonecos.py`) | em voo (o-cavaleiro) |
 | [G11](G11-a-interface-com-o-ui-pack.md) | A interface com o UI Pack e os prompts | M | F00, F07, F09, G04, G10 | pronta |
 | [G12](G12-a-apresentacao-do-minigame.md) | A apresentação do minigame | M | H04, H06, G08, G11, F07, F09 | pronta |
 | [G13](G13-o-cavaleiro-montavel.md) | O cavaleiro montável | G | F00, F07, F09, G02, G10, G14 | pronta |
-| [G14](G14-a-cor-e-a-letra-da-fita.md) | A cor e a letra da Fita | M | F00, F09 | pronta |
-| [G15](G15-a-luz-o-pos-e-o-brilho-com-dono.md) | A luz, o pós e o brilho com dono | G | F00, F09, G14 | pronta |
-| [G16](G16-o-virar-da-fita-e-o-conforto.md) | O virar da fita, o movimento e as reações nas Opções | M | F00, F07, F09, G14 | pronta |
+| [G14](G14-a-cor-e-a-letra-da-fita.md) | A cor e a letra da Fita | M | F00, F09 | em voo (a-fita) |
+| [G15](G15-a-luz-o-pos-e-o-brilho-com-dono.md) | A luz, o pós e o brilho com dono | G | F00, F09, G14 | em voo (a-fita) |
+| [G16](G16-o-virar-da-fita-e-o-conforto.md) | O virar da fita, o movimento e as reações nas Opções | M | F00, F07, F09, G14 | em voo (a-fita) |
 
 ## H — O ritmo, o som e o kit
 
@@ -56,10 +56,10 @@ Estados: **a fazer**, **fazendo** (com o nome de quem pegou), **feito**
 | [H01](H01-o-relogio-de-audio.md) | O relógio de áudio | M | F00 | feito |
 | [H02](H02-as-janelas.md) | As janelas de julgamento | M | F00, H01 | feito |
 | [H03](H03-a-calibracao.md) | A calibração | P | F00, H02 (e G02 para a medida automática — ver "Sem a G02") | feito, sem a medida automática da G02 |
-| [H04](H04-o-kit-do-minigame.md) | O kit do minigame | G | F00, F03, F05, F08, F09, H01, H02 | a fazer |
+| [H04](H04-o-kit-do-minigame.md) | O kit do minigame | G | F00, F03, F05, F08, F09, H01, H02 | em voo (o-kit) |
 | [H05](H05-o-pipeline-das-faixas.md) | O pipeline das faixas | M | F00, H01 | feito |
-| [H06](H06-os-jingles.md) | Os jingles | P | F00, F03, H01, H04, H05 | a fazer |
-| [H07](H07-o-som-em-todo-evento.md) | O som em todo evento | G | F00, F05, F06, H04 | a fazer |
+| [H06](H06-os-jingles.md) | Os jingles | P | F00, F03, H01, H04, H05 | em voo (o-kit) |
+| [H07](H07-o-som-em-todo-evento.md) | O som em todo evento | G | F00, F05, F06, H04 | em voo (o-kit) |
 | [H08](H08-os-acrescimos-do-kit.md) | Os acréscimos do kit | G | H04, H01, H02, F03, F05, G03 | a fazer |
 | [H09](H09-o-gerador-da-trilha.md) | O gerador da trilha | M | F00, H05 | feito |
 | [H10](H10-a-bancada-da-trilha.md) | A bancada da trilha | M | H05, H09 | feito |
