@@ -4,7 +4,8 @@
 # Todo script que precisa do Godot faz:
 #   source "$RAIZ/scripts/engine.sh"      # define FORJA_GODOT
 #
-# Subir de versão é mudar esta linha e rodar as provas. Antes isto estava
+# Subir de versão é mudar as duas linhas abaixo (a versão e o sha512 do zip
+# dela) e rodar as provas: com a soma velha, o download recusa. Antes isto estava
 # escrito com todas as letras em dezesseis arquivos, e cada um subia sozinho.
 
 FORJA_GODOT_VER="${FORJA_GODOT_VER:-4.7.2-stable}"

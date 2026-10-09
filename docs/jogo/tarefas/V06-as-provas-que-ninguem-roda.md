@@ -75,3 +75,7 @@ esperada na prova).
   container do `bash scripts/ci-local.sh --rapido` (o passo novo do job `linux`): «prova das ferramentas ok — 10
   casos», em 9 s, sem placa e sem rede de modelo. O `--rapido` saiu com os três jobs verdes (windows, portoes,
   linux).
+- Conferido: a prova inteira, num container da imagem do CI sem rede, dá 10 casos verdes e deixa a árvore limpa;
+  cada uma das cinco `--prova` forçada a falhar faz a prova sair 1, e um baixador que grava antes de conferir a
+  soma reprova o «não deixa arquivo». Fica sem prova o caminho remoto do baixador (o `PacoteRemoto`, por
+  pedaços), que é o que a exportação usa: a prova cobre a conferência da soma, não o download.

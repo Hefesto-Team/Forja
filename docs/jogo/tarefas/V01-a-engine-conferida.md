@@ -75,3 +75,7 @@ fica como está).
   1 com `tools/` igual ao de antes. Os portões verdes. `bash scripts/ci-local.sh --rapido` verde nos três jobs; no
   `linux`, o passo novo achou o Godot no cache e mostrou `4.7.2.stable.official.ed1daf0bf`.
 - Fica para a mão: nada de aparelho.
+- Conferido: o sha512 é o do `SHA512-SUMS.txt` da página da 4.7.2-stable, e o download de verdade bate com ele;
+  cada sha das ações é o da etiqueta `v4` e da versão do comentário. O zip de mentira com um byte trocado, numa
+  cópia dos scripts, sai 1 e não cria `tools/`; o `engine.sh` de antes, com o mesmo zip, deixava o binário lá. O
+  cabeçalho do `engine.sh` passou a dizer que subir de versão é trocar a versão e a soma juntas.
