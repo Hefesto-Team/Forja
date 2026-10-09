@@ -91,7 +91,7 @@ func falha(l: int) -> void:
 	jogador(l).gesto("emote-no", 0.4)
 
 
-func robo(l: int, _dt: float) -> void:
+func robo(l: int, dt: float) -> void:
 	if not Forja.robo:
 		return
 	var n: int = _nota[l]
@@ -101,7 +101,10 @@ func robo(l: int, _dt: float) -> void:
 		# o temperamento (--robo=bom|medio|ruim): quando não acerta, aperta tarde demais
 		_robo_nota[l] = n
 		_robo_mira[l] = MIRA[l] if Forja.robo_acerta() else 0.25
-	if Ritmo.t_musica() >= Ritmo.t_da_batida(n) + float(_robo_mira[l]):
+	# o toque é julgado no quadro seguinte (minigame.gd, julgar_toque): o robô aperta
+	# quando o quadro do julgamento passa da mira, e o desvio fica entre a mira e a mira
+	# mais um quadro, em qualquer fase da batida contra o quadro (a WE02)
+	if Ritmo.t_musica() + dt >= Ritmo.t_da_batida(n) + float(_robo_mira[l]):
 		Forja.robo_apertar(l, Forja.CRUZ, 0.05)
 		_robo_apertou[l] = n
 

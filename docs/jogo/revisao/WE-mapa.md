@@ -55,8 +55,9 @@ relatórios, e a saída termina nas últimas 20 linhas do maior registro e em «
 
 - A régua do jogo mora em `godot/testes/prova_do_jogo.gd` (a [V02](../tarefas/V02-a-prova-do-jogo-em-partes.md) a divide).
 - O robô e os 20 defeitos de mentira moram em `nativo/nucleo/simulador.c`.
-- O relógio do ritmo corre no tempo de parede, e a prova do kit sente a máquina carregada
-  (a [WE02](../tarefas/WE02-o-kit-no-relogio-do-quadro.md)).
+- As duas rodadas da prova do jogo passam `--acelerado`: o `Ritmo` mede o tempo do jogo (a soma dos quadros), e a
+  prova do kit não sente a máquina carregada (a [WE02](../tarefas/WE02-o-kit-no-relogio-do-quadro.md)). O gauntlet
+  também. A linha do tempo de parede ficou sem prova (a [WE06](../tarefas/WE06-a-linha-do-tempo-de-parede-com-prova.md)).
 
 ## Os portões
 
@@ -73,3 +74,4 @@ O portão da caixa (`scripts/portoes/caixa.py`, da WE01) reprova a chamada do Go
 | [WE03](../tarefas/WE03-o-gauntlet-no-ci.md) | O gauntlet no CI | M | WE01, V01 |
 | [WE04](../tarefas/WE04-o-ci-local-com-casa-propria.md) | O CI local com casa própria | M | — |
 | [WE05](../tarefas/WE05-o-godot-baixado-num-lugar-so.md) | O Godot baixado num lugar só, também em casa | P | V01 |
+| [WE06](../tarefas/WE06-a-linha-do-tempo-de-parede-com-prova.md) | A linha do tempo de parede volta a ter prova | P | WE02 |

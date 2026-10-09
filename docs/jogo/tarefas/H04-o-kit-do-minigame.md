@@ -981,10 +981,9 @@ prancha das partidas com dois e com um jogador. Jogar a Centelha na mão e ver
 o aviso com o glifo, as runas, o vencedor, o título «O Martelo de Hefesto» e o
 verbo «Bata!».
 
-**Cuidado conhecido:** a prova do kit (e o «relógio sem faixa», que já era
-assim) mede pelo relógio de parede; com a máquina sob carga forte (outro jogo
-ou outro Godot com janela), o quadro engasga e as notas saem erradas. Rode com
-a máquina calma.
+**Cuidado conhecido:** curado na [WE02](WE02-o-kit-no-relogio-do-quadro.md): a prova do kit roda na sessão
+acelerada, no relógio do quadro, com o piso de 70%. O «relógio sem faixa» e o «com a faixa» seguem medindo o relógio
+de verdade: a prova desliga o tempo do jogo do `Ritmo` enquanto mede.
 
 **A prova visual da leva:** nas partidas com dois e com um jogador (passada
 fixa), a Centelha fecha com vencedor: título «O Martelo de Hefesto», verbo

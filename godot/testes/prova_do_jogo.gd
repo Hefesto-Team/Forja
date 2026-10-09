@@ -437,8 +437,11 @@ func _prova_do_catalogo() -> void:
 
 ## O kit (H04): o minigame de prova (godot/testes/minigame_de_prova.gd) joga
 ## com o robô de cada lugar mirando um desvio, e o Ritmo julga cada toque.
-## As fases esperam em quadros; a música, pelo relógio de parede.
+## As fases esperam em quadros; a música, pelo relógio do Ritmo, que na sessão acelerada é o do quadro (a WE02).
 func _prova_do_kit() -> void:
+	# a régua do kit (a WE02): o piso de 70%, e o esperado maior que cada um dos outros
+	_esperar(not _julgamento_basta([0, 6, 6, 0], Ritmo.OTIMO), "kit: a régua reprova o empate [0, 6, 6, 0] para o ótimo")
+	_esperar(_julgamento_basta([0, 2, 10, 0], Ritmo.OTIMO), "kit: a régua deixa passar [0, 2, 10, 0] para o ótimo")
 	var mg: Minigame = load("res://testes/minigame_de_prova.gd").new()
 	jogo._entrar_na_sala(mg.id, false, mg)
 	await _quadros(2)
@@ -449,30 +452,33 @@ func _prova_do_kit() -> void:
 		q += 1
 	# a contagem de entrada (H06): tique nos tempos 0 a 2 da faixa, o "vai" no 3, e some
 	Som.ultimo_jingle = ""
-	var t_conta := Time.get_ticks_usec()
-	while is_instance_valid(mg) and mg.fase == "jogo" and Ritmo.batida() < 2.3 and Time.get_ticks_usec() - t_conta < 5000000:
+	var q_conta := 0  # os prazos em quadros (a WE02): 60 quadros por segundo de jogo
+	while is_instance_valid(mg) and mg.fase == "jogo" and Ritmo.batida() < 2.3 and q_conta < 300:
 		await _quadros(1)
+		q_conta += 1
 	_esperar(Som.ultimo_jingle == "JIN_ENTRADA", "kit: a contagem de entrada tocou o tique no tempo da faixa (%s, tempo %.1f)" % [Som.ultimo_jingle, Ritmo.batida()])
-	while is_instance_valid(mg) and mg.fase == "jogo" and Ritmo.batida() < 3.3 and Time.get_ticks_usec() - t_conta < 5000000:
+	while is_instance_valid(mg) and mg.fase == "jogo" and Ritmo.batida() < 3.3 and q_conta < 300:
 		await _quadros(1)
+		q_conta += 1
 	_esperar(is_instance_valid(mg) and not Ritmo.batida_cheia.is_connected(mg._contar_a_entrada), "kit: a contagem acaba no quarto tempo e solta o relógio")
 	# o cabo do P3 sai depois da terceira nota e volta 0,8 s depois: o minigame segue
-	var inicio := Time.get_ticks_usec()
-	while is_instance_valid(mg) and mg.fase == "jogo" and mg._julgadas[2] < 3 and Time.get_ticks_usec() - inicio < 20000000:
+	var q_jogo := 0
+	while is_instance_valid(mg) and mg.fase == "jogo" and mg._julgadas[2] < 3 and q_jogo < 1200:
 		await _quadros(1)
+		q_jogo += 1
 	_esperar(Forja.ctl.simulador_cabo(2, false), "kit: o cabo do P3 saiu no meio")
-	var fora := Time.get_ticks_usec()
-	while Time.get_ticks_usec() - fora < 800000:
-		await _quadros(1)
+	await _quadros(48)
+	q_jogo += 48
 	_esperar(is_instance_valid(mg) and mg.fase == "jogo", "kit: sem o P3, o minigame seguiu")
 	# com o cabo, o nó de áudio do controle some: a placa refeita agora fica sem
 	# o P3, e só a volta do controle (Main._ao_mudar_os_controles) o devolve
 	Forja.som_preparar(Forja.PAPEL_ALTO_FALANTE)
 	_esperar(not Forja.som_tem(2, Forja.PAPEL_ALTO_FALANTE), "kit: sem o cabo, a placa refeita fica sem o P3")
 	_esperar(Forja.ctl.simulador_cabo(2, true), "kit: o cabo do P3 voltou")
-	while is_instance_valid(mg) and mg.fase == "jogo" and Time.get_ticks_usec() - inicio < 40000000:
+	while is_instance_valid(mg) and mg.fase == "jogo" and q_jogo < 2400:
 		await _quadros(1)
-	_esperar(is_instance_valid(mg) and mg.fase == "fim", "kit: o minigame acabou pelo próprio jogo (%.1f s)" % ((Time.get_ticks_usec() - inicio) / 1e6))
+		q_jogo += 1
+	_esperar(is_instance_valid(mg) and mg.fase == "fim", "kit: o minigame acabou pelo próprio jogo (%.1f s)" % (q_jogo / 60.0))
 	if not is_instance_valid(mg):
 		return
 	_esperar(Musica.atual == "" and Som.ultimo_jingle == "JIN_APITO", "kit: o apito parou a música em seco (%s)" % Som.ultimo_jingle)
@@ -482,9 +488,8 @@ func _prova_do_kit() -> void:
 		var c: Array = mg.contagem[l]
 		var total := int(c[0]) + int(c[1]) + int(c[2]) + int(c[3])
 		var certos := int(c[esperado[l]])
-		# a maioria, não um piso: o toque é julgado no quadro seguinte, e com a
-		# máquina carregada o quadro passa dos 25 ms de folga da mira
-		_esperar(total == mg.NOTAS and certos == c.max(),
+		# o piso de 70% sem empate (a WE02): no relógio do quadro, a máquina carregada não muda o julgamento
+		_esperar(total == mg.NOTAS and _julgamento_basta(c, esperado[l]),
 			"kit P%d: %s em %d de %d notas %s" % [l + 1, Ritmo.NOMES_DO_JULGAMENTO[esperado[l]], certos, total, c])
 	_esperar(mg.vencedor() == [0, 1, 2, 3], "kit: a colocação pelos pontos (%s, pontos %s)" % [mg.vencedor(), mg.pontos])
 	q = 0
@@ -896,6 +901,12 @@ func _prova_da_partida() -> void:
 ## faixa e o da placa com a trilha sintetizada. Espera pelo relógio de
 ## parede: com --fixed-fps 60 sem janela, o jogo anda mais depressa que ele.
 func _prova_do_relogio() -> void:
+	# na sessão acelerada o relógio do ritmo é o tempo do jogo (a WE02): esta prova mede o
+	# relógio de verdade (a placa e o sistema), e desliga o tempo do jogo enquanto mede
+	Ritmo.pelo_relogio_de_verdade = true
+	# o primeiro quadro da cena leva de 0,3 s a 10 s de parede (o disco, a máquina): a
+	# medida começa depois dele, senão ele entra na conta dos 0,8 s (a WE02)
+	await _quadros(3)
 	var r := Ritmo.posicao_continua(0.2, 17.6, 0, 17.8)
 	_esperar(int(r[1]) == 1 and absf(float(r[0]) - 18.0) < 0.0001, "relógio: a volta do laço soma a duração (%s)" % [r])
 	r = Ritmo.posicao_continua(5.0, 4.98, 1, 17.8)
@@ -905,6 +916,7 @@ func _prova_do_relogio() -> void:
 	await _medir_o_relogio("", 0.8, "sem faixa", false)
 	await _medir_o_relogio("MUS_S01_J01", 1.5, "com a faixa", Forja.modulo)
 	Ritmo.parar()
+	Ritmo.pelo_relogio_de_verdade = false
 
 
 func _medir_o_relogio(slot: String, segundos: float, rotulo: String, pela_placa: bool) -> void:
@@ -1343,6 +1355,8 @@ func _prova_do_registro_v2() -> void:
 	var saidas := 0
 	for e in linhas:
 		var t := float(e.get("t", -1.0))
+		if e.get("tipo") == "sessao" and e.get("evento") == "relogio":
+			t_antes = t  # a troca para o tempo do jogo (--acelerado, a WE02) começa a conta dele
 		t_ok = t_ok and t >= t_antes
 		t_antes = t
 		if int(e.get("jogador", 0)) > 0:
@@ -1355,6 +1369,10 @@ func _prova_do_registro_v2() -> void:
 			seq_ok = seq_ok and n == int(seq.get(chave, 0)) + 1
 			seq[chave] = n
 	var processo := Time.get_ticks_msec() / 1000.0
+	if Forja.acelerada():
+		# na sessão acelerada, o t da linha é o tempo do jogo (a WE02), somado pelo módulo num float
+		# (nativo/nucleo/forja.h, o `t`): depois de 1465 s ele já passava 0,5 s do `_agora` do Forja
+		processo = Forja.agora_us() / 1000000.0 * 1.005
 	_esperar(t_ok, "o t nunca anda para trás")
 	_esperar(t_antes <= processo + 0.5, "o t é o relógio de parede (%.1f s na linha, %.1f s de processo)" % [t_antes, processo])
 	_esperar(lugar_ok, "toda linha com jogador tem o lugar (jogador - 1)")
@@ -1576,3 +1594,18 @@ func _calar_o_som_antes_de_sair() -> void:
 	for i in 20:
 		OS.delay_msec(10)
 		await get_tree().process_frame
+
+
+## A régua do kit (a WE02), pura: o julgamento esperado tem pelo menos 70% das
+## notas e é maior que cada um dos outros (o empate reprova).
+static func _julgamento_basta(contagem: Array, esperado: int) -> bool:
+	var total := 0
+	for n in contagem:
+		total += int(n)
+	var certos := int(contagem[esperado])
+	if total == 0 or certos * 10 < total * 7:
+		return false
+	for i in contagem.size():
+		if i != esperado and int(contagem[i]) >= certos:
+			return false
+	return true
