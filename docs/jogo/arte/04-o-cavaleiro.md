@@ -216,8 +216,8 @@ dele vai de y 0,34 a 0,67).
 | **Golem de escória** | bloco facetado de 0,34 × 0,24 × 0,30, sem pescoço (desce 0,03); a rachadura: três traços de 0,005 num vão `JANELA` na testa, com o acento dentro | um punho de pedra (cubo chanfrado de 0,075) em cada punho | nenhuma | o osso `torso` a 1,15 em x e z (ombro e braço mais largos); a cabeça compensa a 0,87 | `PELE_ESCORIA` | dois tufos de líquen de 0,05 no alto | por código, até 400 triângulos, no osso `head`; os punhos no punho que `Montar.mao` acha |
 | **Raposa ferreira** | caixa de 0,28 × 0,24 × 0,26; focinho em prisma de 0,12 × 0,08 × 0,10 com a ponta em `TINTA`; duas orelhas em prisma de 0,08 × 0,10; olhos de 0,03 em `TINTA` | as do superior, em pelo (`PELE_RAPOSA`) | o `tail` do `animal-fox` (Kenney Cube Pets) a ×0,33 (0,30 de comprimento), no osso `root` em (0; 0,20; −0,10), balança ±8° a cada batida, `ENTRA_SAI` | a mesma do humano | `PELE_RAPOSA` | a ponta das orelhas e a ponta da cauda | a cabeça por código, até 300 triângulos; a cauda da Kenney, com o colormap do Cube Pets na pasta dele |
 
-A cabeça de cada raça, como a humana, passa no teste de 64 px e cinza: o rosto
-na faixa de 0,68 a 0,80, e a silhueta própria (as presas e a cabeça alta do
+A cabeça de cada raça passa no teste de 64 px e cinza: o rosto na faixa de
+0,68 a 0,80 (a pele é token), e a silhueta própria (as presas e a cabeça alta do
 orc, a antena do autômato, o bloco sem pescoço do golem, as orelhas e o
 focinho da raposa).
 
@@ -373,7 +373,7 @@ batida tem 500 ms, a colcheia 250 ms e a semicolcheia 125 ms.
 | quando | o que acontece | quanto dura |
 | --- | --- | --- |
 | o quadro do toque (0 ms) | a seta apertada (◀ ou ▶) cresce a 1,2 e volta, `MOLA`; a peça velha afunda à escala 0,92, `ENTRA` | 4 quadros; 2 quadros |
-| **o encaixe**: a semicolcheia seguinte (de 0 a 125 ms depois do toque) | a peça nova cai de 0,06 acima e chega da escala 0,9 a 1,0, `MOLA`; `ui_peca` na altura da parte (cabeça +7, superior +4, inferior 0, item −5 semitons) no alto-falante do dono e na TV a −12 dB; o pulso de metal de 150 Hz nos atuadores; 8 faíscas na junta, na cor do dono, energia 2,4; o acento da peça nova sobe a 2,6 e volta a 1,6, `SAI`; o VU anda um segmento a cada 30 ms | tudo no mesmo quadro de 16,7 ms; o som 120 ms, o pulso 40 ms, as faíscas 12 quadros, o acento 250 ms |
+| **o encaixe**: a semicolcheia seguinte (de 0 a 125 ms depois do toque) | a peça nova cai de 0,06 acima e chega da escala 0,9 a 1,0, `MOLA`; `ui_peca` na altura da parte (cabeça +7, superior +4, inferior 0, item −5 semitons) no alto-falante do dono e na TV a −12 dB; o pulso de metal de 150 Hz nos atuadores (na arma e no amuleto, o pulso do item, 80 ms, pelo [03](03-som.md#o-casamento-evento-por-evento)); 8 faíscas na junta, na cor do dono, energia 2,4; o acento da peça nova sobe a 2,6 e volta a 1,6, `SAI`; o VU anda um segmento a cada 30 ms | tudo no mesmo quadro de 16,7 ms; o som 120 ms, o pulso 40 ms, as faíscas 12 quadros, o acento 250 ms |
 | o encaixe + 250 ms (a colcheia), se nenhum toque novo chegou | a pose de reação e o giro da plataforma (as tabelas abaixo) | 500 ms (1 batida) |
 | a mesma colcheia, na troca de cabeça ou de raça | o pio da cabeça nova, `pio_p{n}_{intervalo}`, na TV e no alto-falante | 300 ms |
 | a batida seguinte, se o arquétipo mudou | a etiqueta vira (`ENTRA_SAI`) e a caneta reescreve o arquétipo com `fx_caneta` | 180 ms; 400 ms |

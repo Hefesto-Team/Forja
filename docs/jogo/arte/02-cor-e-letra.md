@@ -87,6 +87,11 @@ acima do couro mais claro (0,36). Em cinza, o cavaleiro tem três faixas: a
 cabeça clara, o tronco médio, as pernas escuras. O item, claro, se lê contra
 o tecido do braço que o segura.
 
+O rosto humano é a exceção, por ora: a pele da Kenney vai de L 0,52 a 0,72 e
+não se clareia, para manter os tons de pele. Só 2 dos 12 rostos caem na
+faixa; o critério (a faixa ou o contraste de 0,10 com o superior) espera o
+diretor de arte, no [04](04-o-cavaleiro.md#o-que-a-medida-deu-em-0910).
+
 **A peça nunca é néon.** Duas condições, conferidas por script:
 
 - croma de até 0,10 (o néon de jogador mais fraco, o ciano, tem croma 0,141);

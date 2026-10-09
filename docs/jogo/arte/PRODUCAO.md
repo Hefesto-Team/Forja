@@ -343,12 +343,17 @@ do corpo e o ΔE OKLab até cada `JOGADOR`.
 `docs/imagens/direcao/20_encaixe.jpg` (1920×1080: seis miniaturas de
 640×540), com `20_encaixe` no `QUADROS`.
 
-**Pronto quando:** os instantes 0, 60, 125, 250, 500 e 750 ms da troca de
+**Pronto quando:** os instantes 0, 125, 190, 375, 500 e 1000 ms da troca de
 uma peça, pela linha do tempo do
-[04](04-o-cavaleiro.md#o-primeiro-minuto): a seta, a peça caindo 0,06 m, o
-encaixe com as 8 faíscas e o acento a 2,6, a pose da linha, o giro da
-plataforma a 25° e a volta ao `idle`; o instante e o que acontece escritos
-embaixo de cada miniatura, em VT323 30.
+[04](04-o-cavaleiro.md#o-primeiro-minuto), com o encaixe no pior caso (o
+toque logo depois de uma semicolcheia): a seta e a peça velha a 0,92; o
+encaixe, com a peça nova a 0,06 acima e na escala 0,9, as 8 faíscas e o
+acento a 2,6 no mesmo quadro; a peça assentada 4 quadros depois; a pose da
+linha na colcheia seguinte; o giro da plataforma a 25°; o descanso em
+`idle`; o instante e o que acontece escritos embaixo de cada miniatura, em
+VT323 30. Na conferência, os instantes de 60, 250 e 750 ms saíram: a peça
+nova caía antes do encaixe, e a pose e o idle vinham 125 ms e 250 ms antes
+da linha do tempo do 04.
 
 ### 19 A página
 
@@ -372,10 +377,12 @@ e no [04, o que mudou no estudo](04-o-cavaleiro.md#o-que-mudou-no-estudo-em-0910
   de 144 pares. A pele não se clareou: é a diversidade de tons da Kenney. A
   proposta é medir o rosto pelo contraste com o superior, com a gola acesa
   onde o par não chega a 0,10. Decide o diretor de arte.
-- **Item 15, o que não se mediu.** A cauda pelo vão da cadeira só se vê na
-  10 (P3). As mãos de pinça e os punhos de pedra não foram conferidos nas 32
+- **Item 15, o que não se mediu.** A cauda pelo vão da cadeira não aparece
+  em prancha nenhuma: a 10 é de frente e o encosto a esconde. As mãos de pinça e os punhos de pedra não foram conferidos nas 32
   animações, uma a uma; nas pranchas (idle e holding-both) seguem o osso.
-- **Item 16, a linha das calças na 11.** Sai pequena, como antes.
+- **Item 16, a linha das calças na 11.** Resolvido na conferência: o
+  inferior sai a 1,8× (as pernas davam cerca de 42 px, agora 76), com o
+  rótulo «Tronco inferior (a 1,8×)».
 
 ## Os sons
 

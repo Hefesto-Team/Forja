@@ -5,11 +5,16 @@ extends Node3D
 ## tem 125 ms, a colcheia 250 ms, a batida 500 ms.
 ##
 ##     0 ms  a seta apertada cresce a 1,2; a peça velha afunda a 0,92
-##    60 ms  a peça nova cai: no meio dos 0,06 e da escala 0,9 a 1,0
-##   125 ms  o encaixe: 8 faíscas na junta, o acento a 2,6
-##   250 ms  a pose da linha (holding-both), o acento de volta a 1,6
-##   500 ms  a plataforma girada 25° para o centro da tela
-##   750 ms  a volta ao idle
+##   125 ms  o encaixe, na semicolcheia (o pior caso: o toque logo depois
+##            de uma): a peça nova a 0,06 acima e na escala 0,9, as 8
+##            faíscas e o acento a 2,6, no mesmo quadro
+##   190 ms  4 quadros depois: a peça assentada na escala 1,0; as faíscas
+##            ainda no ar (12 quadros); o acento descendo, `SAI`
+##   375 ms  o encaixe + a colcheia: a pose da linha (holding-both), o
+##            acento de volta a 1,6, o giro começa
+##   500 ms  a plataforma a 25° (a ida de 120 ms acabou em 495 ms)
+##  1000 ms  o descanso: a pose (500 ms) e a volta do giro acabam em 875 ms,
+##            o idle chega em 120 ms; a troca inteira cabe em 1 s
 ##
 ## 1920×1080, 50 mm frontal à altura do peito, como a montagem (10).
 
@@ -33,21 +38,22 @@ const NOVO := ["male-c", "male-e", "male-a"]
 const CAI := 0.06               ## a queda da peça nova, nas unidades do personagem
 ## Os instantes: o ms, as duas linhas da legenda e o estado da cena.
 ##   pecas: 0 a velha, 1 a nova; queda: a fração dos 0,06 que falta cair;
-##   escala: a da peça que muda; acento: a energia; faiscas; anim; yaw (°);
+##   escala: a da peça que muda; acento: a energia; faiscas: o leque (0 sem
+##   faísca); anim; yaw (°);
 ##   seta: a escala da seta ▶
 const INSTANTES := [
 	{"ms": 0, "l1": "0 ms · o toque", "l2": "a seta a 1,2, a peça velha a 0,92",
-		"pecas": 0, "queda": 0.0, "escala": 0.92, "acento": 1.6, "faiscas": false, "anim": "idle", "t": 0.30, "yaw": 0.0, "seta": 1.2},
-	{"ms": 60, "l1": "60 ms · a peça nova cai", "l2": "dos 0,06 acima, da escala 0,9 a 1,0",
-		"pecas": 1, "queda": 0.5, "escala": 0.95, "acento": 1.6, "faiscas": false, "anim": "idle", "t": 0.36, "yaw": 0.0, "seta": 1.05},
-	{"ms": 125, "l1": "125 ms · o encaixe", "l2": "8 faíscas na junta, o acento a 2,6",
-		"pecas": 1, "queda": 0.0, "escala": 1.0, "acento": 2.6, "faiscas": true, "anim": "idle", "t": 0.42, "yaw": 0.0, "seta": 1.0},
-	{"ms": 250, "l1": "250 ms · a pose da linha", "l2": "holding-both, o acento em 1,6",
-		"pecas": 1, "queda": 0.0, "escala": 1.0, "acento": 1.6, "faiscas": false, "anim": "holding-both", "t": 0.20, "yaw": 0.0, "seta": 1.0},
+		"pecas": 0, "queda": 0.0, "escala": 0.92, "acento": 1.6, "faiscas": 0.0, "anim": "idle", "t": 0.30, "yaw": 0.0, "seta": 1.2},
+	{"ms": 125, "l1": "125 ms · o encaixe", "l2": "a peça a 0,06 acima, 8 faíscas, acento 2,6",
+		"pecas": 1, "queda": 1.0, "escala": 0.9, "acento": 2.6, "faiscas": 1.0, "anim": "idle", "t": 0.36, "yaw": 0.0, "seta": 1.0},
+	{"ms": 190, "l1": "190 ms · a peça assentada", "l2": "escala 1,0; as faíscas no ar",
+		"pecas": 1, "queda": 0.0, "escala": 1.0, "acento": 2.0, "faiscas": 1.8, "anim": "idle", "t": 0.42, "yaw": 0.0, "seta": 1.0},
+	{"ms": 375, "l1": "375 ms · a pose da linha", "l2": "holding-both, o acento em 1,6",
+		"pecas": 1, "queda": 0.0, "escala": 1.0, "acento": 1.6, "faiscas": 0.0, "anim": "holding-both", "t": 0.20, "yaw": 0.0, "seta": 1.0},
 	{"ms": 500, "l1": "500 ms · a plataforma a 25°", "l2": "o giro para o centro da tela",
-		"pecas": 1, "queda": 0.0, "escala": 1.0, "acento": 1.6, "faiscas": false, "anim": "holding-both", "t": 0.45, "yaw": 25.0, "seta": 1.0},
-	{"ms": 750, "l1": "750 ms · a volta ao idle", "l2": "o descanso, pronto para outra troca",
-		"pecas": 1, "queda": 0.0, "escala": 1.0, "acento": 1.6, "faiscas": false, "anim": "idle", "t": 0.30, "yaw": 0.0, "seta": 1.0},
+		"pecas": 1, "queda": 0.0, "escala": 1.0, "acento": 1.6, "faiscas": 0.0, "anim": "holding-both", "t": 0.45, "yaw": 25.0, "seta": 1.0},
+	{"ms": 1000, "l1": "1000 ms · o descanso", "l2": "o idle, pronto para outra troca",
+		"pecas": 1, "queda": 0.0, "escala": 1.0, "acento": 1.6, "faiscas": 0.0, "anim": "idle", "t": 0.30, "yaw": 0.0, "seta": 1.0},
 ]
 
 
@@ -103,21 +109,22 @@ func _cena(raiz: Node3D, cam: Camera3D, s: Dictionary) -> void:
 		"t_anim": s.t, "yaw": yaw, "acento_energia": s.acento, "anel": false})
 	peca.scale = Vector3.ONE * e
 	peca.position = pos.rotated(Vector3.UP, yaw)
-	if s.faiscas:
-		_faiscas(raiz, Vector3(0, caixa.end.y * Mundo.K, 0.25), cor)
+	if float(s.faiscas) > 0.0:
+		_faiscas(raiz, Vector3(0, caixa.end.y * Mundo.K, 0.25), cor, float(s.faiscas))
 	Mundo.neon_sem_sombra(raiz)
 	Mundo.pos(raiz, 5, {"grao": 0.025})
 
 
 ## As 8 faíscas do encaixe, na junta (a gola), quatro em cada ombro, em
-## leque para fora, energia 2,4.
-func _faiscas(raiz: Node3D, c: Vector3, cor: Color) -> void:
+## leque para fora, energia 2,4. `abre` é quanto o leque já se abriu: 1,0 no
+## quadro do encaixe, 1,8 quatro quadros depois.
+func _faiscas(raiz: Node3D, c: Vector3, cor: Color, abre: float) -> void:
 	for i in 8:
 		var lado := -1.0 if i < 4 else 1.0
 		var k := i % 4
 		var ang := deg_to_rad(-30.0 + 25.0 * k)
 		var d := Vector3(lado * cos(ang), sin(ang), 0.2).normalized()
-		var p := c + Vector3(lado * 0.36, -0.10, 0.0) + d * (0.12 + 0.05 * k)
+		var p := c + Vector3(lado * 0.36, -0.10, 0.0) + d * (0.12 + 0.05 * k) * abre
 		var mi := MeshInstance3D.new()
 		var b := BoxMesh.new()
 		b.size = Vector3(0.025, 0.12, 0.025)

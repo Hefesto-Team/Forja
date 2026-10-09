@@ -5,6 +5,8 @@ extends Node3D
 ## seis itens com o que pedem e a liga. 42 células, nenhuma vazia.
 ## Refeita no item 16: cada peça no material dela (tecido, couro, pele), sem
 ## tom de jogador no corpo; o acento (friso, costura, runa) aceso em P1.
+## Na conferência: o inferior a 1,8× (só as pernas: saía com cerca de
+## 42 px de altura e a calça não se lia); o rótulo diz a escala.
 ## 1920×1440: um mundo só, câmera ortográfica, um píxel = ESCALA m.
 
 const Fita := preload("res://estudos/direcao/fita.gd")
@@ -29,7 +31,10 @@ const BONECO_H := 168.0
 const ITENS_Y := 1080.0
 const ITEM_W := 304.0
 const PARTES := ["cabeca", "superior", "inferior"]
-const ROTULO := ["Cabeça", "Tronco superior", "Tronco inferior"]
+const ROTULO := ["Cabeça", "Tronco superior", "Tronco inferior (a 1,8×)"]
+## A escala de cada linha sobre a ESCALA: o inferior a 1,8× (cabe na coluna
+## de 152 px: as pernas mais largas dão cerca de 140).
+const AMPLIA := [1.0, 1.0, 1.8]
 const ITENS := ["martelo", "ancora", "escudo", "fole", "lanterna", "diapasao"]
 
 
@@ -66,12 +71,14 @@ func montar(_estudo) -> void:
 			var caixa: AABB = Cortar.partes(p).caixa[parte]
 			var centro_px := Vector2(X0 + c * COL + COL * 0.5, LINHA_Y[linha] + 40.0 + BONECO_H * 0.5)
 			# a peça no meio da célula: o centro da caixa dela (na escala K) no centro
-			var pos := _mundo(centro_px) - caixa.get_center() * Mundo.K
+			var amplia: float = AMPLIA[linha]
+			var pos := _mundo(centro_px) - caixa.get_center() * Mundo.K * amplia
 			pos.z = 0.0
 			# cada peça no material dela (tecido, couro, pele) e o acento
 			# aceso na cor de P1; sem contorno, para a peça se ler sozinha
-			Montar.cavaleiro(raiz, 0, pos, [p, p, p], {"so": parte, "contorno": false,
+			var peca := Montar.cavaleiro(raiz, 0, pos, [p, p, p], {"so": parte, "contorno": false,
 				"acento": true, "anel": false, "anim": "idle", "t_anim": 0.0})
+			peca.scale = Vector3.ONE * amplia
 	for i in 6:
 		_item(raiz, ITENS[i], Vector2(X0 + i * ITEM_W + ITEM_W * 0.5, ITENS_Y + 134.0))
 	Prancha.pregar(folha, vp, Rect2(Vector2.ZERO, Vector2(TAM)))
