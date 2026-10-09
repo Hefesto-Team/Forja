@@ -594,7 +594,9 @@ feat: os seis itens têm mecânica, liga, lugar no corpo e registro; o Escudo j�
 - O teste de tamanho da ficha comparava o item com o AABB global do body-mesh (0,74 m, sem a cabeça, e girado): dava 0,85 a 1,32 para o mesmo
   martelo. Troquei por «maior lado do item no espaço dele contra 0,755 × `ForjaPlayer.ESCALA`», com as mesmas faixas.
 - `Bancada` não entra em `usa_gatilho`: a ficha a listou, mas ela é `Sala`, não `SalaJogo`.
-- Sem `Kit.caminho` (G10), sem `Tema.neon` (G15) e sem `acender_acento()` (G08): a runa usa `Kit.material`, e o caminho do modelo é uma constante.
+- Sem `Kit.caminho` (G10) e sem `Tema.neon` (G15): a runa usa `Kit.material`, e o caminho do modelo é uma constante. O `acender_acento()` e a
+  textura «objeto» do colormap do item (G08) entraram depois, no commit que fecha a G08: o item trocado acende o acento, e o martelo e o escudo
+  do Kenney levam o colormap na faixa dos objetos.
 - O quadro do medalhão (0,030) corta o cabo do Diapasão (emblema em y -0,022): literal, como está na ficha.
 - O aro do Escudo: caixas em octógono regular, vértice a 0,975 r.
 - `Itens.ajustar_julgamento` saiu da arquitetura (a ficha H04, de outro conjunto, ainda o cita).
