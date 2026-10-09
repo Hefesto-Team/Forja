@@ -19,13 +19,13 @@ Estados: **a fazer**, **fazendo** (com o nome de quem pegou), **feito**
 | [F01](F01-o-modo-bancada.md) | O Modo bancada | G | F00 | feito |
 | [F02](F02-sem-metalinguagem.md) | Nenhuma frase metalinguística | M | F00, F01 | feito |
 | [F03](F03-todo-minigame-fecha.md) | Todo minigame fecha | M | F00, F01 | feito |
-| [F04](F04-p1-e-o-led.md) | O P1 da tela é o controle P1 | M | F00, F01 | a fazer |
-| [F05](F05-o-haptico-forte.md) | O háptico forte | G | F00, F01 | a fazer |
-| [F06](F06-o-registro-v2.md) | O registro v2 | G | F00, F01, F03, F04, F05 | a fazer |
+| [F04](F04-p1-e-o-led.md) | O P1 da tela é o controle P1 | M | F00, F01 | em voo (o-controle) |
+| [F05](F05-o-haptico-forte.md) | O háptico forte | G | F00, F01 | em voo (o-controle) |
+| [F06](F06-o-registro-v2.md) | O registro v2 | G | F00, F01, F03, F04, F05 | em voo (o-controle) |
 | [F07](F07-a-voz-do-texto.md) | A voz nova do texto | M | F00, F02, F03 | feito |
-| [F08](F08-a-paridade.md) | A paridade entre a prova e o jogo | M | F00, F01, F03 | a fazer |
-| [F09](F09-a-prova-visual.md) | A prova visual | G | F00, F02 (a coleta de texto), F03 (o fim), F08 (o robô só pelo controle) | a fazer |
-| [F10](F10-o-rumble-seco.md) | O rumble seco | G | F05 (a medição do háptico), F06 (o registro) | a fazer |
+| [F08](F08-a-paridade.md) | A paridade entre a prova e o jogo | M | F00, F01, F03 | em voo (as-provas) |
+| [F09](F09-a-prova-visual.md) | A prova visual | G | F00, F02 (a coleta de texto), F03 (o fim), F08 (o robô só pelo controle) | em voo (as-provas) |
+| [F10](F10-o-rumble-seco.md) | O rumble seco | G | F05 (a medição do háptico), F06 (o registro) | em voo (o-controle) |
 
 ## G — As telas
 
