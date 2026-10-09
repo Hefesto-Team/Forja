@@ -37,9 +37,12 @@ func _draw() -> void:
 		var reservado: bool = info.get("reservado", false)
 		Desenho.moldura(self, placa, Color(Tema.APP, 0.92), Tema.SUTIL, 2, Tema.RAIO_CARTAO)
 		Desenho.texto(self, Vector2(X0 + 18, 104), rotulo, Tema.fonte(700), Tema.T_CORPO, cor_id if reservado else Tema.MUDO)
-		Glifo.dica(self, Vector2(X0 + 100, 400), "cruz", "Entrar", Tema.T_ROTULO, Tema.FG, Tema.SUAVE)
+		# a dica fica numa placa escura: sobre a cena clara a letra não se lia (contraste de 1,8:1)
+		var placa_dica := Rect2(X0 + 60, 352, LARGURA - 120, 100 if reservado else 56)
+		Desenho.moldura(self, placa_dica, Color(Tema.APP, 0.82), Tema.SUTIL, 2, 8)
+		Glifo.dica(self, Vector2(X0 + 100, 392), "cruz", "Entrar", Tema.T_ROTULO, Tema.FG, Tema.FG)
 		if reservado:
-			Glifo.dica(self, Vector2(X0 + 60, 450), "quadrado", "Segure para trocar", Tema.T_ROTULO, Tema.SUAVE, Tema.MUDO, false)
+			Glifo.dica(self, Vector2(X0 + 80, 436), "quadrado", "Segure para trocar", Tema.T_ROTULO, Tema.SUAVE, Tema.SUAVE, false)
 		return
 
 	var etapa: int = t.etapa[lugar]

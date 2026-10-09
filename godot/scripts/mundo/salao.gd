@@ -412,15 +412,16 @@ func _pedestais() -> void:
 
 ## A bigorna do lugar acende em `energia` e cai a 0,8 em 0,3 s (SAI, a curva do
 ## arte/05: cúbica, rápida no começo, assenta no fim) se o lugar está ocupado, a
-## 0 se não.
-func acender_bigorna(l: int, energia: float) -> void:
+## 0 se não. `a_mais` soma ao repouso: a forja que avança deixa a bigorna mais
+## acesa a cada martelada, e a construção não fica parada na tela.
+func acender_bigorna(l: int, energia: float, a_mais := 0.0) -> void:
 	l = clampi(l, 0, 3)
 	if l >= luzes_das_bigornas.size():
 		return
 	var luz := luzes_das_bigornas[l]
 	if _tw_bigorna[l] != null and is_instance_valid(_tw_bigorna[l]):
 		(_tw_bigorna[l] as Tween).kill()
-	var repouso := 0.8 if Forja.ocupado(l) else 0.0
+	var repouso := (0.8 + a_mais) if Forja.ocupado(l) else 0.0
 	if not luz.is_inside_tree():
 		luz.light_energy = repouso
 		return

@@ -104,7 +104,7 @@ func entrou(l: int) -> void:
 	p.acender(1.0)
 	salao.acender_bigorna(l, 1.5)
 	Som.pio(l, p.modelo_i)
-	_robo_espera[l] = 3.0   # o robô espera 3 s antes de forjar: a prova mexe no P2 e no P3 nesse tempo
+	_robo_espera[l] = 1.2   # o robô espera um instante antes de forjar (a tela da construção não fica parada mais de 5 s)
 	_entrou_agora[l] = true
 
 
@@ -161,6 +161,7 @@ func quadro(dt: float, dx: Array, dy: Array) -> void:
 				if circulo:
 					golpes[l] = []
 					p.acender(1.0)
+					salao.acender_bigorna(l, 1.5)
 					etapa[l] = EDITANDO
 					_som_de_voltar(l)
 				elif cruz:
@@ -268,7 +269,7 @@ func martelar(l: int) -> void:
 	jogadores[l].gesto("attack-melee-right", 0.35)
 	Som.tocar("martelo", jogadores[l].global_position, -4.0)
 	Forja.sentir(l, "acerto")
-	salao.acender_bigorna(l, 2.5)
+	salao.acender_bigorna(l, 2.5 + k, 1.5 * k)   # a bigorna fica mais acesa a cada martelada
 	if golpes[l].size() >= MARTELADAS:
 		_forjou(l)
 
@@ -282,6 +283,7 @@ func _forjou(l: int) -> void:
 	etapa[l] = FORJADO
 	prontos[l] = true
 	jogadores[l].acender(1.0)
+	salao.acender_bigorna(l, 2.5)
 	jogadores[l].gesto("emote-yes", 1.2)
 	Efeitos.faiscas(salao, jogadores[l].global_position + Vector3(0, 1.6, 0), Forja.cor_do_lugar(l), 24, 1.0)
 	Forja.sentir(l, "perfeito")
