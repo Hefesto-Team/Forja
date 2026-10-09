@@ -55,14 +55,14 @@ static func solido(pai: Node, centro: Vector3, tamanho: Vector3) -> StaticBody3D
 	return corpo
 
 
-static func material(cor: Color, brilho := 0.0, rugoso := 0.8) -> StandardMaterial3D:
+## Com `brilho` > 0 o material brilha, e o brilho tem dono (Tema.emissivo): um lugar (0 a 3), "mundo" (até 1,2) ou "forja"
+## (até 2,4). Quem chama sem brilho não precisa dizer o dono.
+static func material(cor: Color, brilho := 0.0, rugoso := 0.8, dono: Variant = "mundo") -> StandardMaterial3D:
 	var m := StandardMaterial3D.new()
 	m.albedo_color = cor
 	m.roughness = rugoso
 	if brilho > 0.0:
-		m.emission_enabled = true
-		m.emission = cor
-		m.emission_energy_multiplier = brilho
+		Tema.emissivo(m, brilho, dono)
 	return m
 
 
@@ -185,9 +185,9 @@ static func martelo(pai: Node, escala := 1.0) -> Node3D:
 	var m := Node3D.new()
 	m.scale = Vector3.ONE * escala
 	pai.add_child(m)
-	cilindro(m, 0.028, 0.52, Vector3(0, 0.22, 0), material(Color("#8a5a33"), 0.0, 0.8))
-	caixa(m, Vector3(0.3, 0.13, 0.14), Vector3(0, 0.5, 0), material(Color("#5b6275"), 0.0, 0.35))
-	caixa(m, Vector3(0.05, 0.15, 0.16), Vector3(0.165, 0.5, 0), material(Color("#d7d9e3"), 0.0, 0.3))
+	cilindro(m, 0.028, 0.52, Vector3(0, 0.22, 0), material(Tema.OXIDO_BRILHO, 0.0, 0.8))
+	caixa(m, Vector3(0.3, 0.13, 0.14), Vector3(0, 0.5, 0), material(Tema.OXIDO_BRILHO, 0.0, 0.35))
+	caixa(m, Vector3(0.05, 0.15, 0.16), Vector3(0.165, 0.5, 0), material(Tema.OXIDO_BRILHO, 0.0, 0.3))
 	return m
 
 
@@ -224,7 +224,7 @@ static func bigorna(pai: Node, pos: Vector3, escala := 0.55) -> Node3D:
 	var base := CSGBox3D.new()
 	base.size = Vector3(1.5, 0.45, 1.0)
 	base.position.y = 0.225
-	base.material = material(Color("#6272a4"))
+	base.material = material(Tema.OXIDO_BRILHO)
 	b.add_child(base)
 	var cintura := CSGBox3D.new()
 	cintura.size = Vector3(0.8, 0.45, 0.62)
@@ -234,7 +234,7 @@ static func bigorna(pai: Node, pos: Vector3, escala := 0.55) -> Node3D:
 	var tampo := CSGBox3D.new()
 	tampo.size = Vector3(1.9, 0.38, 0.8)
 	tampo.position = Vector3(-0.1, 1.09, 0)
-	tampo.material = material(Color("#e9e7f2"), 0.0, 0.35)
+	tampo.material = material(Tema.OXIDO_BRILHO, 0.0, 0.35)
 	b.add_child(tampo)
 	var chifre := CSGCylinder3D.new()
 	chifre.cone = true
@@ -243,6 +243,6 @@ static func bigorna(pai: Node, pos: Vector3, escala := 0.55) -> Node3D:
 	chifre.sides = 8
 	chifre.rotation.z = -PI * 0.5
 	chifre.position = Vector3(1.28, 1.09, 0)
-	chifre.material = material(Color("#e9e7f2"), 0.0, 0.35)
+	chifre.material = material(Tema.OXIDO_BRILHO, 0.0, 0.35)
 	b.add_child(chifre)
 	return b

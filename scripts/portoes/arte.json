@@ -32,7 +32,13 @@
     "SECAO_1": "#2f55c4",
     "SECAO_2": "#1f8a7e",
     "SECAO_3": "#c79a2a",
-    "SECAO_4": "#86409a"
+    "SECAO_4": "#86409a",
+    "AMBIENTE_SALAO": "#2a2738",
+    "CHAVE_SECAO_0": "#ffc99c",
+    "CHAVE_SECAO_1": "#e5d3c6",
+    "CHAVE_SECAO_2": "#e5d7ad",
+    "CHAVE_SECAO_3": "#f8d096",
+    "CHAVE_SECAO_4": "#f8ccba"
   },
   "jogadores": {
     "ciano": "#29e6ff",
