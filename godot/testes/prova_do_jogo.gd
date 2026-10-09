@@ -67,12 +67,14 @@ func _ready() -> void:
 	await _prova_de_fogo()
 	_prova_das_contas_da_partida()
 	_prova_das_contas_dos_itens()
+	_prova_do_teclado()
 	await _prova_da_partida()
 	_prova_do_modo()
 	_prova_das_frases()
 	_prova_das_maiusculas()
 	_prova_da_identidade()
 	_prova_das_sensacoes()
+	_prova_do_nome_na_linha_do_tempo()
 	_prova_do_registro_v2()
 	_prova_dos_sons_em_pcm()
 	if falhas > 0:
@@ -300,6 +302,7 @@ func _prova_do_percurso() -> void:
 		"△ sorteia boneco, item e um nome livre (%s)" % jogo.jogadores[3].nome)
 	await _aperta(0, Forja.CIRCULO)
 	_esperar(jogo.lobby.linha[0] == TelaLobby.BONECO and Forja.ocupado(0), "○ numa linha de baixo volta à primeira, sem sair do lugar")
+	await _prova_do_teclado_na_mesa()
 	# o cavaleiro guarda-se como dado: ida e volta pelo arquivo, e o acabamento só muda a luz
 	_prova_do_cavaleiro_guardado()
 	# o robô forja os quatro, só apertando botões: ✕ para forjar e as oito marteladas na batida
@@ -320,6 +323,11 @@ func _prova_do_percurso() -> void:
 			if jogo.lobby.etapa[l] == TelaLobby.FORJADO and float(Forja.som_virtual(l).get("falante", 0.0)) > 0.05:
 				pio_f[l] = true
 	_esperar(jogo.estado == "salao", "com os quatro forjados, o salão (%d quadros, %d ms)" % [nq_f, Time.get_ticks_msec() - t_forja])
+	_esperar(nq_f / 60.0 <= 90.0, "a montagem do robô, com o nome, fecha em 90 s de jogo ou menos (%.1f s)" % (nq_f / 60.0))
+	_esperar(jogo.jogadores[0].nome == "Dona Brasa", "o robô escreveu «Dona Brasa» no lugar 1, letra a letra (%s)" % jogo.jogadores[0].nome)
+	for l in range(1, 4):
+		_esperar(jogo.jogadores[l].nome in TelaLobby.NOMES and jogo.lobby.nome_escrito[l] == false,
+			"P%d: △ e ✕ deram um nome sorteado (%s)" % [l + 1, jogo.jogadores[l].nome])
 	for l in 4:
 		var pi: ForjaPlayer = jogo.jogadores[l]
 		_esperar(Itens.escolhido[l] == pi.item_i and Itens.escolhido[l] >= 1,
@@ -1529,7 +1537,7 @@ func _prova_do_registro_v2() -> void:
 	_esperar(not fim.is_empty() and fim.all(func(e): return e.get("pontos") is Array),
 		"os pontos do minigame são um array JSON de verdade")
 	# nota e toque (o Ritmo) trazem o t_musica deles como campo; a cabeça só o ganha de Forja.t_musica
-	_esperar(not linhas.any(func(e): return e.has("t_musica") and not e.get("tipo") in ["nota", "toque"]),
+	_esperar(not linhas.any(func(e): return e.has("t_musica") and not e.get("tipo") in ["nota", "toque", "momento"]),
 		"sem música informada, nenhuma linha tem t_musica na cabeça")
 	# a sonda: listas de inteiros, de números e de textos, um NaN, e a posição da música
 	Forja.t_musica(12.5)
@@ -1810,3 +1818,172 @@ func _confere_a_arte(raiz: Node, onde: String) -> void:
 			lisas.append(str(raiz.get_path_to(n)))
 	_esperar(lisas.is_empty(), "%s: nenhuma curva lisa %s" % [onde, lisas])
 	_esperar(metalicos.is_empty(), "%s: nada metálico acima de 0,2 %s" % [onde, metalicos])
+
+
+# ----------------------------------------------------------- o teclado do nome --
+
+## As contas do teclado (G09), sem tela nem controle.
+func _prova_do_teclado() -> void:
+	var t := TecladoDoNome.new()
+	_esperar(t.formatar("DONA BRASA") == "Dona Brasa", "teclado: maiúscula em cada palavra")
+	_esperar(t.formatar("ÁGUA VIVA") == "Água Viva", "teclado: a maiúscula com acento")
+	_esperar("ÁGUA".to_lower() == "água", "teclado: «ÁGUA».to_lower() dá «água»")
+	t.texto = "AGUA"
+	t.cursor = Vector2i(0, 4)   # a tecla ´
+	t.escolher()
+	_esperar(t.formatar(t.texto) == "Aguá", "teclado: o agudo acentua a última letra")
+	t.texto = "Z"
+	t.cursor = Vector2i(1, 4)   # a tecla ~
+	_esperar(t.escolher() == "" and t.texto == "Z", "teclado: til em letra que não aceita não faz nada")
+	t.texto = "ABCDEF GHIJK"
+	t.cursor = Vector2i(0, 0)
+	_esperar(t.escolher() == "" and t.texto.length() == 12, "teclado: no máximo 12 caracteres")
+	t.texto = ""
+	t.cursor = Vector2i(6, 3)   # o espaço
+	t.escolher()
+	_esperar(t.texto == "", "teclado: o espaço não começa o nome")
+	t.texto = "Dona "
+	t.escolher()
+	_esperar(t.texto == "Dona ", "teclado: nunca dois espaços seguidos")
+	t.cursor = Vector2i(1, 0)   # B
+	t.escolher()
+	_esperar(t.texto == "Dona B", "teclado: a letra depois do espaço sai maiúscula (%s)" % t.texto)
+	t.texto = "Ana"
+	t.cursor = Vector2i(4, 4)   # Pronto
+	t.outros = ["Ana"]
+	_esperar(t.no_pronto() and t.escolher() == "" and not t.pode_gravar(), "teclado: o nome igual ao de outro lugar não fecha")
+	t.outros = ["Bia"]
+	_esperar(t.escolher() == "pronto", "teclado: com o nome livre, ✕ no Pronto fecha")
+	t.texto = "A"
+	_esperar(t.escolher() == "", "teclado: com uma letra só, o Pronto está apagado")
+	t.texto = "Dona Brasa"
+	_esperar(t.escolher() == "pronto" and TecladoDoNome.nome_final("DONA BRASA ") == "Dona Brasa", "teclado: o espaço do fim sai ao gravar")
+	# as bordas: não dá a volta; o Pronto é uma tecla de três colunas
+	t.cursor = Vector2i(0, 0)
+	_esperar(not t.mover(Vector2i(-1, 0)) and not t.mover(Vector2i(0, -1)), "teclado: nas bordas o cursor para")
+	t.cursor = Vector2i(6, 4)
+	_esperar(not t.mover(Vector2i(1, 0)) and not t.mover(Vector2i(0, 1)) and t.mover(Vector2i(-1, 0)) and t.cursor == Vector2i(3, 4),
+		"teclado: do Pronto, ◀ vai ao ◯ e ▶ e ▼ param (%s)" % t.cursor)
+	# a repetição do direcional segurado: 0,40 s e depois a cada 0,15 s, em ms de parede
+	t.cursor = Vector2i(0, 0)
+	var andou := 0
+	for ms in range(0, 1000, 10):
+		if t.quadro(Vector2(1.0, 0.0), 1000 + ms):
+			andou += 1
+	_esperar(andou == 5 and t.cursor.x == 5,
+		"teclado: segurado, anda já, repete depois de 0,40 s e a cada 0,15 s (%d passos em 1 s)" % andou)
+	_esperar(not t.quadro(Vector2(0.0, 0.0), 3000) and t.quadro(Vector2(0.0, 1.0), 3010),
+		"teclado: soltar zera a espera, e o eixo dominante manda")
+	_esperar(TecladoDoNome.largura_da_grade() == 400.0, "teclado: a grade cabe na coluna de 432 px")
+	_esperar(TecladoDoNome.altura_da_grade() == 284.0 and TecladoDoNome.CAMPO.position.y == 660.0 and TecladoDoNome.GRADE_Y + 284.0 == 1000.0,
+		"teclado: a faixa vai de y 660 a 1000")
+	# o pior caso de largura, 12 «W», no tamanho de texto de 1,0× e de 1,15×: a letra cabe na tecla, o nome no campo
+	var escala_antes := Tema.escala_texto
+	for escala in [1.0, 1.15]:
+		Tema.escala_texto = escala
+		var f := Tema.archivo(600)
+		_esperar(Desenho.largura_do_nome("W", f, 36) <= TecladoDoNome.TECLA - 4.0,
+			"teclado: o «W» cabe na tecla a %.2f× (%.1f px de 52)" % [escala, Desenho.largura_do_nome("W", f, 36)])
+		var corte := Desenho.nome_que_cabe("Wwwwwwwwwwww", f, 32, TecladoDoNome.CAMPO.size.x - 12.0 - 8.0 - 3.0)
+		_esperar(Desenho.largura_do_nome(corte, f, 32) <= TecladoDoNome.CAMPO.size.x - 12.0 - 8.0 - 3.0,
+			"teclado: «WWWWWWWWWWWW» cabe no campo a %.2f× (%s)" % [escala, corte])
+		_esperar(Desenho.largura_do_nome("Pronto", Tema.archivo(700), 34) <= 3.0 * TecladoDoNome.TECLA + 2.0 * TecladoDoNome.VAO - 8.0,
+			"teclado: «Pronto» cabe na tecla larga a %.2f×" % escala)
+	Tema.escala_texto = escala_antes
+
+
+## Os quatro escrevem ao mesmo tempo, cada um na sua coluna (G09).
+var _janela_do_teclado := Vector2i.ZERO   ## [de, até) nas linhas da linha do tempo: a fase em que só o P1 apertou
+
+
+func _prova_do_teclado_na_mesa() -> void:
+	var l0: TelaLobby = jogo.lobby
+	var original: String = jogo.jogadores[0].nome
+	await _aperta(0, Forja.BAIXO)
+	await _aperta(0, Forja.BAIXO)
+	_esperar(l0.linha[0] == TelaLobby.NOME, "teclado: ▼ ▼ leva o P1 à linha Nome")
+	_janela_do_teclado.x = _linha_do_tempo().size()
+	await _aperta(0, Forja.R1)
+	_esperar(l0.teclados[0] != null and l0.teclados[1] == null and l0.teclados[2] == null and l0.teclados[3] == null,
+		"teclado: R1 na linha Nome abre o teclado do P1, e só o dele")
+	var t: TecladoDoNome = l0.teclados[0]
+	_esperar(t.texto == original, "teclado: abre com o nome de agora no campo (%s)" % t.texto)
+	# ◯ apaga letra a letra; com o campo vazio, fecha e o nome volta ao de antes
+	for i in original.length():
+		await _aperta(0, Forja.CIRCULO)
+	_esperar(l0.teclados[0] != null and t.texto == "", "teclado: ◯ apaga a última letra, uma a uma")
+	await _aperta(0, Forja.CIRCULO)
+	_esperar(l0.teclados[0] == null and jogo.jogadores[0].nome == original,
+		"teclado: ◯ com o campo vazio fecha e o nome volta ao de antes")
+	# escreve «Ed» com o direcional: do Pronto, ▲ quatro vezes e ✕ põe o E; ◀ e ✕ põe o D
+	await _aperta(0, Forja.R1)
+	t = l0.teclados[0]
+	for i in original.length():
+		await _aperta(0, Forja.CIRCULO)
+	for i in 4:
+		await _aperta(0, Forja.CIMA)
+	await _aperta(0, Forja.CRUZ)
+	_esperar(t.texto == "E", "teclado: ✕ põe a letra da tecla (%s)" % t.texto)
+	await _aperta(0, Forja.ESQUERDA)
+	await _aperta(0, Forja.CRUZ)
+	_esperar(t.texto == "Ed", "teclado: só a primeira letra da palavra é maiúscula (%s)" % t.texto)
+	_esperar(l0.teclados[1] == null and jogo.jogadores[1].nome != "Ed", "teclado: o P2 não ouviu o teclado do P1")
+	# o único na mesa: o nome do P2 forçado igual ao do campo do P1 não fecha
+	var nome_p2: String = jogo.jogadores[1].nome
+	jogo.jogadores[1].nome = "Ed"
+	await _quadros(2)
+	await _aperta(0, Forja.R1)
+	_esperar(t.no_pronto() and not t.pode_gravar(), "teclado: o nome igual ao do P2 deixa o Pronto apagado")
+	await _aperta(0, Forja.CRUZ)
+	_esperar(l0.teclados[0] != null and jogo.jogadores[0].nome == original, "teclado: dois lugares com o mesmo nome não fecham")
+	jogo.jogadores[1].nome = nome_p2
+	await _quadros(2)
+	await _aperta(0, Forja.CRUZ)
+	_esperar(l0.teclados[0] == null and jogo.jogadores[0].nome == "Ed", "teclado: ✕ no Pronto grava o nome e fecha (%s)" % jogo.jogadores[0].nome)
+	_janela_do_teclado.y = _linha_do_tempo().size()
+	_esperar(l0.nome_escrito[0], "teclado: o nome digitado conta como escrito")
+	# △ sorteia do que ninguém usa e leva o cursor ao Pronto
+	await _aperta(0, Forja.R1)
+	t = l0.teclados[0]
+	await _aperta(0, Forja.TRIANGULO)
+	var outros_n := [jogo.jogadores[1].nome, jogo.jogadores[2].nome, jogo.jogadores[3].nome]
+	_esperar(t.no_pronto() and t.texto in TelaLobby.NOMES and not (t.texto in outros_n), "teclado: △ sorteia um nome livre e vai ao Pronto (%s)" % t.texto)
+	await _aperta(0, Forja.CIRCULO)
+	await _aperta(0, Forja.CIRCULO)
+	for i in 10:
+		if l0.teclados[0] == null:
+			break
+		await _aperta(0, Forja.CIRCULO)
+	_esperar(l0.teclados[0] == null, "teclado: ◯ até o campo esvaziar fecha o teclado")
+	jogo.jogadores[0].nome = original   # o robô refaz o nome do P1 pelo teclado, depois
+	l0.nome_escrito[0] = false
+	l0.t_nome_ms[0] = 0
+	l0.linha[0] = TelaLobby.BONECO
+	l0._robo_teclado[0] = 0   # o robô escreve o nome do P1 do começo
+
+
+## O nome e a sensação, na linha do tempo: o P1 escreveu e o toque saiu só na mão dele;
+## o evento do cavaleiro diz o nome e o tempo no teclado.
+func _prova_do_nome_na_linha_do_tempo() -> void:
+	var linhas := _linha_do_tempo()
+	var toques := [0, 0, 0, 0]
+	for i in range(_janela_do_teclado.x, mini(_janela_do_teclado.y, linhas.size())):
+		var e: Dictionary = linhas[i]
+		if e.get("tipo") == "sensacao" and e.get("nome") == "toque":
+			toques[int(e.get("lugar", 0))] += 1
+	_esperar(toques[0] > 4 and toques[1] == 0 and toques[2] == 0 and toques[3] == 0,
+		"teclado: o toque das teclas chegou só ao P1 enquanto só ele escrevia (%s)" % [toques])
+	var nomes := {}
+	var escritos := {}
+	for e in linhas:
+		if e.get("tipo") == "cavaleiro" and not escritos.has(int(e.get("lugar", -1))):   # o primeiro de cada lugar: a montagem da noite
+			nomes[int(e.get("lugar", -1))] = str(e.get("nome", ""))
+			escritos[int(e.get("lugar", -1))] = e
+	_esperar(nomes.get(0, "") == "Dona Brasa" and nomes.get(1, "") in TelaLobby.NOMES,
+		"teclado: o evento «cavaleiro» traz os nomes (%s)" % [nomes])
+	_esperar(escritos.has(0) and escritos[0].get("nome_escrito") == true and int(escritos[0].get("t_nome_ms", 0)) > 0
+		and escritos.has(1) and escritos[1].get("nome_escrito") == false,
+		"teclado: o evento «cavaleiro» diz quem escreveu e quanto tempo levou")
+	var momentos := linhas.filter(func(e): return e.get("tipo") == "momento" and e.get("nome") == "nome_escrito")
+	_esperar(momentos.size() >= 1 and momentos.all(func(e): return e.get("slot") == "montagem" and int(e.get("lugar", -1)) == 0),
+		"teclado: o momento «nome_escrito» é do lugar que escreveu (%d)" % momentos.size())

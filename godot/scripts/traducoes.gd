@@ -305,6 +305,9 @@ const EN := {
 	"Sortear": "Shuffle",
 	"Forjado": "Forged",
 	"Guardado": "Saved",
+	# o teclado do nome (G09): o nome da pessoa não passa pela tabela
+	"Escrever": "Write",
+	"Apagar": "Erase",
 }
 
 ## Os textos com número: [padrão, substituição] (a substituição usa $1, $2…).

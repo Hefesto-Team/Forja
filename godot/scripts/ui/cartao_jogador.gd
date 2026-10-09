@@ -54,13 +54,16 @@ func _draw() -> void:
 		Desenho.moldura(self, placa, Tema.PAINEL, Tema.SUTIL, 2, Tema.RAIO_CARTAO)
 		Desenho.tracejado(self, placa, Tema.LARANJA, 3.0)
 	Desenho.texto(self, Vector2(X0 + 18, 104), rotulo, Tema.fonte(700), Tema.T_CORPO, cor_id)
+	var teclado: TecladoDoNome = t.teclados[lugar]
 	var nome_dele := str(jogador.nome) if jogador != null else ""
+	if teclado != null:
+		nome_dele = TecladoDoNome.formatar(teclado.texto)   # a placa mostra o campo enquanto se escreve (G09)
 	if not conectado:
 		Desenho.texto(self, Vector2(X0 + LARGURA - 18 - 260, 104), "Sem controle", Tema.fonte(600), Tema.T_CORPO, Tema.LARANJA,
 			HORIZONTAL_ALIGNMENT_RIGHT, 260)
 	else:
 		var f := Tema.fonte(600)
-		Desenho.texto(self, Vector2(X0 + LARGURA - 18 - 260, 104), Desenho.caber(nome_dele, f, Tema.T_CORPO, 260, 1),
+		Desenho.nome(self, Vector2(X0 + LARGURA - 18 - 260, 104), Desenho.nome_que_cabe(nome_dele, f, Tema.T_CORPO, 260),
 			f, Tema.T_CORPO, Tema.FG, HORIZONTAL_ALIGNMENT_RIGHT, 260)
 	Desenho.leds(self, Vector2(X0 + 20, 120), Forja.LEDS_DO_LUGAR[lugar], 12.0)
 	if etapa == TelaLobby.FORJADO:
@@ -69,6 +72,11 @@ func _draw() -> void:
 	elif etapa == TelaLobby.GUARDADO:
 		Desenho.texto(self, Vector2(X0 + LARGURA - 18 - 200, 142), "Guardado", Tema.mono(500), Tema.T_MONO, Tema.SUAVE,
 			HORIZONTAL_ALIGNMENT_RIGHT, 200)
+
+	# o teclado do nome toma a faixa das três linhas e das marteladas (y 660 a 1000)
+	if teclado != null:
+		teclado.desenhar(self, 0.0, Tema.JOGADOR[lugar])
+		return
 
 	# as três linhas
 	if jogador != null:
@@ -110,5 +118,5 @@ func _linha(t: TelaLobby, jogador, k: int, r: Rect2, etapa: int, cor_luz: Color)
 			Desenho.texto(self, Vector2(x_nome, base), Desenho.caber(str(item.nome), f, 30, largura, 1), f, 30, Tema.FG,
 				HORIZONTAL_ALIGNMENT_CENTER, largura)
 		TelaLobby.NOME:
-			Desenho.texto(self, Vector2(area.position.x, base), Desenho.caber(str(jogador.nome), f, 30, 220, 1), f, 30, Tema.FG,
+			Desenho.nome(self, Vector2(area.position.x, base), Desenho.nome_que_cabe(str(jogador.nome), f, 30, 220), f, 30, Tema.FG,
 				HORIZONTAL_ALIGNMENT_CENTER, area.size.x)

@@ -250,3 +250,40 @@ acento.
 
 Marcar G09 como **feito** no [quadro](README.md), com o gasto. Commit sugerido:
 `feat(montagem): cada um escreve o nome do seu cavaleiro no próprio controle`.
+
+## O que foi feito (leva 1, o-cavaleiro)
+
+**Feita no que o código já alcança.** O nome ainda não aparece na etiqueta 3D, no HUD nem no resultado: isso espera a G04 e a G13.
+
+- **O teclado** (`scripts/ui/teclado_do_nome.gd`): grade de teclas de 52 x 52, vão de 6, borda de 3 a 5 px, Archivo 600 a 36; cada lugar escreve
+  no próprio controle e os quatro teclados vivem ao mesmo tempo (`teclados[4]`, `nome_escrito[4]`, `t_nome_ms[4]` na `tela_lobby.gd`).
+  Cruz escreve, círculo apaga (com o campo vazio fecha e devolve o nome de antes), R1 abre, triângulo sorteia, máximo de 12 letras, maiúscula
+  em cada palavra, nome igual ao de outro lugar não fecha.
+- **O cartão** (`cartao_jogador.gd`) e o texto (`desenho.gd`): `Desenho.nome`, `nome_que_cabe` e `largura_do_nome`, para o nome da pessoa
+  nunca passar pelo tradutor e caber no cartão a 1,0x e a 1,15x. Em `traducoes.gd` entram «Escrever» e «Apagar».
+- **O robô** escreve «DONA BRASA» com um erro e um círculo, e os lugares 1 a 3 apertam triângulo e cruz; espera 0,12 s entre apertos.
+- **Os sons** `ui_tecla` e `ui_tique` (`compress/mode=0`) entram em `docs/jogo/audio/mapa.csv` como `no jogo`.
+- **A linha do tempo** ganha o momento `nome_escrito` (e a regra «sem música, nenhuma linha tem `t_musica`» passa a admitir também o tipo
+  `momento`, porque a ficha manda `t_musica` nele). Docs: `arte/06` (a linha do teclado corrigida) e `13-arquitetura.md` (acréscimos).
+- **As provas** (`prova_do_jogo.gd`): `_prova_do_teclado` (as contas e as larguras de «W», «Wwwwwwwwwwww» e «Pronto» a 1,0x e a 1,15x),
+  `_prova_do_teclado_na_mesa`, `_prova_do_nome_na_linha_do_tempo` e a checagem de que a montagem do robô fecha em até 90 s.
+- **Medidas:** a montagem do robô ia de cerca de 2150 quadros (36 s) para cerca de 5030 (84 s) com 0,16 s por aperto. Texto de tela: 279
+  frases, 69 padrões, 0 minúsculas (eram 277).
+- **A mordida:** formatar sem a caixa, `MAXIMO` 99, nome repetido sempre falso e o toque indo para os quatro lugares reprovaram mais de 14
+  checagens («maiúscula em cada palavra», «no máximo 12», «nome igual não fecha», «toque só ao P1», «robô escreveu Dona Brasa»); a cura voltou.
+
+### Desvios e decisões (a validar por ela)
+
+- O triângulo no teclado toca `ui_tecla`, o clique e o toque (a ficha não deu som a ele); R1 dentro do teclado soa como passo do cursor.
+- A unicidade compara com os nomes já gravados dos outros lugares, não com o campo em edição de ninguém.
+- Sem arquétipo (a G13 não chegou), o triângulo sorteia entre os 24 `NOMES` livres.
+- Com o teclado aberto as dicas do rodapé descem à linha 1022 e a fileira normal ganhou «R1 Escrever».
+- `t_nome_ms` é em milissegundos de parede: sob `--fixed-fps` não é tempo de jogo.
+- Sem `Opcoes.movimento` (G16), o que precisar de «sem tremor» usa `Opcoes.tremor`.
+- Observação: a prova «relógio sem faixa: andou X s em 0,8 s» falha de vez em quando conforme a carga da máquina; não é desta ficha.
+
+### O que fica para a mão dela e do André
+
+- Quatro pessoas escrevendo ao mesmo tempo, com os controles de verdade: acento, tempo de cada um, se 0,12 s entre apertos do robô reflete uma pessoa.
+- A prancha de quatro teclados em 1,0x e 1,15x, em português e inglês, não foi automatizada na prova visual; a prova visual mostra o robô
+  escrevendo na montagem e as larguras são medidas no `prova_do_jogo`.

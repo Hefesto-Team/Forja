@@ -22,7 +22,7 @@ As medidas são da tela lógica de 1920×1080. As cores são os tokens do
 | a dica de botão | o adesivo de instrução | presa ao cavaleiro, ou no rodapé | glifo de 52 px | sem placa sobre a cena; `ETIQUETA` sobre o casco | Archivo 600 34 |
 | o carimbo do julgamento | o carimbo de tinta | acima do cavaleiro | Bungee 46 | sem placa | [07](07-vfx.md#o-carimbo) |
 | o adesivo de reação | o adesivo colado na fita | o cartão ou a cabeça do dono | 112 a 144 px | [09](09-reacoes.md) | |
-| o teclado do nome (G09) | as teclas do deck | metade de baixo da coluna | teclas de 72×72, vão de 8 | `CASCO`, a tecla sob o cursor com borda do dono 3 px | Archivo 600 40 |
+| o teclado do nome (G09) | as teclas do deck | metade de baixo da coluna | teclas de 52×52, vão de 6 | `CASCO`, a tecla sob o cursor com fundo `CASCO_ALTO` e borda do dono de 3 a 5 px | Archivo 600 36 |
 
 O estudo põe o cartão em y = 54. A área segura começa em 60: o jogo usa 60.
 
