@@ -946,3 +946,42 @@ das partidas: a Centelha fecha com vencedor, com dois e com um jogador.
   real. As fichas de seção (I a Q) passam a poder começar.
 - Commit sugerido (sem trailer):
   `feat: o kit do minigame — a ficha de dados, o catálogo e A Centelha morando no kit`
+
+## O que foi feito (leva 1, o-kit)
+
+**O que entrou:** `Minigame` (`godot/scripts/minigames/minigame.gd`), o
+`Catalogo` (`catalogo.gd`) no lugar do `SALAS` do `main.gd`, e A Centelha
+morando no kit como `S01_J01`, «O Martelo de Hefesto», verbo «Bata!»
+(`godot/scripts/minigames/s01/martelo_de_hefesto.gd`; a sala antiga saiu de
+`godot/scripts/salas/`). O minigame de prova do kit é
+`godot/testes/minigame_de_prova.gd`. Os ids antigos (`centelha`, `viga`…)
+seguem abrindo em `--sala=`, na Prova de Fogo e na partida, como apelidos.
+
+**Onde o kit ficou diferente do passo 2 (porque a `SalaJogo` já faz):** os
+eventos `minigame` e `desempenho`, `var minigame`, `desempenho`,
+`var colocacao` e `vencedor()` (com o desempate pelo lugar) são da
+`SalaJogo`; o kit não os repete. O `terminar()` do kit só solta o relógio
+(`Ritmo.parar()`), e o `_process` só chama `robo(l, dt)` antes do da
+`SalaJogo`. Acrescentado ao kit: `ICONE_DA_PARTE` (sem ele o aviso perdia o
+glifo da Centelha) e a laje da raia na cor `Tema.PAINEL`.
+
+**Provas:** `bash tests/prova_do_jogo.sh` ganhou `_prova_do_catalogo` (os
+apelidos, os ids de hoje, a FICHA completa e a FICHA quebrada reprovada) e
+`_prova_do_kit` (quatro lugares, um por julgamento, o cabo do P3 que sai e
+volta, o fim pelo próprio jogo, a colocação pelos pontos, o relógio solto);
+no relatório, os quatro julgamentos do minigame de prova e todo minigame
+jogado terminando com vencedor. Medido antes e depois: a base tinha só o
+flake de tempo «relógio sem faixa»; depois, a prova inteira verde. Mordidas:
+sem `ICONE_DA_PARTE`, sem o registro do toque, sem o `Ritmo.parar()` e sem a
+conferência da FICHA, a prova reprova cada defeito (e volta ao verde ao devolver).
+
+**Para a mão dela / do André:** `scripts/gauntlet.sh`,
+`bash tests/prova_de_poucos.sh`, `./run-local.sh -- --sala=centelha`, e a
+prancha das partidas com dois e com um jogador. Jogar a Centelha na mão e ver
+o aviso com o glifo, as runas, o vencedor, o título «O Martelo de Hefesto» e o
+verbo «Bata!».
+
+**Cuidado conhecido:** a prova do kit (e o «relógio sem faixa», que já era
+assim) mede pelo relógio de parede; com a máquina sob carga forte (outro jogo
+ou outro Godot com janela), o quadro engasga e as notas saem erradas. Rode com
+a máquina calma.
