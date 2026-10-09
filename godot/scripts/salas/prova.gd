@@ -174,7 +174,7 @@ func _montar_lutadores() -> void:
 	var bonecos := 2 if n_j == 1 else (1 if n_j == 3 else 0)
 	for k in bonecos:
 		var e := _novo_lutador(-1, 1)
-		var modelo: Node3D = load("res://assets/kenney/character-orc.glb").instantiate()
+		var modelo: Node3D = load(Kit.caminho("mini-dungeon-personagens/character-orc")).instantiate()
 		modelo.scale = Vector3.ONE * ForjaPlayer.ESCALA
 		add_child(modelo)
 		_tingir(modelo, Color("#b9a98a"))

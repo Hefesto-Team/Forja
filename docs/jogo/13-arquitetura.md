@@ -397,13 +397,14 @@ decidido:
 | `Salao` | `pulso`, `apagado`, `acender_bigorna`, `mostrar_colecao`, `portao_aceso`, `trofeus_na_vitrine`, `cor_do_trofeu`, `pausar_ambiente`; `godot/scripts/colecao.gd` | G06 |
 | `ui/teclado_do_nome.gd` | `class_name TecladoDoNome`: o estado e o desenho do teclado de um lugar (`abrir`, `quadro`, `mover`, `escolher`, `apagar`, `sortear`, `desenhar`; `formatar` e `nome_final` estáticos); `TelaLobby.teclados[4]`, `nome_escrito[4]`, `t_nome_ms[4]`; `Desenho.nome`, `nome_que_cabe` e `largura_do_nome` desenham o nome sem passar pela tabela de traduções | G09 |
 | `scripts/` | `conferir_bonecos.py`: confere os sete ossos e as animações de um `.glb` | G08 |
+| `scripts/importar_kenney.py`, `scripts/testes/prova_importar.py`, `godot/testes/prancha_dos_corpos.gd` | importa os pacotes da curadoria do All-in-1 (um por pasta, conferindo os `character-*`), a prova dele com um zip de mentira, e as duas pranchas dos corpos em `docs/imagens/kenney/` | G10 |
 
 Os pacotes Kenney entram cada um na sua pasta, `godot/assets/kenney/<pacote>/`
-(o Mini Dungeon de hoje se muda para `godot/assets/kenney/mini-dungeon/`),
+(o Mini Dungeon mora em `mini-dungeon/`, e o orc e o humano em `mini-dungeon-personagens/`),
 porque o `Textures/colormap.png` de um pacote sobrescreveria o do outro. O
 caminho de toda peça sai de `Kit.caminho(nome)`: `"castle-kit/tower-base"`
 vai para `res://assets/kenney/castle-kit/tower-base.glb`; sem pacote no nome,
-vale o `mini-dungeon`. A curadoria (o que entra e o que não) é o
+vale o `mini-dungeon`; `Kit.escala_do_pacote(nome)` e `ESCALA_DO_PACOTE` dão o fator da pasta, que `Kit.peca` multiplica. A curadoria (o que entra e o que não) é o
 [14](14-os-assets-kenney.md); a importação, a [G10](tarefas/G10-a-biblioteca-kenney.md).
 
 ### A coleção — G06

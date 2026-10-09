@@ -54,10 +54,10 @@ const ACABAMENTOS := [
 ## A energia de repouso do acento do corpo (G08: 1,6); o Néon sobe a 2,4. Teto 3,0.
 const ACENTO_REPOUSO := 1.6
 const ACENTO_TETO := 3.0
-## As malhas da Kenney dos itens que as têm (a G10 troca o caminho por Kit.caminho).
+## As malhas da Kenney dos itens que as têm (o martelo e o escudo, por pasta de pacote).
 const MALHA_DO_ITEM := {
 	"martelo": "res://assets/kenney/survival-kit/tool-hammer.glb",
-	"escudo": "res://assets/kenney/shield-round.glb",
+	"escudo": "res://assets/kenney/mini-dungeon/shield-round.glb",
 }
 ## O emblema em relevo de cada amuleto no disco do medalhão (G03): [tamanho x y, posição x y].
 const EMBLEMA := {
@@ -138,7 +138,7 @@ func visual(m: int, item: int) -> void:
 	if trocou_modelo:
 		if modelo:
 			modelo.queue_free()
-		_arquivo = "res://assets/kenney/%s.glb" % BONECOS[modelo_i].arquivo
+		_arquivo = Kit.caminho("mini-dungeon-personagens/" + str(BONECOS[modelo_i].arquivo))
 		modelo = load(_arquivo).instantiate()
 		modelo.scale = Vector3.ONE * ESCALA
 		add_child(modelo)

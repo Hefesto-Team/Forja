@@ -8,7 +8,6 @@ extends Node3D
 ## O kit é pequeno (o bloco de parede tem 1×1,1); tudo sai na escala K.
 
 const K := 2.0
-const KIT := "res://assets/kenney/%s.glb"
 
 ## As salas, na ordem do percurso. `lado`: a parede do portão; `aberta`: a sala
 ## já existe neste marco (as outras ficam de portão fechado).
@@ -78,7 +77,7 @@ func _process(dt: float) -> void:
 
 func peca(nome: String, pos: Vector3, rot_y := 0.0, escala := K) -> Node3D:
 	if not _cenas.has(nome):
-		_cenas[nome] = load(KIT % nome)
+		_cenas[nome] = load(Kit.caminho(nome))
 	var cena: PackedScene = _cenas[nome]
 	if cena == null:
 		return Node3D.new()

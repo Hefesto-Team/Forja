@@ -13,8 +13,14 @@ binário (`scripts/licencas.gd`).
 | Space Grotesk, JetBrains Mono | google/fonts | SIL Open Font License 1.1 |
 | Bungee, VT323, Archivo Narrow | google/fonts | SIL Open Font License 1.1 |
 | Permanent Marker | google/fonts (Font Diner) | Apache License 2.0 |
-| Mini Dungeon | Kenney (www.kenney.nl) | CC0 1.0 |
 | Impact Sounds, Interface Sounds, RPG Audio, Digital Audio, Music Jingles | Kenney (www.kenney.nl) | CC0 1.0 |
+| Mini Characters 1.0 (`kenney/mini-characters/`) | Kenney (www.kenney.nl) | CC0 1.0 |
+| Cube Pets 2.0 (`kenney/cube-pets/`) | Kenney (www.kenney.nl) | CC0 1.0 |
+| Graveyard Kit 5.0 (`kenney/graveyard-kit/`) | Kenney (www.kenney.nl) | CC0 1.0 |
+| Castle Kit 2.0 (`kenney/castle-kit/`) | Kenney (www.kenney.nl) | CC0 1.0 |
+| Factory Kit 3.0 (`kenney/factory-kit/`) | Kenney (www.kenney.nl) | CC0 1.0 |
+| Mini Dungeon 2.0 (`kenney/mini-dungeon/`) | Kenney (www.kenney.nl) | CC0 1.0 |
+| Mini Dungeon 2.0 (`kenney/mini-dungeon-personagens/`) | Kenney (www.kenney.nl) | CC0 1.0 |
 | o desenho do DualSense, os glifos e o logo | o app Hefesto | MIT |
 | a trilha (`godot/assets/ost/`) | gerada com o ACE-Step 1.5 (github.com/ace-step/ACE-Step-1.5), na máquina do Forja | o modelo é MIT; a música gerada por programa não tem autor e segue com o jogo |
 
