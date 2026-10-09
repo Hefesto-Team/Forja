@@ -5,12 +5,17 @@ extends Node3D
 ## boa sublinhada), P2 com a linha do inferior travada e a fita das 12
 ## cabeças aberta, P3 de cadeira de rodas, P4 passando por um item que o corpo
 ## não alcança. 50 mm, frontal, à altura do peito.
+## Refeita no item 16: quatro raças (P1 orc, P2 humana, P3 raposa, P4
+## autômato), cada peça na cor dela; a cor do lugar só no contorno, no
+## acento e no contra-luz, que baixou de 3,0 para 1,2 para não tingir o corpo;
+## a chave de quem não forjou passou do violeta #8a7cff ao tungstênio a 3,2.
 
 const Fita := preload("res://estudos/direcao/fita.gd")
 const Hud := preload("res://estudos/direcao/hud.gd")
 const Mundo := preload("res://estudos/direcao/mundo.gd")
 const Montar := preload("res://estudos/direcao/cavaleiro/montar.gd")
 const Sis := preload("res://estudos/direcao/cavaleiro/sistemas.gd")
+const Racas := preload("res://estudos/direcao/cavaleiro/racas.gd")
 
 var espera := 8
 var arquivo := "10_montagem"
@@ -18,10 +23,10 @@ var e
 
 ## Cada coluna: as três peças pelo personagem, o item, o nome e o estado.
 const COLUNAS := [
-	{"pecas": ["male-c", "female-f", "male-a"], "item": "ancora", "nome": "Basalto", "forjado": true, "linha": -1},
-	{"pecas": ["male-b", "female-c", "male-e"], "item": "martelo", "nome": "Obsidiana", "trava": 2, "linha": 0, "fita": true},
-	{"pecas": ["female-d", "female-b", "male-b"], "item": "diapasao", "nome": "Latão", "cadeira": "wheelchair-deluxe", "linha": 2},
-	{"pecas": ["female-a", "male-d", "female-d"], "item": "escudo", "nome": "Faísca", "passando": "martelo", "linha": 3},
+	{"pecas": ["male-c", "female-f", "male-a"], "raca": "orc", "item": "ancora", "nome": "Basalto", "forjado": true, "linha": -1},
+	{"pecas": ["male-b", "female-c", "male-e"], "raca": "humana", "item": "martelo", "nome": "Obsidiana", "trava": 2, "linha": 0, "fita": true},
+	{"pecas": ["female-d", "female-b", "male-b"], "raca": "raposa", "item": "diapasao", "nome": "Latão", "cadeira": "wheelchair-deluxe", "linha": 2},
+	{"pecas": ["female-a", "male-d", "female-d"], "raca": "automato", "item": "escudo", "nome": "Faísca", "passando": "martelo", "linha": 3},
 ]
 ## A câmera: 50 mm, à altura do peito, a lente deslocada para o cavaleiro cair
 ## na faixa de 160 a 600 px sem a câmera olhar para baixo.
@@ -65,13 +70,15 @@ func montar(estudo) -> void:
 		var cor: Color = Fita.JOGADOR[i]
 		var corpo := Sis.corpo(c.pecas)
 		corpos.append(corpo)
-		Montar.cavaleiro(self, i, Vector3(x, 0, 0), c.pecas, {"item": c.item, "cadeira": c.get("cadeira", ""),
+		Montar.cavaleiro(self, i, Vector3(x, 0, 0), c.pecas, {"raca": c.raca, "item": c.item, "cadeira": c.get("cadeira", ""),
 			"anim": ANIM.get(c.item, "idle") if not c.has("cadeira") else "wheelchair-sit", "t_anim": 0.25, "anel": true,
 			"yaw": 0.0})
-		# a chave: violeta até forjar, tungstênio depois; o contra-luz na cor do lugar
-		var chave: Color = Fita.TUNGSTENIO if c.get("forjado", false) else Color("#8a7cff")
+		# a chave: tungstênio sempre, 3,2 até forjar e 5,5 depois (o violeta
+		# de antes, e até um branco frio, tingiam o corpo de rosa e as três
+		# peças viravam uma cor só); o contra-luz na cor do lugar
+		var chave: Color = Fita.TUNGSTENIO
 		Mundo.foco(self, Vector3(x + 1.6, 3.6, 3.2), Vector3(x, 0.8, 0), chave, 5.5 if c.get("forjado", false) else 3.2, 22.0, 9.0, true)
-		Mundo.foco(self, Vector3(x - 0.4, 2.8, -2.6), Vector3(x, 1.0, 0), cor, 3.0, 26.0, 7.0)
+		Mundo.foco(self, Vector3(x - 0.4, 2.8, -2.6), Vector3(x, 1.0, 0), cor, 1.2, 26.0, 7.0)
 	Mundo.neon_sem_sombra(self)
 	Mundo.pos(self, 5, {"grao": 0.025})
 	Hud.camada(self, _hud)
@@ -120,7 +127,8 @@ func _coluna(ci: CanvasItem, i: int) -> void:
 			var y := et.end.y - 7 + k * 6
 			ci.draw_line(Vector2(sx - 4, y + k), Vector2(sx + lw + 4, y - 1), Fita.TINTA, 2.5, true)
 	# as cinco linhas (660 a 860)
-	var rotulos := ["Cabeça", "Superior", "Inferior", "Item", "Nome"]
+	# fora da humana, a linha da cabeça diz a raça
+	var rotulos := ["Cabeça" if c.raca == "humana" else Racas.NOME[c.raca], "Superior", "Inferior", "Item", "Nome"]
 	var valores := [corpo.pecas[0].nome, corpo.pecas[1].nome, corpo.pecas[2].nome, Sis.item(c.item).nome, c.nome]
 	if c.has("cadeira"):
 		valores[2] = "Cadeira"

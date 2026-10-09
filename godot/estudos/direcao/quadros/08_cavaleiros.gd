@@ -53,8 +53,8 @@ func montar(estudo) -> void:
 
 func _hud(ci: CanvasItem) -> void:
 	Hud.etiqueta(ci, Rect2(56, 40, 620, 150), "Os cavaleiros", "PRANCHA  ·  FRENTE E 3/4", Fita.SECAO[0], 54, -0.01)
-	Hud.texto(ci, Fita.archivo(500), 30, Vector2(1240, 70), "Mini Characters (Kenney), corpo tingido pela luz", Color(Fita.ETIQUETA, 0.75), HORIZONTAL_ALIGNMENT_RIGHT, 620)
-	Hud.texto(ci, Fita.archivo(500), 30, Vector2(1240, 110), "do colormap, contorno e aro na cor do lugar", Color(Fita.ETIQUETA, 0.75), HORIZONTAL_ALIGNMENT_RIGHT, 620)
+	Hud.texto(ci, Fita.archivo(500), 30, Vector2(1240, 70), "Mini Characters (Kenney), cada peça na cor dela;", Color(Fita.ETIQUETA, 0.75), HORIZONTAL_ALIGNMENT_RIGHT, 620)
+	Hud.texto(ci, Fita.archivo(500), 30, Vector2(1240, 110), "o contorno, o acento e o aro na cor do lugar", Color(Fita.ETIQUETA, 0.75), HORIZONTAL_ALIGNMENT_RIGHT, 620)
 	for l in 4:
 		var p: Vector2 = e.camera.unproject_position(Vector3(COLUNAS[l], 0, FRENTE_Z + 0.9))
 		var cor: Color = Fita.JOGADOR[l]

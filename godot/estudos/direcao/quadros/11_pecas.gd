@@ -3,6 +3,8 @@ extends Node3D
 ## (cabeça, superior e inferior dos 12 personagens), de frente, na mesma
 ## escala, sobre o casco, cada uma com o emblema e os pontos que dá; e os
 ## seis itens com o que pedem e a liga. 42 células, nenhuma vazia.
+## Refeita no item 16: cada peça no material dela (tecido, couro, pele), sem
+## tom de jogador no corpo; o acento (friso, costura, runa) aceso em P1.
 ## 1920×1440: um mundo só, câmera ortográfica, um píxel = ESCALA m.
 
 const Fita := preload("res://estudos/direcao/fita.gd")
@@ -66,8 +68,10 @@ func montar(_estudo) -> void:
 			# a peça no meio da célula: o centro da caixa dela (na escala K) no centro
 			var pos := _mundo(centro_px) - caixa.get_center() * Mundo.K
 			pos.z = 0.0
-			Montar.cavaleiro(raiz, 0, pos, [p, p, p], {"so": parte, "tingir": false, "contorno": false,
-				"aro": 0.0, "brilho": 0.0, "anel": false, "anim": "idle", "t_anim": 0.0})
+			# cada peça no material dela (tecido, couro, pele) e o acento
+			# aceso na cor de P1; sem contorno, para a peça se ler sozinha
+			Montar.cavaleiro(raiz, 0, pos, [p, p, p], {"so": parte, "contorno": false,
+				"acento": true, "anel": false, "anim": "idle", "t_anim": 0.0})
 	for i in 6:
 		_item(raiz, ITENS[i], Vector2(X0 + i * ITEM_W + ITEM_W * 0.5, ITENS_Y + 134.0))
 	Prancha.pregar(folha, vp, Rect2(Vector2.ZERO, Vector2(TAM)))
@@ -114,12 +118,14 @@ func _item(raiz: Node3D, id: String, centro_px: Vector2) -> void:
 	n.position = _mundo(centro_px) - caixa.get_center() * esc
 	n.position.z = 0.0
 	n.rotation.y = 0.0
+	# a runa do item, acesa na cor de P1
+	Montar.por_runa(malha, id, Fita.JOGADOR[0])
 
 
 func _texto(ci: CanvasItem) -> void:
-	Hud.etiqueta(ci, Rect2(48, 10, 660, 140), "As peças", "PRANCHA  ·  ITEM 2  ·  36 + 6", Fita.SECAO[0], 54, -0.01)
-	Hud.texto(ci, Fita.archivo(500), 30, Vector2(760, 44), "O corte do 04: cada personagem dá três peças, de frente, na mesma escala.", Color(Fita.ETIQUETA, 0.85))
-	Hud.texto(ci, Fita.archivo(500), 30, Vector2(760, 86), "Embaixo de cada uma: o emblema (+2) e o secundário (+1), de pecas.csv.", Color(Fita.ETIQUETA, 0.85))
+	Hud.etiqueta(ci, Rect2(48, 10, 660, 140), "As peças", "PRANCHA  ·  ITENS 2 E 16  ·  36 + 6", Fita.SECAO[0], 54, -0.01)
+	Hud.texto(ci, Fita.archivo(500), 30, Vector2(760, 44), "O corte do 04: cada peça no material dela; o acento em néon de P1.", Color(Fita.ETIQUETA, 0.85))
+	Hud.texto(ci, Fita.archivo(500), 30, Vector2(760, 86), "O friso, a costura e a runa são malhas à parte. Embaixo: os pontos.", Color(Fita.ETIQUETA, 0.85))
 	for c in 12:
 		Hud.texto(ci, Fita.vt(), 30, Vector2(X0 + c * COL, 158), Cortar.PERSONAGENS[c], Fita.MUDO, HORIZONTAL_ALIGNMENT_CENTER, COL)
 	for linha in 3:
