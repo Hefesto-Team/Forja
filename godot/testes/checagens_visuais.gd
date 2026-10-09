@@ -171,7 +171,7 @@ static func fim_sem_vencedor(eventos: Array) -> Array:
 	var achados: Array = []
 	for e in eventos:
 		if str(e.get("evento", "")) == "terminou" and str(e.get("tipo", "minigame")) == "minigame" and e.has("slot") \
-				and (not e.has("vencedor") or int(e.vencedor) < 0):
+				and (not e.has("vencedor") or (int(e.vencedor) < 0 and not (int(e.vencedor) == -1 and str(e.get("genero", "")) == "coop"))):
 			achados.append("o minigame %s terminou sem vencedor" % e.slot)
 	return achados
 
