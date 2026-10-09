@@ -91,15 +91,16 @@ Tudo numa **pasta da noite** (a de `--relatorios=<pasta>`):
 | o SDL aceitou quanto? | as mesmas com `ok` |
 | a ponte recebeu quanto? | as casadas no registro da ponte (só no rádio) |
 | a ponte traduziu quanto? | as casadas com `escreveu` |
-| o jogador percebeu? | `pista` `respondeu` `certo` sobre `pista` `mandou`, por lugar, transporte e `via`; contra o acerto dos toques nos minigames sem pista, do mesmo lugar e transporte |
+| o jogador percebeu? | as respostas `certo` sobre as `pista` `mandou`, por lugar, transporte e `canal`; contra o acerto dos toques nos minigames sem pista, do mesmo lugar e transporte. A pista é `{"evento": "mandou", "n", "canal", "o_que"}`; a resposta é a linha `entrada` `{"o": "resposta", "n", "resposta"}` (`certo`, `errado`, `nenhuma`), as duas do `_pista` e do `_respondeu` da O1, casadas por lugar, `slot` e `n` |
 | o tempo de cada um | o desvio médio e o espalhamento (desvio padrão) dos `toque` sem erro, por lugar e transporte; a `calibracao` (mediana) |
 | o cansaço | o erro e o desvio por hora de noite, por lugar |
 | o item | vitórias sobre participações por item (o `item` mais recente do lugar antes de cada `minigame` `terminou`); acima de 35% sai marcado |
 | o cavaleiro | as cinco contas de «O cavaleiro» |
 | a diversão | as notas com «mais uma», a lista das notas e os momentos por minigame (em «A diversão») |
 
-E mais, para a próxima rodada de trabalho: as `troca` (o recurso que faltou,
-por lugar e transporte) e os `som_controle` com e sem placa.
+E mais, para a próxima rodada de trabalho: as `troca` (`de`, `para` e, se
+houver, `motivo`: o recurso que faltou, por lugar e transporte) e os
+`som_controle` com e sem placa.
 
 **A saída:** `<pasta>/cruzamento.txt` (o texto, em PT-BR, com milhar em ponto
 e decimal em vírgula: «O jogo mandou 41.203 vibrações ao P3 no rádio; o SDL
@@ -253,7 +254,7 @@ cada número estranho virou ficha.
   `./run-local.sh -- --simular=4 --robo --partida=5 --sorteada --relatorios=<pasta>`,
   e `python3 scripts/cruzar_noite.py <pasta>`. Os controles simulados são
   `virtual`: a seção da ponte fica vazia, as outras respondem (as pistas com
-  `via` `haptica`, os toques, os itens, o cavaleiro se a montagem gravou)
+  `canal` `haptica`, os toques, os itens, o cavaleiro se a montagem gravou)
   sem erro.
 - **Com o André:** a noite inteira, e o cruzamento sobre a pasta dela.
 - **Pranchas:** nenhuma; a S não desenha. O que o jogador olha é o
@@ -506,21 +507,21 @@ def cruzar(pasta, janela=JANELA_S, desvio_fixo=None, mapa=None):
             elif tipo == "som_controle" and lugar is not None:
                 r["som"][(lugar, tr, ev.get("papel", ""), bool(ev.get("placa")))] += 1
             elif tipo == "troca" and lugar is not None:
-                r["trocas"][(lugar, tr, ev.get("recurso", ""), ev.get("para", ""), ev.get("motivo", ""))] += 1
+                r["trocas"][(lugar, tr, ev.get("de", ""), ev.get("para", ""), ev.get("motivo", ""))] += 1
             elif tipo == "calibracao" and lugar is not None:
                 r["calibracao"][(lugar, ev.get("transporte", tr))].append(ev.get("desvio_ms"))
-            elif tipo == "pista" and lugar is not None:
+            elif tipo == "pista" and lugar is not None and ev.get("evento") == "mandou":
+                canal = ev.get("canal", "")
+                r["pistas"][(lugar, tr, canal)]["mandou"] += 1
+                pista_aberta[(lugar, ev.get("slot"), ev.get("n"))] = (tr, canal)
+            elif tipo == "entrada" and lugar is not None and ev.get("o") == "resposta":
+                # a resposta à pista (o _respondeu da O1); "nenhuma" não se conta: é o que sobra das mandadas
                 chave = (lugar, ev.get("slot"), ev.get("n"))
-                if ev.get("evento") == "mandou":
-                    via = ev.get("via", "")
-                    r["pistas"][(lugar, tr, via)]["mandou"] += 1
-                    pista_aberta[chave] = (tr, via)
-                elif ev.get("evento") == "respondeu" and chave in pista_aberta:
-                    # "nenhuma" não se conta: é o que sobra das mandadas
-                    tr0, via = pista_aberta.pop(chave)
+                if chave in pista_aberta:
+                    tr0, canal = pista_aberta.pop(chave)
                     resp = ev.get("resposta", "nenhuma")
                     if resp in ("certo", "errado"):
-                        r["pistas"][(lugar, tr0, via)][resp] += 1
+                        r["pistas"][(lugar, tr0, canal)][resp] += 1
             elif tipo == "toque" and lugar is not None:
                 erro = ev.get("julgamento") == "erro"
                 hora = int((base + t) // 3600)
@@ -621,9 +622,10 @@ def _media_dp(v):
 NOME_SAIDA = {"vibracao": "vibrações", "gatilho": "efeitos de gatilho", "lightbar": "cores da barra de luz",
               "leds_jogador": "luzinhas", "player_index": "números de jogador", "led_microfone": "luzes do mudo",
               "audio_hid": "ajustes do alto-falante"}
-NOME_VIA = {"haptica": "háptica", "rumble": "rumble", "alto_falante": "alto-falante"}
+NOME_CANAL = {"haptica": "háptica", "rumble": "rumble", "alto_falante": "alto-falante", "tela": "tela", "tv": "TV"}
 NOME_RECURSO = {"haptica": "háptica", "microfone": "microfone", "alto_falante": "alto-falante", "giroscopio": "giroscópio",
-                "rumble": "rumble", "sozinho": "sozinho", "analogico": "analógico", "tv": "TV"}
+                "rumble": "rumble", "analogico": "analógico", "tv": "TV", "sem_microfone": "sem microfone",
+                "touchpad": "touchpad", "botoes": "botões"}
 NOME_TRANSPORTE = {"usb": "no cabo", "bt": "no rádio", "virtual": "simulado", "desconhecido": "sem transporte"}
 
 
@@ -641,11 +643,11 @@ def escrever(r, pasta):
         t.append(frase + ".")
     t.append("")
     t.append("## O jogador percebeu? (as pistas só do controle)")
-    for (lugar, tr, via), p in sorted(r["pistas"].items()):
+    for (lugar, tr, canal), p in sorted(r["pistas"].items()):
         sem = r["sem_pista"].get((lugar, tr), {"n": 0, "certos": 0})
         nenhuma = p["mandou"] - p["certo"] - p["errado"]
         t.append("P%d %s respondeu às pistas por %s em %s das vezes (%s de %s; %s erradas, %s sem resposta); sem pista, acertou %s." % (
-            lugar + 1, NOME_TRANSPORTE.get(tr, tr), NOME_VIA.get(via, via), _pc(p["certo"], p["mandou"]), _n(p["certo"]),
+            lugar + 1, NOME_TRANSPORTE.get(tr, tr), NOME_CANAL.get(canal, canal), _pc(p["certo"], p["mandou"]), _n(p["certo"]),
             _n(p["mandou"]), _n(p["errado"]), _n(nenhuma), _pc(sem["certos"], sem["n"])))
     t.append("")
     t.append("## O tempo de cada um")
@@ -697,9 +699,10 @@ def escrever(r, pasta):
             _n(iguais), _n(len(pares)), _pc(iguais, len(pares)), round(100 * TETO_SEM_TROCA)))
     t.append("")
     t.append("## As trocas (o recurso que faltou e o caminho que o jogo tomou)")
-    for (lugar, tr, recurso, para, motivo), n in sorted(r["trocas"].items()):
-        t.append("P%d %s: %s → %s (%s), %s." % (lugar + 1, NOME_TRANSPORTE.get(tr, tr), NOME_RECURSO.get(recurso, recurso),
-                                              NOME_RECURSO.get(para, para), motivo.replace("_", " "), _vezes(n)))
+    for (lugar, tr, de, para, motivo), n in sorted(r["trocas"].items()):
+        t.append("P%d %s: %s → %s%s, %s." % (lugar + 1, NOME_TRANSPORTE.get(tr, tr), NOME_RECURSO.get(de, de),
+                                           NOME_RECURSO.get(para, para), " (%s)" % motivo.replace("_", " ") if motivo else "",
+                                           _vezes(n)))
     for (lugar, tr, papel, placa), n in sorted(r["som"].items()):
         t.append("P%d %s: %s sons em %s, %s." % (lugar + 1, NOME_TRANSPORTE.get(tr, tr), _n(n), papel, "com placa" if placa else "sem placa"))
     t.append("")
@@ -793,14 +796,14 @@ def _gerar_noite(pasta):
                     (ponte_csv if k == 0 else ponte_jsonl).append(linha)
         # as pistas: P1 94 de 100 no cabo (sessão a), P3 71 de 100 no rádio (sessão a)
         if k == 0:
-            for l, certas, via in ((0, 94, "haptica"), (2, 71, "rumble")):
+            for l, certas, canal in ((0, 94, "haptica"), (2, 71, "rumble")):
                 for n in range(100):
                     tp = 100.0 + n * 10.0 + l
                     linhas.append({"t": tp, "tipo": "pista", "jogador": l + 1, "lugar": l, "slot": "S07_J32", "n": n,
-                                   "evento": "mandou", "via": via, "o_que": "firme"})
+                                   "evento": "mandou", "canal": canal, "o_que": "firme"})
                     resp = "certo" if n < certas else ("errado" if n % 2 == 0 else "nenhuma")
-                    linhas.append({"t": tp + 0.3, "tipo": "pista", "jogador": l + 1, "lugar": l, "slot": "S07_J32", "n": n,
-                                   "evento": "respondeu", "resposta": resp})
+                    linhas.append({"t": tp + 0.3, "tipo": "entrada", "jogador": l + 1, "lugar": l, "slot": "S07_J32", "n": n,
+                                   "o": "resposta", "resposta": resp})
         # os toques: 300 por lugar, 5% de erro, desvio conhecido
         for l in range(4):
             for n in range(300):
@@ -822,7 +825,7 @@ def _gerar_noite(pasta):
                 linhas.append({"t": 1700.0 + m, "tipo": "minigame", "slot": "S02_J07", "evento": "terminou", "vencedor": -1,
                                "genero": "coop", "colocacao": ""})
         if k == 0:
-            linhas.append({"t": 5.0, "tipo": "troca", "jogador": 3, "lugar": 2, "slot": "S07_J32", "recurso": "haptica",
+            linhas.append({"t": 5.0, "tipo": "troca", "jogador": 3, "lugar": 2, "slot": "S07_J32", "de": "haptica",
                            "para": "rumble", "motivo": "sem_placa"})
         linhas.sort(key=lambda e: e["t"])
         with open(os.path.join(pasta, "linha-do-tempo-noite-%s.jsonl" % nome), "w", encoding="utf-8") as f:
@@ -943,8 +946,11 @@ if __name__ == "__main__":
   (a diferença que a ponte mostrar numa saída conhecida, como o `player_index`
   da conexão).
 - **«Sem resposta» é o que sobra:** o script conta as `pista` `mandou` e as
-  respostas `certo`/`errado`; as outras são «sem resposta» (o `respondeu`
-  `nenhuma` que o minigame grava só confirma).
+  respostas `certo`/`errado`; as outras são «sem resposta» (a `entrada`
+  `resposta` `nenhuma` que o minigame grava só confirma).
+- **A resposta não é linha `pista`:** é a `entrada` com `o` `resposta` (o
+  `_respondeu` da O1, da O2 e da Q4). Um script que procure `pista`
+  `respondeu` acha zero e diz 0% para todos.
 - **O arquétipo é o da forja mais recente antes do minigame**, não o da
   primeira: quem reforja no meio da noite passa a contar no arquétipo novo.
 - **Só biblioteca padrão:** nada de `pandas`, `numpy` ou `matplotlib`; o

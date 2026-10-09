@@ -1,6 +1,6 @@
 # R — O Relâmpago
 
-**Sprint:** R · **Slot:** RELAMPAGO · **Tamanho:** G · **Depende de:** H04 e H08 (o kit, `momento()`, `_joga_o_minigame`), F09 (`Forja.robo_temperamento` e `Forja.robo_acerta()`), H07, G03, G05 (a lente de 35 mm), G13 (o cavaleiro montado), G14 (os tokens de cor), G15 (a luz da seção e o brilho com dono), V05 (os sons pelo mapa), a faixa `mus_relampago` com 184 s (hoje tem 120 s), as seções I a Q prontas (os 45 no catálogo), Q4 e Q5 (as estações que se copiam), O2 (a pedra), P1 (o ouvido)
+**Sprint:** R · **Slot:** RELAMPAGO · **Tamanho:** G · **Depende de:** H04 e H08 (o kit, `momento()`, `_joga_o_minigame`), F09 (`Forja.robo_temperamento` e `Forja.robo_acerta()`), H07, G03, G05 (a lente de 35 mm), G13 (o cavaleiro montado), G14 (os tokens de cor), G15 (a luz da seção e o brilho com dono), V05 (os sons pelo mapa), as seções I a Q prontas (os 45 no catálogo), Q4 e Q5 (as estações que se copiam), O2 (a pedra), P1 (o ouvido)
 
 ## Por quê
 
@@ -27,7 +27,8 @@ estações da Q4 e da Q5) já está copiado nesta ficha, com os números.
 | `godot/scripts/minigames/catalogo.gd` | `"RELAMPAGO"` em `MINIGAMES` (fora de `SECOES`); `"relampago": "RELAMPAGO"` em `NOMES_VELHOS` | **de todos**: acrescente as duas linhas, não reordene |
 | `godot/scripts/minigames/minigame.gd` | `"momento"` em `TIPOS_DO_JOGO` e a função `momento()` (a da L1, copiada em «A diversão») | **de todos**: se a L1 ou outra ficha já pôs, não escreva de novo |
 | `godot/scripts/partida.gd` | `static var relampago_desempate`, `var desempate`, `_acima`, `_criterio`, `empate_no_topo()`, `empatados_no_topo()` | só desta |
-| `godot/scripts/ui/escolha_partida.gd` | `[0, "Relâmpago", "Uns 3 min"]` em `TAMANHOS`; o `_draw` com `n == 0` | só desta |
+| `godot/scripts/ui/escolha_partida.gd` | `[0, "Relâmpago", "Uns 3 min"]` em `TAMANHOS`; `var tamanho := 2` (era 1: o padrão continua «5 salas»); o `_draw` com `n == 0` | só desta |
+| `godot/scripts/musica.gd` | a linha `"MUS_RELAMPAGO": [60, 160, 2]` em `FAIXAS` (Dó, 160 bpm, energia 2): a faixa sintetizada até a gerada chegar | **de todos**: acrescente a linha, não reordene |
 | `godot/scripts/main.gd` | `_comecar_a_partida(0, …)`, `_seguir_a_partida()`, `_ao_terminar_a_sala()` | **de todos**: só as linhas de «O aquecimento e o desempate» |
 | `godot/scripts/traducoes.gd` | as chaves de «Traduções» | **de todos** |
 | `godot/testes/prova_do_jogo.gd` | `_prova_do_relampago()`, `_prova_do_relampago_inteiro()`, a linha `"RELAMPAGO"` no `match` de `_prova_da_ficha` e a conta da partida | **de todos** |
@@ -84,7 +85,8 @@ for slot in Catalogo.MINIGAMES:
 	if f.has("microjogo") and f.has("icone"):
 		_baralho.append({"slot": slot, "secao": slot.substr(0, 3), "titulo": f.titulo,
 			"verbo": str(f.microjogo.verbo), "segundos": clampf(float(f.microjogo.segundos), 5.0, 8.0),
-			"mecanica": MECANICA_DO_ICONE.get(str(f.icone), BATER), "material": str(f.material)})
+			"icone": str(f.icone), "mecanica": MECANICA_DO_ICONE.get(str(f.icone), BATER),
+			"material": str(f.material)})
 ```
 
 **A ordem:** as cartas de cada seção embaralhadas com o `rng` do kit; as
@@ -102,7 +104,7 @@ Vem do `icone` da ficha (o recurso do controle que ela usa); o verbo na tela
 | `botoes` | `BATER` | ✕ em cada nota | a estação 1 da Q4 |
 | `analogicos` | `MARCHAR` | o analógico esquerdo para a esquerda (notas pares) e para a direita (ímpares), além de ±0,7 | novo: cruzar o limite, como o R2 da Q1 |
 | `gatilhos` | `APERTAR` | L2 (pares) e R2 (ímpares) cruzando 0,6 | o pulso da Q2 |
-| `giroscopio` | `INCLINAR` | inclinar contra o lado mostrado | a estação 2 da Q4 |
+| `giroscopio`, `acelerometro` | `INCLINAR` | inclinar contra o lado mostrado | a estação 2 da Q4 |
 | `touchpad` | `TRACAR` | deslizar para a seta | a estação 3 da Q4 |
 | `vibracao` | `DEFENDER` | L1/R1 do lado que a mão sentiu (a pista **meia** batida antes) | a estação 4 da Q4 |
 | `gatilho_adaptativo` | `PUXAR` | o R2 em `ARMA` (2, 6, 8) até o clique | a estação 1 da Q5 |
@@ -110,13 +112,24 @@ Vem do `icone` da ficha (o recurso do controle que ela usa); o verbo na tela
 | `haptica` | `SENTIR` | ✕ na pedra, nada na neblina | a estação 3 da Q5 (a O2) |
 | `microfone` | `SOPRAR` | um sopro de 2 batidas | a estação 4 da Q5 (a P1), com a nota longa |
 
+Nas 45 fichas de hoje, o `icone` é um destes 11 (o `acelerometro` em 1). Se
+uma ficha escrever o nome do glifo em vez da parte, vale o mesmo: `cross`,
+`stick_l`, `l2`, `r2`, `rumble_esquerdo`, `rumble_direito`, `alto-falante` e
+`mic` estão no `MECANICA_DO_ICONE` («Os ganchos»). Ícone desconhecido: `BATER`.
+
 Todos jogam o mesmo microjogo **ao mesmo tempo** (é individual; não há
 hoqueto aqui): cada lugar vivo tem as mesmas notas.
 
 ### O fluxo de um microjogo
 
 A faixa é `MUS_RELAMPAGO`, 160 bpm (uma batida = 0,375 s). `ENTRADA := 4`
-(se o kit tiver `BATIDA_DA_PRIMEIRA_NOTA`, use-a).
+(se o kit tiver `BATIDA_DA_PRIMEIRA_NOTA`, use-a). Enquanto o OGG gerado e
+conferido não existe, o `Musica.mapa("MUS_RELAMPAGO")` lê a linha de
+`FAIXAS` que esta ficha acrescenta (`bpm_sintetizado(160)` dá 160 exato);
+sem ela, o mapa cai em 120 bpm e silêncio, e o teto vira 242 s. A faixa
+gerada (120 s) e a sintetizada tocam em laço (`musica.gd`, `_ogg`: todo
+`MUS_` fora de `MUS_S` volta ao zero), e o `Ritmo` conta as voltas: o tempo
+de música segue subindo até o teto.
 
 Um microjogo começa na batida `m0` (o primeiro em `ENTRADA`):
 
@@ -197,7 +210,9 @@ próximo não herdar).
 
 - **O aquecimento:** na escolha da partida (`ui/escolha_partida.gd`), a linha
   «Salas» ganha a primeira opção `[0, "Relâmpago", "Uns 3 min"]` em
-  `TAMANHOS`; `confirmar()` com `n == 0` emite `escolheu(0, sorteada)`. No
+  `TAMANHOS`, e `var tamanho := 2` (era 1: com a linha nova no índice 0, o
+  padrão continua «5 salas»); `confirmar()` com `n == 0` emite
+  `escolheu(0, sorteada)`. No
   `_draw`, com `n == 0`, a lista da direita tem uma linha só, `1` e
   `Traducoes.traduzir("O Relâmpago")`, e não chama `Partida.roteiro`.
   `main._comecar_a_partida(0, ...)` faz `partida = null` (senão a volta do
@@ -255,17 +270,24 @@ A arena do cinema: lente de 35 mm (FOV vertical 37,8°, posto pela G05 no
 ### A luz
 
 - **De base, a do salão:** a névoa `Tema.VIOLETA_FUNDO` (`#1d1638`) do main,
-  o preenchimento `atmosfera(Color("#2a2738"), Tema.VIOLETA, false, 30, 22.0, -7.8, 0.5)`
+  o preenchimento `atmosfera(Tema.luz_da_secao(-1).preenchimento, Tema.VIOLETA, false, 30, 22.0, -7.8, 0.5)`
+  (o `AMBIENTE_SALAO`, `#2a2738`, da G15)
   e uma chave `OmniLight3D` em `(0, 8, 3)`, `Tema.TUNGSTENIO`, energia 0,9,
   alcance 26.
 - **A cada cartão:** o preenchimento (`_preenchimento.light_color`) e a cor
-  da chave vão a `Tema.luz_da_secao(secao, "A")` da seção da carta
-  (`secao = int(carta.secao.substr(1)) - 1`; as chaves `preenchimento` e
-  `chave` do dicionário) em 1 batida, `ENTRA_SAI`. A névoa fica a do salão.
-- **O pulso do cartão:** `pulso_de_luz(Tema.AMARELO, 1.2)` na batida `m0`.
-  Ele já respeita `Opcoes.flashes` (desligado, não pulsa); no máximo 3
-  piscadas por segundo: o cartão vem a cada 6 batidas ou mais (2,25 s), e
-  nada mais pisca.
+  da chave vão a `Tema.luz_da_secao(numero)` da seção da carta em 1 batida,
+  `ENTRA_SAI` (um Tween em `_preenchimento.light_color` e outro em
+  `_chave.light_color`). `numero = int(carta.secao.substr(1))`, de 1 a 9
+  (`S03` dá 3; a assinatura da G15 é `luz_da_secao(numero: int, lado_b := false)`,
+  sobre a `tinta_da_secao(numero)` da G14; o lado B não entra aqui). As chaves
+  do dicionário: `preenchimento` e `chave` (cores). A névoa fica a do salão.
+- **O pulso do cartão:** na batida `m0`, só a energia do `_preenchimento`
+  sobe (`_energia_preenchimento + 1.2`) e volta em 0,9 s (`TRANS_QUAD`); a
+  cor fica a do Tween da seção. Só com `Opcoes.flashes` (desligado, não
+  pulsa). Não use o `pulso_de_luz` do `sala_jogo.gd`: ele troca a cor e, no
+  fim, devolve a cor de antes, o que apaga a luz da seção que o Tween acabou
+  de pôr. No máximo 3 piscadas por segundo: o cartão vem a cada 6 batidas
+  ou mais (2,25 s), e nada mais pisca.
 
 ### As peças Kenney e o papel de cada uma
 
@@ -298,14 +320,30 @@ carta mostra só o conjunto da mecânica.
 
 **As lâmpadas de vida:** três por raia, `Kit.caixa(self, Vector3(0.3, 0.3, 0.3), Vector3(RAIAS[l] + (k - 1) * 0.45, 0.15, Z_JOGADOR + 0.9), mat)`,
 `k` de 0 a 2. Acesa: `Tema.neon(Tema.JOGADOR[l], 1.8, l)`. Apagada:
-`Kit.material(Tema.GRAFITE)`. Saem o `#f1fa8c`, o `#3b3345`, o `Tema.CIANO` e
-o `Tema.AMARELO` do cenário de hoje (o amarelo fica só no pulso do cartão).
+`Kit.material(Tema.GRAFITE)`. Nenhum `#f1fa8c`, `#3b3345`, `Tema.CIANO` nem
+`Tema.AMARELO` no código da R (a G14 tira o `AMARELO`; o pulso é só energia).
 
-**O cartão:** o verbo é **texto de tela** (passa por `Traducoes`, começa com
-maiúscula, `Tema.fonte(800)`, tamanho de título, no centro, por 2 batidas),
-desenhado pelo painel da sala pelo `progresso()` (`"Mais rápido! · Bata!"`
-no nível novo, só `"Bata!"` no resto). A G04 e o painel já mostram o
-`progresso()` no alto.
+As peças entram por `Kit.peca(self, nome, pos)` (ou `Kit.peca(self, nome, pos, rot_y, escala)`;
+a escala padrão é `Kit.K`).
+
+**O cartão:** o verbo gigante é da R, não do painel (o painel só desenha o
+`progresso()` pequeno, em `Tema.fonte(500)`). No `montar()`, um `CanvasLayer`
+próprio com um `Label` `_verbo` e um `TextureRect` `_glifo`:
+
+- o `_verbo`: `Traducoes.traduzir(carta.verbo)` (começa com maiúscula),
+  fonte `Tema.bungee()`, tamanho `Tema.t(Tema.T_VERBO)` (160, «o verbo da
+  entrada» do 02), cor `Tema.ETIQUETA`, sombra `Tema.FITA` deslocada 13 px
+  para baixo e para a direita (round(0,08 × 160), a regra da G12), centrado
+  na tela;
+- o `_glifo`: `Desenho.glifo(str(Minigame.ICONE_DA_PARTE.get(carta.icone, carta.icone)))`
+  (a tabela da H08: `botoes` dá `cross`), 128 px, logo abaixo do verbo;
+- os dois visíveis da batida `m0` à `m0 + 2` (o começo da janela), depois
+  escondidos;
+- no nível novo, o `_verbo` diz `"Mais rápido!"` na batida `m0` e o verbo da
+  carta na `m0 + 1`.
+
+O `progresso()` continua a linha pequena do painel no alto
+(`"Mais rápido! · Bata!"` no nível novo, só `"Bata!"` no resto).
 
 ### O que brilha e de quem é
 
@@ -369,7 +407,7 @@ Evento por evento. O piso é o da F05; o gatilho usa os modos de `forja.gd`
 | a assinatura, `SOPRAR` | cada vivo | `Forja.led_mic(l, 2)` por 1 batida, depois `Forja.led_mic(l, 0)` |
 | a assinatura, `SENTIR` | cada vivo | `Forja.textura(l, "pedra")` |
 | a assinatura, as outras | — | nada: o cartão basta |
-| a pista de `DEFENDER` (meia batida antes) | o dono da nota | com háptica estéreo (`Forja.som_tem(l, Forja.PAPEL_HAPTICA)`): `Forja.som_haptica(l, "tropeco", "", 1.0)` (esquerda) ou `Forja.som_haptica(l, "", "tropeco", 1.0)` (direita); sem ela: `Forja.sentir(l, "golpe_esq")` ou `Forja.sentir(l, "golpe_dir")` e `anotar("troca", l, {"recurso": "haptica", "via": "rumble"})` |
+| a pista de `DEFENDER` (meia batida antes) | o dono da nota | com háptica estéreo (`Forja.som_tem(l, Forja.PAPEL_HAPTICA)`): `Forja.som_haptica(l, "tropeco", "", 1.0)` (esquerda) ou `Forja.som_haptica(l, "", "tropeco", 1.0)` (direita); sem ela: `Forja.sentir(l, "golpe_esq")` ou `Forja.sentir(l, "golpe_dir")` e `anotar("troca", l, {"de": "haptica", "para": "rumble", "motivo": "sem_placa"})` (os campos que o `anotar` da H08 aceita, `TROCAS`) |
 | a pedra de `SENTIR` (meia batida antes) | o dono | a da O2, copiada |
 | a nota julgada | o dono | o kit (`acerto`, `perfeito`, `erro`) |
 | perdeu a vida | o dono | `Forja.sentir(l, "golpe")` |
@@ -425,7 +463,11 @@ Esta ficha não supõe corpo humano: usa só `jogador(l)` (o `ForjaPlayer`),
 `gesto(nome, duracao)` e as animações `fall`, `sit`, `emote-yes` e
 `emote-no`. Na cadeira de rodas, `fall` vira `wheelchair-back`, `sit` vira
 `wheelchair-sit`, `emote-yes` vira `wheelchair-move-forward` e `emote-no` vira
-`wheelchair-look-left`, com a mesma duração.
+`wheelchair-look-left`, com a mesma duração (as quatro estão no pacote dos
+personagens). Quem troca é a R: todo gesto passa por `_gesto(l, nome, dur)`
+(«Os ganchos»), que lê `jogador(l).get("na_cadeira")`; verdadeiro, usa o
+nome da `NA_CADEIRA`; falso ou `null` (hoje, antes da G13), o nome de
+pernas.
 
 **Nenhum stat nem item age** (`docs/jogo/sistemas/regras.csv`,
 `stats_no_relampago` = `nao`): a regra é igual para os quatro.
@@ -541,7 +583,9 @@ e `bash tests/prova_visual.sh`.
 Em `godot/testes/prova_do_jogo.gd`:
 
 1. **`_prova_do_relampago()`** (no percurso, só na rodada sem a bancada):
-   abre com `--sala=relampago` pelo catálogo, espera **dez microjogos** (pelo
+   abre a sala `"RELAMPAGO"` (o `_comeca_a_sala` confere `sala.id == id`, e o
+   id é o slot; o `--sala=relampago` da linha de comando passa pelo
+   `NOMES_VELHOS`), espera **dez microjogos** (pelo
    `_i`, com o relógio de parede, limite 120 s), confere que vieram de pelo
    menos seis seções diferentes e sem duas iguais em seguida, e que a música
    não parou (`Ritmo.t_musica()` sempre subindo); depois **desiste pela
@@ -549,7 +593,7 @@ Em `godot/testes/prova_do_jogo.gd`:
 
    ```gdscript
    func _prova_do_relampago() -> void:
-   	var sala = await _comeca_a_sala("relampago")
+   	var sala = await _comeca_a_sala("RELAMPAGO")
    	if sala == null:
    		return
    	var secoes: Array = []
@@ -654,8 +698,16 @@ const FICHA := { ... }   # a de «A ficha de dados»
 enum { BATER, MARCHAR, APERTAR, INCLINAR, TRACAR, DEFENDER, PUXAR, REPETIR, SENTIR, SOPRAR }
 const MECANICA_DO_ICONE := {
 	"botoes": BATER, "analogicos": MARCHAR, "gatilhos": APERTAR, "giroscopio": INCLINAR,
-	"touchpad": TRACAR, "vibracao": DEFENDER, "gatilho_adaptativo": PUXAR, "alto_falante": REPETIR,
-	"haptica": SENTIR, "microfone": SOPRAR,
+	"acelerometro": INCLINAR, "touchpad": TRACAR, "vibracao": DEFENDER, "gatilho_adaptativo": PUXAR,
+	"alto_falante": REPETIR, "haptica": SENTIR, "microfone": SOPRAR,
+	# o nome do glifo, se a ficha o escrever no lugar da parte (Minigame.ICONE_DA_PARTE)
+	"cross": BATER, "stick_l": MARCHAR, "l2": APERTAR, "r2": PUXAR, "rumble_esquerdo": DEFENDER,
+	"rumble_direito": SENTIR, "alto-falante": REPETIR, "mic": SOPRAR,
+}
+## O gesto de pernas -> o da cadeira de rodas (o pacote dos personagens).
+const NA_CADEIRA := {
+	"fall": "wheelchair-back", "sit": "wheelchair-sit",
+	"emote-yes": "wheelchair-move-forward", "emote-no": "wheelchair-look-left",
 }
 const OBJETO_DA_CARTA := { ... }  # a tabela de «A cena»; "bigorna", "lingote" e "sino" são do Kit
 const ENTRADA := 4
@@ -695,6 +747,8 @@ var _lampadas := {}              ## lugar -> [3 MeshInstance3D]
 var _pecas := {}                 ## mecânica -> Node3D (o conjunto)
 var _objetos := {}               ## lugar -> {nome: Node3D}
 var _chave: OmniLight3D
+var _verbo: Label                ## o verbo gigante do cartão (Bungee 160), num CanvasLayer próprio
+var _glifo: TextureRect          ## o glifo da parte do controle, abaixo do verbo
 var momentos: Array = []         ## {nome, t_musica, nivel}: a prova lê
 # ... e o que as estações copiadas pedem (_nota, _alvo, _n, o ouvido, a pedra, a seta, o lado, _robo_certo, _robo_feito)
 
@@ -819,6 +873,16 @@ func _exagero(degrau: String, bonecos: Array) -> void:
 			get_tree().create_timer(int(d.hit_stop) / 60.0).timeout.connect(func(): anim.speed_scale = 1.0)
 
 
+## Todo gesto do boneco passa aqui: na cadeira de rodas, o da cadeira.
+func _gesto(l: int, nome: String, dur: float) -> void:
+	var p = jogador(l)
+	if p == null:
+		return
+	if p.get("na_cadeira") == true:
+		nome = str(NA_CADEIRA.get(nome, nome))
+	p.gesto(nome, dur)
+
+
 func _momento(nome: String, l: int, pos: Vector3) -> void:
 	var nivel := _i / 5
 	momento(nome, l, pos, 1.0, {"nivel": nivel})
@@ -830,8 +894,9 @@ func _momento(nome: String, l: int, pos: Vector3) -> void:
 (`_notas_da_vez`); os `_acertos` a zero, `_esteve_fora` a falso,
 `_acorde_no_microjogo` a falso; o conjunto de peças da mecânica visível (os
 outros não); o objeto da carta visível na raia de cada vivo e de cada sombra
-(os outros escondidos); a luz da seção (Tween de 1 batida); o pulso e o
-`transicao` (e o `sobe` no nível novo); o gatilho da mecânica (`ARMA` no R2
+(os outros escondidos); a luz da seção (Tween de 1 batida); o pulso (só a
+energia, «A luz»), o `_verbo` e o `_glifo` («O cartão») e o `transicao` (e o
+`sobe` no nível novo); o gatilho da mecânica (`ARMA` no R2
 em `PUXAR` na batida `m0 + 2`, `gatilhos_off` no resto); o caminho da
 mecânica (`_rumble[l]`, com a `troca`); a linha
 `anotar("estacao", -1, {"estacao": str(_carta.slot), "mecanica": _carta.mecanica, "batida": m0})`;
@@ -842,7 +907,7 @@ uma (pelo `_distribuir` da Q4, sem hoqueto).
 `_acertos[l] >= ceili(PASSA * notas)`. Com 2 ou mais vivos e nenhum passou:
 o estouro de «A diversão» (`_estouro_ate = b + 1.0`), ninguém perde. Senão,
 cada vivo que falhou perde uma vida (a lâmpada apaga com as faíscas dele,
-`Forja.sentir(l, "golpe")`, a nota quebrada, `fall` por 2 batidas e o
+`Forja.sentir(l, "golpe")`, a nota quebrada, `_gesto(l, "fall", …)` por 2 batidas e o
 `_exagero("golpe", [jogador(l)])`) e, em zero, vira sombra (pela regra de
 «A sombra») ou sai (`acabou[l] = true`, `_saiu_em[l] = b`, `sit`,
 `Forja.sentir(l, "explosao")`); quem passou, `_passados[l] += 1`,
@@ -892,8 +957,15 @@ do pódio): `"the Lightning Round"`.
   conta de vivos usa `_vidas[l] > 0`, nunca `not acabou[l]`.
 - **As mecânicas de gatilho:** `usa_gatilho = true`, e o gatilho volta a
   `OFF` no cartão de toda mecânica que não o usa.
-- **A faixa de 120 s:** até a `mus_relampago` ter 184 s, a música acaba
-  antes do teto (181,5 s); a prova inteira só passa com a faixa nova.
+- **A faixa em laço:** a faixa tem 120 s e o teto é 181,5 s; ela volta ao
+  zero e o `Ritmo` conta a volta. Quem lê `Ritmo.t_musica()` (o teto, a
+  prova) vê o tempo seguir subindo; não meça o fim pela posição do tocador.
+- **Sem a linha em `FAIXAS`:** o `Musica.mapa("MUS_RELAMPAGO")` devolve
+  120 bpm e silêncio, as 484 batidas viram 242 s e a prova de 200 s falha.
+- **A cadeira depende da G13:** o `_gesto` lê a propriedade `na_cadeira`
+  (bool) do `ForjaPlayer`. Se a G13 der outro nome, troque só no `_gesto`.
+- **O verbo não é do painel:** `Tema.fonte(800)` não existe (a G14 aceita
+  500 a 700); o verbo gigante é o `Label` em `Tema.bungee()` da R.
 
 ## Ao terminar
 
