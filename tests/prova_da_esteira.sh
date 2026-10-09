@@ -253,6 +253,12 @@ espera 1 "regras: com mais de 60 linhas, reprova" regras "$G"
 cp "$RAIZ/docs/jogo/o-time/regras.md" "$G/docs/jogo/o-time/"
 sed -i 's|](o-time/regras.md|](o-time/outro.md|' "$G/docs/jogo/12-como-trabalhar.md"
 espera 1 "regras: o 12 sem o link, reprova" regras "$G"
+cp "$RAIZ/docs/jogo/12-como-trabalhar.md" "$G/docs/jogo/"
+sed -i 's|](jogo/o-time/regras.md|](jogo/o-time/outro.md|' "$G/docs/COMO-CONTRIBUIR.md"
+espera 1 "regras: o COMO-CONTRIBUIR sem o link, reprova" regras "$G"
+cp "$RAIZ/docs/COMO-CONTRIBUIR.md" "$G/docs/"
+sed -i 's|](regras.md|](outro.md|' "$G/docs/jogo/o-time/a-esteira.md"
+espera 1 "regras: a a-esteira sem o link, reprova" regras "$G"
 
 # --- os estados de uma ficha (WT05) -------------------------------------------------------------------------------
 ## estados_iguais <raiz>: a lista da a-esteira («Os estados de uma ficha», os itens em negrito) é a ESTADOS do script.
@@ -287,6 +293,7 @@ confere "esteira: «feito, sem…» é feito, «espera o André (…)» é ele, 
   "'F' in [p['secao'] for p in d['prontas_para_despachar']] and d['em_voo']['Ana']['fichas'] == ['G02'] and any(b['secao'] == 'H' and any('H01 (espera o André)' in m for m in b['motivos']) for b in d['bloqueadas'])"
 E="$TMP/marcar"; cp -r "$Q" "$E"; cp "$E/docs/jogo/tarefas/README.md" "$TMP/quadro-antes.md"
 espera 2 "costura --marcar: recusa «quase pronta»" bash "$RAIZ/scripts/costura.sh" --marcar F01 "quase pronta" --integracao "$E"
+espera 2 "costura --marcar: recusa o nome antigo «fazendo», que só vale na leitura" bash "$RAIZ/scripts/costura.sh" --marcar F01 "fazendo (Ana)" --integracao "$E"
 espera 0 "costura --marcar: recusado, o quadro não muda" cmp "$TMP/quadro-antes.md" "$E/docs/jogo/tarefas/README.md"
 espera 2 "costura --marcar: a ficha que o quadro não tem sai 2" bash "$RAIZ/scripts/costura.sh" --marcar Z9 feito --integracao "$E"
 espera 0 "costura --marcar: troca só a última coluna da linha da ficha" \

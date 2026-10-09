@@ -102,12 +102,13 @@ Pôr a linha da WT05 no [quadro](README.md) como **feito**, com o commit (pelo `
   estado com texto depois segue pelo começo, agora com a palavra inteira («prontamente» não é «pronta»). Sobre o
   quadro de hoje, a saída só muda na F10, que passa a ler «espera o André» em vez da célula inteira.
 - **`bash scripts/costura.sh --marcar <ficha> <estado> [--integracao DIR]`** chama o `esteira.py --marcar`, que troca
-  a última coluna da linha e recusa, sem mudar nada, o estado fora da lista, o que tem `|`, e a ficha que o quadro não
-  tem (ou tem duas vezes).
+  a última coluna da linha e recusa, sem mudar nada, o estado fora da lista, o que tem `|`, o nome antigo **fazendo**
+  (vale só na leitura; a linha nova leva **em voo**), e a ficha que o quadro não tem (ou tem duas vezes).
 - **O mapa e a soma:** o `docs/jogo/README.md` diz «com o estado de cada uma»; a «A soma» do quadro, que mandava ler
   uma faixa que o 12 não tem, aponta para onde o gasto existe: a esteira o registra no ANDAMENTO de quem coordena, por
   seção (a validar por ela: o gasto por ficha não existe e não foi inventado).
-- **Provas:** `bash tests/prova_da_esteira.sh`, 44 casos, dez novos. Com o `esteira.py` e o `costura.sh` de antes,
+- **Provas:** `bash tests/prova_da_esteira.sh`, 47 casos, onze desta ficha (a recusa do **fazendo** entrou na
+  conferência e reprova com o `--marcar` de antes dela, que gravava «fazendo (Ana)»). Com o `esteira.py` e o `costura.sh` de antes,
   cinco reprovam (as listas, «quase pronta» que sai 2 e diz a ficha, o estado com texto depois, a troca de uma linha
   só); com o `--marcar` sem a recusa, os dois da recusa; com o estado lido inteiro, sem o começo, o estado com texto
   depois. A ficha que o quadro não tem sai 2 também no script de antes (que não conhece o `--marcar`).
