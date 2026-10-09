@@ -1064,7 +1064,7 @@ func _perto_da_bigorna() -> void:
 func _quadro_sala() -> void:
 	if sala is SalaJogo and (sala as SalaJogo).fase == "fim" and not resultado.visible and overlay == "":
 		var sj := sala as SalaJogo
-		resultado.abrir(sj.colocacao, sj.pontos, sj.coop, sj.coop_venceu, sj.nome)
+		resultado.abrir(sj.colocacao, sj.pontos, sj.coop, sj.coop_venceu, sj.nome, sj.frase_do_resultado())
 		resultado.sala_da_bancada = sj if Forja.bancada else null
 	_atalhos_de_overlay()
 

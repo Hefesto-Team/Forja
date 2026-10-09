@@ -229,16 +229,10 @@ static func _ms(s: float) -> float:
 	return roundf(s * 10000.0) / 10.0
 
 
-# ---------------------------------------------------------------- calar (H08) --
-
-var _calada_ate := -1.0  ## a batida em que a música volta (-1: tocando)
+var _calada_ate := -1.0
 var _tw_calar: Tween = null
 
 
-## A música cala por `batidas` batidas e o relógio segue (o Zero Absoluto): o
-## tocador abaixa a -80 dB em 20 ms e volta, também em 20 ms, na batida
-## certa. A posição da faixa não para, então t_musica() nem sente. Sem faixa
-## tocando, não há o que calar.
 func calar(batidas: float) -> void:
 	if not is_instance_valid(_tocador) or batidas <= 0.0:
 		return
@@ -246,7 +240,6 @@ func calar(batidas: float) -> void:
 	_rampa(-80.0)
 
 
-## A música está calada agora?
 func calada() -> bool:
 	return _calada_ate >= 0.0
 

@@ -218,7 +218,7 @@ func _process(dt: float) -> void:
 			for p in jogadores:
 				if jogando[p.lugar] and not acabou[p.lugar] and Forja.lugar(p.lugar).get("conectado", false):
 					todos = false
-			if todos or (duracao > 0.0 and t_jogo >= duracao):
+			if todos or tempo_acabou():
 				terminar()
 		"fim":
 			_quadro_fim()
@@ -348,14 +348,41 @@ func terminar() -> void:
 	Forja.evento("sala", 0, {"sala": id, "evento": "jogo_terminou"})
 	Forja.evento("desempenho", 0, {"slot": id, "fps_min": snappedf(_fps_min if _fps_n > 0 else 0.0, 0.1),
 		"fps_media": snappedf(_fps_soma / _fps_n if _fps_n > 0 else 0.0, 0.1)})
-	Forja.evento("minigame", 0, {"slot": id, "evento": "terminou",
-		"vencedor": colocacao[0] if not colocacao.is_empty() else -1,
-		"pontos": pontos, "duracao": snappedf(t_jogo, 0.1)})
+	Forja.evento("minigame", 0, campos_do_fim())
 	Forja.gravar_relatorio()
 	Musica.parar_seco()
 	Som.jingle("JIN_APITO")
 	pulso_de_luz(Tema.TUNGSTENIO, 1.6)
 	ao_terminar()
+
+
+func tempo_jogado() -> float:
+	return t_jogo
+
+
+func tempo_acabou() -> bool:
+	return duracao > 0.0 and tempo_jogado() >= duracao
+
+
+func tempo_que_resta() -> float:
+	return maxf(0.0, duracao - tempo_jogado())
+
+
+func campos_do_fim() -> Dictionary:
+	return {"slot": id, "evento": "terminou", "vencedor": int(colocacao[0]) if not colocacao.is_empty() else -1,
+		"pontos": pontos, "duracao": snappedf(tempo_jogado(), 0.1)}
+
+
+func frase_do_resultado() -> String:
+	return ""
+
+
+func quem_comemora() -> Array:
+	return [colocacao[0]] if not colocacao.is_empty() else []
+
+
+func quem_brilha() -> int:
+	return int(colocacao[0]) if not colocacao.is_empty() else -1
 
 
 func vencedor() -> Array:
@@ -369,12 +396,14 @@ func vencedor() -> Array:
 
 
 func _celebrar() -> void:
-	if not colocacao.is_empty():
-		var l: int = colocacao[0]
-		var p := jogador(l)
+	for l in quem_comemora():
+		var p := jogador(int(l))
 		if p != null and is_instance_valid(p):
 			p.gesto("emote-yes", 1.4)
-			Efeitos.faiscas(self, p.global_position + Vector3(0, 2.2, 0), Forja.cor_do_lugar(l), 40, 1.3)
+	var b := quem_brilha()
+	var pb := jogador(b) if b >= 0 else null
+	if pb != null and is_instance_valid(pb):
+		Efeitos.faiscas(self, pb.global_position + Vector3(0, 2.2, 0), Forja.cor_do_lugar(b), 40, 1.3)
 	Som.jingle(Som.jingle_do_resultado(pontos, _presentes_do_fim(), coop, coop_venceu))
 
 

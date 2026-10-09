@@ -287,7 +287,7 @@ func _tempo() -> void:
 		return
 	if sala.treinando:
 		return
-	var resta := maxf(0.0, d - float(sala.t_jogo))
+	var resta := float(sala.tempo_que_resta())
 	var larg := 480.0
 	var p := Vector2(Tema.MARGEM_X - 28, topo_das_faixas + 22.0)
 	var cor := Tema.SECAO[3] if resta < 15.0 else Tema.ETIQUETA
