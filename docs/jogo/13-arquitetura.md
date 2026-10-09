@@ -191,7 +191,7 @@ Os tipos, e quem os escreve:
 | `saida` | `seq` (por lugar, cresce, nunca repete; é o mesmo contador do `som_controle`), `o` (`vibracao`, `gatilho`, `lightbar`, `leds_jogador`, `player_index`, `led_microfone`, `audio_hid`), os valores, `ok` | F06 (C) |
 | `som_controle` | `lugar`, `seq` (o mesmo contador por lugar das `saida`, uma ordem só), `papel` (`alto_falante`/`haptica`), `som` (o nome que o jogo pediu; na háptica `esquerdo\|direito` quando os dois lados diferem), `ganho`, `placa` (`true` se o lugar tinha alto-falante ou atuador; `false`: o som não saiu) | H07 (C) |
 | `sensacao` | `nome` (da tabela de sensações), `escala`, `ms` | F05 |
-| `minigame` | `slot`, `evento` (`comecou`/`terminou`), `vencedor` (o lugar 0..3, ou -1 no coop), `pontos`, `itens`, `duracao` | F03 |
+| `minigame` | `slot`, `evento` (`comecou`/`terminou`), `vencedor` (o lugar 0..3, ou -1 no coop), `pontos`, `itens`, `duracao`; no `terminou`, `genero` sempre, `coop_venceu` e `destaque` no coop, `equipe` (a que venceu, -1 no empate) e `equipes` (lugar → equipe) no 2v2 | F03, H08 |
 | `nota` | `slot`, `n` (índice), `t_alvo` (em tempo de música) | H01 |
 | `toque` | `slot`, `faixa`, `lugar`, `n`, `t_musica`, `julgamento` (`perfeito`/`otimo`/`bom`/`erro`), `desvio_ms`; `perdida` (`true`) no lugar de `desvio_ms` quando a nota passou sem toque | H02 |
 | `calibracao` | `lugar`, `desvio_ms`, `amostras`, `origem` (`opcoes`/`construcao`), `transporte` (o `conexao_curta` do controle do lugar, repetido para o cruzamento não precisar juntar) | H03 (à mão), G02 (a construção) |
@@ -202,6 +202,12 @@ Os tipos, e quem os escreve:
 | `momento` | `slot`, `nome`, `t_musica`; hoje só `montagem` / `nome_escrito` (o lugar gravou um nome que ele mesmo digitou) | G09 |
 | `fala` | `evento`, `texto` | G07 |
 | `desempenho` | `slot`, `fps_min`, `fps_media` | F09 |
+| `entrada` | `slot`, o toque cru do jogador (`o`, `chegou`...) | H08 (`Minigame.anotar`) |
+| `jogo` | `slot`, `o` (a coisa no mundo), os valores | H08 (`Minigame.anotar`) |
+| `pista` | `slot`, `canal` (`haptica`, `alto_falante`, `rumble`, `tela`, `tv`), `o` | H08 (`Minigame.anotar`) |
+| `troca` | `slot`, `de`, `para` (as trocas de canal de "Os eventos do jogo") | H08 (`Minigame.anotar`) |
+| `voz` | `slot`, `nivel`, `limiar` | H08 (`Minigame.anotar`) |
+| `estacao` | `slot`, `nome`, `evento` (`comecou`/`acabou`) | H08 (`Minigame.anotar`) |
 
 O gauntlet, a bancada e a prova leem as versões 1 e 2 enquanto houver
 arquivos das duas.
@@ -329,7 +335,7 @@ FICHA; redeclarar `RAIAS` na filha é erro de análise; o minigame **não tem**
 | as raias | `raia(l) -> Node3D` monta a laje, a borda na cor do lugar e a luz da vez em `RAIAS[l]`; `posicionar(l)` põe o boneco nela |
 | quem está conectado | `conectado(l) -> bool` |
 | o relógio | `Ritmo.tocar(...)` com a faixa da ficha na fase `jogo` |
-| o julgamento | `julgar_toque(l, t_alvo, n := -1, perigo := false) -> int`: chama `Ritmo.julgar` (com a folga de quem está em último se `perigo`) com a janela de `Itens.janela_perfeito`, aplica `Itens.pontos_do_acerto`, `Itens.absorve_erro` e `Itens.ganho_da_nota` (G03), grava o `toque` com o número da nota, chama `sentir` e o som da nota |
+| o julgamento | `julgar_toque(l, t_alvo, n := -1, perigo := false) -> int`: fecha a nota `n` da fila, chama `Ritmo.julgar` (com a folga de quem está em último se `perigo`), grava o `toque` com o número da nota, reage (`_reagir`: a textura, o som da nota, a barra de luz) e chama `toque()` no acerto ou `falha()` no erro — antes da `falha`, `errou(l)` (o Escudo, G03) absorve o primeiro erro; os pontos que o `toque()` marcar passam pelo `marcar` do kit, que aplica `Itens.pontos_do_acerto` (o Martelo). A Lanterna e o Diapasão não estão no kit (H08) |
 | as notas | `nova_nota(l, n, t_alvo)` registra a nota; `nota_perdida(l, n)` registra o erro sem toque e chama `falha` |
 | quem joga | `presentes()`, `na_raia(l)` (a guarda de `dica`/`status`), `acender_raia(l, forca)` |
 | a ficha | `conferir_a_ficha()` no `entrar()`, com `Minigame.CHAVES` |
@@ -703,7 +709,7 @@ André.
 
 **O sorteio dos 45.** `Catalogo.sortear(apelido: String, semente: int, vez: int) -> String`
 devolve o slot de um dos cinco da seção, sem repetir até os cinco saírem. A
-`Partida` guarda **slots**, não apelidos; `Partida.NA_ORDEM` inclui o Canto.
+`Partida` guarda **slots**, não apelidos; `Partida.NA_ORDEM` inclui o Canto, na de cinco, no lugar d'A Viga.
 O portão da seção no salão abre o próximo minigame da seção que ainda não se
 jogou na noite.
 
@@ -761,8 +767,9 @@ brilho depois" à mão.
 | `textura_no_acerto` | `false`: o kit não toca a textura na háptica no acerto (quando a háptica é a pista) | toca |
 | `papel_som` | o papel de som que o minigame abre (`Forja.PAPEL_*`) | o alto-falante |
 
-**O que mais o kit aplica:** `Itens.pontos_do_acerto` no `julgar_toque`
-(nenhuma ficha aplica de novo). **O que mais o `Forja` ganha:**
+**O que mais o kit aplica:** `Itens.pontos_do_acerto` no `marcar` do kit,
+enquanto o `toque()` que o `julgar_toque` chama está aceso (nenhuma ficha
+aplica de novo), e `errou(l)` (o Escudo) antes de toda `falha`. **O que mais o `Forja` ganha:**
 `Forja.textura(l, material)` (só a háptica, sem o alto-falante), as
 sensações leves de um lado `"toque_esq": [0.4, 0.0, 80]` e
 `"toque_dir": [0.0, 0.4, 80]`, `Forja.som_virtual(l)` devolvendo também o
@@ -773,6 +780,31 @@ nome do último som (para o robô ouvir a altura), e `Ritmo.calar(batidas)`
 `anotar(tipo, l, campos)` para os seis eventos do jogo, e
 `tempo_jogado()`, `tempo_acabou()`, `tempo_que_resta()` para o fim em tempo
 de música.
+
+- **A fila:** `notas_em_aberto(l) -> Array` (os `n`, do mais velho ao mais
+  novo), `alvo_da(l, n) -> float` (-1 se não está em aberto),
+  `julgar_nota(l, n) -> int` (-1 se não está em aberto). A nota de quem caiu
+  sai calada: `notas_perdidas` devolve `[]` sem controle.
+- **O fim, na `SalaJogo`** (o kit sobrescreve): `campos_do_fim() ->
+  Dictionary` (o `minigame` `terminou`), `frase_do_resultado() -> String`
+  (vazia: a da tela), `quem_comemora() -> Array`, `quem_brilha() -> int`.
+  `tempo_jogado()` da `SalaJogo` é o `t_jogo`; o do kit, o tempo de música
+  desde `_inicio_valendo`, congelado no fim (`_tempo_final`).
+- **As equipes:** `montar_equipes(lugares)` (no `entrar`, antes do
+  `montar`, quando o gênero é `2v2`), `equipe` (lugar → `BRASA`/`MARE`/-1),
+  `aprendizes`, `da_equipe(e)`, `pontos_da_equipe(e)`, `marcar_equipe(e,
+  n)`, `equipe_vencedora()` (-1 no empate); as cores em
+  `CORES_DAS_EQUIPES` e as frases em `FRASES_DAS_EQUIPES`.
+- **O sorteio:** `Catalogo.secao(id) -> Dictionary`, `Catalogo.ordem(lista,
+  chave, semente)` (pura), `Catalogo.sortear(apelido, semente, vez)`,
+  `Catalogo.proximo(apelido, semente, jogados)` (o portão, com
+  `Main.jogados_na_noite`) e `Catalogo.titulo(slot)`; `Partida.secoes` (os
+  apelidos, o roteiro) ao lado de `Partida.salas` (os slots), e
+  `Partida.nome(id)` (o título do minigame, ou o da seção).
+- **A barra de luz:** `Forja.PISO_DA_LUZ` (0,3), `Forja.PISCAR_MAX_S`
+  (0,5), `Forja.luz_com_piso(cor, do_lugar)` (pura: a escura clareia até o
+  piso sem mudar o tom; a preta vira a cor do lugar no piso).
+- **A música:** `Ritmo.calada() -> bool` ao lado de `Ritmo.calar(batidas)`.
 
 **Na prova:** `_joga_o_minigame(slot, limite_s, a_cada_quadro)` em
 `godot/testes/prova_do_jogo.gd`, que abre o minigame por `--sala=<slot>`,
