@@ -248,13 +248,18 @@ func _som_do_cursor(l: int) -> void:
 	Forja.sentir(l, "toque")
 
 
+## O relógio da repetição do direcional no teclado: o de parede, como a ficha G09 manda. A prova troca
+## pelo relógio do jogo, para um aperto de dois quadros não repetir a tecla quando a máquina está carregada.
+var relogio_do_teclado := func() -> int: return Time.get_ticks_msec()
+
+
 ## Os botões do lugar com o teclado aberto (a tabela da ficha G09).
 func _quadro_do_teclado(l: int) -> void:
 	var t: TecladoDoNome = teclados[l]
 	t.outros = _nomes_dos_outros(l)
 	if _entrou_agora[l]:
 		return
-	if t.quadro(Forja.mover(l), Time.get_ticks_msec()):
+	if t.quadro(Forja.mover(l), relogio_do_teclado.call()):
 		_som_do_cursor(l)
 	if Forja.apertou(l, Forja.CRUZ):
 		var estava_no_pronto := t.no_pronto()
