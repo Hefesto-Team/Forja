@@ -167,6 +167,12 @@ func _prova_do_percurso() -> void:
 	_esperar(int(round(jogo._batidas_do_titulo())) % 4 <= 1, "o corte caiu no tempo 1")
 	var armaduras := 0
 	var martelou := [false, false, false, false]
+	var grafite := [true, true, true, true]
+	var da_cor := [true, true, true, true]
+	var viu_antes := [false, false, false, false]
+	var viu_depois := [false, false, false, false]
+	var vazia := [false, false, false, false]
+	var tremeu_sem_lugar := [false, false, false, false]
 	nq = 0
 	while jogo.estado == "intro" and nq < 1800:
 		await _quadros(1)
@@ -179,7 +185,28 @@ func _prova_do_percurso() -> void:
 				if p.visible:
 					n += 1
 			armaduras = maxi(armaduras, n)
+		# a cor da armadura: grafite antes da primeira acender, a do dono depois da última
+		for l in 4:
+			var r: Array = jogo.jogadores[l]._roupas
+			if r.is_empty():
+				vazia[l] = true
+				continue
+			var cor: Color = (r[0][0] as StandardMaterial3D).albedo_color
+			if jogo.intro.t < 12.0:
+				grafite[l] = grafite[l] and cor.is_equal_approx(Tema.GRAFITE)
+				viu_antes[l] = true
+			elif jogo.intro.t > 18.0:
+				da_cor[l] = da_cor[l] and cor.is_equal_approx(r[0][1])
+				viu_depois[l] = true
+		for s in 4:
+			if not Forja.ocupado(s):
+				tremeu_sem_lugar[s] = tremeu_sem_lugar[s] or float(_perc_do_sim(s).get("forte", 0.0)) > 0.0
 	_esperar(armaduras == 4, "a introdução acende as quatro armaduras (%d)" % armaduras)
+	for l in 4:
+		_esperar(not vazia[l] and viu_antes[l] and grafite[l], "introdução: a armadura do P%d é grafite antes de acender" % (l + 1))
+		_esperar(not vazia[l] and viu_depois[l] and da_cor[l], "introdução: a armadura do P%d acende na cor dela" % (l + 1))
+		if not Forja.ocupado(l):
+			_esperar(not tremeu_sem_lugar[l], "introdução: o controle do P%d, sem lugar, não recebe martelada" % (l + 1))
 	for l in 4:
 		if Forja.ocupado(l):
 			_esperar(martelou[l], "a martelada do P%d chegou à mão dele" % (l + 1))
