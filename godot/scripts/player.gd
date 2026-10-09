@@ -1,7 +1,8 @@
 class_name ForjaPlayer
 extends CharacterBody3D
 ## Um jogador no mundo: o boneco do kit Mini Dungeon (Kenney, CC0) com a roupa
-## na cor de luz do lugar, um aro no chão da mesma cor e o "P1" em cima. Anda
+## sem tom no corpo; o dono é o contorno de néon, o anel no chão e a luz, os três
+## na cor de luz do lugar, e o "P1" em cima. Anda
 ## pelo analógico esquerdo do controle do lugar (o d-pad também serve).
 ##
 ## O visual é do jogador: o boneco (humano ou orc) e o que ele leva nas mãos,
@@ -11,6 +12,7 @@ extends CharacterBody3D
 const VELOCIDADE := 4.6
 const CORRIDA := 6.8
 const ESCALA := 2.0
+const CONTORNO_LARGURA := 0.012
 const MODELOS := ["character-human", "character-orc"]
 const NOME_DO_MODELO := ["humano", "orc"]
 ## O que o boneco leva: o item da mão direita e o do braço esquerdo (peças do kit).
@@ -42,7 +44,11 @@ var cor: Color  ## a cor do lugar (Forja.cor_do_lugar), posta em `montar`
 var hp := 100.0
 var cooldown := 0.0
 ## false: parado pelo jogo (lobby, transição); a entrada não mexe nele
-var controlavel := true
+var controlavel := true:
+	set(v):
+		controlavel = v
+		if luz_de_dono:
+			luz_de_dono.visible = v
 ## true: a sala posiciona e anima o boneco (na viga, caindo na lava); a física
 ## e a escolha da animação ficam paradas
 var preso := false
@@ -51,6 +57,8 @@ var modelo_i := 0
 var item_i := 0
 var anim: AnimationPlayer
 var aro: MeshInstance3D
+var luz_de_dono: OmniLight3D  ## a luz do lugar no chão em volta de quem se mexe (só com `controlavel`)
+var _energia_do_contorno := 2.4
 var etiqueta: Label3D
 var _anim_atual := ""
 var _yaw := PI
@@ -77,16 +85,19 @@ func montar(l: int) -> void:
 	t.outer_radius = 0.64
 	t.rings = 32
 	aro.mesh = t
-	var m := StandardMaterial3D.new()
-	m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	m.albedo_color = cor
-	m.emission_enabled = true
-	m.emission = cor
-	m.emission_energy_multiplier = 1.4
-	aro.material_override = m
+	aro.material_override = Tema.neon(cor, 1.5, l)
 	aro.scale = Vector3(1, 0.25, 1)
 	aro.position.y = 0.04
 	add_child(aro)
+
+	luz_de_dono = OmniLight3D.new()
+	luz_de_dono.light_color = cor
+	luz_de_dono.light_energy = 0.9
+	luz_de_dono.omni_range = 3.4
+	luz_de_dono.shadow_enabled = false
+	luz_de_dono.position.y = 0.6
+	luz_de_dono.visible = controlavel
+	add_child(luz_de_dono)
 
 	etiqueta = Label3D.new()
 	etiqueta.text = "P%d" % (l + 1)
@@ -121,10 +132,79 @@ func visual(m: int, item: int) -> void:
 		_anim_atual = ""
 		_animar("idle")
 	_segurar()
+	contornar(_energia_do_contorno)
 
 
 func descricao_do_visual() -> String:
 	return "%s · %s" % [NOME_DO_MODELO[modelo_i], ITENS[item_i].nome]
+
+
+## O contorno de néon do lugar em todas as superfícies do boneco e do que ele leva
+## (`next_pass`, o casco que cresce pela normal suavizada): 2,4 no jogo, 1,6 na
+## montagem. Chamar de novo troca a energia.
+func contornar(energia: float) -> void:
+	_energia_do_contorno = energia
+	if modelo == null:
+		return
+	_contornar_em(modelo)
+
+
+func _contornar_em(n: Node) -> void:
+	if n is MeshInstance3D:
+		var mi := n as MeshInstance3D
+		if mi.mesh:
+			_suavizar(mi)
+			for s in mi.mesh.get_surface_count():
+				var base: Material = mi.get_surface_override_material(s)
+				if base == null:
+					base = mi.mesh.surface_get_material(s)
+				if base == null:
+					continue
+				var m: Material = base.duplicate()
+				m.next_pass = Tema.contorno(cor, CONTORNO_LARGURA, _energia_do_contorno, lugar)
+				mi.set_surface_override_material(s, m)
+	for filho in n.get_children():
+		_contornar_em(filho)
+
+
+## A normal suavizada (a soma das normais dos vértices no mesmo ponto) gravada no
+## TANGENT: os blocos do kit têm a normal partida em cada face, e sem isto o casco
+## do contorno abriria nos cantos. Uma vez por malha (o resultado fica em cache).
+static var _malhas_suaves := {}
+
+
+static func _suavizar(mi: MeshInstance3D) -> void:
+	var original := mi.mesh as ArrayMesh
+	if original == null or _malhas_suaves.values().has(original):
+		return
+	if _malhas_suaves.has(original):
+		mi.mesh = _malhas_suaves[original]
+		return
+	var nova := ArrayMesh.new()
+	for s in original.get_surface_count():
+		var arr: Array = original.surface_get_arrays(s)
+		var vs: PackedVector3Array = arr[Mesh.ARRAY_VERTEX]
+		var ns: PackedVector3Array = arr[Mesh.ARRAY_NORMAL]
+		if ns.size() == vs.size():
+			var soma := {}
+			for i in vs.size():
+				var k := vs[i].snapped(Vector3.ONE * 0.0005)
+				soma[k] = soma.get(k, Vector3.ZERO) + ns[i]
+			var tg := PackedFloat32Array()
+			tg.resize(vs.size() * 4)
+			for i in vs.size():
+				var n: Vector3 = soma[vs[i].snapped(Vector3.ONE * 0.0005)]
+				n = n.normalized() if n.length() > 0.0001 else ns[i]
+				tg[i * 4] = n.x
+				tg[i * 4 + 1] = n.y
+				tg[i * 4 + 2] = n.z
+				tg[i * 4 + 3] = 1.0
+			arr[Mesh.ARRAY_TANGENT] = tg
+		var flags: int = original.surface_get_format(s) & Mesh.ARRAY_FLAG_USE_8_BONE_WEIGHTS
+		nova.add_surface_from_arrays(original.surface_get_primitive_type(s), arr, [], {}, flags)
+		nova.surface_set_material(s, original.surface_get_material(s))
+	_malhas_suaves[original] = nova
+	mi.mesh = nova
 
 
 ## Prende os itens nos ossos dos braços (a mão direita, o braço esquerdo).
