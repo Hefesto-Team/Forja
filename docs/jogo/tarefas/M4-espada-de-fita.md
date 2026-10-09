@@ -523,7 +523,7 @@ Por `CenarioDaGaleria.impacto` (a tabela da M1):
 | as espadas batem | `golpe_*` | TV | `Som.tocar("golpe", Vector3(0, 1.4, 1.0), -10.0)` |
 | a fita não pega | `tique_*` | TV | `Som.tocar("tique", <o carretel>, -6.0)` |
 | a falha | `fx_tropeco_*` | TV | o kit (H11); a ficha não toca nada |
-| os carimbos | `car_em_chamas`, `car_acorde`, `car_virada`, `car_por_um_fio` | TV | o kit e o HUD |
+| os carimbos | `car_em_chamas`, `car_acorde`, `jin_virada` (o carimbo `car_virada`), `car_por_um_fio` | TV | o kit e o HUD |
 
 - **O alto-falante toca um som por vez**, na prioridade do kit: o julgamento, a coleta e o golpe, e o tique por
   último. O tique de cada degrau some quando outro toca.
@@ -598,6 +598,10 @@ O corte dado vem do lado para onde a espada corta: a Brasa corta para a direita,
   `[2, 3, 0]` e `[2, 5, 0]` no registro).
 - **Ninguém para:** a maior distância entre duas puxadas do mesmo lugar é de até 8 batidas.
 
+Até o robô por lugar (`--robo=bom,ruim,medio,medio`, pedido ao arquiteto na régua) existir, a prova roda com o
+`--robo` da `prova_do_jogo.sh` num temperamento só e confere o momento, o golpe no quadro e as `saida`; a
+falha à vista (que pede o P2 `ruim`) espera o robô por lugar.
+
 ## Pronto quando
 
 A Espada de Fita joga do aviso ao resultado:
@@ -616,10 +620,17 @@ A prova do jogo passa, e a prova visual passa com a prancha olhada.
 
 ## Provas
 
-Os comandos: `bash tests/prova_do_jogo.sh` e `bash tests/prova_visual.sh`.
+Os comandos: `SALA=S05_J24 bash tests/prova_do_jogo.sh` (o sh roda duas rodadas, sem bancada e com
+`--bancada`), `bash tests/prova_do_jogo.sh` (o jogo inteiro) e `bash tests/prova_visual.sh`.
 
-Em `godot/testes/prova_do_jogo.gd`, depois da prova da Metralhadora, acrescente a função abaixo. O
-`_joga_o_minigame(slot, limite_s, a_cada_quadro)` é da H08.
+Em `godot/testes/prova_do_jogo.gd`, a prova entra como uma linha no `match` de `_prova_da_ficha` (o modelo
+da H08):
+
+```gdscript
+		"S05_J24": await _prova_da_espada()
+```
+
+E acrescente a função abaixo, depois da prova da Metralhadora. O `_joga_o_minigame(slot, limite_s, a_cada_quadro)` é da H08.
 
 ```gdscript
 # A Espada de Fita (S05_J24): as duplas do kit; o peso subiu em degraus no
@@ -657,8 +668,6 @@ func _prova_da_espada() -> void:
 	var reta := linhas.filter(func(x): return x.get("slot") == "S05_J24" and x.get("nome") == "reta")
 	_esperar(reta.size() <= 1, "Espada: no máximo uma linha momento reta (o 2 a 0 fecha antes)")
 ```
-
-E chame `_prova_da_espada()` junto das outras provas de minigame.
 
 **Na prova visual** (`bash tests/prova_visual.sh`, F09), a Espada entra pela semente que o `Catalogo.sortear` da
 H08 põe na noite (`--semente=N`). O jogador do time olha a prancha:

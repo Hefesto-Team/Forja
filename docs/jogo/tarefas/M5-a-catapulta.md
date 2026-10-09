@@ -410,7 +410,9 @@ func fora_da_rodada(l: int) -> bool:
 	return not _e_travador(l) and notas_em_aberto(l).is_empty() and not _aviso_aceso(l)
 ```
 
-- `_r2(l, g)` é o da M4: manda só quando o `[modo, a, b, c]` muda.
+- `_r2(l, g)`, `_recuar(l, m)` e `_montar_o_aprendiz(e, vaga)` são métodos do script da M4
+  (`espada_de_fita.gd`), e a Catapulta não herda dele: copie os três para `a_catapulta.gd`. O arquivo da M4
+  não muda. O `_r2` manda só quando o `[modo, a, b, c]` muda.
 - `_puxar_a_corda(l)`: do aperto bom da `puxa` até a `solta`, a força é
   `mini(forca_final, CORDA_INICIO + CORDA_PASSO * floor((Ritmo.batida() − b_puxa) * 2))`, pelo `_r2`. Durante a
   queda (`_sem_corda_ate`), `[GATILHO_OFF, 0, 0, 0]`.
@@ -537,7 +539,7 @@ Por `CenarioDaGaleria.impacto` (a tabela da M1):
 | a pedra em chamas | `sint_fogo` | TV | `Som.tocar("fogo", <a pedra>, -8.0)` no lançamento |
 | o castelo desaba | `pedra_*` | TV | `Som.tocar("pedra", <a torre>)` duas vezes, com 1 colcheia entre elas |
 | a falha | `fx_tropeco_*` | TV | o kit (H11); a ficha não toca nada |
-| os carimbos | `car_em_chamas`, `car_acorde`, `car_virada`, `car_por_um_fio` | TV | o kit e o HUD |
+| os carimbos | `car_em_chamas`, `car_acorde`, `jin_virada` (o carimbo `car_virada`), `car_por_um_fio` | TV | o kit e o HUD |
 
 - **O alto-falante toca um som por vez**, na prioridade do kit: o julgamento, a coleta, o golpe e o clique.
 
@@ -610,6 +612,10 @@ Por `CenarioDaGaleria.impacto` (a tabela da M1):
   `c % 4 == 2`, da dupla de menos vida) quando as vidas diferem.
 - **Ninguém para:** a maior distância entre duas notas do mesmo lugar é de até 8 batidas (a troca).
 
+Até o robô por lugar (`--robo=bom,ruim,medio,medio`, pedido ao arquiteto na régua) existir, a prova roda com o
+`--robo` da `prova_do_jogo.sh` num temperamento só e confere o momento, o golpe no quadro e as `saida`; os
+itens que pedem o P2 `ruim` (a falha à vista e o lugar da Brasa) esperam o robô por lugar.
+
 ## Pronto quando
 
 A Catapulta joga do aviso ao resultado:
@@ -630,10 +636,17 @@ A prova do jogo passa, e a prova visual passa com a prancha olhada.
 
 ## Provas
 
-Os comandos: `bash tests/prova_do_jogo.sh` e `bash tests/prova_visual.sh`.
+Os comandos: `SALA=S05_J25 bash tests/prova_do_jogo.sh` (o sh roda duas rodadas, sem bancada e com
+`--bancada`), `bash tests/prova_do_jogo.sh` (o jogo inteiro) e `bash tests/prova_visual.sh`.
 
-Em `godot/testes/prova_do_jogo.gd`, depois da prova da Espada, acrescente a função abaixo. O
-`_joga_o_minigame(slot, limite_s, a_cada_quadro)` é da H08.
+Em `godot/testes/prova_do_jogo.gd`, a prova entra como uma linha no `match` de `_prova_da_ficha` (o modelo
+da H08):
+
+```gdscript
+		"S05_J25": await _prova_da_catapulta()
+```
+
+E acrescente a função abaixo, depois da prova da Espada. O `_joga_o_minigame(slot, limite_s, a_cada_quadro)` é da H08.
 
 ```gdscript
 # A Catapulta (S05_J25): numa dupla de dois, a corda num dedo e a trava no
@@ -680,8 +693,6 @@ func _prova_da_catapulta() -> void:
 	var reta := linhas.filter(func(x): return x.get("slot") == "S05_J25" and x.get("nome") == "reta")
 	_esperar(reta.size() <= 1, "Catapulta: no máximo uma linha momento reta (o castelo pode cair antes)")
 ```
-
-E chame `_prova_da_catapulta()` junto das outras provas de minigame.
 
 **Na prova visual** (`bash tests/prova_visual.sh`, F09), a Catapulta entra pela semente que o `Catalogo.sortear`
 da H08 põe na noite (`--semente=N`). O jogador do time olha a prancha:

@@ -532,7 +532,7 @@ Por `CenarioDaGaleria.impacto` (a tabela da M1):
 | a flecha crava no alvo | `alvo_0` a `alvo_4` e `mod_coleta` | TV e alto-falante do dono | `Som.tocar("alvo", <o alvo>)` e `Forja.som_falante(l, "coleta", 0.7)` |
 | a flecha de fogo pousa | `alvo_*` e `sint_fogo` | TV | `Som.tocar("alvo", <o alvo do vizinho>)` e `Som.tocar("fogo", <o alvo do vizinho>, -6.0)` |
 | a falha | `fx_tropeco_*` | TV | o kit (H11); a ficha não toca nada |
-| os carimbos | `car_em_chamas`, `car_acorde`, `car_virada`, `car_por_um_fio` | TV | o kit e o HUD |
+| os carimbos | `car_em_chamas`, `car_acorde`, `jin_virada` (o carimbo `car_virada`), `car_por_um_fio` | TV | o kit e o HUD |
 
 - **O alto-falante toca um som por vez**, na prioridade do kit: vitória e derrota, o julgamento, a coleta e o
   clique.
@@ -607,6 +607,10 @@ Por `CenarioDaGaleria.impacto` (a tabela da M1):
 - **Ninguém para:** a maior distância entre duas puxadas seguidas do mesmo lugar é de até 8 batidas. O P4 tem pelo
   menos um toque BOM ou melhor em cada terço.
 
+Até o robô por lugar (`--robo=bom,medio,medio,ruim`, pedido ao arquiteto na régua) existir, a prova roda com o
+`--robo` da `prova_do_jogo.sh` num temperamento só e confere o momento, o golpe no quadro e as `saida`; a falha à vista e o
+P4 de «Ninguém para» (que pedem o P4 `ruim`) esperam o robô por lugar.
+
 ## Pronto quando
 
 O Arco de Néon joga do aviso ao resultado:
@@ -625,10 +629,17 @@ A prova do jogo passa, e a prova visual passa com a prancha olhada.
 
 ## Provas
 
-Os comandos: `bash tests/prova_do_jogo.sh` e `bash tests/prova_visual.sh`.
+Os comandos: `SALA=S05_J22 bash tests/prova_do_jogo.sh` (o sh roda duas rodadas, sem bancada e com
+`--bancada`), `bash tests/prova_do_jogo.sh` (o jogo inteiro) e `bash tests/prova_visual.sh`.
 
-Em `godot/testes/prova_do_jogo.gd`, depois da prova da Galeria, acrescente a função abaixo. O
-`_joga_o_minigame(slot, limite_s, a_cada_quadro)` é da H08.
+Em `godot/testes/prova_do_jogo.gd`, a prova entra como uma linha no `match` de `_prova_da_ficha` (o modelo
+da H08):
+
+```gdscript
+		"S05_J22": await _prova_do_arco()
+```
+
+E acrescente a função abaixo, depois da prova da Galeria. O `_joga_o_minigame(slot, limite_s, a_cada_quadro)` é da H08.
 
 ```gdscript
 # O Arco de Néon (S05_J22): o dedo sentiu o Feedback, a Weapon do pico e a
@@ -678,8 +689,6 @@ func _prova_do_arco() -> void:
 	var reta := linhas.filter(func(e): return e.get("slot") == "S05_J22" and e.get("nome") == "reta")
 	_esperar(reta.size() == 1, "Arco: uma linha momento reta")
 ```
-
-E chame `_prova_do_arco()` junto das outras provas de minigame.
 
 **Na prova visual** (`bash tests/prova_visual.sh`, F09), o Arco entra pela semente que o `Catalogo.sortear` da H08
 põe na noite (`--semente=N`). O jogador do time olha a prancha:

@@ -29,8 +29,10 @@ aqui, com o número. Não é preciso abrir esses documentos.
 - `godot/scripts/minigames/catalogo.gd`: o slot `S05_J21`, a seção `S05` e o apelido `galeria` fora de
   `SALAS_ANTIGAS`. **De todos:** as M2 a M5 também mudam este arquivo
 - `godot/scripts/traducoes.gd`: as frases novas. **De todos:** as M2 a M5 também mudam este arquivo
-- `godot/testes/prova_do_jogo.gd`: a prova da Galeria e o teste às cegas sob a bancada. **De todos:** as M2 a M5
-  também mudam este arquivo
+- `godot/testes/prova_do_jogo.gd`: a prova da Galeria, o teste às cegas sob a bancada e as 5 citações de
+  `SalaGaleria` e de `"galeria"` trocadas (veja Provas). **De todos:** as M2 a M5 também mudam este arquivo
+- `godot/testes/captura_jogo.gd`: os 4 momentos `"galeria"` (linhas 141 a 147) passam a ser por tempo. **De
+  todos:** a J1, a J3 e a G01 também mudam este arquivo
 
 ## Como se joga
 
@@ -593,7 +595,7 @@ Nada mais brilha. As tintas, a fuligem, o balcão e as moedas são foscos.
 | `estrondo` | 50 faíscas | 0,417 (0,05 m) por 2 batidas | 50 ms no cavaleiro `l` |
 | `catastrofe` | a chave a ×1,4 por 1 batida; 60 faíscas | 0,667 (0,08 m) por 4 batidas | nenhuma |
 
-O tremor da câmera é 0,12 m × `sala.tremor` (`main.gd:986`); por isso, tremor = amplitude ÷ 0,12. Quando a G05
+O tremor da câmera é 0,12 m × `sala.tremor` (`main.gd:988`); por isso, tremor = amplitude ÷ 0,12. Quando a G05
 trouxer `tremer(forca)`, o `impacto` passa a chamá-la, e as fichas não mudam.
 
 ### O cenário comum (`godot/scripts/minigames/s05/cenario_da_galeria.gd`)
@@ -811,7 +813,7 @@ E mais estes, com o corpo descrito aqui:
 | a recarga boa | `recarga_0` | TV e alto-falante | `Som.tocar("recarga", <pos do tambor>)` e `Som.no_controle(l, "recarga", 0.6)` |
 | a recarga que emperra | `vazio_0` | TV | `Som.tocar("vazio", <pos do tambor>, -6.0)` |
 | a falha | `fx_tropeco_*` | TV | o kit (H11); a ficha não toca nada |
-| os carimbos | `car_em_chamas`, `car_acorde`, `car_virada`, `car_por_um_fio` | TV | o kit e o HUD |
+| os carimbos | `car_em_chamas`, `car_acorde`, `jin_virada` (o carimbo `car_virada`), `car_por_um_fio` | TV | o kit e o HUD |
 
 - **O alto-falante toca um som por vez**, nesta prioridade: vitória e derrota, o julgamento, o segredo, o pio, a
   coleta e o clique.
@@ -902,6 +904,10 @@ O que espera uma medida, e o caminho sem ela:
 - **Ninguém para:** a maior distância entre duas notas seguidas do mesmo lugar é de até 8 batidas. O P4 tem pelo
   menos um toque BOM ou melhor em cada terço.
 
+Até o robô por lugar (`--robo=bom,medio,medio,ruim`, pedido ao arquiteto na régua) existir, a prova roda com o
+`--robo` da `prova_do_jogo.sh` num temperamento só e confere o momento, o golpe no quadro e as `saida`; a falha à vista e o
+P4 de «Ninguém para» (que pedem o P4 `ruim`) esperam o robô por lugar.
+
 ## Pronto quando
 
 A Galeria joga do aviso ao resultado:
@@ -923,14 +929,41 @@ A prova do jogo passa nas duas rodadas, e a prova visual passa com a prancha olh
 
 ## Provas
 
-Os comandos: `bash tests/prova_do_jogo.sh` e `bash tests/prova_visual.sh`.
+Os comandos: `SALA=S05_J21 bash tests/prova_do_jogo.sh` (o sh roda duas rodadas, sem bancada e com
+`--bancada`), `bash tests/prova_do_jogo.sh` (o jogo inteiro) e `bash tests/prova_visual.sh`.
 
-Em `godot/testes/prova_do_jogo.gd`:
+A `galeria.gd` sai, e a classe `SalaGaleria` some com ela. Em `godot/testes/prova_do_jogo.gd`, as 5 citações
+mudam, ou o script não compila:
 
-- o teste às cegas da Galeria de hoje (linhas 147 a 159) passa para dentro de `if Forja.bancada:` e troca
-  `SalaGaleria.NOME_ARMA` por `galeria.NOME_ARMA` (o script carregado pelo catálogo);
-- o mapa `"galeria"` de features (linha 22) fica como está;
-- e acrescente a função abaixo. O `_joga_o_minigame(slot, limite_s, a_cada_quadro)` é da H08.
+- linha 22: a chave `"galeria"` de `SO_COM_PERGUNTA` vira `"S05_J21"`. O `_termina_a_sala` lê a chave pelo
+  `sala.id`, e o id agora é o slot;
+- linhas 147 a 159: o bloco continua nos dois modos, para o percurso passar pela Galeria. Só o laço das armas
+  (linhas 151 a 158) entra em `if Forja.bancada:`, e `SalaGaleria.NOME_ARMA` vira `galeria.NOME_ARMA` (o script
+  carregado pelo catálogo). Com o bloco inteiro no `if`, a checagem da linha 912 falha fora da bancada;
+- linhas 864 a 867 (`_em_pergunta`): `"galeria":` vira `"S05_J21":`, e `SalaGaleria.IDENTIFICAR`,
+  `SalaGaleria.MUNICAO` e `SalaGaleria.MUNICAO_RESP` viram `sala.IDENTIFICAR`, `sala.MUNICAO` e
+  `sala.MUNICAO_RESP`;
+- linhas 904 e 912 (`_prova_do_modo`): `"galeria"` vira `"S05_J21"` nas duas listas.
+
+Em `godot/testes/captura_jogo.gd`, os 4 momentos `"galeria"` (linhas 141 a 147) usam `SalaGaleria` e o passo
+`ATIRAR`, que não existe mais. Eles passam a ser por tempo, como na J1. A chave continua `"galeria"`, porque é
+o nome que o `SALAS=` pede:
+
+```gdscript
+		"galeria": [
+			["galeria_tiro", fase.call("jogo", 6.0)],
+			["galeria_pico", fase.call("jogo", 45.0)],
+			["galeria_reta", fase.call("jogo", 86.0)],
+		],
+```
+
+A prova entra como uma linha no `match` de `_prova_da_ficha` (o modelo da H08):
+
+```gdscript
+		"S05_J21", "galeria": await _prova_da_galeria()
+```
+
+E acrescente a função abaixo. O `_joga_o_minigame(slot, limite_s, a_cada_quadro)` é da H08.
 
 ```gdscript
 # A Galeria (S05_J21): o apelido abre o minigame; o R2 recebeu a Weapon com a

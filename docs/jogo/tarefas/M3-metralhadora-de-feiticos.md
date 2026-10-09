@@ -524,7 +524,7 @@ Por `CenarioDaGaleria.impacto` (a tabela da M1):
 | o canhão | `golpe_*` | TV | `Som.tocar("golpe", <o canhão>)` |
 | a nau e a frota caem | `pedra_*` e `sint_fogo` | TV | `Som.tocar("pedra", <a nau>)` e `Som.tocar("fogo", <a nau>, -6.0)` |
 | a falha | `fx_tropeco_*` | TV | o kit (H11); a ficha não toca nada |
-| os carimbos | `car_em_chamas`, `car_acorde`, `car_virada`, `car_por_um_fio` | TV | o kit e o HUD |
+| os carimbos | `car_em_chamas`, `car_acorde`, `jin_virada` (o carimbo `car_virada`), `car_por_um_fio` | TV | o kit e o HUD |
 
 - **O alto-falante toca um som por vez**, na prioridade do kit: o julgamento, a coleta, o tropeço e o tiro. O tiro
   de cada semicolcheia é o último da fila: some quando outro toca.
@@ -601,6 +601,10 @@ O que espera uma medida, e o caminho sem ela:
 - **Ninguém para:** a maior distância entre duas rajadas não caladas do mesmo lugar é de até 8 batidas, fora da
   trava.
 
+A mesa boa (`--robo=bom`) e a mesa fraca (`--robo=medio`) rodam hoje, porque têm um temperamento só. A falha
+à vista pede a mesa padrão (`--robo=bom,medio,medio,ruim`, o robô por lugar, pedido ao arquiteto na régua) e
+espera ele existir.
+
 ## Pronto quando
 
 A Metralhadora de Feitiços joga do aviso ao resultado:
@@ -621,10 +625,17 @@ A prova do jogo passa, e a prova visual passa com a prancha olhada.
 
 ## Provas
 
-Os comandos: `bash tests/prova_do_jogo.sh` e `bash tests/prova_visual.sh`.
+Os comandos: `SALA=S05_J23 bash tests/prova_do_jogo.sh` (o sh roda duas rodadas, sem bancada e com
+`--bancada`), `bash tests/prova_do_jogo.sh` (o jogo inteiro) e `bash tests/prova_visual.sh`.
 
-Em `godot/testes/prova_do_jogo.gd`, depois da prova do Arco, acrescente a função abaixo. O
-`_joga_o_minigame(slot, limite_s, a_cada_quadro)` é da H08.
+Em `godot/testes/prova_do_jogo.gd`, a prova entra como uma linha no `match` de `_prova_da_ficha` (o modelo
+da H08):
+
+```gdscript
+		"S05_J23": await _prova_da_metralhadora()
+```
+
+E acrescente a função abaixo, depois da prova do Arco. O `_joga_o_minigame(slot, limite_s, a_cada_quadro)` é da H08.
 
 ```gdscript
 # A Metralhadora (S05_J23): é coop com o destaque; a Vibration chegou ao R2
@@ -669,8 +680,6 @@ func _prova_da_metralhadora() -> void:
 	var reta := linhas.filter(func(e): return e.get("slot") == "S05_J23" and e.get("nome") == "reta")
 	_esperar(reta.size() <= 1, "Metralhadora: no máximo uma linha momento reta (a frota pode cair antes)")
 ```
-
-E chame `_prova_da_metralhadora()` junto das outras provas de minigame.
 
 **Na prova visual** (`bash tests/prova_visual.sh`, F09), a Metralhadora entra pela semente que o
 `Catalogo.sortear` da H08 põe na noite (`--semente=N`), uma vez com `--robo=bom` (a mesa boa) e uma com
