@@ -84,11 +84,14 @@ ComoAchou somc_como(struct Forja *a, int slot, PapelSom papel);
 /* De onde veio o "pelo aparelho" nesta máquina, ou por que não há som. */
 const char *somc_plataforma(void);
 
-/* Toca no alto-falante do controle. Devolve a voz, ou -1 sem alto-falante. */
-int somc_falante(struct Forja *a, int slot, const Som *s, float ganho);
+/* Toca no alto-falante do controle — um som por vez: o anterior daquele
+ * alto-falante sai pela rampa. Grava o `som_controle` na linha do tempo
+ * (`nome`: o nome que o jogo pediu). Devolve a voz, ou -1 sem alto-falante. */
+int somc_falante(struct Forja *a, int slot, const Som *s, float ganho, const char *nome);
 /* Toca nos atuadores: `esq` no esquerdo e `dir` no direito (um deles NULL
- * para um lado só). Devolve a voz do lado esquerdo (ou do direito). */
-int somc_haptica(struct Forja *a, int slot, const Som *esq, const Som *dir, float ganho);
+ * para um lado só), e grava o `som_controle`. Devolve a voz do lado
+ * esquerdo (ou do direito). */
+int somc_haptica(struct Forja *a, int slot, const Som *esq, const Som *dir, float ganho, const char *nome);
 void somc_parar_tudo(struct Forja *a, int slot);
 /* Uma vez por quadro: os níveis do microfone, o jack do fone e, na virtual,
  * o que chegou a cada canal. */

@@ -13,6 +13,24 @@ static SDL_AudioDeviceID g_ids[SOM_MAX_NOS];
 static bool g_preparado;
 static bool g_audio_tentou, g_audio_ok;
 static char g_sem_audio[200];
+static int g_voz_falante[MAX_JOGADORES]; /* a última voz de cada alto-falante: um som por vez */
+
+/* Cada som mandado a um controle, na linha do tempo (o registro v2): o
+ * lugar, a ordem (o `seq` das saídas, o mesmo contador do pads.c), o papel,
+ * o som, o ganho e se havia placa para ele. */
+static void registrar_som(Forja *a, int slot, const char *papel, const char *nome, float ganho, bool placa) {
+  if (slot < 0 || slot >= MAX_JOGADORES)
+    return;
+  Evento ev;
+  ev_iniciar(&ev, &a->lt, "som_controle", slot + 1);
+  ev_int(&ev, "lugar", slot);
+  ev_int(&ev, "seq", ++a->seq_saida[slot]);
+  ev_str(&ev, "papel", papel);
+  ev_str(&ev, "som", nome ? nome : "");
+  ev_num(&ev, "ganho", ganho);
+  ev_bool(&ev, "placa", placa);
+  ev_fim(&ev, &a->lt);
+}
 
 static float limitar(float v, float a, float b) { return v < a ? a : (v > b ? b : v); }
 static float aproximar(float atual, float alvo, float taxa, float dt) {
@@ -255,6 +273,7 @@ static void escolher(Forja *a) {
 
 static void zerar(void) {
   SDL_memset(&g_sc, 0, sizeof(g_sc));
+  SDL_memset(g_voz_falante, 0, sizeof(g_voz_falante));
   for (int s = 0; s < MAX_JOGADORES; s++)
     for (int p = 0; p < PAPEL_TOTAL; p++)
       g_sc.j[s].no[p] = g_sc.j[s].saida[p] = -1;
@@ -322,6 +341,8 @@ void somc_trocar(Forja *a, int slot, PapelSom papel, int direcao) {
     j->no[PAPEL_HAPTICA] = atual;
     j->como[PAPEL_HAPTICA] = ACHOU_PESSOA;
   }
+  /* a saída mudou: a voz de antes era de outro mixer */
+  g_voz_falante[slot] = 0;
   /* as saídas que ninguém mais usa fecham quando a sala sai; aqui só religa */
   ligar_saidas(a, slot);
   somc_relatorio(a);
@@ -367,8 +388,10 @@ ComoAchou somc_como(Forja *a, int slot, PapelSom papel) {
 
 /* ---------- tocar ---------- */
 
-int somc_falante(Forja *a, int slot, const Som *s, float ganho) {
-  if (!somc_tem(a, slot, PAPEL_ALTO_FALANTE) || !s)
+int somc_falante(Forja *a, int slot, const Som *s, float ganho, const char *nome) {
+  bool tem = somc_tem(a, slot, PAPEL_ALTO_FALANTE);
+  registrar_som(a, slot, "alto_falante", nome, ganho, tem);
+  if (!tem || !s)
     return -1;
   SomJogador *j = &g_sc.j[slot];
   SaidaCtl *sd = &g_sc.saidas[j->saida[PAPEL_ALTO_FALANTE]];
@@ -380,7 +403,10 @@ int somc_falante(Forja *a, int slot, const Som *s, float ganho) {
   if (j->fone && !sd->virtual_ && j->no[PAPEL_ALTO_FALANTE] >= 0 &&
       g_sc.nos[j->no[PAPEL_ALTO_FALANTE]].tipo == NO_DUALSENSE_SAIDA)
     g[0] = g[1] = ganho;
-  return mixer_tocar(&sd->mixer, s, g, false);
+  /* nunca dois sons ao mesmo tempo no mesmo alto-falante (docs/jogo/05) */
+  mixer_parar(&sd->mixer, g_voz_falante[slot], true);
+  g_voz_falante[slot] = mixer_tocar(&sd->mixer, s, g, false);
+  return g_voz_falante[slot];
 }
 
 /* O jack do fone: plugou, o som do controle muda para o fone (as duas
@@ -407,8 +433,10 @@ static void acompanhar_fone(Forja *a, int slot) {
   ev_fim(&ev, &a->lt);
 }
 
-int somc_haptica(Forja *a, int slot, const Som *esq, const Som *dir, float ganho) {
-  if (!somc_tem(a, slot, PAPEL_HAPTICA))
+int somc_haptica(Forja *a, int slot, const Som *esq, const Som *dir, float ganho, const char *nome) {
+  bool tem = somc_tem(a, slot, PAPEL_HAPTICA);
+  registrar_som(a, slot, "haptica", nome, ganho, tem);
+  if (!tem)
     return -1;
   SomJogador *j = &g_sc.j[slot];
   SaidaCtl *sd = &g_sc.saidas[j->saida[PAPEL_HAPTICA]];
