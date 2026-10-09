@@ -69,12 +69,16 @@ preenchem nas fichas I a Q.
 
 - **O tempo:** `T` é o próximo tempo 1 de compasso do relógio da música (H01, `Ritmo.t_da_batida`) que esteja a pelo
   menos 1,6 s de `entrar()`; sem música no relógio, `T` = `entrar()` + 1,6 s. A cortina começa em `T − 0,6 s`.
+- **A seção da sala:** `n = int(FICHA.slot.substr(1, 2))` («S01_J01» dá 1). O minigame de prova (`T00_J00`) dá
+  n = 0: tinta `Tema.tinta_da_secao(0)`, lombada «T0 · …» e sem a linha da seção no J-card.
+- **As curvas** (as do [05](../arte/05-movimento.md#as-curvas)): `ENTRA` = `Tween.TRANS_CUBIC`, `EASE_IN`; `SAI` =
+  `TRANS_CUBIC`, `EASE_OUT`; `MOLA` = `TRANS_BACK`, `EASE_OUT`.
 - **A forma:** o polígono (0, 0), (1240, 0), (930, 1080), (0, 1080), chapado na `Tema.tinta_da_secao(n)` da seção da
   sala; a trama: uma linha de 2 px a cada 6 px, na tinta a ×0,88 de luz; a borda: uma tira `FITA` de 26 px e, 22 px
   depois, o fio `ETIQUETA` de 4 px.
 - **0 a 600 ms:** a borda varre de x −330 a 1240, `ENTRA`; `PosFita.ajustar("rasgo", …)` de 0 a 0,35.
 - **600 ms (= `T`):** o verbo carimba, em Bungee, centrado em (905, 560), girado −0,045 rad (−2,6°); escala de 1,35 a
-  1,0 em 80 ms, `MOLA`; a tela treme 8 px por 4 quadros (com Tremor ligado, a G16); `PosFita.rasgo_curto()`.
+  1,0 em 80 ms, `MOLA`; a tela treme 8 px por 4 quadros (com Movimento Inteiro, `not Opcoes.reduzido()` da G16; no Reduzido, nenhum); `PosFita.rasgo_curto()`.
 - **600 a 900 ms:** o verbo segura com dois ecos atrás (escala 1,07 e 1,14; opacidade 0,16 e 0,08).
 - **Depois de 900 ms:** no tempo 1 seguinte, a cortina sai pela direita em 1 batida, `ENTRA`, e o J-card entra.
 - **O tamanho do verbo:** Bungee 252 se a largura couber em 1100 px; senão, o maior tamanho inteiro de 252 para baixo
@@ -90,8 +94,8 @@ entra da direita (x de +1100 a 0) em 1 batida, `SAI`; inclinação parada de 0,5
 
 | parte | o que tem |
 | --- | --- |
-| a lombada | «S1 · O MARTELO DE HEFESTO · LADO A» (`Catalogo.SECOES[n].numero`, o título em caixa alta, `partida.lado()`) |
-| a seção | o `nome` da seção em caixa alta, VT323 40, `TINTA_SUAVE` |
+| a lombada | «S1 · O MARTELO DE HEFESTO · LADO A» («S» + `str(int(Catalogo.SECOES[n - 1].id.substr(1)))`, o título em caixa alta, `partida.lado()`) |
+| a seção | o `nome` de `Catalogo.SECOES[n - 1]` em caixa alta, VT323 40, `TINTA_SUAVE` |
 | o título | Permanent Marker 74, `TINTA`; acima de 22 caracteres, 60 px |
 | o gênero | caixa de 330×54 com borda de 3 px na tinta da seção; a frase em Archivo Narrow 700 34, `TINTA`: tct «Todos contra todos», 2v2 «Dupla contra dupla», coop «Todos juntos», corrida «Corrida», sobrevivencia «Sobrevivência», terror «Terror», sabotagem «Sabotagem» |
 | a faixa | «LADO A» em VT323 40 e o número (`partida.passo + 1`, dois dígitos) em VT323 64 |
@@ -133,7 +137,8 @@ A faixa do minigame começa em `T` (o vai é o tempo 1 dela); até `T`, segue a 
 | o J-card sai | nada | a sala aplica o gatilho dela em `comecar()` (como hoje) | não muda | nada | não se usa |
 
 Prova sem o controle na mão: o robô aperta pelo controle simulado; a prova conta no registro, por lugar, 3 linhas
-`{"tipo": "sensacao", "nome": "toque"}` e 1 `"golpe"` na entrada, mais 1 `"toque"` no pronto.
+`{"tipo": "sensacao", "nome": "toque"}` e 1 `"golpe"` na entrada, mais 1 `"toque"` no pronto. No quadro do impacto,
+com `Opcoes.flashes` ligado, `Forja.estado_saida(l).luz` é `Tema.ETIQUETA` em cada lugar ocupado.
 
 ## O cavaleiro
 
@@ -165,6 +170,11 @@ reprova; e a prova visual passa em todas as escalas e línguas, de 1 a 4 jogador
 
 - `bash tests/prova_do_jogo.sh`, com estas checagens novas em `godot/testes/prova_do_jogo.gd`:
 
+  As checagens entram em `_prova_do_kit()` (o código está na [H04](H04-o-kit-do-minigame.md#provas)), logo depois de
+  `jogo._entrar_na_sala(mg.id, false, mg)` e dos 2 quadros: `mg` é o minigame de prova (`T00_J00`) aberto. O
+  momento se espera pelo relógio de parede, até 5 s, como a fase `jogo`. O `_esperar(... mg.fase == "aviso" ...)`
+  de hoje passa a esperar o fim da entrada.
+
   ```gdscript
   _esperar(mg.fase == "entrada", "entrada: a sala abre pela cortina")
   # o impacto no tempo 1
@@ -178,11 +188,30 @@ reprova; e a prova visual passa em todas as escalas e línguas, de 1 a 4 jogador
   # a chave nova
   var f := mg.FICHA.duplicate(); f.erase("como_jogar")
   _esperar(not Minigame.validar(f), "kit: sem como_jogar reprova")
+  var partida_de_teste := Partida.nova(3, false, 7, [])
   _esperar(partida_de_teste.lado() == "A", "partida: o lado A no começo")
+  partida_de_teste.passo = 2
+  _esperar(partida_de_teste.lado() == "B", "partida: o lado B na segunda metade")
   ```
 
-  (`_ultimo_registro` e `_contar_registro` leem o registro do dia; se a prova ainda não os tem, esta ficha os
-  acrescenta.)
+  Os dois leitores do registro, sobre `_linha_do_tempo()` (`prova_do_jogo.gd:884`). Quem chega primeiro, G11 ou
+  G12, os escreve; a outra usa:
+
+  ```gdscript
+  func _contar_registro(tipo: String, lugar: int, nome: String) -> int:
+  	var n := 0
+  	for e in _linha_do_tempo():
+  		if e.get("tipo", "") == tipo and e.get("nome", "") == nome and int(e.get("jogador", 0)) == lugar + 1:
+  			n += 1
+  	return n
+
+  func _ultimo_registro(tipo: String, nome: String) -> Dictionary:
+  	var ultimo := {}
+  	for e in _linha_do_tempo():
+  		if e.get("tipo", "") == tipo and e.get("nome", "") == nome:
+  			ultimo = e
+  	return ultimo
+  ```
 - `godot/testes/prancha_da_entrada.gd` (xvfb, `--audio-driver Dummy`): grava `docs/imagens/jogo/entrada.jpg`,
   1920×1620, seis quadros de 960×540 com os instantes 0, 300, 600, 680 e 900 ms e o J-card parado, com o instante
   escrito embaixo em VT323 30, como o `18_cortina.jpg`. O jogador do time a põe ao lado do `18_cortina.jpg`.

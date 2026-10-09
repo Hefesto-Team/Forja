@@ -292,7 +292,7 @@ Botão △ (Sortear) refaz o sorteio de tudo o que não está travado (□), com
 
 ## O nome
 
-- **O teclado** é o da G09 ([a ficha](../tarefas/G09-o-teclado-do-nome.md#o-alvo)): a grade 7 × 5, ✕ põe a letra,
+- **O teclado** é o da G09 ([a ficha](../tarefas/G09-o-teclado-do-nome.md#como-se-joga)): a grade 7 × 5, ✕ põe a letra,
   ○ apaga, △ sorteia, R1 vai para "Pronto".
 - **O tamanho:** de 2 a 12 letras. Doze cabem na coluna de 432 px nas três fontes em que o nome aparece (a placa, a
   etiqueta, o pódio).

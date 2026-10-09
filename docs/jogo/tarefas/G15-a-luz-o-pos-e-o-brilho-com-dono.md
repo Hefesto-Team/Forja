@@ -19,15 +19,19 @@ o pós da fita e um dono para cada brilho; esta ficha leva os três ao jogo.
 - `godot/scripts/main.gd:92` `_ambiente()`, igual em toda seção: fundo `Tema.CASA`; ambiente `#6d64a0` a 0,42;
   filmic, exposição 1,05; glow 0,7, bloom 0,08, `glow_hdr_threshold` 0,9; **SSAO ligado** (raio 1,2, intensidade
   1,6); névoa `#241f33` a 0,012; saturação 1,08.
-- `godot/scripts/salas/sala.gd:59` `luzes()`: tochas `#ffb070` a 1,8 (alcance 9) e um enchimento `#b9b0ff` a 0,55.
-  `sala_jogo.gd:162` `atmosfera()`: um preenchimento na `cor_ar` e dois tubos na `cor_neon` a **3,0**.
+- `godot/scripts/salas/sala.gd:60` `luzes()`: tochas `#ffb070` a 1,8 (alcance 9) e um enchimento `#b9b0ff` a 0,55.
+  `sala_jogo.gd:158` `atmosfera()`: um preenchimento na `cor_ar` e dois tubos na `cor_neon` a **3,0**.
 - 17 `emission_enabled` em `godot/scripts/`, sem dono: `main.gd:449` (o bloco do pódio, 0,6), `mundo/efeitos.gd:95`
   (o anel, 2,0), `mundo/kit.gd:40` (`Kit.material(cor, brilho)`), `mundo/salao.gd` 108 (friso `ROSA` 0,9), 230 (a
   chama `LARANJA` 3,0), 276 (a borda `ROXO` 1,6), 353 (as brasas 2,0), 387 (o aro de cada lugar 1,2),
   `player.gd:83` (o anel no chão, 1,4), `salas/sala_jogo.gd:179` (os tubos 3,0), `salas/impacto.gd:496` e 500 (a
   borda do aviso, `VERMELHO`, de 1,0 a 2,2), `salas/voz.gd` 134 (os olhos `#ff3a1a`), 186 (a borda do lugar), 198
-  (a chama 2,5), `salas/canto.gd` 130 (o sino, `AMARELO`) e 200 (a borda do lugar). Mais quatro linhas animam a
-  energia (`canto.gd:473`, 499, 503; `voz.gd:538`). Meça de novo antes de mudar.
+  (a chama 2,5), `salas/canto.gd` 130 (o sino, `AMARELO`) e 196 (a borda do lugar). Mais linhas animam a energia:
+  `canto.gd:473`, 499, 503; `voz.gd:538` e 507 (os olhos, 0,2 + 3,2·olhos + 4,0·flash, até 7,4); `impacto.gd:285` e
+  296 (o olho da sentinela, 4,0 e 1,2) e 498 (a borda do aviso); `molde.gd:347` (o metal, 0,3 + 2,2·quente, até 2,5,
+  num material de `Kit.material`); `prova.gd:721` (o disco da equipe, 1,0 + 2,5·dano, até 3,5, criado na linha 190
+  com `LUZ_EQUIPE`). E `Kit.material(cor, brilho)` com brilho > 0 se chama em `centelha.gd`, `galeria.gd`,
+  `viga.gd`, `canto.gd`, `caminhos.gd`, `molde.gd`, `impacto.gd`, `voz.gd` e `prova.gd`. Meça de novo antes de mudar.
 - O portão de arte, depois da G14, só tem achados 3D (99 pela regra da G14).
 - O estudo tem os shaders: `godot/estudos/direcao/shaders/pos_fita.gdshader` (`varredura`, `passo_varredura`,
   `vinheta`, `grao`, `aberracao`, `rasgo`, `desbota`, `semente`), `neon.gdshader` (`cor`, `energia`) e
@@ -38,11 +42,16 @@ o pós da fita e um dono para cada brilho; esta ficha leva os três ao jogo.
 
 **A luz por seção**, calculada da tinta, sem hex novo:
 
-- `Tema.oklab(c: Color) -> Vector3` e `Tema.de_oklab(v: Vector3) -> Color` (as funções de `fita.gd`).
+- `Tema.para_oklab(c: Color) -> Vector3` e `Tema.de_oklab(v: Vector3, a := 1.0) -> Color`, copiadas de
+  `godot/estudos/direcao/fita.gd` (linhas 142 a 170, com as auxiliares `_lin` e `_srgb`).
 - `Tema.luz_da_secao(numero: int, lado_b := false) -> Dictionary` com `nevoa`, `preenchimento`, `chave` (cores),
   `densidade` e `energia_chave`. A conta do [01](../arte/01-cinema.md#a-luz-das-cinco-tintas), sobre
   `tinta_da_secao(numero)` (G14): névoa L 0,17 e croma a 30 %; preenchimento L 0,34 e croma a 55 %, o mesmo matiz;
-  chave = `TUNGSTENIO.lerp(tinta, 0.2)`. `densidade` 0,012, ×1,3 no lado B (0,0156); `energia_chave` 1,8, ×0,85 no
+  a chave **não se calcula**: é a constante `CHAVE_SECAO` = `[#ffc99c, #e5d3c6, #e5d7ad, #f8d096, #f8ccba]`
+  (vermelhão, cobalto, petróleo, mostarda, ameixa, na ordem de `SECAO`; os hex da tabela do 01 e de
+  `godot/estudos/direcao/quadros/13_luz.gd:19` a 23). `TUNGSTENIO.lerp(tinta, 0.2)` dá `#f4bb90` no vermelhão, não
+  `#ffc99c`. As cinco entram em `tema.gd` e em `scripts/portoes/arte.json` (`tokens`, nome → hex) como
+  `CHAVE_SECAO_0` a `CHAVE_SECAO_4`. `densidade` 0,012, ×1,3 no lado B (0,0156); `energia_chave` 1,8, ×0,85 no
   lado B (1,53).
 - `numero` −1 é o salão: névoa `VIOLETA_FUNDO`, preenchimento `AMBIENTE_SALAO` (`#2a2738`, token novo em `tema.gd` e
   em `scripts/portoes/arte.json`, citando o 01), chave `TUNGSTENIO`.
@@ -86,8 +95,22 @@ o pós da fita e um dono para cada brilho; esta ficha leva os três ao jogo.
 | `salas/impacto.gd:496`/500, a borda do aviso | `Tema.emissivo(mb, e, "forja")`, com `e` de 1,0 a 2,2 como hoje |
 | `salas/voz.gd:134`, os olhos | `Tema.emissivo(mat_olho, e, "forja")` |
 | `salas/voz.gd:198`, a chama | `Tema.emissivo(mat_chama, 1.8, "forja")` |
-| `salas/voz.gd:186` e 538, `canto.gd:200` e 503, a borda do lugar | `Tema.emissivo(mb, e, l)` |
+| `salas/voz.gd:186` e 538, `canto.gd:196` e 503, a borda do lugar | `Tema.emissivo(mb, e, l)` |
 | `salas/canto.gd:130`, 473 e 499, o sino e a tela | `Tema.emissivo(mat, e, "forja")` |
+| `salas/voz.gd:507`, os olhos animados | `Tema.emissivo(mo, (0.2 + 3.2 * olhos + 4.0 * flash) * 2.4 / 7.4, "forja")` |
+| `salas/impacto.gd:285` e 296, o olho da sentinela | `Tema.emissivo(mo, 2.4, "forja")` e `Tema.emissivo(mo, 1.2 * 2.4 / 4.0, "forja")` |
+| `salas/molde.gd:347`, o metal quente | `Tema.emissivo(metal, (0.3 + 2.2 * quente) * 2.4 / 2.5, "forja")`; a cor do metal fica a de hoje |
+| `salas/prova.gd:190` e 721, o disco da equipe | `Kit.material(LUZ_EQUIPE[e.equipe], 1.0, 0.6, "forja")`; `Tema.emissivo(md, (1.0 + 2.5 * float(e.dano)) * 2.4 / 3.5, "forja")` |
+
+**Quem chama `Kit.material` com brilho > 0** passa o dono por esta regra, sem decidir caso a caso:
+
+- a cor do lugar (`Forja.cor_do_lugar(l)`, `cor_l`, a `cor` do lugar e o `lerp` dela) → dono `l`;
+- `AMARELO`, `LARANJA`, o metal quente, os olhos, a chama, a vela, a bola de fogo e o disco de dano da prova →
+  `"forja"`;
+- o resto (`ROSA`, as cores do chão, a água, o alvo da galeria) → `"mundo"`, com energia `min(brilho, 1.0)`.
+
+Energia fixa acima do teto do dono vira o teto. Energia animada que passa do teto se multiplica por teto ÷ o máximo
+de hoje (a tabela acima já faz a conta): a curva fica a mesma, só mais baixa.
 
 **As cores 3D restantes** (os achados 3D do portão) viram token: a luz de tocha vira a `chave`, o enchimento vira o
 `preenchimento`; uma superfície de cenário vira `GRAFITE`, `OXIDO`, `OXIDO_BRILHO` ou `CASCO` (a mais perto em OKLab);
@@ -110,8 +133,8 @@ copiado do estudo):
 
 ## Arquivos que mudam
 
-- `godot/scripts/tema.gd`: `oklab`, `luz_da_secao`, `AMBIENTE_SALAO`, `neon`, `contorno`, `emissivo`. **De todos:**
-  G11, G14
+- `godot/scripts/tema.gd`: `para_oklab`, `de_oklab`, `CHAVE_SECAO`, `luz_da_secao`, `AMBIENTE_SALAO`, `neon`,
+  `contorno`, `emissivo`. **De todos:** G11, G14
 - `godot/shaders/neon.gdshader`, `contorno.gdshader`, `pos_fita.gdshader` (novos, cópias do estudo)
 - `godot/scripts/pos_fita.gd` (novo) e `godot/project.godot` (o autoload `PosFita`). **De todos:** G14
 - `godot/scripts/main.gd`: `_ambiente`, `acender`, o bloco do pódio. **De todos:** G09, G11, G13, G14, G16
@@ -122,7 +145,7 @@ copiado do estudo):
 - `godot/scripts/salas/*.gd`: só as linhas 3D. **De todos:** G14, G16
 - `godot/scripts/player.gd`: o anel, o contorno, a luz de dono. **De todos:** G10, G13, G14
 - `godot/scenes/main.tscn`: a cor 3D da linha 16. **De todos:** G14
-- `scripts/portoes/arte.json`: `AMBIENTE_SALAO`. **De todos:** G14
+- `scripts/portoes/arte.json`: `AMBIENTE_SALAO` e `CHAVE_SECAO_0` a `_4`. **De todos:** G14
 - `godot/testes/prova_do_jogo.gd` e `godot/testes/prancha_da_luz.gd` (novo). **De todos**
 
 ## Como se joga
@@ -201,7 +224,8 @@ gasta por faixa e desliga o rasgo sem Flashes.
 
 ## Passos
 
-1. `oklab`, `luz_da_secao`, `AMBIENTE_SALAO`; `acender` em `main.gd`, `sala.gd` e `salao.gd`; o `_ambiente` novo.
+1. `para_oklab`, `CHAVE_SECAO`, `luz_da_secao`, `AMBIENTE_SALAO`; `acender` em `main.gd`, `sala.gd` e `salao.gd`;
+   o `_ambiente` novo.
 2. As três funções de brilho e os shaders; trocar os 17 materiais e as 4 animações, um arquivo por commit.
 3. O contorno, o anel e a luz de dono em `player.gd`.
 4. As cores 3D restantes.

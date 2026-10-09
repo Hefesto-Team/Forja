@@ -22,8 +22,10 @@ cenário. Esta ficha põe tudo isso no jogo, um pacote por pasta, por um script 
   dizia «o André compra o pacote»: não precisa.
 - Os 30 `.glb` do Mini Dungeon estão soltos em `godot/assets/kenney/`, com `Textures/colormap.png` e
   `KENNEY-LICENSE.txt`. Quatro lugares montam o caminho à mão (`"res://assets/kenney/%s.glb"`):
-  `godot/scripts/mundo/kit.gd:6` (`CAMINHO`, usado por `Kit.peca` na linha 11), `godot/scripts/mundo/salao.gd:11`
-  (`KIT`), `godot/scripts/player.gd:114` e `:147`, `godot/scripts/salas/prova.gd:174`. Meça de novo antes de mudar.
+  `godot/scripts/mundo/kit.gd:6` (`CAMINHO`, lido em `Kit.peca`, linha 13), `godot/scripts/mundo/salao.gd:11`
+  (`KIT`, linha 60), `godot/scripts/player.gd:114` (o boneco, por `MODELOS`, linha 14:
+  `["character-human", "character-orc"]`) e `:147` (o item), e `godot/scripts/salas/prova.gd:175`, que carrega
+  `"res://assets/kenney/character-orc.glb"` escrito por inteiro. Meça de novo antes de mudar.
 - **Os personagens, medidos nos `.glb` da 3.7.0** (nós, pele e animações):
 
 | pacote | arquivo | esqueleto | animações | papel no jogo |
@@ -33,12 +35,16 @@ cenário. Esta ficha põe tudo isso no jogo, um pacote por pasta, por um script 
 | Mini Dungeon | `character-human` | pele, os 7 | 32 | o boneco de hoje |
 | Cube Pets | `animal-fox` | rígido | 8 | só o nó `tail`: a cauda da raposa ferreira |
 | Graveyard Kit | `character-skeleton`, `-ghost` (e `-zombie`, `-vampire`, `-keeper`) | rígido, uma malha por parte, sem pele | 32 | monstros: o guardião do minigame 38 e o fantasma do 32. **Não são raça** ([04](../arte/04-o-cavaleiro.md#o-que-se-pesquisou-e-ficou-de-fora)) |
-| Mini Arena | `character-soldier` | pele, os 7 | **25** | fora |
+| Mini Arena | `character-soldier` | pele, os 7 | **25** (as 12 que o conferidor pede estão lá) | fora pela curadoria, não pelo conferidor |
 | Platformer Kit | `character-oobi` e mais 4 | pele, **6** ossos, sem `head` | **25** | fora |
 
   O [14](../14-os-assets-kenney.md#a-curadoria) diz que os do Graveyard têm «o mesmo esqueleto»: têm as mesmas
-  partes e as mesmas 32 animações, mas não têm pele. O conferidor da G08 os reprovaria; como são monstros e não peça
-  de montagem, eles não passam pelo conferidor.
+  partes e as mesmas 32 animações, mas não têm pele. O conferidor da G08 (`scripts/conferir_bonecos.py`, a parte A1
+  dela) aceita os dois tipos, com pele e rígido, e confere os 7 ossos, as 12 animações da lista `ANIMACOES` dele
+  (`idle`, `walk`, `sprint`, `jump`, `fall`, `die`, `emote-yes`, `emote-no`, `attack-melee-right`, `holding-right`,
+  `static`, `interact-right`), até 1500 triângulos, `metallic` até 0,2 e a textura ao lado do `.glb`. Uma linha por
+  arquivo, PASSOU ou FALHOU; sai com 1 se algum falhou. Os do Graveyard passam como `rígido`. O Mini Arena passaria
+  também: ele fica fora porque não está na tabela `APROVADOS` abaixo (o 14 o tira da linha dos compatíveis).
 
 ## O alvo
 
@@ -56,8 +62,9 @@ godot/assets/kenney/
 - O orc e o humano ficam numa pasta à parte, como no estudo (`godot/estudos/direcao/kenney/mini-dungeon-personagens/`):
   o papel é por pasta, e o papel deles é `personagem`, o do resto do Mini Dungeon é `cenario`.
 - `Kit.caminho(nome) -> String` numa função só: sem barra, `res://assets/kenney/mini-dungeon/<nome>.glb`; com
-  barra, `res://assets/kenney/<pasta>/<peça>.glb`. Os quatro lugares de hoje chamam `Kit.caminho`. O `player.gd`
-  passa a pedir `Kit.caminho("mini-dungeon-personagens/character-orc")`.
+  barra, `res://assets/kenney/<pasta>/<peça>.glb`. Os quatro lugares de hoje chamam `Kit.caminho`. O `player.gd:114`
+  passa a pedir `Kit.caminho("mini-dungeon-personagens/" + MODELOS[modelo_i])`; o `prova.gd:175`,
+  `Kit.caminho("mini-dungeon-personagens/character-orc")`.
 - `const ESCALA_DO_PACOTE := {"castle-kit": 1.4, "survival-kit": 1.4, "factory-kit": 0.5, "building-kit": 0.35,
   "pirate-kit": 0.4, "cube-pets": 0.4, "blaster-kit": 0.3, "modular-dungeon-kit": 0.25, "modular-cave-kit": 0.25,
   "modular-space-kit": 0.25}` em `kit.gd`; `Kit.peca` multiplica a escala pedida pelo fator da pasta (as outras,
@@ -88,10 +95,11 @@ godot/assets/kenney/
     papel `cenario` quando um minigame pedir. Pasta fora da tabela: recusa com «fora da curadoria: veja
     docs/jogo/14». Interface e áudio não passam por aqui: a interface é da G11, o som entra pelo mapa do áudio;
   - copia só os `Models/GLB format/*.glb` do filtro, a `Textures/` irmã e o `License.txt`;
-  - na pasta de papel `personagem`, roda o conferidor da G08 em cada `character-*.glb`: pele com 7 ossos e as 32
-    animações. O que reprova não é copiado, e o script diz o porquê numa linha;
+  - em cada `character-*.glb` que o filtro pega (em qualquer pasta, o Graveyard também), roda
+    `python3 scripts/conferir_bonecos.py <arquivo>` antes de copiar. O que sai com 1 não é copiado, e o script repete
+    a linha FALHOU do conferidor;
   - escreve (ou atualiza) a linha da pasta em `godot/assets/LEIA-ME.md` e em `LICENCAS-DE-TERCEIROS.md`: o pacote, a
-    versão (a linha «(5.0)» do `License.txt`) e CC0.
+    versão (o número entre parênteses da linha do nome no `License.txt`: «Mini Characters (1.0)» dá 1.0) e CC0.
 
 ## Arquivos que mudam
 
@@ -173,9 +181,12 @@ nas duas versões.
 ## Provas
 
 - `python3 scripts/testes/prova_importar.py`: monta um zip de mentira com a estrutura do All-in-1 (um personagem de
-  pele que passa, um de 6 ossos e um de 25 animações que reprovam, um kit de cenário com 3 peças, um pacote 2D) e
+  pele que passa, um de 6 ossos e um sem `emote-yes` que reprovam, um kit de cenário com 3 peças, um pacote 2D) e
   confere: copia só os GLB do filtro, a `Textures/` e o `License.txt`; recusa a pasta fora da tabela; não copia os dois
-  que reprovam; escreve as duas linhas de licença; cada `Textures/colormap.png` fica na pasta do seu pacote.
+  que reprovam (o de 6 ossos, sem `head`, e um de pele com os 7 ossos e sem a animação `emote-yes`); escreve as
+  duas linhas de licença; cada `Textures/colormap.png` fica na pasta do seu pacote. O que passa é uma cópia do
+  `character-male-a.glb` do All-in-1; os dois que reprovam são ele com o JSON do glTF editado pela prova (o nó `head`
+  renomeado; a animação `emote-yes` renomeada). Sem o All-in-1 na máquina, a prova diz «sem o All-in-1» e sai com 0.
 - `bash tests/prova_do_jogo.sh`, com estas checagens novas em `godot/testes/prova_do_jogo.gd`:
 
   ```gdscript

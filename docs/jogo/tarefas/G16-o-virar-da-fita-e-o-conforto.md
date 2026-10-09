@@ -18,7 +18,7 @@ da câmera», e a opção «Reações». Esta ficha leva as três ao jogo.
 ## O estado de hoje
 
 - `godot/scripts/opcoes.gd`: `static var tremor := true` e `flashes := true` (linhas 41 e 42), `de_fabrica()` (55,
-  56), `ler()` (89, 90) e `gravar()` (106, 107), na seção `sessao` de `user://opcoes.cfg`.
+  56), `ler()` (83, 84) e `gravar()` (100, 101), na seção `sessao` de `user://opcoes.cfg`.
 - `godot/scripts/ui/tela_opcoes.gd`: as linhas em `abrir()` (46 `["tremor", "Movimento da câmera", "sessao"]`, 47
   `flashes`), `trocar()` (79 a 82) e `valor()` (99, 100). São 10 linhas; o quadro mede
   `124 + 80 + 10 × 72 + 48 + 70` = 1042 px de altura.
@@ -102,7 +102,8 @@ quadro diz). Nenhum julgamento, janela ou ponto muda.
 - `valor()`: `Opcoes.MOVIMENTO[Opcoes.movimento]` e `Opcoes.REACOES[Opcoes.reacoes]`.
 - São 11 linhas: `124 + 80 + 11 × 72 + 48 + 70` = 1114 px, mais que 1080. O quadro passa a ter no máximo 1000 px
   (40 de margem); quando as linhas não cabem, a lista desliza em `_rolar` (px) para manter a linha escolhida inteira e
-  mais uma de folga à vista; um glifo `cima` ou `baixo` de 32 px em `Tema.MUDO` marca o lado cortado.
+  mais uma de folga à vista; um glifo `cima` ou `baixo` de 32 px em `Tema.MUDO`, por `Glifo.desenhar(self, "cima", Rect2(...), Tema.MUDO)`
+  (`godot/scripts/ui/glifo.gd:16`), marca o lado cortado.
 - `traducoes.gd`: sai `"Movimento da câmera"`; entram `"Movimento": "Motion"`, `"Inteiro": "Full"`,
   `"Reduzido": "Reduced"`, `"Reações": "Reactions"`, `"Todas": "All"`, `"Só do jogo": "Game only"`,
   `"Nenhuma": "None"`, `"Lado B": "Side B"`, `"Seguir": "Continue"` (se a F07 não a pôs).
@@ -113,8 +114,8 @@ quadro diz). Nenhum julgamento, janela ou ponto muda.
   opções)
 - `godot/scripts/ui/tela_opcoes.gd`: as duas linhas, a lista que desliza. **De todos:** G11 (a placa), G14 (as cores)
 - `godot/scripts/ui/tela_virar.gd` (novo, `class_name TelaVirar`): o deck e o cassete, o intervalo
-- `godot/scripts/main.gd`: `_seguir_a_partida`, `_virar_a_fita`, o estado `intervalo`, as linhas 929, 986 e 497.
-  **De todos:** G09, G11, G12, G13, G14, G15
+- `godot/scripts/main.gd`: `_seguir_a_partida`, `_virar_a_fita`, o estado `intervalo` (em `_mostrar`), as linhas 929,
+  986 e 497. **De todos:** G09, G11, G12, G13, G14, G15
 - `godot/scripts/partida.gd`: `virou`. **De todos:** G12 (`lado()`)
 - `godot/scripts/forja.gd`: a sensação `"fita"` em `SENSACOES`. **De todos:** F05
 - `godot/scripts/ui/desenho.gd`: `cassete(ci, r, face, fita_esq, fita_dir)`, se a G01 deixou o cassete dentro do
@@ -150,7 +151,8 @@ para perto (ele cresce), não que a câmera 3D se mova.
 | a face B | `Desenho.etiqueta(Rect2(456, 218, 1008, 360), Tema.SECAO[0], 0.0, true)`, em branco | os carretéis trocados: esquerda 0,95, direita 0,30 |
 | «LADO B» | centrado em (960, 420) | Permanent Marker 120 px (`Tema.marcador()`), `Tema.TINTA`, girado −3° |
 
-A linha do tempo, em ms desde `T0`:
+A linha do tempo, em ms desde `T0`. As curvas são as do [05](../arte/05-movimento.md#as-curvas): `SAI` =
+`Tween.TRANS_CUBIC`, `EASE_OUT`; `ENTRA` = `TRANS_CUBIC`, `EASE_IN`; `RETA` = `TRANS_LINEAR`.
 
 | ms | Inteiro | Reduzido |
 | --- | --- | --- |
@@ -165,7 +167,10 @@ A linha do tempo, em ms desde `T0`:
 **O intervalo** (estado `intervalo`): o salão 3D na luz `luz_da_secao(-1, true)`; a câmera na pose do lobby
 (`[Vector3(0, 2.9, 14.2), Vector3(0, 0.55, 4.4)]`, os quatro nos pedestais, a forja atrás), com a lente da G05;
 `salao.pedestais_no.visible` true; cada boneco ocupado no pedestal dele, `controlavel = false`, o gesto `emote-yes`
-a cada 4 compassos, um lugar por vez. Por cima, 2D:
+a cada 4 compassos, um lugar por vez. Em `main.gd` `_mostrar()` (linha 214), `"intervalo"` entra na lista de
+`salao.pedestais_no.visible = qual in ["lobby", "podio"]` e no bloco `if qual == "lobby":` que põe cada boneco em
+`salao.pedestais[l]` (vira `if qual in ["lobby", "intervalo"]:`); e `Musica.tocar(...)` recebe `"salao"` quando
+`qual == "intervalo"`. Por cima, 2D:
 
 - a etiqueta: `Desenho.etiqueta(Rect2(660, 60, 600, 150), Tema.SECAO[0], -1.0, true)`; «Lado B» em Permanent Marker
   72 px, `Tema.TINTA`, centrado em (960, 140); embaixo, `partida.rotulo()` em VT323 46, `Tema.TINTA_SUAVE`, centrado
@@ -201,7 +206,7 @@ A sensação `"fita"` entra na tabela da F05: `"fita": [0.0, 0.3, 400]` (o rumbl
 | `T0`, o virar | `Forja.sentir(l, "fita", 1600)` em todos os ocupados | `Forja.gatilhos_off(l)` em todos | a cor do lugar, parada | nada | não se usa |
 | o intervalo | nada | Off | a cor do lugar | nada | não se usa |
 | ✕ no intervalo | `Forja.sentir(l, "toque")` só em quem apertou | Off; a sala seguinte aplica o dela em `comecar()` | não muda | `ui_confirma` | não se usa |
-| ◀ ▶ em Movimento e Reações | `Forja.sentir(quem, "toque")` | não muda | não muda | nada | não se usa |
+| ◀ ▶ em Movimento e Reações | `Forja.sentir(quem, "toque")` | não muda | não muda | `ui_tique`, pelo `Som.ui(quem, "ui_tique")` da G11 | não se usa |
 
 Prova sem o controle na mão: o robô aperta ✕ pelo controle simulado; a prova conta no registro, por lugar ocupado,
 1 linha `{"tipo": "sensacao", "nome": "fita", "ms": 1600}` no virar e 1 `"toque"` só no lugar que apertou ✕.

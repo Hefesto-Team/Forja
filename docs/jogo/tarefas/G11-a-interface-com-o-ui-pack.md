@@ -22,13 +22,18 @@ antiga desta ficha, porque a moldura de jogo genérica quebra o pilar 1 (tudo é
 - Tudo é desenhado em `_draw()` com `godot/scripts/ui/desenho.gd`: `Desenho.moldura(ci, r, fundo, borda, largura := 2,
   raio := Tema.RAIO_QUADRO)` (linha 41), `Desenho.selo` (136), `Desenho.leds` (147), `Desenho.dicas_a_direita` e
   `dicas_a_esquerda` (186, 196), `Desenho.glifo(nome)` (24), que carrega `res://assets/glifos/<nome>.png`.
-- `Desenho.moldura` é chamada em 12 arquivos de `godot/scripts/ui/` (hud 5, painel_sala 9, cartao_jogador 4,
-  diagnostico 4, livro, resultado, placar e pausa 3 cada, painel_bancada, escolha_partida e tela_opcoes 2 cada,
-  tela_lobby 1). Meça de novo antes de mudar.
+- `Desenho.moldura` é chamada em 12 arquivos de `godot/scripts/ui/` (linhas com a chamada: hud 5, painel_sala 8,
+  cartao_jogador, diagnostico e pausa 3 cada, livro, resultado, placar, escolha_partida e tela_opcoes 2 cada,
+  tela_lobby e painel_bancada 1 cada). Meça de novo antes de mudar.
+- As dicas de botão de hoje usam os glifos desenhados de `godot/scripts/ui/glifo.gd` (`Glifo.desenhar(ci, nome, r, cor)`,
+  com os nomes `cruz`, `circulo`, `quadrado`, `triangulo`, `cima`, `baixo`, `esquerda`, `direita`, `options`, `create`,
+  `touchpad`, `microfone`): a pausa passa `[["cruz", "Escolher"], ["circulo", "Voltar"]]`. Os PNG de
+  `godot/assets/glifos/` (`cross`, `circle`…) são outra coisa: os ícones de feature do relatório.
 - `godot/scripts/ui/pausa.gd` desenha uma caixa de 620 px no meio, sobre `Tema.APP` a 82 %, com as opções Continuar,
   Diagnóstico e O livro da sessão (só na bancada), Opções, Voltar ao salão (na sala), Voltar ao lobby e Sair do jogo.
   `main.gd:763` congela a sala ao abrir (`SalaJogo.congelar(true)`); `_quadro_overlay` (linha 828) navega.
-- Os menus quase não soam: só `tela_opcoes.gd` toca `"tique"`. Os ids `ui_tique`, `ui_confirma`, `ui_volta` e
+- Os menus não soam. O único `Som.tocar("tique", null, -4.0)` da interface (`tela_opcoes.gd:155`) é o metrônomo da
+  linha Tempo, a calibração, e não a navegação. Os ids `ui_tique`, `ui_confirma`, `ui_volta` e
   `fx_stop` estão no [mapa do áudio](../audio/mapa.csv), com o WAV em `godot/estudos/direcao/som/<id>.wav`.
 - Os 26 glifos de `godot/assets/glifos/` (PNG de 128 px, brancos) não têm o mudo nem os gestos do touchpad.
 - O All-in-1 está em `oficina/kenney/3.7.0/`; os SVG do Input Prompts em
@@ -87,27 +92,28 @@ porque o salão já leva ao lobby; «Sair do jogo» vira «Sair».
 | `jcard(ci, r, tinta: Color, lombada: String)` | `SOMBRA` (5, 7); o papel `ETIQUETA`; a lombada de 104 px em `ETIQUETA_SOMBRA` à esquerda, com tarja de 22 px no topo na `tinta` e o texto em VT323 46, `TINTA_SUAVE`, a −90°; a tarja da frente de 16 px a 22 px do topo; a inclinação parada de 0,5°. O conteúdo é de quem chama (a pausa aqui, o «como jogar» na G12) |
 | `chip(ci, r, lugar: int, pronto: bool)` | 400×64: pronto, fundo `JOGADOR[lugar]` e texto em `FITA`; treinando, `CASCO` com borda de 3 px na cor do dono e texto `ETIQUETA` a 75 %; o P# em Bungee 30 |
 | `lampadas(ci, pos, lugar: int)` | 5 posições de 15×8 px com vão de 5 px; acesas na cor do dono pelo padrão do LED do lugar, apagadas em `GRAFITE` |
-| `dica(ci, pos, glifo: String, frase: String, sobre_etiqueta := false) -> float` | o glifo de 52 px e a frase em Archivo Narrow 600 de 34 px, 12 px depois; `ETIQUETA` sobre o casco, `TINTA` sobre a etiqueta; devolve a largura |
+| `dica(ci, pos, glifo: String, frase: String, sobre_etiqueta := false) -> float` | o glifo pelo nome de `Glifo` (`cruz`, `circulo`…), desenhado com `Glifo.desenhar` num quadrado de 52 px, e a frase em Archivo Narrow 600 de 34 px, 12 px depois; `ETIQUETA` sobre o casco, `TINTA` sobre a etiqueta; devolve a largura |
 
 - **`Desenho.moldura` vira a placa:** a assinatura fica (os 12 arquivos não mudam); o `raio` pedido é ignorado e vale
   14; a `largura` de 4 (o foco de hoje) vira `foco` = a cor da `borda`; as outras, borda de 3 px em `CASCO_ALTO`. A
   sombra entra em toda placa. As cores que os 12 arquivos passam são trocadas pela G14.
 - `dicas_a_direita` e `dicas_a_esquerda` passam a chamar `dica`, com glifo de 52 px e letra de 34 px (hoje
-  `T_SELO`).
+  `T_SELO`); os pares que os 12 arquivos passam não mudam (os nomes de `Glifo`).
 - `Desenho.leds` fica: ele é a bateria e o diagnóstico da bancada.
 
 **A pausa da fita** (o [06](../arte/06-interface-e-texto.md#a-pausa)):
 
 1. Ao abrir: `fx_stop`; a sala congela (como hoje); o pós vai a `desbota` 0,6 em 67 ms (4 quadros), pela função da
-   G15 (`PosFita.ajustar("desbota", 0.6, 67)`). Ao fechar, `PosFita.soltar("desbota", 67)` (volta ao valor do desgaste da faixa em 67 ms), com `PosFita.rasgo_curto()` (o rasgo da volta da pausa,
-   [06](../arte/06-interface-e-texto.md#o-rasgo-de-vhs)).
+   G15 (`PosFita.ajustar("desbota", 0.6, 67)`). Ao fechar, `PosFita.soltar("desbota", 67)` (volta ao valor do
+   desgaste da faixa em 67 ms), com `PosFita.rasgo_curto()` (o rasgo da volta da pausa, [06](../arte/06-interface-e-texto.md#o-rasgo-de-vhs)).
 2. A barra de pausa: uma faixa de 24 px de ruído (`GRAFITE` e `MUDO` em listras de 2 px que trocam a cada quadro) sobe
-   a tela inteira, de y 1080 a −24, a cada 2 s, `RETA`. Com Flashes desligado, ela não aparece.
-3. O J-card da pausa: `Desenho.jcard` de 1064×830 em (760, 90), entra da direita (x de +1100 a 0) em 500 ms (`SAI`).
-   A lombada diz «PAUSA · P2» (o lugar de quem pausou), a tarja na tinta da seção da sala (fora da sala, `GRAFITE`).
+   a tela inteira, de y 1080 a −24, a cada 2 s, `RETA` (`Tween.TRANS_LINEAR`, a curva do
+   [05](../arte/05-movimento.md#as-curvas) para o que gira ou corre sem parar). Com Flashes desligado, ela não aparece.
+3. O J-card da pausa: `Desenho.jcard` de 1064×830 em (760, 90), entra da direita (x de +1100 a 0) em 500 ms (`SAI`:
+   `Tween.TRANS_CUBIC`, `Tween.EASE_OUT`). A lombada diz «PAUSA · P2» (o lugar de quem pausou), a tarja na tinta da seção da sala (fora da sala, `GRAFITE`).
    As linhas: 84 px de altura, a partir de y 160 dentro do cartão, Archivo Narrow 600 de 44 px em `TINTA`; a linha em
-   foco tem a caixa de 3 px na cor de quem pausou e o glifo `cross` de 52 px à esquerda; «Sair» em `TINTA` também
-   (vermelhão não passa a 44 px sobre a etiqueta). Embaixo, `dica("cross", "Escolher")` e `dica("circle", "Voltar")`
+   foco tem a caixa de 3 px na cor de quem pausou e o glifo `cruz` (`Glifo.desenhar`) de 52 px à esquerda; «Sair» em `TINTA` também
+   (vermelhão não passa a 44 px sobre a etiqueta). Embaixo, `dica("cruz", "Escolher")` e `dica("circulo", "Voltar")`
    sobre a etiqueta.
 4. O fundo: a tela parada e desbotada, sem o véu de `APP` a 82 % de hoje.
 
@@ -145,8 +151,8 @@ sem mudar. A V05 depois troca as tabelas do `Som` pelo mapa.
 | a pausa abre | `fx_stop` (250 ms) | na TV a −6 dB, como o mapa |
 | a música, com a pausa aberta | `Musica.abafar(true)` (novo em `musica.gd`): o tocador ativo cai 18 dB abaixo de `VOLUME_DB` em 67 ms; `abafar(false)` volta em 67 ms | |
 
-O `Som.tocar("tique")` de `tela_opcoes.gd` sai: o som da navegação fica em `main.gd`, num lugar só. O `"tique"` das
-salas não muda.
+O som da navegação fica em `main.gd`, num lugar só. O metrônomo da linha Tempo (`tela_opcoes.gd:155`) e o `"tique"`
+das salas não mudam.
 
 ## O controle
 
@@ -157,7 +163,8 @@ salas não muda.
 | a pausa fecha | nada | a sala devolve o gatilho dela ao descongelar (`congelar(false)` já reaplica) | não muda | nada | não se usa |
 
 Prova sem o controle na mão: o robô aperta pelo controle simulado, e a prova conta no registro as linhas
-`{"tipo": "sensacao", "nome": "toque"}` de quem navegou.
+`{"tipo": "sensacao", "nome": "toque"}` de quem navegou; com a pausa aberta, `Forja.estado_saida(l)` do controle
+simulado tem `l2` e `r2` em `Forja.GATILHO_OFF` nos quatro.
 
 ## O cavaleiro
 
@@ -197,16 +204,23 @@ arquivo do UI Pack entrou no jogo.
   # a pausa fora da bancada: quatro linhas
   main.pausa.abrir(1, true, false, false)
   _esperar(main.pausa.opcoes.map(func(o): return o[0]) == ["continuar", "opcoes", "salao", "sair"], "pausa: as quatro do 06")
+  # a pausa aberta como o jogo abre (overlay "pausa"), com a sala de prova na tela
+  main._abrir_overlay("pausa", 1)
+  for l in 4:
+  	var s := Forja.estado_saida(l)
+  	_esperar(s.is_empty() or (int(s.l2) == Forja.GATILHO_OFF and int(s.r2) == Forja.GATILHO_OFF), "pausa: gatilhos Off em P%d" % (l + 1))
   # o som e o toque da navegação
   var antes := _contar_registro("sensacao", 1, "toque")
   Forja.robo_apertar(1, Forja.CIMA)
-  await get_tree().process_frame
+  for i in 10:
+  	await get_tree().process_frame
   _esperar(_contar_registro("sensacao", 1, "toque") == antes + 1, "pausa: navegar vibra em quem apertou")
   _esperar(Som.ultimo == "ui_tique", "pausa: navegar soa ui_tique")
   ```
 
-  (`Som.ultimo`: o id do último `tocar`, uma variável nova só para a prova; `_contar_registro` já existe na prova da
-  F05; se não existir, conta as linhas do registro do dia com aquele `tipo`, `jogador` e `nome`.)
+  (`Som.ultimo`: o id do último `tocar`, uma variável nova só para a prova. `_contar_registro(tipo, lugar, nome)`:
+  conta em `_linha_do_tempo()` (o leitor da prova da F05) as linhas com aquele `tipo`, `"jogador" == lugar + 1` (a
+  F05 grava o jogador a partir de 1) e aquele `nome`. Quem chega primeiro, a G11 ou a G12, a escreve; a outra usa.)
 - `python3 scripts/glifos_do_kenney.py --conferir`: os seis PNG têm 128×128 e nenhum pixel de alfa > 0 fora do branco.
 - `bash tests/prova_visual.sh`: as pranchas da pausa (na sala e no salão) e de três telas com placa (HUD, resultado,
   opções). Na pausa: o J-card na posição do 06, a tarja na tinta da sala, a barra de 24 px num dos quadros.

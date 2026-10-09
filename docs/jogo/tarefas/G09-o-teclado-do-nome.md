@@ -91,7 +91,7 @@ As medidas, com a coluna começando em `x0 = 96 + 432·lugar`:
 | --- | --- | --- | --- |
 | o campo | (x0 + 16, 660), 400×44, raio 6 | `CASCO_ALTO`, borda de 3 px na cor do dono (`Tema.JOGADOR[lugar]`) | o nome em Archivo Narrow 600 32, `ETIQUETA`, a 12 px da esquerda; a barra do cursor de texto, 3×32 px, `ETIQUETA`, parada (não pisca) |
 | a grade | origem (x0 + 16, 716); teclas de 52×52, vão de 6; 7·52 + 6·6 = 400 px de largura e 5·52 + 4·6 = 284 de altura (termina em y 1000) | a tecla: `CASCO`, raio 6 | a letra em Archivo Narrow 600 36, `ETIQUETA`, centrada |
-| a tecla sob o cursor | a mesma tecla | `CASCO_ALTO` com borda na cor do dono, de 3 px no tempo a 5 px na batida e volta ([05](../arte/05-movimento.md)) | a mesma |
+| a tecla sob o cursor | a mesma tecla | `CASCO_ALTO` com borda na cor do dono: 3 px; no quadro de cada batida vai a 5 px e volta a 3 px em 1 colcheia (250 ms a 120), `SAI` | a mesma |
 | o espaço | a tecla da linha 4, coluna 7 | `CASCO` | uma barra de 24×4 px, `ETIQUETA`, a 14 px do pé da tecla |
 | o ◯ | a tecla da linha 5, coluna 4 | `CASCO` | o glifo `circle` de 40 px em `ETIQUETA` |
 | o Pronto | linha 5, colunas 5 a 7: 3·52 + 2·6 = 168×52 | valendo: a cor do dono, texto em `TINTA`; apagado: `CASCO`, texto em `MUDO` | «Pronto» em Archivo Narrow 700 34 |
@@ -100,7 +100,7 @@ Os pares de contraste são os do [02](../arte/02-cor-e-letra.md#os-pares-de-cont
 `CASCO` e `CASCO_ALTO`, `TINTA` sobre a cor do jogador, `MUDO` sobre `CASCO`. Com o texto grande (×1,15), a letra vai
 a 41 px, o campo a 37 e o Pronto a 39: tudo cabe na tecla, e o tamanho das teclas não muda.
 
-O cursor anda em 4 quadros, curva `SAI`. Com Movimento Reduzido (G16), o cursor pula sem os 4 quadros. A placa do
+O cursor anda em 4 quadros, curva `SAI` (a curva do [05](../arte/05-movimento.md#as-curvas): `Tween.TRANS_CUBIC`, `Tween.EASE_OUT`). Com Movimento Reduzido (G16), o cursor pula sem os 4 quadros. A placa do
 lugar (y 60 a 150) mostra o nome do campo enquanto se escreve.
 
 ## O som

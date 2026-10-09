@@ -23,8 +23,10 @@ corpo do boneco: a cor do dono sai da roupa e fica no contorno, no aro e no acen
   `_SG` (Space Grotesk) e `_MONO` (JetBrains Mono) nas linhas 54 e 55, servidas por `Tema.fonte(peso)` e
   `Tema.mono(peso)` (142 chamadas em `godot/scripts/`). Os nomes antigos aparecem em 30 arquivos.
 - `godot/scripts/forja.gd:73` `COR_DO_LUGAR` = `Color8(0, 72, 255)`, `(255, 24, 8)`, `(0, 255, 64)`,
-  `(255, 8, 168)`; a lightbar recebe essas.
-- `godot/scripts/player.gd:155` `_vestir()` troca o material de toda malha `body*` por um com
+  `(255, 8, 168)`, para o 2D. A lightbar não lê essa tabela: ela vem do C nativo, `LUZ_DO_LUGAR` em
+  `nativo/nucleo/pads.c:13` (as mesmas quatro), lida em `nativo/godot/forja_controles.cpp:188` e `:370`
+  (`cor_do_lugar`).
+- `godot/scripts/player.gd:156` `_vestir()` (chamado na linha 121) troca o material de toda malha `body*` por um com
   `albedo_color = cor.lerp(Color.WHITE, 0.25)`: o corpo inteiro na cor do lugar, a cabeça fica. É a causa do «neon de
   uma cor só».
 - `godot/project.godot:42` `theme/custom_font` = Space Grotesk; `:47` `default_clear_color` = `#11121a`.
@@ -56,7 +58,10 @@ corpo do boneco: a cor do dono sai da roupa e fica no contorno, no aro e no acen
   46, `T_CORPO` 34, `T_ROTULO` 30, `T_MONO` 30, `T_SELO` 30, `T_SUBTITULO` 44 (o «como jogar» do J-card); e os novos
   `T_VERBO` 160, `T_PONTOS` 64, `T_ETIQUETA` 56, `T_CARIMBO` 46, `T_PSHARP` 40, `T_NOME` 32. Os textos abaixo de 30 px
   sobem a 30; onde a linha deixa de caber (o diagnóstico da bancada), `Desenho.caber` corta com «…».
-- **O jogador:** `forja.gd` `COR_DO_LUGAR` vira `Tema.JOGADOR` (a lightbar segue a mesma tabela, como manda o 02).
+- **O jogador:** `forja.gd` `COR_DO_LUGAR` vira `Tema.JOGADOR`. A lightbar segue a mesma tabela, como manda o 02:
+  `LUZ_DO_LUGAR` em `pads.c:13` passa a `{41, 230, 255}`, `{255, 62, 165}`, `{212, 255, 74}`, `{238, 154, 30}` (alfa
+  255), e o módulo se recompila com `scripts/compilar.sh linux` e `scripts/compilar.sh testes` (`godot/bin/` fica
+  fora do git: quem puxa o commit recompila).
 - **O corpo não se tinge:** `_vestir()` sai de `player.gd`, e a chamada dele também. As malhas ficam com o material do
   `.glb` (o `colormap.png`). A cor do dono fica no contorno e no aro (G15) e no acento da peça (G13). A
   recoloração pela faixa da parte (tecido, couro) é da G13.
@@ -70,6 +75,7 @@ corpo do boneco: a cor do dono sai da roupa e fica no contorno, no aro e no acen
 
 - `godot/scripts/tema.gd`. **De todos:** G11 (as constantes da placa), G15 (os tokens de luz, se precisar)
 - `godot/scripts/forja.gd`: `COR_DO_LUGAR`
+- `nativo/nucleo/pads.c`: `LUZ_DO_LUGAR` (a lightbar)
 - `godot/scripts/player.gd`: `_vestir` sai. **De todos:** G10 (o caminho), G13 (a montagem), G15 (o aro e o contorno)
 - `godot/scripts/main.gd`, `godot/scripts/mundo/kit.gd`, `godot/scripts/mundo/salao.gd`,
   `godot/scripts/mundo/efeitos.gd`, `godot/scripts/salas/*.gd`: só as linhas 2D. **De todos:** G10, G15, G16
@@ -98,7 +104,7 @@ Não se aplica: nenhuma regra muda. O que muda é cor, letra e tamanho.
   etiqueta. Nenhum texto abaixo de 30 px.
 - **O boneco:** com o `colormap.png` da Kenney, sem tom; a cabeça, o tronco e as pernas com as cores próprias da
   malha. O que marca o dono, depois desta ficha, é o contorno (G15) e o aro (hoje, emissão 1,4 na cor do lugar, em
-  `player.gd:76`).
+  `player.gd:83` a 85).
 - **A prancha:** as fotos da prova visual ao lado de `docs/imagens/direcao/02_salao.jpg`, `04_cartao.jpg` e
   `07_titulo.jpg` (os quadros do estudo com a mesma tela).
 
@@ -112,8 +118,8 @@ Não se aplica: nenhum som muda.
 | --- | --- | --- | --- | --- | --- |
 | o lugar se acende (entrar, trocar de lugar) | não muda | não muda | a lightbar vai para `Tema.JOGADOR[l]` (#29e6ff, #ff3ea5, #d4ff4a, #ee9a1e) pela `Forja.luz_do_lugar(l)` de hoje | não muda | não se usa |
 
-Prova sem o controle na mão: `Forja.luz_do_lugar(l)` grava a cor pedida no registro do módulo simulado; a prova
-compara com `Tema.JOGADOR[l]`.
+Prova sem o controle na mão: depois de `Forja.luz_do_lugar(l)`, `Forja.estado_saida(l).luz` do módulo simulado é
+`Tema.JOGADOR[l]`, com folga de 1/255 em cada canal.
 
 ## O cavaleiro
 
@@ -147,6 +153,13 @@ existe; e as duas fontes do app saíram do jogo e das licenças.
 
   ```gdscript
   _esperar(Forja.COR_DO_LUGAR == Tema.JOGADOR, "tema: a cor do lugar é a do 02")
+  for l in 4:
+  	Forja.luz_do_lugar(l)
+  	await _quadros(2)
+  	var luz: Color = Forja.estado_saida(l).luz
+  	_esperar(luz.is_equal_approx(Tema.JOGADOR[l]) or (absf(luz.r - Tema.JOGADOR[l].r) <= 1.0 / 255.0
+  		and absf(luz.g - Tema.JOGADOR[l].g) <= 1.0 / 255.0 and absf(luz.b - Tema.JOGADOR[l].b) <= 1.0 / 255.0),
+  		"lightbar: P%d na cor do 02" % (l + 1))
   _esperar(Tema.tinta_da_secao(6) == Tema.SECAO[1], "tema: S6 é cobalto")
   _esperar(not FileAccess.file_exists("res://assets/fontes/SpaceGrotesk-wght.ttf"), "tema: Space Grotesk saiu")
   for p in main.jogadores:
@@ -169,7 +182,7 @@ existe; e as duas fontes do app saíram do jogo e das licenças.
 2. Trocar os nomes antigos em `godot/scripts/` pela tabela do 02, um arquivo por commit quando o arquivo é grande
    (`main.gd`, `salao.gd`).
 3. `Tema.fonte` e `Tema.mono` pelas quatro; a escala; os textos abaixo de 30 px.
-4. `COR_DO_LUGAR`; `_vestir` sai.
+4. `COR_DO_LUGAR` e o `LUZ_DO_LUGAR` do `pads.c` (recompilar); `_vestir` sai.
 5. As cores 2D restantes viram token; as 3D ficam como estão.
 6. Apagar as duas fontes e as licenças; `project.godot`; `arte.json`.
 7. A prova visual e a prancha.
