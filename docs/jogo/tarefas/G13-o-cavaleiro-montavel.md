@@ -103,10 +103,19 @@ x de mundo `(centro − 960) / 250`: **−2,592, −0,864, 0,864, 2,592**.
 
 - `salao.gd`: `var montagem: Array[Vector3]`, os quatro
   `Vector3(-2.592 + 1.728 * i, 0.06, 4.4)`, e `var montagem_no: Node3D` com
-  os quatro anéis (o `"anel": true` do estudo, `montar.gd:27`: um
-  `CSGTorus3D` raio interno 0,42, externo 0,5, a 0,03 do chão, com um
-  `StandardMaterial3D` `albedo_color = Tema.GRAFITE`, `emission =
-  Tema.JOGADOR[l]`, `emission_energy_multiplier` 0,25: o aro da regra).
+  os quatro anéis do estudo (`Mundo.anel`, `godot/estudos/direcao/mundo.gd:200`,
+  chamado em `cavaleiro/montar.gd:71-72` pelo `"anel": true`), portado como
+  está, com `raio` 0,62: um `Node3D` a y 0,03; nele um `MeshInstance3D` com
+  `TorusMesh` `inner_radius` 0,57 (raio − 0,05), `outer_radius` 0,65
+  (raio + 0,03), `rings` 8, `ring_segments` 4, `scale = Vector3(1, 0.22, 1)`,
+  `rotation.y = PI / 8`, material néon da cor do lugar a 1,5 (o `Fita.neon`
+  do estudo vira o que a G08 diz na tabela de troca: `Tema.neon(cor, 1.5, l)`
+  da G15, ou o `ShaderMaterial` com `ForjaPlayer.SH_NEON`); e as lâmpadas do
+  lugar na frente do anel: para cada bit `i` (0 a 4) aceso em
+  `Forja.LEDS_DO_LUGAR[l]`, um `BoxMesh` de 0,09 × 0,02 × 0,14 em
+  `Vector3((i − 2) × 0,16, 0, 0,82)`, néon a 1,8. O `rings` 8 passa no
+  `_confere_a_arte` da G08 (reprova acima de 8). O «aro a 0,25» do acento é
+  outro: o fresnel do shader (G08), não este anel.
 - `main.gd`: no lobby (`_mostrar`, linha 226, e `_sincronizar_jogadores`,
   linha 238) o cavaleiro vai para `salao.montagem[l]`, não para
   `salao.pedestais[l]`. `salao.pedestais_no.visible = qual == "podio"`;
@@ -152,7 +161,7 @@ Com todos forjados (a contagem de 1,6 s da G02 vira este plano):
 | o encaixe na arma ou amuleto | `ui_peca` a 0,7492 e o som do item | `_sentir_o_item(l)` (G03) | o da G03 |
 | a pose da cabeça ou da raça | `pio_p{l+1}_{intervalo}` | `Som.pio(l, jogadores[l].modelo_i)` | o da G01 |
 | a etiqueta reescreve o arquétipo | `fx_caneta` | TV `Som.tocar("fx_caneta", null, -6.0)` | −6 dB |
-| o item entra em liga | `car_liga` | pelo `Visor` (G04): `visor.bater(l, "car_liga", <o centro da etiqueta>)`; sem a G04, `Som.tocar("car_liga", null, -9.0)` e `Som.no_controle(l, "car_liga", 0.85)` | −9 dB |
+| o item entra em liga | `car_liga` | pelo `Visor` (G04): `visor.bater(l, "car_liga", <o centro da etiqueta>)`; sem a G04, só na TV, `Som.tocar("car_liga", null, -9.0)` (o mapa diz `tv` em `onde_toca`) | −9 dB |
 | a build fica boa | `fx_caneta` na TV e `ass_p{l+1}` só no alto-falante do dono | `Som.no_controle(l, "ass_p%d" % (l + 1), 0.7)` | o acorde do lugar ainda não tem id: `ass_p{n}` é a reserva |
 | △ | `ui_sorteio` (a roleta de 6 tiques) | TV −12 dB e o alto-falante do dono | — |
 | □ trava ou destrava | `ui_trava` | TV −12 dB e o alto-falante do dono | — |
@@ -165,8 +174,9 @@ O intervalo do pio vem da letra do personagem da cabeça: a `segunda`, b
 
 **O encanamento** (o mesmo da G02; quem chega primeiro faz): para
 `ui_sorteio`, `ui_trava`, `car_liga` e `ass_p1` a `ass_p4`,
-`python3 godot/estudos/direcao/som/gerar_sons.py --so <id> --fita leve --saida godot/assets/sons --sem-ogg`
-(para `ass_p*`, a `receita` da linha do mapa); `"$GODOT" --headless --path godot --import --quit`;
+`python3 godot/estudos/direcao/som/gerar_sons.py --so <id> --fita leve --saida godot/assets/sons --sem-ogg`;
+para `ass_p{n}`, a `receita` da linha do mapa:
+`python3 godot/estudos/direcao/som/gerar_sons.py --so ass_p{n} --lugar {n} --fita cheia --saida godot/assets/sons --sem-ogg`; `"$GODOT" --headless --path godot --import --quit`;
 `compress/mode=0` em cada `.wav.import`; no `mapa.csv`, `arquivo` =
 `godot/assets/sons/<id>.wav` e `estado` = `no jogo`.
 
@@ -193,9 +203,13 @@ A barra de luz e as lâmpadas não marcam nada da montagem: são o lugar.
 A pintura é da G08 parte A; esta ficha monta as peças cortadas e chama a
 pintura. O que tem que valer no cavaleiro montado:
 
-- **O corpo não se tinge.** Cada peça fica na faixa de luminância (L, OKLab)
-  da sua parte: cabeça (pele) 0,68 a 0,80; superior (tecido) 0,46 a 0,58;
-  inferior (couro) 0,22 a 0,36. Vizinhas se afastam 0,10 ou mais.
+- **O corpo não se tinge, e a pele não se clareia** (04, «A decisão: a pele
+  não se clareia»; G08). O superior (tecido) fica entre 0,46 e 0,58 de
+  luminância (L, OKLab) e o inferior (couro) entre 0,22 e 0,36, com 0,10 ou
+  mais entre os dois. As duas medianas se medem só no pano: no Mini
+  Characters, os pixels de `PELE_UV` ficam com o papel `personagem` (o
+  `so_pano` da G08). A cabeça não tem faixa na prova: o critério do rosto
+  espera o diretor de arte (PRODUCAO, item 17).
 - **Croma** de no máximo 0,10 em cada peça (no código, teto 0,098); a
   distância até as quatro cores `Tema.JOGADOR` de pelo menos 0,08 em ΔE (no
   código, 0,085).
@@ -352,7 +366,8 @@ ordem embaralhada pelo `rng`, que cumpre:
    cavaleiro) tem o mesmo;
 3. a cabeça não está com ninguém (`cabeca_unica_na_mesa` `sim`);
 4. o item é `coerente`, `"alcanca"` (fora da liga), e uma troca de uma peça
-   põe ele em `"liga"` sem quebrar 1;
+   põe ele em `"liga"` com o corpo novo ainda válido nos opostos (a conta
+   `uma_troca_da_liga` do `conferir.py`; o corpo novo pode perder ponto);
 5. o nome é um dos seis do arquétipo em `nomes.csv` que ninguém usa; sem
    nenhum livre, qualquer um dos 24 livre.
 
@@ -390,6 +405,12 @@ confere:**
    anota quantos fizeram uma troca a mais «só para ver o chute».
 
 ### O encaixe (uma troca, do toque ao descanso)
+
+As curvas são as do [05](../arte/05-movimento.md): `SAI` é `TRANS_CUBIC` com
+`EASE_OUT` (o que chega); `ENTRA` é `TRANS_CUBIC` com `EASE_IN` (o que vai
+embora); `ENTRA_SAI` é `TRANS_SINE` com `EASE_IN_OUT` (a câmera, a luz);
+`MOLA` é `TRANS_BACK` com `EASE_OUT`, passando 4 % do alvo; `RETA` é
+`TRANS_LINEAR`.
 
 | quando | o que acontece |
 | --- | --- |
@@ -508,17 +529,24 @@ cada compasso, a 0,5 de mistura.
 | 160 a 600 | o cavaleiro em 3D | nada desenhado |
 | 608 a 652 | a etiqueta | `Desenho.etiqueta(self, Rect2(x0 + 26, 608, w − 52, 44), Tema.JOGADOR[l])`; «nome · arquétipo» em `Tema.marcador()` 30, `Tema.TINTA`, centrado; a tira de 8 px na cor do lugar à esquerda (estudo, `10_montagem.gd:120-125`) |
 | | a build boa | dois traços de caneta 2,5 px em `Tema.TINTA` sob o texto, a 7 e 13 px da base da etiqueta (estudo, 126-133) |
-| 660 + 40·k | as cinco linhas | `Rect2(x0, 660 + 40·k, w, 38)` |
+| 660 + 38·k | as cinco linhas | `Rect2(x0, 660 + 38·k, w, 36)` (de 660 a 848) |
 | | a escolhida | fundo `Tema.CASCO_ALTO`, borda 3 px `Tema.JOGADOR[l]`, raio 6 |
 | | o rótulo | `Tema.archivo(600)` 30 em x0 + 12; `Tema.MUDO` (`Tema.ETIQUETA` na escolhida). Na cabeça, com raça ≠ Humana, o nome da raça |
 | | o valor | «◀» em x0 + 136 e «▶» à direita em x0 + w − 12, `Tema.MUDO`; o nome da peça (`pecas.csv` `nome`) centrado entre x0 + 158 e x0 + w − 34, `Tema.archivo(500)` 30, `Tema.ETIQUETA`. No inferior com cadeira, «Cadeira» |
 | | o emblema | `Glifo.desenhar(self, Cavaleiro.EMBLEMA[principal], Rect2(<antes do nome − 30>, y + 7, 24, 24), Tema.ETIQUETA)`; o do secundário, 16 px, depois do nome, `Tema.MUDO` |
 | | o cadeado | a linha travada: o `_cadeado` do estudo (`10_montagem.gd:179-185`) em (x0 + 134, y + 6) |
-| linha + 40 | a fita das 12 | embaixo da linha escolhida de cabeça, superior ou inferior, por 1,5 s depois do último ◀▶: `Rect2(x0, y + 40, w, 52)` sobre as linhas de baixo; a marca atual na cor do lugar; as riscadas (opostos) em `Tema.CASCO` com o risco `Tema.GRAFITE` 4 px; na cabeça, as de outro lugar na cor dele a 35 % com «P#» em `Tema.vt()` 30 (estudo, `_fita_das_cabecas`, 188-215, que vale para as três linhas) |
-| 872 + 35·k | os quatro VUs | o rótulo `Cavaleiro.NOME_ST[k]` em `Tema.vt()` 30, `Tema.MUDO`, em x0 + 12; `Desenho.vu(self, Rect2(x0 + 136, y + 4, w − 190, 24), 5, stats[k], Tema.JOGADOR[l])`; o número em `Tema.vt()` 30, `Tema.ETIQUETA`, em r.end.x + 12 |
+| linha + 38 | a fita das 12 | embaixo da linha escolhida de cabeça, superior ou inferior, por 1,5 s depois do último ◀▶: `Rect2(x0, y + 38, w, 52)` sobre as linhas de baixo; a marca atual na cor do lugar; as riscadas (opostos) em `Tema.CASCO` com o risco `Tema.GRAFITE` 4 px; na cabeça, as de outro lugar na cor dele a 35 % com «P#» em `Tema.vt()` 30 (estudo, `_fita_das_cabecas`, 188-215, que vale para as três linhas) |
+| 852 + 26·k | os quatro VUs (de 852 a 956) | o rótulo `Cavaleiro.NOME_ST[k]` em `Tema.vt()` 30, `Tema.MUDO`, em x0 + 12, base y + 23; `Desenho.vu(self, Rect2(x0 + 136, y + 3, w − 190, 20), 5, stats[k], Tema.JOGADOR[l])`; o número em `Tema.vt()` 30, `Tema.ETIQUETA`, em r.end.x + 12, base y + 23 |
 | | as marcas do item | na linha do item: duas marcas de 3 px em `Tema.ETIQUETA` no VU de cada stat que o item pede (o `pede` e o `liga`), acima e abaixo 6 px (estudo, 165-175); a marca da liga acende em `Tema.JOGADOR[l]` com o item em liga |
 | | a prévia | do encaixe até a pose (250 ms parada numa peça), os segmentos que a troca mudou piscam em `Tema.ETIQUETA` a cada tempo; na roleta, piscam enquanto ela gira |
-| base 1030 | as dicas | uma vez para a tela, pela `TelaLobby`: `Desenho.dica(self, Vector2(196 + 400·k, 1030), …)` com `cruz` «Botão ✕ (Forjar)», `triangulo` «Botão △ (Sortear)», `quadrado` «Botão □ (Travar)», `esquerda` «Botão ◀ ▶ (Trocar)» |
+| base 1006 | as dicas | uma vez para a tela, pela `TelaLobby`: `Desenho.dica(self, Vector2(196 + 400·k, 1006), …)` (o `pos` é a base da letra, como no `Glifo.dica` de hoje: o quadrado de 52 px vai de y 963 a 1015) com `cruz` «Botão ✕ (Forjar)», `triangulo` «Botão △ (Sortear)», `quadrado` «Botão □ (Travar)», `esquerda` «Botão ◀ ▶ (Trocar)» |
+
+**Por que a coluna aperta abaixo da etiqueta:** a área segura do 02 vai de y
+60 a 1020, e a checagem da F09 reprova texto além dela. O 04 e o estudo
+(`10_montagem.jpg`) põem as linhas a 40 px, os VUs de 870 a 1010 e as dicas
+abaixo de 1020: aqui as linhas têm 38 px, os VUs 26 px e as dicas sobem a
+base 1006. Os 8 quadrados das marteladas da G02 (y 880) saem da coluna: a
+forja mostra o andamento acendendo as partes (A forja, parte por parte).
 
 **As duas chaves** (CORPO e ESPÍRITO), na placa, sem palavra (a letra mínima
 de 30 px não cabe ali): cada uma é o emblema da esquerda (16 px) | um trilho
@@ -682,7 +710,7 @@ func _prova_do_cavaleiro() -> void:
 		and arq.get("Corrente", 0) == 170 and arq.get("Aríete", 0) == 38 and arq.get("Eco", 0) == 26, "os arquétipos (%s)" % [arq])
 	var k := Cavaleiro.corpo(["male-c", "female-f", "male-a"])
 	_esperar(k.stats == [4, 2, 5, 2] and k.arquetipo.nome == "Muralha", "male-c, female-f, male-a: Muralha [4, 2, 5, 2]")
-	_esperar(Cavaleiro.no_corpo("martelo", k.stats) == "fora", "o Martelo fica fora da liga nesse corpo")
+	_esperar(Cavaleiro.no_corpo("martelo", k.stats) == "alcanca", "o Martelo alcança, fora da liga, nesse corpo")
 	_esperar(is_equal_approx(Cavaleiro.gancho(0, "empurrao"), 1.0), "sem forja, o gancho é o neutro")
 ```
 

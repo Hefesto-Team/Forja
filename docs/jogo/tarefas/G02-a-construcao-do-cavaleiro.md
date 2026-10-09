@@ -28,7 +28,7 @@ stats) é da G13; esta ficha deixa o fluxo, a forja e o que se guarda.
 | `godot/scripts/opcoes.gd` (`cavaleiro`, `noite_dos_cavaleiros`, `noite`, `guardar`) | **F05, G06, G13, G16** |
 | `godot/scripts/musica.gd` (`FAIXAS`) | **G11, G16** |
 | `godot/scripts/mundo/salao.gd` (as bigornas) | **G06, G08, G13** |
-| `godot/scripts/forja.gd` (`SENSACOES["metal"]`) | **F05** |
+| `godot/scripts/forja.gd` (`SENSACOES["metal"]`; `robo_apertar` acha o pad da reserva) | **F04, F05, F08** |
 | `godot/scripts/ui/glifo.gd` (os seis ícones de item) | **G04, G11, G13** |
 | `godot/scripts/traducoes.gd` | **todas as G com texto** |
 | `godot/assets/sons/ui_peca.wav`, `ui_confirma.wav`, `ui_volta.wav`, `fx_caneta.wav` e os `.import`; `docs/jogo/audio/mapa.csv` | **G01, G03, G04, G06, G07, G09, G11, G12, G13, G16** |
@@ -78,7 +78,7 @@ construção, a 120 BPM (a batida tem 500 ms).
 | 610 a 650 | vazio (a etiqueta do arquétipo é da G13) |
 | 660, 700, 740 | as três linhas, 40 px cada (38 de altura): Boneco, Arma ou amuleto, Nome |
 | 870 a 1010 | as 8 marteladas: quadrados de 24 × 24 com vão de 10, centrados (x0 + 75 a x0 + 337), em y 880 |
-| base 1046 | uma fileira de dicas para a tela toda |
+| base 1000 | uma fileira de dicas para a tela toda, abaixo das marteladas e dentro da área segura (02: y de 60 a 1020) |
 
 - **A bigorna de cada lugar** (`salao.gd`, `_pedestais()`): `Kit.bigorna(pedestais_no, pos + Vector3(0.62, 0.32, -0.5), 0.3)`
   com `rotation.y = -0.5`, e uma `OmniLight3D` em `pos + Vector3(0.62, 0.9, -0.5)`,
@@ -99,7 +99,7 @@ construção, a 120 BPM (a batida tem 500 ms).
 | cada batida, enquanto algum lugar forja | `tique` | TV `Som.tocar("tique", null, -10.0)` | −10 dB |
 | cada martelada | `martelo` (`martelo_0..4`, já no jogo) | TV na posição do cavaleiro: `Som.tocar("martelo", jogadores[l].global_position, -4.0)` | −4 dB |
 | a oitava martelada | o pio (`pio_p{l+1}_{intervalo}`) | `Som.pio(l, jogadores[l].modelo_i)` (G01: TV e alto-falante) | −12 dB |
-| a música | `MUS_TELA_CONSTRUCAO` | TV, pelo `Ritmo` | `Musica.VOLUME_DB` |
+| a música | `mus_construcao` (o slot `MUS_TELA_CONSTRUCAO` do mapa) | TV, pelo `Ritmo` | `Musica.VOLUME_DB` |
 
 Os tons: +7 semitons = 1,4983; +4 = 1,2599; 0 = 1,0; −5 = 0,7492. Esta ficha
 usa só 1,0 e 0,7492 (a G13 usa os quatro).
@@ -141,8 +141,11 @@ A sensação nova, em `forja.gd` (a tabela da F05):
 `SENSACOES["metal"] = [0.0, 0.45, 40]`: o pulso curto da troca de peça (o
 03 pede 150 Hz nos atuadores; com o motor, 0/0,45 por 40 ms).
 
-Sem o controle na mão: `Forja.ctl.percepcao(Forja.pad_do_lugar(l))` traz
-`forte` e `fraco`; `Forja.som_virtual(l).falante` mede o alto-falante.
+Sem o controle na mão: `Forja.percepcao(l)` (`forja.gd:726`) traz `forte`
+e `fraco` do controle simulado; `Forja.som_virtual(l).falante` mede o
+alto-falante. A prova confere os dois na oitava martelada (Provas): `fraco`
+de 0,79 ou mais só sai do `"perfeito"` (0,5/0,8/100), e o pio passa de 0,05
+no alto-falante do dono.
 
 ## O cavaleiro
 
@@ -182,8 +185,8 @@ confere:**
   `pes`, `visual`, quatro `CartaoJogador` de 384 × 300 no pé da tela
   (`_posicionar`, 33), o título e a linha de estado em `_draw` (47), o
   seletor no pé do pedestal (`_seletor`, 94).
-- `godot/scripts/ui/cartao_jogador.gd` (96 linhas): nome do aparelho,
-  VID:PID, origem, «Luz», «LEDs», bateria.
+- `godot/scripts/ui/cartao_jogador.gd` (85 linhas): o nome do controle,
+  USB ou Bluetooth, a bateria e «Pronto».
 - `godot/scripts/main.gd`:
   - `_mostrar(qual)` (215): `Musica.tocar(qual)`. Sem entrada `"lobby"` em
     `FAIXAS`, o lobby toca a do salão.
@@ -211,12 +214,16 @@ confere:**
   `Opcoes.tempo_ms[l]` (entre `TEMPO_MIN` −150 e `TEMPO_MAX` 250) e o
   evento `calibracao` com o `transporte`.
 - `godot/scripts/opcoes.gd`: `tempo_ms` (38), `de_fabrica` (49), `gravar`
-  (89); não há cavaleiro guardado.
+  (90); não há cavaleiro guardado.
 - `godot/scripts/mundo/salao.gd:361-392`, `_pedestais()`: quatro discos em
   `Vector3(-4.2 + i * 2.8, 0, 4.4)` com o aro do lugar; não há bigorna por
   lugar. `Kit.bigorna(pai, pos, escala)` existe (`mundo/kit.gd:138`).
-- `godot/testes/prova_do_jogo.gd:109-123`: os visuais, ◀▶ do P2, ▼ do P3 e
-  ✕ de pronto nos quatro.
+- `godot/testes/prova_do_jogo.gd:108-123`: os visuais, ◀▶ do P2, ▼ do P3 e
+  ✕ de pronto nos quatro. As linhas 93-96 apertam ✕ para os quatro
+  entrarem; a G01 tira esses apertos e deixa o robô do lobby (✕ a cada
+  0,6 s) fazer os quatro entrarem.
+- `godot/scripts/forja.gd:881`, `robo_apertar(l, botao, segundos)`: aperta
+  no `pad_do_lugar(l)`; um lugar só reservado (F04) dá -1 e o aperto não sai.
 - `godot/testes/captura_jogo.gd:265-274`, `_roteiro_dos_extras`: △ do P2 no
   lobby abre as opções.
 
@@ -275,8 +282,9 @@ static func mediana(v: Array) -> float   # ordena; ímpar: o do meio; par: a mé
   e `etapa[l] = GUARDADO`. Senão `etapa[l] = EDITANDO`, `linha[l] = 0` e o
   inicial: `jogadores[l].visual(VISUAL_DO_LUGAR[l][0], VISUAL_DO_LUGAR[l][1])`,
   `jogadores[l].nome = NOMES[(Forja.semente * 7 + l * 5) % 24]` (quatro
-  diferentes). Nos dois casos, `salao.acender_bigorna(l, 1.5)` e
-  `Som.pio(l, jogadores[l].modelo_i)`.
+  diferentes). Nos dois casos, `salao.acender_bigorna(l, 1.5)`,
+  `Som.pio(l, jogadores[l].modelo_i)` e `_robo_espera[l] = 3.0` (o robô
+  espera 3 s antes de forjar: a prova mexe no P2 e no P3 nesse tempo).
 - **O nome livre:** `_nome_livre(l, passo)` anda `passo` (±1) em `NOMES` a
   partir do atual e pula os nomes de `jogadores[j].nome` dos outros lugares
   ocupados.
@@ -344,13 +352,23 @@ func _forjou(l: int) -> void:
 ### O robô da construção
 
 `TelaLobby.robo(l, dt)` (o nome que a checagem da F08 aceita), chamado pelo
-`_robo(dt)` do main no estado `"lobby"`, a cada quadro, nos quatro lugares:
+`_robo(dt)` do main no estado `"lobby"`, a cada quadro, nos quatro lugares.
+Ele substitui o ramo `lobby` do robô da G01, e por isso também faz o que
+aquele fazia: aperta ✕ a cada 0,6 s no lugar reservado e ainda não ocupado
+(a prova da G01 tirou os apertos de entrar e conta com ele):
 
 ```gdscript
 ## O robô (--robo) constrói pelo controle simulado, como uma pessoa: ✕ para
 ## forjar e as oito marteladas na batida, o lugar l atrasado l × 33 ms.
 func robo(l: int, dt: float) -> void:
-	if not Forja.lugar(l).get("conectado", false) or not Forja.ocupado(l):
+	_robo_espera[l] -= dt
+	if not Forja.ocupado(l):
+		# o lugar só reservado (F04): o ✕ que confirma, como o robô da G01
+		if bool(Forja.lugar(l).get("reservado", false)) and _robo_espera[l] <= 0.0:
+			Forja.robo_apertar(l, Forja.CRUZ)
+			_robo_espera[l] = 0.6
+		return
+	if not Forja.lugar(l).get("conectado", false):
 		return
 	if etapa[l] == FORJANDO:
 		if Ritmo.t_musica() >= Ritmo.t_da_batida(_robo_batida[l]) + ROBO_ATRASO_S * l + _robo_erro[l]:
@@ -358,11 +376,26 @@ func robo(l: int, dt: float) -> void:
 			_robo_batida[l] += 1
 			_robo_erro[l] = 0.0 if Forja.robo_acerta() else 0.12   # a mediana absorve um ou dois
 		return
-	_robo_espera[l] -= dt
 	if _robo_espera[l] > 0.0 or etapa[l] == FORJADO:
 		return
 	Forja.robo_apertar(l, Forja.CRUZ)   # EDITANDO: começa a forja; GUARDADO: confirma
 	_robo_espera[l] = 0.9 + 0.1 * l + (0.0 if Forja.robo_acerta() else 1.5)
+```
+
+**O aperto no lugar reservado** (`godot/scripts/forja.gd`, `robo_apertar`,
+hoje na linha 881): `pad_do_lugar(l)` dá -1 enquanto o lugar só está
+reservado. Sem pad, o aperto vai para o pad cuja reserva é `l` (F04:
+`Forja.pad(i)["reserva"]`):
+
+```gdscript
+func robo_apertar(l: int, botao: int, segundos := 0.09) -> void:
+	var p := pad_do_lugar(l)
+	if p < 0:   # o lugar só reservado (F04): o pad que o reservou
+		for i in pads().size():
+			if int(pad(i).get("reserva", -1)) == l:
+				p = i
+	if modulo and p >= 0:
+		ctl.robo_apertar(p, botao, segundos)
 ```
 
 ### A coluna (`CartaoJogador`, um por lugar)
@@ -390,10 +423,12 @@ Dentro do cartão, `x0 = 10`, `w = 412`.
 | lugar sem controle | a placa por `Desenho.tracejado(self, Rect2(x0, 60, w, 90), Tema.LARANJA, 3.0)`; «Sem controle» no lugar do nome, `Tema.LARANJA` | — |
 
 A fileira de dicas, desenhada pela `TelaLobby` uma vez para a tela:
-`Desenho.dicas_a_esquerda(self, Vector2(196, 1046), [["cruz", "Forjar"], ["triangulo", "Sortear"], ["esquerda", "Trocar"], ["circulo", "Voltar"]])`
+`Desenho.dicas_a_esquerda(self, Vector2(196, 1000), [["cruz", "Forjar"], ["triangulo", "Sortear"], ["esquerda", "Trocar"], ["circulo", "Voltar"]])`
 (o «Botão» sai só na primeira, como a função já faz). Com a contagem
 correndo, a fileira dá lugar a «Todos prontos» centrado em `Tema.VERDE`,
-`Tema.fonte(600)`, `Tema.T_CORPO`.
+`Tema.fonte(600)`, `Tema.T_CORPO`, na mesma base y 1000. A base 1000 fica
+dentro da área segura do 02 (y de 60 a 1020) e abaixo das marteladas (880 a
+904).
 
 ### O ícone do item (`godot/scripts/ui/glifo.gd`, em `desenhar()`, grade de 32, traço `t`)
 
@@ -478,6 +513,9 @@ var luzes_das_bigornas: Array[OmniLight3D] = []
 func acender_bigorna(l: int, energia: float) -> void
 ```
 
+A curva `SAI` é a do [05](../arte/05-movimento.md): `TRANS_CUBIC` com
+`EASE_OUT` (rápida no começo, assenta no fim).
+
 As bigornas e as luzes nascem em `_pedestais()` (A cena) e são filhas de
 `pedestais_no`, que só aparece no lobby e no pódio.
 
@@ -529,7 +567,8 @@ Rodar `bash tests/prova_do_jogo.sh` depois dos passos 3, 6 e 8.
 
 1. **O 13:** a linha `cavaleiro` e a frase do relógio.
 2. **Os sons:** o encanamento dos quatro (O som); `musica.gd`, a faixa;
-   `forja.gd`, a sensação `"metal"`.
+   `forja.gd`, a sensação `"metal"` e o `robo_apertar` que acha o pad da
+   reserva.
 3. **`opcoes.gd`:** `cavaleiro`, `noite_dos_cavaleiros`, `_robo`, `noite()`,
    `guardar()`, a leitura e a gravação no cfg.
 4. **`player.gd`:** `ITENS`, `VISUAL_DO_LUGAR`, `ACABAMENTOS`,
@@ -586,10 +625,16 @@ aparência só se aprova na máquina do André, com placa de vídeo, sem
 **Na sessão:** `bash tests/prova_do_jogo.sh`.
 
 Em `godot/testes/prova_do_jogo.gd`, `_prova_do_percurso()`: **trocar** o
-bloco de 108 a 123 (os `visuais`, ◀▶ do P2, ▼ do P3 e os ✕ de pronto) por:
+bloco que vem depois das checagens de cada lugar (hoje 108 a 123: os
+`visuais`, ◀▶ do P2, ▼ do P3 e os ✕ de pronto; a G01 já o mexeu) por:
 
 ```gdscript
 	# a construção: ◀▶ e ▼ mexem só no próprio lugar; o robô forja os quatro na batida
+	var q := 0
+	while Forja.jogadores() < 4 and q < 600:   # o robô confirma as reservas a cada 0,6 s
+		await _quadros(2)
+		q += 2
+	_esperar(Forja.jogadores() == 4, "o robô fez os quatro entrarem (%d quadros)" % q)
 	var nomes0 := {}
 	for l in 4:
 		nomes0[jogo.jogadores[l].nome] = true
@@ -604,11 +649,24 @@ bloco de 108 a 123 (os `visuais`, ◀▶ do P2, ▼ do P3 e os ✕ de pronto) po
 	var i3: int = jogo.jogadores[2].item_i
 	await _aperta(2, Forja.DIREITA)
 	_esperar(jogo.jogadores[2].item_i != i3 and jogo.jogadores[2].item_i >= 1, "◀▶ troca o item do P3, entre os seis")
-	var q := 0
+	# sem o controle na mão: o "perfeito" (fraco 0,8) e o pio no alto-falante na oitava
+	var perfeito := [false, false, false, false]
+	var pio := [false, false, false, false]
+	q = 0
 	while (jogo.estado != "salao" or jogo._trocando) and q < 3600:
 		await _quadros(2)
 		q += 2
+		if jogo.estado != "lobby":
+			continue
+		for l in 4:
+			if float(Forja.percepcao(l).get("fraco", 0.0)) >= 0.79:
+				perfeito[l] = true
+			if jogo.lobby.etapa[l] == TelaLobby.FORJADO and float(Forja.som_virtual(l).get("falante", 0.0)) > 0.05:
+				pio[l] = true
 	_esperar(jogo.estado == "salao", "com os quatro forjados, o salão (%d quadros)" % q)
+	for l in 4:
+		_esperar(perfeito[l], "P%d: a oitava vibrou o perfeito no controle" % (l + 1))
+		_esperar(pio[l], "P%d: o pio saiu no alto-falante do dono" % (l + 1))
 	var nomes := {}
 	for l in 4:
 		_esperar(jogo.lobby.golpes[l].size() == TelaLobby.MARTELADAS, "P%d: as oito marteladas" % (l + 1))
