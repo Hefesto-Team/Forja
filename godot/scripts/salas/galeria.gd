@@ -616,8 +616,10 @@ func _mostrar(l: int, p: ForjaPlayer) -> void:
 func status(lugar: int) -> String:
 	if fase == "jogo" and j.has(lugar) and not acabou[lugar]:
 		var e: Dictionary = j[lugar]
-		if int(e.passo) == ATIRAR:
-			return "%d balas" % (int(e.balas_mg) if int(e.arma) == METRALHADORA else int(e.balas))
+		if int(e.passo) == ATIRAR and not Forja.bancada:
+			# na bancada a munição é contada nas luzinhas, às cegas: a tela não mostra
+			var balas := int(e.balas_mg) if int(e.arma) == METRALHADORA else int(e.balas)
+			return "1 bala" if balas == 1 else "%d balas" % balas
 		return "Rodada %d de %d · %d ✓" % [int(e.rodada) + 1, e.plano.size(), e.acertos]
 	return super(lugar)
 

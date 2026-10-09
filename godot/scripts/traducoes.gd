@@ -41,6 +41,7 @@ const EN := {
 	"O controle saiu.": "The controller left.",
 	"Religue o mesmo para voltar.": "Plug the same one back in to return.",
 	"Liberar o lugar": "Free the seat",
+	"Segure para trocar": "Hold to switch",
 	# o HUD e o salão
 	"Diagnóstico": "Diagnostics",
 	"Pausa": "Pause",
@@ -304,6 +305,8 @@ const EN_PADROES := [
 	["^A partida começa em (\\d+)$", "The match starts in $1"],
 	["^A prova final, às cegas$", "The final blind test"],
 	["^(\\d+) luzinhas?$", "$1 lights"],
+	["^1 bala$", "1 bullet"],
+	["^(\\d+) balas$", "$1 bullets"],
 	["^Aperte R2 e sinta: que arma é\\?$", "Press R2 and feel: which weapon is it?"],
 	["^Aperte R2 e sinta o gatilho\\.$", "Press R2 and feel the trigger."],
 	["^Faltam (\\d+) jogadores ficarem prontos$", "$1 players still need to get ready"],
