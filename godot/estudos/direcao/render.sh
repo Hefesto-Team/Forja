@@ -20,7 +20,7 @@ timeout 300 "$GODOT" --headless --path "$RAIZ/godot" -s res://estudos/direcao/re
 timeout 600 "$GODOT" --headless --path "$RAIZ/godot" --import > "$pasta/import.log" 2>&1
 for q in "${QUADROS[@]}"; do
   env QUADRO="$q" SAIDA="$pasta" timeout 300 xvfb-run -a -s "-screen 0 1920x1080x24" \
-    "$GODOT" --rendering-driver opengl3 --path "$RAIZ/godot" --resolution 1920x1080 \
+    "$GODOT" --rendering-driver opengl3 --audio-driver Dummy --path "$RAIZ/godot" --resolution 1920x1080 \
     res://estudos/direcao/estudo.tscn > "$pasta/$q.log" 2>&1
   grep -hE "SCRIPT ERROR|ERROR:|foto:" "$pasta/$q.log" | head -5
 done
