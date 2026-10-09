@@ -161,7 +161,7 @@ func _celula(r: Rect2, v: Dictionary, ocupado: bool) -> void:
 		1:
 			Desenho.texto(self, Vector2(x, y), "✓ passou", Tema.archivo(600), Tema.T_SELO, Tema.ETIQUETA)
 		2:
-			Desenho.texto(self, Vector2(x, y), "✗ falhou", Tema.archivo(600), Tema.T_SELO, Tema.SECAO[0])
+			Desenho.texto(self, Vector2(x, y), "✗ falhou", Tema.archivo(600), Tema.T_SELO, Tema.ETIQUETA)  # vermelhão não vira texto abaixo de 48 px (02)
 		_:
 			# não medido tem forma própria: o anel vazado, e a palavra apagada
 			draw_arc(Vector2(x + 8, y - 8), 7, 0, TAU, 20, Tema.MUDO, 2, true)

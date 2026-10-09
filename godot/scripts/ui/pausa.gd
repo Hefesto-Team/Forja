@@ -61,6 +61,7 @@ func _draw() -> void:
 			Desenho.moldura(self, b, Tema.CASCO, Tema.GRAFITE, 2, Tema.RAIO_BOTAO)
 		var cor := Tema.ETIQUETA if i == escolhida else Tema.ETIQUETA_SOMBRA
 		if opcoes[i][0] == "sair":
-			cor = Tema.SECAO[0]
+			# o perigo é a tarja vermelhão, não a letra: vermelhão sobre o casco não vira texto abaixo de 48 px (02)
+			draw_rect(Rect2(b.position + Vector2(10, 14), Vector2(6, b.size.y - 28)), Tema.SECAO[0])
 		Desenho.texto(self, b.position + Vector2(28, 45), opcoes[i][1], Tema.archivo(600 if i == escolhida else 500), Tema.T_CORPO, cor)
 	Desenho.dicas_a_direita(self, Vector2(r.end.x - 40, r.end.y + 60), [["cruz", "Escolher"], ["circulo", "Voltar"]], Tema.T_SELO)
