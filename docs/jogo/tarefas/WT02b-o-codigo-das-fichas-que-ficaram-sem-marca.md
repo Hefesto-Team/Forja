@@ -87,8 +87,8 @@ Pôr a linha da WT02b no [quadro](README.md) como **feito**, com o commit.
 
 - **A medida mudou a conta.** Juntando todos os blocos de cada ficha (o corpo, a FICHA, o robô, «O controle», «O
   cavaleiro») e procurando as funções chamadas que nenhum bloco define (fora as do kit, que a H04 e a H08 deixam no
-  `Minigame`), só a I1 fecha: nas O e Q faltam de 8 a 21 funções (O1: `_andar`, `_escolher`, `_nova_bifurcacao`...,
-  que o corpo lista em «As funções que faltam»), e nas L a P, de 9 a 26 (L2: `_gerar_compasso`, `_pa`, `_avancar`...).
+  `Minigame`), só a I1 fecha: nas O e Q faltam de 8 a 20 funções (O1: `_andar`, `_escolher`, `_nova_bifurcacao`...,
+  que o corpo lista em «As funções que faltam»), e nas L a P, de 5 a 22 (L2: `_gerar_compasso`, `_pa`, `_avancar`...).
   Trocar o `const FICHA := { ... }` das O e Q não as torna arquivo inteiro, então nem a troca nem um mecanismo no
   script entraram: o `scripts/ficha_codigo.py` e o `tests/prova_dos_portoes.sh` ficaram como estavam.
 - **A I1 marcada:** o corpo é a parte 1, a FICHA a 2, o `_montar_runa` a 3, o `_mostrar_runa` a 4 e o robô a 5 (a
