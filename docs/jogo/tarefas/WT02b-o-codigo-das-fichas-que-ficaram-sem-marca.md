@@ -82,3 +82,28 @@ e o editor não pode acusar erro.
 ## Ao terminar
 
 Pôr a linha da WT02b no [quadro](README.md) como **feito**, com o commit.
+
+## O que foi feito (leva 1, as-cercas)
+
+- **A medida mudou a conta.** Juntando todos os blocos de cada ficha (o corpo, a FICHA, o robô, «O controle», «O
+  cavaleiro») e procurando as funções chamadas que nenhum bloco define (fora as do kit, que a H04 e a H08 deixam no
+  `Minigame`), só a I1 fecha: nas O e Q faltam de 8 a 21 funções (O1: `_andar`, `_escolher`, `_nova_bifurcacao`...,
+  que o corpo lista em «As funções que faltam»), e nas L a P, de 9 a 26 (L2: `_gerar_compasso`, `_pa`, `_avancar`...).
+  Trocar o `const FICHA := { ... }` das O e Q não as torna arquivo inteiro, então nem a troca nem um mecanismo no
+  script entraram: o `scripts/ficha_codigo.py` e o `tests/prova_dos_portoes.sh` ficaram como estavam.
+- **A I1 marcada:** o corpo é a parte 1, a FICHA a 2, o `_montar_runa` a 3, o `_mostrar_runa` a 4 e o robô a 5 (a
+  prosa diz «o que se vê, no fim do arquivo, antes do robô»). O `--escrever` grava `martelo_de_hefesto.gd` com 684
+  linhas. A FICHA segue a regra da WT02 (a parte logo depois do corpo, longe do comentário `# (a FICHA ... vem
+  aqui)`); a validar por ela, junto com as I2 a J5.
+- **L1 a Q5 sem marca, com a linha.** As 30 fichas de L a Q (as P3 e P5 também, que não têm bloco grande) trazem,
+  logo acima do bloco principal, «**O arquivo se monta à mão:** os blocos daqui são pedaços dele, e o resto sai da
+  prosa; por isso nenhum leva `arquivo=`.». O `--marcar` lista 28 blocos (eram 29), e todos têm a linha acima.
+- **Provas:** `bash tests/prova_dos_portoes.sh` (55 casos) e `bash scripts/portoes/rodar.sh` passam; os 23 arquivos
+  que o `--escrever` grava das fichas I a Q passam num analisador de GDScript fora do Godot (o `gdparse`, que reprova
+  um `{ ... }` e uma linha cortada). O `--check-only` do Godot não rodou nesta leva (o conjunto não abre o Godot).
+- **Para o André:** numa árvore à parte, `python3 scripts/ficha_codigo.py docs/jogo/tarefas/I1-*.md --escrever
+  --raiz <uma pasta vazia>` e abrir o `martelo_de_hefesto.gd` no editor (no lugar da O1, que ficou sem marca): a
+  FICHA tem de estar lá, e o editor não pode acusar erro. O mesmo com `--check-only` nos 23 arquivos.
+- **Fica anotado:** o `--marcar` ainda propõe `arquivo=` para os corpos das O e Q (começam com `extends`); um
+  `--marcar --sim` nelas marcaria arquivos que não fecham. Ensinar o `--marcar` a pular o bloco com a linha acima é
+  uma ficha à parte.
