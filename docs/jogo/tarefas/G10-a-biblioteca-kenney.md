@@ -240,3 +240,36 @@ pareça de outro jogo.
 
 Marcar G10 como **feito** no [quadro](README.md), com o gasto. Commit sugerido:
 `feat(kenney): um pacote por pasta, o script de importação, o orc e a cauda da raposa`.
+
+## O que foi feito (leva 1, o-cavaleiro)
+
+**Feita**, com um desvio: o `character-ghost` do Graveyard não entrou (abaixo).
+
+- **A pasta por pacote:** o Mini Dungeon mora em `godot/assets/kenney/mini-dungeon/` (28 peças de cenário, `Textures/`, `License.txt`) e o orc e o
+  humano em `mini-dungeon-personagens/` (com a `Textures/` e a licença deles); os `.import` antigos saíram e o `colormap.png` de cada pasta
+  tem `compress/mode=0`. Entraram pelo script: `mini-characters` (12), `cube-pets` (`animal-fox`), `graveyard-kit` (90 peças, 4 personagens),
+  `castle-kit` (76) e `factory-kit` (143). O `survival-kit/` não foi tocado.
+- **Um caminho só** (`kit.gd`): `Kit.caminho(nome)`, `PACOTE_PADRAO`, `ESCALA_DO_PACOTE` (os números da ficha) e `Kit.escala_do_pacote(nome)`; `Kit.peca`
+  multiplica. `salao.gd` (a constante `KIT` saiu), `player.gd` (o boneco) e `salas/prova.gd` (o orc) chamam `Kit.caminho`. As duas malhas de item
+  do `player.gd` (`MALHA_DO_ITEM`) são `const` e seguem escritas por inteiro, já na pasta nova.
+- **O script** `scripts/importar_kenney.py` (só a biblioteca padrão; `--lista`, `--de`, recusa fora da curadoria, o conferidor de bonecos antes de
+  copiar, a linha de cada pasta em `godot/assets/LEIA-ME.md` e `LICENCAS-DE-TERCEIROS.md`) e `scripts/testes/prova_importar.py`.
+- **A prancha** `godot/testes/prancha_dos_corpos.gd` grava `docs/imagens/kenney/corpos.jpg` e `corpos_silhueta.jpg` (1920×1080, 6×3 células).
+- **A escala:** a porta do Castle Kit (0,61 m) fica em 1,71 m com o `K = 2,0`, contra o boneco de 1,52 m; o fator ficou em 1,4.
+- **Os documentos:** 14 (o Graveyard «sem pele; são monstros», o Mini Arena fora, a cauda da raposa, o script), 13, 11 e `DESENVOLVER.md`; a B1 da G08
+  aponta o comando de verdade.
+- **As provas:** `_prova_do_kit()` no `prova_do_jogo.gd` (o caminho, a escala por pasta, o orc, a raposa, os 12, o esqueleto, nada solto na raiz); a mordida (sem pasta padrão, sem a multiplicação, uma peça solta) reprovou 4 checagens e as curas voltaram.
+
+### Desvios e decisões (a validar por ela)
+
+- **O fantasma não passa no conferidor.** A ficha dizia que os cinco do Graveyard passam como rígido; o `character-ghost` não tem as pernas nem a
+  cabeça separada (faltam `leg-left`, `leg-right`, `head`), e o script o recusa como manda a ficha. Entram o esqueleto, o zumbi, o vampiro e o coveiro. O minigame 32 decide o que
+  fazer com o fantasma (aceitar sem conferidor, ou outro monstro).
+- A prancha mostra o vampiro no lugar do fantasma; a cauda aparece a 0,33× (a escala da G13).
+- O `colormap.png` com `compress/mode=0` (antes `2`, VRAM) deixa a paleta sem perda. A prova visual de antes e depois (partida fixa de 5 salas) reprova o mesmo tipo de defeito de texto da F09b (30 antes, 28 depois, nenhum novo, nenhum de peça ou textura); não comparei pixel a pixel.
+- `VIOLETA_FUNDO` ainda não é token do `Tema`: a prancha o declara como constante local.
+
+### O que fica para a mão dela e do André
+
+- Abrir `docs/imagens/kenney/corpos.jpg` e `corpos_silhueta.jpg`: o orc se separa dos 12 pela cabeça, e os monstros se leem como monstros.
+- Anotar no diário qualquer malha que pareça de outro jogo.

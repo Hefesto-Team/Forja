@@ -608,8 +608,8 @@ escuro `Kit.material(Tema.CASCO, 0.0, 0.9)`, tudo filho de `pivo` (escala
 
 ### Parte B — as quatro raças
 
-**B1.** `python3 scripts/importar_kenney.py oficina/kenney/3.7.0 cube-pets`
-(o script da G10, que já tem `cube-pets` na curadoria). A cauda não passa por
+**B1.** `python3 scripts/importar_kenney.py cube-pets`
+(o script da G10, que já tem `cube-pets` na curadoria e já o importou para `godot/assets/kenney/cube-pets/`). A cauda não passa por
 `Kit.peca`, então o 0,4 do `ESCALA_DO_PACOTE` não vale para ela: a escala é a
 0,33 do B2.
 

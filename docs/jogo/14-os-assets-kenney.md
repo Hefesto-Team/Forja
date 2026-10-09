@@ -21,7 +21,8 @@ entra, e o que fica de fora.
   ossos e as mesmas 32 animações** do Mini Dungeon que o jogo já usa (conferido
   no arquivo). Sozinho, cumpre a meta de doze bonecos do
   [11](11-arte-e-personagens.md#os-personagens) sem mexer em código de
-  animação. O Mini Arena e o Mini Market também são compatíveis.
+  animação. O Mini Market também é compatível; o Mini Arena tem 25 animações
+  (as 12 que o conferidor pede estão lá) e fica fora pela curadoria, não pelo conferidor.
 - Os kits de cenário da mesma família (Castle Kit, Tower Defense Kit, Mini
   Arena, Mini Market) dão variedade às 45 arenas sem sair do estilo.
 - O UI Pack em vetor e o Input Prompts (com os botões do PS5) dão acabamento
@@ -47,7 +48,7 @@ entrar, cada um na sua pasta e **só quando uma ficha pedir**. Os outros não.
 
 | tipo | entra | não entra |
 | --- | --- | --- |
-| personagens | Mini Characters (12), Mini Dungeon, Mini Arena, Mini Forest, Mini Market, Mini Arcade, Mini Skate; os **personagens do Graveyard Kit** (esqueleto, fantasma, zumbi, vampiro, coveiro — mesmo esqueleto, 32 animações: os monstros do terror) | Blocky Characters (sem esqueleto de pele), Animated Characters (outro esqueleto, só FBX) |
+| personagens | Mini Characters (12), Mini Dungeon, Mini Forest, Mini Market, Mini Arcade, Mini Skate; os **personagens do Graveyard Kit** (esqueleto, fantasma, zumbi, vampiro, coveiro — **as mesmas partes e as mesmas 32 animações, sem pele; são monstros**, não raça. O `character-ghost` não tem pernas nem cabeça separada e o conferidor o recusa: fica de fora até o minigame 32 decidir); do Cube Pets, só a cauda da raposa (`animal-fox`, o nó `tail`) | Mini Arena (25 animações), Blocky Characters (sem esqueleto de pele), Animated Characters (outro esqueleto, só FBX) |
 | cenário e objetos | os kits com colormap: Castle, Tower Defense, Graveyard, Factory, Platformer, Pirate, Train, Survival, Fantasy Town, Blaster, Space Station, Prototype, Hexagon, Marble, Coaster, Minigolf, Car, Toy Car, Holiday, Food, Modular Buildings, Building, Modular Dungeon, Modular Cave, Modular Space, Cube Pets, Watercraft, City (Commercial, Industrial, Roads, Suburban) | os de cor sólida (Nature, Space, Racing, Furniture), os de textura própria (Retro Fantasy, Retro Urban), 3D Road Tiles, Brick Kit (peças de montar, fora do tom), os "(Classic)" e o Weapon Pack |
 | interface | UI Pack e UI Pack Sci-fi, só a versão em vetor; Input Prompts, só "Default" e "Vector" | tudo em pixel e em 1-bit |
 | áudio | Interface Sounds, UI Audio, Impact Sounds, Music Jingles, Digital Audio, Sci-fi Sounds | — |
@@ -72,13 +73,14 @@ documenta). A escala que casa com os bonecos:
 | Factory Kit | porta 1,6, parede 3,0 | 0,5× |
 | Building Kit | parede 2,4 | 0,35× |
 | Pirate Kit | porta 4,4, barril 1,34 | 0,35 a 0,4× |
-| Cube Pets | cachorro 1,58 | 0,4× |
+| Cube Pets | cachorro 1,58 | 0,4× (a cauda da raposa não passa por `Kit.peca`: a G13 a escala a 0,33) |
 | Blaster Kit | blaster 0,8 de comprimento | 0,3× na mão do boneco |
 | Modular Dungeon, Cave, Space | grade de 4 m | 0,25× |
 
 O fator vai na tabela `ESCALA_DO_PACOTE` de `godot/scripts/mundo/kit.gd`
 (ficha [G10](tarefas/G10-a-biblioteca-kenney.md)), e `Kit.peca` o aplica
-sozinho a partir do nome do pacote.
+sozinho a partir do nome do pacote. O 1,4× do Castle Kit foi conferido na prancha da G10: a porta
+(0,61 m) fica em 1,71 m com o `K = 2,0`, acima do boneco de 1,52 m, então o fator não subiu a 1,5.
 
 ### O que falta em todos
 
@@ -157,18 +159,19 @@ e mesmo esses usam kits para todo o resto.
 - **O zip do All-in-1 fica fora do repositório**, na máquina do André.
 - **Um pacote por pasta:** `godot/assets/kenney/<pacote>/` — por exemplo
   `godot/assets/kenney/mini-characters/`, `godot/assets/kenney/castle-kit/`.
-  O Mini Dungeon de hoje (solto em `godot/assets/kenney/`) se muda para
-  `godot/assets/kenney/mini-dungeon/`.
+  O Mini Dungeon mora em `godot/assets/kenney/mini-dungeon/` (cenário) e
+  `godot/assets/kenney/mini-dungeon-personagens/` (o orc e o humano).
 - **Só o necessário:** de cada pacote 3D, só a pasta `GLB format/` (os
   `.glb`) e a pasta `Textures/`; nada de FBX, OBJ, DAE, STL nem prévias. O
   Mini Characters inteiro tem 13,9 MB; o que entra dele, cerca de 3,5 MB.
-- **O script faz a cópia:** `scripts/importar_kenney.py <zip ou pasta> <pacote>`
-  (ficha [G10](tarefas/G10-a-biblioteca-kenney.md)) copia só o que entra,
+- **O script faz a cópia:** `python3 scripts/importar_kenney.py <pasta> [<pasta>...]`
+  (do All-in-1 em `oficina/kenney/`; `--de <zip ou pasta>` de outro lugar; `--lista` mostra a
+  curadoria; ficha [G10](tarefas/G10-a-biblioteca-kenney.md)) copia só o que entra,
   recusa pacote fora da curadoria, confere o esqueleto dos personagens com
-  `scripts/conferir_bonecos.py` (G08), converte o áudio para WAV 48 kHz mono,
-  e escreve a linha do pacote em `godot/assets/LEIA-ME.md` e em
-  `LICENCAS-DE-TERCEIROS.md` (nome, versão, CC0).
-- **O código pede a peça pelo pacote:** `Kit.peca(pai, "castle-kit/tower", ...)`;
+  `scripts/conferir_bonecos.py` (G08), e escreve a linha do pacote em `godot/assets/LEIA-ME.md` e em
+  `LICENCAS-DE-TERCEIROS.md` (nome, versão, CC0). Interface e áudio não passam por ele: o som entra
+  pelo mapa do áudio e a interface é da G11.
+- **O código pede a peça pelo pacote:** `Kit.peca(pai, "castle-kit/tower-base", ...)`, e `Kit.caminho(nome)` é o único lugar que monta o caminho;
   sem pacote no nome, vale o `mini-dungeon` (para as salas de hoje não
   quebrarem).
 - **Early access fica fora** do repositório público até virar gratuito no

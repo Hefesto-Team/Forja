@@ -249,6 +249,25 @@ O modelo XL do ACE-Step não cabe numa placa de 8 GB: use o turbo ou o base
 (quem escolhe é o servidor, não o script). Para apagar tudo o que a trilha
 trouxe: `scripts/trilha_ambiente.sh desinstalar`.
 
+## Os modelos da Kenney
+
+Um pacote por pasta em `godot/assets/kenney/<pacote>/` (o `Textures/colormap.png` de um pacote
+sobrescreveria o do outro). A fonte é o All-in-1 em `oficina/kenney/` (fora do git).
+
+```sh
+python3 scripts/importar_kenney.py --lista                      # o que a curadoria aceita (docs/jogo/14)
+python3 scripts/importar_kenney.py mini-characters cube-pets    # copia do All-in-1 só o que entra
+python3 scripts/importar_kenney.py --de pacote.zip castle-kit   # de outro lugar
+python3 scripts/conferir_bonecos.py                             # os sete ossos e as animações de cada character-*
+python3 scripts/testes/prova_importar.py                        # a prova do importador, com um zip de mentira
+xvfb-run -a -s "-screen 0 1920x1080x24" tools/Godot_v4.7.2-stable_linux.x86_64 --rendering-driver opengl3 \
+  --audio-driver Dummy --path godot --resolution 1920x1080 --script res://testes/prancha_dos_corpos.gd
+```
+
+Pasta fora da curadoria o script recusa. Depois de importar, rode o import do Godot
+(`--headless --path godot --import --quit`); o código pede a peça por `Kit.caminho("castle-kit/tower-base")`.
+A prancha dos corpos grava `docs/imagens/kenney/corpos.jpg` e `corpos_silhueta.jpg`.
+
 ## O mapa do código
 
 | caminho | o que é |

@@ -70,6 +70,7 @@ func _ready() -> void:
 	await _prova_de_fogo()
 	_prova_das_contas_da_partida()
 	_prova_das_contas_da_colecao()
+	_prova_do_kit_da_kenney()
 	_prova_das_contas_dos_itens()
 	_prova_do_teclado()
 	await _prova_da_partida()
@@ -2314,3 +2315,29 @@ func _prova_do_nome_na_linha_do_tempo() -> void:
 	var momentos := linhas.filter(func(e): return e.get("tipo") == "momento" and e.get("nome") == "nome_escrito")
 	_esperar(momentos.size() >= 1 and momentos.all(func(e): return e.get("slot") == "montagem" and int(e.get("lugar", -1)) == 0),
 		"teclado: o momento «nome_escrito» é do lugar que escreveu (%d)" % momentos.size())
+
+
+## O caminho de cada peça da Kenney e a escala por pasta (G10).
+func _prova_do_kit_da_kenney() -> void:
+	_esperar(Kit.caminho("floor") == "res://assets/kenney/mini-dungeon/floor.glb", "kit: sem pasta, o mini-dungeon")
+	_esperar(Kit.caminho("castle-kit/tower-base") == "res://assets/kenney/castle-kit/tower-base.glb", "kit: a pasta antes da barra")
+	_esperar(ResourceLoader.exists(Kit.caminho("floor")), "kit: o mini-dungeon abre da pasta nova")
+	_esperar(ResourceLoader.exists(Kit.caminho("mini-dungeon-personagens/character-orc")), "kit: o orc abre")
+	_esperar(ResourceLoader.exists(Kit.caminho("cube-pets/animal-fox")), "kit: a raposa abre")
+	_esperar(ResourceLoader.exists(Kit.caminho("mini-characters/character-female-a")) and ResourceLoader.exists(Kit.caminho("mini-characters/character-male-f")), "kit: os 12 do Mini Characters abrem")
+	_esperar(ResourceLoader.exists(Kit.caminho("graveyard-kit/character-skeleton")), "kit: o esqueleto do Graveyard abre")
+	_esperar(is_equal_approx(Kit.escala_do_pacote("castle-kit/tower-base"), 1.4), "kit: o castle-kit vale 1,4")
+	_esperar(is_equal_approx(Kit.escala_do_pacote("factory-kit/door"), 0.5), "kit: o factory-kit vale 0,5")
+	_esperar(is_equal_approx(Kit.escala_do_pacote("floor"), 1.0) and is_equal_approx(Kit.escala_do_pacote("mini-dungeon/floor"), 1.0), "kit: o mini-dungeon vale 1")
+	var pai := Node3D.new()
+	add_child(pai)
+	var torre := Kit.peca(pai, "castle-kit/tower-base", Vector3.ZERO)
+	var chao := Kit.peca(pai, "floor", Vector3.ZERO)
+	_esperar(is_equal_approx(torre.scale.x, Kit.K * 1.4), "kit: Kit.peca multiplica a escala pela da pasta (%.2f)" % torre.scale.x)
+	_esperar(is_equal_approx(chao.scale.x, Kit.K), "kit: a peça sem pasta fica na escala pedida (%.2f)" % chao.scale.x)
+	pai.queue_free()
+	var soltas := 0
+	for f in DirAccess.get_files_at("res://assets/kenney"):
+		if f.ends_with(".glb"):
+			soltas += 1
+	_esperar(soltas == 0, "kit: nenhuma peça solta em assets/kenney (%d)" % soltas)

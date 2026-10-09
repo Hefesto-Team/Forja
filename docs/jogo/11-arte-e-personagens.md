@@ -11,7 +11,7 @@ se refaz e de onde vêm os bonecos novos.
 Tudo o que entra na tela segue o kit Kenney Mini Dungeon
 (`godot/assets/kenney/`):
 
-1. **Fosco.** Material com a paleta de `godot/assets/kenney/Textures/colormap.png`
+1. **Fosco.** Material com a paleta de `godot/assets/kenney/mini-dungeon/Textures/colormap.png`
    ou cor lisa sem brilho. `metallic` no máximo 0,2; metal é cor, não reflexo.
 2. **Facetado e em blocos.** Nenhuma esfera, elipsoide ou cilindro liso
    visível de perto. Curva se faz com poucos lados (6 a 8 segmentos) ou com
@@ -60,7 +60,7 @@ Todo objeto novo passa pelos oito, antes do commit:
 
 A meta é **doze bonecos** na construção do cavaleiro, todos no mesmo
 esqueleto, para que cada pessoa ache "o seu". Hoje: dois
-(`godot/assets/kenney/character-human.glb` e `character-orc.glb`).
+(`godot/assets/kenney/mini-dungeon-personagens/character-human.glb` e `character-orc.glb`).
 
 O que já existe e ajuda (`godot/scripts/player.gd`):
 

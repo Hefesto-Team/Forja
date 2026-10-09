@@ -4,19 +4,41 @@ extends RefCounted
 
 const K := 2.0
 const CAMINHO := "res://assets/kenney/%s.glb"
+## Um pacote por pasta (G10). Sem pasta no nome, vale esta.
+const PACOTE_PADRAO := "mini-dungeon"
+## O fator de cada pasta sobre a escala pedida (a escala de cada kit, docs/jogo/14); as outras valem 1.
+const ESCALA_DO_PACOTE := {
+	"castle-kit": 1.4, "survival-kit": 1.4, "factory-kit": 0.5, "building-kit": 0.35,
+	"pirate-kit": 0.4, "cube-pets": 0.4, "blaster-kit": 0.3, "modular-dungeon-kit": 0.25,
+	"modular-cave-kit": 0.25, "modular-space-kit": 0.25,
+}
 const SH_NEON := preload("res://shaders/neon.gdshader")
 
 static var _cenas := {}
 
 
+## O caminho de uma peça: "floor" é do mini-dungeon; "castle-kit/tower-base" traz a pasta antes da barra.
+static func caminho(nome: String) -> String:
+	if "/" in nome:
+		return CAMINHO % nome
+	return CAMINHO % (PACOTE_PADRAO + "/" + nome)
+
+
+## O fator da pasta da peça sobre a escala pedida.
+static func escala_do_pacote(nome: String) -> float:
+	if not "/" in nome:
+		return 1.0
+	return float(ESCALA_DO_PACOTE.get(nome.get_slice("/", 0), 1.0))
+
+
 static func peca(pai: Node, nome: String, pos: Vector3, rot_y := 0.0, escala := K) -> Node3D:
 	if not _cenas.has(nome):
-		_cenas[nome] = load(CAMINHO % nome)
+		_cenas[nome] = load(caminho(nome))
 	var cena: PackedScene = _cenas[nome]
 	var n: Node3D = cena.instantiate() if cena else Node3D.new()
 	n.position = pos
 	n.rotation.y = rot_y
-	n.scale = Vector3.ONE * escala
+	n.scale = Vector3.ONE * escala * escala_do_pacote(nome)
 	pai.add_child(n)
 	return n
 
