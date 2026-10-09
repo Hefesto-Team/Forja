@@ -125,15 +125,32 @@ Toda ideia nova (um objeto, um som, um efeito, uma tela, uma frase) responde
 | [02 A cor e a letra](02-cor-e-letra.md) | os tokens de cor com nome, os pares de contraste permitidos, as quatro fontes e a escala de tamanhos |
 | [03 O som](03-som.md) | as famílias de efeito, o tratamento de fita, a vitória e a derrota, o carimbo de cada julgamento, a assinatura de cada lugar, a mixagem, o gerador |
 | [04 O cavaleiro montável](04-o-cavaleiro.md) | as peças, o corte da Kenney, os stats (proposta), as escolhas que impedem outras, o pré-montado, o nome, a tela de montagem |
-| [05 O movimento](05-movimento.md) | a animação na batida: antecipação, impacto, poses, o mundo que respira |
-| [06 A interface e o texto](06-interface-e-texto.md) | as placas, a etiqueta, as transições, o texto como voz |
-| [07 O brilho e os efeitos](07-vfx.md) | o que brilha, quem é dono do brilho, as partículas, o pós da fita |
-| [08 A háptica](08-haptica.md) | a vibração e o gatilho como linguagem, casados com o som |
-| [09 As reações](09-reacoes.md) | os adesivos (os emojis do jogo): estilo, lista, onde e quanto duram |
-| [10 A acessibilidade](10-acessibilidade.md) | daltonismo, contraste, texto mínimo, conforto, saídas silenciosas |
+| [05 O movimento](05-movimento.md) | a grade da batida, as seis curvas, o golpe (antecipação, impacto, hit-stop), o squash, a Kenney na batida, as poses, o mundo que respira |
+| [06 A interface e o texto](06-interface-e-texto.md) | os objetos de fita (placa, etiqueta, deck, J-card), as doze transições com a cortina e o rasgo, a espera do corte, o texto como voz |
+| [07 O brilho e os efeitos](07-vfx.md) | o dono e o teto de cada brilho, as partículas e o confete de fita, o carimbo, o erro sem vermelho, o pós da fita, a Dissonância |
+| [08 A háptica](08-haptica.md) | a vibração e o gatilho como linguagem, casados com o som (do diretor de som e háptica) |
+| [09 As reações](09-reacoes.md) | os emojis da Forja: os oito adesivos do jogador e os seis carimbos do jogo, o gesto, o limite, onde e quanto duram |
+| [10 A acessibilidade](10-acessibilidade.md) | o daltonismo medido no OKLab, o contraste, o texto mínimo, o movimento reduzido, o piscar, quando falta um canal |
 | [11 O que nunca](11-o-que-nunca.md) | a lista do que não entra |
-| [12 Os portões](12-portoes.md) | as regras que um script confere, com o limite de cada uma |
+| [12 Os portões](12-portoes.md) | os oito portões que um script confere, com o limite e a catraca de cada um |
 | [PRODUÇÃO](PRODUCAO.md) | a lista fechada do que o produtor faz agora, com o arquivo e o critério de pronto |
+| [dados/](dados/) | as tabelas que os portões e as fichas leem: [contraste.csv](dados/contraste.csv), [reacoes.csv](dados/reacoes.csv) e, quando o produtor medir, `contatos.csv` |
+
+## As fichas que a bíblia pede
+
+O que vai para o jogo vira ficha no [quadro](../tarefas/README.md). Esta
+pasta não mexe em `godot/scripts`.
+
+| ficha | o que leva ao jogo | de onde |
+| --- | --- | --- |
+| [G13](../tarefas/G13-o-cavaleiro-montavel.md) | o corte das peças, a montagem e a tela de montagem com a forja | [04](04-o-cavaleiro.md) |
+| [G14](../tarefas/G14-a-cor-e-a-letra-da-fita.md) | os tokens e as quatro fontes no `tema.gd`, sem cor escrita fora dele | [02](02-cor-e-letra.md) |
+| [G15](../tarefas/G15-a-luz-o-pos-e-o-brilho-com-dono.md) | a luz de cada seção, o pós da fita, o desgaste e o brilho com dono | [01](01-cinema.md), [07](07-vfx.md) |
+| [G16](../tarefas/G16-o-virar-da-fita-e-o-conforto.md) | o virar da fita, as Opções Movimento e Reações | [01](01-cinema.md), [09](09-reacoes.md), [10](10-acessibilidade.md) |
+
+Os portões da [12](12-portoes.md) são do arquiteto e DevOps; os adesivos e
+os carimbos no jogo ganham ficha depois da prancha das reações
+([PRODUÇÃO](PRODUCAO.md), item 3).
 
 ## O que já estava decidido
 

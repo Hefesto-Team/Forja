@@ -1,0 +1,15 @@
+id,nome,tipo,quem_manda,direcao,tecla,visor,evento,onde,tamanho_px,fica_batidas,som
+rea_martelada,Martelada,adesivo,jogador,cima,1,,o jogador solta o dedo,cabeça ou cartão do dono,144 ou 112,4,reacao_pop
+rea_brasa,Brasa,adesivo,jogador,cima-direita,2,,o jogador solta o dedo,cabeça ou cartão do dono,144 ou 112,4,reacao_pop
+rea_acorde,Acorde,adesivo,jogador,direita,3,,o jogador solta o dedo,cabeça ou cartão do dono,144 ou 112,4,reacao_pop
+rea_riso,Riso,adesivo,jogador,baixo-direita,4,,o jogador solta o dedo,cabeça ou cartão do dono,144 ou 112,4,reacao_pop
+rea_chororo,Chororô,adesivo,jogador,baixo,5,,o jogador solta o dedo,cabeça ou cartão do dono,144 ou 112,4,reacao_pop
+rea_susto,Susto,adesivo,jogador,baixo-esquerda,6,,o jogador solta o dedo,cabeça ou cartão do dono,144 ou 112,4,reacao_pop
+rea_bronca,Bronca,adesivo,jogador,esquerda,7,,o jogador solta o dedo,cabeça ou cartão do dono,144 ou 112,4,reacao_pop
+rea_de_olho,De olho,adesivo,jogador,cima-esquerda,8,,o jogador solta o dedo,cabeça ou cartão do dono,144 ou 112,4,reacao_pop
+car_acorde,Acorde maior,carimbo,jogo,,,ACORDE MAIOR!,os quatro acertam Ressonância no mesmo tempo 1,centro da tela (y 300),Bungee 112,4,a definir pelo diretor de som
+car_virada,Virada,carimbo,jogo,,,VIRADA!,no placar alguém passa a ser o primeiro,ao lado da linha dele no placar,Bungee 64,2,a definir pelo diretor de som
+car_em_chamas,Em chamas,carimbo,jogo,,,EM CHAMAS,5 Ressonâncias seguidas do mesmo jogador,acima da cabeça dele,Bungee 46,4,a definir pelo diretor de som
+car_por_um_fio,Por um fio,carimbo,jogo,,,POR UM FIO,o vencedor ganha por 2% dos pontos ou menos,acima da cabeça do vencedor,Bungee 64,4,a definir pelo diretor de som
+car_liga,Liga,carimbo,jogo,,,LIGA!,a peça entra em liga com o corpo na montagem,linha Arma ou amuleto da coluna dele,Bungee 46,4,a definir pelo diretor de som
+car_emburrado,Emburrado,carimbo,jogo,,,,o último colocado no inserto do resultado,acima da cabeça dele,160,1,fx_derrota
