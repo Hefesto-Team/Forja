@@ -8,10 +8,11 @@ extends SalaJogo
 ##
 ##   - o analógico esquerdo anda; o direito e o giroscópio miram (L2 afina a
 ##     mira, e o gatilho resiste); R2 atira, com a parede e o clique da arma;
-##   - a munição nas cinco luzinhas; vazia, o gatilho solta e o clique seco sai
-##     no alto-falante do controle; □ recarrega;
-##   - o tiro que vem da esquerda treme o motor da esquerda; a luz é a cor da
-##     equipe, pisca vermelho no golpe e apaga com a vida;
+##   - a munição na tela (no Modo bancada, nas cinco luzinhas); vazia, o gatilho
+##     solta e o clique seco sai no alto-falante do controle; □ recarrega;
+##   - o tiro que vem da esquerda treme o motor da esquerda; a luz é a cor do
+##     lugar (a da equipe é o disco no chão), pisca vermelho no golpe e
+##     escurece com a vida, nunca abaixo de 30%;
 ##   - o passo no chão da arena (grama, cascalho, metal, água) nos atuadores;
 ##   - ✕ corre; o clique do touchpad solta a martelada quando o sino do
 ##     especial toca no controle de quem a carregou.
@@ -240,8 +241,9 @@ func _armar(e: Dictionary, arma: bool) -> void:
 		_saida(e.lugar, Forja.gatilho(e.lugar, 1, F.GATILHO_OFF))
 
 
-## A luz: a cor da equipe, mais fraca com a vida; o vermelho do golpe; o pulso
-## de quem está por um fio; escura derrubado. Só sai quando muda.
+## A luz: a cor do lugar, mais fraca com a vida (nunca abaixo de 30%); o
+## vermelho do golpe; o pulso de quem está por um fio; a 30% derrubado. Só sai
+## quando muda.
 func _atualizar_luz(e: Dictionary, dt: float) -> void:
 	e.luz_pisca = maxf(0.0, float(e.luz_pisca) - dt)
 	e.pulso_t = float(e.pulso_t) + dt

@@ -4,16 +4,17 @@ extends SalaJogo
 ##
 ## O padrão dos jogos de tiro do PS5: cada arma tem o seu gatilho. A pistola
 ## tem parede e clique (Weapon), a metralhadora treme (Vibration), o arco pesa
-## (Feedback); sem arma, o gatilho fica solto (Off). A munição fica nas cinco
-## luzinhas brancas embaixo do touchpad (os LEDs de jogador) e, quando acaba, o
+## (Feedback); sem arma, o gatilho fica solto (Off). A munição fica na tela (no
+## Modo bancada, nas cinco luzinhas brancas embaixo do touchpad, os LEDs de
+## jogador; fora dele, as luzinhas são o número do lugar) e, quando acaba, o
 ## gatilho solta — "clique seco" — até recarregar. Só os quatro modos oficiais
 ## entram (CONTRATO.md).
 ##
 ## E é uma prova às cegas (cegas.h): a arma chega no baú fechado. A pessoa
 ## aperta R2, sente, e diz qual é (✕ pistola, ○ metralhadora, □ arco, △ sem
-## arma) antes de ver; o baú abre e ela atira. No fim de cada rodada, o armeiro
-## recarrega sem ninguém ver, e a pessoa diz quantas balas tem contando as
-## luzinhas do controle — a tela não mostra. Cada arma aparece duas vezes, em
+## arma) antes de ver; o baú abre e ela atira. No fim de cada rodada (no Modo
+## bancada), o armeiro recarrega sem ninguém ver, e a pessoa diz quantas balas
+## tem contando as luzinhas do controle — a tela não mostra. Cada arma aparece duas vezes, em
 ## ordem sorteada, e a que ficar no meio do caminho ganha rodada de desempate.
 
 const F := preload("res://scripts/forja.gd")
