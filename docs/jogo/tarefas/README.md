@@ -175,7 +175,7 @@ que está escrito em dois lugares. São base: vão de **a fazer** direto para **
 | [V05](V05-o-som-pelo-mapa.md) | O Som pelo mapa do áudio | M | H06, H07, o mapa do áudio publicado | a fazer |
 | [V06](V06-as-provas-que-ninguem-roda.md) | As provas que ninguém roda | P | — | a fazer |
 | [V07](V07-o-codigo-sem-uso.md) | O código sem uso | P | F05, F10 | a fazer |
-| [V08](V08-os-portoes-de-arte-e-som-reprovam.md) | Os portões de arte e som reprovam | M | a bíblia aprovada, a G14, V05, o mapa do áudio com os arquivos | a fazer |
+| [V08](V08-os-portoes-de-arte-e-som-reprovam.md) | Os portões de arte e som reprovam | M | a bíblia aprovada (o ESPERA-ELA), a G14, V05, o mapa do áudio com os arquivos | a fazer |
 
 ## X — Os módulos
 

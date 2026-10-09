@@ -113,6 +113,9 @@ jobs:
       - name: A prova dos portões (cada um reprova o defeito que diz pegar)
         run: bash tests/prova_dos_portoes.sh
 
+      - name: A prova da esteira (o quadro lido, a costura que para no conflito e no vermelho)
+        run: bash tests/prova_da_esteira.sh
+
   windows:
     name: Windows — o módulo (mingw-w64)
     runs-on: ubuntu-24.04
