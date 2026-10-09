@@ -65,7 +65,7 @@ command -v bwrap > /dev/null || { echo "sem bwrap: a prova visual não roda fora
 CAIXA=(bwrap --dev-bind / / --dev /dev --tmpfs /run/udev --tmpfs /sys/class/input --tmpfs /sys/class/hidraw)
 
 RES="${RES:-640x360}"
-GODOT_JANELA=(--rendering-driver opengl3 --path "$RAIZ/godot" --resolution "$RES")
+GODOT_JANELA=(--rendering-driver opengl3 --audio-driver Dummy --path "$RAIZ/godot" --resolution "$RES")
 if [ "${NA_TELA:-0}" = 1 ]; then
   # a placa de vídeo entra na caixa (o hidraw e o input continuam de fora)
   for d in /dev/dri /dev/nvidia*; do
