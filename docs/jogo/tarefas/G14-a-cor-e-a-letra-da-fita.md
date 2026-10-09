@@ -207,3 +207,25 @@ existe; e as duas fontes do app saíram do jogo e das licenças.
 
 Marcar G14 como **feito** no [quadro](README.md), com o gasto. Commit sugerido:
 `feat(tema): a cor e a letra da Fita no jogo inteiro, e o boneco sem o tom do dono`.
+
+## O que foi feito (leva 1, a-fita)
+
+- **A cor e a letra:** `tema.gd` com os tokens, as quatro fontes e a escala do [02](../arte/02-cor-e-letra.md); os
+  nomes antigos trocados em todo `godot/scripts/`; Space Grotesk e JetBrains Mono apagadas (arquivos, `.import`, OFL,
+  `LICENCAS-DE-TERCEIROS.md`, `godot/assets/LEIA-ME.md`, README, `run.sh`); o fundo do jogo e o `project.godot` na cor
+  da Fita (`set_default_clear_color` em `main.gd::_ambiente()`).
+- **O lugar:** `Forja.COR_DO_LUGAR` virou o `Tema.JOGADOR` e a lightbar (`nativo/nucleo/pads.c`, `LUZ_DO_LUGAR`) tem as
+  mesmas quatro cores (ciano, rosa, lima, âmbar). Recompilado (`compilar.sh linux` e `testes`, ok).
+- **O boneco:** `_vestir` e o tom do dono saíram de `player.gd`; o corpo fica com o material da peça, o rótulo P# em Bungee.
+- **O diagnóstico** foi refeito a 30 px (linha por gatilho, dicas no alto).
+- **Medida:** o portão de arte foi de 193 para 127 achados, e nenhum que sobrou é de fonte ou de tamanho.
+  Os 127 são de cor, quase todos 3D (a G15 refaz) e as luzes do controle (ver a [G14b](G14b-as-cores-de-luz-que-sobraram.md)).
+- **Provas:** `_prova_da_cor_e_da_letra` em `prova_do_jogo.gd` (cor do lugar, luz de cada lugar, a seção 6, as duas
+  fontes sumidas, e nenhuma malha `body*` com material trocado). Mordeu: com a tabela antiga, o `pads.c` antigo e o
+  `_vestir` de volta, reprovaram o tema, a lightbar de P1 e P2 e o boneco; restaurado, passou. `rodar.sh`,
+  `prova_dos_portoes.sh` e `prova_sem_rastro.sh` ok.
+- **Para a mão dela e do André:** ver a cor na TV e a lightbar de verdade; olhar a prancha ao lado dos quadros 02, 04
+  e 07 do estudo (a `prova_visual` acusa o boneco mudado em toda sala, e é esperado: a prancha nova é a referência).
+- **Escolhas a validar:** o 3D ficou num mapeamento provisório (amarelo e laranja no tungstênio, o resto no violeta),
+  a G15 refaz; o chão de Caminhos e da Prova mudou junto; o erro de resposta não tem cor; foco e seleção levam a cor
+  do dono; `RAIO_QUADRO` 18 e `BORDA` 2 ficaram como estavam (a bíblia diz 14 e 3, a ficha não mandou mexer no layout).
