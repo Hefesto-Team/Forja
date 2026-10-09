@@ -9,7 +9,9 @@ Cada arquivo sai conferido pelo sha256, como o SDL no compilar.sh.
 
     modelos_de_exportacao.py URL PASTA nome=sha256 [nome=sha256 ...]
 
-Os nomes são os de dentro do pacote, sem o "templates/" da frente.
+Os nomes são os de dentro do pacote, sem o "templates/" da frente. A URL pode
+ser um caminho local (ou file://): o pacote abre direto, sem pedidos por
+pedaço (é o que a tests/prova_das_ferramentas.sh usa).
 """
 
 import hashlib
@@ -63,13 +65,21 @@ class PacoteRemoto(io.RawIOBase):
         return len(dados)
 
 
+def abrir_pacote(url: str):
+    """O pacote por pedaços quando é remoto; o arquivo direto quando é local."""
+    local = url[len("file://"):] if url.startswith("file://") else url
+    if os.path.isfile(local):
+        return open(local, "rb")
+    return io.BufferedReader(PacoteRemoto(url), buffer_size=1 << 20)
+
+
 def main() -> int:
     if len(sys.argv) < 4:
         print(__doc__.strip(), file=sys.stderr)
         return 2
     url, pasta, pedidos = sys.argv[1], sys.argv[2], sys.argv[3:]
     os.makedirs(pasta, exist_ok=True)
-    pacote = zipfile.ZipFile(io.BufferedReader(PacoteRemoto(url), buffer_size=1 << 20))
+    pacote = zipfile.ZipFile(abrir_pacote(url))
     for pedido in pedidos:
         nome, _, esperado = pedido.partition("=")
         dados = pacote.read("templates/" + nome)  # o zip confere o CRC

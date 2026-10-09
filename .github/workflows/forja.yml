@@ -57,6 +57,9 @@ jobs:
       - name: As ferramentas de bancada e as provas delas
         run: make all
 
+      - name: A prova das ferramentas (as --prova de cada uma e o baixador dos modelos de exportação)
+        run: bash tests/prova_das_ferramentas.sh
+
       - name: A versão do Godot é a do engine.sh
         run: |
           grep -q "FORJA_GODOT_VER:-${GODOT_VERSAO}}" scripts/engine.sh \
