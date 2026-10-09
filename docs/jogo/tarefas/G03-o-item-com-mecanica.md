@@ -13,7 +13,7 @@ minigames.
 
 - [O item tem mecânica](../06b-a-construcao-do-cavaleiro.md#o-item-tem-mecânica) (a tabela dos seis, a troca e a liga)
 - [A arma ou o amuleto](../arte/04-o-cavaleiro.md#a-arma-ou-o-amuleto) (onde cada um fica e de onde vem a malha)
-- [O item — G03](../13-arquitetura.md#o-item--g03) e [o kit do minigame](../13-arquitetura.md#o-kit-do-minigame--h04) (quem chama)
+- [O item — G03](../13-arquitetura.md#o-item--g03) e a seção seguinte do mesmo arquivo, «O kit do minigame — H04» (quem chama)
 
 ## Arquivos que mudam
 
@@ -69,7 +69,7 @@ dentro dessas faixas, moram em `Itens` (constantes, não tokens de tela):
 | constante | hex | L | croma | ΔE até o néon mais perto |
 | --- | --- | --- | --- | --- |
 | `Itens.METAL` | `#9ba6b1` | 0,72 | 0,020 | 0,180 (ciano) |
-| `Itens.CERAMICA` | `#cdb295` | 0,78 | 0,050 | 0,110 (âmbar) |
+| `Itens.CERAMICA` | `#c9b08f` | 0,77 | 0,053 | 0,105 (âmbar) |
 | `Itens.LATAO` | `#b59b63` | 0,70 | 0,080 | 0,099 (âmbar) |
 
 - **As malhas da Kenney** (Martelo, Escudo): cada superfície ganha uma cópia
@@ -228,7 +228,7 @@ enum { NENHUM, MARTELO, ESCUDO, FOLE, LANTERNA, DIAPASAO, ANCORA }
 const PERFEITO := 3
 ## Os tons das peças (arte/02, a escada de valor), medidos em OKLab.
 const METAL := Color("#9ba6b1")     ## L 0,72, croma 0,020: a arma
-const CERAMICA := Color("#cdb295")  ## L 0,78, croma 0,050: o disco do amuleto
+const CERAMICA := Color("#c9b08f")  ## L 0,770, croma 0,053: o disco do amuleto (o Fita.CERAMICA do estudo, fita.gd:131)
 const LATAO := Color("#b59b63")     ## L 0,70, croma 0,080: o emblema
 ## O item de cada lugar, para a mecânica (a construção escreve; a sala não mexe).
 static var escolhido := [NENHUM, NENHUM, NENHUM, NENHUM]

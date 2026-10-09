@@ -34,7 +34,7 @@ fecha a coerência fosca e facetada do resto do jogo.
 | `godot/scripts/mundo/kit.gd` | A | **G03, G10** |
 | `godot/scripts/salas/voz.gd`, `canto.gd`, `caminhos.gd`, `centelha.gd`, `galeria.gd`, `impacto.gd`, `molde.gd`, `viga.gd`, `prova.gd`, `godot/scripts/mundo/efeitos.gd`, `godot/scripts/mundo/salao.gd` | A | **G05** (`salao.gd`), **G06** (`salao.gd`), **G15** |
 | `godot/scripts/mundo/racas.gd` e `.uid` (novo, `class_name Racas`) | B | — |
-| a tela de montagem da G13 (o script que ela criou para a linha da cabeça) | B | **G13** |
+| `godot/scripts/ui/tela_lobby.gd` (a tela de montagem que a G13 pôs no lugar do seletor do lobby; a linha da cabeça) | B | **G02**, **G13** |
 | `godot/scripts/traducoes.gd` | B | **todas as G com texto** |
 | `godot/testes/prova_do_jogo.gd`, `tests/prova_do_jogo.sh` | A e B | **todas as G** |
 
@@ -56,15 +56,43 @@ pela semente do lugar: humana se `semente % 2 == 0`, senão a raça
   frontal); o resto, a G05.
 - **Luz:** nenhuma muda. A luz da casa (tocha, lilás, névoa) fica.
 - **O corpo do cavaleiro, por parte** (L e croma em OKLab; o recolorir é o
-  `graduar` do estudo `godot/estudos/direcao/fita.gd`, com o teto de croma
-  novo):
+  `graduar` do estudo, `godot/estudos/direcao/fita.gd:175-197`, com o teto de
+  croma de cada papel):
 
 | parte | papel em `Pintura.GRADE` | `l0` | `l1` | `sat` | croma máximo | rugosidade | metallic |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| cabeça | `personagem` | 0,06 | 0,86 | 0,80 | 0,10 | 0,90 | 0 |
-| tronco superior | `tecido` | 0,46 | 0,12 | 0,55 | 0,10 | 0,85 | 0 |
+| cabeça | `personagem` | 0,06 | 0,86 | 0,80 | 0,098 | 0,90 | 0 |
+| tronco superior | `tecido` | 0,46 | 0,12 | 0,55 | 0,098 | 0,85 | 0 |
 | tronco inferior | `couro` | 0,22 | 0,14 | 0,40 | 0,07 | 0,70 | 0 |
 | item | `objeto` | 0,22 | 0,56 | 0,40 | 0,03 | 0,55 | 0,2 |
+
+  O teto é 0,098 e a folga até um `Tema.JOGADOR` é 0,085, não 0,10 e 0,08:
+  o arredondamento do sRGB de 8 bits passava do limite (04, «O que mudou no
+  estudo, em 09/10»). Depois do teto, o laço do estudo: enquanto a cor está a
+  menos de 0,085 de algum `JOGADOR`, o croma desce 10 %, até 20 passos. A
+  prova continua conferindo croma de até 0,10 e ΔE de 0,08 ou mais.
+
+  A L de cada parte não depende do croma: `l = l0 + L × l1`. Por isso o
+  superior cai sempre em [0,46; 0,58], o inferior em [0,22; 0,36] e a
+  diferença é de 0,10 ou mais, em qualquer colormap. A exceção é a pele.
+- **A pele não se clareia** (04, «O que a medida deu, em 09/10»). No
+  colormap do Mini Characters, as três rampas de pele ficam em
+  `PELE_UV = Rect2(330/512, 380/512, 182/512, 132/512)` (`fita.gd:123`): a mão,
+  a perna de fora, o rosto. Esses pixels recebem o papel `personagem` também
+  no superior e no inferior (o `papel_pele` do `recolorir`, `fita.gd:202-218`).
+  As medianas do superior e do inferior se medem só no pano (a UV fora de
+  `PELE_UV`). Medido no estudo em 09/10, nos 12 do Mini Characters: o
+  superior de 0,501 a 0,562, o inferior de 0,269 a 0,332, o pior par a 0,169.
+  O male-f (a bermuda) passa: superior 0,532, inferior 0,298. Nos bonecos do
+  Mini Dungeon de hoje não há `PELE_UV`: o colormap inteiro vai pelo papel
+  da parte.
+
+  Este é o caminho de «medir só no pano» que o 04 propõe para o male-f. O
+  diretor de arte ainda não decidiu (PRODUCAO, item 17). Se ele tirar o male-f
+  do inferior, a prova não muda; se decidir o critério do rosto (|ΔL| de 0,10
+  ou mais entre o rosto e o superior, com a gola acesa onde não chega), ele
+  entra na prova como uma linha a mais. Até lá, a cabeça não tem faixa na
+  prova.
 
 - **O néon do dono** (sempre `Tema.JOGADOR[lugar]`, nunca a cor da peça):
 
@@ -79,23 +107,29 @@ pela semente do lugar: humana se `semente % 2 == 0`, senão a raça
 | a cabeça humana | nenhum acento | — | 0 % |
 
   A soma do friso e da costura fica em até 8 % da frente do corpo.
-- **As raças (parte B)**, medidas nas unidades do personagem do Mini
-  Characters (o `male-a` tem 0,67 de altura):
+- **As raças (parte B)**, as do estudo `godot/estudos/direcao/cavaleiro/racas.gd`,
+  que a prancha aprovou (04, «O que mudou no estudo, em 09/10»). Medidas nas
+  unidades do personagem do Mini Characters (o `male-a` tem 0,67 de altura; a
+  cabeça dele vai de y 0,34 a 0,67). A cabeça por código nasce no osso `head`,
+  em y `PESCOCO` = 0,343, com a escala `ESCALA_CABECA` = 1,30 sobre as medidas
+  abaixo (o autômato fica com 0,39 de largura, perto dos 0,45 da cabeça
+  humana).
 
-| raça | a cabeça | as mãos | a cauda | a proporção | a pele | o acento |
-| --- | --- | --- | --- | --- | --- | --- |
-| Orc | a `head-mesh` de `res://assets/kenney/mini-dungeon/character-orc.glb` | na pele | — | — | `Tema.PELE_ORC` `#89aa77` | nenhum |
-| Autômato | caixa de 0,30 × 0,28 × 0,28 com chanfro de 0,02; o visor: caixa `Tema.JANELA` de 0,24 × 0,06 × 0,01 a 0,10 do topo, com a linha de acento de 0,22 × 0,02 dentro; antena de 0,08 com a bola de 0,025 | pinça: duas caixas de 0,02 × 0,05 × 0,02 no punho | — | — | `Tema.PELE_LATAO` `#bda978`, metallic 0,2 | o visor, 1,6 |
-| Golem | bloco de 0,34 × 0,24 × 0,30, 0,03 mais baixo (sem pescoço); a rachadura: três caixas de 0,005 × 0,06 × 0,01 num vão `Tema.JANELA` de 0,10 × 0,08 na testa | punho: cubo de 0,075 no punho | — | `torso` × (1,15; 1; 1,15), `head` × 0,87 | `Tema.PELE_ESCORIA` `#a3958e` | a rachadura, 1,6 |
-| Raposa | caixa de 0,28 × 0,24 × 0,26; focinho de 0,12 × 0,08 × 0,10 com a ponta de 0,04 em `Tema.TINTA`; duas orelhas de 0,08 × 0,10 × 0,03; olhos de 0,03 em `Tema.TINTA` | na pele | a malha `tail` de `res://assets/kenney/cube-pets/animal-fox.glb` × 0,33, no osso `root` em (0; 0,20; −0,10), balança ±8° por batida, `ENTRA_SAI` (`TRANS_SINE`, `EASE_IN_OUT`) | — | `Tema.PELE_RAPOSA` `#cd8d6d` | nenhum |
+| raça | a cabeça | as mãos | a cauda | a proporção | a pele | o acento | a marca do perfil |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| Orc | a `head-mesh` de `Kit.caminho("mini-dungeon-personagens/character-orc")` (G10), com o skin dela; o colormap do orc em `personagem` e depois `Pintura.trocar_matiz(img, Tema.PELE_ORC, -0.05)`: os pixels com o a do OKLab abaixo de −0,05 (o verde) ganham o a e o b de `PELE_ORC`, e a L de cada um fica | na pele | — | — | `Tema.PELE_ORC` `#89aa77` | nenhum | o tufo: caixa de 0,06 com o centro em (0; 0,78; 0), o alto da cabeça do orc |
+| Autômato | caixa chanfrada (três caixas cruzadas, chanfro 0,025) de 0,30 × 0,28 × 0,28; dois parafusos nos lados (cilindro de 6 lados, raio 0,035, 0,02 de altura); o visor: caixa `Tema.JANELA` de 0,24 × 0,06 × 0,02 a 0,10 do topo, com o acento de 0,22 × 0,02 × 0,01 dentro; a boca: três frestas `JANELA` de 0,018 × 0,04 × 0,01, a 0,04 uma da outra, em y 0,07; a antena: haste de 0,012 × 0,08 × 0,012 em x 0,06 | a pinça: uma placa de 0,05 × 0,02 × 0,05 e dois dedos de 0,02 × 0,05 × 0,02 girados ±0,25 rad, no punho | — | — | `Tema.PELE_LATAO` `#bda978`, metallic 0,2; rugosidade 0,9 na cabeça e 0,55 na pinça | o visor, 1,6 | a bola da antena: esfera de raio 0,025 (6 × 3) no alto da haste |
+| Golem | um tronco de pirâmide de faces chapadas, sem pescoço (a base em y −0,03): a base de 0,36 × 0,30, o topo de 0,26 × 0,24, 0,27 de altura; a sobrancelha chanfrada de 0,30 × 0,045 × 0,07 a 0,165 da base; os olhos `Tema.TINTA` de 0,06 × 0,026 em x ±0,075, a 0,13 da base; a boca `TINTA` de 0,14 × 0,014, a 0,06 da base; duas pedras de 0,08 × 0,075 × 0,12 nas bochechas, em x ±0,165; a laje torta de 0,15 × 0,05 × 0,14 no alto, em x 0,035; a rachadura: três traços em zigue-zague em x −0,05 ± 0,01, do topo até a sobrancelha, cada um um vão `JANELA` de 0,018 de altura com o acento de 0,007 dentro | o punho de pedra: cubo chanfrado de 0,075 | — | `torso` × (1,15; 1; 1,15), `head` × (0,87; 1; 0,87) | `Tema.PELE_ESCORIA` `#a3958e`, rugosidade 0,9 | a rachadura, 1,6 | dois tufos de líquen desencontrados: 0,07 × 0,035 × 0,06 em (0,07; topo + 0,05; −0,04) e 0,05 × 0,03 × 0,05 em (−0,08; topo + 0,01; 0,03) |
+| Raposa | caixa chanfrada (chanfro 0,02) de 0,28 × 0,24 × 0,26; a máscara: placa `Tema.ETIQUETA_SOMBRA` de 0,26 × 0,10 × 0,01 na metade de baixo da cara (y 0,05); o focinho em `ETIQUETA_SOMBRA` de 0,11 × 0,07 × 0,08 em y 0,055; o nariz `TINTA` de 0,045 × 0,028 × 0,02 na frente do focinho; os olhos `TINTA` de 0,03 em x ±0,065, y 0,14; as orelhas: prismas de 0,08 × 0,10 × 0,04 em x ±0,085, girados ∓0,15 rad | na pele | a malha `tail` de `Kit.caminho("cube-pets/animal-fox")` × 0,33 (0,30 de comprimento), no osso `root` em (0; 0,20; −0,10); balança ±8° por batida (o seno do B2) | — | `Tema.PELE_RAPOSA` `#cd8d6d` | nenhum | a ponta das orelhas: prismas de 0,027 × 0,034 × 0,042 |
 
-  A marca do perfil (o cabelo do perfil na cor dele): o tufo de 0,06 do orc no
-  alto da cabeça, a bola da antena do autômato, dois tufos de 0,05 no alto do
-  golem, a ponta das orelhas da raposa.
+  As posições e os giros que a tabela não dá são os de `racas.gd`
+  (`automato` 249-287, `golem` 289-331, `raposa` 334-354, `_mao` 357-377,
+  `_cauda` 380-397), copiados sem mudar. A marca do perfil é a cor de maior
+  área da cabeça humana do perfil fora de `PELE_UV` (`cabelo`, `racas.gd:110-135`).
 - **O guardião d'A Voz** sai da esfera de bronze para pedra em blocos:
   pedra `Tema.GRAFITE`, escuro `Tema.CASCO`, a boca `Tema.JANELA`, os dentes
-  `Tema.ETIQUETA`; metallic 0, rugosidade 0,95. O olho fica `#ff3a1a` (a G15
-  dá token e dono).
+  `Tema.ETIQUETA`; metallic 0, rugosidade 0,95. O olho fica o `mat_olho` de
+  hoje, sem mudar a cor: o token dele e o dono são da G15.
 - **A coerência:** nenhuma curva com mais de 8 lados; nada com `metallic`
   acima de 0,2; o metal com rugosidade de 0,45 ou mais.
 
@@ -131,8 +165,9 @@ motor ou aos atuadores e ao alto-falante do lugar dele, e de nenhum outro
 - Os stats não mudam aqui. A raça é aparência
   ([sistemas](../sistemas/README.md#o-que-não-tem-stat)); o perfil da cabeça
   continua dando os stats e o pio.
-- A peça escolhida aparece pela faixa de valor: em cinza, cabeça clara
-  (0,68 a 0,80), tronco médio (0,46 a 0,58), pernas escuras (0,22 a 0,36).
+- A peça escolhida aparece pela faixa de valor: em cinza, o tronco médio
+  (0,46 a 0,58) e as pernas escuras (0,22 a 0,36), medidos no pano. A cabeça
+  fica na pele como veio: os 12 rostos medem de 0,52 a 0,72 (A cena, a pele).
 - O item (G03) usa o papel `objeto` e a runa dele é o acento do item; esta
   ficha só entrega `Pintura` e o acento, a G03 aplica.
 
@@ -146,9 +181,10 @@ Não se aplica: a ficha não dispara adesivo nem carimbo.
 corpo e não pela cor, e alguém ri do golem de calça social. **Como se
 confere:**
 
-1. A prova do jogo mede as medianas de L de cada parte nos quatro cavaleiros
-   da montagem: superior em [0,46; 0,58], inferior em [0,22; 0,36], e a
-   diferença entre os dois de 0,10 ou mais.
+1. A prova do jogo mede as medianas de L do pano de cada parte nos quatro
+   cavaleiros da montagem: superior em [0,46; 0,58], inferior em
+   [0,22; 0,36], e a diferença entre os dois de 0,10 ou mais (no estudo, o
+   pior par dá 0,169).
 2. A prancha `prancha-montagem-cinza.png` da prova visual (o quadro da
    montagem convertido para cinza e reduzido a 64 px de altura por cavaleiro):
    o jogador do time aponta, sem cor, qual parte é cabeça, tronco e pernas nos
@@ -179,7 +215,7 @@ confere:**
   com `tingir` e `brilho_proprio`), o contorno e o néon (`contorno.gdshader`,
   `neon.gdshader`), a normal suave no TANGENT (`Mundo.suavizar`,
   `godot/estudos/direcao/mundo.gd:46-73`), o anel com lâmpadas (`Mundo.anel`,
-  `mundo.gd:159-189`) e o `graduar` em OKLab (`fita.gd:107-176`). O jogo não
+  `mundo.gd:159-189`) e o `graduar` em OKLab (`fita.gd:107-197`). O jogo não
   tem `godot/shaders/`.
 - `godot/scripts/salas/voz.gd:114-168`, `_montar_guardiao()`: rosto
   `Kit.esfera` escalado (1,55; 1,95; 0,55) em bronze `metallic` 0,6; olhos
@@ -362,6 +398,10 @@ uniform float aro = 0.25;
 uniform float aro_pot = 2.5;
 uniform float rugoso_cima = 0.85;
 uniform float rugoso_baixo = 0.70;
+uniform float metal = 0.0;            // 0,2 no autômato e no item; o acabamento (G02, G06) escreve
+uniform vec4 pele : source_color = vec4(1.0);
+uniform float pele_ativa = 0.0;       // 1 numa raça: a pele do colormap vira a pele dela
+uniform vec4 pele_uv = vec4(0.6445, 0.7422, 1.0, 1.0);  // Pintura.PELE_UV: x0, y0, x1, y1
 uniform float acento = 1.6;          // 2,6 no encaixe
 uniform float friso_y0 = 0.0;        // o y mais baixo do torso, em repouso
 uniform float friso_y1 = 0.0;        // o y mais alto do torso
@@ -382,8 +422,17 @@ void vertex() {
 
 void fragment() {
 	vec3 c = baixo > 0.5 ? texture(textura_baixo, UV).rgb : texture(textura_cima, UV).rgb;
+	if (pele_ativa > 0.5 && UV.x >= pele_uv.x && UV.y >= pele_uv.y) {
+		// a rampa de pele desce do alto da coluna: o degradê é a razão
+		vec2 alto = vec2(UV.x, 0.7754);
+		vec3 topo = baixo > 0.5 ? texture(textura_baixo, alto).rgb : texture(textura_cima, alto).rgb;
+		float lum = dot(c, vec3(0.299, 0.587, 0.114));
+		float k = clamp(lum / max(dot(topo, vec3(0.299, 0.587, 0.114)), 0.05), 0.6, 1.0);
+		c = pele.rgb * k;
+	}
 	ALBEDO = c;
 	ROUGHNESS = baixo > 0.5 ? rugoso_baixo : rugoso_cima;
+	METALLIC = metal;
 	float f = pow(1.0 - clamp(dot(NORMAL, VIEW), 0.0, 1.0), aro_pot);
 	EMISSION = dono.rgb * f * aro;
 	bool friso = baixo < 0.5 && repouso.y >= friso_y0 - 0.0001
@@ -406,15 +455,25 @@ void fragment() {
   tem acento). O `friso` do superior só vale para vértices do `torso`: os
   braços recebem `UV2.y` = −1 (abaixo de qualquer `friso_y0`).
 
+  A pele (`pele`, `pele_ativa`, `pele_uv`) é o bloco do estudo
+  (`godot/estudos/direcao/shaders/cavaleiro.gdshader:28-32`): a parte B liga
+  numa raça. A costura (`abs(repouso.x) >= costura_x − costura_larg`) acende
+  a faixa de 0,008 da frente de cada perna, junto ao lado de fora (04, «O que
+  mudou no estudo»), e a face de fora da perna inteira; a face de fora não
+  conta na área de frente.
+
 **A3. `Pintura`** (`godot/scripts/mundo/pintura.gd`, `class_name Pintura`,
-novo). Copia do estudo `para_oklab`, `de_oklab`, `_lin`, `_srgb`, `graduar` e
-`recolorir`, com a `GRADE` da tabela de A cena (o campo novo `croma`: depois
-de multiplicar o croma por `sat`, se ele passar de `croma`, escala `a` e `b`
-para ficar em `croma`; `tinge` 0 nos quatro papéis). Mais:
+novo). Copia do estudo `godot/estudos/direcao/fita.gd` `DE_JOGADOR` (0,085),
+`PELE_UV` (123), `para_oklab`, `de_oklab`, `_lin`, `_srgb`, `graduar`
+(175-197, com o laço do ΔE), `recolorir(img, papel, papel_pele := "")`
+(202-218) e `trocar_matiz` (223-236), trocando `JOGADOR` por `Tema.JOGADOR`.
+A `GRADE` é a da tabela de A cena: `teto` = o croma máximo de cada papel,
+`tinge` 0 nos quatro (o jogo não puxa para o violeta). Mais:
 
 ```gdscript
-## A textura do colormap `caminho` recolorida pelo papel, uma vez por par.
-static func textura(caminho: String, papel: String) -> ImageTexture
+## A textura do colormap `caminho` recolorida pelo papel, uma vez por trio.
+## `papel_pele`: o papel dos pixels de PELE_UV ("" fora do Mini Characters).
+static func textura(caminho: String, papel: String, papel_pele := "") -> ImageTexture
 ## Distância OKLab entre duas cores.
 static func delta_e(a: Color, b: Color) -> float
 ## Prepara a malha de um boneco com skin: grava COLOR.r (0 superior, 1
@@ -427,7 +486,8 @@ static func delta_e(a: Color, b: Color) -> float
 static func preparar(mi: MeshInstance3D, esqueleto: Skeleton3D) -> Dictionary
 ## As medianas de L (OKLab) de cada parte, pela cor da textura recolorida no
 ## UV de cada vértice: {"cabeca", "superior", "inferior"}, e as cores usadas
-## por superior e inferior em "cores".
+## por superior e inferior em "cores". Com `boneco.get_meta("so_pano", false)`,
+## o superior e o inferior pulam os vértices com UV em PELE_UV (a pele).
 static func medianas(boneco: Node3D) -> Dictionary
 ```
 
@@ -477,9 +537,11 @@ func acender(k: float) -> void
 
   `_vestir`: para cada `MeshInstance3D` do modelo, `Pintura.preparar`, um
   `ShaderMaterial` com `SH_CAVALEIRO`, a textura do `colormap.png` ao lado do
-  `.glb` por `Pintura.textura(caminho, "tecido")` em `textura_cima` e
-  `"couro"` em `textura_baixo` (na `head*`, `"personagem"` nas duas e
-  `tem_acento` false), `dono = Tema.JOGADOR[lugar]`, as medidas de
+  `.glb` por `Pintura.textura(caminho, "tecido", pp)` em `textura_cima` e
+  `Pintura.textura(caminho, "couro", pp)` em `textura_baixo`, com
+  `pp = "personagem"` quando o `.glb` está em `mini-characters/` e `""` fora
+  dele; `modelo.set_meta("so_pano", pp != "")` (na `head*`, `"personagem"`
+  nas duas e `tem_acento` false), `dono = Tema.JOGADOR[lugar]`, as medidas de
   `preparar`; e no `next_pass` um `ShaderMaterial` com `SH_CONTORNO`
   (`cor = Tema.JOGADOR[lugar]`, `largura` 0,012, `energia` 2,4). Se a G15 já
   fez `Tema.contorno(cor, largura, energia, dono)`, usar ela com
@@ -547,49 +609,83 @@ escuro `Kit.material(Tema.CASCO, 0.0, 0.9)`, tudo filho de `pivo` (escala
 ### Parte B — as quatro raças
 
 **B1.** `python3 scripts/importar_kenney.py oficina/kenney/3.7.0 cube-pets`
-(o script da G10, que já tem `cube-pets` na curadoria e a escala 0,4).
+(o script da G10, que já tem `cube-pets` na curadoria). A cauda não passa por
+`Kit.peca`, então o 0,4 do `ESCALA_DO_PACOTE` não vale para ela: a escala é a
+0,33 do B2.
 
-**B2. `Racas`** (`godot/scripts/mundo/racas.gd`, novo):
+**B2. `Racas`** (`godot/scripts/mundo/racas.gd`, novo): o estudo
+`godot/estudos/direcao/cavaleiro/racas.gd` portado. A API:
 
 ```gdscript
 class_name Racas
+extends RefCounted
 const NOMES := ["Humana", "Orc", "Autômato", "Golem", "Raposa"]
-## Veste a raça no esqueleto do Mini Characters (o da G13). Apaga o que uma
-## raça anterior pôs (os nós com o grupo "raca"), esconde a cabeça humana fora
-## da Humana, prende as partes por BoneAttachment3D, pinta as mãos na pele e,
-## no Golem, põe o modificador da proporção. `marca`: a cor do cabelo do
-## perfil (pecas.csv), na marca da raça.
-static func vestir(esqueleto: Skeleton3D, raca: int, lugar: int, marca: Color) -> void
-## A pele da raça (ou Color(0,0,0,0) na Humana).
+const CHAVES := ["humana", "orc", "automato", "golem", "raposa"]   ## o RACAS do estudo
+const PESCOCO := 0.343
+const ESCALA_CABECA := 1.30
+const ENERGIA := 1.6
+## Veste a raça no esqueleto do Mini Characters (o da G13). Primeiro apaga o
+## que uma raça anterior pôs (os nós do grupo "raca") e volta a cabeça humana
+## visível; tudo o que cria entra no grupo "raca". Põe ou tira o
+## ProporcaoDoGolem; liga `pele` e `pele_ativa` nos materiais do corpo.
+## `marca`: a cor do cabelo do perfil, que `cabelo()` dá.
+static func vestir(esq: Skeleton3D, raca: int, lugar: int, marca: Color) -> void
+## A pele da raça (Color(0, 0, 0, 0) na Humana).
 static func pele(raca: int) -> Color
+## A cor de maior área da cabeça do perfil fora de PELE_UV (racas.gd:110-135).
+static func cabelo(cabeca: Mesh, colormap: Image) -> Color
+## O punho no espaço do esqueleto: o Montar.mao do estudo (montar.gd:180-211).
+static func punho(esq: Skeleton3D, osso: String) -> Vector3
 ```
 
-- **Orc:** a `head-mesh` do `character-orc.glb` com o `skin` dele no lugar da
-  cabeça humana (a ordem dos sete ossos é a mesma nos dois; a prova confere),
-  material `cavaleiro.gdshader` com papel `personagem`.
-- **Autômato, Golem, Raposa:** caixas por `Kit.caixa` num `Node3D` filho de um
-  `BoneAttachment3D` no osso `head`, as medidas de A cena, os materiais
-  `Kit.material(pele, 0.0, 0.9)` (o autômato `metallic` 0,2), o acento com
-  `SH_NEON` a 1,6 em `Tema.JOGADOR[lugar]`, o vão em `Tema.JANELA`. Até 300
-  triângulos (autômato, raposa) e 400 (golem).
-- **As mãos:** o `cavaleiro.gdshader` ganha `uniform vec4 pele` e
-  `uniform bool tem_pele`; `Pintura.preparar` grava `COLOR.g = 1` nos vértices
-  de `arm-left` e `arm-right` com y de repouso nos 0,05 mais baixos do braço;
-  onde `COLOR.g > 0.5` e `tem_pele`, `ALBEDO = pele.rgb`.
+Copiar de `racas.gd`, sem mudar número: `_por` (138), `_liso` (152), `_caixa`
+(169), `_chanfrada` (177), `_tronco` (185), `_prisma` (222), `_juntar` (228),
+`_montar` (238), `automato` (249), `golem` (289), `raposa` (334), `_mao`
+(357), `_cauda` (380) e o corpo de `vestir` (53). As trocas:
+
+| no estudo | no jogo |
+| --- | --- |
+| `raca: String` | `CHAVES[raca]` |
+| `perfil` e `cabelo(perfil)` | o argumento `marca` |
+| `maos` | `[punho(esq, "arm-left"), punho(esq, "arm-right")]`, dentro do `vestir` |
+| `cor` | `Tema.JOGADOR[lugar]` |
+| `Fita.JANELA`, `Fita.ETIQUETA_SOMBRA`, `Fita.TINTA`, `Fita.PELE_*` | `Tema.JANELA`, `Tema.ETIQUETA_SOMBRA`, `Tema.TINTA`, `Tema.PELE_*` |
+| `Fita.PELE_UV` | `Pintura.PELE_UV` |
+| `Fita.neon(cor, ENERGIA)` | `Tema.neon(cor, ENERGIA, lugar)` (G15); sem a G15, um `ShaderMaterial` com `ForjaPlayer.SH_NEON`, `cor` e `energia` |
+| `Mundo.contornar(n, cor, largura, energia)` | `_contornar`, cópia de `godot/estudos/direcao/mundo.gd:80-92` com o `suavizar` (`mundo.gd:48`); o `Fita.contorno` dela (`fita.gd:245-251`) vira um `ShaderMaterial` com `ForjaPlayer.SH_CONTORNO`, `cor`, `largura` e `energia` |
+| `_liso`: `Fita.SH_CAVALEIRO`, `textura`, `rugosidade`, `metalico`, `aro_cor` | `ForjaPlayer.SH_CAVALEIRO`; a textura de 1 px em `textura_cima` e `textura_baixo`; `rugoso_cima` e `rugoso_baixo`; `metal`; `dono`; `tem_acento` false |
+| o orc: `Cortar.partes("orc")` e `Corpo.parte` | a `head-mesh` de `Kit.caminho("mini-dungeon-personagens/character-orc")`: a malha e o skin num `MeshInstance3D` `"raca-orc"` filho do esqueleto, com o `transform` da cabeça humana; o material `SH_CAVALEIRO` com `Pintura.textura` do colormap do orc em `personagem`, passado por `Pintura.trocar_matiz(img, Tema.PELE_ORC, -0.05)`; a cabeça humana fica invisível, não sai |
+| `RAPOSA_CAUDA` | `Kit.caminho("cube-pets/animal-fox")` |
+| `preparar` (`set_bone_pose_scale`) | o `ProporcaoDoGolem` abaixo: no jogo a animação reescreve a escala de todo osso a cada quadro, e a pose parada do estudo não |
+
+- **As mãos na pele:** o `vestir` põe, em cada `ShaderMaterial` do corpo com
+  `ForjaPlayer.SH_CAVALEIRO` fora do grupo `"raca"`, `pele = pele(raca)` e
+  `pele_ativa = 1.0` (0,0 na Humana). A pele da mão e da perna de fora vira a
+  da raça, com o degradê da rampa.
 - **O Golem:** `class ProporcaoDoGolem extends SkeletonModifier3D` dentro de
   `racas.gd`, que em `_process_modification_with_delta` multiplica a escala
-  da pose do `torso` por (1,15; 1; 1,15) e a do `head` por 0,87. Os punhos:
-  cubos de 0,075 em `BoneAttachment3D` de `arm-left` e `arm-right`, em
-  (0; −0,16; 0) no espaço do osso.
-- **A Raposa:** a malha do nó `tail` do `animal-fox.glb`, num
-  `BoneAttachment3D` do osso `root`, em (0; 0,20; −0,10), escala 0,33; a
-  rotação y é `deg_to_rad(8) * sin(TAU * batidas)`, com `batidas` = o tempo da
-  música em segundos × `Musica.mapa(Musica.atual).bpm / 60`.
+  da pose do `torso` por (1,15; 1; 1,15) e a do `head` por (0,87; 1; 0,87).
+  Filho do esqueleto, no grupo `"raca"`.
+- **O tufo do orc:** `Kit.caixa` de 0,06 na cor `marca`, num
+  `BoneAttachment3D` do osso `head`, com o centro em (0; 0,78; 0) no espaço
+  do esqueleto (o `resto.affine_inverse()` do `vestir`).
+- **A cauda balança:** no `_process` de quem mostra o boneco (a tela da
+  G13), o `MeshInstance3D` `"cauda"` (`racas.gd:392`; o pai dele guarda os 8°
+  do estudo) recebe `rotation.y = deg_to_rad(8) * sin(TAU * batidas)`, com
+  `batidas = Time.get_ticks_msec() / 1000.0 * Musica.mapa(Musica.atual).bpm / 60.0`
+  (`musica.gd:128`; 120 BPM sem faixa).
+- **`punho`** lê a malha do superior que a G13 põe no esqueleto: no estudo, o
+  nó `"body-sup"` (`corpo.gd:27`). A G13 usa os nomes do estudo
+  (`"head"`, `"body-sup"`, `"body-inf"`).
 - **A cadeira de rodas (R1 do inferior, G13):** toda raça senta; a cauda sobe
   0,05.
+- Os triângulos contam só sob o nó `"raca-cabeca"` (o `BoneAttachment3D`
+  do estudo, `racas.gd:68`): até 300 no autômato e na raposa, até 400 no
+  golem. As mãos e a cauda ficam fora da conta.
 
-**B3. A montagem (o script da tela da G13):** na linha da cabeça, R1 faz
-`raca[l] = (raca[l] + 1) % 5`, chama `Racas.vestir`, toca o som e o pulso de O
+**B3. A montagem (`godot/scripts/ui/tela_lobby.gd`, a tela da G13):** na
+linha da cabeça, R1 faz `raca[l] = (raca[l] + 1) % 5`, chama
+`Racas.vestir(esq, raca[l], l, Racas.cabelo(<a malha da cabeça do perfil>, <o colormap do Mini Characters>))`, toca o som e o pulso de O
 som e O controle, e troca o rótulo «Cabeça» pelo nome da raça
 (`Traducoes.traduzir(Racas.NOMES[raca])`), na letra da linha (Archivo Narrow 600, 30
 px). O pré-montado sorteia pela regra de Como se joga. A raça vai junto do
@@ -753,10 +849,12 @@ func _prova_das_racas() -> void:
 		_esperar(faltam.is_empty(), "%s: as animações %s" % [Racas.NOMES[r], faltam])
 		_esperar(esq.get_bone_count() == 7, "%s: os sete ossos" % Racas.NOMES[r])
 		var tri := 0
-		for n in esq.find_children("*", "MeshInstance3D", true, false):
-			if n.is_in_group("raca"):
+		var cab := esq.find_child("raca-cabeca", true, false)
+		if cab != null:
+			for n in cab.find_children("*", "MeshInstance3D", true, false):
 				tri += (n as MeshInstance3D).mesh.get_faces().size() / 3
-		_esperar(tri <= 400, "%s: até 400 triângulos a mais (%d)" % [Racas.NOMES[r], tri])
+		var teto := 400 if r == 3 else 300
+		_esperar(tri <= teto, "%s: a cabeça por código até %d triângulos (%d)" % [Racas.NOMES[r], teto, tri])
 		if r > 0:
 			_esperar(Pintura.delta_e(Racas.pele(r), Tema.JOGADOR[0]) >= 0.08, "%s: a pele longe do néon" % Racas.NOMES[r])
 	Racas.vestir(esq, 0, 3, Color.WHITE)

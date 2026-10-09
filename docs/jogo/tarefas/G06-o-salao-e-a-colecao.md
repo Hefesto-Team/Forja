@@ -1,6 +1,6 @@
 # G06 — O salão e a coleção
 
-**Sprint:** G · **Tamanho:** M · **Depende de:** F00, F09 (a prova visual), G02 (`ACABAMENTOS`, `Opcoes.noite()`), G04 (a etiqueta do salão, `Desenho.contador`, `retangulos()`), G05 (a lente de 35 mm), G08 (o `cavaleiro.gdshader`, o acento), G11 (`Desenho.chip`, `dica`, `etiqueta`), G12 (`partida.lado()`), G14 (os tokens e as fontes) · **Usado por:** G07 (a noite que o fim da fita conta), G16 (o lado B no salão)
+**Sprint:** G · **Tamanho:** M · **Depende de:** F00, F09 (a prova visual), G02 (`ACABAMENTOS`, `Opcoes.noite()`), G04 (a etiqueta do salão, `Desenho.contador`, `retangulos()`), G05 (a lente de 35 mm), G08 (o `cavaleiro.gdshader`, o acento), G11 (`Desenho.chip`, `dica`, `etiqueta`), G12 (`partida.lado()`), G14 (os tokens e as fontes), G15 (`Tema.neon`, o brilho com dono) · **Usado por:** G07 (a noite que o fim da fita conta), G16 (o lado B no salão)
 
 ## Por quê
 
@@ -176,7 +176,7 @@ e `estado` = `no jogo`.
 | o salão aparece | `amb_salao` (8 s em laço: o fogo, o chiado a −62 dBFS, uma brasa a cada 1,7 s) | TV, `Som.laco("amb_salao", salao, salao.bigorna.position, 0.0)`, criado uma vez no `_ready` do salão; `stream_paused = estado != "salao"` | o arquivo já está a −18 dBFS (o Ambiente) |
 | ✕ num portão aberto ou na bigorna | `ui_confirma` (90 ms) | TV e o alto-falante de quem apertou | −12 dB na TV; ganho 0,85 no controle |
 | ✕ num portão fechado | `ui_volta` (90 ms) | o mesmo | o mesmo |
-| um recorde da noite | `jin_recorde` (3 s, 140 BPM, Sol maior, parada seca) | TV, `Musica.jingle("JIN_RECORDE")` | `Musica.VOLUME_DB` |
+| um recorde da noite | `jin_recorde` (140 BPM, Sol maior; 10 s gerados, corte em 3 s no fim do compasso) | TV, `Musica.jingle("JIN_RECORDE")` | `Musica.VOLUME_DB` |
 
 - `Musica.jingle(slot)`, novo: se `ResourceLoader.exists(Musica.caminho(slot))`,
   um `AudioStreamPlayer` filho da `Musica`, no mesmo bus das faixas, toca o
@@ -213,10 +213,9 @@ Sem o controle na mão: `_perc(l)` traz `forte` e `fraco`;
   acento da peça (G08: 1,6), dono o lugar, teto 3,0; o encaixe continua
   subindo 1,0 acima dela (a 3,0 no Néon, no teto). Depois da G08, o
   `_aplicar_acabamento` escreve em cada material de `_mats_corpo`
-  `set_shader_parameter("rugosidade", a.rugoso)` e `("metal", a.metal)`; se o
-  `cavaleiro.gdshader` não tem esses uniforms, esta ficha os põe
-  (`uniform float rugosidade = 0.8;`, `uniform float metal = 0.0;`,
-  `ROUGHNESS = rugosidade; METALLIC = metal;`).
+  `set_shader_parameter("rugoso_cima", a.rugoso)`,
+  `("rugoso_baixo", a.rugoso)` e `("metal", a.metal)`: os uniforms do
+  `cavaleiro.gdshader` da G08 (A2). Esta ficha não cria uniform.
 - `acabamentos_disponiveis()` passa a incluir os de `"livre": false` com
   `Colecao.desbloqueado(nome)`.
 - **A raça** (G08) não entra na coleção: as quatro estão livres desde o
@@ -364,13 +363,15 @@ func cor_do_trofeu(i: int) -> Color         ## a prova lê: o albedo do copo da 
 				presentes.append(l)
 		var r := Colecao.registrar(sj.id, sj.pontos, presentes, sj.coop, sj.coop and sj.coop_venceu and sj.erros_do_grupo() == 0)
 		for nome in r.desbloqueou:
-			Forja.aviso("%s na forja" % nome)
+			Forja.aviso.emit("%s na forja" % nome)
 		if r.recorde >= 0:
-			Forja.aviso("Recorde da noite: P%d" % (r.recorde + 1))
+			Forja.aviso.emit("Recorde da noite: P%d" % (r.recorde + 1))
 			Musica.jingle("JIN_RECORDE")
 			Forja.vibrar(r.recorde, 0.3, 0.6, 80)
 ```
 
+  `Forja.aviso` é o sinal de hoje (`forja.gd:30`, `signal aviso(texto)`), que o
+  HUD já ouve: por isso `emit`.
   `SalaJogo.erros_do_grupo() -> int` é novo: devolve 0 por padrão; o kit
   (H04) soma os `julgar(l, 0)` da G04. Até lá, todo coop vencido conta como
   sem erro só se a sala sobrescreve e devolve 0.

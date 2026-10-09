@@ -16,7 +16,7 @@ sem roll. E cada momento tem a sua lente em milímetros, não os 40° de todos.
 - [diversão — o exagero do impacto](../diversao/README.md#o-exagero-do-impacto) (os quatro degraus, o tremor de cada um)
 - [O kit do minigame](../13-arquitetura.md#o-kit-do-minigame--h04) (a chave `"camera": "fixa", "grupo", "corrida"` da ficha)
 
-Os números do movimento reduzido do [10](../arte/10-acessibilidade.md#o-movimento-reduzido)
+Os números do movimento reduzido do 10 (a seção «O movimento reduzido»)
 estão copiados em O alvo.
 
 ## Arquivos que mudam

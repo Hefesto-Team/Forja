@@ -71,12 +71,18 @@ voltando ao salão (a noite segue).
 
 **Quem é quem** (`SalaJogo`, puras, a prova chama):
 
-- **o vencedor** (`vencedor_do_fim()`): fora do coop, `colocacao[0]` se
-  `pontos > 0` e o segundo tem menos pontos; senão `-1` (empate em cima ou
-  ninguém pontuou).
+A ordem é `vencedor()` (`sala_jogo.gd:364`: os lugares de `jogando`, do
+maior ponto ao menor, empate pelo menor lugar), chamada na hora; nunca o
+`colocacao` guardado, que só existe depois do `terminar()` (a prova chama
+numa `SalaJogo` solta).
+
+- **o vencedor** (`vencedor_do_fim()`): fora do coop, o primeiro de
+  `vencedor()` se ele tem `pontos > 0` e o segundo tem menos pontos (com 1
+  jogando, basta `pontos > 0`); senão `-1` (empate em cima ou ninguém
+  pontuou).
 - **o último** (`ultimo_do_inserto()`): fora do coop, com 2 ou mais em
-  `jogando`, o último de `colocacao` se ele tem menos pontos que o penúltimo
-  e não é o vencedor; senão `-1` (sem inserto).
+  `jogando`, o último de `vencedor()` se ele tem menos pontos que o
+  penúltimo e não é o vencedor; senão `-1` (sem inserto).
 - **por um fio** (`por_um_fio()`): há vencedor, o segundo tem pontos > 0 e
   `pontos[1º] − pontos[2º] <= 0.02 * pontos[1º]`.
 
@@ -134,8 +140,10 @@ com `r` o retângulo do placar (`_retangulo()`, extraído do `_draw`).
 | quem venceu | (40, 420) | Permanent Marker 74 em `Tema.JOGADOR[l]`, o `nome` do cavaleiro (`jogadores[l].nome`; vazio: «P%d»), `Desenho.caber` até 480 px |
 | o P# | (40, 500) | VT323 40, `TINTA_SUAVE`, «P%d» (a cor nunca sozinha, 10) |
 
-  Quem venceu a faixa: o lugar com `e.colocacao == 1` e pontos > 0. Dois ou
-  mais com `colocacao == 1`: «Empate» em `TINTA`, sem P#. Ninguém com
+  Quem venceu a faixa: o lugar `l` com `e.colocacao[l] == 1` e
+  `e.pontos[l] > 0` (`colocacao` é um Array de 4, 0 para quem não jogou:
+  `Partida.colocacoes`, `partida.gd:75`). Dois ou mais com
+  `e.colocacao[l] == 1` e pontos: «Empate» em `TINTA`, sem P#. Ninguém com
   pontos: «Ninguém» em `TINTA_SUAVE`, sem P#.
 - **A caneta:** quando o painel tem a borda esquerda em x ≤ 1200, o nome de
   quem venceu se escreve da esquerda para a direita em 400 ms, por recorte

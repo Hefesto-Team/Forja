@@ -16,7 +16,7 @@ nota dele na TV e na mão. A faixa que toca ganha a etiqueta e o deck no alto.
 - [07 — o carimbo](../arte/07-vfx.md#o-carimbo) (a letra, a escala, o desregistro, os respingos)
 - [09 — os carimbos do jogo](../arte/09-reacoes.md#os-carimbos-do-jogo) (os seis, a vez, quanto duram, o conforto)
 
-Os números de som e vibração do [03](../arte/03-som.md#o-carimbo-de-cada-julgamento) estão copiados em O som e em O controle.
+Os números de som e vibração do 03 (a seção «O carimbo de cada julgamento») estão copiados em O som e em O controle.
 
 ## Arquivos que mudam
 
