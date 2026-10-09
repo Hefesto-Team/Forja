@@ -9,12 +9,21 @@ quadro em que o único controle cai: «P1 venceu» em A Galeria, aos 01:31, com 
 para voltar» por cima do resultado. Em `godot/scripts/salas/sala_jogo.gd` (o `match fase` de `"jogo"`), quem está sem
 controle conta como quem acabou; com um jogador só, `todos` fica verdadeiro e `terminar()` fecha a sala com vitória.
 
-## O que decidir (a validar por ela)
+## A decisão dela (09/10/2026)
+
+**Esperar, com uma tela para reconectar.** Sozinho, quando o controle cai, a sala para (o relógio da sala e o
+`jogar` param) e a tela de reconectar aparece por cima: o nome do lugar, o controle a religar e o que fazer. Quando o
+controle volta, a tela some e a sala segue de onde parou. A sala nunca termina por falta de controle.
+
+## O que estava em aberto
 
 Sozinho, o jogo deve **esperar a volta do controle** (uma pausa: o relógio da sala e o `jogar` param, e o aviso fica)
 ou dar a sala por terminada? A F09b não mudou o código: a decisão é do jogo, não da régua.
 
-## O que fazer, se a resposta for esperar
+## O que fazer
+
+- A tela de reconectar, com o texto pelo `traducoes.gd` (pt-BR e en), na letra e na cor da Fita (`Tema`), por cima
+  da sala e com a sala visível atrás; ela some no quadro em que o controle volta.
 
 - Em `sala_jogo.gd`, quando todo jogador que ainda joga está sem controle, não contar `t_jogo`, não chamar `jogar` e
   não terminar; ao voltar, seguir.
@@ -25,4 +34,5 @@ ou dar a sala por terminada? A F09b não mudou o código: a decisão é do jogo,
 
 ## Pronto quando
 
-A partida de um jogador com o cabo que cai passa na `prova_visual` sem «P1 venceu» enquanto não há controle.
+A partida de um jogador com o cabo que cai passa na `prova_visual` sem «P1 venceu» enquanto não há controle, com a
+tela de reconectar à vista enquanto ele está fora e a sala seguindo depois que ele volta.
