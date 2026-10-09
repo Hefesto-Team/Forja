@@ -236,6 +236,8 @@ perde a bateria, como gente.
 
 ### Os ganchos
 
+**O arquivo se monta à mão:** os blocos daqui são pedaços dele, e o resto sai da prosa; por isso nenhum leva `arquivo=`.
+
 `godot/scripts/minigames/s09/roubo_de_bateria.gd`:
 
 ```gdscript

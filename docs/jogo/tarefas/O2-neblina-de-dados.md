@@ -329,6 +329,8 @@ func _robo_sente(l: int) -> Vector2:
 
 `godot/scripts/minigames/s07/neblina_de_dados.gd`, `extends Minigame`, sem `class_name`.
 
+**O arquivo se monta à mão:** os blocos daqui são pedaços dele, e o resto sai da prosa; por isso nenhum leva `arquivo=`.
+
 ```gdscript
 extends Minigame
 ## Neblina de Dados (S07_J32). Neblina total: meio tempo antes de cada batida

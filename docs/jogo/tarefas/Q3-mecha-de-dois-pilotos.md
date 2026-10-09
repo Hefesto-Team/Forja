@@ -259,6 +259,8 @@ func _robo_ouvir(l: int) -> void:
 
 ### Os ganchos
 
+**O arquivo se monta à mão:** os blocos daqui são pedaços dele, e o resto sai da prosa; por isso nenhum leva `arquivo=`.
+
 `godot/scripts/minigames/s09/mecha_de_dois_pilotos.gd`:
 
 ```gdscript

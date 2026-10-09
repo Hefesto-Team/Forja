@@ -370,6 +370,8 @@ O que muda do `canto.gd` de hoje, na ordem do arquivo:
 | `_robo` | `robo(l, dt)` de «O controle» |
 | `com_poucos()` | `""` |
 
+**O arquivo se monta à mão:** os blocos daqui são pedaços dele, e o resto sai da prosa; por isso nenhum leva `arquivo=`.
+
 O esqueleto:
 
 ```gdscript

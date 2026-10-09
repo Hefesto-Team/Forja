@@ -349,6 +349,8 @@ func robo(l: int, _dt: float) -> void:
 
 `godot/scripts/minigames/s07/engrenagens_sincopadas.gd`, `extends Minigame`, sem `class_name`.
 
+**O arquivo se monta à mão:** os blocos daqui são pedaços dele, e o resto sai da prosa; por isso nenhum leva `arquivo=`.
+
 ```gdscript
 extends Minigame
 ## Engrenagens Sincopadas (S07_J35). Duas duplas escalam duas torres de

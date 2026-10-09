@@ -363,6 +363,8 @@ erro de lado no veredito. O robô nunca mexe no silêncio (não faz barulho).
 
 `godot/scripts/minigames/s07/fuga_do_mecha_cego.gd`, `extends Minigame`, sem `class_name`.
 
+**O arquivo se monta à mão:** os blocos daqui são pedaços dele, e o resto sai da prosa; por isso nenhum leva `arquivo=`.
+
 ```gdscript
 extends Minigame
 ## Fuga do Mecha Cego (S07_J34). O mecha cego caça pelo som; os passos dele

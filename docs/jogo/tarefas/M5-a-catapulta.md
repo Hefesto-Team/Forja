@@ -282,6 +282,8 @@ A prova olha o primeiro byte (`Forja.percepcao(l)["gatilho_dir"]`): `0x21` a cor
 
 ### Os ganchos
 
+**O arquivo se monta à mão:** os blocos daqui são pedaços dele, e o resto sai da prosa; por isso nenhum leva `arquivo=`.
+
 ```gdscript
 var _info := [{}, {}, {}, {}]  # lugar -> n -> {b, tipo, c, d, calada}
 var _nota_em_curso := [-1, -1, -1, -1]
