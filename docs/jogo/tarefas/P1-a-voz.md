@@ -32,7 +32,8 @@ números. Não abra outro documento.
 | `godot/scripts/minigames/minigame.gd` | `"momento"` em `TIPOS_DO_JOGO` e a função `momento()` | **de todos**: se a L1 ou outra ficha já pôs, não escreva de novo |
 | `godot/scripts/minigames/catalogo.gd` | `S08_J36` em `MINIGAMES` e em `SECOES`; sai `"voz"` de `SALAS_ANTIGAS` | **da seção**: P2 a P5 acrescentam uma linha cada |
 | `godot/scripts/traducoes.gd` | `"A Voz"`, `"Chame a forja!"`, `"Sopre!"`, `"Mudo, sussurre baixinho"` | **de todos** |
-| `godot/testes/prova_do_jogo.gd` | `_prova_a_voz()` e a chamada no percurso | **de todos** |
+| `godot/testes/prova_do_jogo.gd` | `_prova_a_voz()` e a linha `"S08_J36", "voz": await _prova_a_voz()` no `match slot` de `_prova_da_ficha(slot)` (H08) | **de todos** |
+| `tests/prova_do_jogo.sh` | a variável `ROBO` (o temperamento do robô na prova), ao lado do `SALA` da H08 | **de todos**: se outra ficha já pôs `ROBO`, não escreva de novo |
 | `docs/jogo/13-arquitetura.md` | a linha `momento` na tabela «Os eventos do jogo» | **de todos**: se já existe, não escreva de novo |
 | `godot/scripts/salas/voz.gd` e `.uid` | `git rm` | só desta |
 | `godot/scripts/main.gd` | sai a linha 19 (`"voz": preload("res://scripts/salas/voz.gd")`) se a H04 ainda não a tirou | **de todos** |
@@ -72,7 +73,8 @@ Do `Forja` e do `Ritmo`:
 - `Forja.apertou(l, botao)`, `Forja.MICROFONE` (15), `Forja.gatilhos_off(l)`, `Forja.percepcao(l)` (`led_mic`,
   `forte`, `fraco`, `luz`);
 - `Forja.robo_falar(l, nivel, s)`, `Forja.robo_apertar(l, botao, s)`, `Forja.robo_acerta()` (F09: `bom` 95 %,
-  `medio` 66 %, `ruim` 30 %); `Forja.mic_veredito`, `Forja.cega_veredito`, `Forja.cega_decidida`;
+  `medio` 66 %, `ruim` 30 %), `Forja._robo_apertar_cru(l, botao, s)` (F09: o aperto sem sorteio; o `robo_apertar`
+  já sorteia o temperamento dentro, e quem erra não aperta em 50 % das vezes ou aperta de 0,4 a 1,2 s tarde); `Forja.mic_veredito`, `Forja.cega_veredito`, `Forja.cega_decidida`;
 - `Ritmo.t_musica()`, `Ritmo.batida()`, `Ritmo.t_da_batida(b)`, `Ritmo.bpm`, `Ritmo.simples[l]`,
   `Ritmo.desvio[l]`, `Ritmo.PERFEITO`, `Ritmo.ERRO`, `Ritmo.calada()`.
 
@@ -220,7 +222,7 @@ Sem treino: o chamado ensina, e quem chama errado só perde os pontos daquela no
 
 Do `voz.gd` de hoje continuam, **iguais** e só para a bancada: `SUSSURRO_S`, `LUZ_ESPERA`, `LUZ_MAX`,
 `LUZ_REVELA`, `LUZ_RODADAS`, `NOME_LUZ`, `BOTAO_LUZ`, `GLIFO_LUZ` e o `enum { OLHAR, REVELA_LUZ, FIM_LUZ }`
-(linhas 26 a 35 e 42). Saem:
+(linhas 27 a 31 e 35 a 37; o `enum` na linha 41). Saem:
 
 - `F` (use `Forja`), `RAIAS` e `Z_JOGADOR` (são do kit);
 - `SILENCIO_S`, `CHAMADO_MAX`, `MUDO_MAX`, `ESPERA_S` e `SUSTO_S`;
@@ -442,7 +444,7 @@ O que muda do `voz.gd` de hoje, na ordem do arquivo:
 | hoje | na Voz nova |
 | --- | --- |
 | `class_name SalaVoz`, `extends SalaJogo`, o cabeçalho | `extends Minigame`, sem `class_name`, o cabeçalho de «A ficha de dados» |
-| as constantes de 22 a 42 | as de «A ficha de dados» |
+| as constantes e os `enum` das linhas 21 a 41 | as de «A ficha de dados» |
 | `estado`, `t_estado`, `vez`, `ordem`, `i_vez`, `olhos`, `grito`, `flash`, `g` | as variáveis do esqueleto abaixo |
 | `_init()` | sai (a FICHA; a câmera vai para o `montar`) |
 | `montar()`, `_montar_guardiao()`, `_montar_raia()` | o de «A cena» |
@@ -626,7 +628,7 @@ O catálogo:
 
 A limpeza: `git rm godot/scripts/salas/voz.gd godot/scripts/salas/voz.gd.uid`; tire a linha 19 de `main.gd` se a
 H04 ainda não tirou. Confira com `grep -rn "salas/voz.gd\|SalaVoz" godot/`: tem que sair vazio. O id `"voz"` como
-apelido (`salao.gd:21`, `partida.gd:28`) fica.
+apelido (`godot/scripts/mundo/salao.gd:21`, `godot/scripts/partida.gd:28`) fica.
 
 As traduções, em `godot/scripts/traducoes.gd` (as que ainda não existirem): `"A Voz": "The Voice"`,
 `"Chame a forja!": "Call the forge!"`, `"Sopre!": "Blow!"`, `"Mudo, sussurre baixinho": "Muted, whisper softly"`.
@@ -901,7 +903,7 @@ main faz o caminho. **O tremor é do evento**: só o de `CenarioDaVoz.exagero`. 
 
 ### A luz da seção
 
-S8 é a tinta ameixa (`Tema.SECAO[4]`, `#86409a`), lado B. `Tema.luz_da_secao(4, "B")` (G15) devolve a névoa
+S8 é a tinta ameixa (`Tema.SECAO[4]`, `#86409a`), lado B. `Tema.luz_da_secao(8, true)` (G15: o número da seção, S8, e `lado_b`; a tinta sai de `Tema.tinta_da_secao(8)`, que é `SECAO[4]`) devolve a névoa
 `#18081c`, o preenchimento `#4a2854` e a chave `#f8ccba`. No lado B, a chave fica a 0,85 (0,9 × 0,85 = **0,77**). A
 névoa 30 % mais densa é da G15 e do main: esta ficha não mexe na névoa. O cenário comum põe o preenchimento (o
 `atmosfera` da sala) e a chave (uma `OmniLight3D` em `(0, 8, 3)`, energia 0,77, alcance 26).
@@ -937,7 +939,7 @@ O que não é peça Kenney (caixas do `Kit`, nenhuma esfera, nada metálico, `me
 | os braços | 2 caixas 0,7 × 2,2 × 0,7 | `(±2.05, 1.1, −2.8)` | pedra |
 | o foco | `SpotLight3D` | `(0, 6.5, 0.5)`, mira o pivô | `Tema.TUNGSTENIO`, energia 1,2 (4,0 no rugido por 1 batida), alcance 10, ângulo 30° |
 | a chama da tocha | caixa 0,3 × 0,4 × 0,3 | `(±9, 2.2, −5)` | `Tema.neon(Tema.TUNGSTENIO, 1.8, "forja")`; `OmniLight3D` `Tema.TUNGSTENIO` 0,8, alcance 7, em y 2,4 |
-| a chama do braseiro | caixa 0,26 × h × 0,26, h de 0,2 a 0,9 m | `(RAIAS[l], 0.34 + h / 2, −0.4)` | `Tema.neon(Tema.JOGADOR[l], 2.0)`; 2,6 no acerto por 4 quadros; `OmniLight3D` da cor do lugar 0,9, alcance 3,4, em y 1,2 |
+| a chama do braseiro | caixa 0,26 × h × 0,26, h de 0,2 a 0,9 m | `(RAIAS[l], 0.34 + h / 2, −0.4)` | `Tema.neon(Tema.JOGADOR[l], 2.0, l)` (o dono é o lugar); 2,6 no acerto por 4 quadros; `OmniLight3D` da cor do lugar 0,9, alcance 3,4, em y 1,2 |
 | a chama da forja | caixa 0,5 × h × 0,5, `h = 0.1 + 1.6 * _chama` | `ALTAR + (0, 0.69 + h / 2, 0)` | `Tema.neon(Tema.TUNGSTENIO, 0.4 + 1.4 * _chama, "forja")`; `OmniLight3D` `Tema.TUNGSTENIO` `0.3 + 0.9 * _chama`, alcance 6, em y 2,0 |
 
 **A chama do braseiro pelo nível.** A cada quadro, enquanto `ouvido.falando[l]`:
@@ -975,8 +977,8 @@ extends RefCounted
 ## lugar, a câmera, o exagero do impacto e os ganchos do cavaleiro. Os cinco
 ## minigames da seção montam com isto; o que é só de um fica no script dele.
 
-const SECAO := 4  ## Tema.SECAO[4], a ameixa
-const LADO := "B"
+const SECAO := 8  ## S8: Tema.tinta_da_secao(8) é Tema.SECAO[4], a ameixa
+const LADO_B := true
 const CHAVE_ENERGIA := 0.77  ## 0,9 × 0,85: a chave do lado B
 const CAMERA_OLHAR := Vector3(0, 1.2, -1.6)
 const CAMERA_ANGULO := 50.0
@@ -1001,7 +1003,7 @@ static func pose_da_camera(recuo := 1.0, olhar := CAMERA_OLHAR) -> Array:
 ## caverna escurece, não troca). Devolve o que `passar` e `exagero` mexem.
 static func montar(sala: SalaJogo, escuro := 1.0) -> Dictionary:
 	Kit.arena(sala, 5, 3)
-	var luz: Dictionary = Tema.luz_da_secao(SECAO, LADO)
+	var luz: Dictionary = Tema.luz_da_secao(SECAO, LADO_B)
 	sala.atmosfera(luz.preenchimento, Tema.VIOLETA, false, 30, 22.0, -7.8, 0.35 * escuro)
 	var chave := OmniLight3D.new()
 	chave.position = Vector3(0, 8.0, 3.0)
@@ -1032,7 +1034,7 @@ static func montar(sala: SalaJogo, escuro := 1.0) -> Dictionary:
 static func braseiro(sala: SalaJogo, l: int) -> Dictionary:
 	var base := Vector3(Minigame.RAIAS[l], 0.0, Z_BRASEIRO)
 	Kit.peca(sala, "fire-basket", base, 0.0, 2.0)
-	var mat := Tema.neon(Tema.JOGADOR[l], 2.0)
+	var mat := Tema.neon(Tema.JOGADOR[l], 2.0, l)
 	var chama := Kit.caixa(sala, Vector3(0.26, 1.0, 0.26), base + Vector3(0, 0.44, 0), mat)
 	chama.scale.y = 0.2
 	var luz := OmniLight3D.new()
@@ -1209,7 +1211,8 @@ func robo(l: int, dt: float) -> void:
 			if ouvido.e_voz(l, n):
 				Forja.robo_falar(l, 0.8, 0.3)
 			else:
-				Forja.robo_apertar(l, Forja.MICROFONE, 0.08)
+				# o aperto sem sorteio: o temperamento já foi sorteado acima
+				Forja._robo_apertar_cru(l, Forja.MICROFONE, 0.08)
 			_robo_feita[l] = n
 		break
 ```
@@ -1217,7 +1220,11 @@ func robo(l: int, dt: float) -> void:
 A 105 bpm, o rugido cai 0,571 s depois da nota do mudo: o robô que erra (0,65 s tarde) leva o rugido. A chance de
 cair no rugido é 0,05 no `bom`, 0,34 no `medio` e 0,7 no `ruim`. Na mesa padrão (`bom`, `medio`, `medio`, `ruim`),
 a chance de ninguém cair é de 0,95 × 0,66 × 0,66 × 0,3 = 12 %; a de alguém cair, 88 %. `_robo_bancada(l, dt)` é o
-`_robo` de hoje nos ramos `SUSSURRO` e `LUZ` (`voz.gd:651-666`), com o `estado` trocado por `_bancada`.
+`_robo` de hoje nos ramos `SUSSURRO` e `LUZ` (`voz.gd:654-666`), com o `estado` trocado por `_bancada`.
+O robô sorteia o temperamento **uma vez** (`Forja.robo_acerta()`) e aperta pelo `Forja._robo_apertar_cru` da F09,
+que não sorteia de novo. O `Forja.robo_apertar` sorteia dentro: com ele, o robô que errou no primeiro sorteio ainda
+erraria no segundo, e as chances acima ficariam erradas. Na bancada, o `_robo_bancada` aperta pelo
+`Forja.robo_apertar` (um sorteio só, o dele).
 
 ## O cavaleiro
 
@@ -1332,8 +1339,9 @@ bancada, pela prova visual da F09):
 | 9. o impacto | uma linha `sensacao` `explosao` a até 16,7 ms do `rugido` | o quadro seguinte ao rugido mostra a boca aberta |
 | 10. o placar no mundo | o `valores` do `momento` `reta` bate com `_chama` a ±0,01 | no quadro de 70 s, a chama do altar tem a altura `0.1 + 1.6 × chama` |
 
-A mesa padrão roda em duas rodadas até o robô por lugar existir: `bash tests/prova_do_jogo.sh --robo=medio` (os
-itens 1, 4, 5, 8, 9 e 10) e `--robo=ruim` (os itens 6 e 7, com os quatro `ruim`).
+A mesa padrão roda em duas rodadas até o robô por lugar existir: `ROBO=medio SALA=S08_J36 bash
+tests/prova_do_jogo.sh` (os itens 1, 4, 5, 8, 9 e 10) e `ROBO=ruim SALA=S08_J36 bash tests/prova_do_jogo.sh` (os
+itens 6 e 7, com os quatro `ruim`).
 
 ## Pronto quando
 
@@ -1341,16 +1349,47 @@ A Voz joga do aviso ao resultado com 4, 3, 2 e 1 jogador e com o robô nos três
 e volta, e fecha sempre (coop, com o destaque). `--sala=voz` abre o `S08_J36`. O meio rugido e o rugido acontecem
 nas batidas `B_FIM − 32` e `B_FIM − 8`, e o rugido derruba quem não está mudo. A música desce 12 dB na escuta, e
 nada forte vibra na escuta. A luz do mudo acende no escudo e pisca fora dele. Com `--bancada`, o sussurro e a
-pergunta da luz vêm depois da faixa e os três vereditos saem como antes. A prova do jogo passa (sem e com
-`--bancada`), e `bash tests/prova_visual.sh` passa com a prancha olhada.
+pergunta da luz vêm depois da faixa e os três vereditos saem como antes. `SALA=S08_J36 bash tests/prova_do_jogo.sh`
+passa (o script roda as duas rodadas, sem e com `--bancada`), e `bash tests/prova_visual.sh` passa com a prancha
+olhada.
 
 ## Provas
 
-Na sessão: `bash tests/prova_do_jogo.sh` e `bash tests/prova_visual.sh`.
+Na sessão, nesta ordem:
+
+```bash
+bash tests/prova_do_jogo.sh                              # o percurso: nada que já passava quebrou
+SALA=S08_J36 bash tests/prova_do_jogo.sh                 # a Voz inteira, sem e com --bancada
+ROBO=medio SALA=S08_J36 bash tests/prova_do_jogo.sh      # a régua: itens 1, 4, 5, 8, 9 e 10
+ROBO=ruim SALA=S08_J36 bash tests/prova_do_jogo.sh       # a régua: itens 6 e 7
+bash tests/prova_visual.sh                               # as pranchas
+```
+
+**A variável `ROBO`** (em `tests/prova_do_jogo.sh`, de todos). Hoje o script não repassa argumento nenhum ao Godot:
+o `"$@"` da linha do Godot é o da função `rodar`. Então `bash tests/prova_do_jogo.sh --robo=medio` roda com o robô
+sem temperamento, que nunca erra. Junto do bloco do `SALA` (H08), acrescente:
+
+```bash
+# O temperamento do robô (F09): ROBO=medio bash tests/prova_do_jogo.sh. Vazio: o
+# robô que nunca erra. O Godot lê os argumentos como dicionário: o último vence.
+ROBO="${ROBO:-}"
+ROBO_ARG=()
+[ -n "$ROBO" ] && ROBO_ARG=("--robo=$ROBO")
+```
+
+e, na linha do Godot, `${ROBO_ARG[@]+"${ROBO_ARG[@]}"}` logo depois de `${FICHA_ARG[@]+"${FICHA_ARG[@]}"}`.
 
 Em `godot/testes/prova_do_jogo.gd`, a checagem da Voz usa o `_joga_o_minigame(apelido, limite_s, olhar)` da H08: abre
 pelo catálogo, deixa o aviso passar e espera o fim pelo relógio de parede (80 s de música cabem em 130 s; com a
-bancada, 170 s). Chame-a no percurso logo depois da última sala de hoje, antes do relatório:
+bancada, 170 s). Ela **não** entra no percurso (o percurso não joga 90 s de cada minigame): entra no `match slot` de
+`_prova_da_ficha(slot)` da H08, no lugar do modelo `# "S04_J16": await _prova_do_cerco()`:
+
+```gdscript
+		"S08_J36", "voz":
+			await _prova_a_voz()
+```
+
+A função:
 
 ```gdscript
 ## A Voz (S08_J36): o apelido abre o minigame; a regra dos 6 dB; a música desce
@@ -1404,8 +1443,8 @@ func _prova_a_voz() -> void:
 		_esperar(linhas.filter(func(e): return e.get("tipo") == "pergunta").is_empty(), "Voz: fora da bancada, nenhuma pergunta")
 ```
 
-`_linha_do_tempo` é da F01 e já está na prova; `Forja.robo_temperamento` é o da F09 (se o nome lá for outro, use o
-da F09 e anote). As checagens que hoje olham `"voz"` pelo id, como as de `SO_COM_PERGUNTA`, passam a olhar pelo
+`_linha_do_tempo` é da F01 e já está na prova; `Forja.robo_temperamento` é o da F09 (`var robo_temperamento := ""` em
+`forja.gd`; `""`, `"bom"`, `"medio"` ou `"ruim"`). As checagens que hoje olham `"voz"` pelo id, como as de `SO_COM_PERGUNTA`, passam a olhar pelo
 apelido com `_e_a_sala` da H04.
 
 ### O que o registro mede
@@ -1461,6 +1500,11 @@ A prancha da prova visual (`SAIDA/prancha-<n>.png`, um quadro de 480 × 270 a ca
   `mudo_no_sistema` na batida 4, e ele sopra sozinho.
 - **`Forja.vibrar` não é para a sala** (o susto de hoje chamava): só `ouvido.sentir`.
 - **O `dt` no ouvido** é o piso andando (uma medida), não o mundo; o guardião e as chamas andam pela batida.
+- **O robô sorteia uma vez.** O `Forja.robo_apertar` da F09 já sorteia o temperamento dentro; o robô da Voz já
+  sorteou no `robo_acerta()`, e por isso aperta pelo `Forja._robo_apertar_cru(l, botao, s)`. Se a F09 entrar com
+  outro nome para o aperto sem sorteio, use o dela e anote o nome aqui.
+- **`ROBO=` e não `--robo=`.** `bash tests/prova_do_jogo.sh --robo=medio` não muda nada: o script não repassa os
+  argumentos. A régua só se prova pela variável `ROBO`.
 - **A Nuca** é `SkeletonModifier3D` (Godot 4.7): o `_process_modification_with_delta` roda depois da animação. Se a
   prancha mostrar a cabeça para a frente em vez de para trás, o eixo do osso `head` é outro: troque o sinal e
   anote.

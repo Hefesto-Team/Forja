@@ -12,10 +12,9 @@ no colo, ouvindo).
 ## Ler antes
 
 - [O molde de minigame](molde-de-minigame.md) (a FICHA, os ganchos, o que o kit dá pronto)
-- [`godot/scripts/minigames/s08/ouvido.gd`](../../../godot/scripts/minigames/s08/ouvido.gd) (a P1 cria: a voz, os
-  6 dB, o mudo, a escuta)
-- [`godot/scripts/minigames/s08/cenario_da_voz.gd`](../../../godot/scripts/minigames/s08/cenario_da_voz.gd) (a P1
-  cria: a cripta, a câmera, o exagero, os ganchos do cavaleiro)
+- [A P1](P1-a-voz.md), as partes «O ouvido inteiro (`ouvido.gd`)» (a voz, os 6 dB, o mudo, a escuta) e «O
+  cenário comum (`cenario_da_voz.gd`)» (a cripta, a câmera, o exagero, os ganchos do cavaleiro). A P1 cria os dois em
+  `godot/scripts/minigames/s08/`; se ela já entrou, valem os arquivos, e esta ficha só os chama.
 
 O resto (a bíblia de arte, o mapa do áudio, a régua da diversão, o RPG) já está copiado nesta ficha, com os
 números. Não abra outro documento.
@@ -27,7 +26,7 @@ números. Não abra outro documento.
 | `godot/scripts/minigames/s08/palmas_da_forja.gd` | novo: o minigame | só desta |
 | `godot/scripts/minigames/catalogo.gd` | `S08_J40` em `MINIGAMES` e na seção `S08` | **da seção**: uma linha |
 | `godot/scripts/traducoes.gd` | `"Palmas da Forja"`, `"Bata palma!"`, `"%d palmas"`, `"Espada %d de %d"` | **de todos** |
-| `godot/testes/prova_do_jogo.gd` | `_prova_palmas_da_forja()` e a chamada no percurso | **de todos** |
+| `godot/testes/prova_do_jogo.gd` | `_prova_palmas_da_forja()` e a linha `"S08_J40": await _prova_palmas_da_forja()` no `match slot` de `_prova_da_ficha(slot)` (H08) | **de todos** |
 
 O `.uid` novo (`palmas_da_forja.gd.uid`) sai do import `"$GODOT" --headless --path godot --import --quit` e entra no
 commit. Esta ficha não mexe em `ouvido.gd`, `cenario_da_voz.gd`, `musica.gd` nem `minigame.gd`.
@@ -364,7 +363,7 @@ só o do `exagero`.
 
 ### A luz da seção
 
-A da P1, pelo `CenarioDaVoz.montar(self)`: `Tema.luz_da_secao(4, "B")`, a chave a 0,77. No pico, a chave sobe 20 % em
+A da P1, pelo `CenarioDaVoz.montar(self)`: `Tema.luz_da_secao(8, true)`, a chave a 0,77. No pico, a chave sobe 20 % em
 1 batida (10 % sem flashes). A lendária é catástrofe: a chave a +40 % por 1 batida.
 
 A barra de luz de cada um fica a 30 % da cor do lugar (`Tema.JOGADOR[l].darkened(0.7)`). Quando a palma da turma
@@ -533,7 +532,7 @@ inteira: a cripta treme e clareia. É a conquista da sala. Degrau catástrofe.
 | item da régua | pelo robô | pela prancha |
 | --- | --- | --- |
 | 1. a graça em 10 s | a primeira palma pedida é a batida 5 (2,5 s); cada lugar tem um `toque` com `t_musica` ≤ 10,0 | o quadro de 1 s mostra os quatro batendo palma |
-| 4. o momento | a linha `momento` `lendaria` antes de 75 s com a mesa padrão; antes de 80 s com `--robo=medio` | o quadro seguinte à lendária mostra a runa acesa e a cripta mais clara |
+| 4. o momento | a linha `momento` `lendaria` antes de 75 s com a mesa padrão; antes de 80 s com `ROBO=medio` | o quadro seguinte à lendária mostra a runa acesa e a cripta mais clara |
 | 5. a curva | há `nota` em toda batida de 84 a 99; não há chamada de 68 a 115; na reta, as chamadas vêm a cada 8 batidas | o quadro de 46 s mostra a câmera mais longe |
 | 6. a falha | o P4 tem pelo menos 3 `toque` com `erro` ou `nota` perdida; pelo menos 1 `entrada` `palma_da_turma` com `entrou` falso | a lâmina aparece torta em 1 quadro em 10 |
 | 7. quem perde joga | o P4 tem nota em toda palma pedida (ou o sozinho, uma sim uma não); o P4 tem um `toque` BOM ou melhor em cada terço | o P4 aparece em 100 % dos quadros de jogo |
@@ -541,20 +540,39 @@ inteira: a cripta treme e clareia. É a conquista da sala. Degrau catástrofe.
 | 9. o impacto | toda `entrada` `palma_da_turma` que entrou tem a `saida` de luz dos quatro lugares no mesmo `seq` | o quadro seguinte à palma que entra mostra a runa a 2,6 |
 | 10. o placar no mundo | o `valores` da `lendaria` bate com `_palmas`; a `espada` dela é ≥ a `meta` | no quadro de 60 s, a runa brilha mais que no de 20 s |
 
-A mesa padrão roda em duas rodadas até o robô por lugar existir: `bash tests/prova_do_jogo.sh --robo=medio` (os
-itens 1, 4, 5, 8, 9 e 10) e `--robo=ruim` (os itens 6 e 7). Com `--robo=ruim`, a espada não acende.
+A mesa padrão roda em duas rodadas até o robô por lugar existir: `ROBO=medio SALA=S08_J40 bash
+tests/prova_do_jogo.sh` (os itens 1, 4, 5, 8, 9 e 10) e `ROBO=ruim SALA=S08_J40 bash tests/prova_do_jogo.sh` (os itens 6 e 7). A variável `ROBO` é da
+P1 (em `tests/prova_do_jogo.sh`); `--robo=medio` depois do comando não chega ao Godot. Com `ROBO=ruim`, a espada não acende.
 
 ## Pronto quando
 
 As Palmas da Forja jogam do aviso ao resultado com 4, 3, 2 e 1 jogador e com o robô nos três temperamentos. Aguentam
 o cabo que cai e volta, e fecham com o resultado coop e o destaque. A espada lendária acende com a mesa padrão antes
-de 75 s e não acende com a mesa ruim. Nada forte vibra na escuta. A prova do jogo passa, e
+de 75 s e não acende com a mesa ruim. Nada forte vibra na escuta. `SALA=S08_J40 bash tests/prova_do_jogo.sh` passa (sem e com `--bancada`), e
 `bash tests/prova_visual.sh` passa com a prancha olhada (o ferreiro martelando, os bonecos batendo palma, a espada
 brilhando).
 
 ## Provas
 
-Em `godot/testes/prova_do_jogo.gd`, depois da `_prova_grito_de_guerra()`:
+Na sessão, nesta ordem:
+
+```bash
+bash tests/prova_do_jogo.sh                              # o percurso: nada que já passava quebrou
+SALA=S08_J40 bash tests/prova_do_jogo.sh                 # o minigame inteiro, sem e com --bancada
+ROBO=medio SALA=S08_J40 bash tests/prova_do_jogo.sh      # a régua, a rodada do medio
+ROBO=ruim SALA=S08_J40 bash tests/prova_do_jogo.sh       # a régua, a rodada do ruim
+bash tests/prova_visual.sh                               # as pranchas
+```
+
+Em `godot/testes/prova_do_jogo.gd`, a função entra no `match slot` de `_prova_da_ficha(slot)` da H08, ao lado da
+linha da P1 (o percurso não joga 90 s de cada minigame):
+
+```gdscript
+		"S08_J40":
+			await _prova_palmas_da_forja()
+```
+
+A função:
 
 ```gdscript
 ## S08_J40: o robô bate as palmas no microfone simulado; a espada ganha golpes;
@@ -590,10 +608,10 @@ func _prova_palmas_da_forja() -> void:
 		_esperar(lendaria.size() == 1 and float(lendaria[0].get("t_musica", 99.0)) < 80.0, "Palmas: a lendária antes de 80 s (%s)" % [lendaria])
 ```
 
-`Forja.robo_temperamento` é o temperamento da F09 (se o nome lá for outro, use o da F09). Com `--robo=medio`, cada
+`Forja.robo_temperamento` é o temperamento da F09 (`var robo_temperamento := ""` em `forja.gd`). Com `ROBO=medio`, cada
 robô acerta 66 %: a palma da turma entra em 88 % das vezes, e a meta (69) chega perto da palma 78, entre as batidas
 138 e 144 (70 a 73 s). A prova aceita até 80 s (a batida 157) pela variação do sorteio; os 75 s são da mesa padrão.
-Com `--robo=ruim`, a turma entra em 35 % das vezes: a espada para perto de 34.
+Com `ROBO=ruim`, a turma entra em 35 % das vezes: a espada para perto de 34.
 
 ### O que o registro mede
 

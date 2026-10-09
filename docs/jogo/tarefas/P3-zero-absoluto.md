@@ -12,10 +12,9 @@ sofá inteiro segura o riso.
 ## Ler antes
 
 - [O molde de minigame](molde-de-minigame.md) (a FICHA, os ganchos, o que o kit dá pronto)
-- [`godot/scripts/minigames/s08/ouvido.gd`](../../../godot/scripts/minigames/s08/ouvido.gd) (a P1 cria: a voz, os
-  6 dB, o mudo, a escuta)
-- [`godot/scripts/minigames/s08/cenario_da_voz.gd`](../../../godot/scripts/minigames/s08/cenario_da_voz.gd) (a P1
-  cria: a cripta, a câmera, o exagero, os ganchos do cavaleiro)
+- [A P1](P1-a-voz.md), as partes «O ouvido inteiro (`ouvido.gd`)» (a voz, os 6 dB, o mudo, a escuta) e «O
+  cenário comum (`cenario_da_voz.gd`)» (a cripta, a câmera, o exagero, os ganchos do cavaleiro). A P1 cria os dois em
+  `godot/scripts/minigames/s08/`; se ela já entrou, valem os arquivos, e esta ficha só os chama.
 
 O resto (a bíblia de arte, o mapa do áudio, a régua da diversão, o RPG) já está copiado nesta ficha, com os
 números. Não abra outro documento.
@@ -27,7 +26,7 @@ números. Não abra outro documento.
 | `godot/scripts/minigames/s08/zero_absoluto.gd` | novo: o minigame | só desta |
 | `godot/scripts/minigames/catalogo.gd` | `S08_J38` em `MINIGAMES` e na seção `S08` | **da seção**: uma linha |
 | `godot/scripts/traducoes.gd` | `"Zero Absoluto"`, `"Cale!"`, `"%d escudos"` | **de todos** |
-| `godot/testes/prova_do_jogo.gd` | `_prova_zero_absoluto()` e a chamada no percurso | **de todos** |
+| `godot/testes/prova_do_jogo.gd` | `_prova_zero_absoluto()` e a linha `"S08_J38": await _prova_zero_absoluto()` no `match slot` de `_prova_da_ficha(slot)` (H08) | **de todos** |
 
 O `.uid` novo (`zero_absoluto.gd.uid`) sai do import `"$GODOT" --headless --path godot --import --quit` e entra no
 commit. Esta ficha não mexe em `ouvido.gd`, `cenario_da_voz.gd`, `musica.gd` nem `minigame.gd`.
@@ -45,7 +44,8 @@ As do kit (H04, H08): `presentes()`, `conectado(l)`, `raia(l)`, `jogador(l)`, `p
 `notas_em_aberto(l)`, `alvo_da(l, n)`, `casar_toque(l)` (alcance 0,5 s, já com o desvio), `julgar_nota(l, n)`, `notas_perdidas(l)`, `anotar`, `marcar`,
 `aprendeu(l)`, `momento(nome, l, pos, altura_m, campos)`, `rng`, `RAIAS`, `Z_JOGADOR` (1,4),
 `BATIDA_DA_PRIMEIRA_NOTA` (4). Do `Ritmo`: `Ritmo.calar(batidas)` (a música cala e o relógio segue, H08),
-`Ritmo.calada()`.
+`Ritmo.calada()`. Da F09: `Forja.robo_acerta()`, `Forja.robo_falar(l, nivel, s)` e `Forja._robo_apertar_cru(l,
+botao, s)` (o aperto sem sorteio).
 
 Do ouvido (P1): `Ouvido.new(self)`, `comecar()`, `ouvir(dt)`, `falando[l]`, `mudo[l]`, `sem_mic[l]`,
 `proteger(l, sim)`, `luz_do_mudo(l)`, `segura[l]`, `abaixa`, `sentir(l, nome)`, `falante(l, som, ganho, ms)`,
@@ -369,7 +369,8 @@ O catálogo: `Catalogo.MINIGAMES["S08_J38"] = preload("res://scripts/minigames/s
 ### A câmera
 
 A da P1: `CenarioDaVoz.pose_da_camera()`, 35 mm, plongée de 50°, a 13,5 m de `(0; 1,2; −1,6)`, o modo `fixa`. O
-guardião de pé chega a 4,75 m em z −3,0, e o topo do quadro ali está a 5,46 m: sobra 0,7 m. No silêncio do pico,
+guardião de pé chega a 4,77 m em z −3,0 (o esqueleto Kenney tem 0,722 m; na escala 6,6, 4,77 m), e o topo do
+quadro ali está a 5,46 m: sobra 0,7 m. No silêncio do pico,
 a câmera recua 10 % (`pose_da_camera(1.1)`). Roll zero; o tremor é só o do `exagero`.
 
 ### A luz da seção
@@ -386,17 +387,17 @@ névoa do `atmosfera` a 0,21. É a mesma caverna, escurecida: o terror vem do es
 | peça | onde | papel |
 | --- | --- | --- |
 | a cripta, as tochas, as velas, as colunas | `CenarioDaVoz.montar(self, 0.6)` | o fundo comum da seção |
-| `graveyard-kit/character-skeleton` (escala 4,0) | o pivô em `GUARDIAO = (0, 0, −3.0)` | **o guardião**: de costas (`rotation.y = PI`) na marcha, de frente (`0`) no silêncio |
+| `graveyard-kit/character-skeleton` (escala 6,6: 4,77 m de altura, 3,4 m de largura com os braços) | o pivô em `GUARDIAO = (0, 0, −3.0)` | **o guardião**: de costas (`rotation.y = PI`) na marcha, de frente (`0`) no silêncio |
 
 O que não é peça Kenney (caixas do `Kit`, `metallic` 0):
 
 | objeto | forma | onde | material |
 | --- | --- | --- | --- |
-| os olhos do guardião | 2 caixas 0,24 × 0,1 × 0,04 | filhos do pivô, em `(±0.24, 4.3, 0.4)` | `Tema.neon(Tema.VIOLETA, e, "mundo")`, `e` 0 na marcha, 1,2 no silêncio |
+| os olhos do guardião | 2 caixas 0,3 × 0,22 × 0,04 | filhos do pivô, em `(±0.46, 3.85, 1.09)`: as órbitas do crânio (no modelo, x ±0,07, y 0,584, frente em z 0,162; × 6,6) | `Tema.neon(Tema.VIOLETA, e, "mundo")`, `e` 0 na marcha, 1,2 no silêncio |
 | as lajes da trilha | 24 caixas 1,4 × 0,05 × 0,45 por lugar | `(RAIAS[l], 0.03, Z_JOGADOR − i × PASSO)`, recicladas | `Kit.material(Tema.ETIQUETA_SOMBRA, 0.0, 0.5)` |
 | o bloco de gelo | caixa 1,1 × 2,0 × 1,1 | `(RAIAS[l], 1.0, Z_JOGADOR)` | `Kit.material(Tema.ETIQUETA, 0.0, 0.25)`, alfa 0,55 |
 | o poste da lanterna | caixa 0,08 × 1,6 × 0,08 | `(RAIAS[l] + 0.9, 0.8, Z_JOGADOR)` | `Kit.material(Tema.GRAFITE, 0.0, 0.6)` |
-| as brasas do escudo | 3 caixas 0,14 × 0,14 × 0,14, empilhadas | no topo do poste, y 1,7 / 1,86 / 2,02 | `Tema.neon(Tema.JOGADOR[l], 1.6)`; a gasta some (de cima para baixo) |
+| as brasas do escudo | 3 caixas 0,14 × 0,14 × 0,14, empilhadas | no topo do poste, y 1,7 / 1,86 / 2,02 | `Tema.neon(Tema.JOGADOR[l], 1.6, l)`; a gasta some (de cima para baixo) |
 | a luz da lanterna | `OmniLight3D` | `(RAIAS[l] + 0.9, 2.0, Z_JOGADOR)` | a cor do lugar, 0,9, alcance 4 |
 
 **A trilha, pela batida.** O cavaleiro não sai do lugar: a trilha desliza. A laje `i` fica em
@@ -424,7 +425,7 @@ O gelo é `Tema.ETIQUETA` e `Tema.ETIQUETA_SOMBRA`, sem brilho. Somem os `#cfe8f
 - Por lugar: `raia(l)`, `posicionar(l)`, `rotation.y = PI` (andando para o guardião), `preso = true`; a trilha; a
   lanterna; o bloco, escondido.
 - O guardião: um pivô `Node3D` em `GUARDIAO` com o esqueleto (`Kit.peca(pivo, "graveyard-kit/character-skeleton",
-  Vector3.ZERO, 0.0, 4.0)`) e os olhos.
+  Vector3.ZERO, 0.0, 6.6)`) e os olhos.
 
 ## O som
 
@@ -495,7 +496,7 @@ func robo(l: int, _dt: float) -> void:
 			_robo_nota[l] = n
 			_robo_mira[l] = 0.0 if Forja.robo_acerta() else 0.25
 		if Ritmo.t_musica() >= alvo_da(l, n) + float(_robo_mira[l]) and b < m:
-			Forja.robo_apertar(l, Forja.CRUZ, 0.05)
+			Forja._robo_apertar_cru(l, Forja.CRUZ, 0.05)  # já sorteou: o aperto sem sorteio
 			_robo_feita[l] = n
 		break
 	# o silêncio: decide uma vez por ciclo, em M - 1,8
@@ -505,18 +506,23 @@ func robo(l: int, _dt: float) -> void:
 		_robo_escudo[l] = certo and _cargas[l] > 0 and _robo_rng.randf() < 0.3
 		_robo_ri[l] = _robo_escudo[l] or not certo  # com escudo ri à vontade; o que erra ri sem
 		if _robo_escudo[l]:
-			Forja.robo_apertar(l, Forja.MICROFONE, 0.08)
+			Forja._robo_apertar_cru(l, Forja.MICROFONE, 0.08)
 	if _robo_ri[l] and b >= m + 1.0 and b < fim and _robo_riu[l] != _c:
 		_robo_riu[l] = _c
 		Forja.robo_falar(l, 0.7, 0.4)
 	if _robo_escudo[l] and b >= fim + 0.5 and _robo_baixou[l] != _c:
 		_robo_baixou[l] = _c
 		if Forja.robo_acerta():  # quando erra, esquece o escudo erguido
-			Forja.robo_apertar(l, Forja.MICROFONE, 0.08)
+			Forja._robo_apertar_cru(l, Forja.MICROFONE, 0.08)
 ```
 
 O robô ri 0,4 s a 0,7: passa dos 0,15 s e congela quem não tem escudo. A chance de rir sem escudo num silêncio é a
 de errar: 5 % no `bom`, 34 % no `medio`, 70 % no `ruim`.
+
+O robô sorteia o temperamento uma vez, no `Forja.robo_acerta()`, e aperta pelo `Forja._robo_apertar_cru(l, botao,
+s)` da F09. O `Forja.robo_apertar` sorteia de novo dentro (quem erra não aperta em 50 % das vezes, ou aperta de 0,4
+a 1,2 s tarde): com ele, o escudo do robô `bom` falharia, e as chances acima ficariam erradas. Se a F09 entrar com
+outro nome para o aperto sem sorteio, use o dela e anote o nome aqui.
 
 ## O cavaleiro
 
@@ -571,20 +577,39 @@ dele. A sala explode no riso que não pode, e quem tem escudo ri à vontade. Deg
 | 9. o impacto | o bloco de gelo aparece no mesmo quadro do `congelou` (o `visible` muda na mesma chamada) | o quadro seguinte ao `congelou` mostra o bloco |
 | 10. o placar no mundo | o `valores` do `congelou` bate com `_dist` | as trilhas mostram quem está na frente pelas lajes; as brasas mostram os escudos |
 
-A mesa padrão roda em duas rodadas até o robô por lugar existir: `bash tests/prova_do_jogo.sh --robo=medio` (os
-itens 1, 5, 8, 9 e 10) e `--robo=ruim` (os itens 4, 6 e 7).
+A mesa padrão roda em duas rodadas até o robô por lugar existir: `ROBO=medio SALA=S08_J38 bash
+tests/prova_do_jogo.sh` (os itens 1, 5, 8, 9 e 10) e `ROBO=ruim SALA=S08_J38 bash tests/prova_do_jogo.sh` (os itens 4, 6 e 7). A variável `ROBO` é da
+P1 (em `tests/prova_do_jogo.sh`); `--robo=medio` depois do comando não chega ao Godot.
 
 ## Pronto quando
 
 O Zero Absoluto joga do aviso ao resultado com 4, 3, 2 e 1 jogador e com o robô nos três temperamentos (o ruim ri e
 congela). Aguenta o cabo que cai e volta, e fecha com vencedor. A luz do mudo acende só em quem ergueu o escudo,
-pisca em quem esqueceu e apaga em quem baixou. Nada toca nem vibra forte no silêncio. A prova do jogo passa, e
+pisca em quem esqueceu e apaga em quem baixou. Nada toca nem vibra forte no silêncio. `SALA=S08_J38 bash tests/prova_do_jogo.sh` passa (sem e com `--bancada`), e
 `bash tests/prova_visual.sh` passa com a prancha olhada (o guardião virando, os blocos de gelo, a caverna escura sem
 virar tela vazia).
 
 ## Provas
 
-Em `godot/testes/prova_do_jogo.gd`, depois da `_prova_o_sopro_no_fole()`:
+Na sessão, nesta ordem:
+
+```bash
+bash tests/prova_do_jogo.sh                              # o percurso: nada que já passava quebrou
+SALA=S08_J38 bash tests/prova_do_jogo.sh                 # o minigame inteiro, sem e com --bancada
+ROBO=medio SALA=S08_J38 bash tests/prova_do_jogo.sh      # a régua, a rodada do medio
+ROBO=ruim SALA=S08_J38 bash tests/prova_do_jogo.sh       # a régua, a rodada do ruim
+bash tests/prova_visual.sh                               # as pranchas
+```
+
+Em `godot/testes/prova_do_jogo.gd`, a função entra no `match slot` de `_prova_da_ficha(slot)` da H08, ao lado da
+linha da P1 (o percurso não joga 90 s de cada minigame):
+
+```gdscript
+		"S08_J38":
+			await _prova_zero_absoluto()
+```
+
+A função:
 
 ```gdscript
 ## S08_J38: a marcha anda; no silêncio, a luz do mudo acende em quem ergueu o
@@ -626,7 +651,7 @@ func _prova_zero_absoluto() -> void:
 		_esperar(float(g.get("x_tela", 0.0)) >= 0.05 and float(g.get("x_tela", 0.0)) <= 0.95, "Zero: o bloco na tela (%s)" % [g])
 ```
 
-`Forja.robo_temperamento` é o temperamento da F09 (se o nome lá for outro, use o da F09). A luz conferida é a do
+`Forja.robo_temperamento` é o temperamento da F09 (`var robo_temperamento := ""` em `forja.gd`). A luz conferida é a do
 `led_mic` que a `percepcao` lê (a saída mandada), no próprio quadro: a F01 anota a `saida` com o `seq`.
 
 ### O que o registro mede
@@ -667,8 +692,9 @@ A caverna escura não pode virar tela vazia: o guardião, os quatro cavaleiros e
 - **Nenhum som no silêncio:** nem da TV, nem do alto-falante. Um som a mais congela os quatro.
 - **O `abaixa = false`:** a `Musica.escuta` não pode mexer no volume enquanto a música está calada; o ouvido já não
   mexe com o `Ritmo.calada()`, e o `abaixa` desliga o resto.
-- **Os olhos do esqueleto:** se a prancha mostrar os olhos fora do crânio, meça a altura do crânio no modelo em escala
-  4,0 e ponha os olhos 0,45 m abaixo do topo; anote o número.
+- **Os olhos do esqueleto:** os números saem do `character-skeleton.glb` do Graveyard Kit (o crânio de y 0,447 a
+  0,722; as órbitas em x ±0,07 e y 0,584). Se a G10 ou a G14 trocarem a escala da pasta `graveyard-kit` (hoje 1×),
+  divida o 6,6 pelo fator novo para o guardião ficar com 4,77 m.
 
 ### Ao terminar
 

@@ -11,10 +11,9 @@ que mais faz a sala rir, porque ninguém consegue gritar no tempo rindo.
 ## Ler antes
 
 - [O molde de minigame](molde-de-minigame.md) (a FICHA, os ganchos, o que o kit dá pronto)
-- [`godot/scripts/minigames/s08/ouvido.gd`](../../../godot/scripts/minigames/s08/ouvido.gd) (a P1 cria: a voz, os
-  6 dB, o mudo, a escuta)
-- [`godot/scripts/minigames/s08/cenario_da_voz.gd`](../../../godot/scripts/minigames/s08/cenario_da_voz.gd) (a P1
-  cria: a cripta, a câmera, o exagero, os ganchos do cavaleiro)
+- [A P1](P1-a-voz.md), as partes «O ouvido inteiro (`ouvido.gd`)» (a voz, os 6 dB, o mudo, a escuta) e «O
+  cenário comum (`cenario_da_voz.gd`)» (a cripta, a câmera, o exagero, os ganchos do cavaleiro). A P1 cria os dois em
+  `godot/scripts/minigames/s08/`; se ela já entrou, valem os arquivos, e esta ficha só os chama.
 
 O resto (a bíblia de arte, o mapa do áudio, a régua da diversão, o RPG) já está copiado nesta ficha, com os
 números. Não abra outro documento.
@@ -26,7 +25,7 @@ números. Não abra outro documento.
 | `godot/scripts/minigames/s08/grito_de_guerra.gd` | novo: o minigame | só desta |
 | `godot/scripts/minigames/catalogo.gd` | `S08_J39` em `MINIGAMES` e na seção `S08` | **da seção**: uma linha |
 | `godot/scripts/traducoes.gd` | `"Grito de Guerra"`, `"Grite!"`, `"No ringue"`, `"Contra 2 bonecos"` | **de todos** |
-| `godot/testes/prova_do_jogo.gd` | `_prova_grito_de_guerra()` e a chamada no percurso | **de todos** |
+| `godot/testes/prova_do_jogo.gd` | `_prova_grito_de_guerra()` e a linha `"S08_J39": await _prova_grito_de_guerra()` no `match slot` de `_prova_da_ficha(slot)` (H08) | **de todos** |
 
 O `.uid` novo (`grito_de_guerra.gd.uid`) sai do import `"$GODOT" --headless --path godot --import --quit` e entra no
 commit. Esta ficha não mexe em `ouvido.gd`, `cenario_da_voz.gd`, `musica.gd` nem `minigame.gd`.
@@ -416,7 +415,7 @@ Roll zero; o tremor é só o do `exagero`.
 
 ### A luz da seção
 
-A da P1, pelo `CenarioDaVoz.montar(self)`: `Tema.luz_da_secao(4, "B")`, a chave a 0,77. No pico, a chave sobe 20 % em
+A da P1, pelo `CenarioDaVoz.montar(self)`: `Tema.luz_da_secao(8, true)`, a chave a 0,77. No pico, a chave sobe 20 % em
 1 batida (10 % sem flashes). A queda é catástrofe: a chave a +40 % por 1 batida.
 
 A barra de luz de cada um fica a 30 % da cor do lugar (`Tema.JOGADOR[l].darkened(0.7)`) e vai a 100 % por 0,11 s em
@@ -445,9 +444,9 @@ O que não é peça Kenney (caixas do `Kit`, `metallic` 0):
 | --- | --- | --- | --- |
 | o abismo | caixa 30 × 0,02 × 22 | `(0, 0.01, −0.5)`, sobre o chão da cripta | `Kit.material(Tema.JANELA, 0.0, 1.0)` |
 | o ringue | `Kit.cilindro(self, RAIO / cos(PI / 8), TOPO, CENTRO + Vector3(0, 0.3, 0), pedra)` com `radial_segments = 8` | o centro | `Kit.material(Tema.GRAFITE, 0.0, 0.95)` |
-| a marca dos pés | 2 caixas 0,25 × 0,02 × 0,4 | filhas de um pivô no pé do cavaleiro, em `(±0.15, 0.01, 0.1)`; o pivô gira com ele | `Tema.neon(Tema.JOGADOR[l], 1.8)` |
-| o anel do chão | `TorusMesh`, raio de dentro 0,5, de fora 0,62 | sob o cavaleiro, y `TOPO + 0.01` | `Tema.neon(Tema.JOGADOR[l], 1.5)`; o fantasma, 0,4 |
-| o anel da onda | `TorusMesh`, de 0,3 ao raio da onda em 0,25 s, depois some em 0,15 s | o pé do gritador | `Tema.neon(Tema.JOGADOR[l], 1.2 a 2.6)` (o volume); da TV e dos bonecos, `Tema.neon(Tema.VIOLETA, 1.2, "mundo")` |
+| a marca dos pés | 2 caixas 0,25 × 0,02 × 0,4 | filhas de um pivô no pé do cavaleiro, em `(±0.15, 0.01, 0.1)`; o pivô gira com ele | `Tema.neon(Tema.JOGADOR[l], 1.8, l)` |
+| o anel do chão | `TorusMesh`, raio de dentro 0,5, de fora 0,62 | sob o cavaleiro, y `TOPO + 0.01` | `Tema.neon(Tema.JOGADOR[l], 1.5, l)`; o fantasma, 0,4 |
+| o anel da onda | `TorusMesh`, de 0,3 ao raio da onda em 0,25 s, depois some em 0,15 s | o pé do gritador | `Tema.neon(Tema.JOGADOR[l], e, l)`, `e` de 1,2 a 2,6 (o volume); da TV e dos bonecos, `Tema.neon(Tema.VIOLETA, 1.2, "mundo")` |
 
 A marca dos pés mostra para onde ele olha, e o coice vai para o lado contrário. É o que ensina o coice sem palavra.
 
@@ -591,19 +590,38 @@ Ou pior: o coice do próprio grito atrasado o joga para fora. A sala explode. De
 | 9. o impacto | o empurrado começa a andar na mesma batida da onda (o `b0` do empurrão é a batida do `toque`) | o quadro seguinte à onda mostra o anel aberto e o empurrado fora do lugar |
 | 10. o placar no mundo | o `valores` do `fora_do_ringue` bate com `_vivos()` | os fantasmas na borda mostram quem caiu |
 
-A mesa padrão roda em duas rodadas até o robô por lugar existir: `bash tests/prova_do_jogo.sh --robo=medio` (os
-itens 1, 5, 8, 9 e 10) e `--robo=ruim` (os itens 4, 6 e 7).
+A mesa padrão roda em duas rodadas até o robô por lugar existir: `ROBO=medio SALA=S08_J39 bash
+tests/prova_do_jogo.sh` (os itens 1, 5, 8, 9 e 10) e `ROBO=ruim SALA=S08_J39 bash tests/prova_do_jogo.sh` (os itens 4, 6 e 7). A variável `ROBO` é da
+P1 (em `tests/prova_do_jogo.sh`); `--robo=medio` depois do comando não chega ao Godot.
 
 ## Pronto quando
 
 O Grito de Guerra joga do aviso ao resultado com 4, 3, 2 e 1 jogador (com os bonecos) e com o robô nos três
 temperamentos (o ruim leva coice). Aguenta o cabo que cai e volta, e fecha com vencedor pelo último em pé. O empurrado
-sente um motor só, do lado certo, depois da janela. Nada forte vibra na escuta. A prova do jogo passa, e
+sente um motor só, do lado certo, depois da janela. Nada forte vibra na escuta. `SALA=S08_J39 bash tests/prova_do_jogo.sh` passa (sem e com `--bancada`), e
 `bash tests/prova_visual.sh` passa com a prancha olhada (o ringue, as ondas, alguém caindo, os fantasmas na borda).
 
 ## Provas
 
-Em `godot/testes/prova_do_jogo.gd`, depois da `_prova_zero_absoluto()`:
+Na sessão, nesta ordem:
+
+```bash
+bash tests/prova_do_jogo.sh                              # o percurso: nada que já passava quebrou
+SALA=S08_J39 bash tests/prova_do_jogo.sh                 # o minigame inteiro, sem e com --bancada
+ROBO=medio SALA=S08_J39 bash tests/prova_do_jogo.sh      # a régua, a rodada do medio
+ROBO=ruim SALA=S08_J39 bash tests/prova_do_jogo.sh       # a régua, a rodada do ruim
+bash tests/prova_visual.sh                               # as pranchas
+```
+
+Em `godot/testes/prova_do_jogo.gd`, a função entra no `match slot` de `_prova_da_ficha(slot)` da H08, ao lado da
+linha da P1 (o percurso não joga 90 s de cada minigame):
+
+```gdscript
+		"S08_J39":
+			await _prova_grito_de_guerra()
+```
+
+A função:
 
 ```gdscript
 ## S08_J39: o robô grita no tempo forte; alguém é empurrado, e a mão do
@@ -642,8 +660,7 @@ func _prova_grito_de_guerra() -> void:
 ```
 
 O 4,51 é o `RAIO_PICO` com a folga do `lerpf`. A conferência do pico só vale se o jogo chegou ao
-fim do pico (a batida 116) sem acabar por último em pé. `Forja.robo_temperamento` é o temperamento da F09 (se o nome
-lá for outro, use o da F09).
+fim do pico (a batida 116) sem acabar por último em pé. `Forja.robo_temperamento` é o temperamento da F09 (`var robo_temperamento := ""` em `forja.gd`).
 
 ### O que o registro mede
 

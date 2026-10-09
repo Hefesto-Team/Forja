@@ -1,6 +1,6 @@
 # P2 — O Sopro no Fole
 
-**Sprint:** P · **Slot:** S08_J37 · **Tamanho:** M · **Depende de:** P1, H04, H07, H08, F09, G03, G04, G05, G08, G10, G13, G14, G15
+**Sprint:** P · **Slot:** S08_J37 · **Tamanho:** M · **Depende de:** P1, H04, H06, H07, H08, F09, G03, G04, G05, G08, G10, G13, G14, G15
 
 ## Por quê
 
@@ -11,10 +11,9 @@ frase inteira é o fole dos quatro, um depois do outro. Quem sopra demais leva a
 ## Ler antes
 
 - [O molde de minigame](molde-de-minigame.md) (a FICHA, os ganchos, o que o kit dá pronto)
-- [`godot/scripts/minigames/s08/ouvido.gd`](../../../godot/scripts/minigames/s08/ouvido.gd) (a P1 cria: a voz, os
-  6 dB, o mudo, a escuta)
-- [`godot/scripts/minigames/s08/cenario_da_voz.gd`](../../../godot/scripts/minigames/s08/cenario_da_voz.gd) (a P1
-  cria: a cripta, o braseiro, a câmera, o exagero, os ganchos do cavaleiro)
+- [A P1](P1-a-voz.md), as partes «O ouvido inteiro (`ouvido.gd`)» (a voz, os 6 dB, o mudo, a escuta) e «O
+  cenário comum (`cenario_da_voz.gd`)» (a cripta, o braseiro, a câmera, o exagero, os ganchos do cavaleiro). A P1 cria os dois em
+  `godot/scripts/minigames/s08/`; se ela já entrou, valem os arquivos, e esta ficha só os chama.
 
 O resto (a bíblia de arte, o mapa do áudio, a régua da diversão, o RPG) já está copiado nesta ficha, com os
 números. Não abra outro documento.
@@ -26,7 +25,7 @@ números. Não abra outro documento.
 | `godot/scripts/minigames/s08/o_sopro_no_fole.gd` | novo: o minigame | só desta |
 | `godot/scripts/minigames/catalogo.gd` | `S08_J37` em `MINIGAMES` e na seção `S08` | **da seção**: uma linha |
 | `godot/scripts/traducoes.gd` | `"O Sopro no Fole"`, `"Sopre e pare!"`, `"%d inteiras"` | **de todos** |
-| `godot/testes/prova_do_jogo.gd` | `_prova_o_sopro_no_fole()` e a chamada no percurso | **de todos** |
+| `godot/testes/prova_do_jogo.gd` | `_prova_o_sopro_no_fole()` e a linha `"S08_J37": await _prova_o_sopro_no_fole()` no `match slot` de `_prova_da_ficha(slot)` (H08) | **de todos** |
 
 O `.uid` novo (`o_sopro_no_fole.gd.uid`) sai do import `"$GODOT" --headless --path godot --import --quit` e entra
 no commit. Esta ficha não mexe em `ouvido.gd`, `cenario_da_voz.gd`, `musica.gd` nem `minigame.gd`: usa o que a P1
@@ -402,7 +401,7 @@ do `exagero`.
 
 ### A luz da seção
 
-A da P1, pelo `CenarioDaVoz.montar(self)`: S8 ameixa, lado B, `Tema.luz_da_secao(4, "B")` (névoa `#18081c`,
+A da P1, pelo `CenarioDaVoz.montar(self)`: S8 ameixa, lado B, `Tema.luz_da_secao(8, true)` (névoa `#18081c`,
 preenchimento `#4a2854`, chave `#f8ccba` a 0,77). No pico, a chave sobe 20 % em 1 batida (10 % sem flashes). A
 fuligem é estrondo: sem luz.
 
@@ -423,7 +422,7 @@ O que não é peça Kenney (caixas do `Kit`, `metallic` 0):
 | o bico | caixa 0,12 × 0,12 × 0,5 | `(RAIAS[l], 0.2, 0.0)`, apontado para o braseiro | ferro: `Kit.material(Tema.GRAFITE, 0.0, 0.6)` |
 | o trilho da barra | caixa `0.6 × dur` × 0,05 × 0,08 | `(RAIAS[l], 0.03, 2.2)`, a ponta esquerda em `RAIAS[l] − 1.0` | `Kit.material(Tema.GRAFITE, 0.0, 0.6)` |
 | a barra que enche | caixa do mesmo tamanho, `scale.x` de 0 a 1 | em cima do trilho, cresce da esquerda | `Kit.material(Tema.ETIQUETA, 0.0, 0.8)` |
-| o «pare» | caixa 0,04 × 0,14 × 0,1 | na ponta direita do trilho | `Tema.neon(Tema.JOGADOR[l], 1.6)` |
+| o «pare» | caixa 0,04 × 0,14 × 0,1 | na ponta direita do trilho | `Tema.neon(Tema.JOGADOR[l], 1.6, l)` |
 | a máscara de fuligem | caixa 0,30 × 0,14 × 0,04 | no `BoneAttachment3D` do osso `head`, em `(0, 0.06, 0.14)` | `Kit.material(Tema.FITA, 0.0, 1.0)` |
 
 **O fole, pela batida.** Enquanto `_soprando[l]`: o couro `scale.y = 1.0 + g * clampf((b - bi) / dur, 0.0, 1.0)`,
@@ -594,19 +593,38 @@ ri de quem não soube parar. Degrau estrondo.
 | 9. o impacto | uma linha `sensacao` `erro` a até 16,7 ms de cada `fuligem` | o quadro seguinte à fuligem mostra a nuvem preta |
 | 10. o placar no mundo | o `valores` da `fuligem` bate com `_inteiras` | no quadro de 70 s, a chama de repouso do líder é a mais alta |
 
-A mesa padrão roda em duas rodadas até o robô por lugar existir: `bash tests/prova_do_jogo.sh --robo=medio` (os
-itens 1, 5, 8, 9 e 10) e `--robo=ruim` (os itens 4, 6 e 7).
+A mesa padrão roda em duas rodadas até o robô por lugar existir: `ROBO=medio SALA=S08_J37 bash
+tests/prova_do_jogo.sh` (os itens 1, 5, 8, 9 e 10) e `ROBO=ruim SALA=S08_J37 bash tests/prova_do_jogo.sh` (os itens 4, 6 e 7). A variável `ROBO` é da
+P1 (em `tests/prova_do_jogo.sh`); `--robo=medio` depois do comando não chega ao Godot.
 
 ## Pronto quando
 
 O Fole joga do aviso ao resultado com 4, 3, 2 e 1 jogador e com o robô nos três temperamentos (o ruim estoura
 fuligem). Aguenta o cabo que cai e volta, e fecha com vencedor. Sem microfone, o fole sopra sozinho e a `troca`
-aparece. Nada vibra do começo ao fim do sopro. A prova do jogo passa, e `bash tests/prova_visual.sh` passa com a
-prancha olhada (os foles enchendo, a barra, a fuligem, o rosto preto).
+aparece. Nada vibra do começo ao fim do sopro. `SALA=S08_J37 bash tests/prova_do_jogo.sh` passa (sem e com
+`--bancada`), e `bash tests/prova_visual.sh` passa com a prancha olhada (os foles enchendo, a barra, a fuligem, o rosto preto).
 
 ## Provas
 
-Em `godot/testes/prova_do_jogo.gd`, depois da `_prova_a_voz()`:
+Na sessão, nesta ordem:
+
+```bash
+bash tests/prova_do_jogo.sh                              # o percurso: nada que já passava quebrou
+SALA=S08_J37 bash tests/prova_do_jogo.sh                 # o minigame inteiro, sem e com --bancada
+ROBO=medio SALA=S08_J37 bash tests/prova_do_jogo.sh      # a régua, a rodada do medio
+ROBO=ruim SALA=S08_J37 bash tests/prova_do_jogo.sh       # a régua, a rodada do ruim
+bash tests/prova_visual.sh                               # as pranchas
+```
+
+Em `godot/testes/prova_do_jogo.gd`, a função entra no `match slot` de `_prova_da_ficha(slot)` da H08, ao lado da
+linha da P1 (o percurso não joga 90 s de cada minigame):
+
+```gdscript
+		"S08_J37":
+			await _prova_o_sopro_no_fole()
+```
+
+A função:
 
 ```gdscript
 ## S08_J37: o robô sopra as notas longas; a entrada e a saída são julgadas;
@@ -638,7 +656,7 @@ func _prova_o_sopro_no_fole() -> void:
 		_esperar(float(f.get("x_tela", 0.0)) >= 0.05 and float(f.get("x_tela", 0.0)) <= 0.95, "Fole: a fuligem na tela (%s)" % [f])
 ```
 
-`Forja.robo_temperamento` é o temperamento da F09 (se o nome lá for outro, use o da F09).
+`Forja.robo_temperamento` é o temperamento da F09 (`var robo_temperamento := ""` em `forja.gd`).
 
 ### O que o registro mede
 
