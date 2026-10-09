@@ -1,72 +1,221 @@
-# G08 — A arte: bonecos e coerência
+# G08 — A arte: a peça que se distingue, as raças e a coerência
 
-**Sprint:** G · **Tamanho:** G · **Depende de:** F00, G01, G02, F09 · **Parte B depende de:** os pacotes Kenney que o André baixa e commita
+**Sprint:** G · **Tamanho:** G · **Depende de:** F00, G01, G02, G14, F09 ·
+**A parte B depende também de:** G10 (o `cube-pets` importado) e G13 (a
+montagem por peças)
 
 ## Por quê
 
-Dois bonecos não criam apego, e algumas peças destoam do kit (o guardião
-d'A Voz, os toros lisos, o ouro que reflete). A meta: pelo menos doze
-silhuetas na construção, e tudo no mesmo estilo fosco e em blocos — com uma
-conferência automática para o que se confere sem olho.
+Ela, ao aprovar a direção (09/10/2026): «as roupas superiores e inferiores
+precisam se diferenciar. tudo tá num neon de uma única cor que nada diferencia
+na hora da montagem» e «só temos assets de personagens humanos». A causa está
+em `godot/scripts/player.gd`, `_vestir()`: o corpo inteiro é multiplicado pela
+cor do lugar. Esta ficha tira a cor do corpo, dá a cada parte a sua faixa de
+valor e um acento de néon com área contada, põe quatro raças na montagem e
+fecha a coerência fosca e facetada do resto do jogo.
 
 ## Ler antes
 
-- [As regras de coerência](../11-arte-e-personagens.md#as-regras-de-coerência) e [o checklist](../11-arte-e-personagens.md#o-checklist-de-aprovação)
-- [O que destoa hoje](../11-arte-e-personagens.md#o-que-destoa-hoje)
-- [Os personagens](../11-arte-e-personagens.md#os-personagens) (as fontes a, b e c)
+- [A peça se distingue](../arte/04-o-cavaleiro.md#a-peça-se-distingue) (a regra, a tabela dos acentos, o teste de 64 px)
+- [A cor da peça e o néon do dono](../arte/02-cor-e-letra.md#o-cavaleiro-a-cor-da-peça-e-o-néon-do-dono) (as faixas de L e as peles)
+- [As raças](../arte/04-o-cavaleiro.md#as-raças) (só para a parte B)
+
+## Arquivos que mudam
+
+| arquivo | parte | também muda em |
+| --- | --- | --- |
+| `scripts/conferir_bonecos.py` (novo) | A | G10 roda ele |
+| `godot/shaders/cavaleiro.gdshader` e `.uid` (novos) | A | — |
+| `godot/shaders/contorno.gdshader`, `godot/shaders/neon.gdshader` e `.uid` (novos, se a G15 ainda não criou) | A | **G15** |
+| `godot/scripts/mundo/pintura.gd` e `.uid` (novo, `class_name Pintura`) | A | — |
+| `godot/scripts/player.gd` | A e B | **G01, G02, G03, G13** |
+| `godot/scripts/main.gd` (`_mostrar`) | A | **G01, G02, G04, G05, G06, G07** |
+| `godot/scripts/som.gd` (`pio`) | A | **G01, G03, G04, G06, G07** |
+| `godot/scripts/mundo/kit.gd` | A | **G03, G10** |
+| `godot/scripts/salas/voz.gd`, `canto.gd`, `caminhos.gd`, `centelha.gd`, `galeria.gd`, `impacto.gd`, `molde.gd`, `viga.gd`, `prova.gd`, `godot/scripts/mundo/efeitos.gd`, `godot/scripts/mundo/salao.gd` | A | **G05** (`salao.gd`), **G06** (`salao.gd`), **G15** |
+| `godot/scripts/mundo/racas.gd` e `.uid` (novo, `class_name Racas`) | B | — |
+| a tela de montagem da G13 (o script que ela criou para a linha da cabeça) | B | **G13** |
+| `godot/scripts/traducoes.gd` | B | **todas as G com texto** |
+| `godot/testes/prova_do_jogo.gd`, `tests/prova_do_jogo.sh` | A e B | **todas as G** |
+
+## Como se joga
+
+Não se aplica à parte A: ela muda a aparência, não a regra.
+
+Parte B, na montagem da G13: na linha da cabeça, **R1** alterna Humana, Orc,
+Autômato, Golem e Raposa, em laço, uma por toque. ◀ ▶ continuam escolhendo
+entre os 12 perfis de cabeça (stats e pio de `pecas.csv`), em qualquer raça.
+A raça não muda stat, colisão (a cápsula de raio 0,42 e altura 1,5 de
+`player.gd`), velocidade nem janela de julgamento. O pré-montado sorteia a raça
+pela semente do lugar: humana se `semente % 2 == 0`, senão a raça
+`1 + (semente / 2) % 4`.
+
+## A cena
+
+- **Câmera:** nenhuma muda aqui. A montagem segue o plano da G13 (50 mm,
+  frontal); o resto, a G05.
+- **Luz:** nenhuma muda. A luz da casa (tocha, lilás, névoa) fica.
+- **O corpo do cavaleiro, por parte** (L e croma em OKLab; o recolorir é o
+  `graduar` do estudo `godot/estudos/direcao/fita.gd`, com o teto de croma
+  novo):
+
+| parte | papel em `Pintura.GRADE` | `l0` | `l1` | `sat` | croma máximo | rugosidade | metallic |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| cabeça | `personagem` | 0,06 | 0,86 | 0,80 | 0,10 | 0,90 | 0 |
+| tronco superior | `tecido` | 0,46 | 0,12 | 0,55 | 0,10 | 0,85 | 0 |
+| tronco inferior | `couro` | 0,22 | 0,14 | 0,40 | 0,07 | 0,70 | 0 |
+| item | `objeto` | 0,22 | 0,56 | 0,40 | 0,03 | 0,55 | 0,2 |
+
+- **O néon do dono** (sempre `Tema.JOGADOR[lugar]`, nunca a cor da peça):
+
+| elemento | onde | energia | área |
+| --- | --- | --- | --- |
+| o contorno | casco invertido, largura 0,012 | 1,6 na montagem (`_mostrar("lobby")`), 2,4 no resto | não conta |
+| o friso | faixa no y mais baixo e no mais alto do osso `torso` | 1,6; 2,6 no encaixe, volta em 250 ms (`SAI`: `TRANS_CUBIC`, `EASE_OUT`) | até 8 % da frente do superior |
+| a costura | linha no x de maior módulo de `leg-left` e `leg-right` | 1,6; 2,6 no encaixe | até 5 % da frente do inferior |
+| o aro (fresnel) | as faces de lado de todo o corpo | 0,25, abaixo do limiar do glow (0,82) | não conta |
+| o anel de 8 lados no chão | toro de 8 lados, raio 0,62 (unidade do jogo, depois da `ESCALA` 2,0 vale 1,24 m) | 1,5 | — |
+| as lâmpadas à frente do anel | caixas de 0,09 × 0,02 × 0,14, nas posições acesas de `Forja.LEDS_DO_LUGAR[lugar]` | 1,8 | — |
+| a cabeça humana | nenhum acento | — | 0 % |
+
+  A soma do friso e da costura fica em até 8 % da frente do corpo.
+- **As raças (parte B)**, medidas nas unidades do personagem do Mini
+  Characters (o `male-a` tem 0,67 de altura):
+
+| raça | a cabeça | as mãos | a cauda | a proporção | a pele | o acento |
+| --- | --- | --- | --- | --- | --- | --- |
+| Orc | a `head-mesh` de `res://assets/kenney/mini-dungeon/character-orc.glb` | na pele | — | — | `Tema.PELE_ORC` `#89aa77` | nenhum |
+| Autômato | caixa de 0,30 × 0,28 × 0,28 com chanfro de 0,02; o visor: caixa `Tema.JANELA` de 0,24 × 0,06 × 0,01 a 0,10 do topo, com a linha de acento de 0,22 × 0,02 dentro; antena de 0,08 com a bola de 0,025 | pinça: duas caixas de 0,02 × 0,05 × 0,02 no punho | — | — | `Tema.PELE_LATAO` `#bda978`, metallic 0,2 | o visor, 1,6 |
+| Golem | bloco de 0,34 × 0,24 × 0,30, 0,03 mais baixo (sem pescoço); a rachadura: três caixas de 0,005 × 0,06 × 0,01 num vão `Tema.JANELA` de 0,10 × 0,08 na testa | punho: cubo de 0,075 no punho | — | `torso` × (1,15; 1; 1,15), `head` × 0,87 | `Tema.PELE_ESCORIA` `#a3958e` | a rachadura, 1,6 |
+| Raposa | caixa de 0,28 × 0,24 × 0,26; focinho de 0,12 × 0,08 × 0,10 com a ponta de 0,04 em `Tema.TINTA`; duas orelhas de 0,08 × 0,10 × 0,03; olhos de 0,03 em `Tema.TINTA` | na pele | a malha `tail` de `res://assets/kenney/cube-pets/animal-fox.glb` × 0,33, no osso `root` em (0; 0,20; −0,10), balança ±8° por batida, `ENTRA_SAI` (`TRANS_SINE`, `EASE_IN_OUT`) | — | `Tema.PELE_RAPOSA` `#cd8d6d` | nenhum |
+
+  A marca do perfil (o cabelo do perfil na cor dele): o tufo de 0,06 do orc no
+  alto da cabeça, a bola da antena do autômato, dois tufos de 0,05 no alto do
+  golem, a ponta das orelhas da raposa.
+- **O guardião d'A Voz** sai da esfera de bronze para pedra em blocos:
+  pedra `Tema.GRAFITE`, escuro `Tema.CASCO`, a boca `Tema.JANELA`, os dentes
+  `Tema.ETIQUETA`; metallic 0, rugosidade 0,95. O olho fica `#ff3a1a` (a G15
+  dá token e dono).
+- **A coerência:** nenhuma curva com mais de 8 lados; nada com `metallic`
+  acima de 0,2; o metal com rugosidade de 0,45 ou mais.
+
+## O som
+
+- **O pio do boneco** (`Som.pio`, que a G01 criou) passa a ler o intervalo de
+  `ForjaPlayer.BONECOS[boneco].intervalo` e toca `pio_p{lugar+1}_{intervalo}`
+  pelo encanamento do id da G01 (`Som.tocar` e `Som.no_controle`). Humano
+  `segunda`, Orc `quinta_baixo` (os mesmos da G01).
+- **A raça (parte B):** R1 toca `ui_peca` a +7 semitons (tom `pow(2, 7/12.0)`
+  = 1,498) no alto-falante do dono e na TV a −12 dB, pelo
+  `Som.tocar("ui_peca", null, -12.0, 1.498)` e `Som.no_controle(lugar, "ui_peca", 0.85)`
+  (o alto-falante toca o PCM sem tom; copiar o `ui_peca.wav` do estudo se
+  a G03 ou a G13 ainda não copiou). A raça não tem pio próprio: o
+  pio é o do perfil da cabeça.
+- Nenhum id novo no `mapa.csv`.
+
+## O controle
+
+| evento | para quem | vibração | gatilho | luz | alto-falante |
+| --- | --- | --- | --- | --- | --- |
+| R1 troca a raça (parte B) | o dono | o pulso de 40 ms da troca de peça: a mesma chamada que a G13 usa (a 03 pede 150 Hz nos atuadores); se a G13 não deixou uma, `Forja.vibrar(l, 0.0, 0.45, 40)` | não muda | não muda | `ui_peca` +7 |
+| o resto | — | não muda | não muda | não muda | não muda |
+
+Sem o controle na mão: o controle simulado mostra o que recebeu
+(`Forja.ctl.percepcao(pad)` tem `forte` e `fraco`; `Forja.som_virtual(l)` tem
+`falante`, `esq` e `dir`), e a prova confere que o R1 do robô chegou ao
+motor ou aos atuadores e ao alto-falante do lugar dele, e de nenhum outro
+(Provas).
+
+## O cavaleiro
+
+- Os stats não mudam aqui. A raça é aparência
+  ([sistemas](../sistemas/README.md#o-que-não-tem-stat)); o perfil da cabeça
+  continua dando os stats e o pio.
+- A peça escolhida aparece pela faixa de valor: em cinza, cabeça clara
+  (0,68 a 0,80), tronco médio (0,46 a 0,58), pernas escuras (0,22 a 0,36).
+- O item (G03) usa o papel `objeto` e a runa dele é o acento do item; esta
+  ficha só entrega `Pintura` e o acento, a G03 aplica.
+
+## As reações
+
+Não se aplica: a ficha não dispara adesivo nem carimbo.
+
+## A diversão
+
+**O momento:** na montagem, de 3 m da TV, cada um aponta o seu cavaleiro pelo
+corpo e não pela cor, e alguém ri do golem de calça social. **Como se
+confere:**
+
+1. A prova do jogo mede as medianas de L de cada parte nos quatro cavaleiros
+   da montagem: superior em [0,46; 0,58], inferior em [0,22; 0,36], e a
+   diferença entre os dois de 0,10 ou mais.
+2. A prancha `prancha-montagem-cinza.png` da prova visual (o quadro da
+   montagem convertido para cinza e reduzido a 64 px de altura por cavaleiro):
+   o jogador do time aponta, sem cor, qual parte é cabeça, tronco e pernas nos
+   quatro, e anota no diário.
+3. Parte B: na noite de teste, quem joga a montagem pela primeira vez troca a
+   raça pelo menos uma vez em 90 s (a prova do robô mede que o R1 funciona; a
+   noite mede o gosto).
 
 ## O estado de hoje
 
-- `godot/scripts/player.gd`: `MODELOS := ["character-human", "character-orc"]`,
-  `NOME_DO_MODELO := ["Humano", "Orc"]`, `PIO_DO_MODELO` (G01) alinhado com
-  `MODELOS`; `modelo_i` indexa `MODELOS`; `visual()` carrega
-  `"res://assets/kenney/%s.glb" % MODELOS[modelo_i]`; as peças da G02
-  (`PECAS := ["Nenhuma", "Elmo", "Capa", "Ombreira"]`) presas em
-  `BoneAttachment3D` chamados `"Peca"`. `Som.pio(l, boneco)` (G01) lê
-  `ForjaPlayer.PIO_DO_MODELO`.
-- Os dois `.glb` (medido com o JSON do glTF): sete ossos `root`,
-  `leg-left`, `leg-right`, `torso`, `arm-left`, `arm-right`, `head`
-  (`root` → pernas e `torso`; `torso` → braços e `head`); 32 animações;
-  malhas `body-mesh` e `head-mesh`; 465 e 374 triângulos; altura 0,755 com a
-  origem nos pés; um material `colormap` com `metallicFactor` 0; a textura
-  por `uri` `Textures/colormap.png`, **relativa ao `.glb`**.
-- `godot/assets/kenney/` tem o Mini Dungeon inteiro na raiz (e o
-  `Textures/colormap.png` dele). Um pacote Kenney novo traz o **seu**
-  `Textures/colormap.png`: se cair na mesma pasta, sobrescreve o nosso.
-- `godot/scripts/salas/voz.gd:107-164`, `_montar_guardiao()`: rosto
-  `Kit.esfera` escalado `(1.55, 1.95, 0.55)` em bronze `metallic = 0.6`,
-  olhos esféricos emissivos; devolve
-  `{"pivo", "mat_olho", "palpebras", "boca", "dentes", "brilho", "fundo"}`.
-  A animação (`voz.gd:495-506`) usa `mat_olho.emission_energy_multiplier`,
-  `palpebras` (`scale.y` e `position.y = 0.28 + 0.2 * olhos`),
-  `boca.scale.y = 0.12 + 0.75 * grito`, `brilho.light_energy` e
-  `pivo.position`.
-- `godot/scripts/mundo/kit.gd`: `cilindro` com `radial_segments = 20`
-  (78), `esfera` com 20 × 10 (92-93).
-- Toros lisos (`TorusMesh`, `rings` 32 a 48): `player.gd:75` (o aro),
-  `caminhos.gd:147`, `canto.gd:138, 187, 224`, `centelha.gd:127`,
-  `galeria.gd:122`, `impacto.gd:114`, `molde.gd:165`, `viga.gd:219`,
-  `voz.gd:172`, `mundo/efeitos.gd:86`. Esferas lisas: `centelha.gd:139`
-  (`SphereMesh`), `salao.gd:223` (a chama da tocha). CSG redondos:
-  `salao.gd:261-264` (tablado, 32 lados), `268-272` (borda, 48), `297-301`
-  (chifre, 16), `368-371` e `378-382` (pedestal e aro, 32 e 40),
-  `kit.gd:158-162` (chifre, 16).
-- `metallic` acima de 0,2: `caminhos.gd:116` (0,8), `canto.gd:128` (0,75),
-  `molde.gd:423` (0,7, o ouro), `prova.gd:124` (0,8), `viga.gd:70` (0,8),
-  `voz.gd:115` (0,6).
-- `LICENCAS-DE-TERCEIROS.md:14` e `godot/assets/LEIA-ME.md` citam só o Mini
-  Dungeon e os sons.
+- `godot/scripts/player.gd`:
+  - linha 13 `MODELOS := ["character-human", "character-orc"]`; linha 14
+    `NOME_DO_MODELO := ["humano", "orc"]`; a G01 acrescentou
+    `INTERVALO_DO_MODELO := ["segunda", "quinta_baixo"]`;
+  - linhas 75-89, o aro: `TorusMesh` de `rings` 32, `StandardMaterial3D`
+    sem luz com emissão 1,4 na cor do lugar;
+  - linha 107 `visual(m, item)` carrega `res://assets/kenney/%s.glb` (a G10
+    passa para `Kit.caminho`), chama `_vestir(modelo)`;
+  - linhas 156-166, `_vestir()`: cada `body*` recebe uma cópia do material
+    com `albedo_color = cor.lerp(Color.WHITE, 0.25)`. **É a causa.**
+- Os `.glb` do Mini Dungeon: sete ossos `root`, `leg-left`, `leg-right`,
+  `torso`, `arm-left`, `arm-right`, `head` (`root` → pernas e `torso`;
+  `torso` → braços e `head`); 32 animações com trilhas de posição, rotação e
+  escala em todos os ossos; malhas `body-mesh` e `head-mesh`; 465 e 374
+  triângulos; altura 0,755 com a origem nos pés; `metallicFactor` 0; a
+  textura `Textures/colormap.png` ao lado do `.glb`.
+- O estudo já tem o shader do cavaleiro (`godot/estudos/direcao/shaders/cavaleiro.gdshader`,
+  com `tingir` e `brilho_proprio`), o contorno e o néon (`contorno.gdshader`,
+  `neon.gdshader`), a normal suave no TANGENT (`Mundo.suavizar`,
+  `godot/estudos/direcao/mundo.gd:46-73`), o anel com lâmpadas (`Mundo.anel`,
+  `mundo.gd:159-189`) e o `graduar` em OKLab (`fita.gd:107-176`). O jogo não
+  tem `godot/shaders/`.
+- `godot/scripts/salas/voz.gd:114-168`, `_montar_guardiao()`: rosto
+  `Kit.esfera` escalado (1,55; 1,95; 0,55) em bronze `metallic` 0,6; olhos
+  esféricos; devolve `{"pivo", "mat_olho", "palpebras", "boca", "dentes",
+  "brilho", "fundo"}`. A animação (`voz.gd:500-515`) usa
+  `mat_olho.emission_energy_multiplier`, `palpebras` (`scale.y` e
+  `position.y = 0.28 + 0.2 * olhos`), `boca.scale` e `pivo.position`.
+- Curvas lisas: `TorusMesh` em `player.gd:75`, `efeitos.gd:86`,
+  `centelha.gd:128`, `molde.gd:166`, `canto.gd:139`, `:188`, `:225`,
+  `caminhos.gd:148`, `impacto.gd:115`, `voz.gd:177`, `viga.gd:220`,
+  `galeria.gd:123`; `SphereMesh` em `kit.gd:89` (20 × 10), `centelha.gd:140`,
+  `salao.gd:223`; `kit.gd:78` cilindro de 20 lados; CSG em `kit.gd:158`
+  (16), `salao.gd:214`, `261` (32), `268` (48), `297` (16), `368` (32),
+  `378` (40).
+- `metallic` acima de 0,2: `molde.gd:424` (0,7), `canto.gd:129` (0,75),
+  `viga.gd:71` (0,8), `caminhos.gd:117` (0,8), `voz.gd:120` (0,6),
+  `prova.gd:125` (0,8).
+- `pecas.csv` tem 36 peças com os nomes da cor nativa (Blusa roxa, Camisa
+  verde, Short azul). A raça não entra no CSV.
+- O `character-orc.glb` corta limpo (0 triângulo misto): cabeça 176,
+  superior 144, inferior 54. O Graveyard Kit tem bonecos **rígidos** (um nó
+  com malha por osso, mesmas 32 animações, sem skin); a G10 os importa como
+  monstros e roda o conferidor neles.
 
 ## O alvo
 
-### Parte A — sem pacote novo (a sessão faz tudo)
+### Parte A — a peça se distingue e a coerência
 
-**1. O conferidor de bonecos** (`scripts/conferir_bonecos.py`, novo; Python
-3 sem dependência):
+**A1. O conferidor de bonecos** (`scripts/conferir_bonecos.py`, Python 3 sem
+dependência). Aceita os dois tipos: com skin (os sete ossos nas juntas) e
+rígido (um nó com o nome de cada osso, cada um com malha ou filho com malha, e
+`head` com malha).
 
 ```python
 #!/usr/bin/env python3
-"""Confere um boneco .glb antes de ele entrar no Forja (docs/jogo/11, "os personagens").
+"""Confere um boneco .glb antes de ele entrar no Forja (docs/jogo/arte/04).
 
     python3 scripts/conferir_bonecos.py                 os character-*.glb de godot/assets/kenney
     python3 scripts/conferir_bonecos.py <arquivo|pasta>...
@@ -85,7 +234,7 @@ PAI = {"leg-left": "root", "leg-right": "root", "torso": "root",
 ANIMACOES = ["idle", "walk", "sprint", "jump", "fall", "die", "emote-yes", "emote-no",
              "attack-melee-right", "holding-right", "static", "interact-right"]
 TRIANGULOS = 1500
-ALTURA = 0.755  # a do boneco do kit, em unidades do modelo
+ALTURA = 0.755
 RAIZ = pathlib.Path(__file__).resolve().parent.parent
 
 
@@ -101,16 +250,25 @@ def conferir(j, pasta):
     falhas = []
     nos = j.get("nodes", [])
     nome = lambda i: nos[i].get("name", "")
-    if not j.get("skins"):
-        falhas.append("sem esqueleto")
-    for s in j.get("skins", []):
-        juntas = [nome(i) for i in s["joints"]]
-        if sorted(juntas) != sorted(OSSOS):
-            falhas.append(f"ossos {juntas}")
     pai = {}
     for n in nos:
         for c in n.get("children", []):
             pai[nome(c)] = n.get("name", "")
+    if j.get("skins"):
+        tipo = "skin"
+        for s in j["skins"]:
+            juntas = [nome(i) for i in s["joints"]]
+            if sorted(juntas) != sorted(OSSOS):
+                falhas.append(f"ossos {juntas}")
+    else:
+        tipo = "rígido"
+        por_nome = {n.get("name", ""): n for n in nos}
+        faltam = [o for o in OSSOS if o not in por_nome]
+        if faltam:
+            falhas.append(f"ossos {faltam} faltam")
+        tem_malha = lambda n: "mesh" in n or any("mesh" in nos[c] for c in n.get("children", []))
+        if "head" in por_nome and not tem_malha(por_nome["head"]):
+            falhas.append("head sem malha")
     for osso, p in PAI.items():
         if pai.get(osso) != p:
             falhas.append(f"{osso} pendurado em {pai.get(osso)!r}, não em {p!r}")
@@ -118,11 +276,6 @@ def conferir(j, pasta):
     faltam = [a for a in ANIMACOES if a not in anims]
     if faltam:
         falhas.append(f"faltam as animações {faltam}")
-    malhas = [n.get("name", "") for n in nos if "mesh" in n]
-    if not any(m.startswith("body") for m in malhas):
-        falhas.append(f"nenhuma malha body* {malhas}")
-    if not any(m.startswith("head") for m in malhas):
-        falhas.append(f"nenhuma malha head* separada {malhas}")
     tri, alto, baixo = 0, -1e9, 1e9
     for m in j.get("meshes", []):
         for p in m["primitives"]:
@@ -132,9 +285,9 @@ def conferir(j, pasta):
             tri += conta // 3
     if tri > TRIANGULOS:
         falhas.append(f"{tri} triângulos (máximo {TRIANGULOS})")
-    if abs(alto - ALTURA) > ALTURA * 0.15:
+    if tipo == "skin" and abs(alto - ALTURA) > ALTURA * 0.15:
         falhas.append(f"altura {alto:.3f} (a do kit é {ALTURA})")
-    if abs(baixo) > 0.03:
+    if tipo == "skin" and abs(baixo) > 0.03:
         falhas.append(f"a origem não está nos pés (o mais baixo em {baixo:.3f})")
     for mat in j.get("materials", []):
         metal = mat.get("pbrMetallicRoughness", {}).get("metallicFactor", 1.0)
@@ -143,7 +296,7 @@ def conferir(j, pasta):
     for img in j.get("images", []):
         if "uri" in img and not (pasta / img["uri"]).exists():
             falhas.append(f"a textura {img['uri']} não está ao lado do .glb")
-    return falhas, tri, len(anims)
+    return falhas, tri, len(anims), tipo
 
 
 def arquivos(args):
@@ -153,16 +306,16 @@ def arquivos(args):
 
 
 def teste():
-    j = ler(RAIZ / "godot/assets/kenney/character-human.glb")
-    pasta = RAIZ / "godot/assets/kenney"
-    bom, _, _ = conferir(j, pasta)
+    f = next(arquivos([]))
+    j = ler(f)
+    bom = conferir(j, f.parent)[0]
     for n in j["nodes"]:
         if n.get("name") == "head":
             n["name"] = "cabeca"
     j["animations"] = [a for a in j["animations"] if a.get("name") != "idle"]
-    ruim, _, _ = conferir(j, pasta)
-    ok = not bom and any("ossos" in f for f in ruim) and any("idle" in f for f in ruim)
-    print("PASSOU  a mordida: o humano passa; sem 'head' e sem 'idle', falha" if ok else f"FALHOU  a mordida: {bom} / {ruim}")
+    ruim = conferir(j, f.parent)[0]
+    ok = not bom and any("ossos" in x for x in ruim) and any("idle" in x for x in ruim)
+    print("PASSOU  a mordida: o boneco passa; sem 'head' e sem 'idle', falha" if ok else f"FALHOU  a mordida: {bom} / {ruim}")
     return 0 if ok else 1
 
 
@@ -171,13 +324,13 @@ def main():
         return teste()
     rc = 0
     for f in arquivos(sys.argv[1:]):
-        falhas, tri, n = conferir(ler(f), f.parent)
+        falhas, tri, n, tipo = conferir(ler(f), f.parent)
         rel = f.resolve().relative_to(RAIZ) if f.resolve().is_relative_to(RAIZ) else f.name
         if falhas:
             rc = 1
             print(f"FALHOU  {rel}: " + "; ".join(falhas))
         else:
-            print(f"PASSOU  {rel} ({tri} triângulos, {n} animações)")
+            print(f"PASSOU  {rel} ({tipo}, {tri} triângulos, {n} animações)")
     return rc
 
 
@@ -185,213 +338,377 @@ if __name__ == "__main__":
     sys.exit(main())
 ```
 
-(Nenhum caminho absoluto na saída: só o relativo ao repositório — a regra
-do COMO-CONTRIBUIR.)
+O rígido não tem altura nem origem conferidas: as peças dele ficam no espaço
+do osso, e a G10 só os usa como monstros.
 
-**2. Os bonecos por corpo e cabeça** (`godot/scripts/player.gd`). Cabeça e
-corpo são malhas separadas no mesmo esqueleto: cada cabeça combina com cada
-corpo.
+**A2. Os shaders do jogo** em `godot/shaders/`:
+
+- `contorno.gdshader` e `neon.gdshader`: cópias exatas dos do estudo. Se a
+  G15 já os criou, usar os dela.
+- `cavaleiro.gdshader` (novo, sem `tingir` nem `brilho_proprio`):
+
+```glsl
+// O cavaleiro (arte/04, a peça se distingue): a cor é a da peça, já
+// recolorida pela faixa da parte; o néon do dono é só acento (o friso, a
+// costura) e o aro de luz fraco. COLOR.r: 0 superior, 1 inferior. UV2: a
+// posição de repouso (x, y) do vértice, para a faixa do acento não andar.
+shader_type spatial;
+render_mode diffuse_lambert, specular_disabled;
+
+uniform sampler2D textura_cima : source_color, filter_nearest;
+uniform sampler2D textura_baixo : source_color, filter_nearest;
+uniform vec4 dono : source_color = vec4(1.0);
+uniform float aro = 0.25;
+uniform float aro_pot = 2.5;
+uniform float rugoso_cima = 0.85;
+uniform float rugoso_baixo = 0.70;
+uniform float acento = 1.6;          // 2,6 no encaixe
+uniform float friso_y0 = 0.0;        // o y mais baixo do torso, em repouso
+uniform float friso_y1 = 0.0;        // o y mais alto do torso
+uniform float friso_alto = 0.010;
+uniform float costura_x = 0.0;       // o |x| mais de fora da perna
+uniform float costura_larg = 0.008;
+uniform bool tem_acento = true;
+uniform vec4 apagado : source_color = vec4(0.227, 0.200, 0.275, 1.0); // Tema.GRAFITE #3a3346 (o _vestir põe o token)
+uniform float acesa = 1.0;            // 0: a armadura apagada da introdução (G01)
+
+varying float baixo;
+varying vec2 repouso;
+
+void vertex() {
+	baixo = COLOR.r;
+	repouso = UV2;
+}
+
+void fragment() {
+	vec3 c = baixo > 0.5 ? texture(textura_baixo, UV).rgb : texture(textura_cima, UV).rgb;
+	ALBEDO = c;
+	ROUGHNESS = baixo > 0.5 ? rugoso_baixo : rugoso_cima;
+	float f = pow(1.0 - clamp(dot(NORMAL, VIEW), 0.0, 1.0), aro_pot);
+	EMISSION = dono.rgb * f * aro;
+	bool friso = baixo < 0.5 && repouso.y >= friso_y0 - 0.0001
+		&& (repouso.y <= friso_y0 + friso_alto || repouso.y >= friso_y1 - friso_alto);
+	bool costura = baixo > 0.5 && abs(repouso.x) >= costura_x - costura_larg;
+	if (tem_acento && (friso || costura)) {
+		vec3 n = dono.rgb * acento;
+		float m = max(n.r, max(n.g, n.b));
+		ALBEDO = m > 1.0 ? n / m : n;
+		EMISSION = dono.rgb * acento;
+	}
+	// apagada (acesa 0): o corpo em GRAFITE, sem acento e sem aro
+	ALBEDO = mix(apagado.rgb, ALBEDO, acesa);
+	EMISSION *= acesa;
+}
+```
+
+  A cabeça usa o mesmo shader com `textura_cima` recolorida pelo papel
+  `personagem`, `rugoso_cima` 0,90 e `tem_acento` false (a cabeça humana não
+  tem acento). O `friso` do superior só vale para vértices do `torso`: os
+  braços recebem `UV2.y` = −1 (abaixo de qualquer `friso_y0`).
+
+**A3. `Pintura`** (`godot/scripts/mundo/pintura.gd`, `class_name Pintura`,
+novo). Copia do estudo `para_oklab`, `de_oklab`, `_lin`, `_srgb`, `graduar` e
+`recolorir`, com a `GRADE` da tabela de A cena (o campo novo `croma`: depois
+de multiplicar o croma por `sat`, se ele passar de `croma`, escala `a` e `b`
+para ficar em `croma`; `tinge` 0 nos quatro papéis). Mais:
 
 ```gdscript
-## Os bonecos da construção (11): o corpo de um modelo com a cabeça de outro
-## (o mesmo esqueleto de sete ossos), cada um com nome e pio (05). `corpo` e
-## `cabeca` indexam MODELOS. `modelo_i` passa a indexar BONECOS.
+## A textura do colormap `caminho` recolorida pelo papel, uma vez por par.
+static func textura(caminho: String, papel: String) -> ImageTexture
+## Distância OKLab entre duas cores.
+static func delta_e(a: Color, b: Color) -> float
+## Prepara a malha de um boneco com skin: grava COLOR.r (0 superior, 1
+## inferior), UV2 (a posição de repouso x, y; y = -1 nos braços) e a normal
+## suave no TANGENT (o casco do contorno). Pelo osso de maior peso de cada
+## vértice: `leg-left`, `leg-right` e `root` são inferior; `torso`,
+## `arm-left`, `arm-right` são superior. Devolve as medidas para o shader:
+## {"friso_y0", "friso_y1", "friso_alto", "costura_x", "costura_larg",
+##  "frente_cima", "frente_baixo"}. Guarda a malha pronta num cache por Mesh.
+static func preparar(mi: MeshInstance3D, esqueleto: Skeleton3D) -> Dictionary
+## As medianas de L (OKLab) de cada parte, pela cor da textura recolorida no
+## UV de cada vértice: {"cabeca", "superior", "inferior"}, e as cores usadas
+## por superior e inferior em "cores".
+static func medianas(boneco: Node3D) -> Dictionary
+```
+
+  As medidas do acento saem da caixa de repouso de cada osso (o AABB dos
+  vértices de maior peso nele):
+  - `frente_cima` = largura × altura do torso + as duas dos braços;
+    `frente_baixo` = as duas das pernas;
+  - `friso_alto` = `min(0.010, 0.08 * frente_cima / (2 * largura_do_torso))`;
+  - `costura_larg` = `min(0.008, 0.05 * frente_baixo / (2 * altura_da_perna))`;
+  - se `2 * friso_alto * largura_do_torso + 2 * costura_larg * altura_da_perna`
+    passar de 8 % de `frente_cima + frente_baixo`, as duas larguras caem na
+    mesma razão até caber.
+
+  O boneco sem skin (rígido) não passa por `preparar`: ele é monstro (G10),
+  não jogador.
+
+**A4. `player.gd`, a roupa sem a cor do lugar:**
+
+```gdscript
+const SH_CAVALEIRO := preload("res://shaders/cavaleiro.gdshader")
+const SH_CONTORNO := preload("res://shaders/contorno.gdshader")
+const SH_NEON := preload("res://shaders/neon.gdshader")
+## O contorno: 1,6 na montagem, 2,4 no resto (arte/07).
+const CONTORNO_MONTAGEM := 1.6
+const CONTORNO_JOGO := 2.4
+var _mats_corpo: Array[ShaderMaterial] = []   ## os do body*, para o acento
+var _contornos: Array[ShaderMaterial] = []
+
+## A roupa (arte/04): cada parte na sua faixa, o néon do dono só no acento,
+## no contorno e no aro. Troca o `_vestir` de hoje, que multiplicava pela cor.
+func _vestir(n: Node) -> void
+## O contorno de todos os casco: 1,6 ou 2,4.
+func brilho_do_contorno(energia: float) -> void
+## O encaixe de uma peça (a G13 chama): o acento sobe a 2,6 e volta a 1,6 em
+## 0,25 s, SAI. Com Opcoes.movimento reduzido, o mesmo (é luz, não movimento).
+func acender_acento() -> void
+## O contrato da G01 (se a G01 ainda não chegou, nasce aqui): 0 apaga (o corpo em Tema.GRAFITE, sem
+## acento, sem aro, sem contorno), 1 acende como o _vestir deixou.
+func acender(k: float) -> void
+```
+
+  `acender(k)`: em cada material de `_mats_corpo` e da cabeça,
+  `set_shader_parameter("acesa", k)`; em cada `_contornos`, `energia` =
+  `k ×` o valor atual de `brilho_do_contorno`; `aro.visible = k >= 0.5`. A
+  lista `_roupas` e o `albedo_color` que a G01 usava saem: o shader faz o
+  mesmo.
+
+  `_vestir`: para cada `MeshInstance3D` do modelo, `Pintura.preparar`, um
+  `ShaderMaterial` com `SH_CAVALEIRO`, a textura do `colormap.png` ao lado do
+  `.glb` por `Pintura.textura(caminho, "tecido")` em `textura_cima` e
+  `"couro"` em `textura_baixo` (na `head*`, `"personagem"` nas duas e
+  `tem_acento` false), `dono = Tema.JOGADOR[lugar]`, as medidas de
+  `preparar`; e no `next_pass` um `ShaderMaterial` com `SH_CONTORNO`
+  (`cor = Tema.JOGADOR[lugar]`, `largura` 0,012, `energia` 2,4). Se a G15 já
+  fez `Tema.contorno(cor, largura, energia, dono)`, usar ela com
+  `dono = lugar`.
+
+**A5. O anel no chão** troca o aro de `montar()`: `Kit.anel_do_dono(self,
+lugar)`, uma cópia de `Mundo.anel` do estudo (toro de `rings` 8,
+`ring_segments` 4, raios 0,57 e 0,65, escala y 0,22, girado π/8, néon 1,5; as
+lâmpadas de `Forja.LEDS_DO_LUGAR[lugar]` a 1,8, em x = (i − 2) · 0,16 e
+z = 0,82). O campo `aro` do player passa a guardar o `Node3D` devolvido (quem
+usa `p.aro.visible` continua funcionando). Sombra desligada no néon.
+
+**A6. O boneco e o pio:**
+
+```gdscript
+## Os bonecos registrados: o arquivo e o intervalo do pio (arte/03). A G10
+## acrescenta os 12 do Mini Characters; a G13 troca por peças.
 const BONECOS := [
-	{"nome": "Humano", "corpo": 0, "cabeca": 0,
-		"pio": ["acorde", {"freqs": [880.0, 1318.5], "espaco": 0.05, "dur_nota": 0.14}]},
-	{"nome": "Orc", "corpo": 1, "cabeca": 1,
-		"pio": ["acorde", {"freqs": [392.0, 293.66], "espaco": 0.07, "dur_nota": 0.18}]},
-	{"nome": "Meio-orc", "corpo": 0, "cabeca": 1,
-		"pio": ["acorde", {"freqs": [523.25, 392.0], "espaco": 0.06, "dur_nota": 0.15}]},
-	{"nome": "Orc de rosto liso", "corpo": 1, "cabeca": 0,
-		"pio": ["acorde", {"freqs": [659.25, 987.77], "espaco": 0.05, "dur_nota": 0.16}]},
+	{"nome": "Humano", "arquivo": "character-human", "intervalo": "segunda"},
+	{"nome": "Orc", "arquivo": "character-orc", "intervalo": "quinta_baixo"},
 ]
-static func nome_do_boneco(i: int) -> String   # BONECOS[wrapi(i, 0, BONECOS.size())].nome
+static func nome_do_boneco(i: int) -> String:
+	return Traducoes.traduzir(BONECOS[wrapi(i, 0, BONECOS.size())].nome)
 ```
 
-`visual(m, item)`: `modelo_i = wrapi(m, 0, BONECOS.size())`; carrega
-`MODELOS[BONECOS[modelo_i].corpo]`; se `cabeca != corpo`, troca a malha da
-cabeça:
+  Saem `MODELOS`, `NOME_DO_MODELO` e `INTERVALO_DO_MODELO`
+  (`grep -rn "MODELOS\|NOME_DO_MODELO\|INTERVALO_DO_MODELO" godot/` e trocar
+  cada uso). `Som.pio(l, boneco)` lê `ForjaPlayer.BONECOS[boneco].intervalo`.
+  `"Humano"` e `"Orc"` já são palavras do jogo; conferir em `traducoes.gd`
+  que existem `"Humano": "Human"` e `"Orc": "Orc"`, e acrescentar se faltar.
 
-```gdscript
-func _trocar_cabeca(de_modelo: int) -> void:
-	var fonte: Node3D = load("res://assets/kenney/%s.glb" % MODELOS[de_modelo]).instantiate()
-	var nova: MeshInstance3D = fonte.find_child("head-mesh", true, false)
-	var cabeca: MeshInstance3D = modelo.find_child("head-mesh", true, false)
-	if nova and cabeca:
-		cabeca.mesh = nova.mesh
-		cabeca.skin = nova.skin
-	fonte.free()
-```
-
-`trocou_modelo` passa a comparar o boneco (não o arquivo). Saem
-`NOME_DO_MODELO` e `PIO_DO_MODELO`: `grep -rn "NOME_DO_MODELO\|PIO_DO_MODELO" godot/`
-e trocar por `ForjaPlayer.nome_do_boneco(i)` e `BONECOS[i].pio`
-(`Som.pio` inclusive). `VISUAL_DO_LUGAR` continua `[[0, 1], [1, 2], [0, 3], [1, 4]]`
-(os dois primeiros bonecos). As traduções `"Meio-orc": "Half-orc"` e
-`"Orc de rosto liso": "Smooth-faced orc"`.
-
-**3. As peças novas** (`PECAS` e `_prender_peca()`, no mesmo padrão da G02:
-caixas no espaço do osso, material fosco):
-
-| peça | osso | caixas |
-| --- | --- | --- |
-| Elmo com chifres | `head` | o Elmo da G02 + dois chifres `(0.05, 0.16, 0.05)` em `(±0.22, 0.46, 0)` com `rotation.z = ±0.5`, de `Kit.material(Color("#e9e7f2"), 0.0, 0.7)` |
-| Barba | `head` | `(0.30, 0.14, 0.06)` em `(0, 0.06, 0.20)` e `(0.18, 0.08, 0.05)` em `(0, -0.03, 0.20)`, de `Kit.material(Color("#6b4a32"), 0.0, 0.95)` |
-| Máscara | `head` | `(0.42, 0.12, 0.04)` em `(0, 0.20, 0.21)`, de `Kit.material(Color("#2a2433"), 0.0, 0.8)` |
-| Capuz | `head` | topo `(0.50, 0.10, 0.46)` em `(0, 0.43, 0)`; costas `(0.50, 0.36, 0.06)` em `(0, 0.22, -0.18)`; lados `(0.05, 0.34, 0.40)` em `(±0.25, 0.24, 0)`; pano `Kit.material(cor.darkened(0.35), 0.0, 0.9)` |
-
-`PECAS := ["Nenhuma", "Elmo", "Capa", "Ombreira", "Elmo com chifres", "Barba", "Máscara", "Capuz"]`,
-com o inglês `"Horned helmet"`, `"Beard"`, `"Mask"`, `"Hood"`. Silhuetas:
-4 bonecos × 8 peças = 32.
-
-**4. O guardião d'A Voz em blocos** (`_montar_guardiao()`, as mesmas chaves
-no dicionário; a animação de `voz.gd:495-506` continua, com uma troca:
-`boca.scale = Vector3(1, 0.12 + 0.75 * snappedf(grito, 0.25), 1)` — a boca
-abre em degraus). Pedra `Kit.material(Color("#5e5870"), 0.0, 0.95)`, escura
-`Kit.material(Color("#2a2433"), 0.0, 0.9)`, tudo filho de `pivo` (escala
-0,86, como hoje):
+**A7. O guardião d'A Voz em blocos** (`_montar_guardiao()`, as mesmas chaves
+no dicionário e a mesma animação, com uma troca:
+`boca.scale = Vector3(1, 0.12 + 0.75 * snappedf(grito, 0.25), 1)`, a boca
+abre em degraus de 0,25). Pedra `Kit.material(Tema.GRAFITE, 0.0, 0.95)`,
+escuro `Kit.material(Tema.CASCO, 0.0, 0.9)`, tudo filho de `pivo` (escala
+0,86):
 
 | parte | como |
 | --- | --- |
 | a cabeça | testa `Kit.caixa(pivo, Vector3(2.6, 0.9, 1.0), Vector3(0, 0.95, 0), pedra)`; face `(2.9, 1.0, 1.1)` em `(0, 0.1, 0)`; queixo `(2.2, 0.8, 1.0)` em `(0, -0.8, 0)` |
-| o corpo de pedra | `Kit.peca(pivo, "wall", Vector3(0, -1.2, -0.6), 0.0, 1.6)`; orelhas `Kit.peca(pivo, "column", Vector3(±1.6, -1.1, -0.2), 0.0, 0.9)` |
-| as sobrancelhas | as duas caixas de hoje, em pedra escura |
+| as sobrancelhas | as duas caixas de hoje, em escuro |
 | o nariz | `(0.35, 0.7, 0.35)` em `(0, 0.05, 0.62)`, pedra |
-| os olhos | `Kit.caixa(pivo, Vector3(0.34, 0.22, 0.12), Vector3(±0.55, 0.3, 0.56), mat_olho)` (o `mat_olho` de hoje, emissivo) |
+| os olhos | `Kit.caixa(pivo, Vector3(0.34, 0.22, 0.12), Vector3(±0.55, 0.3, 0.56), mat_olho)` (o `mat_olho` de hoje) |
 | as pálpebras | `(0.5, 0.44, 0.12)` em `(±0.55, 0.28, 0.62)`, pedra |
-| a boca | `boca.position = Vector3(0, -0.78, 0.56)`; o fundo `(1.1, 1.0, 0.1)` escuro; os dentes como hoje, em `Kit.material(Color("#e8dcc8"), 0.0, 0.8)` |
+| a boca | `boca.position = Vector3(0, -0.78, 0.56)`; o fundo `(1.1, 1.0, 0.1)` em `Kit.material(Tema.JANELA, 0.0, 1.0)`; os dentes como hoje, em `Kit.material(Tema.ETIQUETA, 0.0, 0.8)` |
 | a luz | `brilho` e `foco` como hoje |
 
-Sem esfera, sem bronze, `metallic` 0.
+**A8. A coerência:**
 
-**5. A coerência em todo lugar:**
+- `kit.gd`: `cilindro` com `radial_segments` 8; `esfera` com
+  `radial_segments` 8 e `rings` 4; o chifre da bigorna com `sides` 8; a função
+  nova `static func anel(pai: Node, raio_dentro: float, raio_fora: float, pos:
+  Vector3, mat: Material) -> MeshInstance3D` (`TorusMesh` de `rings` 8 e
+  `ring_segments` 6, `material_override = mat`) e `anel_do_dono` (A5).
+- Cada `TorusMesh` da lista do estado de hoje: `rings = 8`,
+  `ring_segments = 6`. `centelha.gd:140` e `salao.gd:223`: `radial_segments`
+  8, `rings` 4. Os CSG da lista: `sides = 8`.
+- Os seis `metallic`: 0,2, e a rugosidade de cada um no mínimo 0,45
+  (`molde.gd:423` de 0,3 para 0,5; `canto.gd` de 0,35 para 0,5;
+  `viga.gd:70` de 0,3 para 0,5; `caminhos.gd` de 0,35 para 0,5; `voz.gd` sai
+  com o guardião; `prova.gd:124` de 0,35 para 0,5). A energia de emissão não
+  muda aqui (é da G15).
 
-- `godot/scripts/mundo/kit.gd`: `cilindro` com `radial_segments = 8`;
-  `esfera` com `radial_segments = 8`, `rings = 4`; uma função nova
-  ```gdscript
-  ## Uma borda redonda de 8 lados (a borda da raia, o aro): o toro facetado.
-  static func anel(pai: Node, raio_dentro: float, raio_fora: float, pos: Vector3, mat: Material) -> MeshInstance3D
-  ```
-  (`TorusMesh` com `rings = 8`, `ring_segments = 6`, `material_override = mat`);
-  o chifre da bigorna com `sides = 8`.
-- Cada `TorusMesh` da lista do estado de hoje: `rings = 8` e
-  `ring_segments = 6` (ou trocar o bloco por `Kit.anel`). Continua emissivo
-  onde é borda (tem trabalho).
-- `centelha.gd:139` e `salao.gd:223`: `radial_segments = 8`, `rings = 4`.
-- Os CSG da lista: `sides = 8`.
-- Os seis `metallic`: `0.2` no máximo; o ouro do Molde (`molde.gd:420-424`)
-  vira `Kit.material(Color("#e8b44c"), 1.6 if forte else 0.0, 0.85)` com
-  `metallic = 0.1` (fosco; brilha só o forte, que é acerto).
+### Parte B — as quatro raças
 
-**6. As licenças:** nada novo na Parte A (só peças do kit e caixas).
+**B1.** `python3 scripts/importar_kenney.py oficina/kenney/3.7.0 cube-pets`
+(o script da G10, que já tem `cube-pets` na curadoria e a escala 0,4).
 
-### Parte B — com os pacotes do André
+**B2. `Racas`** (`godot/scripts/mundo/racas.gd`, novo):
 
-> **Atualização de 30/09:** a Parte B passou para a
-> [G10 — a biblioteca Kenney](G10-a-biblioteca-kenney.md), que importa o Mini
-> Characters (os doze bonecos, no mesmo esqueleto) pelo
-> `scripts/importar_kenney.py`, um pacote por pasta, com a curadoria do
-> [14](../14-os-assets-kenney.md). O que segue abaixo vale como referência; a
-> G10 manda.
+```gdscript
+class_name Racas
+const NOMES := ["Humana", "Orc", "Autômato", "Golem", "Raposa"]
+## Veste a raça no esqueleto do Mini Characters (o da G13). Apaga o que uma
+## raça anterior pôs (os nós com o grupo "raca"), esconde a cabeça humana fora
+## da Humana, prende as partes por BoneAttachment3D, pinta as mãos na pele e,
+## no Golem, põe o modificador da proporção. `marca`: a cor do cabelo do
+## perfil (pecas.csv), na marca da raça.
+static func vestir(esqueleto: Skeleton3D, raca: int, lugar: int, marca: Color) -> void
+## A pele da raça (ou Color(0,0,0,0) na Humana).
+static func pele(raca: int) -> Color
+```
 
-1. O André baixa em [kenney.nl](https://kenney.nl) os pacotes CC0 da mesma
-   linha "mini" com personagens e **copia cada pacote para uma pasta
-   própria** em `godot/assets/kenney/<pacote>/` (os `.glb` e a pasta
-   `Textures/` do pacote, junto do `License.txt`), roda
-   `python3 scripts/conferir_bonecos.py godot/assets/kenney/<pacote>` e
-   commita **só os que passaram**, com a linha de saída do conferidor na
-   mensagem de commit.
-2. A sessão, para cada `.glb` que passou:
-   `MODELOS.append("<pacote>/character-x")`; um boneco novo em `BONECOS`
-   (`"corpo"` e `"cabeca"` o índice novo, um nome em português, um pio
-   `["acorde", {...}]` com duas notas que ninguém usa); a tradução do nome.
-3. `"$GODOT" --headless --path godot --import --quit` para nascerem os
-   `.import`; commitar os `.import`.
-4. `LICENCAS-DE-TERCEIROS.md`: uma linha na tabela (`| <pacote> | Kenney
-   (www.kenney.nl) | CC0 1.0 |`) e o texto da licença do pacote numa seção
-   como a do Mini Dungeon; `godot/assets/LEIA-ME.md`: uma linha na tabela
-   (`kenney/<pacote>/`, "personagens", Kenney, CC0).
-5. Os bonecos do André (fonte c de 11) entram pelo mesmo caminho: o
-   conferidor passa, a pasta `godot/assets/personagens/<autor>/`, a licença
-   do autor anotada nos dois arquivos.
+- **Orc:** a `head-mesh` do `character-orc.glb` com o `skin` dele no lugar da
+  cabeça humana (a ordem dos sete ossos é a mesma nos dois; a prova confere),
+  material `cavaleiro.gdshader` com papel `personagem`.
+- **Autômato, Golem, Raposa:** caixas por `Kit.caixa` num `Node3D` filho de um
+  `BoneAttachment3D` no osso `head`, as medidas de A cena, os materiais
+  `Kit.material(pele, 0.0, 0.9)` (o autômato `metallic` 0,2), o acento com
+  `SH_NEON` a 1,6 em `Tema.JOGADOR[lugar]`, o vão em `Tema.JANELA`. Até 300
+  triângulos (autômato, raposa) e 400 (golem).
+- **As mãos:** o `cavaleiro.gdshader` ganha `uniform vec4 pele` e
+  `uniform bool tem_pele`; `Pintura.preparar` grava `COLOR.g = 1` nos vértices
+  de `arm-left` e `arm-right` com y de repouso nos 0,05 mais baixos do braço;
+  onde `COLOR.g > 0.5` e `tem_pele`, `ALBEDO = pele.rgb`.
+- **O Golem:** `class ProporcaoDoGolem extends SkeletonModifier3D` dentro de
+  `racas.gd`, que em `_process_modification_with_delta` multiplica a escala
+  da pose do `torso` por (1,15; 1; 1,15) e a do `head` por 0,87. Os punhos:
+  cubos de 0,075 em `BoneAttachment3D` de `arm-left` e `arm-right`, em
+  (0; −0,16; 0) no espaço do osso.
+- **A Raposa:** a malha do nó `tail` do `animal-fox.glb`, num
+  `BoneAttachment3D` do osso `root`, em (0; 0,20; −0,10), escala 0,33; a
+  rotação y é `deg_to_rad(8) * sin(TAU * batidas)`, com `batidas` = o tempo da
+  música em segundos × `Musica.mapa(Musica.atual).bpm / 60`.
+- **A cadeira de rodas (R1 do inferior, G13):** toda raça senta; a cauda sobe
+  0,05.
 
-Sem pacote no repositório, a sessão faz só a Parte A e deixa no quadro
-"G08 — Parte B espera os pacotes".
+**B3. A montagem (o script da tela da G13):** na linha da cabeça, R1 faz
+`raca[l] = (raca[l] + 1) % 5`, chama `Racas.vestir`, toca o som e o pulso de O
+som e O controle, e troca o rótulo «Cabeça» pelo nome da raça
+(`Traducoes.traduzir(Racas.NOMES[raca])`), na letra da linha (Archivo Narrow 600, 30
+px). O pré-montado sorteia pela regra de Como se joga. A raça vai junto do
+cavaleiro guardado (`Opcoes.cavaleiro`, chave `"raca"`, padrão 0).
+
+**B4.** `traducoes.gd`: `"Humana": "Human"`, `"Autômato": "Automaton"`,
+`"Golem": "Golem"`, `"Raposa": "Fox"` (o `"Orc"` já existe).
 
 ## Passos
 
-Rodar `bash tests/prova_do_jogo.sh` depois dos passos 2, 4 e 6.
+Rodar `bash tests/prova_do_jogo.sh` depois dos passos 3, 6 e 8.
 
-1. **`scripts/conferir_bonecos.py`** (novo) e
-   `python3 scripts/conferir_bonecos.py && python3 scripts/conferir_bonecos.py --teste`
-   (os dois bonecos de hoje passam; a mordida passa).
-2. **`godot/scripts/player.gd`:** `BONECOS`, `nome_do_boneco()`,
-   `_trocar_cabeca()`; sair `NOME_DO_MODELO` e `PIO_DO_MODELO`, trocando os
-   usos (`main.gd`, `som.gd`, `tela_lobby.gd`, `cartao_jogador.gd`).
-3. **`godot/scripts/player.gd`:** as quatro peças novas.
-4. **`godot/scripts/salas/voz.gd`:** o guardião em blocos e a boca em
-   degraus.
-5. **`godot/scripts/mundo/kit.gd`, as salas, o salão, `efeitos.gd`,
-   `player.gd`:** facetas e `metallic` (item 5 do alvo).
-6. **`godot/scripts/traducoes.gd`:** os nomes e as peças.
-7. **`tests/prova_do_jogo.sh`:** antes do Godot, a linha
-   `python3 "$RAIZ/scripts/conferir_bonecos.py" > "$TMP/bonecos.log" && python3 "$RAIZ/scripts/conferir_bonecos.py" --teste >> "$TMP/bonecos.log" || { cat "$TMP/bonecos.log"; echo "FAIL os bonecos"; exit 1; }`.
-8. **A prova do jogo** (ver Provas). **A Parte B**, se os pacotes estão
-   no repositório.
+1. `scripts/conferir_bonecos.py` e
+   `python3 scripts/conferir_bonecos.py && python3 scripts/conferir_bonecos.py --teste`.
+2. `godot/shaders/` (A2) e `godot/scripts/mundo/pintura.gd` (A3);
+   `"$GODOT" --headless --path godot --import --quit` para nascerem os `.uid`.
+3. `player.gd`: A4, A5, A6; `som.gd`: o `pio`; `main.gd`, em `_mostrar(qual)`:
+   `for p in jogadores: p.brilho_do_contorno(ForjaPlayer.CONTORNO_MONTAGEM if qual == "lobby" else ForjaPlayer.CONTORNO_JOGO)`.
+4. `voz.gd`: A7.
+5. `kit.gd`, as salas, `salao.gd`, `efeitos.gd`: A8.
+6. `tests/prova_do_jogo.sh`: antes do Godot, a linha
+   `python3 "$RAIZ/scripts/conferir_bonecos.py" > "$TMP/bonecos.log" && python3 "$RAIZ/scripts/conferir_bonecos.py" --teste >> "$TMP/bonecos.log" || { cat "$TMP/bonecos.log"; echo "FAIL os bonecos"; exit 1; }`;
+   e as funções de Provas em `godot/testes/prova_do_jogo.gd`.
+7. Parte B, só com a G13 feita: B1, B2, B3, B4.
+8. As provas da parte B.
 
 ## Armadilhas
 
-- **Nenhum `.gd` novo** (o conferidor é Python); se criar um, o `.uid`.
-- **A textura do pacote novo:** nunca na raiz de `godot/assets/kenney/`;
-  cada pacote na sua pasta, senão o `Textures/colormap.png` do Mini Dungeon
-  é sobrescrito e tudo muda de cor.
-- **Animação por nome:** um boneco sem `idle`, `walk`, `emote-yes`… quebra
-  as salas; o conferidor exige a lista de 11 mais `static` (a introdução) e
-  `interact-right` (a construção).
-- **`modelo_i` mudou de sentido** (agora indexa `BONECOS`): confira cada
-  `modelo_i` que o `grep` achar; o cavaleiro guardado em `Opcoes.cavaleiro`
-  (G02) usa o índice do boneco — os dois primeiros são os mesmos de antes.
-- **As peças do guardião mexem na animação:** `palpebras` e `boca` precisam
-  ser os mesmos tipos (`Node3D` com escala); `position.y` das pálpebras
-  começa em 0,28, como a animação espera.
-- **Nada de caminho absoluto** na saída do conferidor nem no commit.
-- **A luz da casa não muda:** a Parte A só troca geometria e `metallic`;
-  tocha, lilás e névoa ficam.
-- **O robô:** nada aqui.
-- **Os temperamentos e os casos que quebram:** o fluxo tem de aguentar `--robo=bom|medio|ruim` (o ruim demora e às vezes não aperta), partidas com 1 e 2 jogadores e um controle que desconecta e volta (`simulador_cabo`). Os bonecos novos têm de fazer todas as animações que o robô provoca errando (`emote-no`, `die`, `fall`): por isso o conferidor exige a lista inteira.
+- **A malha preparada guarda o skin:** `surface_get_arrays` traz `ARRAY_BONES`
+  e `ARRAY_WEIGHTS`; o `add_surface_from_arrays` tem de passar os mesmos
+  `flags` da superfície original (`surface_get_format(s)`, com
+  `Mesh.ARRAY_FLAG_USE_8_BONE_WEIGHTS` se houver). O `skin` do
+  `MeshInstance3D` fica o mesmo.
+- **A faixa do acento é pela posição de repouso (UV2), não pelo `VERTEX`:**
+  o `VERTEX` já vem animado e a faixa andaria com o pulo.
+- **O UV2 dos Kenney está vazio:** se algum `.glb` novo trouxer UV2, a
+  `preparar` sobrescreve (a luz do jogo não usa lightmap).
+- **O cache da malha:** um `Mesh` preparado por malha de origem, não por
+  jogador; os quatro lugares dividem a malha e cada um tem o seu material.
+- **O contorno precisa da normal suave no TANGENT:** sem ela, o casco abre
+  nos cantos dos blocos.
+- **`metallic` não volta:** o orc e as raças passam pelo conferidor; o
+  autômato é o único 0,2.
+- **A prova visual da nuvem não aprova cor:** a mediana de L é conferida por
+  número na prova do jogo; a prancha cinza é para o olho do time.
+- **A G15 e os shaders:** se a G15 entrar antes, os `.gdshader` de
+  `godot/shaders/` são dela; não duplicar.
+- **O robô:** nada novo na parte A. Na parte B, o robô aperta R1 uma vez na
+  montagem (o temperamento `bom` e o `medio`; o `ruim` não).
+- **Os temperamentos e os casos que quebram:** `--robo=bom|medio|ruim`,
+  partidas com 1 e 2 jogadores e o `simulador_cabo` (o controle cai e volta):
+  o cavaleiro de quem caiu mantém a raça, o acento e o contorno.
 
 ## Não fazer
 
-- Não baixar pacote da internet na sessão: quem baixa e confere a licença é
-  o André.
-- Não trocar a lava da Viga (fica, 11).
-- Não pôr brilho novo fora de olho, runa, borda, néon e acerto.
-- Não usar o SDK da Sony nem modelo de fora do Kenney sem licença anotada.
+- Não tingir corpo nenhum na cor do lugar, em nenhum lugar do jogo.
+- Não usar os monstros do Graveyard (esqueleto, zumbi, vampiro, fantasma)
+  como raça: eles são inimigos (arte/04, o que ficou de fora).
+- Não dar stat, colisão ou janela à raça.
+- Não mexer na emissão dos materiais de sala nem na luz (G15).
 - Não criar animação nova.
 
 ## Pronto quando
 
-A construção oferece pelo menos doze silhuetas diferentes (bonecos × peças);
-o conferidor passa os bonecos registrados e morde um boneco quebrado; a
-prova do jogo não acha, em nenhuma sala, curva lisa nem `metallic` acima de
-0,2; o guardião d'A Voz é de pedra em blocos, com a mesma animação; e as
-pranchas da prova visual rodada pelo André, com placa de vídeo e sem
-`--fixed-fps`, passam no checklist de 11 (a nuvem não aprova aparência).
-
-E só fecha com `bash tests/prova_visual.sh` passando (a passada com `--fixed-fps 60`, na sessão) e a prancha olhada; foto de `tests/telas.sh` não é prova ([a prova visual](../13-arquitetura.md#a-prova-visual--f09)).
+Nos quatro cavaleiros da montagem, a mediana de L do superior fica em
+[0,46; 0,58], a do inferior em [0,22; 0,36] e as duas diferem em 0,10 ou mais;
+toda cor de peça tem croma de até 0,10 e ΔE de 0,08 ou mais até cada
+`Tema.JOGADOR`; o acento soma até 8 % da frente do corpo; nenhuma curva tem
+mais de 8 lados e nada passa de `metallic` 0,2; o guardião não tem esfera; e,
+com a parte B, as cinco raças vestem os quatro lugares sem perder osso nem
+animação.
 
 ## Provas
 
 **Na sessão:** `bash tests/prova_do_jogo.sh` (com a linha do conferidor do
-passo 7).
+passo 6).
 
-**A prova visual (F09):** `bash tests/prova_visual.sh` — as quatro partidas (4 jogadores bom e ruim, 2 jogadores, 1 jogador com o controle caindo) passando pelas telas desta ficha; na prancha da nuvem só a **disposição** (os bonecos, as peças e o guardião no lugar, nada cortado); a aparência (fosco, brilho, cor, a luz da casa, o checklist de 11) só se aprova na máquina do André, com placa de vídeo, sem `--fixed-fps`.
-
-Em `godot/testes/prova_do_jogo.gd`:
+Em `godot/testes/prova_do_jogo.gd`, chamadas logo depois de chegar ao lobby
+(`_prova_da_peca()`), em `_comeca_a_sala(id)` depois do `_esperar` de
+abertura (`_confere_a_arte(sala, id)`), e uma vez no salão
+(`_confere_a_arte(jogo.salao, "o salão")`):
 
 ```gdscript
-## O checklist de arte que se confere sem olho (11): nada liso, nada metálico.
+## A peça se distingue (arte/04): as faixas de L, o croma, a distância até os
+## néons e a área do acento.
+func _prova_da_peca() -> void:
+	for p in jogo.jogadores:
+		var m: Dictionary = Pintura.medianas(p.modelo)
+		_esperar(m.superior >= 0.46 and m.superior <= 0.58, "P%d: o superior na faixa (%.3f)" % [p.lugar + 1, m.superior])
+		_esperar(m.inferior >= 0.22 and m.inferior <= 0.36, "P%d: o inferior na faixa (%.3f)" % [p.lugar + 1, m.inferior])
+		_esperar(m.superior - m.inferior >= 0.10, "P%d: superior e inferior diferem 0,10 (%.3f)" % [p.lugar + 1, m.superior - m.inferior])
+		var ruins := []
+		for c in m.cores:
+			var v := Pintura.para_oklab(c)
+			if Vector2(v.y, v.z).length() > 0.1001:
+				ruins.append("croma %s" % c.to_html(false))
+			for j in Tema.JOGADOR:
+				if Pintura.delta_e(c, j) < 0.08:
+					ruins.append("perto do néon %s" % c.to_html(false))
+		_esperar(ruins.is_empty(), "P%d: a peça nunca é néon %s" % [p.lugar + 1, ruins])
+		var mat: ShaderMaterial = p._mats_corpo[0]
+		var area: float = 2.0 * mat.get_shader_parameter("friso_alto") * p._medidas.largura_torso \
+			+ 2.0 * mat.get_shader_parameter("costura_larg") * p._medidas.altura_perna
+		_esperar(area <= 0.0801 * (p._medidas.frente_cima + p._medidas.frente_baixo), "P%d: o acento em até 8 %% da frente" % (p.lugar + 1))
+		_esperar(is_equal_approx(float(mat.get_shader_parameter("aro")), 0.25), "P%d: o aro a 0,25" % (p.lugar + 1))
+		_esperar(not mat.shader.code.contains("tingir"), "P%d: nada se tinge" % (p.lugar + 1))
+		p.acender(0.0)
+		_esperar(is_zero_approx(float(mat.get_shader_parameter("acesa"))), "P%d: acender(0) apaga a armadura" % (p.lugar + 1))
+		p.acender(1.0)
+		_esperar(is_equal_approx(float(mat.get_shader_parameter("acesa")), 1.0), "P%d: acender(1) volta" % (p.lugar + 1))
+		var cont: ShaderMaterial = mat.next_pass
+		_esperar(is_equal_approx(float(cont.get_shader_parameter("energia")), 1.6), "P%d: o contorno a 1,6 na montagem" % (p.lugar + 1))
+```
+
+(`p._medidas` é o dicionário que `Pintura.preparar` devolveu para o corpo,
+guardado pelo `_vestir`, com `largura_torso` e `altura_perna` a mais.)
+
+```gdscript
+## O checklist que se confere sem olho: nada liso, nada metálico.
 func _confere_a_arte(raiz: Node, onde: String) -> void:
 	var lisas: Array = []
 	var metalicos: Array = []
@@ -415,73 +732,70 @@ func _confere_a_arte(raiz: Node, onde: String) -> void:
 	_esperar(metalicos.is_empty(), "%s: nada metálico acima de 0,2 %s" % [onde, metalicos])
 ```
 
-Chamadas: em `_comeca_a_sala(id)`, logo depois de
-`_esperar(sala is SalaJogo and sala.id == id, …)`:
-`_confere_a_arte(sala, id)`; e uma vez no salão, depois da construção:
-`_confere_a_arte(jogo.salao, "o salão")` e
-`_confere_a_arte(jogo.jogadores[0], "o boneco")`.
+No salão, depois de `_confere_a_arte`: o contorno de cada jogador a 2,4
+(`_esperar(is_equal_approx(float(p._mats_corpo[0].next_pass.get_shader_parameter("energia")), 2.4), ...)`).
+N'A Voz, depois de abrir:
+`_esperar(sala.g.pivo.find_children("*", "MeshInstance3D", true, false).all(func(m): return not (m.mesh is SphereMesh)), "o guardião d'A Voz não tem esfera")`.
 
-E uma função nova, chamada no `_ready()` depois de `_prova_do_percurso()`:
+**Parte B**, uma função nova `_prova_das_racas()`, chamada na montagem:
 
 ```gdscript
-## Os bonecos: cada um carrega com os sete ossos e as animações, a cabeça
-## trocada é a do outro modelo, e há silhuetas de sobra.
-func _prova_dos_bonecos() -> void:
+func _prova_das_racas() -> void:
 	var p: ForjaPlayer = jogo.jogadores[3]
-	var antes: Dictionary = p.cavaleiro()
-	_esperar(ForjaPlayer.BONECOS.size() * ForjaPlayer.PECAS.size() >= 12,
-		"pelo menos doze silhuetas (%d)" % (ForjaPlayer.BONECOS.size() * ForjaPlayer.PECAS.size()))
-	for i in ForjaPlayer.BONECOS.size():
-		p.visual(i, 0)
-		var esq: Skeleton3D = p.modelo.find_child("Skeleton3D", true, false)
-		var ossos := []
-		for k in esq.get_bone_count():
-			ossos.append(esq.get_bone_name(k))
-		ossos.sort()
-		_esperar(ossos == ["arm-left", "arm-right", "head", "leg-left", "leg-right", "root", "torso"],
-			"%s: os sete ossos" % ForjaPlayer.nome_do_boneco(i))
+	var esq: Skeleton3D = p.modelo.find_child("Skeleton3D", true, false)
+	for r in Racas.NOMES.size():
+		Racas.vestir(esq, r, 3, Color.WHITE)
+		await _quadros(2)
 		var faltam := []
-		for a in ["idle", "walk", "sprint", "jump", "fall", "die", "emote-yes", "emote-no", "attack-melee-right", "holding-right", "static", "interact-right"]:
+		for a in ["idle", "walk", "emote-yes", "attack-melee-right", "interact-right"]:
 			if not p.anim.has_animation(a):
 				faltam.append(a)
-		_esperar(faltam.is_empty(), "%s: as animações %s" % [ForjaPlayer.nome_do_boneco(i), faltam])
-		var b: Dictionary = ForjaPlayer.BONECOS[i]
-		if int(b.cabeca) != int(b.corpo):
-			var outro: Node3D = load("res://assets/kenney/%s.glb" % ForjaPlayer.MODELOS[int(b.cabeca)]).instantiate()
-			var esperada: Mesh = (outro.find_child("head-mesh", true, false) as MeshInstance3D).mesh
-			outro.free()
-			_esperar((p.modelo.find_child("head-mesh", true, false) as MeshInstance3D).mesh == esperada,
-				"%s: a cabeça é a do outro modelo" % ForjaPlayer.nome_do_boneco(i))
-	for k in ForjaPlayer.PECAS.size():
-		p.vestir({"boneco": 0, "peca": k})
-		var presas := p.modelo.find_children("Peca*", "BoneAttachment3D", true, false)
-		_esperar((k == 0) == presas.is_empty(), "a peça %s %s" % [ForjaPlayer.PECAS[k], "não prende nada" if k == 0 else "prende no osso"])
-	p.vestir(antes)
+		_esperar(faltam.is_empty(), "%s: as animações %s" % [Racas.NOMES[r], faltam])
+		_esperar(esq.get_bone_count() == 7, "%s: os sete ossos" % Racas.NOMES[r])
+		var tri := 0
+		for n in esq.find_children("*", "MeshInstance3D", true, false):
+			if n.is_in_group("raca"):
+				tri += (n as MeshInstance3D).mesh.get_faces().size() / 3
+		_esperar(tri <= 400, "%s: até 400 triângulos a mais (%d)" % [Racas.NOMES[r], tri])
+		if r > 0:
+			_esperar(Pintura.delta_e(Racas.pele(r), Tema.JOGADOR[0]) >= 0.08, "%s: a pele longe do néon" % Racas.NOMES[r])
+	Racas.vestir(esq, 0, 3, Color.WHITE)
 ```
 
-E n'A Voz (onde a prova já joga a sala), depois de abrir:
-`_esperar(sala.g.pivo.find_children("*", "MeshInstance3D", true, false).all(func(m): return not (m.mesh is SphereMesh)), "o guardião d'A Voz não tem esfera")`.
+E na montagem com o robô, logo depois do R1 do P1 (`await _aperta(0, Forja.R1)`, com
+a linha da cabeça escolhida):
+
+```gdscript
+	await _quadros(2)
+	var sv: Dictionary = Forja.som_virtual(0)
+	var pe := _perc(0)
+	_esperar(float(pe.get("fraco", 0.0)) > 0.0 or float(sv.get("esq", 0.0)) > 0.0 or float(sv.get("dir", 0.0)) > 0.0,
+		"o R1 da raça chega à mão do P1")
+	_esperar(float(sv.get("falante", 0.0)) > 0.05, "o ui_peca da raça sai no alto-falante do P1")
+	_esperar(float(Forja.som_virtual(1).get("falante", 0.0)) < 0.05, "e não no do P2")
+```
+
+**A prova visual (F09):** `bash tests/prova_visual.sh` com as quatro partidas;
+a prancha nova `prancha-montagem-cinza.png` (o quadro da montagem em L, com
+cada cavaleiro reduzido a 64 px de altura) e a de cada sala com o anel de 8
+lados.
 
 ## Para o André (local)
 
-1. **A aprovação da arte é aqui:** `bash tests/prova_visual.sh` sem
-   `--fixed-fps`, com a placa de vídeo; nas pranchas, A Voz (o guardião de
-   pedra), a Galeria (alvos de 8 lados), O Molde (ouro fosco), as bordas das
-   raias; passar cada uma no
-   [checklist](../11-arte-e-personagens.md#o-checklist-de-aprovação) e anotar no
-   diário o que destoar.
-2. Na construção, passar pelos quatro bonecos e as oito peças: cada pio é
-   diferente, nenhuma peça atravessa a cabeça.
-3. **Parte B:** baixar os pacotes, `python3 scripts/conferir_bonecos.py
-   godot/assets/kenney/<pacote>`, commitar só o que passou (com a saída do
-   conferidor na mensagem) e abrir uma sessão nova com esta ficha para
-   registrar.
+1. `bash tests/prova_visual.sh` sem `--fixed-fps`, com a placa de vídeo:
+   na prancha cinza, cabeça, tronco e pernas se separam nos quatro; nas
+   coloridas, a camisa e a calça de cada um têm cores diferentes e o néon só
+   aparece no contorno, no friso, na costura e no anel. Anotar no diário.
+2. `./run-local.sh`: na montagem, de 3 m da TV, apontar o seu cavaleiro sem
+   olhar o P#.
+3. Parte B: passar pelas cinco raças nos quatro lugares; nenhuma peça
+   atravessa a cabeça, a cauda da raposa balança na batida.
 
 ## Ao terminar
 
-No [quadro](README.md), G08 **feito** (ou "Parte A feita — a B espera os
-pacotes") com o commit e o gasto. Commit sugerido (sem trailer):
+No [quadro](README.md), G08 **feito** (ou «parte A feita, a B espera a G13»)
+com o commit e o gasto. Commit sugerido (sem trailer):
 
 ```
-feat: doze silhuetas de bonecos, o guardião d'A Voz em blocos e o conferidor de bonecos
+feat(arte): cada parte do cavaleiro na sua faixa, o néon do dono só no acento e as quatro raças
 ```
