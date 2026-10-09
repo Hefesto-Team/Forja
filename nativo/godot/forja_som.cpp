@@ -141,13 +141,19 @@ void ForjaControles::som_trocar(int lugar, int papel, int direcao) {
 }
 
 int ForjaControles::som_falante(int lugar, const String &som, float ganho) {
-  return aberto_ ? somc_falante(FORJA, lugar, som_do_nome(som), ganho) : -1;
+  if (!aberto_)
+    return -1;
+  CharString nome = som.utf8();
+  return somc_falante(FORJA, lugar, som_do_nome(som), ganho, nome.get_data());
 }
 
 int ForjaControles::som_haptica(int lugar, const String &esq, const String &dir, float ganho) {
   if (!aberto_)
     return -1;
-  return somc_haptica(FORJA, lugar, som_do_nome(esq), som_do_nome(dir), ganho);
+  /* o nome no registro: o do lado que toca, ou "esquerdo|direito" quando são dois */
+  String quais = esq.is_empty() ? dir : (dir.is_empty() || dir == esq ? esq : esq + String("|") + dir);
+  CharString nome = quais.utf8();
+  return somc_haptica(FORJA, lugar, som_do_nome(esq), som_do_nome(dir), ganho, nome.get_data());
 }
 
 void ForjaControles::som_parar(int lugar) {
