@@ -149,6 +149,30 @@ report cru e a háptica pelo nome. O que precisa de aparelho diz que não mediu,
 com o porquê; o que o simulador alcança, mede.
 
 
+## A prova visual
+
+```sh
+bash tests/prova_visual.sh pasta/              # as quatro partidas, nas duas passadas
+PASSADAS=fixa bash tests/prova_visual.sh pasta/   # só a de --fixed-fps 60 (a da sessão)
+PARTIDAS="3 4" bash tests/prova_visual.sh pasta/  # só duas das quatro
+bash tests/prova_visual.sh --autoteste         # cada checagem reprova o defeito plantado
+bash tests/telas.sh visual pasta/              # o mesmo, pelo atalho das telas
+```
+
+Quatro partidas do título ao pódio, pelo fluxo que o jogador percorre (cada um
+entra apertando a cruz no seu controle simulado): quatro jogadores com o robô
+`bom` (partida de 5), quatro com o `ruim` (partida de 5), dois com o `medio`
+(partida de 3) e um com o `medio` em que o controle cai no meio do segundo
+minigame e volta no terceiro. A cada 2 s de jogo ela guarda um quadro e monta a
+**prancha** (`prancha-<n>.png`: seis colunas, a hora embaixo de cada quadro, em
+vermelho o quadro que uma checagem reprovou); as checagens saem em
+`checagens.txt`: tela parada, tela vazia, texto encavalado, fora da área segura,
+pequeno ou sem contraste, relógio que sobe, minigame sem vencedor, frase com
+minúscula; os quadros por segundo só avisam. Roda no Xvfb com OpenGL por
+software, dentro da caixa, sem janela na sua tela. A aparência (luz, cor, arte)
+**não** se aprova por ela: a prancha da nuvem não é a da placa de vídeo. A passada
+`livre` (sem `--fixed-fps`) dura o tempo real e é a de quem tem placa de vídeo.
+
 ## As fotos e o trailer
 
 ```sh

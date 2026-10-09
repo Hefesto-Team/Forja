@@ -122,7 +122,11 @@ static func dica(ci: CanvasItem, pos: Vector2, glifo: String, texto: String, tam
 	if com_botao:
 		var botao := Desenho.t("Botão")
 		ci.draw_string(f, pos, botao, HORIZONTAL_ALIGNMENT_LEFT, -1, tam, cor_texto)
+		if Desenho.coletar_retangulos:
+			Desenho.anotar(ci, pos, botao, f, tam, cor_texto)
 		x += f.get_string_size(botao, HORIZONTAL_ALIGNMENT_LEFT, -1, tam).x + 10.0
 	desenhar(ci, glifo, Rect2(pos + Vector2(x, -lado * 0.82), Vector2(lado, lado)), cor_glifo)
 	ci.draw_string(f, pos + Vector2(x + lado + 10.0, 0), acao, HORIZONTAL_ALIGNMENT_LEFT, -1, tam, cor_texto)
+	if Desenho.coletar_retangulos:
+		Desenho.anotar(ci, pos + Vector2(x + lado + 10.0, 0), acao, f, tam, cor_texto)
 	return x + lado + 10.0 + f.get_string_size(acao, HORIZONTAL_ALIGNMENT_LEFT, -1, tam).x

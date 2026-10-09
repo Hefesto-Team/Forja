@@ -2,7 +2,9 @@
 # As telas do jogo, fotografadas e comparadas (o Sprint E): a tela virtual
 # (Xvfb) e o OpenGL por software; o roteiro do godot/testes/captura_jogo.gd.
 #
-#   bash tests/telas.sh fotos <pasta>                      o título, os créditos, o lobby,
+#   bash tests/telas.sh visual <pasta>                     a prova visual (tests/prova_visual.sh):
+#                                                          quatro partidas inteiras, a prancha e as checagens
+#   bash tests/telas.sh fotos <pasta>                      (divulgação) o título, os créditos, o lobby,
 #                                                          as opções, A Centelha e a partida
 #   bash tests/telas.sh comparar <antes> <depois> <saída>  a diferença de cada tela e as
 #                                                          pranchas de daltonismo
@@ -49,7 +51,8 @@ comparar() {
 }
 
 case "${1:-}" in
+  visual) shift; PASSADAS="${PASSADAS:-fixa}" exec bash "$RAIZ/tests/prova_visual.sh" "$@" ;;
   fotos) fotos "$2" ;;
   comparar) comparar "$2" "$3" "$4" ;;
-  *) echo "uso: $0 fotos <pasta> | comparar <antes> <depois> <saída>"; exit 2 ;;
+  *) echo "uso: $0 visual <pasta> | fotos <pasta> | comparar <antes> <depois> <saída>"; exit 2 ;;
 esac

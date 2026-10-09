@@ -29,6 +29,9 @@ var coop := false
 var coop_venceu := false
 var _celebrou := false
 var _robo_confirmou := false
+var _fps_min := INF
+var _fps_soma := 0.0
+var _fps_n := 0
 ## As regras por extenso, para quem desenha a sala (o docs/SALAS.md). A tela
 ## não as mostra: o aviso diz o verbo (`acao`) e a sala ensina jogando.
 var objetivo := ""
@@ -233,6 +236,7 @@ func _process(dt: float) -> void:
 				valendo_t -= dt
 			if not treinando:
 				t_jogo += dt
+			_medir_quadros()
 			jogar(dt)
 			var todos := true
 			for p in jogadores:
@@ -252,6 +256,16 @@ func _robo_do_aviso() -> void:
 	_robo_confirmou = true
 	for p in jogadores:
 		Forja.robo_confirmar(p.lugar, 1.4 + 0.2 * p.lugar, self)
+
+
+## Os quadros por segundo da fase `jogo`, para o evento `desempenho` do fim (F09).
+func _medir_quadros() -> void:
+	var fps := float(Engine.get_frames_per_second())
+	if fps <= 0.0:
+		return
+	_fps_min = minf(_fps_min, fps)
+	_fps_soma += fps
+	_fps_n += 1
 
 
 func _quadro_aviso() -> void:
@@ -361,6 +375,8 @@ func terminar() -> void:
 		Forja.med_parar(l)
 		Forja.silencio(l)
 	Forja.evento("sala", 0, {"sala": id, "evento": "jogo_terminou"})
+	Forja.evento("desempenho", 0, {"slot": id, "fps_min": snappedf(_fps_min if _fps_n > 0 else 0.0, 0.1),
+		"fps_media": snappedf(_fps_soma / _fps_n if _fps_n > 0 else 0.0, 0.1)})
 	Forja.evento("minigame", 0, {"slot": id, "evento": "terminou",
 		"vencedor": colocacao[0] if not colocacao.is_empty() else -1,
 		"pontos": pontos, "duracao": snappedf(t_jogo, 0.1)})

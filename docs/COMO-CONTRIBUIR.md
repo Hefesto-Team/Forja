@@ -57,5 +57,9 @@ Cada uma nasceu de um defeito real.
   10 minutos e 1 minuto). A bancada: `bash tests/prova_da_bancada.sh`.
 - **A exportação:** `scripts/exportar.sh tudo && bash tests/prova_da_exportacao.sh`
   (o `.exe` roda pelo Wine).
-- **As fotos das telas:** `godot/testes/captura_jogo.gd` (o cabeçalho diz como),
+- **A prova visual:** `bash tests/prova_visual.sh <pasta>` (quatro partidas do
+  título ao pódio, a prancha de cada uma e as checagens de todos os quadros);
+  `PASSADAS=fixa` na sessão, sem `--fixed-fps` na máquina com placa de vídeo.
+  Ficha de tela, arte, câmera, HUD ou minigame só fecha com a prancha olhada.
+- **As fotos das telas** (de divulgação): `godot/testes/captura_jogo.gd` (o cabeçalho diz como),
   sempre com `--fixed-fps 60`.

@@ -12,7 +12,7 @@ extends Node
 ##
 ## Argumentos (depois de `--`):
 ##   --simular[=N]      N DualSense de mentira (4 se só --simular); o teclado joga no escolhido
-##   --robo             o robô joga nos simulados (a prova de ponta a ponta)
+##   --robo[=bom|medio|ruim]  o robô joga nos simulados (a prova de ponta a ponta); o ruim erra e demora
 ##   --semente=N        os sorteios repetem
 ##   --nivel=N          o ritmo das salas: 0 primeira vez, 1 normal, 2 rápido
 ##   --relatorios=PASTA onde gravar o relatório (sem ele: ao lado do jogo)
@@ -85,6 +85,12 @@ var robo := false
 ## O robô aperta o ✕ do fluxo (o aviso, o placar)? A prova que quer «ninguém
 ## apertou» desliga aqui; o jogo não sabe de nada (F08).
 var robo_confirma := true
+## O temperamento do robô (--robo=bom|medio|ruim): quanto ele acerta. Sem valor,
+## o robô é o de sempre, que não erra o toque (o que as provas dos vereditos
+## esperam). `Forja.robo` continua sendo só um bool.
+const ROBO_ACERTA := {"bom": 0.95, "medio": 0.66, "ruim": 0.30}
+var robo_temperamento := ""
+var _robo_rng := RandomNumberGenerator.new()
 var semente := 0
 var pasta_relatorios := ""
 var sala_pedida := ""
@@ -109,6 +115,7 @@ var _mouse_giro := Vector2.ZERO
 func _ready() -> void:
 	process_priority = -101
 	_ler_args()
+	_robo_rng.seed = semente + 101
 	pasta_relatorios = _resolver_pasta()
 	if ClassDB.class_exists("ForjaControles") and not _args.has("sem-modulo"):
 		ctl = ClassDB.instantiate("ForjaControles")
@@ -180,6 +187,11 @@ func _ler_args() -> void:
 	robo = _args.has("robo")
 	if robo and simular == 0:
 		simular = 4
+	if robo and str(_args["robo"]) != "":
+		if ROBO_ACERTA.has(str(_args["robo"])):
+			robo_temperamento = str(_args["robo"])
+		else:
+			push_warning("--robo=%s: os temperamentos são bom, medio e ruim" % _args["robo"])
 	semente = int(_args.get("semente", "0"))
 	sala_pedida = str(_args.get("sala", ""))
 	experimento = str(_args.get("experimento", ""))
@@ -969,15 +981,39 @@ func chao_do_envelope(env: PackedFloat32Array) -> int:
 # `Forja.robo` só aparece no gancho do robô (docs/jogo/13-arquitetura.md,
 # «A paridade entre a prova e o jogo»; a prova do jogo confere com um grep).
 
+## O robô acertou o toque desta vez? Sorteia pela semente e pelo temperamento
+## (bom 95%, médio 66%, ruim 30%); sem temperamento, sempre.
+func robo_acerta() -> bool:
+	if robo_temperamento == "":
+		return true
+	return _robo_rng.randf() < float(ROBO_ACERTA[robo_temperamento])
+
+
+## O robô aperta um botão do controle simulado. Quem erra aperta atrasado ou
+## não aperta (o temperamento): o `_robo` de cada sala não muda, e o erro vale
+## para todas.
 func robo_apertar(l: int, botao: int, segundos := 0.09) -> void:
+	if robo_temperamento != "" and not robo_acerta():
+		if _robo_rng.randf() < 0.5:
+			return
+		get_tree().create_timer(0.4 + 0.8 * _robo_rng.randf()).timeout.connect(
+			func() -> void: _robo_apertar_cru(l, botao, segundos))
+		return
+	_robo_apertar_cru(l, botao, segundos)
+
+
+func _robo_apertar_cru(l: int, botao: int, segundos: float) -> void:
 	var p := pad_do_lugar(l)
 	if modulo and p >= 0:
 		ctl.robo_apertar(p, botao, segundos)
 
 
+## O robô mexe num eixo. A mão de quem erra mais treme mais.
 func robo_eixo(l: int, e: int, v: float, segundos := 0.06) -> void:
 	var p := pad_do_lugar(l)
 	if modulo and p >= 0:
+		if robo_temperamento != "":
+			v = clampf(v + _robo_rng.randfn(0.0, 0.4 * (1.0 - float(ROBO_ACERTA[robo_temperamento]))), -1.0, 1.0)
 		ctl.robo_eixo(p, e, v, segundos)
 
 
@@ -1013,12 +1049,15 @@ func robo_falar(l: int, nivel: float, segundos: float) -> void:
 func robo_confirmar(l: int, depois_s: float, dono: Node = null) -> void:
 	if not robo_confirma:
 		return
+	# quem erra demora mais para confirmar, mas confirma: o fluxo não espera para sempre
+	if robo_temperamento != "" and not robo_acerta():
+		depois_s += 1.5 + 1.5 * _robo_rng.randf()
 	if depois_s <= 0.0:
-		robo_apertar(l, CRUZ)
+		_robo_apertar_cru(l, CRUZ, 0.09)
 		return
 	get_tree().create_timer(depois_s).timeout.connect(func() -> void:
 		if dono == null or (is_instance_valid(dono) and dono.is_inside_tree()):
-			robo_apertar(l, CRUZ))
+			_robo_apertar_cru(l, CRUZ, 0.09))
 
 
 ## As capacidades do controle do lugar (giro, acel, toque, efeitos...).

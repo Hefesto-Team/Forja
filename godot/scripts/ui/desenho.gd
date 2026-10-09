@@ -87,16 +87,46 @@ static func t(s: String) -> String:
 	return Traducoes.traduzir(s)
 
 
+## A coleta dos retângulos (F09): com `coletar_retangulos` ligado, cada texto
+## desenhado guarda a frase, o retângulo que ocupa na tela (em pixels do jogo,
+## 1920×1080), o tamanho da letra e a cor. A prova visual liga, força um
+## redesenho, lê e esvazia; fora dela, ninguém liga e nada custa.
+static var coletar_retangulos := false
+static var retangulos: Array = []
+
+
+## Guarda um texto já traduzido que acaba de ser desenhado em `pos` (a linha de
+## base, no espaço do `ci`). `largura` > 0 é a caixa em que ele se alinha.
+static func anotar(ci: CanvasItem, pos: Vector2, traduzido: String, f: Font, px: int, cor: Color,
+		alinhamento := HORIZONTAL_ALIGNMENT_LEFT, largura := -1.0, max_linhas := 0) -> void:
+	var tam := f.get_multiline_string_size(traduzido, HORIZONTAL_ALIGNMENT_LEFT, largura if max_linhas != 0 else -1.0, px, max_linhas)
+	var x := pos.x
+	if largura > 0.0 and max_linhas == 0:
+		if alinhamento == HORIZONTAL_ALIGNMENT_CENTER:
+			x += (largura - tam.x) * 0.5
+		elif alinhamento == HORIZONTAL_ALIGNMENT_RIGHT:
+			x += largura - tam.x
+	var local := Rect2(Vector2(x, pos.y - f.get_ascent(px)), tam)
+	var m := ci.get_global_transform_with_canvas()
+	retangulos.append({"frase": traduzido, "rect": m * local, "tam": px, "cor": cor, "no": ci.get_instance_id()})
+
+
 static func texto(ci: CanvasItem, pos: Vector2, s: String, f: Font, tam: int, cor: Color,
 		alinhamento := HORIZONTAL_ALIGNMENT_LEFT, largura := -1.0) -> void:
-	ci.draw_string(f, pos, t(s), alinhamento, largura, Tema.t(tam), cor)
+	var dito := t(s)
+	ci.draw_string(f, pos, dito, alinhamento, largura, Tema.t(tam), cor)
+	if coletar_retangulos:
+		anotar(ci, pos, dito, f, Tema.t(tam), cor, alinhamento, largura)
 
 
 ## Um parágrafo que quebra a linha na `largura` (`pos` é a base da primeira
 ## linha). Devolve a altura que ele ocupou.
 static func paragrafo(ci: CanvasItem, pos: Vector2, s: String, f: Font, tam: int, cor: Color, largura: float,
 		max_linhas := -1) -> float:
-	ci.draw_multiline_string(f, pos, t(s), HORIZONTAL_ALIGNMENT_LEFT, largura, Tema.t(tam), max_linhas, cor)
+	var dito := t(s)
+	ci.draw_multiline_string(f, pos, dito, HORIZONTAL_ALIGNMENT_LEFT, largura, Tema.t(tam), max_linhas, cor)
+	if coletar_retangulos:
+		anotar(ci, pos, dito, f, Tema.t(tam), cor, HORIZONTAL_ALIGNMENT_LEFT, largura, max_linhas if max_linhas != 0 else -1)
 	return altura_paragrafo(s, f, tam, largura, max_linhas)
 
 
@@ -139,7 +169,10 @@ static func selo(ci: CanvasItem, pos: Vector2, s: String, cor: Color, tam := Tem
 	var h := tam * 1.45
 	var r := Rect2(pos, Vector2(w, h))
 	moldura(ci, r, cor, cor, 0, Tema.RAIO_SELO)
-	ci.draw_string(f, Vector2(pos.x + tam * 0.45, pos.y + h * 0.5 + tam * 0.36), t(s), HORIZONTAL_ALIGNMENT_LEFT, -1, Tema.t(tam), Tema.APP)
+	var dito := t(s)
+	ci.draw_string(f, Vector2(pos.x + tam * 0.45, pos.y + h * 0.5 + tam * 0.36), dito, HORIZONTAL_ALIGNMENT_LEFT, -1, Tema.t(tam), Tema.APP)
+	if coletar_retangulos:
+		anotar(ci, Vector2(pos.x + tam * 0.45, pos.y + h * 0.5 + tam * 0.36), dito, f, Tema.t(tam), Tema.APP)
 	return w
 
 
