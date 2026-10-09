@@ -571,3 +571,21 @@ Está em «Para o André (local)» acima. O que só a mão e a placa de vídeo p
 atrás, a escuridão da introdução, o pio saindo só no controle que apertou e a martelada em cada mão. Atenção a um ponto novo: o
 primeiro ✕ de um controle que ainda não tinha lugar senta o controle e acha o alto-falante dele no mesmo quadro; com controle de
 verdade a procura de dispositivos de som (`pactl`) pode custar um instante antes do clunk. Conferir se o PLAY sai sem engasgo.
+
+### A conferência
+
+- **A introdução tinha palavra:** a prancha do título mostrou, na introdução, as placas das portas («O Impacto», «Seção 4»…) e o
+  «P2»/«P3» em cima dos bonecos, contra o «Nenhum texto na introdução». `TelaIntro` esconde as placas (`salao.portoes[id].placa`)
+  e o rótulo de cada boneco (`etiqueta`) em `comecar` e os devolve em `terminar`. A prova do jogo confere que nada disso aparece
+  enquanto a introdução dura e que tudo volta depois; com o esconder tirado, ela reprova (mordida feita).
+- **A prova da introdução apertou:** além de contar as armaduras visíveis, confere a cor de cada uma (grafite antes dos 12 s, a cor
+  do `_vestir` depois dos 18 s) e que os controles sem lugar não recebem martelada.
+- **A prancha do título:** a prova visual guarda `prancha-titulo.png` (`prancha-titulo-<n>.png` nas partidas 2 a 4), três quadros
+  lado a lado: 1, o título antes do ✕; 2, o cassete pela metade (3,17 batidas depois do PLAY, a metade da descida cúbica); 3, a
+  introdução aos 17,5 s, com as quatro armaduras acesas. Um quadro que não vem fica vermelho e reprova a partida.
+  Na conferência ela saiu do começo da partida 1 (passada fixa, cortada depois da construção, renderizador por software): os três
+  quadros vieram, o cassete pela metade e as quatro armaduras acesas na cor de cada uma, sem palavra no quadro da introdução.
+- **Fica aberto:** o «Pronto quando» pede a prova visual passando inteira, e ela ainda reprova pelos achados da F09b (de outro
+  conjunto); e a prancha olhada na placa de vídeo, ao lado do `07_titulo.jpg`. No título, as placas das portas aparecem atrás do
+  cassete, cortadas no alto da tela («O Impacto», «Seção 4»): a ficha não diz se somem também ali; fica para quem olha a prancha.
+- A dica sem controle diz «Jogar no teclado» com o glifo da cruz e não escreve mais «Enter», como dizia antes.

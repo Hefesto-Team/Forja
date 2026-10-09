@@ -802,3 +802,14 @@ feat: a construção do cavaleiro, com a coluna de cada lugar e as oito martelad
 
 Está em «Para o André (local)» acima. Em especial: o cavaleiro acendendo a cada martelada e a bigorna brilhando (só com placa de vídeo),
 a coluna de 432 px nas pranchas, o pio e o tique saindo só no controle do dono e os quatro desvios no rádio contra o cabo.
+
+### A conferência
+
+- **Os quatro sons estavam comprimidos:** `ui_peca`, `ui_confirma`, `ui_volta` e `fx_caneta` entraram com `compress/mode=2` no
+  `.import`; os três primeiros vão ao alto-falante do controle (`Som.no_controle`), que recebe o dado como PCM de 16 bits, e sairiam
+  ruído. Agora `compress/mode=0`, como os outros. A prova do jogo confere que todo som de `assets/sons` carrega em PCM de 16 bits
+  (o medidor do falante não distingue PCM de dado comprimido); com um `.import` de volta a 2, ela reprova (mordida feita).
+- **A volta ao lobby passa pela pausa de verdade:** a prova aperta Options no salão, desce até «Voltar ao lobby» e aperta a cruz,
+  em vez de chamar a troca de tela direto.
+- **Fica aberto:** o «Pronto quando» pede a prova visual passando inteira (reprova hoje pela F09b, de outro conjunto) e a coluna de
+  432 px olhada nas pranchas com placa de vídeo.
