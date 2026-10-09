@@ -32,6 +32,8 @@ WINESERVER="${WINESERVER:-wineserver}"
 # Numa prova o jogo não tem de achar controle de verdade: a caixa (tests/caixa.sh).
 source "$RAIZ/tests/caixa.sh"
 caixa_pasta prova-da-exportacao; TMP="$CAIXA_PASTA"   # no vermelho, a pasta fica em .cache/provas/ (WQ04)
+# o prefixo do Wine (centenas de MB) não vai para o .cache: os logs do .exe já vão para dist/o-exe-no-wine/
+CAIXA_SEM_GUARDAR="wine"
 caixa_montar "$TMP"
 # o .exe leva o módulo do Windows: com o .exe exportado, a fonte dele também confere (tests/caixa.sh, a WQ03)
 if [ -f "$WINDOWS" ]; then caixa_fonte libforja.windows.x86_64.dll; fi

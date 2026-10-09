@@ -147,10 +147,10 @@ Pôr a linha da WE01 no [quadro](README.md) como **feito**, com o commit, e cita
   mentira que não tinha), `prova_da_exportacao.sh` (o binário Linux, a AppImage e o Wine), `prova_visual.sh`,
   `telas.sh fotos`, `scripts/gauntlet.sh` e `scripts/trailer.sh`. O `--import` também passa pela caixa em todas.
   `git grep -n 'CAIXA=(' tests scripts` não acha nada.
-- **O portão `caixa`** (`scripts/portoes/caixa.py`, modo reprova, no `rodar.sh` e no `LEIA-ME.md`): antes da cura,
-  reprovou 9 lugares, entre eles `scripts/gauntlet.sh:36`, `tests/telas.sh:30` e `scripts/trailer.sh:19`; depois,
-  0 achados em 8 chamadas. O `--path` sozinho não conta como «abre o jogo» (o `exportar.sh` usa o `--path` só para
-  exportar).
+- **O portão `caixa`** (`scripts/portoes/caixa.py`, modo reprova, no `rodar.sh` e no `LEIA-ME.md`): antes da cura
+  (a árvore de 3d02dff), reprovou 8 lugares, entre eles `scripts/gauntlet.sh:36`, `tests/telas.sh:30` e
+  `scripts/trailer.sh:19`; depois, 0 achados em 8 chamadas. O `--path` sozinho não conta como «abre o jogo» (o
+  `exportar.sh` usa o `--path` só para exportar).
 - **No módulo:** a marca `so_virtuais` nasce no `forja_abrir` com `--simular` e não segue o `forja_simular`. A regra
   é a função pura `origem_aceitar_na_sessao` (`nativo/nucleo/origem.c`), e o `conectou` (`pads.c`) recusa o controle
   de verdade **antes** de abrir o gamepad (abrir já acende a luz dele), com a linha «recusado (a sessão com

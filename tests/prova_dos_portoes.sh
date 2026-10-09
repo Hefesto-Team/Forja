@@ -270,6 +270,13 @@ A="$(arvore pasta-verde)"; pasta_tree "$A" 0
 espera 0 "caixa_pasta: com o Godot de mentira que sai 0, a prova sai 0" \
   env GODOT="$A/godot-de-mentira" bash "$A/tests/prova_do_jogo.sh"
 espera 0 "caixa_pasta: na prova verde, a pasta não fica" bash -c '[ -z "$(ls -A "$1/.cache/provas" 2> /dev/null)" ]' _ "$A"
+# o que pesa e não é registro (o prefixo do Wine da exportação) fica de fora da cópia
+A="$(arvore pasta-sem-guardar)"; pasta_tree "$A" 0
+bash -c 'source "$1/tests/caixa.sh"; caixa_pasta prova-pesada; CAIXA_SEM_GUARDAR="wine"
+  mkdir -p "$CAIXA_PASTA/wine/drive_c"; echo pesado > "$CAIXA_PASTA/wine/drive_c/x.dll"; echo "FAIL a rodada" > "$CAIXA_PASTA/rodada.log"; exit 1' \
+  _ "$A" > /dev/null 2>&1
+espera 0 "caixa_pasta: no vermelho, o CAIXA_SEM_GUARDAR não vai para o .cache, e o registro vai" \
+  bash -c 'ls "$1"/.cache/provas/prova-pesada-2*/rodada.log && ! ls -d "$1"/.cache/provas/prova-pesada-2*/wine' _ "$A"
 
 # --- o módulo de outra fonte (tests/caixa.sh, caixa_fonte: WQ03), numa árvore de mentira ------------------------
 fonte_tree() { # <pasta>: o caixa.sh e o compilar.sh de verdade, um .c e o módulo com a soma da fonte
