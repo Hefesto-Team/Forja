@@ -229,3 +229,23 @@ Marcar G14 como **feito** no [quadro](README.md), com o gasto. Commit sugerido:
 - **Escolhas a validar:** o 3D ficou num mapeamento provisório (amarelo e laranja no tungstênio, o resto no violeta),
   a G15 refaz; o chão de Caminhos e da Prova mudou junto; o erro de resposta não tem cor; foco e seleção levam a cor
   do dono; `RAIO_QUADRO` 18 e `BORDA` 2 ficaram como estavam (a bíblia diz 14 e 3, a ficha não mandou mexer no layout).
+
+### A conferência
+
+- **O «Pronto quando» não fecha à letra.** Sobram 28 linhas de cor escrita fora de `tema.gd` que não citam nenhuma
+  palavra da regra 3D: a `atmosfera(...)` de nove salas (a névoa e a luz da sala), o `sino` do Canto, o
+  `Kit.chapado` da Viga, o `cor_metal` do Molde, as `faiscas` e o `_tingir` da Prova, e as cores de luz das perguntas
+  (`CORES`, `NEUTRO`, a chama e a `LUZ_EQUIPE` do Impacto e da Prova, que também pintam o círculo da resposta). Pelo
+  sentido são luz e cenário (a «Não fazer» manda deixar a névoa e a luz para a G15), e nenhuma tem token no 02: ficam
+  na [G14b](G14b-as-cores-de-luz-que-sobraram.md). O script de uma linha das Provas (cada `AVISO` bate na lista 3D)
+  não entrou, porque reprovaria nestas 28.
+- **A prova visual em 1,15× e em inglês não rodou:** a `prova_visual` não tem como pedir o texto grande nem o idioma
+  (as Opções vêm do arquivo da sessão). A prova do jogo confere o quadro da sala do HUD nas duas escalas.
+- **Corrigido na conferência:** o vermelhão (`SECAO[0]`) era a letra do «Sair» da pausa (34 px) e do «✗ falhou» do
+  livro (30 px), de 3,3:1 a 3,8:1 sobre o casco, e o 02 só aceita vermelhão como texto a partir de 48 px; a letra
+  volta para a etiqueta e o perigo do «Sair» vira a tarja vermelhão no botão.
+- **A mordida refeita** (o `pads.c` antigo recompilado, a tabela antiga e o `_vestir` de volta) reprovou o tema, a
+  lightbar dos quatro lugares e o boneco dos quatro; restaurado e recompilado, passou.
+- **A validar por ela:** as cores das perguntas «ciano» e «âmbar» do Impacto e da Prova ficaram iguais às de P1 e P4
+  (a G14b decide); os chips do HUD de 250 para 340 px (o P# em Bungee 40 e a linha de status sem encolher abaixo de 30).
+
