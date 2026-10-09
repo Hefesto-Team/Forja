@@ -105,3 +105,49 @@ Olhar as quatro pranchas e dizer qual tela parada é espera de propósito e qual
 ## Ao terminar
 
 Marcar F09b como **feito** no [quadro](README.md), com o gasto.
+
+## O que foi feito (leva 1, a-fita)
+
+- **O tema:** `Tema.LETRA_MINIMA` (30) e `Tema.AREA_SEGURA` (0,05) em `tema.gd`; `Tema.t()` nunca devolve menos de 30, e
+  `Desenho.cabecalho` passou a desenhar por `Desenho.texto` (o cabeçalho do salão saía a 21 px, fora do coletor). A
+  posição não é cortada em silêncio: cada origem parte de `Tema.MARGEM_X`/`MARGEM_Y`.
+- **O quadro da sala no HUD** (`ui/hud.gd`, `HudJogo.quadro_da_sala`): acaba antes do primeiro chip de lugar (324 px),
+  com o nome numa linha e a ação em até duas; as faixas do `painel_sala.gd` (progresso e tempo) descem para baixo do
+  quadro e o texto delas começa na margem (96). Era o par «Aperte o botão da runa…» × status do chip, que o G14
+  deixou mais evidente (chips de 340 px). `HudJogo.linha_do_status` corta o status no chip.
+- **As dicas e as perguntas na raia** (`painel_sala.gd`): os limites partem da margem do tema (folga de 18 e de 20
+  px da moldura), e o `_afastar` reaplica o limite da esquerda; a dica que cairia em cima do «Valendo!» espera ele
+  sumir (era o «Recarregue» × «Valendo!» do 2 contra 2).
+- **O contraste:** placa atrás das dicas de baixo («Botão», «(Pausa)») e do «Valendo!» (a placa some antes do texto),
+  placa atrás do cabeçalho do salão, e sem a sombra do «Valendo!» (a régua lia a sombra, escura sobre a placa, a 1,1:1).
+- **O rodapé** `FORJA …` (`tela_titulo.gd`) e as dicas do livro (`livro.gd`) partem de `MARGEM_Y`.
+- **Texto sobre texto no 2 contra 2:** não reproduz mais (nenhum par na partida 3 nem nas outras); a causa provável é a
+  linha de status passando do chip de 250 px para o texto do chip do lado, que o corte em `linha_do_status` e o chip
+  de 340 px fecham. Não achei um segundo nó desenhando a mesma linha (só `main.gd` → `status_da_sala` → `hud.gd`).
+- **Provas:** `_prova_da_letra_e_da_margem` em `prova_do_jogo.gd` (letra mínima, área segura, quadro antes dos chips,
+  linha de status no chip, as pílulas e as perguntas na área segura). Mordeu: sem o piso do `Tema.t`, com o quadro
+  largo, sem o limite do `_afastar` reprovou (`f09b-mordida.txt`), e sem o corte do `linha_do_status` reprovou
+  (`f09b-mordida2.txt`); restaurado, passou. `rodar.sh` e `prova_sem_rastro` ok.
+- **Medida (semente 7, `PASSADAS=fixa`, máquina carregada):** a ficha de 08/10 dizia 29 a 46 defeitos distintos por partida.
+  Depois da G14 (a F09b ainda não): partida 1, 18 defeitos e 301 achados; partida 3, 15 e 176; partida 4, 12 e 163.
+  Depois desta ficha: partida 1, 2 (a tela parada do Impacto e «Tech Demo» a 2,8:1, antes da placa do cabeçalho);
+  partida 2, 3 (duas telas paradas e o mesmo «Tech Demo»); partida 3, **só a tela parada** (Centelha e Prova), já
+  com a placa; partida 4, 5 antes das duas últimas curas (três telas paradas, «Tech Demo» e «Valendo!»).
+  As partidas 1, 2 e 4 não foram refeitas depois da placa do cabeçalho e da sombra do «Valendo!» (cada partida leva
+  de 20 a 50 min na máquina carregada); a 3 foi, e passa limpa fora a tela parada.
+
+### O que não curei (e por quê)
+
+- **A tela parada** (Centelha entre duas runas, Impacto, Prova, Galeria no cabo que cai): é espera do jogo (o anel da
+  runa, o próximo golpe do robô), não da régua. Fica para o André dizer qual é de propósito (a prancha está em
+  `visual-f09b-todas/fixa/`).
+- **«Um jogador e o cabo que cai fecha a sala»:** decisão de jogo, que a ficha não tomou; virou a [F09c](F09c-o-controle-que-cai-sozinho.md).
+- **A partida 2 estourou o limite de 3000 s** na rodada em que a máquina estava cheia (`rc=124`, a partida andava normal
+  e só ficou lenta); refeita com `LIMITE_S=7000`.
+
+### Para a mão dela e do André
+
+- Olhar as pranchas: o quadro da sala mais estreito, a ação em duas linhas, as placas atrás das dicas de baixo,
+  do «Valendo!» e do cabeçalho, as dicas nas raias dentro da margem.
+- Dizer qual tela parada é espera de propósito, e a decisão da F09c.
+- A passada `livre`, com placa de vídeo (os quadros por segundo; a cor que a régua lê é a do renderizador por software).
