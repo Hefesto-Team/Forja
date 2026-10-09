@@ -121,6 +121,7 @@ func visual(m: int, item: int) -> void:
 	item_i = wrapi(item, 0, ITENS.size())
 	if trocou_modelo:
 		if modelo:
+			_soltar_contorno(modelo)
 			modelo.queue_free()
 		modelo = load("res://assets/kenney/%s.glb" % MODELOS[modelo_i]).instantiate()
 		modelo.scale = Vector3.ONE * ESCALA
@@ -150,6 +151,8 @@ func contornar(energia: float) -> void:
 
 
 func _contornar_em(n: Node) -> void:
+	if n.is_queued_for_deletion():
+		return
 	if n is MeshInstance3D:
 		var mi := n as MeshInstance3D
 		if mi.mesh:
@@ -165,6 +168,20 @@ func _contornar_em(n: Node) -> void:
 				mi.set_surface_override_material(s, m)
 	for filho in n.get_children():
 		_contornar_em(filho)
+
+
+## Devolve as superfícies ao material do kit antes de o nó sair: um material
+## duplicado com `next_pass` que morre na fila de deleção deixa o servidor de
+## desenho pedindo um material nulo ("Parameter material is null") no quadro em
+## que outro boneco nasce. Chamar antes de todo `queue_free` de quem tem contorno.
+func _soltar_contorno(n: Node) -> void:
+	if n is MeshInstance3D:
+		var mi := n as MeshInstance3D
+		if mi.mesh:
+			for s in mi.mesh.get_surface_count():
+				mi.set_surface_override_material(s, null)
+	for filho in n.get_children():
+		_soltar_contorno(filho)
 
 
 ## A normal suavizada (a soma das normais dos vértices no mesmo ponto) gravada no
@@ -214,6 +231,7 @@ func _segurar() -> void:
 		return
 	for filho in esqueleto.get_children():
 		if filho is BoneAttachment3D:
+			_soltar_contorno(filho)
 			filho.queue_free()
 	var escolha: Dictionary = ITENS[item_i]
 	for lado in ["direita", "esquerda"]:
@@ -264,6 +282,8 @@ func _notification(what: int) -> void:
 	if what == NOTIFICATION_VISIBILITY_CHANGED:
 		collision_layer = 1 if visible else 0
 		collision_mask = 1 if visible else 0
+	elif what == NOTIFICATION_PREDELETE and is_instance_valid(modelo):
+		_soltar_contorno(modelo)
 
 
 func olhar_para(alvo: Vector3) -> void:
