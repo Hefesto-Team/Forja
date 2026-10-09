@@ -344,7 +344,7 @@ O que muda do `galeria.gd` de hoje:
 | `dica()` (621) | `{"partes": ["@stick_l", "Mira", "@r2", "Atira"]}`; vazio: `["@square", "Recarrega"]`; só com `na_raia(l)` e `not aprendeu(l)` |
 | `_robo` (679) | o `robo(l, dt)` de cima |
 
-**O arquivo se monta à mão:** os blocos daqui são pedaços dele, e o resto sai da prosa; por isso nenhum leva `arquivo=`.
+**O arquivo se monta à mão:** os blocos daqui são pedaços dele, e o resto sai da prosa; por isso nenhum leva `arquivo=`. O cenário comum, mais abaixo, é outro arquivo e vem inteiro.
 
 O esqueleto:
 

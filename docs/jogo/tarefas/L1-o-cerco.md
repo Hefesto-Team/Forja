@@ -327,7 +327,7 @@ O que muda do `impacto.gd` de hoje, na ordem do arquivo:
 | `com_poucos()` | o de «Com menos de quatro» |
 | — | `combo(l)` (G04): `return int(j[l].perfeitos) if j.has(l) else 0` |
 
-**O arquivo se monta à mão:** os blocos daqui são pedaços dele, e o resto sai da prosa; por isso nenhum leva `arquivo=`.
+**O arquivo se monta à mão:** os blocos daqui são pedaços dele, e o resto sai da prosa; por isso nenhum leva `arquivo=`. O cenário comum, mais abaixo, é outro arquivo e vem inteiro.
 
 O esqueleto:
 

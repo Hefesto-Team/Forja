@@ -461,7 +461,7 @@ O que muda do `voz.gd` de hoje, na ordem do arquivo:
 | `_robo` | `robo(l, dt)` de «O controle» |
 | — | `combo(l)` (G04): `return _perfeitos[l]` |
 
-**O arquivo se monta à mão:** os blocos daqui são pedaços dele, e o resto sai da prosa; por isso nenhum leva `arquivo=`.
+**O arquivo se monta à mão:** os blocos daqui são pedaços dele, e o resto sai da prosa; por isso nenhum leva `arquivo=`. O ouvido e o cenário comum, mais abaixo, são outros arquivos e vêm inteiros.
 
 O esqueleto:
 
