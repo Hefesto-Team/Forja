@@ -324,8 +324,9 @@ som próprio. Diga o que soou fora do lugar ou alto demais.
   `const` com a chave repetida não carrega no Godot, então ela virou a da ficha (2093 Hz,
   rampa de 20 ms, o apito do mapa do áudio).
 - **As provas.** A prova do jogo ficou verde antes (a base) e depois. Entraram
-  `_prova_dos_jingles()`, a checagem do apito em `_termina_a_sala()` (as nove salas e o
-  minigame de prova) e, no `_prova_do_kit()`, a da contagem (o tique no tempo 2,3 da faixa
+  `_prova_dos_jingles()`, a checagem do apito em `_termina_a_sala()` (as nove salas, O
+  Martelo entre elas; o minigame de prova passa pelo `_prova_do_kit()`, e a checagem dele
+  entrou na conferência) e, no `_prova_do_kit()`, a da contagem (o tique no tempo 2,3 da faixa
   e a desconexão no 3,3). Mordidas, as três na mesma rodada: `Musica.calar()` no lugar do
   `parar_seco()` reprovou «o apito parou a música em seco» em todas as salas;
   `_som_do_comeco()` sem a conexão reprovou «a contagem de entrada»; o empate fora do
@@ -337,3 +338,14 @@ som próprio. Diga o que soou fora do lugar ou alto demais.
   virar (V08) e o mapa e o código escolherem uma grafia só.
 - **A validar por ela.** O «vai» da contagem é o «confirma» de sempre no tempo 3, como a
   ficha manda: o `jin_entrada_vai` do mapa (martelada de 98 Hz) ainda não está no jogo.
+- **A conferência.** A checagem do apito que a ficha deu passava com um jingle que sobrou de
+  antes (o `ultimo_jingle` não é zerado entre as salas): tirar o `Som.jingle("JIN_APITO")` do
+  `terminar()` não reprovava nada. Entraram três réguas: «o apito soou no fim» (o último
+  jingle é o `JIN_APITO`, visto antes dos `APITO_S`), «o jingle do resultado é o certo» (o que
+  tocou é o de `jingle_do_resultado()` com os pontos da sala; nas salas do robô deu vitória e
+  empate) e o apito do minigame de prova no `_prova_do_kit()`. Mordidas, numa rodada: o apito
+  e o jingle do resultado tirados reprovaram as nove salas, a contagem sem conexão e o empate
+  fora reprovaram as dela. Verde depois.
+- **Achado, não feito.** O Martelo (`S01_J01`) acende a primeira runa logo no começo, fora do
+  tempo da faixa: a contagem toca por cima dela. A ficha deixa o Martelo no tempo para a
+  seção I.

@@ -474,6 +474,7 @@ func _prova_do_kit() -> void:
 	_esperar(is_instance_valid(mg) and mg.fase == "fim", "kit: o minigame acabou pelo próprio jogo (%.1f s)" % ((Time.get_ticks_usec() - inicio) / 1e6))
 	if not is_instance_valid(mg):
 		return
+	_esperar(Musica.atual == "" and Som.ultimo_jingle == "JIN_APITO", "kit: o apito parou a música em seco (%s)" % Som.ultimo_jingle)
 	_esperar(Ritmo.dono == "", "kit: no fim o relógio solta a faixa (dono «%s»)" % Ritmo.dono)
 	var esperado := [Ritmo.PERFEITO, Ritmo.OTIMO, Ritmo.BOM, Ritmo.ERRO]
 	for l in 4:
