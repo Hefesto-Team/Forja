@@ -105,7 +105,7 @@ Os terços de 75 s: 25 s e 50 s (`andamento()` 1/3 e 2/3).
 
 ### A ficha de dados
 
-```gdscript
+```gdscript arquivo=godot/scripts/minigames/s02/mira_optica.gd parte=2
 const FICHA := {
 	"slot": "S02_J10",
 	"titulo": "Mira Óptica",
@@ -143,7 +143,7 @@ direito; a linha `troca` diz qual.
 
 `godot/scripts/minigames/s02/mira_optica.gd`:
 
-```gdscript
+```gdscript arquivo=godot/scripts/minigames/s02/mira_optica.gd
 extends Minigame
 ## Mira Óptica (S02_J10). Cada um tem um painel de seis escudos na parede do
 ## fundo; girar o controle leva a mira (guinada e arfagem), o L1 a traz ao
@@ -528,7 +528,7 @@ func status(lugar: int) -> String:
 
 ### O robô
 
-```gdscript
+```gdscript arquivo=godot/scripts/minigames/s02/mira_optica.gd parte=3
 # O kit chama robo(l, dt) antes de jogar(dt), a cada quadro, de quem ainda joga.
 func robo(l: int, _dt: float) -> void:
 	if not Forja.robo:

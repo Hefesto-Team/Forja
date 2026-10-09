@@ -109,7 +109,7 @@ No [13](../13-arquitetura.md), na tabela «Os eventos do jogo», depois da linha
 
 ### `godot/scripts/minigames/s03/secao.gd` (novo, o arquivo inteiro)
 
-```gdscript
+```gdscript arquivo=godot/scripts/minigames/s03/secao.gd
 extends RefCounted
 ## A seção O Molde (S03): o que os cinco minigames têm em comum. A oficina na
 ## luz petróleo, a bancada com a placa na proporção do touchpad (o dedo aparece
@@ -405,7 +405,7 @@ static func aviso_s(l: int) -> float:
 
 ### `godot/scripts/minigames/s03/o_molde.gd` (novo, o arquivo inteiro)
 
-```gdscript
+```gdscript arquivo=godot/scripts/minigames/s03/o_molde.gd
 extends Minigame
 ## O Molde (S03_J11), o primeiro da seção O Molde. O touchpad é a placa do molde
 ## na bancada. O dedo passa pelos pontos da letra, um por tempo, e o clique
@@ -976,7 +976,7 @@ Na S03 de `SECOES`: `"minigames": ["S03_J11"]`. Depois:
 
 ### O robô
 
-```gdscript
+```gdscript arquivo=godot/scripts/minigames/s03/o_molde.gd parte=2
 # O kit chama robo(l, dt) antes de jogar(dt), a cada quadro, de quem ainda joga.
 func robo(l: int, _dt: float) -> void:
 	if not Forja.robo:

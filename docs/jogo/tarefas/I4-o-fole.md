@@ -82,7 +82,7 @@ diz «Todos venceram!» ou «A forja apagou.»; o destaque sai de `destaque()`.
 
 ### A ficha de dados
 
-```gdscript
+```gdscript arquivo=godot/scripts/minigames/s01/o_fole.gd parte=2
 const FICHA := {
 	"slot": "S01_J04",
 	"titulo": "O Fole",
@@ -180,7 +180,7 @@ próximo tempo dele.
 
 ### O robô
 
-```gdscript
+```gdscript arquivo=godot/scripts/minigames/s01/o_fole.gd parte=3
 # O kit chama robo(l, dt) antes de jogar(dt), a cada quadro, de quem ainda joga.
 func robo(l: int, _dt: float) -> void:
 	if not Forja.robo:
@@ -208,7 +208,7 @@ No pico, `_sustenta` é 0: o robô solta 50 ms depois da batida.
 
 `godot/scripts/minigames/s01/o_fole.gd`:
 
-```gdscript
+```gdscript arquivo=godot/scripts/minigames/s01/o_fole.gd
 extends Minigame
 ## O Fole (S01_J04). Os quatro sopram a mesma forja. A profundidade do R2 é a
 ## altura da nota: cada um afunda até a sua faixa, no seu tempo do compasso, e

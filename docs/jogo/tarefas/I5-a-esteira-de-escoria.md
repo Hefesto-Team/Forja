@@ -78,7 +78,7 @@ põe; ela grava `x_tela` e `altura_tela`). Até a I1 entrar, esta ficha espera.
 
 ### A ficha de dados
 
-```gdscript
+```gdscript arquivo=godot/scripts/minigames/s01/esteira_de_escoria.gd parte=2
 const FICHA := {
 	"slot": "S01_J05",
 	"titulo": "A Esteira de Escória",
@@ -179,7 +179,7 @@ do outro. No lingote de ouro, todos apertam △ (quando acertam) a
 `MIRA_OURO[(l + c) % 4]` da batida: 0, 10, 20 ou 30 ms, e quem fica mais
 perto roda a cada compasso.
 
-```gdscript
+```gdscript arquivo=godot/scripts/minigames/s01/esteira_de_escoria.gd parte=3
 # O kit chama robo(l, dt) antes de jogar(dt), a cada quadro, de quem ainda joga.
 func robo(l: int, _dt: float) -> void:
 	if not Forja.robo:
@@ -214,7 +214,7 @@ func robo(l: int, _dt: float) -> void:
 
 `godot/scripts/minigames/s01/esteira_de_escoria.gd`:
 
-```gdscript
+```gdscript arquivo=godot/scripts/minigames/s01/esteira_de_escoria.gd
 extends Minigame
 ## A Esteira de Escória (S01_J05). Uma esteira passa por baixo de uma prensa;
 ## cada lingote tem a cor do dono e o glifo do botão do compasso, e fica

@@ -636,7 +636,7 @@ Tire as frases que só a sala de hoje usava (`acao`, `objetivo`, «Mudo», «…
 
 ### O ouvido inteiro (`godot/scripts/minigames/s08/ouvido.gd`)
 
-```gdscript
+```gdscript arquivo=godot/scripts/minigames/s08/ouvido.gd
 extends RefCounted
 ## O ouvido da seção A Voz (S08, docs/jogo/tarefas/P-a-voz.md): o mesmo nas
 ## cinco fichas. Lê o microfone de cada controle, acha o começo e o fim da voz
@@ -969,7 +969,7 @@ seções nunca brilham.
 
 O arquivo inteiro:
 
-```gdscript
+```gdscript arquivo=godot/scripts/minigames/s08/cenario_da_voz.gd
 class_name CenarioDaVoz
 extends RefCounted
 ## O cenário comum d'A Voz (S08, docs/jogo/tarefas/P-a-voz.md): a cripta da

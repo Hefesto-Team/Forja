@@ -78,7 +78,7 @@ põe; ela grava `x_tela` e `altura_tela`). Até a I1 entrar, esta ficha espera. 
 
 ### A ficha de dados
 
-```gdscript
+```gdscript arquivo=godot/scripts/minigames/s01/marcha_dos_escudeiros.gd parte=2
 const FICHA := {
 	"slot": "S01_J02",
 	"titulo": "Marcha dos Escudeiros",
@@ -168,7 +168,7 @@ está presente; com um só, segue ele.
 
 ### O robô
 
-```gdscript
+```gdscript arquivo=godot/scripts/minigames/s01/marcha_dos_escudeiros.gd parte=3
 # O kit chama robo(l, dt) antes de jogar(dt), a cada quadro, de quem ainda joga.
 func robo(l: int, _dt: float) -> void:
 	if not Forja.robo:
@@ -193,7 +193,7 @@ O robô não desvia da engrenagem solta: ela não tira janela.
 
 `godot/scripts/minigames/s01/marcha_dos_escudeiros.gd`:
 
-```gdscript
+```gdscript arquivo=godot/scripts/minigames/s01/marcha_dos_escudeiros.gd
 extends Minigame
 ## Marcha dos Escudeiros (S01_J02). Cada escudeiro marcha numa esteira que
 ## puxa para trás; o passo é empurrar o analógico para a frente, o esquerdo e

@@ -559,7 +559,7 @@ hoje somem. O vermelho do golpe não existe: o golpe que entra é tungstênio, e
 
 O arquivo inteiro:
 
-```gdscript
+```gdscript arquivo=godot/scripts/minigames/s04/cenario_do_impacto.gd
 class_name CenarioDoImpacto
 extends RefCounted
 ## O cenário comum d'O Impacto (S04, docs/jogo/tarefas/L-o-impacto.md): a
