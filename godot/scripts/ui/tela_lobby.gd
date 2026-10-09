@@ -79,6 +79,7 @@ func abrir() -> void:
 		_robo_erro[l] = 0.0
 	contagem = -1.0
 	_batida_vista = -1
+	Itens.novo_minigame()   # o Escudo volta inteiro na construção: a última sala pode tê-lo quebrado (G03)
 	for l in 4:
 		if Forja.ocupado(l):
 			entrou(l)
