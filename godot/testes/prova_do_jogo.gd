@@ -2516,8 +2516,6 @@ func _prova_da_luz() -> void:
 	_esperar(cm.get_shader_parameter("normal_suave") == true and is_equal_approx(cm.get_shader_parameter("largura"), 0.012), "brilho: o contorno com a normal suave")
 	# o boneco: o anel, o contorno e a luz de dono
 	for p in jogo.jogadores:
-		if not p.visible:
-			continue
 		var l: int = p.lugar
 		var anel: MeshInstance3D = p.aro.get_child(0)   # o anel de 8 lados (Kit.anel_do_dono); as lâmpadas vêm depois
 		_esperar(anel.material_override is ShaderMaterial and anel.material_override.get_shader_parameter("cor") == Tema.JOGADOR[l]
@@ -2563,6 +2561,13 @@ func _prova_da_luz() -> void:
 	PosFita.rasgo_curto()
 	_esperar(PosFita.valor("rasgo") == 0.0 and PosFita.valor("aberracao") == 0.0, "pós: sem Flashes, sem rasgo")
 	Opcoes.flashes = true
+	PosFita._rasgos.clear()
+	PosFita.rasgo_curto()
+	Opcoes.flashes = false
+	await _quadros(2)
+	_esperar(PosFita.valor("rasgo") == 0.0 and PosFita.valor("aberracao") == 0.0, "pós: desligar os Flashes no meio do rasgo o apaga")
+	Opcoes.flashes = true
+	await _quadros(14)
 	PosFita._rasgos.clear()
 	PosFita.rasgo_curto()
 	await _quadros(3)
