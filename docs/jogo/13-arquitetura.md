@@ -375,6 +375,30 @@ colidiria).
 nove salas de hoje se mudam para lá quando são reescritas (ficha da seção),
 e a sala antiga sai de `godot/scripts/salas/`.
 
+**Como ficou na leva 1 (o que o kit acrescentou ao desenho acima):**
+
+- As chaves **opcionais** da FICHA: `features` (o que a bancada mede),
+  `botoes_medidos`, `gesto` (o gesto do aviso) e `treino` (padrão `true`).
+  O `icone` da FICHA pode ser a parte do controle: a tabela
+  `Minigame.ICONE_DA_PARTE` a traduz para o glifo do aviso (`botoes` vira
+  `cross`); um nome de glifo passa como está.
+- `julgar_toque(l, t_alvo, n := -1, perigo := false)` e `conferir_a_ficha()`
+  (sem chave, ou valor fora de `GENEROS`/`FINS`/`CAMERAS`/`MATERIAIS`,
+  devolve `false` e fala alto com `push_error`).
+- O kit chama `robo(l, dt)` de todo lugar em jogo, a cada quadro, e não
+  olha `Forja.robo`: quem olha é o gancho do minigame.
+- A `SalaJogo` continua dona de `minigame`, `desempenho`, `var colocacao` e
+  `vencedor()`; o kit só solta o relógio (`Ritmo.parar()`) no `terminar()`
+  e no `sair()`.
+- O catálogo real tem `apelido` em cada seção, `SALAS_ANTIGAS` (as salas
+  que ainda não viraram minigame, mais a bancada) e `NOMES_VELHOS`
+  (`giro` abre a Viga). `Catalogo.apelido(slot)` devolve o apelido da seção
+  de um slot (`S01_J01` vira `centelha`), e o próprio id se não é de seção.
+- A linha do tempo grava o **slot** do minigame (`S01_J01`), não o apelido.
+- A primeira moradora: `godot/scripts/minigames/s01/martelo_de_hefesto.gd`
+  (A Centelha, `S01_J01`, «O Martelo de Hefesto», verbo «Bata!»). O minigame
+  de prova do kit é `godot/testes/minigame_de_prova.gd` (`T00_J00`).
+
 ### Os acréscimos das telas — G01 a G08
 
 Cada ficha G acrescenta aqui, no mesmo commit, o que cria. O que já está
