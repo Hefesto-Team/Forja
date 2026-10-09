@@ -71,7 +71,7 @@ func _draw() -> void:
 		Desenho.moldura(self, q, Color(Tema.CASCO, 0.94), Tema.GRAFITE, 2, Tema.RAIO_QUADRO)
 		Desenho.texto(self, q.position + Vector2(28, 56), qd["nome"], Tema.archivo(700), Tema.T_SUBTITULO, Tema.ETIQUETA)
 		Desenho.paragrafo(self, q.position + Vector2(28, 96), qd["acao"], Tema.archivo(500), Tema.T_ROTULO, Tema.ETIQUETA,
-			q.size.x - 56.0 + 1.0, 2)
+			q.size.x - 56.0 + 1.0, LINHAS_DA_ACAO)
 
 	_lugares(Vector2(w - Tema.MARGEM_X, 40))
 
@@ -169,8 +169,12 @@ func retangulos() -> Array[Rect2]:
 
 
 ## O quadro do nome e da ação da sala: do recuo da margem até antes do primeiro
-## chip de lugar, nunca por cima dele. A ação cabe em até duas linhas. Devolve
-## {rect, nome, acao}; o painel da sala desce as faixas dele para baixo do `rect`.
+## chip de lugar, nunca por cima dele. A ação cabe em até três linhas (com o texto
+## grande, a da Centelha não cabe em duas). Devolve {rect, nome, acao}; o painel
+## da sala desce as faixas dele para baixo do `rect`.
+const LINHAS_DA_ACAO := 3
+
+
 static func quadro_da_sala(nome: String, acao: String, w: float) -> Dictionary:
 	var x := float(Tema.MARGEM_X - 28)
 	var x_chips := w - Tema.MARGEM_X - (LARG_CHIP * 4 + 16.0 * 3)
@@ -178,9 +182,9 @@ static func quadro_da_sala(nome: String, acao: String, w: float) -> Dictionary:
 	var fn := Tema.archivo(700)
 	var fa := Tema.archivo(500)
 	var dito_nome := Desenho.caber(nome, fn, Tema.T_SUBTITULO, larg - 56.0, 1)
-	var dita_acao := Desenho.caber(acao, fa, Tema.T_ROTULO, larg - 56.0, 2)
+	var dita_acao := Desenho.caber(acao, fa, Tema.T_ROTULO, larg - 56.0, LINHAS_DA_ACAO)
 	var uma := fa.get_height(Tema.t(Tema.T_ROTULO))
-	var extra := maxf(0.0, Desenho.altura_paragrafo(dita_acao, fa, Tema.T_ROTULO, larg - 56.0, 2) - uma)
+	var extra := maxf(0.0, Desenho.altura_paragrafo(dita_acao, fa, Tema.T_ROTULO, larg - 56.0, LINHAS_DA_ACAO) - uma)
 	return {"rect": Rect2(Vector2(x, 40), Vector2(larg, 118.0 + ceilf(extra))), "nome": dito_nome, "acao": dita_acao}
 
 
