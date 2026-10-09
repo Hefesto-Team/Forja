@@ -349,8 +349,22 @@ func _prova_do_percurso() -> void:
 	for l in 4:
 		antes_n.append(jogo.jogadores[l].cavaleiro())
 	Forja.robo_confirma = false
-	jogo._trocar(jogo._ir_para_o_lobby)
+	# pela pausa de verdade: Options no salão, desce até «Voltar ao lobby» e ✕
 	var t_volta := Time.get_ticks_msec()
+	while jogo._trocando and Time.get_ticks_msec() - t_volta < 10000:
+		await _quadros(2)
+	await _aperta(0, Forja.OPTIONS)
+	_esperar(jogo.overlay == "pausa", "Options no salão abre a pausa (%s)" % jogo.overlay)
+	var ate_o_lobby := 0
+	for i in jogo.pausa.opcoes.size():
+		if jogo.pausa.opcoes[i][0] == "lobby":
+			ate_o_lobby = i
+	_esperar(ate_o_lobby > 0, "a pausa tem «Voltar ao lobby»")
+	for vez in ate_o_lobby:
+		await _aperta(0, Forja.BAIXO)
+	_esperar(jogo.pausa.opcoes[jogo.pausa.escolhida][0] == "lobby", "▼ na pausa chega a «Voltar ao lobby»")
+	await _aperta(0, Forja.CRUZ)
+	t_volta = Time.get_ticks_msec()
 	while (jogo.estado != "lobby" or jogo._trocando) and Time.get_ticks_msec() - t_volta < 10000:
 		await _quadros(2)
 	_esperar(jogo.estado == "lobby", "a pausa leva de volta à construção")
