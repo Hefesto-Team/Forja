@@ -393,3 +393,12 @@ Impacto e Voz) reprovam as luzinhas de cada sala e a luz da Prova.
 **Para o André (local):** o que está em «Para o André (local)» acima. O jogo ao fechar não apaga as
 luzinhas de um controle reservado e não confirmado (só os lugares ocupados são silenciados): conferir
 com o aparelho se isso incomoda.
+
+**Conferência final (o resto do jogo):** a prova do jogo, a de poucos e a da bancada verdes; a partida
+pelo robô com 1, 2 e 4 simulados e com `--bancada`, e as salas sem o Modo bancada com 1, 2 e 4, sem
+erro de script e com a linha do tempo lida por um leitor estrito (nenhuma chave repetida, `lugar` igual
+a `jogador - 1`, o `seq` de cada lugar sem buraco). Fica para o próximo bloco, a validar por ela: com
+dois caminhos do mesmo aparelho (o espelho), cada caminho reserva um lugar na conexão, e o espelho só é
+reconhecido no ✕. O lugar que o espelho solta não volta para quem já tinha reserva, então o segundo
+controle pode ficar P3 com o P2 vazio (a tela, as luzinhas e a cor continuam iguais entre si; o ◻
+segurado corrige).
