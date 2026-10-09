@@ -21,8 +21,10 @@ dependem de uma ficha vizinha ou de olho humano na prancha.
   não é lido por nenhuma ficha de sala ainda.
 - A Prova e A Voz continuam no `tremor` antigo (`prova.gd`, `voz.gd`): o main o converte em amplitude com o teto de
   0,08 m. Nenhuma sala chama `tremer(...)` hoje.
-- A prova visual (`tests/prova_visual.sh`) filmou A Prova com o modo grupo só nas partidas que o robô joga; as partidas
-  de 2 e de 1 jogador não têm quadro próprio.
+- A prova visual (`tests/prova_visual.sh`) já filma A Prova nas partidas de 4, 2 e 1 jogador (partidas 1, 3 e 4): na
+  passada da conferência, as pranchas `prancha-1-3`, `prancha-3-2` e `prancha-4-2` mostram o grupo inteiro na tela em
+  todo quadro de A Prova. A passada ainda reprova pela «tela parada» de Impacto, Centelha e Galeria (o defeito da F09b,
+  que já reprovava antes da G05), e nenhum quadro mostra um tremor de cada degrau.
 - `puxar_os_de_tras()` só tem a conta provada com nós de verdade: nenhuma sala de corrida existe para ele rodar no jogo.
 
 ## O que fazer
@@ -33,8 +35,8 @@ dependem de uma ficha vizinha ou de olho humano na prancha.
    não, subir a mínima por `Lente.recuo(35.0)`.
 3. Em cada sala que hoje balança pelo `tremor`, trocar por `tremer(Sala.TREMOR_GOLPE | TREMOR_ESTRONDO |
    TREMOR_CATASTROFE)` no evento certo e apagar o número solto (A Prova em `_martelada`, A Voz no flash).
-4. Pôr no `prova_visual.sh` A Prova nas partidas de 4, 2 e 1 jogador, com o grupo inteiro na tela e sem salto, e o
-   quadro de um tremor de cada degrau.
+4. Pôr no `prova_visual.sh` o quadro de um tremor de cada degrau, e passar a prova visual inteira quando a F09b curar a
+   «tela parada».
 5. Rodar `bash tests/telas.sh comparar` e anotar que A Prova mudou de foto de propósito (a câmera segue o grupo); as
    outras salas fixas só mudam pela lente de 35 mm.
 
@@ -42,7 +44,8 @@ dependem de uma ficha vizinha ou de olho humano na prancha.
 
 - Um só `Lente`, com a lente do título e da montagem decididas por quem as fez.
 - Nenhuma sala escreve `tremor = ...` direto: todas pedem `tremer(...)`.
-- A prancha da prova visual mostra A Prova com o grupo inteiro nas partidas de 4, 2 e 1.
+- A prova visual passa inteira (sem a «tela parada» da F09b) e a prancha mostra A Prova com o grupo inteiro nas partidas de
+  4, 2 e 1, e um tremor de cada degrau.
 
 ## Provas
 

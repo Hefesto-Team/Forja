@@ -363,3 +363,14 @@ Marcar G16 como **feito** no [quadro](README.md), com o gasto. Commit sugerido:
   deslize e o glifo; ligar o Reduzido e conferir o salto.
 - No Reduzido: título sem giro, câmera sem tremor, confete a um quarto, virar em corte.
 - Passar um `opcoes.cfg` antigo com `tremor = false` e ver o Reduzido ligado.
+
+### Na conferência (leva 1, a-fita)
+
+- As setas em Movimento e Reações passaram a dar `Forja.sentir(quem, "toque")`, como pede a tabela do controle (o toque
+  não depende da G11); a prova conta os três toques em quem mexeu. O `ui_tique` dessas linhas fica com o `Som.ui` da
+  G11 (G16b).
+- A cruz do intervalo toca o id do mapa, `ui_confirma` (copiado para `godot/assets/sons/`, a linha do mapa em `no
+  jogo`), pelo `Som.tocar`; só a rota pelo `Som.ui` fica para a G11. A escolha «toca `confirma`» acima saiu.
+- O encanamento do `Som.no_controle` (tocar primeiro o `<id>.wav` inteiro) não entrou aqui: nenhum som da G16 vai ao
+  controle, e o conjunto do cavaleiro já traz essa mudança no `som.gd`; no merge, vale a dele.
+- O salto de 12 px do começo do virar não volta a 0 antes de subir: emenda nos −40 px da saída. Para ela validar.
