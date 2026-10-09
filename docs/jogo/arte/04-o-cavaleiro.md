@@ -75,6 +75,71 @@ Os acessórios do mesmo pacote (`aid-glasses`, `aid-sunglasses`,
 cadeiras ficam livres desde a primeira noite
 ([o que não tem stat](../sistemas/README.md#o-que-não-tem-stat)).
 
+## A peça se distingue
+
+A fala dela, ao aprovar a direção (09/10/2026): «as roupas superiores e
+inferiores precisam se diferenciar. tudo tá num neon de uma única cor que nada
+diferencia na hora da montagem. usamos neon mas não tão seco e uniforme
+assim.» A causa estava no estudo: o `cavaleiro.gdshader` tingia o corpo
+inteiro na cor do lugar (`tingir` 1,0 em `Mundo.vestir`), com o aro a 0,6 e o
+brilho próprio a 0,10. Cabeça, superior e inferior saíam com o mesmo matiz e
+quase o mesmo valor.
+
+### A regra
+
+1. **Nada se tinge.** `tingir` 0, `brilho_proprio` 0. A cor da peça é a da
+   Kenney, recolorida pela faixa da parte.
+2. **Cada parte tem material e faixa de valor.** A tabela é a do
+   [02](02-cor-e-letra.md#o-cavaleiro-a-cor-da-peça-e-o-néon-do-dono): cabeça
+   em pele (rosto com L de 0,68 a 0,80), superior em tecido (0,46 a 0,58),
+   inferior em couro e lona (0,22 a 0,36), arma em metal batido e amuleto em
+   cerâmica (0,68 a 0,80).
+3. **Vizinhas nunca se igualam.** Duas peças que se tocam (cabeça e superior,
+   superior e inferior, o item e o braço ou o peito) têm L com diferença de
+   0,10 ou mais, medida na mediana de L dos pixels de cada parte. As faixas já
+   garantem isso; o matiz da Kenney (a blusa amarela, a camisa verde, a calça
+   social cinza) fica, com a croma de até 0,10.
+4. **O néon é acento, com dono e nome.** Cada parte tem um acento só, na cor do
+   lugar:
+
+| parte | o acento | onde, na malha | área máxima da parte | energia |
+| --- | --- | --- | --- | --- |
+| cabeça humana | nenhum | o rosto fica limpo; o contorno lê a forma | 0 % | — |
+| cabeça de raça | o visor (autômato), a rachadura (golem) | um vão `JANELA` com a linha de acento dentro; o orc e a raposa não têm | 6 % | 1,6 |
+| tronco superior | o friso | a barra do tronco e a gola: faixa de 0,010 de altura no y mais baixo e no mais alto dos triângulos do osso `torso` | 8 % | 1,6 |
+| tronco inferior | a costura | uma linha de 0,008 de largura na lateral de fora de cada perna (o x de maior módulo dos triângulos de `leg-left` e `leg-right`) | 5 % | 1,6 |
+| item | a runa | o emblema em relevo do amuleto; nas armas, o fio: a face de bater do martelo, as unhas da âncora, o aro do escudo | 12 % do item | 1,6 |
+
+   - **O teto do cavaleiro:** somados os acentos, no máximo 8 % da área de
+     frente do corpo (pixels de acento ÷ pixels do corpo, no render de frente,
+     sem contar o contorno).
+   - **O contorno** continua o do [07](07-vfx.md#a-tabela-do-brilho): linha de
+     0,012, energia 1,6 na montagem e 2,4 no jogo. Ele é a silhueta do dono, e
+     não conta na área.
+   - **O aro de luz** (o fresnel do shader) cai de 0,6 para 0,25.
+   - **No encaixe** de uma peça, o acento dela sobe a 2,6 e volta a 1,6 em
+     250 ms (`SAI`): é o «pegou» ([o primeiro minuto](#o-primeiro-minuto)).
+5. **O néon do dono convive com a cor da peça assim:** o acento é sempre
+   `JOGADOR[lugar]`; a peça nunca tem croma acima de 0,10 nem fica a menos de
+   0,08 (ΔE OKLab) de um `JOGADOR`; o acento encosta só em base com L de até
+   0,58, e na cabeça e no item mora num vão `JANELA`. Uma camisa roxa no P2
+   (magenta) se lê: o tecido é L 0,52 e croma 0,08, o friso é L 0,68 e croma
+   0,24, e brilha acima do limiar do glow (0,82).
+
+### O teste: 64 px e cinza
+
+O produtor renderiza cada cavaleiro de frente com 64 px de altura e o
+converte para L (OKLab). Passa quando:
+
+- a mediana de L da cabeça, do superior e do inferior cai cada uma na faixa
+  da parte, e vizinhas diferem em 0,10 ou mais;
+- na máscara (só a silhueta, sem cor), a cabeça, o tronco com os braços e as
+  pernas se separam: o pescoço ou a gola marcam o corte de cima, o vão entre
+  as pernas o de baixo;
+- as cinco cabeças (a humana e as quatro raças) se distinguem pela máscara de
+  64 px, sem cor;
+- a área de acento fica nos tetos da tabela.
+
 ## Os stats e as regras
 
 Os quatro stats, a regra que impede, o que cada item pede, a liga, o
@@ -105,8 +170,10 @@ cada um fica no corpo e de onde vem a malha:
 | Diapasão | amuleto | peito | por código |
 
 Os amuletos são medalhões de 12 cm presos no peito, desenhados por código no
-mesmo estilo da bigorna (metal fosco `metallic` ≤ 0,2, o emblema em relevo),
-com o contorno na cor do dono.
+mesmo estilo da bigorna: o disco em cerâmica esmaltada (L de 0,68 a 0,80,
+rugosidade 0,35), o emblema em relevo em latão (`metallic` 0,2) e a runa, o
+acento na cor do dono, num vão `JANELA` em volta do emblema
+([a peça se distingue](#a-peça-se-distingue)).
 
 ## A tela de montagem
 

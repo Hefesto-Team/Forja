@@ -181,8 +181,10 @@ fica abaixo de 100 MB, contra mais de 1 GB do pacote inteiro.
 
 ## Recolorir
 
-- **A cor do jogador** continua como hoje: no material do corpo do boneco
-  (`_vestir()` em `godot/scripts/player.gd`), multiplicada pela cor do lugar.
+- **A cor do jogador** não tinge mais o corpo (09/10/2026): o `_vestir()` de
+  `godot/scripts/player.gd` deixa de multiplicar o material pela cor do lugar.
+  A cor do lugar vai no contorno e nos acentos de cada peça, pela regra do
+  [arte/04](arte/04-o-cavaleiro.md#a-peça-se-distingue).
 - **A paleta de um pacote inteiro** (por exemplo, o Castle Kit mais escuro e
   lilás, para combinar com a luz da casa): edita-se uma **cópia** do
   `colormap.png` dentro da pasta do pacote. Cada bloco de cor da imagem é uma

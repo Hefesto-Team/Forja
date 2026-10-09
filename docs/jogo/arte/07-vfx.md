@@ -28,7 +28,9 @@ As tintas das seções nunca brilham: são impressas (energia 1,0, sem glow). O
 
 | elemento | dono | material | energia | quando |
 | --- | --- | --- | --- | --- |
-| o contorno do cavaleiro | o jogador | `contorno`, largura 0,012 | 2,4 | sempre que está vivo |
+| o contorno do cavaleiro | o jogador | `contorno`, largura 0,012 | 2,4 (1,6 na montagem) | sempre que está vivo |
+| o acento da peça: o friso, a costura, a runa, o visor, a rachadura | o jogador | `neon` | 1,6; 2,6 no encaixe, volta em 250 ms | sempre; área e lugar no [04](04-o-cavaleiro.md#a-peça-se-distingue) |
+| o aro de luz do cavaleiro (fresnel) | o jogador | `cavaleiro.gdshader`, `aro` | 0,25 (sem glow) | sempre |
 | o anel de oito lados no chão | o jogador | `neon` | 1,5 | no jogo |
 | as lâmpadas no chão, à frente do anel | o jogador | `neon` | 1,8 | junto com o anel |
 | a luz de dono (omni que pinta o chão) | o jogador | `OmniLight3D` | 0,9, alcance 3,4 m | no jogo, ao lado do cavaleiro |

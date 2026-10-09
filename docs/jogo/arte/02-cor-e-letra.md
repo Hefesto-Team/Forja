@@ -63,6 +63,52 @@ pelas quatro acima. A cor da lightbar do controle segue a mesma tabela.
 A cor de um jogador nunca aparece sozinha: o P# e o desenho das lâmpadas vão
 junto, em todo lugar onde ela marca quem é quem.
 
+### O cavaleiro: a cor da peça e o néon do dono
+
+O corpo do cavaleiro nunca é tingido na cor do lugar (decisão de 09/10/2026: a
+montagem pintava as três peças no mesmo néon e nada se distinguia). Cada peça
+tem material e cor próprios; o néon do dono vira acento. As regras inteiras e
+a área de cada acento estão no [04](04-o-cavaleiro.md#a-peça-se-distingue).
+
+**A escada de valor.** Cada parte mora numa faixa de luz (L do OKLab). A cor
+da peça é a da Kenney, recolorida: o matiz fica, a luz cai na faixa da parte.
+
+| parte | material | faixa de L | croma | rugosidade | metallic | papel do recolorir (`fita.gd` `GRADE`) |
+| --- | --- | --- | --- | --- | --- | --- |
+| cabeça | pele e cabelo | o rosto de 0,68 a 0,80 | até 0,10 | 0,90 | 0 | `personagem` (como hoje) |
+| tronco superior | tecido | de 0,46 a 0,58 | de 0,03 a 0,10 | 0,85 | 0 | novo `tecido`: `l0` 0,46, `l1` 0,12, `sat` 0,55 |
+| tronco inferior | couro e lona | de 0,22 a 0,36 | de 0,02 a 0,07 | 0,70 | 0 | novo `couro`: `l0` 0,22, `l1` 0,14, `sat` 0,40 |
+| arma | metal batido (a face do escudo também) | de 0,68 a 0,80 | até 0,03 | de 0,45 a 0,62 | 0,2 | `objeto` (como hoje) |
+| amuleto | cerâmica esmaltada, o emblema em latão | de 0,68 a 0,80 | de 0,04 a 0,08 | 0,35 | 0 (o latão 0,2) | `objeto` |
+
+Entre duas faixas vizinhas sobra sempre 0,10 de L: o rosto (0,68) fica 0,10
+acima do tecido mais claro (0,58), e o tecido mais escuro (0,46) fica 0,10
+acima do couro mais claro (0,36). Em cinza, o cavaleiro tem três faixas: a
+cabeça clara, o tronco médio, as pernas escuras. O item, claro, se lê contra
+o tecido do braço que o segura.
+
+**A peça nunca é néon.** Duas condições, conferidas por script:
+
+- croma de até 0,10 (o néon de jogador mais fraco, o ciano, tem croma 0,141);
+- distância OKLab (ΔE) de pelo menos 0,08 até cada um dos quatro `JOGADOR`.
+
+**As peles das raças.** As quatro raças do [04](04-o-cavaleiro.md#as-raças)
+trocam a pele (o rosto e as mãos) por um destes tokens novos. Todos ficam na
+faixa da cabeça e passam nas duas condições acima (medido em 09/10/2026).
+
+| token | hex | L | croma | o ΔE mais perto |
+| --- | --- | --- | --- | --- |
+| `PELE_ORC` | `#89aa77` | 0,70 | 0,081 | 0,154 (âmbar) |
+| `PELE_LATAO` | `#bda978` | 0,74 | 0,070 | 0,095 (âmbar) |
+| `PELE_ESCORIA` | `#a3958e` | 0,68 | 0,020 | 0,157 (âmbar) |
+| `PELE_RAPOSA` | `#cd8d6d` | 0,70 | 0,090 | 0,097 (âmbar) |
+
+**O néon do dono no cavaleiro.** O acento (o friso, a costura, a runa, o
+visor) é sempre `JOGADOR[lugar]`, nunca a cor da peça. Ele só encosta em base
+com L de até 0,58 (o tecido, o couro): o magenta, o néon mais escuro, tem L
+0,68 e fica 0,10 acima. Na cabeça e no item, que são claros, o acento mora num
+vão em `JANELA` com 1,5 vez a largura dele.
+
 ### As tintas das seções
 
 Impressas, nunca néon. Pintam a tarja da etiqueta, a cortina da entrada e a
