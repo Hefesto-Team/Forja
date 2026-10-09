@@ -118,6 +118,7 @@ const CHANCE := [0.5, 0.75, 0.75]
 ## A escada tem o mesmo tamanho da de 24 degraus (5,28 m de alto, 6,72 m de fundo): a pedra é que afina.
 const DEGRAU_ALTURA := 0.088
 const DEGRAU_FUNDO := 0.112
+const ALTURA_DO_CAVALEIRO := 1.1  ## o cavaleiro em pé (o mesmo da N4 e da N5): a medida do tombo na tela
 const PEDRA_X := 0.45  ## as duas pedras em ESCADA_X[l] ± isto
 ## As escadas puxadas 0,6 m para o centro: o P4 cabe em x_tela ≤ 0,8.
 const ESCADA_X := [-5.4, -1.4, 1.4, 5.4]
@@ -140,8 +141,10 @@ No pico, um segundo passo em `b + 0,5` (quem está com `Ritmo.simples[l]` fica s
 `n = int(round(b * 2))`, `_info[l][n] = {"b": b, "lado": ESQ ou DIR, "ecoou": false}` e
 `nova_nota(l, n, Ritmo.t_da_batida(b))`.
 
-As contas da régua 5, com quatro jogadores (a vez de cada um a cada 4 batidas, 1,78 s): 1.º terço 0,28 passo/s por
-jogador; pico 0,84 (3,0×); 3.º terço 0,42 (1,5×). A maior distância entre dois passos do mesmo lugar: 8 batidas.
+As contas da régua 5, com quatro jogadores (a vez de cada um a cada 4 batidas, 1,78 s). Com «nunca duas vezes seguidas
+sem passo», a vez tem passo em 1 / (2 − chance) das vezes: 0,67 no 1.º terço, 0,8 no pico e no 3.º. Então: 1.º terço
+0,375 passo/s por jogador; pico 0,90 (2,4×); 3.º terço 0,45 (1,2×; o robô mede 1,18× pela borda dos terços). A maior
+distância entre dois passos do mesmo lugar: 8 batidas.
 
 | terço | música | o passo | o que acontece |
 | --- | --- | --- | --- |
@@ -207,7 +210,8 @@ Na `falha` com `feito` diferente de `lado`:
    0,25 s, depois Off; `CenarioDoCanto.exagero(self, _cenario, "estrondo", jogador(l))`;
    `CenarioDoCanto.so_o_dono(self, l)`; 48 faíscas `Tema.GRAFITE` (`Efeitos.faiscas(self, pos, Tema.GRAFITE, 48, 1.0)`);
    `jogador(l).gesto("sit", sentado_s)`; e
-   `momento("despenca", l, Vector3(ESCADA_X[l], y_do_degrau, z_do_degrau), DEGRAU_ALTURA * ANDAR + 1.1, {"degraus": cai})`.
+   `momento("despenca", l, Vector3(ESCADA_X[l], DEGRAU_ALTURA * degrau[l], Z_JOGADOR - DEGRAU_FUNDO * degrau[l]), _altura_do_tombo(l), {"degraus": cai})`
+   (o `_altura_do_tombo` está no fim de «O cavaleiro»).
 6. **Sentado** por `CenarioDoCanto.queda(l, SENTADO_TEMPOS)` batidas (0,75 a 1,25): os passos dele com alvo nesse
    tempo saem da fila sem julgar (`_notas[l].erase(nn)` e `_info[l].erase(nn)`: o kit não tem função para isso) e
    não ecoam.
@@ -566,6 +570,24 @@ func _tombar(l: int, lado_feito: int) -> void:
 	p.create_tween().tween_property(p, "position", _pos_no_degrau(l), dur).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
 	CenarioDoCanto.falante(self, l, "nota_alta", 0.9)
 	_ultimo_tombo[l] = cai
+
+
+## A altura do tombo na tela (o item 8), em metros na vertical do degrau novo:
+## do pé no degrau novo à cabeça de quem estava `ANDAR` degraus acima. Na
+## plongée, o recuo da escada (0,112 m por degrau) sobe na tela, e a conta só
+## na vertical (DEGRAU_ALTURA * ANDAR + 1,1) não o vê. A câmera não gira em y:
+## a altura na tela só depende de y e z, e o raio pela cabeça corta o plano z
+## do degrau novo na altura que se vê.
+func _altura_do_tombo(l: int) -> float:
+	var d := int(degrau[l])
+	var pe := Vector3(ESCADA_X[l], DEGRAU_ALTURA * d, Z_JOGADOR - DEGRAU_FUNDO * d)
+	var cabeca := Vector3(ESCADA_X[l], DEGRAU_ALTURA * (d + ANDAR) + ALTURA_DO_CAVALEIRO, Z_JOGADOR - DEGRAU_FUNDO * (d + ANDAR))
+	var cam := get_viewport().get_camera_3d()
+	if cam == null:
+		return cabeca.y - pe.y
+	var na_tela := cam.unproject_position(cabeca)
+	var corte = Plane(Vector3.BACK, pe.z).intersects_ray(cam.project_ray_origin(na_tela), cam.project_ray_normal(na_tela))
+	return cabeca.y - pe.y if corte == null else float(corte.y) - pe.y
 ```
 
 O erro não tem squash. O desregistro do erro é do kit e da G08; o Eco soma o tombo e o tropeço.
@@ -605,6 +627,12 @@ muda o degrau não se vê); o mais alto aos 100 s, sem topo, também (a reta per
   as velas ficam onde estão.
 - **O tombo fica em 4 degraus** (`ANDAR`), como a reta e o Peso: o tombo é contado em passos, não em metros. Ele
   desloca o cavaleiro 0,57 m (0,35 m para baixo e 0,45 m para trás), acima dos 0,5 m da régua (item 6).
+- **O tombo na tela** (o item 8). Com o degrau fino, a conta só na vertical (`DEGRAU_ALTURA * ANDAR + 1,1` = 1,45 m)
+  dava `altura_tela` de 0,054 no alto da escada, no pico, abaixo do 0,08. O momento mede o que se vê, pelo
+  `_altura_do_tombo`: do pé no degrau novo à cabeça 4 degraus acima, com o recuo que a plongée sobe na tela. Dá de
+  0,085 (no pico, no alto) a 0,123, e o pé desce de 11 a 13 px no quadro de 480 × 270. A medida é a do tombo cheio de
+  `ANDAR`, como era com 24: no pé da escada (o tombo para no 0) e com a Âncora (2 degraus), o que se vê é menor (de
+  0,04, no degrau 0, a 0,10).
 - **A conta pelo robô** (as regras desta ficha, 4 000 partidas, semente 7; o `bom` acerta 95 %, o `medio` 66 %, o
   `ruim` 30 %; quando não acerta, o segundo sorteio decide entre o tropeço e o lado errado):
 
@@ -620,8 +648,8 @@ muda o degrau não se vê); o mais alto aos 100 s, sem topo, também (a reta per
 | mesa padrão: tombos em 100 s; ao menos 1 entre 33 e 67 s | 16,1; 100 % | 36,7; 100 % |
 | a curva (passos por segundo por lugar): 2.º terço ÷ 1.º; 3.º ÷ 1.º | 2,4 ×; 1,18 × | 2,4 ×; 1,18 × (a escada não muda o passo) |
 
-A curva sai 2,4 × e 1,18 ×, não os 3,0 × e 1,5 × das contas de cima, porque a regra «nunca duas vezes seguidas sem
-passo» sobe a chance do 1.º terço de 0,5 a 0,67; os dois passam a régua (≥ 1,5 × e ≥ 1,0 ×).
+A curva sai 2,4 × e 1,18 ×, como as contas de «O tempo»: a regra «nunca duas vezes seguidas sem passo» sobe a chance
+do 1.º terço de 0,5 a 0,67 (sem ela, a conta dava 3,0 × e 1,5 ×). Os dois passam a régua (≥ 1,5 × e ≥ 1,0 ×).
 
 **Como o jogador do time confere** (a mesa padrão: P1 `bom`, P2 `medio`, P3 `medio`, P4 `ruim`, semente 7, sem a
 bancada, pela prova visual da F09):
@@ -630,12 +658,12 @@ bancada, pela prova visual da F09):
 | --- | --- | --- |
 | 1. a graça em 10 s | cada lugar tem uma linha `toque` com `t_musica` ≤ 10,0 (o primeiro passo cai até 4,9 s) | o quadro de 10 s mostra um cavaleiro num degrau acima do 0 |
 | 4. o momento | pelo menos 3 linhas `momento` `despenca` entre 0 e 100 s, pelo menos 1 entre 33 e 67 s | em 2 quadros seguidos, um cavaleiro 4 degraus abaixo de onde estava |
-| 5. a curva | passos por segundo no 2.º terço ≥ 1,5 × os do 1.º (dá 3,0 ×); no 3.º ≥ 1,0 × (dá 1,5 ×); a linha `momento` `reta` existe | o quadro do meio do 2.º terço tem a luz 20 % acima do quadro do meio do 1.º |
+| 5. a curva | passos por segundo no 2.º terço ≥ 1,5 × os do 1.º (dá 2,4 ×); no 3.º ≥ 1,0 × (dá 1,18 ×); a linha `momento` `reta` existe | o quadro do meio do 2.º terço tem a luz 20 % acima do quadro do meio do 1.º |
 | 6. a falha | o P4 tem pelo menos 10 linhas `toque` com `erro` | o P4 é o mais baixo em metade dos quadros |
 | 7. quem perde joga | a maior distância entre dois passos seguidos de cada lugar é de até 8 batidas; o P4 tem um `toque` BOM ou melhor em cada terço | o P4 aparece em 100 % dos quadros de jogo |
-| 8. a câmera | cada `despenca` tem 0,2 ≤ `x_tela` ≤ 0,8 e `altura_tela` ≥ 0,08 (P4: 0,77) | a queda se vê no quadro de 480 × 270 sem ampliar |
+| 8. a câmera | cada `despenca` tem 0,2 ≤ `x_tela` ≤ 0,8 e `altura_tela` ≥ 0,08 (`x_tela` de 0,25 a 0,75; `altura_tela` de 0,085 a 0,123) | a queda se vê no quadro de 480 × 270 sem ampliar |
 | 9. o impacto | para cada `despenca`, uma linha `sensacao` `golpe` a até 16,7 ms, a até 1 quadro de uma colcheia | o quadro seguinte mostra o buraco escuro |
-| 10. o placar no mundo | a ordem do `vencedor()` bate com a ordem dos degraus no `momento` `reta` e no fim | no quadro de 95 s, quem olha diz a ordem pela altura nas escadas, e ela bate com o registro |
+| 10. o placar no mundo | a ordem do `vencedor()` bate com a ordem dos degraus no `momento` `reta` e no fim | no quadro de 94 s, quem olha diz a ordem pela altura nas escadas, e ela bate com o registro |
 
 A prova do jogo faz a mesa padrão com a mesa da prova da N1 (`_mesa`, `ERRO_DA_MESA`: o robô `bom` e, por cima, o pé
 do lado errado sorteado por lugar) e confere os itens 1, 4, 5, 8, 9 e 10. Os itens 6 e 7 esperam o robô por lugar
@@ -712,7 +740,7 @@ func _prova_do_eco() -> void:
 
 A prancha da prova visual (480 × 270, um quadro a cada 2 s): o quadro de 10 s (os quatro nos primeiros degraus, o
 caminho aceso), os pares seguidos com um cavaleiro mais baixo (o tombo), o do meio do pico (a luz mais forte), o de
-95 s (a ordem pela altura) e os da reta (as velas acesas no topo).
+94 s (a ordem pela altura; o quadro é a cada 2 s, e com os quatro `bom` só 5 % das partidas chegam ao topo antes) e os da reta (as velas acesas no topo).
 
 ### O que o André joga e sente
 
