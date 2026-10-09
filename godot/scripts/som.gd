@@ -20,7 +20,7 @@ const RECEITAS := {
 	"sino": ["bigorna", {"freq": 1318.5, "dur": 2.2, "brilho": 0.9, "semente": 9}],
 	"martelo": ["martelada", {"freq": 196.0, "semente": 2}],
 	"tique": ["blip", {"freq": 1760.0, "dur": 0.035}],
-	"apito": ["tom", {"freq": 2400.0, "dur": 0.45, "rampa": 0.01}],
+	"apito": ["tom", {"freq": 2093.0, "dur": 0.45, "rampa": 0.02}],  # o do JIN_APITO (H06): 2093 Hz por 450 ms
 	"falha": ["tom", {"freq": 150.0, "dur": 0.22, "rampa": 0.02}],
 	"confirma": ["acorde", {"freqs": [659.25, 987.77], "espaco": 0.06, "dur_nota": 0.25}],
 	"sucesso": ["acorde", {"freqs": [523.25, 659.25, 783.99, 1046.5], "espaco": 0.08, "dur_nota": 0.45}],
@@ -33,6 +33,9 @@ const RECEITAS := {
 	"nota": ["bigorna", {"freq": 784.0, "dur": 0.42, "brilho": 1.1, "semente": 23}],
 	"nota_alta": ["bigorna", {"freq": 1174.7, "dur": 0.42, "brilho": 1.2, "semente": 29}],
 	"grito": ["grito", {"dur": 0.9, "semente": 31}],
+	# os jingles que ainda não têm arquivo (H06)
+	"derrota": ["acorde", {"freqs": [392.0, 311.13, 261.63], "espaco": 0.22, "dur_nota": 0.7}],
+	"empate": ["acorde", {"freqs": [523.25, 523.25], "espaco": 0.25, "dur_nota": 0.5}],
 }
 
 ## O nome que as salas usam -> o nome da gravação em assets/sons/ (<nome>_N.wav).
@@ -164,3 +167,65 @@ func no_controle(lugar: int, nome: String, ganho := 0.7) -> void:
 		_no_controle[chave] = Forja.ctl.som_registrar(chave, w.data, w.mix_rate)
 	if _no_controle[chave]:
 		Forja.som_falante(lugar, chave, ganho)
+
+
+# ---------------------------------------------------------------- os jingles (H06) --
+
+## Os jingles (docs/jogo/04-ritmo-e-audio.md#as-telas-e-os-jingles). O arquivo
+## próprio em assets/ost/jingles/<nome>.ogg quando existir; enquanto não, uma
+## gravação da Kenney de assets/sons/ ou a síntese que faz as vezes.
+## nome -> ["gravado", a gravação] ou ["sintese", a receita]
+const JINGLES := {
+	"JIN_APITO": ["sintese", "apito"],
+	"JIN_VITORIA": ["gravado", "vitoria_sala"],
+	"JIN_COOP_VITORIA": ["gravado", "vitoria_noite"],
+	"JIN_DERROTA": ["sintese", "derrota"],
+	"JIN_EMPATE": ["sintese", "empate"],
+	"JIN_RECORDE": ["gravado", "especial"],
+	"JIN_ENTRADA": ["gravado", "tique"],
+	"JIN_VIRADA": ["gravado", "placar"],
+}
+
+var ultimo_jingle := ""  ## o último que tocou (a prova olha)
+var _jingle: AudioStreamPlayer = null
+
+
+## Toca o jingle na TV, num tocador só dele (nunca fica sem voz), e devolve a
+## duração em s (0: não há som para ele).
+func jingle(nome: String) -> float:
+	var s: AudioStream = null
+	var proprio := Musica.caminho(nome)   # res://assets/ost/jingles/<nome>.ogg (H05)
+	if ResourceLoader.exists(proprio):
+		s = load(proprio)
+	elif JINGLES.has(nome):
+		var de: Array = JINGLES[nome]
+		if de[0] == "gravado":
+			var lista := versoes(str(de[1]))
+			s = lista[0] if not lista.is_empty() else null
+		else:
+			s = stream(str(de[1]))
+	if s == null:
+		return 0.0
+	if _jingle == null:
+		_jingle = AudioStreamPlayer.new()
+		add_child(_jingle)
+	_jingle.stream = s
+	_jingle.play()
+	ultimo_jingle = nome
+	return s.get_length()
+
+
+## O jingle do resultado: no coop, todos venceram ou ninguém; senão, o empate
+## em primeiro ou a vitória. Pura, para a prova.
+static func jingle_do_resultado(pontos: Array, presentes: Array, coop: bool, coop_venceu: bool) -> String:
+	if coop:
+		return "JIN_COOP_VITORIA" if coop_venceu else "JIN_DERROTA"
+	var melhor := -1
+	var no_topo := 0
+	for l in presentes:
+		if int(pontos[l]) > melhor:
+			melhor = int(pontos[l])
+			no_topo = 1
+		elif int(pontos[l]) == melhor:
+			no_topo += 1
+	return "JIN_EMPATE" if presentes.size() >= 2 and no_topo >= 2 else "JIN_VITORIA"

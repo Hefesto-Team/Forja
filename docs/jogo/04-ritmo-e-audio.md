@@ -169,16 +169,16 @@ Fora das 45, e cada uma com o seu slot:
 | `MUS_TELA_CREDITOS` | os créditos | 90 | O Cavaleiro do Futuro |
 | `MUS_RELAMPAGO` | o Relâmpago | 160 | Colapso do Sistema |
 
-| jingle | quando | duração |
-| --- | --- | --- |
-| `JIN_APITO` | o fim de todo minigame, a música para em seco | 1 s |
-| `JIN_VITORIA` | o resultado com um vencedor | 5 a 8 s |
-| `JIN_COOP_VITORIA` | o resultado coop em que todos vencem | 5 a 8 s |
-| `JIN_DERROTA` | o resultado coop em que ninguém venceu | 5 s |
-| `JIN_EMPATE` | o empate | 5 s |
-| `JIN_RECORDE` | um recorde da noite | 3 s |
-| `JIN_ENTRADA` | a contagem para o minigame começar ("três, dois, um") no tempo da faixa | 2 compassos |
-| `JIN_VIRADA` | a virada no placar | 2 s |
+| jingle | quando | duração | hoje (provisório, `Som.JINGLES`) |
+| --- | --- | --- | --- |
+| `JIN_APITO` | o fim de todo minigame, a música para em seco | 1 s | síntese `apito`: 2093 Hz, 450 ms |
+| `JIN_VITORIA` | o resultado com um vencedor | 5 a 8 s | `vitoria_sala_0` (1,76 s) |
+| `JIN_COOP_VITORIA` | o resultado coop em que todos vencem | 5 a 8 s | `vitoria_noite_0` (1,74 s) |
+| `JIN_DERROTA` | o resultado coop em que ninguém venceu | 5 s | síntese `derrota`: acorde descendente de dó menor |
+| `JIN_EMPATE` | o empate | 5 s | síntese `empate`: duas notas iguais |
+| `JIN_RECORDE` | um recorde da noite | 3 s | `especial_0` (0,47 s); ninguém o chama ainda |
+| `JIN_ENTRADA` | a contagem para o minigame começar ("três, dois, um") no tempo da faixa | 2 compassos | `tique_0`, nos tempos 0 a 2; o «confirma» no 3 |
+| `JIN_VIRADA` | a virada no placar | 2 s | `placar_0` (0,28 s) |
 
 Todo jingle termina em parada seca, sem fade: a tela troca no mesmo
 instante.

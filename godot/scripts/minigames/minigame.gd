@@ -103,6 +103,8 @@ func terminar() -> void:
 
 
 func sair() -> void:
+	if Ritmo.batida_cheia.is_connected(_contar_a_entrada):
+		Ritmo.batida_cheia.disconnect(_contar_a_entrada)
 	Ritmo.pausar(false)
 	Ritmo.parar()
 	super()
@@ -266,3 +268,26 @@ func _reagir(l: int, j: int) -> void:
 	else:
 		Forja.sentir(l, "perfeito" if j == Ritmo.PERFEITO else "acerto")
 		Som.tocar("nota", pos, -4.0 if j == Ritmo.PERFEITO else -9.0, TOM_DO_LUGAR[l])
+
+
+# ---------------------------------------------------------------- a contagem de entrada (H06) --
+
+## A primeira nota de um minigame vem neste tempo ou depois: os quatro
+## primeiros são a contagem de entrada (JIN_ENTRADA, H06).
+const BATIDA_DA_PRIMEIRA_NOTA := 4
+
+
+## A contagem de entrada no tempo da faixa: tique nos tempos 0, 1 e 2 e o
+## "vai" no 3 (no lugar do "confirma" solto da SalaJogo).
+func _som_do_comeco() -> void:
+	if not Ritmo.batida_cheia.is_connected(_contar_a_entrada):
+		Ritmo.batida_cheia.connect(_contar_a_entrada)
+
+
+func _contar_a_entrada(n: int) -> void:
+	if n <= 2:
+		Som.jingle("JIN_ENTRADA")
+	elif n == 3:
+		Som.tocar("confirma")
+	if n >= 3 and Ritmo.batida_cheia.is_connected(_contar_a_entrada):
+		Ritmo.batida_cheia.disconnect(_contar_a_entrada)

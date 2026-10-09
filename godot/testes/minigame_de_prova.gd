@@ -26,7 +26,7 @@ const FICHA := {
 }
 const NOTAS := 12
 ## A primeira nota: dá tempo de o robô adiantado mirar antes dela.
-const PRIMEIRA := 2
+const PRIMEIRA := BATIDA_DA_PRIMEIRA_NOTA
 ## O desvio que o robô de cada lugar mira, em s (NUNCA: não aperta).
 const NUNCA := 99.0
 const MIRA := [0.0, -0.065, -0.115, NUNCA]

@@ -395,6 +395,12 @@ e a sala antiga sai de `godot/scripts/salas/`.
   (`giro` abre a Viga). `Catalogo.apelido(slot)` devolve o apelido da seção
   de um slot (`S01_J01` vira `centelha`), e o próprio id se não é de seção.
 - A linha do tempo grava o **slot** do minigame (`S01_J01`), não o apelido.
+- **A contagem de entrada (H06).** `Minigame.BATIDA_DA_PRIMEIRA_NOTA := 4`: os
+  quatro primeiros tempos da faixa são a contagem, e a primeira nota vem
+  depois. `Minigame._som_do_comeco()` (que a `SalaJogo` chama no lugar do
+  «confirma» solto) escuta `Ritmo.batida_cheia`: `JIN_ENTRADA` nos tempos 0, 1
+  e 2 e o «confirma» no 3; o `sair()` desconecta. Sala fora do kit não tem
+  `Ritmo` e fica com o «confirma».
 - A primeira moradora: `godot/scripts/minigames/s01/martelo_de_hefesto.gd`
   (A Centelha, `S01_J01`, «O Martelo de Hefesto», verbo «Bata!»). O minigame
   de prova do kit é `godot/testes/minigame_de_prova.gd` (`T00_J00`).
@@ -476,7 +482,17 @@ aberta pela fase `fim` para toda sala e todo minigame:
   faz `emote-yes`, faíscas na cor), jingle, "Botão ✕ (Continuar)";
 - avança sozinha em 6 s, **para todo mundo** — sem atalho de robô
   ([a paridade](#a-paridade-entre-a-prova-e-o-jogo--f08));
-- no Modo bancada, a tabela de veredito aparece **abaixo** do resultado.
+- no Modo bancada, a tabela de veredito aparece **abaixo** do resultado;
+- **O som do fim (H06).** O apito é `Musica.parar_seco()` (a música a zero em
+  20 ms, nunca de uma vez) mais `Som.jingle("JIN_APITO")`, no `terminar()` da
+  `SalaJogo`; aos `APITO_S` o `_celebrar()` toca
+  `Som.jingle(Som.jingle_do_resultado(pontos, presentes, coop, coop_venceu))`:
+  a vitória, o empate em primeiro, e no coop a de todos ou a derrota.
+  `Som.jingle(nome) -> float` devolve a duração (0: sem som) e guarda
+  `Som.ultimo_jingle` (a prova lê); o arquivo próprio
+  `assets/ost/jingles/<nome>.ogg` ganha de `Som.JINGLES`, a tabela do
+  provisório (gravação da Kenney ou síntese). A virada do placar toca
+  `JIN_VIRADA`. O `JIN_RECORDE` espera quem guarde o recorde da noite.
 
 ### A identidade — F04
 

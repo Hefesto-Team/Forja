@@ -55,6 +55,7 @@ func _ready() -> void:
 	_prova_o_alto_falante_do_sistema()
 	await _prova_do_relogio()
 	_prova_das_janelas()
+	_prova_dos_jingles()
 	_prova_das_faixas()
 	_prova_da_paridade()
 	Desenho._coletar = "memoria"  # colhe cada frase desenhada (F02, F07)
@@ -426,6 +427,15 @@ func _prova_do_kit() -> void:
 	while is_instance_valid(mg) and mg.fase == "aviso" and q < 600:
 		await _quadros(1)
 		q += 1
+	# a contagem de entrada (H06): tique nos tempos 0 a 2 da faixa, o "vai" no 3, e some
+	Som.ultimo_jingle = ""
+	var t_conta := Time.get_ticks_usec()
+	while is_instance_valid(mg) and mg.fase == "jogo" and Ritmo.batida() < 2.3 and Time.get_ticks_usec() - t_conta < 5000000:
+		await _quadros(1)
+	_esperar(Som.ultimo_jingle == "JIN_ENTRADA", "kit: a contagem de entrada tocou o tique no tempo da faixa (%s, tempo %.1f)" % [Som.ultimo_jingle, Ritmo.batida()])
+	while is_instance_valid(mg) and mg.fase == "jogo" and Ritmo.batida() < 3.3 and Time.get_ticks_usec() - t_conta < 5000000:
+		await _quadros(1)
+	_esperar(is_instance_valid(mg) and not Ritmo.batida_cheia.is_connected(mg._contar_a_entrada), "kit: a contagem acaba no quarto tempo e solta o relógio")
 	# o cabo do P3 sai depois da terceira nota e volta 0,8 s depois: o minigame segue
 	var inicio := Time.get_ticks_usec()
 	while is_instance_valid(mg) and mg.fase == "jogo" and mg._julgadas[2] < 3 and Time.get_ticks_usec() - inicio < 20000000:
@@ -519,6 +529,7 @@ func _termina_a_sala(sala, features: Array) -> void:
 	_esperar(is_instance_valid(sala) and sala.fase == "fim", "%s: o robô jogou até o fim (%d quadros)" % [id, q])
 	if not is_instance_valid(sala):
 		return
+	_esperar(Musica.atual == "" and Som.ultimo_jingle.begins_with("JIN_"), "%s: o apito parou a música em seco (%s)" % [id, Som.ultimo_jingle])
 	for l in 4:
 		var lista: Array = sala.vereditos.get(l, [])
 		for f in features:
@@ -1449,3 +1460,18 @@ static func _sem_comentario(linha: String) -> String:
 		elif c == "#":
 			return linha.substr(0, i)
 	return linha
+
+
+## Os jingles (H06): qual toca no resultado, e cada um tem som (com o módulo,
+## a síntese e as gravações da Kenney). Pura: não abre sala.
+func _prova_dos_jingles() -> void:
+	var todos := [0, 1, 2, 3]
+	_esperar(Som.jingle_do_resultado([10, 5, 3, 0], todos, false, false) == "JIN_VITORIA", "jingle: um vencedor, a vitória")
+	_esperar(Som.jingle_do_resultado([10, 10, 3, 0], todos, false, false) == "JIN_EMPATE", "jingle: empate em primeiro, o empate")
+	_esperar(Som.jingle_do_resultado([10, 10, 3, 0], [0, 2], false, false) == "JIN_VITORIA", "jingle: só conta quem jogou")
+	_esperar(Som.jingle_do_resultado([0, 0, 0, 0], [0], false, false) == "JIN_VITORIA", "jingle: sozinho, a vitória")
+	_esperar(Som.jingle_do_resultado([5, 5, 5, 5], todos, true, true) == "JIN_COOP_VITORIA", "jingle: coop, todos venceram")
+	_esperar(Som.jingle_do_resultado([5, 5, 5, 5], todos, true, false) == "JIN_DERROTA", "jingle: coop, ninguém venceu")
+	if Forja.modulo:
+		for nome in Som.JINGLES:
+			_esperar(Som.jingle(nome) > 0.0 and Som.ultimo_jingle == nome, "jingle: %s tem som" % nome)
