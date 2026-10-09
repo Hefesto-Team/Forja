@@ -26,7 +26,7 @@ está escrito aqui dentro, com o número.
 - `godot/testes/prova_do_jogo.gd`: `_prova_roubo()` e a linha `"S09_J42": await _prova_roubo()` no `match` de
   `_prova_da_ficha`. **De todos:** Q1, Q3, Q4 e Q5.
 - `docs/jogo/sistemas/minigames.csv`, linha 42: a coluna `faro` passa a «pista: o pulso da bateria chega antes» (a
-  interferência saiu). **De todos:** Q3 (a linha 43).
+  interferência saiu). Só esta linha; nenhuma outra ficha Q muda o arquivo.
 
 ## Como se joga
 

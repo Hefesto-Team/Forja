@@ -23,10 +23,9 @@ está escrito aqui dentro, com o número.
 - `godot/scripts/minigames/catalogo.gd`: o slot em `MINIGAMES`, a seção `S09`, `"prova"` fora de `SALAS_ANTIGAS`.
   **De todos:** Q2, Q3, Q4 e Q5 também mudam este arquivo.
 - `godot/scripts/traducoes.gd`: as frases da tabela «As frases». **De todos:** Q2 a Q5.
-- `godot/scripts/minigames/minigame.gd`: `"momento"` em `TIPOS_DO_JOGO`. **De todos:** Q2 a Q5 (quem chega
-  primeiro acrescenta; os outros conferem que está lá).
-- `docs/jogo/13-arquitetura.md`: a linha `momento` na tabela do registro v2, no mesmo commit da linha acima.
-  **De todos:** Q2 a Q5.
+- `godot/scripts/minigames/minigame.gd`: `"momento"` em `TIPOS_DO_JOGO`. Só a Q1 muda: a Q2 a Q5 dependem dela e
+  conferem que está lá.
+- `docs/jogo/13-arquitetura.md`: a linha `momento` na tabela do registro v2, no mesmo commit da linha acima. Só a Q1.
 - `godot/testes/prova_do_jogo.gd`: `_prova_a_prova()` no lugar do bloco «A Prova» de hoje, a linha no `match` de
   `_prova_da_ficha` e a checagem do relatório. **De todos:** Q2 a Q5.
 - `git rm godot/scripts/salas/prova.gd godot/scripts/salas/prova.gd.uid`.
