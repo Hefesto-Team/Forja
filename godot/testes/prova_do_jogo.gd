@@ -216,23 +216,116 @@ func _prova_do_percurso() -> void:
 		_esperar(luz.is_equal_approx(Forja.cor_do_lugar(l)), "P%d: a barra de luz na cor do lugar" % (l + 1))
 		_esperar(int(e.get("leds_jogador", 0)) == Forja.LEDS_DO_LUGAR[l], "P%d: o estado das lâmpadas" % (l + 1))
 		_esperar(not jogo.lobby.prontos[l], "P%d: entrar não é ficar pronto" % (l + 1))
-	# cada um nasce com um visual diferente, e escolhe o seu antes de ficar pronto
+	# a construção: ◀▶ e ▼ mexem só no próprio lugar; o robô forja os quatro na batida
 	var visuais := {}
+	var nomes0 := {}
 	for l in 4:
 		visuais["%d-%d" % [jogo.jogadores[l].modelo_i, jogo.jogadores[l].item_i]] = true
+		nomes0[jogo.jogadores[l].nome] = true
 	_esperar(visuais.size() == 4, "os quatro lugares nascem com visuais diferentes")
+	_esperar(nomes0.size() == 4 and not nomes0.has(""), "os quatro nascem com nomes diferentes (%s)" % [nomes0.keys()])
+	_esperar(Ritmo.slot == "MUS_TELA_CONSTRUCAO" and absf(Ritmo.bpm - 120.0) < 0.001, "a construção roda na faixa dela, a 120 BPM (%s, %.1f)" % [Ritmo.slot, Ritmo.bpm])
 	var m1: int = jogo.jogadores[0].modelo_i
 	var m2: int = jogo.jogadores[1].modelo_i
-	var i3: int = jogo.jogadores[2].item_i
 	await _aperta(1, Forja.DIREITA)
-	await _aperta(2, Forja.BAIXO)
 	_esperar(jogo.jogadores[1].modelo_i != m2, "◀▶ troca o boneco do P2")
 	_esperar(jogo.jogadores[0].modelo_i == m1, "e o do P1 fica como estava")
-	_esperar(jogo.jogadores[2].item_i != i3, "▲▼ troca o que o P3 leva")
-	for s in 4:
+	await _aperta(2, Forja.BAIXO)
+	_esperar(jogo.lobby.linha[2] == TelaLobby.ITEM and jogo.lobby.linha[0] == TelaLobby.BONECO, "▼ leva o P3 à linha do item, e só o P3")
+	var i3: int = jogo.jogadores[2].item_i
+	await _aperta(2, Forja.DIREITA)
+	_esperar(jogo.jogadores[2].item_i != i3 and jogo.jogadores[2].item_i >= 1, "◀▶ troca o item do P3, entre os seis")
+	for vez in 7:
+		await _aperta(2, Forja.DIREITA)
+		_esperar(jogo.jogadores[2].item_i >= 1, "◀▶ nunca chega às mãos livres (%d)" % jogo.jogadores[2].item_i)
+	var n1: String = jogo.jogadores[0].nome
+	await _aperta(0, Forja.BAIXO)
+	await _aperta(0, Forja.BAIXO)
+	await _aperta(0, Forja.BAIXO)
+	_esperar(jogo.lobby.linha[0] == TelaLobby.NOME, "▼ para na última linha (Nome)")
+	await _aperta(0, Forja.DIREITA)
+	var n1b: String = jogo.jogadores[0].nome
+	var outros := [jogo.jogadores[1].nome, jogo.jogadores[2].nome, jogo.jogadores[3].nome]
+	_esperar(n1b != n1 and n1b in TelaLobby.NOMES and not (n1b in outros), "◀▶ no Nome troca para um que nenhum outro usa (%s → %s)" % [n1, n1b])
+	await _aperta(3, Forja.TRIANGULO)
+	var item4: int = jogo.jogadores[3].item_i
+	var nomes4 := [jogo.jogadores[0].nome, jogo.jogadores[1].nome, jogo.jogadores[2].nome]
+	_esperar(item4 >= 1 and not (jogo.jogadores[3].nome in nomes4) and jogo.jogadores[3].nome in TelaLobby.NOMES,
+		"△ sorteia boneco, item e um nome livre (%s)" % jogo.jogadores[3].nome)
+	await _aperta(0, Forja.CIRCULO)
+	_esperar(jogo.lobby.linha[0] == TelaLobby.BONECO and Forja.ocupado(0), "○ numa linha de baixo volta à primeira, sem sair do lugar")
+	# o cavaleiro guarda-se como dado: ida e volta pelo arquivo, e o acabamento só muda a luz
+	_prova_do_cavaleiro_guardado()
+	# o robô forja os quatro, só apertando botões: ✕ para forjar e as oito marteladas na batida
+	Forja.robo_confirma = true
+	var perfeito := [false, false, false, false]
+	var pio_f := [false, false, false, false]
+	var cruzes := 0
+	var nq_f := 0
+	var t_forja := Time.get_ticks_msec()
+	while (jogo.estado != "salao" or jogo._trocando) and Time.get_ticks_msec() - t_forja < 60000:
+		await _quadros(1)
+		nq_f += 1
+		if jogo.estado != "lobby":
+			continue
+		for l in 4:
+			if float(Forja.percepcao(l).get("fraco", 0.0)) >= 0.79:
+				perfeito[l] = true
+			if jogo.lobby.etapa[l] == TelaLobby.FORJADO and float(Forja.som_virtual(l).get("falante", 0.0)) > 0.05:
+				pio_f[l] = true
+	_esperar(jogo.estado == "salao", "com os quatro forjados, o salão (%d quadros, %d ms)" % [nq_f, Time.get_ticks_msec() - t_forja])
+	var nomes_f := {}
+	for l in 4:
+		_esperar(perfeito[l], "P%d: a oitava vibrou o perfeito no controle" % (l + 1))
+		_esperar(pio_f[l], "P%d: o pio saiu no alto-falante do dono" % (l + 1))
+		_esperar(jogo.lobby.golpes[l].size() == TelaLobby.MARTELADAS, "P%d: as oito marteladas" % (l + 1))
+		_esperar(Opcoes.tempo_ms[l] == clampi(roundi(jogo.lobby.desvio[l] * 1000.0), Opcoes.TEMPO_MIN, Opcoes.TEMPO_MAX),
+			"P%d: o desvio foi para as opções (%d ms)" % [l + 1, Opcoes.tempo_ms[l]])
+		_esperar(not Opcoes.cavaleiro[l].is_empty() and Opcoes.cavaleiro[l] == jogo.jogadores[l].cavaleiro(),
+			"P%d: o cavaleiro ficou guardado" % (l + 1))
+		nomes_f[jogo.jogadores[l].nome] = true
+	_esperar(Opcoes.guardadas >= 4 and Opcoes.noite_dos_cavaleiros == Opcoes.noite(), "o cavaleiro mandou guardar nas opções (%d)" % Opcoes.guardadas)
+	_esperar(nomes_f.size() == 4 and not nomes_f.has(""), "quatro nomes diferentes (%s)" % [nomes_f.keys()])
+	var d0: float = jogo.lobby.desvio[0]
+	var dif: float = jogo.lobby.desvio[3] - d0
+	# o robô aperta no primeiro quadro depois da hora: com a máquina carregada um quadro leva dezenas de ms, então a banda é larga
+	_esperar(d0 >= -0.01 and d0 <= 0.15, "P1 martelou no tempo: desvio %d ms" % int(d0 * 1000.0))
+	_esperar(dif >= 0.07 and dif <= 0.25, "P4 martelou uns 100 ms depois do P1: %d ms" % int(dif * 1000.0))
+	_esperar(absf(TelaLobby.mediana([0.3, -0.1, 0.0, 0.5, 0.1]) - 0.1) < 0.0001
+		and absf(TelaLobby.mediana([0.0, 0.2, 0.4, 1.0]) - 0.3) < 0.0001
+		and TelaLobby.mediana([]) == 0.0, "a mediana: ímpar, par e vazia")
+	_esperar(Ritmo.slot == "", "fora do lobby o Ritmo não segue a faixa da construção")
+	# quem volta ao lobby na mesma noite (pela pausa) acha o cavaleiro guardado: ✕ confirma, ○ refaz
+	var antes_n: Array = []
+	for l in 4:
+		antes_n.append(jogo.jogadores[l].cavaleiro())
+	Forja.robo_confirma = false
+	jogo._trocar(jogo._ir_para_o_lobby)
+	var t_volta := Time.get_ticks_msec()
+	while (jogo.estado != "lobby" or jogo._trocando) and Time.get_ticks_msec() - t_volta < 10000:
+		await _quadros(2)
+	_esperar(jogo.estado == "lobby", "a pausa leva de volta à construção")
+	for l in 4:
+		_esperar(jogo.lobby.etapa[l] == TelaLobby.GUARDADO and jogo.jogadores[l].cavaleiro() == antes_n[l],
+			"P%d: voltou ao lobby e achou o cavaleiro guardado" % (l + 1))
+	await _aperta(1, Forja.CRUZ)
+	_esperar(jogo.lobby.etapa[1] == TelaLobby.FORJADO and jogo.lobby.prontos[1], "✕ no guardado confirma: o P2 fica forjado")
+	await _aperta(0, Forja.CIRCULO)
+	_esperar(jogo.lobby.etapa[0] == TelaLobby.EDITANDO and not jogo.lobby.prontos[0], "○ no guardado refaz: o P1 volta a editar")
+	await _aperta(0, Forja.CRUZ)
+	_esperar(jogo.lobby.etapa[0] == TelaLobby.FORJANDO, "✕ começa a forja do P1")
+	await _aperta(0, Forja.CRUZ)
+	_esperar(jogo.lobby.golpes[0].size() == 1, "cada ✕ em seguida é uma martelada")
+	await _aperta(0, Forja.CIRCULO)
+	_esperar(jogo.lobby.etapa[0] == TelaLobby.EDITANDO and jogo.lobby.golpes[0].is_empty(), "○ forjando cancela: as marteladas zeram")
+	for s in [2, 3]:
 		await _aperta(s, Forja.CRUZ)
-	await _quadros(150)
-	_esperar(jogo.estado == "salao", "com os quatro prontos, o salão")
+	Forja.robo_confirma = true   # o robô forja o P1 de novo e fecha a contagem
+	t_volta = Time.get_ticks_msec()
+	while (jogo.estado != "salao" or jogo._trocando) and Time.get_ticks_msec() - t_volta < 60000:
+		await _quadros(2)
+	_esperar(jogo.estado == "salao", "com os quatro de novo prontos, o salão")
+	_esperar(jogo.lobby.golpes[0].size() == TelaLobby.MARTELADAS, "o P1 refez as oito marteladas")
 	Forja.robo_confirma = true  # o robô do fluxo volta para as salas
 
 	await _aperta(0, Forja.CREATE)
@@ -557,6 +650,48 @@ func _prova_de_fogo() -> void:
 	_esperar(jogo.estado == "salao" and jogo.fogo == -1, "Prova de Fogo: pela pausa, desiste e volta ao salão")
 
 
+## O cavaleiro como dado (G02): vestir e cavaleiro() são inversos; o acabamento
+## muda só a rugosidade e o metal, nunca a cor; o arquivo devolve o que se guardou.
+func _prova_do_cavaleiro_guardado() -> void:
+	var p := ForjaPlayer.new()
+	add_child(p)
+	p.montar(0)
+	var c := {"boneco": 1, "item": "escudo", "nome": "Cromo", "acabamento": 1}
+	p.vestir(c)
+	_esperar(p.cavaleiro() == c, "o cavaleiro: vestir e cavaleiro() são inversos (%s)" % [p.cavaleiro()])
+	var albedo_antes: Color = (p._roupas[0][0] as StandardMaterial3D).albedo_color
+	var m: StandardMaterial3D = p._roupas[0][0]
+	_esperar(is_equal_approx(m.roughness, 0.45) and is_equal_approx(m.metallic, 0.2), "o acabamento Polido mexe na rugosidade e no metal (%.2f %.2f)" % [m.roughness, m.metallic])
+	p.vestir({"boneco": 1, "item": "escudo", "nome": "Cromo", "acabamento": 0})
+	var m0: StandardMaterial3D = p._roupas[0][0]
+	_esperar(is_equal_approx(m0.roughness, 0.95) and m0.metallic == 0.0 and m0.albedo_color.is_equal_approx(albedo_antes),
+		"e o Fosco volta ao áspero, com a mesma cor")
+	var maior := 0.0
+	for a in ForjaPlayer.ACABAMENTOS:
+		maior = maxf(maior, float(a.metal))
+	_esperar(maior <= 0.2, "o metal de nenhum acabamento passa de 0,2 (%.2f)" % maior)
+	_esperar(ForjaPlayer.acabamentos_disponiveis() == [0, 1, 2], "os acabamentos livres são três (%s)" % [ForjaPlayer.acabamentos_disponiveis()])
+	_esperar(ForjaPlayer.ITENS.size() == 7 and ForjaPlayer.ITENS[0].id == "" and ForjaPlayer.ITENS[1].id == "martelo", "os sete itens, o 0 de mãos livres")
+	remove_child(p)
+	p.free()
+	var guardados_antes: Array = Opcoes.cavaleiro.duplicate(true)
+	var noite_antes := Opcoes.noite_dos_cavaleiros
+	var arquivo := "user://opcoes-da-prova-g02.cfg"
+	Opcoes.cavaleiro = [c, {}, {}, {"boneco": 0, "item": "ancora", "nome": "Ônix", "acabamento": 2}]
+	Opcoes.noite_dos_cavaleiros = "2026-10-08"
+	Opcoes.gravar(false, arquivo)
+	Opcoes.cavaleiro = [{}, {}, {}, {}]
+	Opcoes.noite_dos_cavaleiros = ""
+	Opcoes.ler(arquivo)
+	_esperar(Opcoes.cavaleiro[0] == c and Opcoes.cavaleiro[1].is_empty() and Opcoes.cavaleiro[3].get("item", "") == "ancora"
+		and Opcoes.noite_dos_cavaleiros == "2026-10-08", "o cavaleiro e a noite voltam do arquivo (%s)" % [Opcoes.cavaleiro])
+	DirAccess.remove_absolute(ProjectSettings.globalize_path(arquivo))
+	var noite := Opcoes.noite()
+	_esperar(noite.length() == 10 and noite[4] == "-" and noite[7] == "-", "a noite é uma data (%s)" % noite)
+	Opcoes.cavaleiro = guardados_antes
+	Opcoes.noite_dos_cavaleiros = noite_antes
+
+
 func _prova_do_relatorio() -> void:
 	Forja.veredito(0, "botoes", Forja.PASSOU, Forja.NIVEL_REAGIU, "apertar ✕", "✕ chegou")
 	_esperar(Forja.gravar_relatorio(), "o relatório grava")
@@ -589,6 +724,11 @@ func _prova_do_relatorio() -> void:
 		"registro: a nota perdida, sem desvio (%s)" % [perdido])
 	_esperar(calibracoes.any(func(ev): return int(ev.get("desvio_ms", 0)) == 80 and ev.get("transporte", "") == "simulado"),
 		"registro: a calibração de +80 ms, com o transporte do controle")
+	var da_construcao := calibracoes.filter(func(ev): return str(ev.get("origem", "")) == "construcao" and int(ev.get("amostras", 0)) == 8)
+	var lugares_c := {}
+	for ev in da_construcao:
+		lugares_c[int(ev.get("lugar", -1))] = true
+	_esperar(lugares_c.size() == 4 and da_construcao.size() >= 4, "a linha do tempo tem a calibração dos quatro (%d linhas, %d lugares)" % [da_construcao.size(), lugares_c.size()])
 	var json := ""
 	for f in arquivos:
 		if f.begins_with("relatorio-") and f.ends_with(".json"):

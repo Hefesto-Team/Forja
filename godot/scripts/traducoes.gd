@@ -285,6 +285,26 @@ const EN := {
 	"Jogar no teclado": "Play on the keyboard",
 	"Gravar": "Record",
 	"Nove salas, quatro cavaleiros": "Nine rooms, four knights",
+	# a construção do cavaleiro (G02)
+	"Boneco": "Figure",
+	"Arma": "Weapon",
+	"Arma ou amuleto": "Weapon or charm",
+	"Nome": "Name",
+	"Mãos livres": "Empty hands",
+	"Martelo": "Hammer",
+	"Escudo": "Shield",
+	"Fole": "Bellows",
+	"Lanterna": "Lantern",
+	"Diapasão": "Tuning fork",
+	"Âncora": "Anchor",
+	"Fosco": "Matte",
+	"Polido": "Polished",
+	"Riscado": "Scratched",
+	"Dourado": "Golden",
+	"Forjar": "Forge",
+	"Sortear": "Shuffle",
+	"Forjado": "Forged",
+	"Guardado": "Saved",
 }
 
 ## Os textos com número: [padrão, substituição] (a substituição usa $1, $2…).

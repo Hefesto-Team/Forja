@@ -22,6 +22,7 @@ const FAIXAS := {
 	"bancada": [],
 	"voz": [],
 	"canto": [],
+	"MUS_TELA_CONSTRUCAO": [57, 120, 1],   # a construção do cavaleiro, a 120 BPM (a batida de 500 ms)
 }
 const VOLUME_DB := -9.0  ## a música fica por baixo dos efeitos
 const FADE_S := 0.8

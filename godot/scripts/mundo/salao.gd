@@ -31,6 +31,8 @@ const Z_SUL := 9.0
 var portoes := {}  ## id -> {no, porta, anim, frente, placa, luzes, aberto}
 var pedestais: Array[Vector3] = []
 var pedestais_no: Node3D  ## os quatro pedestais do lobby (somem no título)
+var luzes_das_bigornas: Array[OmniLight3D] = []  ## a luz quente da bigorna de cada lugar
+var _tw_bigorna := [null, null, null, null]
 var bigorna: Node3D
 var _cenas := {}
 var _tochas: Array[OmniLight3D] = []
@@ -395,6 +397,37 @@ func _pedestais() -> void:
 		aro.material = brilho
 		aro.name = "Aro%d" % i
 		pedestais_no.add_child(aro)
+		# a bigorna do lugar e a luz quente dela: baixa, não tinge o cavaleiro
+		var bigorna_do_lugar := Kit.bigorna(pedestais_no, pos + Vector3(0.62, 0.32, -0.5), 0.3)
+		bigorna_do_lugar.rotation.y = -0.5
+		var luz := OmniLight3D.new()
+		luz.position = pos + Vector3(0.62, 0.9, -0.5)
+		luz.light_color = Tema.LARANJA
+		luz.omni_range = 1.6
+		luz.shadow_enabled = false
+		luz.light_energy = 0.0
+		pedestais_no.add_child(luz)
+		luzes_das_bigornas.append(luz)
+
+
+## A bigorna do lugar acende em `energia` e cai a 0,8 em 0,3 s (SAI, a curva do
+## arte/05: cúbica, rápida no começo, assenta no fim) se o lugar está ocupado, a
+## 0 se não.
+func acender_bigorna(l: int, energia: float) -> void:
+	l = clampi(l, 0, 3)
+	if l >= luzes_das_bigornas.size():
+		return
+	var luz := luzes_das_bigornas[l]
+	if _tw_bigorna[l] != null and is_instance_valid(_tw_bigorna[l]):
+		(_tw_bigorna[l] as Tween).kill()
+	var repouso := 0.8 if Forja.ocupado(l) else 0.0
+	if not luz.is_inside_tree():
+		luz.light_energy = repouso
+		return
+	luz.light_energy = energia
+	var tw := luz.create_tween()
+	tw.tween_property(luz, "light_energy", repouso, 0.3).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	_tw_bigorna[l] = tw
 
 
 func _enfeites() -> void:

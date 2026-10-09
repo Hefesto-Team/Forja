@@ -43,6 +43,10 @@ static var flashes := true
 static var tela_cheia := false
 static var texto := 0
 static var idioma := 0
+static var cavaleiro := [{}, {}, {}, {}]   ## ForjaPlayer.cavaleiro() de cada lugar
+static var noite_dos_cavaleiros := ""      ## Opcoes.noite() de quando foram forjados
+static var _robo := false                  ## posto por carregar(robo)
+static var guardadas := 0                  ## quantas vezes a construção mandou guardar (a prova conta)
 static var _carregou := false
 
 
@@ -57,12 +61,26 @@ static func de_fabrica() -> void:
 	tela_cheia = false
 	texto = 0
 	idioma = 0
+	cavaleiro = [{}, {}, {}, {}]
+	noite_dos_cavaleiros = ""
+
+
+## A noite: a data de seis horas atrás (a noite que passa da meia-noite continua a mesma).
+static func noite() -> String:
+	return Time.get_date_string_from_unix_time(int(Time.get_unix_time_from_system()) - 6 * 3600)
+
+
+## Grava sem quem chama saber do robô (a paridade da F08).
+static func guardar() -> void:
+	guardadas += 1
+	gravar(_robo)
 
 
 static func carregar(robo: bool) -> void:
 	if _carregou:
 		return
 	_carregou = true
+	_robo = robo
 	de_fabrica()
 	if robo:
 		return
@@ -78,6 +96,9 @@ static func ler(arquivo: String) -> void:
 		gatilho[l] = clampi(int(cfg.get_value("P%d" % (l + 1), "gatilho", GATILHO_FORTE)), 0, 2)
 		vibracao[l] = _passo(int(cfg.get_value("P%d" % (l + 1), "vibracao", 100)))
 		tempo_ms[l] = clampi(int(cfg.get_value("P%d" % (l + 1), "tempo_ms", 0)), TEMPO_MIN, TEMPO_MAX)
+		var c = cfg.get_value("P%d" % (l + 1), "cavaleiro", {})
+		cavaleiro[l] = (c as Dictionary).duplicate() if c is Dictionary else {}
+	noite_dos_cavaleiros = str(cfg.get_value("sessao", "noite_dos_cavaleiros", ""))
 	volume_tv = _passo(int(cfg.get_value("sessao", "volume_tv", 100)))
 	volume_controle = _passo(int(cfg.get_value("sessao", "volume_controle", 100)))
 	tremor = bool(cfg.get_value("sessao", "tremor", true))
@@ -95,6 +116,8 @@ static func gravar(robo: bool, arquivo := ARQUIVO) -> void:
 		cfg.set_value("P%d" % (l + 1), "gatilho", gatilho[l])
 		cfg.set_value("P%d" % (l + 1), "vibracao", vibracao[l])
 		cfg.set_value("P%d" % (l + 1), "tempo_ms", tempo_ms[l])
+		cfg.set_value("P%d" % (l + 1), "cavaleiro", cavaleiro[l])
+	cfg.set_value("sessao", "noite_dos_cavaleiros", noite_dos_cavaleiros)
 	cfg.set_value("sessao", "volume_tv", volume_tv)
 	cfg.set_value("sessao", "volume_controle", volume_controle)
 	cfg.set_value("sessao", "tremor", tremor)

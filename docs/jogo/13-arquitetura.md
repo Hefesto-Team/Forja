@@ -195,7 +195,7 @@ Os tipos, e quem os escreve:
 | `calibracao` | `lugar`, `desvio_ms`, `amostras`, `origem` (`opcoes`/`construcao`), `transporte` (o `conexao_curta` do controle do lugar, repetido para o cruzamento não precisar juntar) | H03 (à mão), G02 (a construção) |
 | `item` | `item`, `efeito` | G03 |
 | `sessao` | amplia o de hoje com `escala_vibracao` e `gatilho` de cada lugar | F05 |
-| `cavaleiro` | `boneco`, `acabamento`, `peca`, `item`, `nome` | G02 |
+| `cavaleiro` | `boneco`, `item`, `nome`, `acabamento` (a G13 troca `boneco` por `cabeca`, `superior`, `inferior`) | G02 |
 | `colecao` | `desbloqueou` (o que), `por` (a conquista) | G06 |
 | `fala` | `evento`, `texto` | G07 |
 | `desempenho` | `slot`, `fps_min`, `fps_media` | F09 |
@@ -236,7 +236,8 @@ tempo chama `Ritmo.definir_desvio(l, segundos, origem, amostras)`: ela põe o
 desvio no `Ritmo`, o tempo nas `Opcoes` (quem grava o arquivo é quem chama) e
 escreve a linha `calibracao`; as opções chamam com `"opcoes"` (a linha Tempo,
 de 10 em 10 ms) e a construção do cavaleiro (G02) com `"construcao"`. O
-`Ritmo` lê `Opcoes.tempo_ms` ao começar (`ler_das_opcoes`). O cavaleiro inteiro
+`Ritmo` lê `Opcoes.tempo_ms` ao começar (`ler_das_opcoes`). `Opcoes.tempo_ms[l]` guarda
+a calibração: a G02 mede nas 8 marteladas, as Opções ajustam à mão; o `Ritmo` lê de lá ao abrir. O cavaleiro inteiro
 também vive em `Opcoes`: `Opcoes.cavaleiro[l]`, `Opcoes.noite()` (o que vale
 só para a noite corrente) e `Opcoes.guardar()` — que as telas chamam sem
 saber se é robô (quem não grava com robô é o próprio `Opcoes`).

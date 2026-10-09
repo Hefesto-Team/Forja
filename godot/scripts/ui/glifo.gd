@@ -53,6 +53,28 @@ static func desenhar(ci: CanvasItem, nome: String, r: Rect2, cor: Color, peso :=
 			_retangulo_arred(ci, Rect2(p.call(12, 5), Vector2(8, 14) * k), 4.0 * k, cor, t)
 			ci.draw_arc(p.call(16, 15), 7.0 * k, 0.0, PI, 24, cor, t, true)
 			ci.draw_line(p.call(16, 22), p.call(16, 27), cor, t, true)
+		"item_martelo":
+			_contorno(ci, [p.call(14, 6), p.call(26, 14), p.call(22, 20), p.call(10, 12)], cor, t)
+			ci.draw_line(p.call(16, 16), p.call(8, 28), cor, t, true)
+		"item_escudo":
+			_contorno(ci, [p.call(8, 7), p.call(24, 7), p.call(24, 16), p.call(16, 26), p.call(8, 16)], cor, t)
+		"item_fole":
+			_contorno(ci, [p.call(6, 10), p.call(20, 6), p.call(20, 26), p.call(6, 22)], cor, t)
+			ci.draw_line(p.call(20, 16), p.call(28, 16), cor, t, true)
+		"item_lanterna":
+			_retangulo_arred(ci, Rect2(p.call(10, 10), Vector2(12, 16) * k), 3.0 * k, cor, t)
+			ci.draw_arc(p.call(16, 10), 4.0 * k, PI, TAU, 16, cor, t, true)
+			ci.draw_line(p.call(16, 15), p.call(16, 21), cor, t, true)
+		"item_diapasao":
+			ci.draw_line(p.call(12, 6), p.call(12, 18), cor, t, true)
+			ci.draw_line(p.call(20, 6), p.call(20, 18), cor, t, true)
+			ci.draw_arc(p.call(16, 18), 4.0 * k, 0.0, PI, 16, cor, t, true)
+			ci.draw_line(p.call(16, 22), p.call(16, 28), cor, t, true)
+		"item_ancora":
+			ci.draw_line(p.call(16, 8), p.call(16, 26), cor, t, true)
+			ci.draw_arc(p.call(16, 6), 2.5 * k, 0.0, TAU, 16, cor, t, true)
+			ci.draw_line(p.call(11, 11), p.call(21, 11), cor, t, true)
+			ci.draw_arc(p.call(16, 18), 8.0 * k, 0.0, PI, 24, cor, t, true)
 		"l1", "r1", "l2", "r2":
 			var forma := Rect2(p.call(4, 9), Vector2(24, 14) * k)
 			_retangulo_arred(ci, forma, 5.0 * k, cor, t)
