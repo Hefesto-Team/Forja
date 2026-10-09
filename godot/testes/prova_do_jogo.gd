@@ -608,14 +608,18 @@ func _prova_do_relatorio() -> void:
 	for f in arquivos:
 		if not (f.begins_with("linha-do-tempo-") and f.ends_with(".jsonl")):
 			continue
+		var comecou := {}  # slot -> a fase jogo começou (o `minigame` `comecou`)
 		for linha in FileAccess.get_file_as_string(pasta.path_join(f)).split("\n", false):
 			var ev = JSON.parse_string(linha)
 			if not ev is Dictionary:
 				continue
 			if ev.get("tipo", "") == "toque" and ev.get("slot", "") == "T00_J00":
 				julgamentos[ev.get("julgamento", "?")] = true
-			# a sala que acabou no aviso, sem jogar (duração 0), não conta: ninguém jogou
-			if ev.get("tipo", "") == "minigame" and ev.get("evento", "") == "terminou" and float(ev.get("duracao", 0.0)) > 0.0:
+			if ev.get("tipo", "") == "minigame" and ev.get("evento", "") == "comecou":
+				comecou[str(ev.get("slot", ""))] = true
+			# a sala fechada ainda no aviso (a prova do motor) não jogou: só conta quem começou
+			if ev.get("tipo", "") == "minigame" and ev.get("evento", "") == "terminou" and comecou.get(str(ev.get("slot", "")), false):
+				comecou.erase(str(ev.get("slot", "")))
 				terminados += 1
 				if int(ev.get("vencedor", -1)) < 0:
 					sem_vencedor.append(ev)
