@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 200 200" aria-labelledby="title desc">
+  <title>A Forja (etiqueta)</title>
+  <desc id="desc">Logo d'A Forja de uma cor, para a etiqueta do cassete: tudo em tinta, os vazios (o miolo da chama, o topo da bigorna, a cabeça dos martelos) em papel.</desc>
+  <rect x="0" y="0" width="200" height="200" fill="none"></rect>
+  <g id="chama">
+    <path d="M100 15C108 42 146 68 150 102C154 142 130 168 100 171C70 168 46 142 50 102C54 68 92 42 100 15Z" fill="#1c1626"></path>
+    <path d="M100 52C106 72 122 88 124 108C126 134 114 150 100 152C86 150 74 134 76 108C78 88 94 72 100 52Z" fill="#efe4c8"></path>
+  </g>
+  <path id="arco" d="M100 6.8 A93.2 93.2 0 1 0 154.782 24.6" fill="none" stroke="#1c1626" stroke-width="10.2" stroke-linecap="round"></path>
+  <circle cx="100" cy="6.8" r="6.15" fill="#1c1626"></circle>
+  <circle cx="154.782" cy="24.6" r="6.15" fill="#1c1626"></circle>
+  <g id="bigorna" stroke="#1c1626" stroke-width="3" stroke-linejoin="round" stroke-linecap="round">
+    <path d="M74.291 151.629 L128.246 151.629 L118.805 170.965 L83.736 170.965 Z" fill="#1c1626"></path>
+    <path d="M74.598 164.944 L125.612 164.944 L134.114 183.815 L66.096 183.815 Z" fill="#1c1626"></path>
+    <path d="M54.403 119.231 L138.736 119.231 L162.162 132.71 L138.736 146.19 L128.194 146.19 L128.194 151.582 L74.315 151.582 L74.315 132.71 L54.403 132.71 Z" fill="#efe4c8"></path>
+  </g>
+  <g id="martelos" stroke-linejoin="round" stroke-linecap="round">
+    <g transform="translate(54 96) rotate(-52)">
+      <rect x="-4.2" y="-42" width="8.4" height="40" rx="4.2" fill="#1c1626" stroke="#efe4c8" stroke-width="2.4"></rect>
+      <rect x="-20" y="-8" width="40" height="16" rx="4.5" fill="#efe4c8" stroke="#1c1626" stroke-width="3"></rect>
+    </g>
+    <g transform="translate(84 96) rotate(-52)">
+      <rect x="-4.2" y="-42" width="8.4" height="40" rx="4.2" fill="#1c1626" stroke="#efe4c8" stroke-width="2.4"></rect>
+      <rect x="-20" y="-8" width="40" height="16" rx="4.5" fill="#efe4c8" stroke="#1c1626" stroke-width="3"></rect>
+    </g>
+    <g transform="translate(114 96) rotate(-52)">
+      <rect x="-4.2" y="-42" width="8.4" height="40" rx="4.2" fill="#1c1626" stroke="#efe4c8" stroke-width="2.4"></rect>
+      <rect x="-20" y="-8" width="40" height="16" rx="4.5" fill="#efe4c8" stroke="#1c1626" stroke-width="3"></rect>
+    </g>
+    <g transform="translate(144 96) rotate(-52)">
+      <rect x="-4.2" y="-42" width="8.4" height="40" rx="4.2" fill="#1c1626" stroke="#efe4c8" stroke-width="2.4"></rect>
+      <rect x="-20" y="-8" width="40" height="16" rx="4.5" fill="#efe4c8" stroke="#1c1626" stroke-width="3"></rect>
+    </g>
+  </g>
+</svg>
