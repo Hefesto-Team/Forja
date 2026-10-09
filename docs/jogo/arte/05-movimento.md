@@ -103,7 +103,7 @@ dobra (ou cai pela metade) e a conta se refaz. A 140 BPM, o `idle` passa a 4
 batidas (0,78).
 
 A velocidade do corpo no chão vem do stat Passo
-([04](04-o-cavaleiro.md#os-stats)), e o ciclo vem da batida. O pé pode
+([04](../sistemas/README.md#os-stats)), e o ciclo vem da batida. O pé pode
 escorregar até 15 % (a diferença entre o Passo 1 e o 5). Acima disso, a
 animação ganha um degrau de n.
 

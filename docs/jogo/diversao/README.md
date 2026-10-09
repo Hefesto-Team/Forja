@@ -81,10 +81,11 @@ sobe), e a contagem de 4 batidas mostra o cavaleiro fazendo o gesto no ar.
 
 - **Robô:** a coleta de texto da [F02](../tarefas/F02-sem-metalinguagem.md)
   na fase de jogo só acha o verbo, os nomes, os P#, os números do placar e o
-  julgamento ("Perfeito!", "Ótimo", "Bom").
+  julgamento ("Ressonância!", "Afinado", "Quase", as palavras do
+  [doc 07](../07-narrativa-e-voz.md#o-vocabulário-do-visor)).
 - **Prancha:** nenhum quadro de jogo tem uma frase. O quadro de conceito
-  [01](../../imagens/direcao/01_centelha_depois.jpg) tem hoje "Aperte o botão
-  da runa antes do anel fechar." no pé da tela: essa linha sai.
+  [01](../../imagens/direcao/01_centelha_depois.jpg) não tem mais a linha "Aperte
+  o botão da runa antes do anel fechar." no pé da tela (saiu em 08/10).
 
 ### 4. Um momento de grito, com nome
 
@@ -184,7 +185,7 @@ imagem serve à brincadeira.
 | objeto novo (que o jogador ainda não viu nesta partida) | aparece parado 2 batidas antes de pedir alguma coisa | ver antes de usar |
 | o verbo na tela | some na batida 4, antes da primeira nota | durante o jogo, ninguém lê |
 | regra nova nas últimas 16 batidas | nenhuma; a reta só aumenta o que já se viu | a surpresa do fim é tamanho, não regra |
-| julgamento escrito ("Perfeito!") | 1 batida na tela, Bungee, na cor do dono, acima da cabeça dele | o nome do acerto é o único texto do jogo |
+| julgamento escrito ("Ressonância!") | 1 batida na tela, Bungee, na cor do dono, acima da cabeça dele | o nome do acerto é o único texto do jogo |
 | leitura de quem venceu o lance | 1 s, sem número | a régua, item 10 |
 
 ### A câmera que mostra a graça

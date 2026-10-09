@@ -52,7 +52,7 @@ uma linha em "Para a próxima leva", no fim.
   cadeado), uma está de cadeira de rodas, uma tem um item que o corpo não
   alcança riscado na lista;
 - o nome de cada cavaleiro aparece na placa e na etiqueta, e o arquétipo bate
-  com os stats pela tabela do [04](04-o-cavaleiro.md#o-arquétipo);
+  com os stats pela tabela do [04](../sistemas/README.md#o-arquétipo);
 - o `cortar.gd` imprime a contagem de triângulos de cada parte, e ela bate com
   a do 04.
 
@@ -63,8 +63,8 @@ uma linha em "Para a próxima leva", no fim.
 
 **Pronto quando:** três linhas (cabeça, superior, inferior) por 12 colunas
 (os 12 personagens), mais uma linha com os seis itens; cada peça de frente, na
-mesma escala, sobre `CASCO`, com o perfil (Bigorna, Mola, Brasa, Lume, Malha,
-Prumo) em VT323 30 e os pontos que dá; os itens com o stat que pedem. 42
+mesma escala, sobre `CASCO`, com o emblema (Bigorna, Mola, Brasa e Lume, os quatro do
+[sistemas](../sistemas/README.md)) em VT323 30 e os pontos que dá; os itens com o stat que pedem. 42
 células, nenhuma vazia.
 
 ### 3 A prancha das reações
@@ -254,16 +254,16 @@ mapa marcados para ele, pela receita de cada linha, com o gerador do
 
 Do produtor de arte e som, 08/10. Os 13 itens estão feitos; o que segue não coube neles.
 
-- **Item 1, a medida da cabeça.** As cabeças vão de 213 a 340 triângulos, não de 288 a 340. O critério do item 1 tem que dizer 213.
-- **Item 2, os perfis.** O critério cita seis perfis (com Malha e Prumo), mas o `pecas.csv` só tem quatro emblemas: Bigorna, Mola, Brasa e Lume. A prancha 11 mostra os quatro. Decidir se entram os outros dois.
-- **Item 2, a etiqueta.** Na prancha 11 o título «AS PEÇAS» encosta na linha «PRANCHA · ITEM 2» por uns 6 px. Subir o título 8 px.
+- **Item 1, a medida da cabeça.** Resolvido pelo conferente em 08/10: o 04 diz de 213 a 340 (male-f 213, female-b 340, medido pelo `cortar.gd`).
+- **Item 2, os perfis.** Resolvido pelo conferente em 08/10: o critério fala dos quatro emblemas do `pecas.csv` (Bigorna, Mola, Brasa e Lume), como decide o `sistemas/`. Malha e Prumo saíram.
+- **Item 2, a etiqueta.** Resolvido pelo conferente em 08/10: a etiqueta cresceu para 660 × 140 px e o título não encosta mais.
 - **O female-a.** Tem 160 triângulos por braço e um bastão em cada mão, que vêm do modelo da Kenney. O corte leva o bastão junto com o tronco superior.
 - **O medalhão do diapasão.** No P3 da cadeira ele não aparece. Subir para y +0,17 e z 0,16.
 - **A prancha 13.** As cinco tintas ficaram escuras: a chave em ×1 mal passa da névoa. A arena do S1 mede L 7 de média (medida no PNG, Lab). Subir a chave até a média passar de L 15.
-- **A prancha 17.** O escurecimento das marteladas 1 a 7 esconde a peça que entra. Escurecer só o fundo, não a peça.
+- **A prancha 17.** Resolvido pelo conferente em 08/10: a chave das marteladas 1 a 7 passou a tungstênio 3,5 e o contorno a 0,016 / 3,0. A peça que entra se lê.
 - **A cortina.** No instante de 300 ms a borda está fora da tela (x = −134). A curva tem que pôr a borda na tela já aos 300 ms.
 - **O ícone do exe.** O `forja.ico` vira ficha: o exe usa `scripts/forja.ico`, que não sai do PNG do logo. Gerar o .ico do `forja-logo.svg` em 16, 32, 48 e 256 px.
 - **Os sons no jogo.** Os 77 estão em `godot/estudos/direcao/som/`. A cópia para `godot/assets/sons/` e a troca no jogo são da H11. O subcomando `kenney` do gerador não foi rodado.
 - **A tarja do car_acorde.** Ficou com 80 × 40 px por jogador. Conferir na TV a 3 m.
-- **O README da arte.** Ainda diz «Dó, Mi, Sol e Si». O acorde é Dó, Ré, Fá e Sol (o 03). É do diretor de arte.
+- **O README da arte.** Resolvido pelo conferente em 08/10: diz Dó, Ré, Fá e Sol, o acorde suspenso do 03.
 - **A trilha.** O LEIA-ME de `ost/` e o pedido do JIN_COOP_VITORIA ficam para o produtor de música ou a H09.

@@ -33,7 +33,7 @@ triângulo a triângulo). O corte é limpo:
 
 | parte | de onde vem | triângulos (female-b) |
 | --- | --- | --- |
-| cabeça | a `head-mesh` inteira | de 288 a 340, conforme o personagem |
+| cabeça | a `head-mesh` inteira | de 213 a 340, conforme o personagem (male-f 213, female-b 340) |
 | tronco superior | os triângulos da `body-mesh` dos ossos torso, arm-left e arm-right | 50 + 72 + 72 |
 | tronco inferior | os triângulos da `body-mesh` dos ossos leg-left e leg-right | 104 + 104 |
 
