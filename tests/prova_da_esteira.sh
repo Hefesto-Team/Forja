@@ -231,6 +231,29 @@ espera 2 "costura: a prova que não existe não começa (rc 2)" bash "$C" voo/li
 gr switch -q voo/limpo
 espera 2 "costura: a integração no próprio ramo não começa (rc 2)" bash "$C" voo/limpo --integracao "$R" --prova "bash olha.sh"
 
+# --- as regras de execução (WT04) ---------------------------------------------------------------------------------
+## regras <raiz>: o regras.md existe, tem no máximo 60 linhas, e o 12, o COMO-CONTRIBUIR e a a-esteira apontam para ele.
+regras() {
+  local r="$1" f="$1/docs/jogo/o-time/regras.md" ok=0
+  [ -f "$f" ] || { echo "falta o docs/jogo/o-time/regras.md"; return 1; }
+  [ "$(wc -l < "$f")" -le 60 ] || { echo "o regras.md tem $(wc -l < "$f") linhas (o teto é 60)"; ok=1; }
+  grep -q '](o-time/regras.md' "$r/docs/jogo/12-como-trabalhar.md" 2>/dev/null || { echo "o 12 não aponta"; ok=1; }
+  grep -q '](jogo/o-time/regras.md' "$r/docs/COMO-CONTRIBUIR.md" 2>/dev/null || { echo "o COMO-CONTRIBUIR não aponta"; ok=1; }
+  grep -q '](regras.md' "$r/docs/jogo/o-time/a-esteira.md" 2>/dev/null || { echo "a a-esteira não aponta"; ok=1; }
+  return "$ok"
+}
+espera 0 "regras: o regras.md existe, cabe em 60 linhas, e o 12, o COMO-CONTRIBUIR e a a-esteira apontam" regras "$RAIZ"
+G="$TMP/regras"
+mkdir -p "$G/docs/jogo/o-time"
+cp "$RAIZ/docs/COMO-CONTRIBUIR.md" "$G/docs/"; cp "$RAIZ/docs/jogo/12-como-trabalhar.md" "$G/docs/jogo/"
+cp "$RAIZ/docs/jogo/o-time/a-esteira.md" "$G/docs/jogo/o-time/"
+espera 1 "regras: sem o arquivo, reprova" regras "$G"
+{ cat "$RAIZ/docs/jogo/o-time/regras.md"; seq 1 60; } > "$G/docs/jogo/o-time/regras.md"
+espera 1 "regras: com mais de 60 linhas, reprova" regras "$G"
+cp "$RAIZ/docs/jogo/o-time/regras.md" "$G/docs/jogo/o-time/"
+sed -i 's|](o-time/regras.md|](o-time/outro.md|' "$G/docs/jogo/12-como-trabalhar.md"
+espera 1 "regras: o 12 sem o link, reprova" regras "$G"
+
 echo
 if [ "$FALHAS" -eq 0 ]; then
   echo "prova da esteira ok — $CASOS casos: a esteira lê o quadro e segura o que deve, a costura para no conflito e no vermelho"

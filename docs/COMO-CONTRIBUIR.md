@@ -43,6 +43,7 @@ Cada uma nasceu de um defeito real.
   no [SPRINTS.md](../SPRINTS.md).
 - Os documentos têm um mapa: [docs/README.md](README.md). Compilar, exportar e
   provar: [docs/DESENVOLVER.md](DESENVOLVER.md).
+- As regras de execução: [jogo/o-time/regras.md](jogo/o-time/regras.md).
 
 ## Os comandos
 
