@@ -1,48 +1,91 @@
 # N2 — Eco do Abismo
 
-**Sprint:** N · **Slot:** S06_J27 · **Tamanho:** M · **Depende de:** H04, H08, F09, N1
+**Sprint:** N · **Slot:** S06_J27 · **Tamanho:** M · **Depende de:** N1, H04, H06, H07, H08, F02, F04, F05, F09, G05, G08, G10, G14, G15
 
 ## Por quê
 
-A corrida no escuro da seção. Quatro escadas que sobem para o breu; em cada
-degrau há duas pedras iguais, uma firme e uma oca. O eco no seu controle
-diz, uma batida antes, qual lado aguenta: grave é a esquerda, agudo é a
-direita. Quem ouve sobe; quem erra o lado despenca um andar. O verbo do
-alto-falante aqui é **seguir**: a pista vem já, e a resposta é o próximo
-passo — não há compasso de espera como n'O Canto.
+A corrida no escuro da seção. Cada cavaleiro sobe a sua escada para o breu; em cada degrau há duas pedras iguais,
+uma firme e uma oca. Uma batida antes do passo, o eco no alto-falante da mão diz o lado firme: grave é a esquerda,
+agudo é a direita. Quem ouve sobe; quem pisa no lado errado despenca. O verbo do alto-falante aqui é **seguir**: a
+pista vem já, e a resposta é o próximo passo. A altura na escada é o placar, e a sala vê quem cai.
 
 ## Ler antes
 
-- [O índice da seção](N-o-canto.md) e a [N1](N1-o-canto.md) (o cenário comum, o robô que ouve, o `_joga_o_minigame`)
-- [O molde de minigame](molde-de-minigame.md) e o [kit](../13-arquitetura.md#o-kit-do-minigame--h04)
+- [A N1](N1-o-canto.md) (o `CenarioDoCanto` inteiro: a capela, o `falante`, o `ouvir`, os ganchos, a `momento`)
+- [O kit do minigame](../13-arquitetura.md#o-kit-do-minigame--h04)
+- [O molde de minigame](molde-de-minigame.md)
 
-## A ficha de dados
+O resto (a bíblia de arte, o mapa do áudio, a régua da diversão, o RPG) já está copiado nesta ficha, com os
+números. Não abra outro documento.
 
-`godot/scripts/minigames/s06/eco_do_abismo.gd`:
+## Arquivos que mudam
+
+| arquivo | o quê | de todos? |
+| --- | --- | --- |
+| `godot/scripts/minigames/s06/eco_do_abismo.gd` | novo: o minigame | só desta |
+| `godot/scripts/minigames/catalogo.gd` | `S06_J27` em `MINIGAMES` e na lista da seção `S06` | **da seção** |
+| `godot/scripts/traducoes.gd` | `"Eco do Abismo": "Echo of the Abyss"`, `"Ouça e pise!": "Listen and step!"`, `"Pise!": "Step!"` | **de todos** |
+| `godot/testes/prova_do_jogo.gd` | `_prova_do_eco()` e a chamada no percurso, depois da do Canto | **de todos** |
+| `scripts/importar_kenney.py` | a linha `modular-cave-kit` em `APROVADOS` (papel `cenario`, filtro tudo) | **de todos** |
+| `godot/assets/kenney/modular-cave-kit/`, `godot/assets/LEIA-ME.md`, `LICENCAS-DE-TERCEIROS.md` | o que o import escreve | **de todos** |
+
+Antes de tudo: `python3 scripts/importar_kenney.py modular-cave-kit`. O `graveyard-kit` a G10 já trouxe. O `.uid` de
+`eco_do_abismo.gd` sai de `"$GODOT" --headless --path godot --import --quit` e entra no commit.
+
+O `cenario_do_canto.gd` é da N1: esta ficha **só chama**. Se a N1 ainda não entrou, ela vem antes.
+
+### O que muda de hoje
+
+O Eco não existe hoje. Esta ficha o escreve inteiro no kit, sobre o cenário comum da N1. O que muda da ficha antiga:
+`_notas` era declarada no minigame (agora é do kit, e o dado do passo mora em `_info`), o robô contava o nível do
+alto-falante à mão (agora usa `CenarioDoCanto.ouvir`), a câmera era uma pose solta (agora é a da capela, mais alta),
+as cores eram hex (agora são tokens) e a queda não tinha momento (agora é o `despenca`).
+
+### O kit que esta ficha usa
+
+As funções do `Minigame` (H04, H08) e do `CenarioDoCanto` (N1). Não reimplemente:
+
+```gdscript
+presentes(); conectado(l); na_raia(l); raia(l); jogador(l); posicionar(l); marcar(l, pontos); anotar(tipo, l, campos)
+nova_nota(l, n, t_alvo); notas_em_aberto(l); alvo_da(l, n); casar_toque(l); julgar_nota(l, n); nota_perdida(l, n); notas_perdidas(l)
+andamento(); no_pico(); momento(nome, l, pos, altura_m, campos)   # o momento é da N1 (ou da L1)
+const RAIAS := [-6.0, -2.0, 2.0, 6.0]; const Z_JOGADOR := 1.4; const FOLGA_PERDIDA := 0.140
+var _notas := [{}, {}, {}, {}]  # do kit: não declare
+CenarioDoCanto.montar(sala, escuro, com_portico); pose_da_camera(recuo, olhar); passar; exagero; so_o_dono
+CenarioDoCanto.gancho(l, nome); antecedencia(l); queda(l, tempos); proxima_colcheia(folga_s)
+CenarioDoCanto.falante(sala, l, som, ganho); tempo_forte(); soltar_a_musica(sala); ouvir(l, o); luz_da_nota(l, forca)
+Itens.velocidade(l, "corrida"); Itens.resiste_a_empurrao(l)    # a Âncora: 0,9 e 0,5; os outros: 1,0 e 0,0
+Forja.eixo(l, Forja.LX); Forja.robo_eixo(l, Forja.LX, v, s); Forja.gatilho(l, 1, modo, a, b); Forja.sentir(l, nome)
+```
+
+## Como se joga
+
+### A ficha de dados
 
 ```gdscript
 extends Minigame
 ## Eco do Abismo (S06_J27) — cada um numa escada que sobe para o escuro. Na
-## batida do dono, ele sobe um degrau; uma batida antes, o eco no alto-falante
-## do controle dele diz o lado firme: grave, a esquerda; agudo, a direita.
-## Pise com o analógico esquerdo (um toque para o lado) na batida. No pico, o
-## eco vem em colcheias: dois degraus por vez.
+## vez do dono, ele sobe um degrau; uma batida antes, o eco no alto-falante do
+## controle dele diz o lado firme: grave, a esquerda; agudo, a direita. Pise
+## com o analógico esquerdo (um toque para o lado) na batida. No pico, o eco
+## vem em colcheias: dois passos por vez.
 ##
-## A falha: o lado errado — a pedra é oca e o cavaleiro despenca um andar
-## (quatro degraus); fora do tempo, ou sem pisar — tropeça e fica.
+## A falha: o lado errado — a pedra oca afunda e ele despenca 4 degraus (o
+## Peso e a Âncora mudam); fora do tempo, ou sem pisar — tropeça e fica.
 ## O vencedor: o primeiro no topo (24 degraus); senão, o mais alto aos 100 s.
-## O alto-falante do dono: o eco (a protagonista).
-## O registro mede: cada eco (o som, se foi ao controle) e o lado pisado.
-## O robô: ouve o ataque do eco no alto-falante simulado e pisa na batida
-## seguinte, do lado que ouviu (o nome do som, H08); quando não acerta, 250 ms tarde.
-## Com menos de quatro: as batidas se dividem; sozinho, só as pares.
-## A régua: (1) "Responda o eco!" com as escadas no escuro; (2) sim: as duas
+## O alto-falante do dono: o eco (a pista) e o tombo.
+## O registro mede: cada eco (o som, se foi ao controle), o lado pisado e o
+## momento `despenca`.
+## O robô: ouve o eco no alto-falante simulado e pisa no tempo do lado que
+## ouviu; quando não acerta, pisa 250 ms tarde (tropeça) ou do outro lado.
+## Com menos de quatro: a vez roda mais depressa; sozinho, só as batidas pares.
+## A régua: (1) «Ouça e pise!» com as escadas no escuro; (2) sim: as duas
 ## pedras são iguais, só o eco diz; (3) não pergunta nada.
 
 const FICHA := {
 	"slot": "S06_J27",
 	"titulo": "Eco do Abismo",
-	"verbo": "Responda o eco!",
+	"verbo": "Ouça e pise!",
 	"genero": "corrida",
 	"icone": "alto_falante",
 	"entradas": [],
@@ -50,219 +93,210 @@ const FICHA := {
 	"faixa": "MUS_S06_J27",
 	"duracao": 100.0,
 	"fim": "primeiro_a_chegar",
-	"sensacoes": ["toque", "acerto", "perfeito", "erro", "golpe"],
+	"sensacoes": ["acerto", "perfeito", "erro", "golpe"],
 	"material": "pedra",
-	"microjogo": {"verbo": "Responda!", "segundos": 6.0},
-	"nota_no_falante": false,  # o alto-falante é a pista: o kit não toca a nota do perfeito nele (H08)
+	"microjogo": {"verbo": "Pise!", "segundos": 6.0},
+	"nota_no_falante": false,  # o alto-falante é a pista: o kit não toca nada nele (H08)
+	"papel_som": Forja.PAPEL_ALTO_FALANTE,
 	"gesto": "lados",
 }
 
 const PONTOS := [0, 40, 70, 100]  ## ERRO, BOM, OTIMO, PERFEITO
 const DEGRAUS := 24
-const ANDAR := 4  ## quanto despenca no lado errado
+const ANDAR := 4  ## quanto despenca no lado errado, no neutro
+const ANDAR_MIN := 2
 const ESQ := 0
 const DIR := 1
 const ECO := ["nota", "nota_alta"]  ## ESQ grave, DIR agudo
 const LX_VAI := 0.6
 const LX_VOLTA := 0.3
-const ESCURO := 0.4  ## o cenário comum escurecido (o terror)
+const ESCURO := 0.4  ## a capela escurecida (o terror): a luz da casa cai, não troca
 const BRILHO := 0.5  ## a barra de luz no escuro (F04: nunca abaixo de 0,3)
 const PULSO_S := 0.12
-## A chance de degrau na batida do dono: entrada, pico, saída (com colcheias no pico).
-const DENSIDADE := [0.8, 1.0, 1.0]
+## A chance de passo na vez do dono, por terço; no pico, dois passos por vez.
+const CHANCE := [0.5, 0.75, 0.75]
 const DEGRAU_ALTURA := 0.22
-const DEGRAU_FUNDO := 0.3
-const PEDRA_X := 0.55  ## as duas pedras em RAIAS[l] ± isto
+const DEGRAU_FUNDO := 0.28
+const PEDRA_X := 0.45  ## as duas pedras em ESCADA_X[l] ± isto
+## As escadas puxadas 0,6 m para o centro: o P4 cabe em x_tela ≤ 0,8.
+const ESCADA_X := [-5.4, -1.4, 1.4, 5.4]
+const RETA_BATIDAS := 16  ## nelas, cada passo certo sobe 2 degraus
+const SENTADO_TEMPOS := 1.0  ## depois do tombo, sentado 1 tempo (o Fôlego muda)
+const OLHAR := Vector3(0, 2.6, -2.2)  ## o meio das escadas
 ```
 
-## Como se joga
+### O tempo
 
-**O dono da batida** é `presentes()` em ordem, `lista[b % k]`; sozinho, só
-as batidas pares. O compasso 0 é a contagem; o compasso é gerado quando
-`Ritmo.batida() >= 4c − 4`.
+A faixa `MUS_S06_J27` tem 135 BPM: 1 batida = 0,444 s. Em 100 s, `_b_fim` = 225. O pico (`no_pico()`, o terço do
+meio) vai de 33,3 a 66,7 s (batidas 75 a 150). A reta são as batidas 209 a 224.
 
-**O passo** do dono na batida `b` (com a chance da parte), e no **pico**
-(33–66 s) também em `b + 0,5` (quem está com `Ritmo.simples[l]` fica só com
-o de `b`): `{"n": int(round(b * 2)), "b": b, "t": Ritmo.t_da_batida(b), "lado": ESQ | DIR, "ecoado": false}`,
-com `nova_nota(l, n, t)`.
+**A vez do dono:** `lista = presentes()` em ordem; o dono da batida `b` é `lista[b % k]`; sozinho, só as batidas
+pares. O compasso `c` (batidas `4c` a `4c+3`) se gera quando `Ritmo.batida() >= 4c − 4`; o compasso 0 é a contagem.
 
-**O eco** em `b − 1` (`Ritmo.t_musica() >= Ritmo.t_da_batida(b - 1)`):
-`var foi := CenarioDoCanto.falante(self, l, ECO[lado], 0.9)` e
-`anotar("pista", l, {"n": n, "evento": "mandou", "canal": "alto_falante", "o_que": ECO[lado], "no_controle": foi})`.
-Na tela, nada muda: as duas pedras do degrau seguinte são iguais.
+**O passo** na vez do dono, na batida `b`, com a chance `CHANCE[parte]` (a parte pelo `Ritmo.t_da_batida(b)` contra
+os terços de `duracao`). **Nunca duas vezes seguidas sem passo**: se a vez anterior do lugar não teve passo, esta tem.
+No pico, um segundo passo em `b + 0,5` (quem está com `Ritmo.simples[l]` fica só com o de `b`). Cada passo:
+`n = int(round(b * 2))`, `_info[l][n] = {"b": b, "lado": ESQ ou DIR, "ecoou": false}` e
+`nova_nota(l, n, Ritmo.t_da_batida(b))`.
 
-**Pisar:** o analógico esquerdo passando de `LX_VAI` para um lado (esquerda
-negativa), rearmando abaixo de `LX_VOLTA`, casa com o passo do lugar a até
-`Ritmo.JANELA_BOM`:
+As contas da régua 5, com quatro jogadores (a vez de cada um a cada 4 batidas, 1,78 s): 1.º terço 0,28 passo/s por
+jogador; pico 0,84 (3,0×); 3.º terço 0,42 (1,5×). A maior distância entre dois passos do mesmo lugar: 8 batidas.
 
-- o lado do eco → `julgar_toque(l, t, n)`: BOM ou melhor sobe um degrau
-  (a pedra firme acende na cor do lugar e fica acesa: o caminho); ERRO
-  (fora do tempo) tropeça e fica;
-- o lado oposto → `nota_perdida(l, n)` e **despenca** `ANDAR` degraus
-  (`degrau[l] = maxi(0, degrau[l] - ANDAR)`);
-- nenhum passo perto → nada (o cavaleiro olha para os lados).
+| terço | música | o passo | o que acontece |
+| --- | --- | --- | --- |
+| 1. ensina | 0–33 s | um por vez, chance 0,5 | as pedras acendem na contagem; o eco uma batida antes |
+| 2. **o pico** | 33–67 s | dois por vez, em colcheia | aos 33 s, o trovão; a luz +20 %, a câmera recua |
+| 3. a reta | 67–100 s | um por vez, chance 0,75 | as velas do topo acendem; nas últimas 16 batidas, 2 degraus por passo |
 
-O passo que passa de `t + FOLGA_PERDIDA` (o kit) é `nota_perdida(l, n)` (tropeça e fica).
-Cada pisada grava a linha `entrada` `{"o": "resposta", "n": n, "lado_pedido": ..., "lado_feito": ...}`.
+### O eco
 
-**O topo:** o primeiro a chegar a `DEGRAUS` vence: todos `acabou`, e o kit
-fecha (`fim` `primeiro_a_chegar`). Senão, os 100 s.
+Quando `Ritmo.t_musica() >= Ritmo.t_da_batida(b - 1) - CenarioDoCanto.antecedencia(l)` (o Faro e a Lanterna adiantam
+o eco; o passo fica no tempo): `var foi := CenarioDoCanto.falante(self, l, ECO[lado], 0.9)` e
+`anotar("pista", l, {"n": n, "evento": "mandou", "canal": "alto_falante", "o_que": ECO[lado], "no_controle": foi})`;
+`_info[l][n].ecoou = true`. Na tela, nada muda: as duas pedras do degrau seguinte são iguais. Se `_eco_na_tv[l]` (o
+tombo, abaixo), o eco toca também na TV, uma vez: `Som.tocar(ECO[lado], jogador(l).global_position, -8.0)`, e
+`_eco_na_tv[l] = false`.
 
-**Os pontos:** `marcar(l, PONTOS[julgamento])` (o item, `Itens.pontos_do_acerto`, o kit já aplica no `julgar_toque`: H08).
+### Pisar
 
-**Os 100 segundos:** entrada (0–33 s) um passo por vez do dono (chance 0,8);
-**pico** (33–66 s) dois passos por vez (em colcheias) — aos 33 s um trovão de
-gelo racha no fundo (`Som.tocar("golpe", Vector3(0, 6, -7), -4.0)`, a névoa
-clareia por um instante com `pulso_de_luz(Color("#b9b0ff"))`) e todos sentem
-`golpe`; saída (66–100 s) um passo, com toda batida do dono.
+O analógico esquerdo passando de `LX_VAI` para um lado (esquerda negativa), rearmando abaixo de `LX_VOLTA`:
 
-**O compasso na mão:** no começo de cada compasso, `Forja.sentir(l, "toque")`
-em cada presente com controle e `CenarioDoCanto.tempo_forte()`.
+```gdscript
+func _pisar(l: int, lado: int) -> void:
+	var nn := casar_toque(l)
+	if nn < 0:
+		jogador(l).gesto("emote-no", 0.2)  # nenhum passo perto: ele olha para o lado
+		return
+	_ultima[l] = _info[l].get(nn, {}).duplicate()
+	_ultima[l]["feito"] = lado
+	anotar("entrada", l, {"o": "resposta", "n": nn, "lado_pedido": int(_ultima[l].lado), "lado_feito": lado})
+	if lado == int(_ultima[l].lado):
+		julgar_nota(l, nn)  # BOM ou melhor sobe; ERRO tropeça
+	else:
+		nota_perdida(l, nn)  # a pedra oca: despenca
+```
 
-## O cenário
+O passo que passa de `FOLGA_PERDIDA` (0,14 s) sem pisada é `nota_perdida` pelo `_passaram(l)` (o da N1): tropeça e
+fica (o `_ultima[l]` sem `feito`).
 
-- `CenarioDoCanto.montar(self, ESCURO)` (o sino grande fica no fundo, no alto).
-- A câmera mais alta e mais longe, para as escadas:
-  `camera_pos = Vector3(0, 7.8, 12.2)`, `camera_olhar = Vector3(0, 2.8, -2.2)`.
-- Por lugar: `raia(l)` (o chão de partida), `posicionar(l)`, `preso = true`,
-  `rotation.y = PI` (de costas: ele sobe para o fundo).
-- **A escada de cada raia:** para `k` de 1 a `DEGRAUS`, duas pedras
-  `Kit.caixa(self, Vector3(0.9, 0.15, 0.6), Vector3(RAIAS[l] ± PEDRA_X, DEGRAU_ALTURA * k, Z_JOGADOR - DEGRAU_FUNDO * k), mat)`
-  com `mat = Kit.material(Color("#2a2233"), 0.0, 0.95)` — iguais; a firme de
-  cada degrau é a do `lado` do passo, decidida só quando o passo é gerado
-  (antes disso, nenhuma é firme). A pedra firme pisada ganha o emissivo da
-  cor do lugar (0,8): o caminho aceso fica atrás dele.
-- **O topo:** uma plataforma `Kit.caixa(self, Vector3(2.0, 0.3, 1.2), topo, pedra)`
-  com uma tocha `Kit.peca(self, "banner", ...)` e a luz `#ffb070` que acende
-  quando alguém chega.
-- **A luz do cavaleiro:** uma `OmniLight3D` da cor do lugar, alcance 2,2,
-  energia 0,8, presa ao boneco (filha dele): no escuro, cada um vê só onde está.
-- O cavaleiro sobe e desce pela escada com tween (0,15 s por degrau; o
-  despencar, 0,4 s com `gesto("fall", 0.6)`), a posição final sempre a do
-  degrau: `Vector3(RAIAS[l] + (±PEDRA_X do último lado), DEGRAU_ALTURA * d + 0.1, Z_JOGADOR - DEGRAU_FUNDO * d)`.
-- O checklist do 11: pedras em caixa, foscas; o terror escurece a luz da
-  casa; o emissivo só no caminho aceso e na borda da raia.
+**Subir** (no `toque`): `marcar(l, PONTOS[julgamento])`; `subida[l] += CenarioDoCanto.gancho(l, "velocidade") *
+Itens.velocidade(l, "corrida") * (2.0 if _reta else 1.0)`; `degrau[l] = mini(DEGRAUS, floori(subida[l]))`. O
+cavaleiro vai ao degrau novo em 0,15 s (curva `QUAD` `EASE_OUT`, `gesto("walk", 0.3)`), sobre a pedra do lado pisado;
+a pedra firme acende na cor do lugar (`Tema.emissivo(mat, 0.8, l)`) e fica acesa: o caminho. Na TV:
+`Som.tocar("pedra", pos, -14.0)`.
 
-## O repertório
+**O topo:** quando alguém chega a `DEGRAUS`, todos `acabou` no mesmo quadro e o kit fecha (`primeiro_a_chegar`).
+Senão, os 100 s.
 
-| recurso | o quê | quando |
-| --- | --- | --- |
-| **alto-falante (protagonista)** | o eco: `"nota"` (esquerda) / `"nota_alta"` (direita), 0,9 | uma batida antes de cada passo, só no dono |
-| vibração | `toque` | no começo de cada compasso (o tempo forte) |
-| vibração | `acerto` / `perfeito` / `erro` (o kit) | na pisada julgada |
-| vibração | `golpe` | ao despencar; aos 33 s, em todos (o trovão) |
-| barra de luz | `CenarioDoCanto.luz_da_nota(l, BRILHO)` (50%: o escuro) | sempre |
-| barra de luz | `luz_da_nota(l, 1.0)` por `PULSO_S` | na pisada boa (a própria nota); volta a 50% |
-| luzinhas de jogador | o número, sempre | — |
-| háptica por material | `"pedra"` (o kit, no acerto, no cabo) | — |
-| gatilho | `Forja.gatilho(l, 1, Forja.GATILHO_OFF)` no `montar` | nada a segurar |
-| som na TV | `"passo_salao"` baixo (−10 dB) em cada degrau subido; `"pedra"` na pedra oca que cai | — |
+### O tombo (a pedra oca)
 
-## A falha
+Na `falha` com `feito` diferente de `lado`:
 
-- **O lado errado:** a pedra oca afunda e cai no escuro (tween de `y` −3 em
-  0,5 s, `Som.tocar("pedra", ...)`); o cavaleiro despenca um andar
-  (`gesto("fall", 0.6)`, tween de 0,4 s até o degrau de quatro abaixo),
-  `Forja.sentir(l, "golpe")`; as pedras acesas acima dele apagam.
-- **Tropeçou** (fora do tempo, ou sem pisar): o cavaleiro cambaleia no
-  degrau (`gesto("emote-no", 0.3)`) e fica.
-- **A recuperação:** o caminho aceso até onde ele está continua; o próximo
-  passo é a próxima vez dele.
+1. `cai = maxi(ANDAR_MIN, roundi(ANDAR * CenarioDoCanto.gancho(l, "empurrao") * (1.0 - Itens.resiste_a_empurrao(l))))`;
+   `subida[l] = maxf(0.0, subida[l] - cai)`; `degrau[l] = floori(subida[l])`.
+2. A pedra oca afunda: tween de `y` −3 em 0,5 s, e some. No lugar fica o buraco:
+   `Kit.caixa(self, Vector3(0.8, 0.02, 0.26), topo_da_pedra, Kit.material(Tema.JANELA, 0.0, 1.0))`, até o fim.
+3. As pedras acesas acima do degrau novo apagam (`Tema.emissivo(mat, 0.0, l)`).
+4. `_cai_em[l] = CenarioDoCanto.proxima_colcheia(0.15)`; o cavaleiro despenca até o degrau novo (curva `QUAD`
+   `EASE_IN`, chegando nessa colcheia), com `gesto("fall", 0.6)`; no alto-falante dele,
+   `CenarioDoCanto.falante(self, l, "nota_alta", 0.9)`.
+5. **Quando `Ritmo.batida() >= _cai_em[l]`** (`_bater(l)`): `Som.tocar("golpe", pos, -6.0)` e
+   `Som.tocar("pedra", pos, -4.0)` na TV; `CenarioDoCanto.falante(self, l, "nota", 0.9)` (o fim do tombo, grave);
+   `Forja.sentir(l, "golpe")`; o R2 em Resistência (`Forja.gatilho(l, 1, Forja.GATILHO_RESISTENCIA, 2, 4)`) por
+   0,25 s, depois Off; `CenarioDoCanto.exagero(self, _cenario, "estrondo", jogador(l))`;
+   `CenarioDoCanto.so_o_dono(self, l)`; 48 faíscas `Tema.GRAFITE` (`Efeitos.faiscas(self, pos, Tema.GRAFITE, 48, 1.0)`);
+   `jogador(l).gesto("sit", sentado_s)`; e
+   `momento("despenca", l, Vector3(ESCADA_X[l], y_do_degrau, z_do_degrau), DEGRAU_ALTURA * ANDAR + 1.1, {"degraus": cai})`.
+6. **Sentado** por `CenarioDoCanto.queda(l, SENTADO_TEMPOS)` batidas (0,75 a 1,25): os passos dele com alvo nesse
+   tempo saem da fila sem julgar (`_notas[l].erase(nn)` e `_info[l].erase(nn)`: o kit não tem função para isso) e
+   não ecoam.
+7. `_eco_na_tv[l] = true`: o próximo eco dele toca também na TV, e a sala ouve com ele.
 
-## O fim e o vencedor
+**Tropeçou** (ERRO no tempo, ou o passo passou): `gesto("emote-no", 0.3)`, e fica.
+
+### O pico
+
+Na primeira batida com `no_pico()`: `Som.tocar("golpe", Vector3(0, 4.0, -6.0), -4.0)` (o trovão no fundo da caverna),
+`Forja.sentir(l, "golpe")` em todos com controle (sem gatilho), e o `CenarioDoCanto.passar` sobe a chave 20 % e recua
+a câmera 10 %.
+
+### A reta
+
+Na batida `_b_fim - RETA_BATIDAS` (209), uma vez: as velas do topo acendem (A cena) e
+`momento("reta", -1, Vector3(0, 0, Z_JOGADOR), 1.8, {"objeto": "escadas", "valores": "9,14,6,3"})`, com o degrau de
+P1 a P4 (`-` para quem não está). Daí até o fim, cada passo certo sobe 2 degraus.
+
+### O ensina
+
+Na contagem (compasso 0), as pedras do primeiro degrau de cada escada falam: na batida 1, as da esquerda acendem
+(`Tema.emissivo(mat, 0.8, l)`) e a TV toca `Som.tocar("nota", Vector3(0, 1.0, Z_JOGADOR), -8.0)`; na batida 2, as da
+direita acendem e a TV toca `"nota_alta"` a −8 dB; na batida 3, as duas apagam. Depois, o som só vem do controle.
+
+### O fim e o vencedor
 
 ```gdscript
 func vencedor() -> Array:
 	var lista := presentes()
 	lista.sort_custom(func(a, b):
-		if int(degrau[a]) != int(degrau[b]):
-			return int(degrau[a]) > int(degrau[b])
+		if float(subida[a]) != float(subida[b]):
+			return float(subida[a]) > float(subida[b])
 		return int(pontos[a]) > int(pontos[b]))
 	return lista
 ```
 
-(Quem chegou ao topo tem `degrau == DEGRAUS`: vem primeiro. Com dois no topo
-no mesmo quadro, os pontos desempatam.)
+Quem chegou ao topo tem `subida >= DEGRAUS` e vem primeiro. Com dois no topo no mesmo quadro, quem passou mais
+desempata; depois, os pontos.
 
-## Com menos de quatro
+### Com menos de quatro
 
-- **Três e dois:** a roda do dono (mais passos para cada um: a corrida anda
-  mais depressa).
-- **Um:** só as pares; a corrida é contra os 100 s.
-- **O controle que cai:** os ecos dele não tocam e os passos somem sem erro;
-  ele fica no degrau em que estava, e volta a subir quando o controle volta.
+- **Três e dois:** a roda do dono anda mais depressa (a vez a cada 3 ou 2 batidas): mais passos para cada um.
+- **Um:** só as batidas pares; a corrida é contra os 100 s. `com_poucos()` devolve `""`.
+- **O controle que cai:** os ecos dele não tocam e os passos saem calados (`notas_perdidas(l)`); ele fica no degrau, e
+  volta a subir no próximo passo que ainda não chegou.
 
-## O robô
-
-```gdscript
-# O robô ouve o ataque do eco no alto-falante simulado (a lógica de ataque da
-# N1) e pisa na batida seguinte, do lado que ouviu (`Forja.som_virtual` dá o
-# nome do último som: H08). Se não ouviu, não pisa. Quando não acerta, 250 ms tarde.
-var _robo_vale := [1.0, 1.0, 1.0, 1.0]
-var _robo_desde := [0.0, 0.0, 0.0, 0.0]
-var _robo_ouviu := [{}, {}, {}, {}]  ## meia batida do ataque -> o som ouvido
-var _robo_nota := [-1, -1, -1, -1]
-var _robo_atraso := [0.0, 0.0, 0.0, 0.0]
-
-
-func robo(l: int, _dt: float) -> void:
-	if not Forja.robo:
-		return
-	var nivel := float(Forja.som_virtual(l).get("falante", 0.0))
-	var agora := Ritmo.t_musica()
-	if nivel > 0.12 and nivel - float(_robo_vale[l]) > 0.10 and agora - float(_robo_desde[l]) > 0.12:
-		_robo_vale[l] = nivel
-		_robo_desde[l] = agora
-		_robo_ouviu[l][int(round(Ritmo.batida() * 2.0))] = str(Forja.som_virtual(l).get("som", ""))  # o nome do último som (H08)
-	else:
-		_robo_vale[l] = minf(float(_robo_vale[l]), nivel)
-	if _notas[l].is_empty():
-		return
-	var nt: Dictionary = _notas[l][0]
-	if int(nt.n) != _robo_nota[l]:
-		_robo_nota[l] = int(nt.n)
-		# o temperamento (--robo=bom|medio|ruim): quando não acerta, 250 ms tarde
-		_robo_atraso[l] = 0.0 if Forja.robo_acerta() else 0.25
-	var eco := int(round((float(nt.b) - 1.0) * 2.0))
-	var ouviu: bool = _robo_ouviu[l].has(eco) or _robo_ouviu[l].has(eco + 1)
-	if ouviu and agora >= float(nt.t) + float(_robo_atraso[l]):
-		var som := str(_robo_ouviu[l].get(eco, _robo_ouviu[l].get(eco + 1, "")))
-		Forja.robo_eixo(l, Forja.LX, -1.0 if ECO.find(som) == ESQ else 1.0, 0.1)  # o lado que ouviu
-		_robo_nota[l] = 99999
-```
-
-(O robô solta o analógico entre os passos: o `robo_eixo` dura 0,1 s e volta
-ao meio, o que rearma a pisada.)
-
-## Os ganchos
+### Os ganchos
 
 ```gdscript
-var _notas := [[], [], [], []]
+var _info := [{}, {}, {}, {}]  ## lugar -> {n: {b, lado, ecoou}}
 var _ultima := [{}, {}, {}, {}]
 var _gerado := 1
 var _compasso := 0
-var _fora := [false, false, false, false]
+var _b_fim := 0
+var _sem_passo := [false, false, false, false]  ## a vez anterior não teve passo
 var _armado := [true, true, true, true]
+var subida := [0.0, 0.0, 0.0, 0.0]
 var degrau := [0, 0, 0, 0]
-var _lado_do_boneco := [ESQ, ESQ, ESQ, ESQ]
-var _pedras := {}  ## lugar -> [[esq, dir] por degrau]
+var _lado := [ESQ, ESQ, ESQ, ESQ]  ## a pedra em que ele está
+var _pedras := {}  ## lugar -> [[{no, mat}, {no, mat}] por degrau, do 1 ao 24]
+var _cai_em := [-1.0, -1.0, -1.0, -1.0]
+var _ultimo_tombo := [0, 0, 0, 0]
+var _sentado_ate := [-1.0, -1.0, -1.0, -1.0]
+var _gatilho_ate := [-1.0, -1.0, -1.0, -1.0]
+var _eco_na_tv := [false, false, false, false]
 var _pulso := [0.0, 0.0, 0.0, 0.0]
+var _pico_tocou := false
+var _reta := false
+var _velas := []
+var _cenario := {}
 
 
 func montar() -> void:
-	camera_pos = Vector3(0, 7.8, 12.2)
-	camera_olhar = Vector3(0, 2.8, -2.2)
-	CenarioDoCanto.montar(self, ESCURO)
+	var pose := CenarioDoCanto.pose_da_camera(1.0, OLHAR)
+	camera_pos = pose[0]
+	camera_olhar = pose[1]
+	_cenario = CenarioDoCanto.montar(self, ESCURO, false)
+	_b_fim = int(floor(duracao * Ritmo.bpm / 60.0))
+	_montar_a_caverna()  # as rochas, a plataforma do topo e as velas
 	for p in jogadores:
 		var l: int = p.lugar
 		raia(l)
 		posicionar(l)
-		p.rotation.y = PI
+		p.position = Vector3(ESCADA_X[l], 0.0, Z_JOGADOR)
+		p.rotation.y = PI  # de costas: ele sobe para o fundo
 		p.preso = true
 		_pedras[l] = _montar_a_escada(l)
-		_luz_do_cavaleiro(p)
-		Forja.gatilho(l, 1, Forja.GATILHO_OFF)
-	_montar_o_topo()
+		_luz_do_cavaleiro(l)
+		Forja.gatilhos_off(l)
 
 
 func iniciar_jogo() -> void:
@@ -274,35 +308,28 @@ func jogar(dt: float) -> void:
 	var c := int(floor(Ritmo.batida() / 4.0))
 	if c > _compasso:
 		_compasso = c
-		CenarioDoCanto.tempo_forte()
-		for l in presentes():
-			if conectado(l):
-				Forja.sentir(l, "toque")
+		CenarioDoCanto.tempo_forte()  # o sino da capela, longe, no tempo 1
 	while _gerado <= c + 1:
-		_gerar_compasso(_gerado)  # os passos, com o lado; marca a pedra firme do degrau
+		_gerar_compasso(_gerado)
 		_gerado += 1
-	var agora := Ritmo.t_musica()
+	_ensinar()  # só no compasso 0
+	_pico_no_tempo()
+	_reta_no_tempo()
+	CenarioDoCanto.passar(self, _cenario, no_pico())
 	for l in presentes():
 		_apagar_o_pulso(l, dt)  # volta a luz_da_nota(l, BRILHO)
+		_tombo_no_tempo(l)  # o _bater, o gatilho que volta, o fim do sentado
 		if not conectado(l):
-			_fora[l] = true
+			notas_perdidas(l)
 			continue
-		if _fora[l]:
-			_fora[l] = false
-			_notas[l] = _notas[l].filter(func(nt): return float(nt.t) > agora)
-		for nt in _notas[l]:
-			if not nt.ecoado and agora >= Ritmo.t_da_batida(float(nt.b) - 1.0):
-				_ecoar(l, nt)
+		_ecoar(l)
 		var lx := Forja.eixo(l, Forja.LX)
 		if _armado[l] and absf(lx) >= LX_VAI:
 			_armado[l] = false
 			_pisar(l, ESQ if lx < 0.0 else DIR)
 		elif absf(lx) <= LX_VOLTA:
 			_armado[l] = true
-		while not _notas[l].is_empty() and agora > float(_notas[l][0].t) + FOLGA_PERDIDA:
-			var nt: Dictionary = _notas[l].pop_front()
-			_ultima[l] = nt
-			nota_perdida(l, int(nt.n))
+		_passaram(l)
 	if presentes().any(func(l): return int(degrau[l]) >= DEGRAUS):
 		for l in presentes():
 			acabou[l] = true
@@ -310,101 +337,364 @@ func jogar(dt: float) -> void:
 
 func toque(l: int, julgamento: int) -> void:
 	var nt: Dictionary = _ultima[l]
-	marcar(l, PONTOS[julgamento])  # o item, o kit já aplicou (H08)
-	degrau[l] = mini(DEGRAUS, int(degrau[l]) + 1)
-	_lado_do_boneco[l] = int(nt.lado)
-	_subir(l)  # tween, a pedra firme acende, "passo_salao" na TV
+	marcar(l, PONTOS[julgamento])
+	subida[l] = float(subida[l]) + CenarioDoCanto.gancho(l, "velocidade") * Itens.velocidade(l, "corrida") * (2.0 if _reta else 1.0)
+	degrau[l] = mini(DEGRAUS, floori(subida[l]))
+	_lado[l] = int(nt.lado)
+	_subir(l)  # o tween, a pedra firme acesa, "pedra" −14 na TV
 	CenarioDoCanto.luz_da_nota(l, 1.0)
 	_pulso[l] = PULSO_S
 
 
 func falha(l: int) -> void:
 	var nt: Dictionary = _ultima[l]
+	_ultima[l] = {}
 	if int(nt.get("feito", -1)) >= 0 and int(nt.feito) != int(nt.lado):
-		degrau[l] = maxi(0, int(degrau[l]) - ANDAR)
-		Forja.sentir(l, "golpe")
-		_despencar(l, int(nt.feito))
+		_tombar(l, int(nt.feito))
 	else:
-		_tropecar(l)
+		jogador(l).gesto("emote-no", 0.3)
+
+
+func status(l: int) -> String:
+	return "" if na_raia(l) else super(l)
+
+
+func dica(_l: int) -> Dictionary:
+	return {}
+
+
+func com_poucos() -> String:
+	return ""
+
+
+func _exit_tree() -> void:
+	CenarioDoCanto.soltar_a_musica(self)
 ```
 
-`_pisar(l, lado)` acha o passo a até `JANELA_BOM`, grava `nt.feito = lado`
-e a `resposta`, põe em `_ultima[l]`, tira da lista e chama `julgar_toque`
-(lado do eco) ou `nota_perdida` (o outro). `_ecoar(l, nt)` toca o eco,
-grava a `chamada` e marca `nt.ecoado = true`.
+`_passaram(l)` é o da N1 (copie). `_gerar_compasso(c)`, `_ecoar(l)`, `_subir(l)`, `_tombo_no_tempo(l)`, `_bater(l)`,
+`_ensinar()`, `_pico_no_tempo()`, `_reta_no_tempo()`, `_apagar_o_pulso(l, dt)`, `_montar_a_caverna()`,
+`_montar_a_escada(l)`, `_luz_do_cavaleiro(l)`, `_afundar(pedra)`, `_apagar_acima(l)` e `_pos_no_degrau(l)` fazem o que
+as partes desta ficha dizem.
 
-Catálogo: `"S06_J27"` em `MINIGAMES` e na lista da seção `S06`. O `.uid`.
-Traduções: `"Eco do Abismo": "Echo of the Abyss"`, `"Responda o eco!": "Answer the echo!"`,
-`"Responda!": "Answer!"`; `dica(l)`: `{"partes": ["@stick_l", "Pise do lado do eco"], ...}`
-com `na_raia(l)` e `not aprendeu(l)` (`"Pise do lado do eco": "Step to the echo's side"`);
-`status(l)`: `"Degrau %d" % degrau[l]` (`"Degrau %d": "Step %d"`).
+O catálogo: `Catalogo.MINIGAMES["S06_J27"] = preload("res://scripts/minigames/s06/eco_do_abismo.gd")` e `"S06_J27"`
+na lista `"minigames"` da seção `S06`. As traduções da tabela de cima.
 
-## O que o registro mede
+## A cena
 
-- `som_controle` (H07) de cada eco; `pista` (`canal` `alto_falante`) (n, som, `no_controle`).
-- `entrada` `resposta` (lado pedido, lado feito) e o `toque` do kit: o eco com
-  `placa` e o lado errado, sempre num controle, é o alto-falante que não
-  cantou (o jogador chutou).
+### A câmera
 
-## Armadilhas
+A da capela (N1), mais alta: `CenarioDoCanto.pose_da_camera(1.0, OLHAR)`, com `OLHAR = (0, 2,6, −2,2)`: a câmera em
+`(0, 16,39, 9,37)`, 35 mm, plongée de 50°, modo `fixa`. O quadro vê as quatro escadas inteiras, do pé (z = 1,4, y = 0)
+ao topo (z = −5,3, y = 5,5): o raio de cima passa 31° abaixo da horizontal, e o cavaleiro em pé no topo está a 33°.
+Nenhum corte, do apito ao apito. No pico, `pose_da_camera(1.1, OLHAR)`. O tremor é só o do `exagero`. O modo é `fixa`,
+não `corrida`: a escada segura cada um no degrau, e a câmera de corrida da G05 puxaria os de trás.
 
-- **As duas pedras são iguais na tela:** a firme só existe na partitura (e
-  acende depois de pisada). Nenhum brilho, cor ou tamanho diferente antes.
-- **O eco é mais novo que a nota do kit:** num controle, o eco do próximo
-  passo pode cortar o fim da nota do acerto anterior (H07: um som por vez).
-  É o certo: o eco é a pista.
-- **O despencar não passa de 0** e apaga as pedras acesas acima.
-- **`primeiro_a_chegar`:** ao chegar, todos `acabou` no mesmo quadro — o kit
-  fecha; não espere os outros.
-- **Os pontos e o item:** o kit aplica `Itens.pontos_do_acerto` no `julgar_toque`
-  (H08); marque cru.
+### A luz da seção
+
+A da N1, escurecida: `CenarioDoCanto.montar(self, 0.4, false)`: a névoa `#050d26` do lado B (o main), o
+preenchimento `#1f346a` a 0,08, a chave `#e5d3c6` com energia 0,19 (0,47 × 0,4), as tochas `Tema.TUNGSTENIO` a 0,36.
+Sem pórtico. O que se vê no escuro é a luz de cada cavaleiro e o caminho aceso.
+
+- **A luz do cavaleiro:** uma `OmniLight3D` filha do boneco, em `(0, 1.2, 0)`, cor `Tema.JOGADOR[l]`, energia 0,8,
+  alcance `2.2 * CenarioDoCanto.gancho(l, "raio")` (o Faro: 1,76 m a 2,64 m).
+- **As velas do topo:** apagadas até a reta; nela, uma `OmniLight3D` `Tema.TUNGSTENIO` por vela, energia 0,6, alcance 4.
+- **O pico:** a chave +20 % em 1 batida (com `Opcoes.flashes` desligado, +10 % em 2).
+
+### As peças Kenney e o papel de cada uma
+
+O fator do `modular-cave-kit` é 0,25: a escala 4 dá o tamanho cru.
+
+| peça | onde | papel |
+| --- | --- | --- |
+| `floor`, `wall` | `Kit.arena(sala, 5, 3)` (o cenário comum) | o chão e as paredes |
+| `castle-kit/tower-hexagon-base` e `roof` | as torres do cenário comum, em `(±7,6, 0, −5,4)` | os lados do fundo |
+| `modular-cave-kit/gate-rock` (escala 4: 4 × 2,46 m, 4,05 m de alto) | `(0, 0, −6.4)` | a boca da caverna atrás do topo |
+| `modular-cave-kit/template-wall` (escala 4: 4,05 m) | `(±3.4, 0, −6.4)` | a rocha do fundo, dos dois lados da boca |
+| `graveyard-kit/lantern-candle` (escala 2) | `(ESCADA_X[l], 5.5, −5.75)`, uma por escada | as velas do topo |
+
+O que não é peça Kenney (caixas do `Kit`; `metallic` 0):
+
+| objeto | forma | material |
+| --- | --- | --- |
+| a pedra (duas por degrau, 24 degraus, 4 escadas) | caixa 0,8 × 0,12 × 0,26 em `(ESCADA_X[l] ± 0.45, 0.22k − 0.06, Z_JOGADOR − 0.28k)` | `Kit.material(Tema.GRAFITE, 0.0, 0.95)`, uma por pedra |
+| a pedra acesa (o caminho) | a mesma | `Tema.emissivo(mat, 0.8, l)` |
+| o buraco da pedra oca | caixa 0,8 × 0,02 × 0,26 no topo da pedra que caiu | `Kit.material(Tema.JANELA, 0.0, 1.0)` |
+| a plataforma do topo | caixa 12,4 × 0,3 × 0,5 em `(0, 5.35, −5.75)` | `Kit.material(Tema.GRAFITE, 0.0, 0.95)` |
+
+As duas pedras de um degrau são **iguais**: o mesmo tamanho, a mesma cor, nenhum brilho antes de pisada. A firme é a
+do `lado` do passo; ela só existe na partitura.
+
+### O que brilha e de quem é
+
+| o que brilha | dono | energia |
+| --- | --- | --- |
+| o contorno do cavaleiro | o lugar | 2,4 (G08) |
+| a pedra pisada (o caminho) | o lugar | 0,8, até o tombo apagar |
+| as pedras do ensina | o lugar | 0,8, por 1 batida |
+| a luz do cavaleiro | o lugar | luz 0,8, alcance 2,2 × `raio` |
+| as velas do topo | a forja | luz `Tema.TUNGSTENIO` 0,6, na reta |
+| as faíscas do tombo | ninguém (cinza) | `Efeitos.faiscas(self, pos, Tema.GRAFITE, 48, 1.0)` |
+
+Nenhuma cor fora dos tokens: o `#2a2233`, o `#ffb070` e o `#b9b0ff` da ficha antiga somem.
+
+### A montagem
+
+- Por lugar: `raia(l)` (o chão de partida), `posicionar(l)`, depois `position = (ESCADA_X[l], 0, Z_JOGADOR)`,
+  `rotation.y = PI`, `preso = true`; as 48 pedras; a luz do cavaleiro.
+- A posição do cavaleiro no degrau `d`, sobre o lado `s` (ESQ −1, DIR +1):
+  `Vector3(ESCADA_X[l] + s * PEDRA_X, DEGRAU_ALTURA * d, Z_JOGADOR - DEGRAU_FUNDO * d)`; no degrau 0, `x = ESCADA_X[l]`.
+
+## O som
+
+| evento | na TV | no alto-falante do dono | id do mapa |
+| --- | --- | --- | --- |
+| o eco | — (sem alto-falante: `nota`/`nota_alta` −10 dB na raia) | `"nota"` (esquerda) ou `"nota_alta"` (direita), 0,9 | `mod_nota`, `mod_nota_alta`; `sint_nota`, `sint_nota_alta` |
+| o eco depois do tombo (uma vez) | `nota`/`nota_alta` −8 dB, no cavaleiro | o mesmo eco | `sint_nota`, `sint_nota_alta` |
+| o passo certo | `Som.tocar("pedra", pos, -14.0)` | — | `pedra_0..4` |
+| o tropeço | a falha do kit (−6) | — | `falha_0..2` |
+| o tombo, ao pisar | — | `"nota_alta"`, 0,9 | `mod_nota_alta` |
+| o tombo, ao bater | `Som.tocar("golpe", pos, -6.0)` e `Som.tocar("pedra", pos, -4.0)` | `"nota"`, 0,9 | `golpe_0..4`, `pedra_0..4`; `mod_nota` |
+| o trovão do pico | `Som.tocar("golpe", Vector3(0, 4, -6), -4.0)` | — | `golpe_0..4` |
+| o ensina | `nota` e `nota_alta` −8 dB | — | `sint_nota`, `sint_nota_alta` |
+| o tempo forte | `Som.tocar("sino", SINO_TV, -16)` | — | `sint_sino` |
+| a faixa | `MUS_S06_J27`: 135 BPM, Mi♭ menor, 150 s (toca 100); até ela existir, `sint_trilha` | — | `mus_s06_j27` |
+
+- **A música abaixa na pista:** todo `falante` chama `abaixar_a_musica` (−12 dB por 1 batida, volta em 300 ms).
+- `nota_no_falante` false: o kit não toca nada no alto-falante. O `jul_*` da H11 também não vai a ele.
+- O material `"pedra"`: a textura do acerto na háptica (o kit).
+
+## O controle
+
+| evento | quem sente | vibração | gatilho | barra de luz | alto-falante |
+| --- | --- | --- | --- | --- | --- |
+| o eco | só o dono | — | — | — | `nota` / `nota_alta`, 0,9 |
+| o passo BOM ou ÓTIMO | o dono | `acerto` (0,3 / 0,6, 80 ms; o kit) | — | 100 % por 0,12 s, volta a 50 % | — |
+| o passo PERFEITO | o dono | `perfeito` (0,5 / 0,8, 100 ms; o kit) | — | o kit: branco 0,15 s | — |
+| o tropeço | o dono | `erro` (0,7 / 0,3, 160 ms; o kit) | — | o kit: escurecida 0,5 s | — |
+| o tombo, ao bater | o dono | `golpe` (1,0 / 0,6, 250 ms) | R2 em Resistência (2, 4) por 250 ms, depois Off | — | `nota_alta` e `nota` |
+| o trovão do pico | todos | `golpe` | — | — | — |
+| começar | todos | — | `gatilhos_off(l)` | a cor do lugar a 50 % | — |
+
+A barra de luz fica a 50 % no escuro (o piso da F04 é 30 %) e nunca diz o lado. Fora da bancada, nunca pergunta.
+
+### O robô
+
+```gdscript
+# O robô ouve o eco no alto-falante simulado (CenarioDoCanto.ouvir) e guarda o
+# instante e o som. No tempo de cada passo, procura o eco ouvido uma batida
+# antes (menos a antecedência dele). Se ouviu, pisa do lado que ouviu; quando
+# não acerta, sorteia de novo: 250 ms tarde (tropeça) ou do outro lado (cai).
+var _ouvido := [{}, {}, {}, {}]
+var _robo_ouviu := [[], [], [], []]  ## lugar -> [[t, som], ...], os últimos 8
+var _robo_feita := [-1, -1, -1, -1]
+var _robo_tarde := [[-1.0, 0], [-1.0, 0], [-1.0, 0], [-1.0, 0]]  ## [quando, lado]
+
+
+func robo(l: int, _dt: float) -> void:
+	if not Forja.robo:
+		return
+	var a := CenarioDoCanto.ouvir(l, _ouvido[l])
+	if not a.is_empty():
+		_robo_ouviu[l].append([float(a.t), str(a.som)])
+		if _robo_ouviu[l].size() > 8:
+			_robo_ouviu[l].pop_front()
+	var agora := Ritmo.t_musica()
+	if float(_robo_tarde[l][0]) >= 0.0 and agora >= float(_robo_tarde[l][0]):
+		Forja.robo_eixo(l, Forja.LX, -1.0 if int(_robo_tarde[l][1]) == ESQ else 1.0, 0.1)
+		_robo_tarde[l][0] = -1.0
+	var batida := 60.0 / Ritmo.bpm
+	for nn in notas_em_aberto(l):
+		if nn <= int(_robo_feita[l]):
+			continue
+		var t := alvo_da(l, nn)
+		if agora < t:
+			return
+		_robo_feita[l] = nn
+		var quando := t - batida - CenarioDoCanto.antecedencia(l)
+		for o in _robo_ouviu[l]:
+			if absf(float(o[0]) - quando) <= 0.12 and ECO.has(str(o[1])):
+				var lado := ECO.find(str(o[1]))
+				if Forja.robo_acerta():
+					Forja.robo_eixo(l, Forja.LX, -1.0 if lado == ESQ else 1.0, 0.1)
+				elif Forja.robo_acerta():
+					_robo_tarde[l] = [agora + 0.25, lado]
+				else:
+					Forja.robo_eixo(l, Forja.LX, 1.0 if lado == ESQ else -1.0, 0.1)
+		return
+```
+
+O `robo_eixo` dura 0,1 s e volta ao meio: isso rearma a pisada. O robô não lê `_info`: se o eco não saiu do
+alto-falante simulado, ele não pisa (e tropeça). No médio (66 % de acerto), ele cai em 12 % dos passos e tropeça em
+22 %. A mesma conta roda no controle simulado da prova do jogo e no da prova visual.
+
+## O cavaleiro
+
+O cavaleiro da montagem (G13), de costas, subindo. A cabeça, a parte de cima e a de baixo aparecem como estão; as
+mãos ficam livres (`posicionar`), e o efeito do item vale. Ele pode ser de outra raça (G13): esta ficha não supõe
+corpo humano; usa o esqueleto comum de 7 ossos e as animações `walk`, `fall`, `sit` e `emote-no`.
+
+| stat | gancho | o que muda no Eco | stat 1 | stat 3 | stat 5 |
+| --- | --- | --- | --- | --- | --- |
+| Peso | `empurrao` | quantos degraus o tombo tira (`round(4 × empurrao)`, mínimo 2) | 5 | 4 | 3 |
+| Passo | `velocidade` | quanto cada passo certo sobe | 0,94 degrau | 1 | 1,06 |
+| Fôlego | `levantar` | quanto tempo fica sentado depois do tombo | 1,25 batida | 1 | 0,75 |
+| Faro | `pista` | o eco sai antes; o passo fica no tempo | 40 ms depois | no tempo | 40 ms antes |
+| Faro | `raio` | o alcance da luz do cavaleiro | 1,76 m | 2,2 m | 2,64 m |
+
+Os itens: o Escudo absorve o primeiro erro (o kit: o primeiro lado errado não derruba); a Âncora resiste ao tombo
+(`resiste_a_empurrao` 0,5: 2 degraus em vez de 4) e sobe 0,9 por passo (`Itens.velocidade(l, "corrida")`); a Lanterna
+adianta o eco meio tempo (0,22 s a 135 BPM); o Martelo dobra o perfeito no tempo forte (o kit); o Diapasão aumenta o
+ganho da nota do acerto (1,3, o kit, fora do `tct`). Nenhum stat muda a janela de julgamento.
+
+```gdscript
+## O tombo: a pedra oca afunda, o cavaleiro cai `cai` degraus e bate no chão na
+## próxima colcheia (o _bater faz o resto).
+func _tombar(l: int, lado_feito: int) -> void:
+	var cai := maxi(ANDAR_MIN, roundi(ANDAR * CenarioDoCanto.gancho(l, "empurrao") * (1.0 - Itens.resiste_a_empurrao(l))))
+	var oca: Dictionary = _pedras[l][mini(DEGRAUS, int(degrau[l]) + 1) - 1][lado_feito]
+	_afundar(oca)  # o tween de y −3 em 0,5 s, e o buraco JANELA no lugar
+	subida[l] = maxf(0.0, float(subida[l]) - cai)
+	degrau[l] = floori(subida[l])
+	_apagar_acima(l)
+	_cai_em[l] = CenarioDoCanto.proxima_colcheia(0.15)
+	var dur := Ritmo.t_da_batida(_cai_em[l]) - Ritmo.t_musica()
+	var p := jogador(l)
+	p.gesto("fall", 0.6)
+	p.create_tween().tween_property(p, "position", _pos_no_degrau(l), dur).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	CenarioDoCanto.falante(self, l, "nota_alta", 0.9)
+	_ultimo_tombo[l] = cai
+```
+
+O erro não tem squash. O desregistro do erro é do kit e da G08; o Eco soma o tombo e o tropeço.
+
+## As reações
+
+- **Carimbos que o Eco pode disparar** (do kit e do HUD, G04): `car_em_chamas` (5 Ressonâncias seguidas do mesmo
+  lugar) e `car_por_um_fio` (no resultado). O `car_acorde` não acontece: os passos nunca caem no mesmo tempo para os
+  quatro. O `car_virada` é do placar.
+- **Adesivos:** ninguém está fora da rodada; ninguém manda adesivo durante o jogo.
+- Nenhum carimbo próprio.
+
+## A diversão
+
+**O momento: despenca** (`despenca`). A pedra oca afunda, o cavaleiro cai 4 degraus no escuro e bate na colcheia, as
+pedras acesas acima dele apagam, e na escada do lado o vizinho passa por ele subindo. Degrau estrondo (tremor de
+0,05 m por 2 batidas, hit-stop de 3 quadros, 48 faíscas).
+
+- **Rastro:** o buraco escuro no degrau, até o fim; o cavaleiro sentado 1 tempo no degrau de baixo; a escada apagada
+  acima dele.
+- **A curva:** de 0 a 33 s, um passo por vez; de 33 a 67 s, o trovão e dois passos por vez em colcheia; de 67 s ao
+  fim, um passo por vez, as velas do topo acendem, e nas últimas 16 batidas cada passo certo sobe 2.
+- **A mudança: quem caiu ouve o próximo eco também na TV**, uma vez, e a sala ouve com ele.
+- **Ensina sem falar:** na contagem, as pedras da esquerda acendem com o grave na TV, as da direita com o agudo.
+- **Quem está perdendo:** o caminho aceso até onde ele está continua; cair custa 4 degraus, não a corrida; a reta
+  dobra o passo, e quem está embaixo ainda alcança.
+- **A nota de hoje:** 3.
+
+**Como o jogador do time confere** (a mesa padrão: P1 `bom`, P2 `medio`, P3 `medio`, P4 `ruim`, semente 7, sem a
+bancada, pela prova visual da F09):
+
+| item da régua | pelo robô | pela prancha |
+| --- | --- | --- |
+| 1. a graça em 10 s | cada lugar tem uma linha `toque` com `t_musica` ≤ 10,0 (o primeiro passo cai até 4,9 s) | o quadro de 10 s mostra um cavaleiro num degrau acima do 0 |
+| 4. o momento | pelo menos 3 linhas `momento` `despenca` entre 0 e 100 s, pelo menos 1 entre 33 e 67 s | em 2 quadros seguidos, um cavaleiro 4 degraus abaixo de onde estava |
+| 5. a curva | passos por segundo no 2.º terço ≥ 1,5 × os do 1.º (dá 3,0 ×); no 3.º ≥ 1,0 × (dá 1,5 ×); a linha `momento` `reta` existe | o quadro do meio do 2.º terço tem a luz 20 % acima do quadro do meio do 1.º |
+| 6. a falha | o P4 tem pelo menos 10 linhas `toque` com `erro` | o P4 é o mais baixo em metade dos quadros |
+| 7. quem perde joga | a maior distância entre dois passos seguidos de cada lugar é de até 8 batidas; o P4 tem um `toque` BOM ou melhor em cada terço | o P4 aparece em 100 % dos quadros de jogo |
+| 8. a câmera | cada `despenca` tem 0,2 ≤ `x_tela` ≤ 0,8 e `altura_tela` ≥ 0,08 (P4: 0,77) | a queda se vê no quadro de 480 × 270 sem ampliar |
+| 9. o impacto | para cada `despenca`, uma linha `sensacao` `golpe` a até 16,7 ms, a até 1 quadro de uma colcheia | o quadro seguinte mostra o buraco escuro |
+| 10. o placar no mundo | a ordem do `vencedor()` bate com a ordem dos degraus no `momento` `reta` e no fim | no quadro de 95 s, quem olha diz a ordem pela altura nas escadas, e ela bate com o registro |
+
+Até o robô por lugar existir, a prova roda com `--robo=medio` nos quatro e confere os itens 1, 4, 5, 8, 9 e 10; os
+itens 6 e 7 esperam o robô por lugar.
 
 ## Pronto quando
 
-O Eco do Abismo joga do aviso ao resultado com 4, 3, 2 e 1 jogador e com o
-robô nos três temperamentos; aguenta o cabo que cai e volta; fecha com
-vencedor (o primeiro no topo, ou o mais alto); a prova do jogo passa; e
-`bash tests/prova_visual.sh` passa com a **prancha olhada** com o Eco nela
-(o `Catalogo.sortear` da H08 põe o `S06_J27` na noite: rode a prova visual com a semente que o sorteia, `--semente=N`) — no escuro da nuvem, a prancha confere a
-disposição; a aparência é o André quem aprova.
+O Eco do Abismo joga do aviso ao resultado com 4, 3, 2 e 1 jogador e com o robô nos três temperamentos; aguenta o cabo
+que cai e volta; fecha com vencedor (o primeiro no topo, ou o mais alto aos 100 s); o tombo acontece pelo menos 3 vezes
+com a mesa padrão; a prova do jogo passa; e `bash tests/prova_visual.sh` passa com a prancha olhada.
 
 ## Provas
 
 Na sessão: `bash tests/prova_do_jogo.sh` e `bash tests/prova_visual.sh`.
 
-Em `godot/testes/prova_do_jogo.gd`, depois da prova do Canto:
+Em `godot/testes/prova_do_jogo.gd`, depois da `_prova_do_canto()`:
 
 ```gdscript
-## Eco do Abismo (S06_J27): o eco chega ao alto-falante do dono; o degrau
-## nunca passa do topo nem fica negativo; o vencedor é o mais alto.
+## Eco do Abismo (S06_J27): o eco sai do alto-falante simulado; o degrau fica
+## entre 0 e o topo; o vencedor é o mais alto; o tombo é o momento e põe o
+## R2 em Resistência.
 func _prova_do_eco() -> void:
 	var fora := [0]
-	var olhar := func(m: Minigame) -> void:
-		for l in m.presentes():
-			if int(m.degrau[l]) < 0 or int(m.degrau[l]) > m.DEGRAUS:
+	var tocou := [false]
+	var resistencia := [false]
+	var olhar := func(mg: Minigame) -> void:
+		for l in mg.presentes():
+			if int(mg.degrau[l]) < 0 or int(mg.degrau[l]) > mg.DEGRAUS:
 				fora[0] += 1
+			if float(Forja.som_virtual(l).get("falante", 0.0)) > 0.3:
+				tocou[0] = true
+			if int(Forja.percepcao(l).get("gatilho_dir", 0)) == 0x21:
+				resistencia[0] = true
 	var mg = await _joga_o_minigame("S06_J27", 140.0, olhar)
 	if mg == null:
 		return
 	_esperar(fora[0] == 0, "Eco: o degrau sempre entre 0 e o topo")
+	_esperar(tocou[0], "Eco: o eco saiu de um alto-falante simulado")
 	var v := mg.vencedor()
-	_esperar(not v.is_empty() and int(mg.degrau[v[0]]) == v.map(func(l): return int(mg.degrau[l])).max(), "Eco: vence o mais alto")
-	var ecos := _linha_do_tempo().filter(func(e): return e.get("tipo") == "pista" and e.get("slot") == "S06_J27" and e.get("evento") == "mandou")
-	var resp := _linha_do_tempo().filter(func(e): return e.get("tipo") == "entrada" and e.get("slot") == "S06_J27" and e.get("o") == "resposta")
+	_esperar(not v.is_empty() and float(mg.subida[v[0]]) == v.map(func(l): return float(mg.subida[l])).max(), "Eco: vence o mais alto")
+	var linhas := _linha_do_tempo().filter(func(e): return e.get("slot") == "S06_J27")
+	var ecos := linhas.filter(func(e): return e.get("tipo") == "pista" and e.get("evento") == "mandou")
+	var resp := linhas.filter(func(e): return e.get("tipo") == "entrada" and e.get("o") == "resposta")
+	var toques := linhas.filter(func(e): return e.get("tipo") == "toque")
+	var tombos := linhas.filter(func(e): return e.get("tipo") == "momento" and e.get("nome") == "despenca")
 	_esperar(ecos.size() >= 1 and resp.size() >= 1, "Eco: %d ecos e %d pisadas no registro" % [ecos.size(), resp.size()])
+	for l in mg.presentes():
+		_esperar(toques.any(func(e): return int(e.get("lugar", 0)) == l + 1 and float(e.get("t_musica", 99.0)) <= 10.0), "Eco: o P%d pisou até 10 s" % (l + 1))
+	_esperar(tombos.size() >= 3, "Eco: %d tombos (o mínimo é 3)" % tombos.size())
+	_esperar(resistencia[0], "Eco: o tombo põe o R2 em Resistência (0x21)")
+	_esperar(tombos.any(func(e): return float(e.get("t_musica", 0.0)) >= 33.0 and float(e.get("t_musica", 0.0)) <= 67.0), "Eco: um tombo no pico")
+	for a in tombos:
+		_esperar(float(a.get("x_tela", 0.0)) >= 0.2 and float(a.get("x_tela", 0.0)) <= 0.8 \
+			and float(a.get("altura_tela", 0.0)) >= 0.08, "Eco: o tombo no meio da tela (%s)" % [a])
+	if not Forja.bancada:
+		_esperar(_linha_do_tempo().filter(func(e): return e.get("o") == "pergunta" and e.get("slot", "") == "S06_J27").is_empty(), "Eco: fora da bancada, nenhuma pergunta")
 ```
 
-**O que o André joga e sente** (`./run-local.sh -- --sala=S06_J27`, com a luz da sala apagada):
+### O que o registro mede
 
-- o eco grave e o agudo se distinguem na mão, no meio da música;
+- `som_controle` (H07) de cada eco; a `troca` `alto_falante` → `tv` de quem não tem alto-falante.
+- `pista` (`canal` `alto_falante`: n, som, `no_controle`), a `entrada` `resposta` (lado pedido, lado feito) e o `toque`
+  do kit com o mesmo `n`: o eco no controle com o lado errado é o alto-falante que não cantou ou o jogador que chutou.
+- `sensacao` `golpe` e `momento` `despenca` em cada tombo; o `momento` `reta`.
+
+### As pranchas que o jogador do time olha
+
+A prancha da prova visual (480 × 270, um quadro a cada 2 s): o quadro de 10 s (os quatro nos primeiros degraus, o
+caminho aceso), os pares seguidos com um cavaleiro mais baixo (o tombo), o do meio do pico (a luz mais forte), o de
+95 s (a ordem pela altura) e os da reta (as velas acesas no topo).
+
+### O que o André joga e sente
+
+`./run-local.sh -- --sala=S06_J27`, com quatro DualSense, dois no cabo e dois no rádio, e a luz da sala apagada:
+
+- o eco grave e o agudo se distinguem na mão, no meio da música, e a música abaixa no eco;
 - dá para subir olhando só para o próprio cavaleiro (a tela não ajuda);
-- o despencar é engraçado e dói; o caminho aceso mostra quanto subiu;
-- a barra de luz fica meia-luz no escuro e pulsa a cada degrau.
+- o tombo bate no tempo, o R2 endurece por um instante, e a sala ouve o próximo eco de quem caiu;
+- a barra de luz fica a meia-luz e pulsa a cada degrau.
 
-## Ao terminar
+### Armadilhas
 
-- No [quadro](README.md): a linha **N2** (se não existir, acrescente
-  `| [N2](N2-eco-do-abismo.md) | N | S6 — Eco do Abismo | M | feito (<commit>) |`),
-  com o commit.
-- Commit sugerido (sem trailer):
-  `feat: Eco do Abismo — a escada no escuro que só o alto-falante mostra`
+- **As duas pedras são iguais na tela:** nenhum brilho, cor ou tamanho diferente antes de pisada.
+- **`_notas` é do kit.** O dado do passo mora em `_info`; o sentado tira o passo das duas.
+- **O `_ultima[l]`** vai antes de `julgar_nota`/`nota_perdida`, e a `falha` o limpa: o tropeço por passo perdido não
+  tem `feito`, e não derruba.
+- **O tombo não passa de 0** e apaga as pedras acesas acima do degrau novo.
+- **`primeiro_a_chegar`:** ao chegar, todos `acabou` no mesmo quadro.
+- **O tombo no alto-falante** (`nota_alta`, `nota`) cai fora da janela do robô: no tempo sentado não há passo.
+- **A música:** o `_exit_tree` chama `soltar_a_musica`.
+
+### Ao terminar
+
+- No [quadro](README.md): a linha **N2**, com o commit (`feito (<commit>)`).
+- Commit sugerido (sem trailer): `feat: Eco do Abismo no kit, a escada no escuro que só o alto-falante mostra`
