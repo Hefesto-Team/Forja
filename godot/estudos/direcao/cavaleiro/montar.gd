@@ -7,6 +7,9 @@ extends RefCounted
 const Fita := preload("res://estudos/direcao/fita.gd")
 const Mundo := preload("res://estudos/direcao/mundo.gd")
 const Cortar := preload("res://estudos/direcao/cavaleiro/cortar.gd")
+const Corpo := preload("res://estudos/direcao/cavaleiro/corpo.gd")
+const Acento := preload("res://estudos/direcao/cavaleiro/acento.gd")
+const Racas := preload("res://estudos/direcao/cavaleiro/racas.gd")
 
 ## Onde cada item fica (04, a arma ou o amuleto).
 const OSSO_DO_ITEM := {"martelo": "arm-right", "ancora": "arm-right", "escudo": "arm-left",
@@ -15,10 +18,12 @@ const OSSO_DO_ITEM := {"martelo": "arm-right", "ancora": "arm-right", "escudo": 
 
 ## Um cavaleiro montado. `pecas` = [cabeça, superior, inferior] pelo
 ## personagem ("male-c"); `opcoes` vai para o Mundo.vestir, e mais:
+##   raca: "humana" (padrão), "orc", "automato", "golem" ou "raposa"
 ##   item: o id do itens.csv ("" para nenhum)
 ##   cadeira: "" (pernas) ou o nome da cadeira ("wheelchair-deluxe")
 ##   anim, t_anim: a pose
 ##   so: "cabeca", "superior" ou "inferior" para mostrar só uma parte
+##   acento: false tira o friso, a costura e a runa; acento_energia (1,6)
 static func cavaleiro(pai: Node3D, lugar: int, pos: Vector3, pecas: Array, opcoes := {}) -> Node3D:
 	var cor: Color = Fita.JOGADOR[lugar]
 	var raiz := Node3D.new()
@@ -27,23 +32,7 @@ static func cavaleiro(pai: Node3D, lugar: int, pos: Vector3, pecas: Array, opcoe
 	raiz.rotation.y = float(opcoes.get("yaw", 0.0))
 	pai.add_child(raiz)
 	var m := Mundo.peca(raiz, "mini-characters/character-" + String(pecas[0]), Vector3.ZERO)
-	var esq: Skeleton3D = m.find_child("Skeleton3D", true, false)
-	var molde: MeshInstance3D = m.find_child("body-mesh", true, false)
-	var xf := molde.transform
-	for velho in [m.find_child("head-mesh", true, false), molde]:
-		velho.get_parent().remove_child(velho)
-		velho.queue_free()
-	var cab := Cortar.partes(pecas[0])
-	var sup := Cortar.partes(pecas[1])
-	var inf := Cortar.partes(pecas[2])
-	_parte(esq, "head", cab.cabeca, cab.pele_cabeca, xf)
-	_parte(esq, "body-sup", sup.superior, sup.pele, xf)
-	_parte(esq, "body-inf", inf.inferior, inf.pele, xf)
-	# só uma parte (a prancha das peças)
-	var so := String(opcoes.get("so", ""))
-	if so != "":
-		for nome in {"cabeca": ["body-sup", "body-inf"], "superior": ["head", "body-inf"], "inferior": ["head", "body-sup"]}[so]:
-			esq.get_node(nome).visible = false
+	var esq := Corpo.trocar(m, pecas)
 	var cadeira := String(opcoes.get("cadeira", ""))
 	var anim := String(opcoes.get("anim", "wheelchair-sit" if cadeira != "" else "idle"))
 	var ap: AnimationPlayer = m.find_child("AnimationPlayer", true, false)
@@ -51,27 +40,39 @@ static func cavaleiro(pai: Node3D, lugar: int, pos: Vector3, pecas: Array, opcoe
 		ap.play(anim)
 		ap.seek(float(opcoes.get("t_anim", 0.3)), true)
 		ap.pause()
-	Mundo.vestir(m, cor, opcoes)
+	# a raça: a proporção primeiro, depois a cabeça, as mãos e a cauda
+	var raca := String(opcoes.get("raca", "humana"))
+	var contorno: bool = opcoes.get("contorno", true)
+	Racas.preparar(esq, raca)
+	Racas.vestir(esq, raca, String(pecas[0]), cor, [mao(esq, "arm-left"), mao(esq, "arm-right")], contorno)
+	var veste := opcoes.duplicate()
+	if raca != "humana":
+		veste["pele"] = Racas.PELE[raca]
+	Mundo.vestir(m, cor, veste)
+	var energia := float(opcoes.get("acento_energia", Acento.ENERGIA))
+	if opcoes.get("acento", true):
+		Acento.vestir(esq, cor, energia)
+	# só uma parte (a prancha das peças)
+	var so := String(opcoes.get("so", ""))
+	if so != "":
+		var fica: Array = {"cabeca": ["head", "raca-cabeca"], "superior": ["body-sup", "acento-friso", "raca-arm-left", "raca-arm-right"],
+			"inferior": ["body-inf", "acento-costura", "raca-cauda"]}[so]
+		for filho in esq.get_children():
+			if filho is VisualInstance3D or filho is BoneAttachment3D:
+				if String(filho.name) in ["head", "raca-cabeca", "body-sup", "body-inf", "acento-friso", "acento-costura",
+						"raca-arm-left", "raca-arm-right", "raca-cauda"]:
+					filho.visible = String(filho.name) in fica
 	if cadeira != "":
 		var c := Mundo.peca(raiz, "mini-characters/" + cadeira, Vector3.ZERO)
 		Mundo.contornar(c, cor, 0.010, 1.2)
 	var item := String(opcoes.get("item", ""))
 	if item != "":
-		por_item(esq, item, cor)
+		por_item(esq, item, cor, energia if opcoes.get("acento", true) else -1.0)
 	if opcoes.get("anel", true):
 		Mundo.anel(raiz, cor, lugar)
 	raiz.set_meta("modelo", m)
+	raiz.set_meta("esqueleto", esq)
 	return raiz
-
-
-static func _parte(esq: Skeleton3D, nome: String, malha: Mesh, pele: Skin, xf: Transform3D) -> void:
-	var mi := MeshInstance3D.new()
-	mi.name = nome
-	mi.mesh = malha
-	mi.skin = pele
-	mi.transform = xf
-	esq.add_child(mi)
-	mi.skeleton = mi.get_path_to(esq)
 
 
 # ------------------------------------------------------------- os itens --
@@ -80,7 +81,7 @@ static func _parte(esq: Skeleton3D, nome: String, malha: Mesh, pele: Skin, xf: T
 ## cabo para cima, saindo do punho; o escudo de frente; o medalhão no peito)
 ## e só então preso ao osso, para acompanhar a animação dali em diante.
 ## Medidas nas unidades do personagem (0,79 de altura).
-static func por_item(esq: Skeleton3D, item: String, cor: Color) -> Node3D:
+static func por_item(esq: Skeleton3D, item: String, cor: Color, energia := Acento.ENERGIA) -> Node3D:
 	var presa := BoneAttachment3D.new()
 	presa.bone_name = OSSO_DO_ITEM[item]
 	esq.add_child(presa)
@@ -109,7 +110,67 @@ static func por_item(esq: Skeleton3D, item: String, cor: Color) -> Node3D:
 	Mundo.contornar(n, cor, 0.008, 1.4)
 	if n is MeshInstance3D:
 		Mundo.contornar(presa, cor, 0.008, 1.4)
+	if energia > 0.0:
+		por_runa(n, item, cor, energia)
 	return n
+
+
+## A runa do item (04, a peça se distingue): no amuleto, o anel aceso num vão
+## JANELA em volta do emblema; nas armas, o fio: a ponta da cabeça do martelo,
+## as unhas da âncora, o aro do escudo. Em néon do dono, sem contorno.
+static func por_runa(n: Node3D, item: String, cor: Color, energia := Acento.ENERGIA) -> void:
+	var dados := runa(item)
+	if dados.has("janela"):
+		var j := _malha(n, dados.janela)
+		j.material_override = Fita.fosco(Fita.JANELA, 0.6)
+	var a := _malha(n, dados.acento)
+	a.name = "runa"
+	a.material_override = Fita.neon(cor, energia)
+	a.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+
+
+## A malha da runa, no espaço do item (as medidas de cada malha).
+static func runa(item: String) -> Dictionary:
+	var acento := []
+	var janela := []
+	match item:
+		"martelo":
+			# as duas pontas da cabeça (x ±0,045, y 0,081 a 0,153 no tool-hammer)
+			for s in [-1.0, 1.0]:
+				var b := BoxMesh.new()
+				b.size = Vector3(0.008, 0.074, 0.042)
+				acento.append([b, Transform3D(Basis(), Vector3(s * 0.039, 0.117, 0))])
+		"ancora":
+			for lado in [-1.0, 1.0]:
+				var unha := PrismMesh.new()
+				unha.size = Vector3(0.044, 0.039, 0.016)
+				var au := deg_to_rad(-90.0 + lado * 78.0)
+				acento.append([unha, Transform3D(Basis(Vector3.FORWARD, au + PI * 0.5 + lado * 0.6), Vector3(cos(au) * 0.064, -0.035 + sin(au) * 0.064, 0))])
+		"escudo":
+			# o aro do shield-round (raio 0,19, a face em z 0,053)
+			var t := TorusMesh.new()
+			t.inner_radius = 0.172
+			t.outer_radius = 0.188
+			t.rings = 24
+			t.ring_segments = 4
+			acento.append([t, Transform3D(Basis(Vector3.RIGHT, PI * 0.5).scaled(Vector3(1, 1, 0.5)), Vector3(0, 0, 0.034))])
+		_:
+			var j := TorusMesh.new()
+			j.inner_radius = 0.0155
+			j.outer_radius = 0.0205
+			j.rings = 12
+			j.ring_segments = 4
+			janela.append([j, Transform3D(Basis(Vector3.RIGHT, PI * 0.5).scaled(Vector3(1, 1, 0.4)), Vector3(0, 0, 0.0042))])
+			var a := TorusMesh.new()
+			a.inner_radius = 0.017
+			a.outer_radius = 0.019
+			a.rings = 12
+			a.ring_segments = 4
+			acento.append([a, Transform3D(Basis(Vector3.RIGHT, PI * 0.5).scaled(Vector3(1, 1, 0.4)), Vector3(0, 0, 0.0052))])
+	var out := {"acento": juntar(acento, null)}
+	if not janela.is_empty():
+		out["janela"] = juntar(janela, null)
+	return out
 
 
 ## O punho, no espaço do esqueleto e na pose de agora: o meio do quarto mais
@@ -177,7 +238,8 @@ static func juntar(partes_: Array, mat: Material) -> ArrayMesh:
 		st.append_from(malha, 0, xf)
 	st.deindex()
 	st.generate_normals()
-	st.set_material(mat)
+	if mat != null:
+		st.set_material(mat)
 	return st.commit()
 
 
@@ -223,7 +285,6 @@ static func medalhao(item: String) -> ArrayMesh:
 	disco.height = 0.008
 	disco.radial_segments = 12
 	disco.rings = 1
-	p.append([disco, Transform3D(Basis(Vector3.RIGHT, PI * 0.5), Vector3.ZERO)])
 	var z := 0.006
 	match item:
 		"fole":
@@ -254,4 +315,10 @@ static func medalhao(item: String) -> ArrayMesh:
 			var cabo := BoxMesh.new()
 			cabo.size = Vector3(0.005, 0.014, 0.006)
 			p.append([cabo, Transform3D(Basis(), Vector3(0, -0.015, z))])
-	return juntar(p, metal(Color("#f0cf78"), 0.45))
+	# o disco em cerâmica esmaltada (L 0,77, rugosidade 0,35) e o emblema em latão
+	var ceramica := Fita.fosco(Fita.CERAMICA, 0.35)
+	var m := juntar([[disco, Transform3D(Basis(Vector3.RIGHT, PI * 0.5), Vector3.ZERO)]], ceramica)
+	var latao := juntar(p, metal(Color("#f0cf78"), 0.45))
+	m.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, latao.surface_get_arrays(0))
+	m.surface_set_material(1, latao.surface_get_material(0))
+	return m

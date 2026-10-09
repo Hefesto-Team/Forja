@@ -11,6 +11,9 @@ extends SceneTree
 ##   godot --headless --path godot -s res://estudos/direcao/cavaleiro/cortar.gd
 
 const RAIZ := "res://estudos/direcao/kenney/mini-characters/character-%s.glb"
+## As raças que vêm de malha da Kenney (04, as raças): o orc do Mini Dungeon,
+## na pasta dele (o papel `personagem` no recolorir).
+const FORA := {"orc": "res://estudos/direcao/kenney/mini-dungeon-personagens/character-orc.glb"}
 const PERSONAGENS := ["female-a", "female-b", "female-c", "female-d", "female-e", "female-f",
 	"male-a", "male-b", "male-c", "male-d", "male-e", "male-f"]
 ## Os ossos de cada parte do corpo (o índice no esqueleto de 7 ossos).
@@ -25,7 +28,8 @@ static var _cache := {}
 static func partes(personagem: String) -> Dictionary:
 	if _cache.has(personagem):
 		return _cache[personagem]
-	var cena: Node = (load(RAIZ % personagem) as PackedScene).instantiate()
+	var caminho: String = FORA.get(personagem, RAIZ % personagem)
+	var cena: Node = (load(caminho) as PackedScene).instantiate()
 	var cabeca: MeshInstance3D = cena.find_child("head-mesh", true, false)
 	var corpo: MeshInstance3D = cena.find_child("body-mesh", true, false)
 	var arr: Array = corpo.mesh.surface_get_arrays(0)
@@ -34,13 +38,16 @@ static func partes(personagem: String) -> Dictionary:
 	var ossos: PackedInt32Array = arr[Mesh.ARRAY_BONES]
 	var por_parte := {"superior": PackedInt32Array(), "inferior": PackedInt32Array()}
 	var contagem := {}
+	var misturados := 0
 	for t in idx.size() / 3:
 		var o := ossos[idx[t * 3] * 4]
 		contagem[o] = int(contagem.get(o, 0)) + 1
+		if ossos[idx[t * 3 + 1] * 4] != o or ossos[idx[t * 3 + 2] * 4] != o:
+			misturados += 1
 		for parte in OSSOS:
 			if o in OSSOS[parte]:
 				por_parte[parte].append_array([idx[t * 3], idx[t * 3 + 1], idx[t * 3 + 2]])
-	var out := {"pele": corpo.skin, "pele_cabeca": cabeca.skin, "contagem": contagem,
+	var out := {"pele": corpo.skin, "pele_cabeca": cabeca.skin, "contagem": contagem, "misturados": misturados,
 		"tri_cabeca": cabeca.mesh.surface_get_array_index_len(0) / 3}
 	out["cabeca"] = cabeca.mesh
 	# a caixa de cada parte na pose de descanso (só os vértices que a parte usa)
@@ -64,12 +71,12 @@ static func partes(personagem: String) -> Dictionary:
 
 
 func _init() -> void:
-	print("personagem   cabeça  torso  braço-e  braço-d  perna-e  perna-d   superior  inferior")
-	for p in PERSONAGENS:
+	print("personagem   cabeça  torso  braço-e  braço-d  perna-e  perna-d   superior  inferior  misturados")
+	for p in PERSONAGENS + FORA.keys():
 		var d := partes(p)
 		var c: Dictionary = d.contagem
 		var sup := int(c.get(3, 0)) + int(c.get(4, 0)) + int(c.get(5, 0))
 		var inf := int(c.get(1, 0)) + int(c.get(2, 0))
-		print("%-11s  %6d  %5d  %7d  %7d  %7d  %7d   %8d  %8d" % [p, d.tri_cabeca, c.get(3, 0), c.get(4, 0),
-			c.get(5, 0), c.get(1, 0), c.get(2, 0), sup, inf])
+		print("%-11s  %6d  %5d  %7d  %7d  %7d  %7d   %8d  %8d  %10d" % [p, d.tri_cabeca, c.get(3, 0), c.get(4, 0),
+			c.get(5, 0), c.get(1, 0), c.get(2, 0), sup, inf, d.misturados])
 	quit()
