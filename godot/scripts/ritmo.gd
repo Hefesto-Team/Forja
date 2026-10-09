@@ -50,6 +50,9 @@ func ler_das_opcoes() -> void:
 
 func _process(_dt: float) -> void:
 	_t = maxf(_t, _medir())
+	if _calada_ate >= 0.0 and batida() >= _calada_ate:
+		_calada_ate = -1.0
+		_rampa(Musica.VOLUME_DB)
 	var b := int(floor(batida()))
 	while _batida_anterior < b:
 		_batida_anterior += 1
@@ -63,6 +66,9 @@ func _process(_dt: float) -> void:
 ## próximo mix, mais a latência (o guia do Godot). Slot vazio, ou sem faixa:
 ## o relógio do sistema, com o mesmo bpm.
 func tocar(slot_da_faixa: String, bpm_da_faixa: float, primeiro_tempo_s: float) -> void:
+	_calada_ate = -1.0
+	if _tw_calar:
+		_tw_calar.kill()
 	slot = slot_da_faixa
 	bpm = maxf(bpm_da_faixa, 1.0)
 	primeiro_tempo = primeiro_tempo_s
@@ -82,6 +88,9 @@ func tocar(slot_da_faixa: String, bpm_da_faixa: float, primeiro_tempo_s: float) 
 ## Para de seguir a faixa (a música é da Musica: quem para o som é ela). O
 ## relógio continua pelo sistema, do ponto em que estava.
 func parar() -> void:
+	_calada_ate = -1.0
+	if _tw_calar:
+		_tw_calar.kill()
 	slot = ""
 	dono = ""
 	_tocador = null
@@ -258,3 +267,34 @@ func registrar_toque(l: int, n: int, j: int, desvio_em_ms := NAN) -> void:
 ## Segundos para ms com uma casa: tira o ruído do float (e o do Vector2 de 32 bits).
 static func _ms(s: float) -> float:
 	return roundf(s * 10000.0) / 10.0
+
+
+# ---------------------------------------------------------------- calar (H08) --
+
+var _calada_ate := -1.0  ## a batida em que a música volta (-1: tocando)
+var _tw_calar: Tween = null
+
+
+## A música cala por `batidas` batidas e o relógio segue (o Zero Absoluto): o
+## tocador abaixa a -80 dB em 20 ms e volta, também em 20 ms, na batida
+## certa. A posição da faixa não para, então t_musica() nem sente. Sem faixa
+## tocando, não há o que calar.
+func calar(batidas: float) -> void:
+	if not is_instance_valid(_tocador) or batidas <= 0.0:
+		return
+	_calada_ate = batida() + batidas
+	_rampa(-80.0)
+
+
+## A música está calada agora?
+func calada() -> bool:
+	return _calada_ate >= 0.0
+
+
+func _rampa(db: float) -> void:
+	if _tw_calar:
+		_tw_calar.kill()
+	if not is_instance_valid(_tocador):
+		return
+	_tw_calar = create_tween()
+	_tw_calar.tween_property(_tocador, "volume_db", db, 0.02)
