@@ -229,6 +229,8 @@ func _tocha(pos: Vector3, acesa: bool) -> OmniLight3D:
 	var chama := MeshInstance3D.new()
 	var esfera := SphereMesh.new()
 	esfera.radius = 0.1
+	esfera.radial_segments = 8
+	esfera.rings = 4
 	esfera.height = 0.26
 	chama.mesh = esfera
 	var fogo := StandardMaterial3D.new()
@@ -268,14 +270,14 @@ func _bigorna() -> void:
 	var tablado := CSGCylinder3D.new()
 	tablado.radius = 3.0
 	tablado.height = 0.3
-	tablado.sides = 32
+	tablado.sides = 8
 	tablado.position.y = 0.15
 	tablado.material = pedra.call(Color("#7d7aa8"))
 	bigorna.add_child(tablado)
 	var borda := CSGTorus3D.new()
 	borda.inner_radius = 2.95
 	borda.outer_radius = 3.12
-	borda.sides = 48
+	borda.sides = 8
 	borda.ring_sides = 8
 	borda.position.y = 0.3
 	var brilho := StandardMaterial3D.new()
@@ -305,7 +307,7 @@ func _bigorna() -> void:
 	chifre.cone = true
 	chifre.radius = 0.19
 	chifre.height = 0.9
-	chifre.sides = 16
+	chifre.sides = 8
 	chifre.rotation.z = -PI * 0.5
 	chifre.position = Vector3(1.28, 1.39, 0)
 	chifre.material = pedra.call(Color("#e9e7f2"), 0.35)
@@ -375,7 +377,7 @@ func _pedestais() -> void:
 		var disco := CSGCylinder3D.new()
 		disco.radius = 0.95
 		disco.height = 0.32
-		disco.sides = 32
+		disco.sides = 8
 		disco.position = pos + Vector3(0, 0.16, 0)
 		var m := StandardMaterial3D.new()
 		m.albedo_color = Color("#8784b3")
@@ -385,7 +387,7 @@ func _pedestais() -> void:
 		var aro := CSGTorus3D.new()
 		aro.inner_radius = 0.92
 		aro.outer_radius = 1.02
-		aro.sides = 40
+		aro.sides = 8
 		aro.ring_sides = 6
 		aro.position = pos + Vector3(0, 0.32, 0)
 		var brilho := StandardMaterial3D.new()

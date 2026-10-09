@@ -123,9 +123,10 @@ func _montar_raia(l: int, p: ForjaPlayer) -> Dictionary:
 	var tinta := Kit.chapado(Tema.tom_para_a_borda(cor), true)
 	var anel := MeshInstance3D.new()
 	var tor := TorusMesh.new()
+	tor.rings = 8
+	tor.ring_segments = 6
 	tor.inner_radius = 0.16
 	tor.outer_radius = 0.2
-	tor.rings = 40
 	anel.mesh = tor
 	anel.rotation.x = PI * 0.5
 	anel.material_override = tinta
@@ -420,6 +421,7 @@ func _rastro(l: int, p: ForjaPlayer, ate: Vector3) -> void:
 	var risco := MeshInstance3D.new()
 	var c := CylinderMesh.new()
 	c.top_radius = 0.018
+	c.radial_segments = 8
 	c.bottom_radius = 0.018
 	c.height = de.distance_to(ate)
 	risco.mesh = c

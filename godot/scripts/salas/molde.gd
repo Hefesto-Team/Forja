@@ -164,9 +164,10 @@ func _montar_bancada(l: int, p: ForjaPlayer) -> Dictionary:
 		pontos.append({"disco": disco, "rotulo": rotulo})
 	var alvo := MeshInstance3D.new()
 	var tor := TorusMesh.new()
+	tor.rings = 8
+	tor.ring_segments = 6
 	tor.inner_radius = RAIO_PONTO * LARGURA * 0.84
 	tor.outer_radius = RAIO_PONTO * LARGURA
-	tor.rings = 40
 	alvo.mesh = tor
 	alvo.material_override = Kit.chapado(Tema.AMARELO)
 	placa.add_child(alvo)
@@ -420,8 +421,8 @@ var _mat_ouro := {}
 
 func _ouro(forte: bool) -> StandardMaterial3D:
 	if not _mat_ouro.has(forte):
-		var m := Kit.material(Color("#e8b44c"), 2.2 if forte else 1.1, 0.3)
-		m.metallic = 0.7
+		var m := Kit.material(Color("#e8b44c"), 2.2 if forte else 1.1, 0.5)
+		m.metallic = 0.2
 		_mat_ouro[forte] = m
 	return _mat_ouro[forte]
 

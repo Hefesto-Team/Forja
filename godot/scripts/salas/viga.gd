@@ -67,8 +67,8 @@ func _init() -> void:
 
 func montar() -> void:
 	n_sinos = N_SINOS + variante
-	_mat_ouro = Kit.material(Color("#e2b04a"), 0.25, 0.3)
-	_mat_ouro.metallic = 0.8
+	_mat_ouro = Kit.material(Color("#e2b04a"), 0.25, 0.5)
+	_mat_ouro.metallic = 0.2
 	_mat_ferro = Kit.material(Color("#4a4e5e"), 0.0, 0.5)
 	_cenario()
 	for p in jogadores:
@@ -218,9 +218,10 @@ func _montar_raia(l: int, p: ForjaPlayer) -> Dictionary:
 	var tinta := Kit.chapado(Tema.tom_para_a_borda(cor), true)
 	var anel := MeshInstance3D.new()
 	var tor := TorusMesh.new()
+	tor.rings = 8
+	tor.ring_segments = 6
 	tor.inner_radius = 0.2
 	tor.outer_radius = 0.25
-	tor.rings = 40
 	anel.mesh = tor
 	anel.rotation.x = PI * 0.5
 	anel.material_override = tinta

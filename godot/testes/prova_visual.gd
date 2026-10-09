@@ -37,6 +37,7 @@ var quadros: Array = []
 var textos: Array = []
 var observacoes: Array = []
 var falhas: Array = []
+var falhas_da_prancha: Array = []   ## as da prancha cinza da montagem: entram mesmo com o roteiro inteiro
 var _cabo_fora := false
 var _batida := 30.0
 
@@ -148,6 +149,8 @@ func _roteiro() -> bool:
 	_prancha_do_titulo(do_titulo)
 	if not await _ate(func() -> bool: return jogo.estado == "lobby", 40.0, "o lobby"):
 		return false
+	await _esperar_s(1.0)
+	await _prancha_da_montagem_cinza()
 	if not await _ate(func() -> bool: return jogo.estado == "salao" and not jogo._trocando, 40.0, "o salão"):
 		return false
 	await _esperar_s(1.5)
@@ -337,6 +340,7 @@ func _fechar(roteiro_ok: bool) -> void:
 	var todos: Array = []
 	if not roteiro_ok:
 		todos.append_array(falhas)
+	todos.append_array(falhas_da_prancha)
 	todos.append_array(ChecagensVisuais.tela_parada(quadros))
 	todos.append_array(ChecagensVisuais.telas_vazias(quadros))
 	for tx in textos:
@@ -581,4 +585,46 @@ func _prancha_do_titulo(fotos: Array) -> void:
 			falhas.append("a prancha do título ficou sem o quadro «%s»" % rotulos[i])
 		escrever(prancha, x + 8, QUADRO.y + 3, str(i + 1), 3, Color.WHITE)
 	var nome := "prancha-titulo.png" if indice == 1 else "prancha-titulo-%d.png" % indice
+	prancha.save_png(saida.path_join(nome))
+
+
+## A prancha cinza da montagem (G08): o quadro da montagem sem cor, e embaixo
+## cada cavaleiro reduzido a 64 px de altura, para o time apontar, sem a cor,
+## qual parte é a cabeça, o tronco e as pernas, e anotar no diário.
+func _prancha_da_montagem_cinza() -> void:
+	await RenderingServer.frame_post_draw
+	var img := get_viewport().get_texture().get_image()
+	if img == null or img.is_empty():
+		falhas_da_prancha.append("a prancha cinza da montagem ficou sem imagem")
+		return
+	img.convert(Image.FORMAT_L8)
+	img.convert(Image.FORMAT_RGB8)
+	var cam := get_viewport().get_camera_3d()
+	var tiras: Array = []
+	# a posição na tela vem no tamanho do desenho (1920x1080); a imagem é a da janela
+	var esc := Vector2(img.get_size()) / get_viewport().get_visible_rect().size
+	if cam != null:
+		for p in jogo.jogadores:
+			var pes := cam.unproject_position(p.global_position) * esc
+			var cab := cam.unproject_position(p.global_position + Vector3.UP * 1.6) * esc
+			var alto := absf(pes.y - cab.y)
+			var r := Rect2i(Vector2i(int(pes.x - alto * 0.5), int(cab.y - alto * 0.05)), Vector2i(int(alto), int(alto * 1.1)))
+			r = r.intersection(Rect2i(Vector2i.ZERO, img.get_size()))
+			if r.size.x < 8 or r.size.y < 8:
+				continue
+			var tira := img.get_region(r)
+			tira.resize(maxi(8, int(64.0 * r.size.x / r.size.y)), 64, Image.INTERPOLATE_BILINEAR)
+			tiras.append(tira)
+	if tiras.size() != jogo.jogadores.size():
+		falhas_da_prancha.append("a prancha cinza da montagem achou %d dos %d cavaleiros" % [tiras.size(), jogo.jogadores.size()])
+	var quadro := img.duplicate() as Image
+	quadro.resize(QUADRO.x, QUADRO.y, Image.INTERPOLATE_BILINEAR)
+	var prancha := Image.create(QUADRO.x, QUADRO.y + 64 + 12, false, Image.FORMAT_RGB8)
+	prancha.fill(Color(0.07, 0.07, 0.09))
+	prancha.blit_rect(quadro, Rect2i(Vector2i.ZERO, QUADRO), Vector2i.ZERO)
+	var x := 8
+	for t in tiras:
+		prancha.blit_rect(t, Rect2i(Vector2i.ZERO, t.get_size()), Vector2i(x, QUADRO.y + 6))
+		x += t.get_width() + 16
+	var nome := "prancha-montagem-cinza.png" if indice == 1 else "prancha-montagem-cinza-%d.png" % indice
 	prancha.save_png(saida.path_join(nome))

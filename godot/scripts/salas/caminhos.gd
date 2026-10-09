@@ -112,9 +112,9 @@ func _novo_ladrilho(pai: Node3D, z: float) -> Dictionary:
 	var m := Kit.caixa(pai, Vector3(2.2, 0.08, LADRILHO - 0.08), Vector3(0, 0.04, z), _escuro)
 	var mats: Array = []
 	for k in 4:
-		var mat := Kit.material(COR_CHAO[k], 0.25, 0.9 if k < 2 else 0.35)
+		var mat := Kit.material(COR_CHAO[k], 0.25, 0.9 if k < 2 else (0.5 if k == 2 else 0.35))
 		if k == 2:
-			mat.metallic = 0.8
+			mat.metallic = 0.2
 		if k == 3:
 			mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 			mat.albedo_color.a = 0.85
@@ -146,6 +146,8 @@ func _novo_ladrilho(pai: Node3D, z: float) -> Dictionary:
 	for k in 3:
 		var onda := MeshInstance3D.new()
 		var tor := TorusMesh.new()
+		tor.rings = 8
+		tor.ring_segments = 6
 		tor.inner_radius = 0.18 + 0.16 * k
 		tor.outer_radius = tor.inner_radius + 0.03
 		onda.mesh = tor

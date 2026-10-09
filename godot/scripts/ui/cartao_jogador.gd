@@ -98,7 +98,7 @@ func _linha(t: TelaLobby, jogador, k: int, r: Rect2, etapa: int, cor_luz: Color)
 	var base := r.position.y + 30
 	match k:
 		TelaLobby.BONECO:
-			var valor := str(ForjaPlayer.NOME_DO_MODELO[jogador.modelo_i]).capitalize()
+			var valor := ForjaPlayer.nome_do_boneco(jogador.modelo_i)
 			Desenho.texto(self, Vector2(area.position.x, base), Desenho.caber(valor, f, 30, 220, 1), f, 30, Tema.FG,
 				HORIZONTAL_ALIGNMENT_CENTER, area.size.x)
 		TelaLobby.ITEM:

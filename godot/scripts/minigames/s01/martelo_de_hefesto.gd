@@ -140,9 +140,10 @@ func _montar_runa(l: int) -> Dictionary:
 	raiz.add_child(glifo)
 	var anel := MeshInstance3D.new()
 	var t := TorusMesh.new()
+	t.rings = 8
+	t.ring_segments = 6
 	t.inner_radius = 0.66
 	t.outer_radius = 0.74
-	t.rings = 48
 	anel.mesh = t
 	anel.rotation.x = PI * 0.5
 	var cor: Color = Forja.cor_do_lugar(l)
@@ -153,6 +154,8 @@ func _montar_runa(l: int) -> Dictionary:
 		var m := MeshInstance3D.new()
 		var esf := SphereMesh.new()
 		esf.radius = 0.07
+		esf.radial_segments = 8
+		esf.rings = 4
 		esf.height = 0.14
 		m.mesh = esf
 		var ang := s * PI / 4.0

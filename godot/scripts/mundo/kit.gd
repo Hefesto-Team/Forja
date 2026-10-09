@@ -4,6 +4,7 @@ extends RefCounted
 
 const K := 2.0
 const CAMINHO := "res://assets/kenney/%s.glb"
+const SH_NEON := preload("res://shaders/neon.gdshader")
 
 static var _cenas := {}
 
@@ -75,7 +76,7 @@ static func cilindro(pai: Node, raio: float, altura: float, pos: Vector3, mat: M
 	c.bottom_radius = raio
 	c.top_radius = raio if raio_topo < 0.0 else raio_topo
 	c.height = altura
-	c.radial_segments = 20
+	c.radial_segments = 8
 	c.rings = 1
 	mi.mesh = c
 	mi.position = pos
@@ -89,13 +90,71 @@ static func esfera(pai: Node, raio: float, pos: Vector3, mat: Material) -> MeshI
 	var s := SphereMesh.new()
 	s.radius = raio
 	s.height = raio * 2.0
-	s.radial_segments = 20
-	s.rings = 10
+	s.radial_segments = 8
+	s.rings = 4
 	mi.mesh = s
 	mi.position = pos
 	mi.material_override = mat
 	pai.add_child(mi)
 	return mi
+
+
+## Um anel (toro de 8 por 6) deitado, para o que é facetado como o resto do jogo.
+static func anel(pai: Node, raio_dentro: float, raio_fora: float, pos: Vector3, mat: Material) -> MeshInstance3D:
+	var mi := MeshInstance3D.new()
+	var t := TorusMesh.new()
+	t.inner_radius = raio_dentro
+	t.outer_radius = raio_fora
+	t.rings = 8
+	t.ring_segments = 6
+	mi.mesh = t
+	mi.position = pos
+	mi.material_override = mat
+	pai.add_child(mi)
+	return mi
+
+
+## Um néon que trabalha: chapado, com a energia acima de 1 para o glow pegar.
+static func neon(cor: Color, energia := 2.0) -> ShaderMaterial:
+	var m := ShaderMaterial.new()
+	m.shader = SH_NEON
+	m.set_shader_parameter("cor", cor)
+	m.set_shader_parameter("energia", energia)
+	return m
+
+
+## O anel de 8 lados no chão, na cor do lugar, com as lâmpadas do controle à
+## frente: a cor nunca sozinha (arte/04). Devolve o nó, para esconder ou apagar.
+static func anel_do_dono(pai: Node3D, lugar: int) -> Node3D:
+	var cor: Color = Tema.JOGADOR[lugar]
+	var a := Node3D.new()
+	a.name = "Anel"
+	a.position.y = 0.03
+	pai.add_child(a)
+	var mi := MeshInstance3D.new()
+	var t := TorusMesh.new()
+	t.inner_radius = 0.57
+	t.outer_radius = 0.65
+	t.rings = 8
+	t.ring_segments = 4
+	mi.mesh = t
+	mi.scale = Vector3(1, 0.22, 1)
+	mi.rotation.y = PI / 8.0
+	mi.material_override = neon(cor, 1.5)
+	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	a.add_child(mi)
+	for i in 5:
+		if (int(Forja.LEDS_DO_LUGAR[lugar]) >> i) & 1 == 0:
+			continue
+		var luz := MeshInstance3D.new()
+		var bm := BoxMesh.new()
+		bm.size = Vector3(0.09, 0.02, 0.14)
+		luz.mesh = bm
+		luz.position = Vector3((i - 2) * 0.16, 0.0, 0.82)
+		luz.material_override = neon(cor, 1.8)
+		luz.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		a.add_child(luz)
+	return a
 
 
 ## O martelo do Hefesto: cabo de madeira e cabeça de ferro com a face clara,
@@ -159,7 +218,7 @@ static func bigorna(pai: Node, pos: Vector3, escala := 0.55) -> Node3D:
 	chifre.cone = true
 	chifre.radius = 0.19
 	chifre.height = 0.9
-	chifre.sides = 16
+	chifre.sides = 8
 	chifre.rotation.z = -PI * 0.5
 	chifre.position = Vector3(1.28, 1.09, 0)
 	chifre.material = material(Color("#e9e7f2"), 0.0, 0.35)

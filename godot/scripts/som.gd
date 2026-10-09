@@ -254,7 +254,7 @@ static func jingle_do_resultado(pontos: Array, presentes: Array, coop: bool, coo
 ## O pio do cavaleiro do lugar (arte/03): a nota do lugar e o intervalo da
 ## cabeça, na TV e no alto-falante do dono.
 func pio(lugar: int, boneco: int) -> void:
-	var i := wrapi(boneco, 0, ForjaPlayer.INTERVALO_DO_MODELO.size())
-	var id := "pio_p%d_%s" % [lugar + 1, ForjaPlayer.INTERVALO_DO_MODELO[i]]
+	var i := wrapi(boneco, 0, ForjaPlayer.BONECOS.size())
+	var id := "pio_p%d_%s" % [lugar + 1, ForjaPlayer.BONECOS[i].intervalo]
 	tocar(id, null, -12.0)
 	no_controle(lugar, id, 0.85)

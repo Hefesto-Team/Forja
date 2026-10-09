@@ -110,44 +110,43 @@ func _novo_jogador() -> Dictionary:
 		"robo_espera": -1.0, "robo_falou": false}
 
 
-## O guardião: a máscara de bronze na parede do fundo. Os olhos abrem e
-## acendem com as vozes; a boca abre, com os dentes, no susto.
+## O guardião: a máscara de pedra em blocos na parede do fundo. Os olhos abrem
+## e acendem com as vozes; a boca abre, em degraus, com os dentes, no susto.
 func _montar_guardiao() -> Dictionary:
 	var pivo := Node3D.new()
 	pivo.position = GUARDIAO
 	pivo.scale = Vector3.ONE * 0.86
 	add_child(pivo)
-	var bronze := Kit.material(Color("#6a4a2c"), 0.0, 0.5)
-	bronze.metallic = 0.6
-	var rosto := Kit.esfera(pivo, 1.0, Vector3.ZERO, bronze)
-	rosto.scale = Vector3(1.55, 1.95, 0.55)
-	var escuro := Kit.material(Color("#2a1a10"), 0.0, 0.8)
+	var pedra := Kit.material(Tema.GRAFITE, 0.0, 0.95)
+	var escuro := Kit.material(Tema.CASCO, 0.0, 0.9)
+	# a cabeça: testa, face e queixo
+	Kit.caixa(pivo, Vector3(2.6, 0.9, 1.0), Vector3(0, 0.95, 0), pedra)
+	Kit.caixa(pivo, Vector3(2.9, 1.0, 1.1), Vector3(0, 0.1, 0), pedra)
+	Kit.caixa(pivo, Vector3(2.2, 0.8, 1.0), Vector3(0, -0.8, 0), pedra)
 	# a testa franzida e o nariz
 	for lado in [-1.0, 1.0]:
 		var sob := Kit.caixa(pivo, Vector3(0.75, 0.13, 0.2), Vector3(lado * 0.45, 0.55, 0.5), escuro)
 		sob.rotation.z = lado * -0.32
-	var nariz := Kit.caixa(pivo, Vector3(0.22, 0.6, 0.3), Vector3(0, 0.05, 0.52), bronze)
+	var nariz := Kit.caixa(pivo, Vector3(0.35, 0.7, 0.35), Vector3(0, 0.05, 0.62), pedra)
 	nariz.rotation.x = -0.25
-	# os olhos, com a pálpebra de bronze por cima
-	var olhos_n: Array = []
+	# os olhos, com a pálpebra de pedra por cima
 	var palpebras: Array = []
 	var mat_olho := Kit.material(Color("#ff3a1a"), 0.0)
 	mat_olho.emission_enabled = true
 	mat_olho.emission = Color("#ff3a1a")
 	mat_olho.emission_energy_multiplier = 0.0
 	for lado in [-1.0, 1.0]:
-		var o := Kit.esfera(pivo, 0.2, Vector3(lado * 0.48, 0.28, 0.42), mat_olho)
-		olhos_n.append(o)
-		var pa := Kit.caixa(pivo, Vector3(0.5, 0.44, 0.12), Vector3(lado * 0.48, 0.28, 0.56), bronze)
+		Kit.caixa(pivo, Vector3(0.34, 0.22, 0.12), Vector3(lado * 0.55, 0.3, 0.56), mat_olho)
+		var pa := Kit.caixa(pivo, Vector3(0.5, 0.44, 0.12), Vector3(lado * 0.55, 0.28, 0.62), pedra)
 		palpebras.append(pa)
 	# a boca e os dentes
 	var boca := Node3D.new()
-	boca.position = Vector3(0, -0.78, 0.42)
+	boca.position = Vector3(0, -0.78, 0.56)
 	pivo.add_child(boca)
-	var fundo := Kit.caixa(boca, Vector3(0.9, 1.0, 0.1), Vector3.ZERO, Kit.material(Color("#120806"), 0.0, 1.0))
+	var fundo := Kit.caixa(boca, Vector3(1.1, 1.0, 0.1), Vector3.ZERO, Kit.material(Tema.JANELA, 0.0, 1.0))
 	var dentes := Node3D.new()
 	boca.add_child(dentes)
-	var osso := Kit.material(Color("#e8dcc8"), 0.0, 0.7)
+	var osso := Kit.material(Tema.ETIQUETA, 0.0, 0.8)
 	for k in 5:
 		Kit.caixa(dentes, Vector3(0.12, 0.16, 0.06), Vector3(-0.3 + 0.15 * k, 0.4, 0.06), osso)
 		Kit.caixa(dentes, Vector3(0.12, 0.16, 0.06), Vector3(-0.3 + 0.15 * k, -0.4, 0.06), osso)
@@ -178,7 +177,8 @@ func _montar_raia(l: int, p: ForjaPlayer) -> Dictionary:
 	var tor := TorusMesh.new()
 	tor.inner_radius = 1.35
 	tor.outer_radius = 1.45
-	tor.rings = 48
+	tor.rings = 8
+	tor.ring_segments = 6
 	borda.mesh = tor
 	borda.position = Vector3(x, 0.07, Z_JOGADOR)
 	borda.scale = Vector3(1, 0.35, 1)
@@ -518,7 +518,7 @@ func _process(dt: float) -> void:
 		pal.scale = Vector3(1, maxf(0.02, 1.0 - olhos), 1)
 		pal.position.y = 0.28 + 0.2 * olhos
 	var boca: Node3D = g.boca
-	boca.scale = Vector3(1, 0.12 + 0.75 * grito, 1)
+	boca.scale = Vector3(1, 0.12 + 0.75 * snappedf(grito, 0.25), 1)
 	var brilho: OmniLight3D = g.brilho
 	brilho.light_energy = 0.6 * olhos + 5.0 * flash
 	var pivo: Node3D = g.pivo
