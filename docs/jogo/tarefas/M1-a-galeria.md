@@ -216,7 +216,7 @@ A bancada acrescenta duas camadas; fora dela, nenhuma existe.
    - Quando acaba: a pistola na mão, a Weapon no R2 e o passo `RITMO`.
    - A F01 grava o evento `pergunta` (`qual` = `"arma"`) em cada rodada.
 2. **A contagem**, depois de cada recarga boa.
-   - É o `_perguntar_municao(l)` de hoje, linhas 456 a 488: as luzinhas com 1 a 5 acesas, ✕ ○ □ △.
+   - É o `_perguntar_municao(l)` de hoje, linhas 456 a 488: as luzinhas com 1 a 5 acesas, e os botões X, círculo, quadrado e triângulo.
    - Usa o `MUNICAO` e o `MUNICAO_RESP` de hoje.
    - Enquanto a pergunta está aberta, o lugar não recebe nota.
    - Quando fecha: `Forja.leds_do_lugar(l)` (o número de volta) e o passo `RITMO`.
