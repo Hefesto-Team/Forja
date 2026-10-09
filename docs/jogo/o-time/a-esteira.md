@@ -23,6 +23,10 @@ enriquecimento.
 
 ## O que a esteira faz a cada volta
 
+Os passos 1 a 3 são o `scripts/esteira.py` (diz em JSON o que sai, o que está em voo, o que espera ela e o que segura
+cada seção); o passo 5 é o `scripts/costura.sh` (cherry-pick na integração, os portões de `scripts/portoes/` e as
+provas, parando no conflito e no primeiro vermelho). A prova dos dois é o `tests/prova_da_esteira.sh`.
+
 1. Lê o quadro e o [ESPERA-ELA](ESPERA-ELA.md).
 2. Acha as seções em que todas as fichas estão **prontas** e todas as dependências estão **feito**.
 3. Monta o conjunto da seção: uma worktree, as fichas na ordem, e confere que nenhum outro conjunto em voo mexe nos

@@ -17,7 +17,7 @@
 #     bash scripts/ci-local.sh --job NOME[,NOME] # só estes, para triar (o `PULA-NO-RAPIDO` não vale)
 #     bash scripts/ci-local.sh --listar          # o que roda, o que fica fora e por quê
 #     bash scripts/ci-local.sh --conferir        # diz o que rodaria e sai 1 se rodaria alguma coisa
-#     bash scripts/ci-local.sh --portoes         # os portões e a prova deles direto na árvore, sem act nem docker
+#     bash scripts/ci-local.sh --portoes         # os portões, a prova deles e a da esteira direto na árvore, sem act nem docker
 #   para triar, com --job:  --sem-passo 'job|nome do passo' (repetível) tira um passo da cópia do YAML
 #
 # O QUE RODA: a ÁRVORE DO ÍNDICE (`git checkout-index`, só arquivo versionado), exportada para uma pasta de
@@ -46,8 +46,8 @@ TABELA="$(cat <<'FIM_DA_TABELA'
 #            é a do engine.sh» reprova se divergirem). Na medida de 06/10 o YAML ainda pedia o 4.4.1 e o job
 #            ficou vermelho em «A prova do jogo»; o YAML foi alinhado depois.
 #   telas, exportar  dependem do `linux` (needs) e ficam sem medida até ele passar.
-#   portoes  só python3 e git, sem Godot: os portões por script (scripts/portoes/rodar.sh) e a prova deles.
-#            Sem o docker, `--portoes` roda os mesmos dois comandos direto na árvore.
+#   portoes  só python3 e git, sem Godot: os portões por script (scripts/portoes/rodar.sh), a prova deles e a
+#            da esteira. Sem o docker, `--portoes` roda os mesmos três comandos direto na árvore.
 ROLA|windows|rapido
 ROLA|linux|rapido
 ROLA|portoes|rapido
@@ -178,12 +178,13 @@ jobs_do_modo() { # os jobs ROLA do modo
   esac
 }
 
-if [ "$modo" = portoes ]; then # o job `portoes` sem o act: os mesmos dois comandos, na árvore de trabalho
+if [ "$modo" = portoes ]; then # o job `portoes` sem o act: os mesmos três comandos, na árvore de trabalho
   bash "$RAIZ/scripts/portoes/rodar.sh"; rc_p=$?
   bash "$RAIZ/tests/prova_dos_portoes.sh"; rc_q=$?
+  bash "$RAIZ/tests/prova_da_esteira.sh"; rc_e=$?
   [ "$rc_p" -eq 2 ] && exit 2
-  [ "$rc_p" -eq 0 ] && [ "$rc_q" -eq 0 ] && { echo "ci-local --portoes: verde"; exit 0; }
-  echo "ci-local --portoes: VERMELHO (portões rc=$rc_p, prova rc=$rc_q)"; exit 1
+  [ "$rc_p" -eq 0 ] && [ "$rc_q" -eq 0 ] && [ "$rc_e" -eq 0 ] && { echo "ci-local --portoes: verde"; exit 0; }
+  echo "ci-local --portoes: VERMELHO (portões rc=$rc_p, prova dos portões rc=$rc_q, prova da esteira rc=$rc_e)"; exit 1
 fi
 
 if [ "$listar" = 1 ]; then
