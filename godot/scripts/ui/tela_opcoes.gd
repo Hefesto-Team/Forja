@@ -97,10 +97,12 @@ func trocar(dx: int) -> void:
 			Opcoes.volume_controle = clampi(Opcoes.volume_controle + dx * Opcoes.PASSO, 0, 100)
 		"movimento":
 			Opcoes.movimento = wrapi(Opcoes.movimento + dx, 0, Opcoes.MOVIMENTO.size())
+			Forja.sentir(quem, "toque")
 		"flashes":
 			Opcoes.flashes = not Opcoes.flashes
 		"reacoes":
 			Opcoes.reacoes = wrapi(Opcoes.reacoes + dx, 0, Opcoes.REACOES.size())
+			Forja.sentir(quem, "toque")
 		"tela_cheia":
 			Opcoes.tela_cheia = not Opcoes.tela_cheia
 		"texto":

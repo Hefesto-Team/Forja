@@ -2725,6 +2725,7 @@ func _prova_do_conforto() -> void:
 		tela.navegar(1)
 	_esperar(tela._rolar < tela._rolar_alvo, "opções: no Inteiro a lista desliza até lá")
 	# as linhas novas trocam e voltam
+	var antes_dos_toques := _linha_do_tempo().size()
 	tela.linha = 5
 	tela.trocar(1)
 	_esperar(Opcoes.movimento == 1 and tela.valor("movimento") == "Reduzido", "opções: ▶ em Movimento liga o Reduzido")
@@ -2734,6 +2735,9 @@ func _prova_do_conforto() -> void:
 	Opcoes.reacoes = 0
 	tela.trocar(-1)
 	_esperar(Opcoes.reacoes == 2 and tela.valor("reacoes") == "Nenhuma", "opções: ◀ em Reações do começo vai para o fim")
+	var toques_das_linhas := _linha_do_tempo().slice(antes_dos_toques).filter(
+		func(e): return e.get("tipo") == "sensacao" and e.get("nome") == "toque" and int(e.get("jogador", 0)) == tela.quem + 1)
+	_esperar(toques_das_linhas.size() == 3, "opções: ◀ ▶ em Movimento e Reações dão o toque em quem mexeu (%d)" % toques_das_linhas.size())
 	tela_cheia_pai.free()
 	# devolve tudo como achou
 	Opcoes.gatilho = g_gatilho
