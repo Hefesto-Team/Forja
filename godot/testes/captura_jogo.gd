@@ -116,7 +116,7 @@ func _roteiro_das_salas() -> Array:
 			["centelha_jogo", fase.call("jogo", 7.0)],
 			["centelha_analogico", p1.call(func(sala, e) -> bool:
 				var r = sala._runa_atual(0)
-				return r != null and r.tipo == "analogico" and SalaCentelha._contar(int(e.setores)) >= 4)],
+				return r != null and r.tipo == "analogico" and sala._contar(int(e.setores)) >= 4)],
 			["centelha_fole", p1.call(func(sala, e) -> bool:
 				var r = sala._runa_atual(0)
 				return r != null and r.tipo == "gatilho" and e.estagio == 1)],

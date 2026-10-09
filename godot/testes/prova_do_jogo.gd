@@ -60,6 +60,7 @@ func _ready() -> void:
 	Desenho._coletar = "memoria"  # colhe cada frase desenhada (F02, F07)
 	jogo = load("res://scenes/main.tscn").instantiate()
 	add_child(jogo)
+	_prova_do_catalogo()
 	await _prova_do_percurso()
 	await _prova_do_motor_que_vence()
 	await _prova_do_aviso_sozinho()
@@ -206,6 +207,7 @@ func _prova_do_percurso() -> void:
 	# com PASSOU em cada feature da sala. Com um defeito de mentira ligado, a
 	# feature que ele quebra tem de sair FALHOU (a prova da prova).
 	await _joga_a_sala("centelha", ["botoes", "analogicos", "gatilhos_analogicos"])
+	await _prova_do_kit()
 	await _joga_a_sala("viga", ["giroscopio", "acelerometro"])
 	await _joga_a_sala("molde", ["touchpad_dois_dedos", "touchpad_clique"])
 
@@ -374,13 +376,95 @@ func _joga_a_sala(id: String, features: Array) -> void:
 		await _termina_a_sala(sala, features)
 
 
+## A sala aberta é a do id pedido (o apelido da seção abre o primeiro minigame dela)?
+func _e_a_sala(sala, id: String) -> bool:
+	return sala.id == id or Catalogo.apelido(sala.id) == id
+
+
+## O catálogo (H04): os apelidos abrem o primeiro minigame da seção, os ids
+## de hoje continuam abrindo, e toda FICHA tem as chaves do molde. Pura.
+func _prova_do_catalogo() -> void:
+	_esperar(Catalogo.resolver("centelha") == "S01_J01", "catálogo: centelha abre o S01_J01")
+	_esperar(Catalogo.apelido("S01_J01") == "centelha", "catálogo: o apelido do S01_J01 é centelha")
+	_esperar(Catalogo.resolver("giro") == "viga", "catálogo: o nome antigo da Viga ainda abre a Viga")
+	for id in jogo.ORDEM_DO_FOGO + ["bancada"]:
+		_esperar(Catalogo.existe(id), "catálogo: --sala=%s continua abrindo" % id)
+	_esperar(not Catalogo.existe("nao_existe") and Catalogo.criar("nao_existe") == null, "catálogo: id desconhecido não abre")
+	var apelidos := {}
+	for s in Catalogo.SECOES:
+		apelidos[s.apelido] = true
+		for slot in s.minigames:
+			_esperar(Catalogo.MINIGAMES.has(slot), "catálogo: %s está em MINIGAMES" % slot)
+	_esperar(apelidos.size() == 9, "catálogo: nove seções, nove apelidos")
+	for slot in Catalogo.MINIGAMES:
+		var mg: Minigame = Catalogo.MINIGAMES[slot].new()
+		_esperar(mg.id == slot and mg.conferir_a_ficha(), "catálogo: a FICHA de %s está completa" % slot)
+		_esperar(not mg.ficha.is_empty() and mg.nome == str(mg.ficha.titulo), "catálogo: %s leu a FICHA no _init" % slot)
+		# a conferência reprova de verdade: sem chave, e com valor fora da lista
+		var quebrada: Minigame = Catalogo.MINIGAMES[slot].new()
+		quebrada.ficha = quebrada.ficha.duplicate()
+		quebrada.ficha.erase("faixa")
+		_esperar(not quebrada.conferir_a_ficha(), "catálogo: a FICHA sem chave é reprovada (%s)" % slot)
+		quebrada.free()
+		var torta: Minigame = Catalogo.MINIGAMES[slot].new()
+		torta.ficha = torta.ficha.duplicate()
+		torta.ficha["genero"] = "genero_que_nao_existe"
+		_esperar(not torta.conferir_a_ficha(), "catálogo: a FICHA com valor fora da lista é reprovada (%s)" % slot)
+		torta.free()
+		mg.free()
+
+
+## O kit (H04): o minigame de prova (godot/testes/minigame_de_prova.gd) joga
+## com o robô de cada lugar mirando um desvio, e o Ritmo julga cada toque.
+## As fases esperam em quadros; a música, pelo relógio de parede.
+func _prova_do_kit() -> void:
+	var mg: Minigame = load("res://testes/minigame_de_prova.gd").new()
+	jogo._entrar_na_sala(mg.id, false, mg)
+	await _quadros(2)
+	_esperar(jogo.sala == mg and mg.fase == "aviso", "kit: o minigame de prova abriu")
+	var q := 0
+	while is_instance_valid(mg) and mg.fase == "aviso" and q < 600:
+		await _quadros(1)
+		q += 1
+	# o cabo do P3 sai depois da terceira nota e volta 0,8 s depois: o minigame segue
+	var inicio := Time.get_ticks_usec()
+	while is_instance_valid(mg) and mg.fase == "jogo" and mg._julgadas[2] < 3 and Time.get_ticks_usec() - inicio < 20000000:
+		await _quadros(1)
+	_esperar(Forja.ctl.simulador_cabo(2, false), "kit: o cabo do P3 saiu no meio")
+	var fora := Time.get_ticks_usec()
+	while Time.get_ticks_usec() - fora < 800000:
+		await _quadros(1)
+	_esperar(is_instance_valid(mg) and mg.fase == "jogo", "kit: sem o P3, o minigame seguiu")
+	_esperar(Forja.ctl.simulador_cabo(2, true), "kit: o cabo do P3 voltou")
+	while is_instance_valid(mg) and mg.fase == "jogo" and Time.get_ticks_usec() - inicio < 40000000:
+		await _quadros(1)
+	_esperar(is_instance_valid(mg) and mg.fase == "fim", "kit: o minigame acabou pelo próprio jogo (%.1f s)" % ((Time.get_ticks_usec() - inicio) / 1e6))
+	if not is_instance_valid(mg):
+		return
+	_esperar(Ritmo.dono == "", "kit: no fim o relógio solta a faixa (dono «%s»)" % Ritmo.dono)
+	var esperado := [Ritmo.PERFEITO, Ritmo.OTIMO, Ritmo.BOM, Ritmo.ERRO]
+	for l in 4:
+		var c: Array = mg.contagem[l]
+		var total := int(c[0]) + int(c[1]) + int(c[2]) + int(c[3])
+		var certos := int(c[esperado[l]])
+		_esperar(total == mg.NOTAS and certos * 10 >= total * 7,
+			"kit P%d: %s em %d de %d notas %s" % [l + 1, Ritmo.NOMES_DO_JULGAMENTO[esperado[l]], certos, total, c])
+	_esperar(mg.vencedor() == [0, 1, 2, 3], "kit: a colocação pelos pontos (%s, pontos %s)" % [mg.vencedor(), mg.pontos])
+	q = 0
+	while (jogo.estado != "salao" or jogo._trocando) and q < 900:
+		await _quadros(5)
+		q += 5
+	_esperar(jogo.estado == "salao", "kit: de volta ao salão pelo fechamento")
+	_esperar(not Ritmo._pausado and Ritmo.slot == "", "kit: o relógio solto ao sair")
+
+
 ## Entra na sala e espera o jogo começar (o robô fica pronto no aviso).
 ## Devolve a sala, ou null se ela não abriu.
 func _comeca_a_sala(id: String):
 	jogo._entrar_na_sala(id, false)
 	await _quadros(2)
 	var sala = jogo.sala
-	_esperar(sala is SalaJogo and sala.id == id, "%s: a sala abriu" % id)
+	_esperar(sala is SalaJogo and _e_a_sala(sala, id), "%s: a sala abriu" % id)
 	if not sala is SalaJogo:
 		return null
 	_esperar(str(sala.icone) != "" and Desenho.glifo(str(sala.icone)) != null, "%s: o aviso tem o ícone da parte do controle" % id)
@@ -486,7 +570,7 @@ func _prova_de_fogo() -> void:
 	jogo._comecar_a_prova_de_fogo(false)
 	await _quadros(3)
 	var sala = jogo.sala
-	_esperar(sala is SalaJogo and sala.id == "centelha" and sala.na_prova_de_fogo == "Prova de Fogo · sala 1 de 9",
+	_esperar(sala is SalaJogo and _e_a_sala(sala, "centelha") and sala.na_prova_de_fogo == "Prova de Fogo · sala 1 de 9",
 		"Prova de Fogo: começa n'A Centelha, sala 1 de 9")
 	if not sala is SalaJogo:
 		return
@@ -496,7 +580,7 @@ func _prova_de_fogo() -> void:
 		q += 1
 	sala.terminar()
 	q = 0
-	while (not jogo.sala is SalaJogo or jogo.sala.id != "viga" or jogo._trocando) and q < 900:
+	while (not jogo.sala is SalaJogo or not _e_a_sala(jogo.sala, "viga") or jogo._trocando) and q < 900:
 		await _quadros(2)
 		q += 2
 	var viga = jogo.sala
@@ -516,6 +600,28 @@ func _prova_do_relatorio() -> void:
 	if pasta == "":
 		return
 	var arquivos := DirAccess.get_files_at(pasta)
+	# o kit (H04): na linha do tempo, os quatro julgamentos do minigame de
+	# prova, e todo minigame que terminou tem vencedor
+	var julgamentos := {}
+	var sem_vencedor: Array = []
+	var terminados := 0
+	for f in arquivos:
+		if not (f.begins_with("linha-do-tempo-") and f.ends_with(".jsonl")):
+			continue
+		for linha in FileAccess.get_file_as_string(pasta.path_join(f)).split("\n", false):
+			var ev = JSON.parse_string(linha)
+			if not ev is Dictionary:
+				continue
+			if ev.get("tipo", "") == "toque" and ev.get("slot", "") == "T00_J00":
+				julgamentos[ev.get("julgamento", "?")] = true
+			# a sala que acabou no aviso, sem jogar (duração 0), não conta: ninguém jogou
+			if ev.get("tipo", "") == "minigame" and ev.get("evento", "") == "terminou" and float(ev.get("duracao", 0.0)) > 0.0:
+				terminados += 1
+				if int(ev.get("vencedor", -1)) < 0:
+					sem_vencedor.append(ev)
+	_esperar(julgamentos.has("perfeito") and julgamentos.has("otimo") and julgamentos.has("bom") and julgamentos.has("erro"),
+		"registro: os quatro julgamentos do minigame de prova (%s)" % [julgamentos.keys()])
+	_esperar(terminados >= 2 and sem_vencedor.is_empty(), "registro: %d minigames terminaram, todos com vencedor (%s)" % [terminados, sem_vencedor])
 	# o registro v2 do ritmo: os toques da prova das janelas (n 900 e 901)
 	var julgado := {}
 	var perdido := {}
@@ -661,11 +767,11 @@ func _prova_da_partida() -> void:
 	var pontos := [[10, 40, 30, 20], [0, 50, 10, 20], [5, 60, 0, 0]]
 	for i in ids.size():
 		var q := 0
-		while (not jogo.sala is SalaJogo or jogo.sala.id != ids[i] or jogo._trocando) and q < 900:
+		while (not jogo.sala is SalaJogo or not _e_a_sala(jogo.sala, ids[i]) or jogo._trocando) and q < 900:
 			await _quadros(2)
 			q += 2
 		var sala = jogo.sala
-		_esperar(sala is SalaJogo and sala.id == ids[i] and sala.na_prova_de_fogo == "Partida · sala %d de 3" % (i + 1),
+		_esperar(sala is SalaJogo and _e_a_sala(sala, ids[i]) and sala.na_prova_de_fogo == "Partida · sala %d de 3" % (i + 1),
 			"partida: %s é a sala %d de 3" % [ids[i], i + 1])
 		if not sala is SalaJogo:
 			return
@@ -1060,14 +1166,14 @@ func _prova_do_modo() -> void:
 	# a linha do tempo tem o tipo `minigame`: cada sala começou e terminou com vencedor
 	var mg := linhas.filter(func(e): return e.get("tipo") == "minigame")
 	for id in ["centelha", "viga", "molde", "impacto", "galeria", "canto", "caminhos", "voz", "prova"]:
-		var c := mg.filter(func(e): return e.get("slot") == id and e.get("evento") == "comecou").size()
-		var t := mg.filter(func(e): return e.get("slot") == id and e.get("evento") == "terminou" and int(e.get("vencedor", -1)) >= 0).size()
+		var c := mg.filter(func(e): return Catalogo.apelido(str(e.get("slot"))) == id and e.get("evento") == "comecou").size()
+		var t := mg.filter(func(e): return Catalogo.apelido(str(e.get("slot"))) == id and e.get("evento") == "terminou" and int(e.get("vencedor", -1)) >= 0).size()
 		_esperar(c >= 1 and t >= 1, "linha do tempo: %s começou e terminou com vencedor" % id)
 		# vencer é fazer ponto: a sala em que ninguém soma (A Voz sem a pergunta,
 		# com o treino engolindo o chamado e o mudo) acaba sempre em zero a zero
 		var somou := mg.any(func(e):
 			var pts = JSON.parse_string(str(e.get("pontos", "[]")))
-			return e.get("slot") == id and e.get("evento") == "terminou" and pts is Array \
+			return Catalogo.apelido(str(e.get("slot"))) == id and e.get("evento") == "terminou" and pts is Array \
 				and pts.any(func(v): return int(v) > 0))
 		_esperar(somou, "linha do tempo: em %s alguém fez ponto" % id)
 
