@@ -72,5 +72,6 @@ fica como está).
   não existia mais (com `set -u`, caía na primeira vez sem engine).
 - Provas: com o zip trocado, `baixar_engine.sh` sai 1 e `tools/` não existe; com o zip certo, sai 0 e mostra
   `4.7.2.stable.official.ed1daf0bf`; `FORJA_GODOT_SHA512=0000 GODOT=/nao/existe bash scripts/baixar_engine.sh` sai
-  1 com `tools/` igual ao de antes. Os portões verdes.
+  1 com `tools/` igual ao de antes. Os portões verdes. `bash scripts/ci-local.sh --rapido` verde nos três jobs; no
+  `linux`, o passo novo achou o Godot no cache e mostrou `4.7.2.stable.official.ed1daf0bf`.
 - Fica para a mão: nada de aparelho.

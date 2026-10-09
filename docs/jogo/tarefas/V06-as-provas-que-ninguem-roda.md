@@ -70,7 +70,8 @@ esperada na prova).
 - A régua morde: trocar a soma esperada do caso certo dá «2 de 5 casos falharam» e sai 1; tirar a conferência da
   soma do baixador reprova a recusa, a razão e o «não deixa arquivo»; uma `--prova` que falha (o mapa de batidas
   forçado a falhar) sai 1.
-- Rodado nesta leva: `kenney`, `mapa_de_batidas` e `baixador` (7 casos verdes). As três da trilha
-  (`trilha_fichas`, `gerar_trilha`, `descrever_trilha`) não foram rodadas aqui: a leva deixou a geração de música
-  fora deste trabalho. Falta a primeira rodada inteira, `bash tests/prova_das_ferramentas.sh`, por quem pode
-  rodá-las.
+- Rodado na máquina: `kenney`, `mapa_de_batidas` e `baixador` (7 casos verdes); as três da trilha não rodaram
+  direto aqui, porque a leva deixou a geração de música fora deste trabalho. A rodada inteira aconteceu dentro do
+  container do `bash scripts/ci-local.sh --rapido` (o passo novo do job `linux`): «prova das ferramentas ok — 10
+  casos», em 9 s, sem placa e sem rede de modelo. O `--rapido` saiu com os três jobs verdes (windows, portoes,
+  linux).
