@@ -135,3 +135,40 @@ controle ligado depois.
 
 Pôr a linha da WE01 no [quadro](README.md) como **feito**, com o commit, e citar o portão novo em
 `scripts/portoes/LEIA-ME.md`.
+
+## O que foi feito (leva 1, a-caixa)
+
+- **`tests/caixa.sh`** (novo): `caixa_montar <pasta>` confere o `bwrap` (sem ele e sem `CI`, sai 2 antes de abrir
+  nada), monta o `pactl` (o `list sinks` imprime `$SERVIDOR_DE_MENTIRA` quando existe) e o `pw-cat` de mentira e um
+  executável `caixa` na frente do PATH, e aponta o `FORJA_SYSFS` para uma pasta vazia. Por ser um executável, o
+  `caixa` vale depois do `timeout` e do `xvfb-run`. O `CAIXA_LIGAR` deixa entrar aparelhos na caixa (a placa de vídeo
+  da prova visual `NA_TELA`).
+- **Pela caixa:** `tests/prova_do_jogo.sh`, `prova_da_bancada.sh`, `prova_de_poucos.sh` (que ganhou o `pactl` de
+  mentira que não tinha), `prova_da_exportacao.sh` (o binário Linux, a AppImage e o Wine), `prova_visual.sh`,
+  `telas.sh fotos`, `scripts/gauntlet.sh` e `scripts/trailer.sh`. O `--import` também passa pela caixa em todas.
+  `git grep -n 'CAIXA=(' tests scripts` não acha nada.
+- **O portão `caixa`** (`scripts/portoes/caixa.py`, modo reprova, no `rodar.sh` e no `LEIA-ME.md`): antes da cura,
+  reprovou 9 lugares, entre eles `scripts/gauntlet.sh:36`, `tests/telas.sh:30` e `scripts/trailer.sh:19`; depois,
+  0 achados em 8 chamadas. O `--path` sozinho não conta como «abre o jogo» (o `exportar.sh` usa o `--path` só para
+  exportar).
+- **No módulo:** a marca `so_virtuais` nasce no `forja_abrir` com `--simular` e não segue o `forja_simular`. A regra
+  é a função pura `origem_aceitar_na_sessao` (`nativo/nucleo/origem.c`), e o `conectou` (`pads.c`) recusa o controle
+  de verdade **antes** de abrir o gamepad (abrir já acende a luz dele), com a linha «recusado (a sessão com
+  --simular só aceita os controles simulados)» no registro.
+- O `WE-mapa.md` diz como as provas abrem o Godot e cita o portão.
+
+**Provas:**
+
+- `bash scripts/portoes/rodar.sh`: rc 0, `caixa: 0 achados (modo reprova); 8 chamadas do Godot que abrem o jogo`.
+- `bash tests/prova_dos_portoes.sh`: 44 casos ok, com os três novos (a linha continuada reprova, a caixa opcional
+  reprova, a chamada pela caixa, o `--import`, o `-s`, o `--export` e o comentário passam).
+- Com um PATH com tudo menos o `bwrap`, sem `CI` e um Godot de mentira que conta as aberturas, a prova do jogo, a da
+  bancada, a de poucos, a visual, o gauntlet, o trailer e o `telas.sh fotos` saem com 2 e o Godot abriu 0 vezes. Com
+  `CI=true`, a prova de poucos roda o Godot direto.
+- `scripts/compilar.sh testes`: 4582 verificações, 0 falhas. A mordida: com a regra trocada por `return 1`, 1 falha
+  (rc 8); restaurada, 0.
+- `bash tests/prova_do_jogo.sh` verde pela caixa (as duas rodadas).
+
+**Fica para a mão (o André, com o DualSense dele ligado):** `./run-local.sh -- --simular=4` mostra só os quatro
+simulados e o registro diz «recusado»; `./run-local.sh` sem argumento e «jogar no teclado» seguem aceitando o
+controle ligado depois. A recusa antes de abrir (e não o «fecha» que o passo 5 diz) é a validar.

@@ -44,33 +44,20 @@ command -v xvfb-run > /dev/null || { echo "sem xvfb-run (o pacote xvfb)"; exit 2
 TMP="$(mktemp -d /tmp/forja-prova-visual-XXXXXX)"
 SAIDA_PEDIDA="${1:-}"
 trap 'rm -rf "$TMP"' EXIT
-mkdir -p "$TMP/bin" "$TMP/sys-vazio"
 
-# o servidor de som é de mentira, como na prova do jogo: nada toca no som da máquina
-cat > "$TMP/bin/pactl" <<'PACTL'
-#!/usr/bin/env bash
-[ "$*" = "list sinks" ] && cat "$SERVIDOR_DE_MENTIRA"
-exit 0
-PACTL
-printf '#!/usr/bin/env bash\ncat > /dev/null\nexit 0\n' > "$TMP/bin/pw-cat"
-chmod +x "$TMP/bin/pactl" "$TMP/bin/pw-cat"
-export PATH="$TMP/bin:$PATH"
-export FORJA_SYSFS="$TMP/sys-vazio"
+# a caixa (tests/caixa.sh) é obrigatória: sem ela o jogo veria o DualSense ligado
+# na máquina; e o servidor de som é de mentira: nada toca no som da máquina
+source "$RAIZ/tests/caixa.sh"
+caixa_montar "$TMP"
 printf 'Sink #593\n\tName: no_do_radio_000001\n\tDescription: Alto-falante do Controle 1 (DualSense Wireless Controller)\n\tSample Specification: s16le 2ch 48000Hz\n' > "$TMP/sinks"
 export SERVIDOR_DE_MENTIRA="$TMP/sinks"
-[ "$(command -v pactl)" = "$TMP/bin/pactl" ] || { echo "GUARDA: pactl não é o de mentira"; exit 1; }
-
-# a caixa é obrigatória: sem ela o jogo veria o DualSense ligado na máquina
-command -v bwrap > /dev/null || { echo "sem bwrap: a prova visual não roda fora da caixa (o controle da máquina fica de fora)"; exit 2; }
-CAIXA=(bwrap --dev-bind / / --dev /dev --tmpfs /run/udev --tmpfs /sys/class/input --tmpfs /sys/class/hidraw)
 
 RES="${RES:-640x360}"
 GODOT_JANELA=(--rendering-driver opengl3 --audio-driver Dummy --path "$RAIZ/godot" --resolution "$RES")
 if [ "${NA_TELA:-0}" = 1 ]; then
   # a placa de vídeo entra na caixa (o hidraw e o input continuam de fora)
-  for d in /dev/dri /dev/nvidia*; do
-    [ -e "$d" ] && CAIXA+=(--dev-bind "$d" "$d")
-  done
+  CAIXA_LIGAR="$(echo /dev/dri /dev/nvidia*)"
+  export CAIXA_LIGAR
   JANELA=()
 else
   # o Xvfb, e o X11 à força: com o Wayland da sessão no ambiente, a janela não pode ir para a tela
@@ -79,7 +66,7 @@ else
 fi
 
 if [ "${1:-}" = "--autoteste" ]; then
-  "${CAIXA[@]}" "$GODOT" --headless --path "$RAIZ/godot" res://testes/prova_visual.tscn -- --autoteste --simular=1 --saida="$TMP/autoteste"
+  caixa "$GODOT" --headless --path "$RAIZ/godot" res://testes/prova_visual.tscn -- --autoteste --simular=1 --saida="$TMP/autoteste"
   exit $?
 fi
 
@@ -89,7 +76,7 @@ else
   SAIDA="$TMP/saida"
 fi
 mkdir -p "$SAIDA"
-"${CAIXA[@]}" "$GODOT" --headless --path "$RAIZ/godot" --import --quit > "$TMP/import.log" 2>&1
+caixa "$GODOT" --headless --path "$RAIZ/godot" --import --quit > "$TMP/import.log" 2>&1
 
 # indice | jogadores | robô | salas | extra
 PARTIDAS_TODAS=(
@@ -115,7 +102,7 @@ for passada in ${PASSADAS:-fixa livre}; do
     echo "==> partida $n ($passada): $jogadores jogador(es), robô $robo, $salas salas ${extra:+($extra)}"
     # shellcheck disable=SC2086
     timeout "${LIMITE_S:-3000}" "${JANELA[@]}" \
-      "${CAIXA[@]}" "$GODOT" "${GODOT_JANELA[@]}" "${QUADROS[@]}" res://testes/prova_visual.tscn \
+      caixa "$GODOT" "${GODOT_JANELA[@]}" "${QUADROS[@]}" res://testes/prova_visual.tscn \
       -- --simular="$jogadores" --robo="$robo" --semente=7 --relatorios="$rel" --saida="$pasta" \
          --salas="$salas" --indice="$n" $extra > "$pasta/partida-$n.log" 2>&1
     rc=$?

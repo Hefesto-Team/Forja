@@ -45,6 +45,10 @@ typedef struct Forja {
   int simular;
   bool robo;
   bool em_sala; /* os defeitos de mentira só valem dentro das salas */
+  /* a sessão nasceu com --simular: só o controle virtual entra (a prova não vê o
+   * de verdade). Não segue o `simular`, que o forja_simular liga no meio da
+   * sessão de quem escolheu o teclado: esse continua aceitando o controle ligado depois. */
+  bool so_virtuais;
 } Forja;
 
 /* A sessão do módulo (uma só por processo). */

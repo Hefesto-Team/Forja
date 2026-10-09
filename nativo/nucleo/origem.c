@@ -99,6 +99,10 @@ int origem_eh_virtual(OrigemTipo t) {
          t == ORIGEM_ESPELHO_STEAM || t == ORIGEM_OUTRO_VIRTUAL;
 }
 
+int origem_aceitar_na_sessao(int so_virtuais, int virtual_do_sdl) {
+  return !so_virtuais || virtual_do_sdl;
+}
+
 static Conexao conexao_pelo_bus(int bus, int conexao_sdl) {
   if (bus == ORIGEM_BUS_USB)
     return CONEXAO_USB;

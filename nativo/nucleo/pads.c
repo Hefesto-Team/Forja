@@ -262,6 +262,15 @@ static void conectou(Forja *a, SDL_JoystickID id) {
     }
   if (livre < 0)
     return;
+  /* a sessão com --simular não abre o controle de verdade: abrir já acende a
+   * luz e as lâmpadas dele */
+  if (!origem_aceitar_na_sessao(a->so_virtuais, SDL_IsJoystickVirtual(id))) {
+    const char *nome = SDL_GetGamepadNameForID(id);
+    char limpo[128];
+    mascara_mac_copia(nome ? nome : "controle", limpo, sizeof(limpo));
+    reg_linha(&a->reg, "%s: recusado (a sessão com --simular só aceita os controles simulados)", limpo);
+    return;
+  }
   SDL_Gamepad *gp = SDL_OpenGamepad(id);
   if (!gp)
     return;

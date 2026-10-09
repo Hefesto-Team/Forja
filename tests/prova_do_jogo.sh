@@ -4,11 +4,11 @@
 # confere o que cada controle simulado recebeu — player index, luz, lâmpadas,
 # gatilhos, motores, LED do mudo — sala por sala, e o relatório gravado.
 #
-# O servidor de som é de mentira (pactl e pw-cat numa pasta temporária, na
-# frente do PATH) e o sysfs é vazio (FORJA_SYSFS): com o nome que a Sony dá ao
-# alto-falante na lista de som, o jogo acha o alto-falante; sem ele, diz que
-# não achou (a mordida). Com o `bwrap` instalado, o jogo roda num /dev novo,
-# sem hidraw nem input: numa prova ele não tem de achar controle de verdade.
+# O jogo roda na caixa (tests/caixa.sh): num /dev novo, sem hidraw nem input,
+# com o servidor de som de mentira e o sysfs vazio. Com o nome que a Sony dá ao
+# alto-falante na lista de som (o SERVIDOR_DE_MENTIRA de cada rodada), o jogo
+# acha o alto-falante; sem ele, diz que não achou (a mordida). Sem o bwrap, a
+# prova não roda (sai 2), a não ser no CI.
 #
 # Precisa do módulo compilado (scripts/compilar.sh linux).
 # Uso: bash tests/prova_do_jogo.sh        (GODOT=<binário> para outro Godot)
@@ -20,17 +20,8 @@ GODOT="$FORJA_GODOT"
 python3 "$RAIZ/scripts/check_texto_de_tela.py" || exit 1   # o portão do texto de tela (F07)
 TMP="$(mktemp -d /tmp/forja-prova-do-jogo-XXXXXX)"
 trap 'rm -rf "$TMP"' EXIT
-mkdir -p "$TMP/bin" "$TMP/sys-vazio"
-cat > "$TMP/bin/pactl" <<'PACTL'
-#!/usr/bin/env bash
-[ "$*" = "list sinks" ] && cat "$SERVIDOR_DE_MENTIRA"
-exit 0
-PACTL
-printf '#!/usr/bin/env bash\ncat > /dev/null\nexit 0\n' > "$TMP/bin/pw-cat"
-chmod +x "$TMP/bin/pactl" "$TMP/bin/pw-cat"
-export PATH="$TMP/bin:$PATH"
-export FORJA_SYSFS="$TMP/sys-vazio"
-[ "$(command -v pactl)" = "$TMP/bin/pactl" ] || { echo "GUARDA: pactl não é o de mentira"; exit 1; }
+source "$RAIZ/tests/caixa.sh"
+caixa_montar "$TMP"
 
 cat > "$TMP/forma-a" <<'SINKS'
 Sink #40
@@ -44,18 +35,12 @@ Sink #593
 SINKS
 sed 's/ (DualSense Wireless Controller)$//' "$TMP/forma-a" > "$TMP/antes"
 
-CAIXA=()
-if command -v bwrap > /dev/null; then
-  CAIXA=(bwrap --dev-bind / / --dev /dev --tmpfs /run/udev --tmpfs /sys/class/input
-         --tmpfs /sys/class/hidraw)
-fi
-
 # a trilha (H05): antes do --import, que criaria o .ogg.import que faltou no commit
 python3 "$RAIZ/scripts/conferir_ost.py" > "$TMP/ost.log" 2>&1
 OST=$?
 grep -E "^NÃO|^==>" "$TMP/ost.log"
 
-"${CAIXA[@]}" "$GODOT" --headless --path "$RAIZ/godot" --import --quit > "$TMP/import.log" 2>&1
+caixa "$GODOT" --headless --path "$RAIZ/godot" --import --quit > "$TMP/import.log" 2>&1
 
 FALHAS=0
 [ "$OST" -eq 0 ] || { echo "FAIL a trilha não confere (python3 scripts/conferir_ost.py)"; FALHAS=$((FALHAS + 1)); }
@@ -74,7 +59,7 @@ rodar() {
   local rel="$TMP/relatorios-$nome"
   mkdir -p "$rel"
   SERVIDOR_DE_MENTIRA="$TMP/$nome" ESPERADO="$esperado" \
-    timeout 1200 "${CAIXA[@]}" "$GODOT" --headless --fixed-fps 60 --path "$RAIZ/godot" res://testes/prova_do_jogo.tscn \
+    timeout 1200 caixa "$GODOT" --headless --fixed-fps 60 --path "$RAIZ/godot" res://testes/prova_do_jogo.tscn \
     -- --simular=4 --robo --semente=7 --relatorios="$rel" "$@" > "$TMP/$nome.log" 2>&1
   local rc=$?
   grep -E "alto-falante do sistema|FAIL|SCRIPT ERROR|prova do jogo ok" "$TMP/$nome.log"
