@@ -130,10 +130,22 @@ func _roteiro() -> bool:
 	if jogo.estado != "titulo":
 		falhas.append("o jogo não abriu no título (%s)" % jogo.estado)
 		return false
+	# a prancha do título (G01): o título, o PLAY com o cassete pela metade e as quatro armaduras acesas
+	var do_titulo: Array = [null, null, null]
+	do_titulo[0] = await _foto_solta()
 	# o ✕ do P1 é o PLAY; da introdução ao salão, quem aperta é o robô do fluxo (main.gd _robo)
 	await _aperta(0, Forja.CRUZ)
+	# a descida é cúbica, 720 px em 4 batidas: a metade (360 px) cai em 4 × ∛0,5 ≈ 3,17 batidas
+	await _ate(func() -> bool: return jogo.estado != "titulo" or (jogo.titulo.play_desde >= 0.0
+		and jogo.titulo.batidas - jogo.titulo.play_desde >= 3.17), 10.0, "o cassete pela metade")
+	if jogo.estado == "titulo":
+		do_titulo[1] = await _foto_solta()
 	if not await _ate(func() -> bool: return jogo.estado == "intro", 10.0, "a introdução"):
 		return false
+	await _ate(func() -> bool: return jogo.estado != "intro" or jogo.intro.t >= 17.5, 30.0, "as quatro armaduras acesas")
+	if jogo.estado == "intro":
+		do_titulo[2] = await _foto_solta()
+	_prancha_do_titulo(do_titulo)
 	if not await _ate(func() -> bool: return jogo.estado == "lobby", 40.0, "o lobby"):
 		return false
 	if not await _ate(func() -> bool: return jogo.estado == "salao" and not jogo._trocando, 40.0, "o salão"):
@@ -536,3 +548,37 @@ func _autoteste() -> int:
 	no.queue_free()
 	print("autoteste da prova visual: %s" % ("ok" if erros[0] == 0 else "%d falha(s)" % erros[0]))
 	return 0 if erros[0] == 0 else 1
+
+
+## Um quadro da tela agora, do tamanho dos da prancha, fora da amostra de 2 em 2 s
+## (não entra nas checagens). null: o Godot não devolveu imagem.
+func _foto_solta() -> Image:
+	await RenderingServer.frame_post_draw
+	var img := get_viewport().get_texture().get_image()
+	if img == null or img.is_empty():
+		return null
+	var quadro := img.duplicate() as Image
+	quadro.convert(Image.FORMAT_RGB8)
+	quadro.resize(QUADRO.x, QUADRO.y, Image.INTERPOLATE_BILINEAR)
+	return quadro
+
+
+## A prancha do título (G01): o título, o PLAY com o cassete pela metade e a
+## introdução com as quatro armaduras acesas, lado a lado (1, 2 e 3 embaixo de
+## cada um). Um quadro que não veio
+## (o roteiro passou do ponto) fica vermelho e entra nas falhas.
+func _prancha_do_titulo(fotos: Array) -> void:
+	var rotulos := ["titulo", "play", "armaduras"]
+	var prancha := Image.create(3 * QUADRO.x, CELULA_A, false, Image.FORMAT_RGB8)
+	prancha.fill(Color(0.07, 0.07, 0.09))
+	for i in 3:
+		var x := i * QUADRO.x
+		var f: Image = fotos[i] if i < fotos.size() else null
+		if f != null:
+			prancha.blit_rect(f, Rect2i(Vector2i.ZERO, QUADRO), Vector2i(x, 0))
+		else:
+			prancha.fill_rect(Rect2i(x, 0, QUADRO.x, QUADRO.y), Color(0.6, 0.1, 0.1))
+			falhas.append("a prancha do título ficou sem o quadro «%s»" % rotulos[i])
+		escrever(prancha, x + 8, QUADRO.y + 3, str(i + 1), 3, Color.WHITE)
+	var nome := "prancha-titulo.png" if indice == 1 else "prancha-titulo-%d.png" % indice
+	prancha.save_png(saida.path_join(nome))
