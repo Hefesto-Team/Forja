@@ -4,13 +4,12 @@ extends RefCounted
 ## que se abre. Cada um se desfaz sozinho.
 
 
-static func _material_brilho(cor: Color) -> StandardMaterial3D:
+static func _material_brilho() -> StandardMaterial3D:
 	var m := StandardMaterial3D.new()
 	m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	m.billboard_mode = BaseMaterial3D.BILLBOARD_ENABLED
 	m.vertex_color_use_as_albedo = true
 	m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	m.albedo_color = cor
 	return m
 
 
@@ -38,7 +37,7 @@ static func faiscas(pai: Node, pos: Vector3, cor: Color, n := 24, forca := 1.0) 
 	p.process_material = m
 	var q := QuadMesh.new()
 	q.size = Vector2(0.07, 0.07)
-	q.material = _material_brilho(Color.WHITE)
+	q.material = _material_brilho()
 	p.draw_pass_1 = q
 	pai.add_child(p)
 	p.global_position = pos
@@ -73,28 +72,23 @@ static func brasas(pai: Node, centro: Vector3, tamanho: Vector3, cor: Color, n :
 	p.process_material = m
 	var q := QuadMesh.new()
 	q.size = Vector2(0.05, 0.05)
-	q.material = _material_brilho(Color.WHITE)
+	q.material = _material_brilho()
 	p.draw_pass_1 = q
 	p.position = centro
 	pai.add_child(p)
 	return p
 
 
-## Um anel que se abre e some: o "pegou" de uma runa, de um sino, de um carimbo.
-static func anel(pai: Node, pos: Vector3, cor: Color, raio := 0.6, virado_para := Vector3.BACK) -> void:
+## Um anel que se abre e some: o "pegou" de uma runa, de um sino, de um carimbo. `dono`: o lugar (0 a 3) de quem
+## o causou, ou "forja" (o brilho sem dono; `cor` é então TUNGSTENIO) — ver Tema.neon.
+static func anel(pai: Node, pos: Vector3, cor: Color, raio := 0.6, virado_para := Vector3.BACK, dono: Variant = "forja") -> void:
 	var a := MeshInstance3D.new()
 	var t := TorusMesh.new()
 	t.inner_radius = raio * 0.86
 	t.outer_radius = raio
 	t.rings = 40
 	a.mesh = t
-	var m := StandardMaterial3D.new()
-	m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	m.albedo_color = cor
-	m.emission_enabled = true
-	m.emission = cor
-	m.emission_energy_multiplier = 2.0
+	var m := Tema.neon(cor, 2.0, dono)
 	a.material_override = m
 	pai.add_child(a)
 	a.global_position = pos
@@ -103,7 +97,7 @@ static func anel(pai: Node, pos: Vector3, cor: Color, raio := 0.6, virado_para :
 		a.rotation.x = PI * 0.5
 	var tw := a.create_tween().set_parallel(true)
 	tw.tween_property(a, "scale", Vector3.ONE * 2.2, 0.45).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-	tw.tween_property(m, "albedo_color:a", 0.0, 0.45)
+	tw.tween_property(m, "shader_parameter/energia", 0.0, 0.45)
 	tw.chain().tween_callback(a.queue_free)
 
 
@@ -133,7 +127,7 @@ static func poeira(pai: Node, centro: Vector3, tamanho: Vector3, cor: Color, n :
 	p.process_material = m
 	var q := QuadMesh.new()
 	q.size = Vector2(0.04, 0.04)
-	q.material = _material_brilho(Color.WHITE)
+	q.material = _material_brilho()
 	p.draw_pass_1 = q
 	p.position = centro
 	pai.add_child(p)

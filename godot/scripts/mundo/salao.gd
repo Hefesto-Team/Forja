@@ -34,6 +34,7 @@ var pedestais_no: Node3D  ## os quatro pedestais do lobby (somem no título)
 var bigorna: Node3D
 var _cenas := {}
 var _tochas: Array[OmniLight3D] = []
+var _energia_chave := 1.8  ## a energia da chave da seção que o salão está vivendo (as tochas tremem em volta dela)
 var _t := 0.0
 
 
@@ -52,7 +53,17 @@ func _process(dt: float) -> void:
 	# as tochas tremem, cada uma no seu passo
 	for i in _tochas.size():
 		var l := _tochas[i]
-		l.light_energy = 1.6 + 0.25 * sin(_t * 7.3 + i * 1.7) + 0.15 * sin(_t * 13.1 + i * 0.9)
+		l.light_energy = _energia_chave + 0.25 * sin(_t * 7.3 + i * 1.7) + 0.15 * sin(_t * 13.1 + i * 0.9)
+
+
+## Põe a luz da seção (`Tema.luz_da_secao`) nas tochas dos portões e na luz da forja: a cor da chave, a energia dela.
+func acender(luz: Dictionary) -> void:
+	_energia_chave = luz.energia_chave
+	for l in _tochas:
+		l.light_color = luz.chave
+	for id in portoes:
+		for l in portoes[id].luzes:
+			l.light_color = luz.chave
 
 
 func peca(nome: String, pos: Vector3, rot_y := 0.0, escala := K) -> Node3D:
@@ -95,7 +106,7 @@ func _chao() -> void:
 	passarela.size = Vector3(2.6, 0.03, 7.4)
 	passarela.position = Vector3(0, 0.015, 5.3)
 	var pano := StandardMaterial3D.new()
-	pano.albedo_color = Color("#3a2f56")
+	pano.albedo_color = Tema.GRAFITE
 	pano.roughness = 1.0
 	passarela.material = pano
 	add_child(passarela)
@@ -103,12 +114,7 @@ func _chao() -> void:
 		var friso := CSGBox3D.new()
 		friso.size = Vector3(0.08, 0.035, 7.4)
 		friso.position = Vector3(lado * 1.3, 0.018, 5.3)
-		var rosa := StandardMaterial3D.new()
-		rosa.albedo_color = Tema.VIOLETA
-		rosa.emission_enabled = true
-		rosa.emission = Tema.VIOLETA
-		rosa.emission_energy_multiplier = 0.9
-		friso.material = rosa
+		friso.material = Tema.neon(Tema.VIOLETA, 0.9, "mundo")
 		add_child(friso)
 
 
@@ -216,7 +222,7 @@ func _tocha(pos: Vector3, acesa: bool) -> OmniLight3D:
 	cabo.height = 0.5
 	cabo.position = pos + Vector3(0, -0.25, 0)
 	var madeira := StandardMaterial3D.new()
-	madeira.albedo_color = Color("#8a4b2a")
+	madeira.albedo_color = Tema.OXIDO_BRILHO
 	cabo.material = madeira
 	add_child(cabo)
 	var chama := MeshInstance3D.new()
@@ -224,18 +230,15 @@ func _tocha(pos: Vector3, acesa: bool) -> OmniLight3D:
 	esfera.radius = 0.1
 	esfera.height = 0.26
 	chama.mesh = esfera
-	var fogo := StandardMaterial3D.new()
-	fogo.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	fogo.albedo_color = Tema.TUNGSTENIO if acesa else Tema.GRAFITE
-	fogo.emission_enabled = acesa
-	fogo.emission = Tema.TUNGSTENIO
-	fogo.emission_energy_multiplier = 3.0
-	chama.material_override = fogo
+	if acesa:
+		chama.material_override = Tema.neon(Tema.TUNGSTENIO, 1.8, "forja")
+	else:
+		chama.material_override = Kit.chapado(Tema.GRAFITE)
 	chama.position = pos + Vector3(0, 0.08, 0)
 	add_child(chama)
 	var luz := OmniLight3D.new()
 	luz.position = pos + Vector3(0, 0.25, 0)
-	luz.light_color = Color("#ffb070")
+	luz.light_color = Tema.TUNGSTENIO
 	luz.omni_range = 5.5
 	luz.omni_attenuation = 1.4
 	luz.light_energy = 1.6 if acesa else 0.0
@@ -263,7 +266,7 @@ func _bigorna() -> void:
 	tablado.height = 0.3
 	tablado.sides = 32
 	tablado.position.y = 0.15
-	tablado.material = pedra.call(Color("#7d7aa8"))
+	tablado.material = pedra.call(Tema.OXIDO_BRILHO)
 	bigorna.add_child(tablado)
 	var borda := CSGTorus3D.new()
 	borda.inner_radius = 2.95
@@ -271,18 +274,13 @@ func _bigorna() -> void:
 	borda.sides = 48
 	borda.ring_sides = 8
 	borda.position.y = 0.3
-	var brilho := StandardMaterial3D.new()
-	brilho.albedo_color = Tema.VIOLETA
-	brilho.emission_enabled = true
-	brilho.emission = Tema.VIOLETA
-	brilho.emission_energy_multiplier = 1.6
-	borda.material = brilho
+	borda.material = Tema.neon(Tema.VIOLETA, 1.1, "mundo")
 	bigorna.add_child(borda)
 	# a base, a cintura, o tampo e o chifre
 	var base := CSGBox3D.new()
 	base.size = Vector3(1.5, 0.45, 1.0)
 	base.position.y = 0.3 + 0.225
-	base.material = pedra.call(Color("#6272a4"))
+	base.material = pedra.call(Tema.OXIDO_BRILHO)
 	bigorna.add_child(base)
 	var cintura := CSGBox3D.new()
 	cintura.size = Vector3(0.8, 0.45, 0.62)
@@ -292,7 +290,7 @@ func _bigorna() -> void:
 	var tampo := CSGBox3D.new()
 	tampo.size = Vector3(1.9, 0.38, 0.8)
 	tampo.position = Vector3(-0.1, 1.2 + 0.19, 0)
-	tampo.material = pedra.call(Color("#e9e7f2"), 0.35)
+	tampo.material = pedra.call(Tema.OXIDO_BRILHO, 0.35)
 	bigorna.add_child(tampo)
 	var chifre := CSGCylinder3D.new()
 	chifre.cone = true
@@ -301,12 +299,12 @@ func _bigorna() -> void:
 	chifre.sides = 16
 	chifre.rotation.z = -PI * 0.5
 	chifre.position = Vector3(1.28, 1.39, 0)
-	chifre.material = pedra.call(Color("#e9e7f2"), 0.35)
+	chifre.material = pedra.call(Tema.OXIDO_BRILHO, 0.35)
 	bigorna.add_child(chifre)
 	# o fogo da forja: brasa rosa e laranja embaixo da bigorna
 	var forja := OmniLight3D.new()
 	forja.position = Vector3(0, 0.9, 0.9)
-	forja.light_color = Color("#ff8a70")
+	forja.light_color = Tema.TUNGSTENIO
 	forja.light_energy = 2.2
 	forja.omni_range = 7.0
 	bigorna.add_child(forja)
@@ -350,9 +348,7 @@ func _brasas(onde: Node3D) -> void:
 	mat.billboard_mode = BaseMaterial3D.BILLBOARD_ENABLED
 	mat.vertex_color_use_as_albedo = true
 	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	mat.emission_enabled = true
-	mat.emission = Tema.TUNGSTENIO
-	mat.emission_energy_multiplier = 2.0
+	Tema.emissivo(mat, 2.0, "forja")
 	q.material = mat
 	p.draw_pass_1 = q
 	onde.add_child(p)
@@ -371,7 +367,7 @@ func _pedestais() -> void:
 		disco.sides = 32
 		disco.position = pos + Vector3(0, 0.16, 0)
 		var m := StandardMaterial3D.new()
-		m.albedo_color = Color("#8784b3")
+		m.albedo_color = Tema.OXIDO_BRILHO
 		m.roughness = 0.7
 		disco.material = m
 		pedestais_no.add_child(disco)
@@ -381,13 +377,7 @@ func _pedestais() -> void:
 		aro.sides = 40
 		aro.ring_sides = 6
 		aro.position = pos + Vector3(0, 0.32, 0)
-		var brilho := StandardMaterial3D.new()
-		var cor: Color = Forja.cor_do_lugar(i)
-		brilho.albedo_color = cor
-		brilho.emission_enabled = true
-		brilho.emission = cor
-		brilho.emission_energy_multiplier = 1.2
-		aro.material = brilho
+		aro.material = Tema.neon(Tema.JOGADOR[i], 1.5, i)
 		aro.name = "Aro%d" % i
 		pedestais_no.add_child(aro)
 

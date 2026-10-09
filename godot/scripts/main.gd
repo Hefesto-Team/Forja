@@ -91,31 +91,48 @@ func _exit_tree() -> void:
 		salao.free()
 
 
+var env: Environment  ## o ambiente do mundo: a luz de cada seção o acende (acender)
+
+
 func _ambiente() -> void:
 	RenderingServer.set_default_clear_color(Tema.FITA)  # o fundo atrás de tudo, que era do project.godot
-	var env := Environment.new()
+	env = Environment.new()
 	env.background_mode = Environment.BG_COLOR
 	env.background_color = Tema.FITA
 	env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
-	env.ambient_light_color = Color("#6d64a0")
 	env.ambient_light_energy = 0.42
 	env.tonemap_mode = Environment.TONE_MAPPER_FILMIC
 	env.tonemap_exposure = 1.05
 	env.glow_enabled = true
 	env.glow_intensity = 0.7
 	env.glow_bloom = 0.08
-	env.glow_hdr_threshold = 0.9
-	env.ssao_enabled = true
-	env.ssao_radius = 1.2
-	env.ssao_intensity = 1.6
+	env.glow_hdr_threshold = 0.82
+	env.ssao_enabled = false
 	env.fog_enabled = true
-	env.fog_light_color = Color("#241f33")
-	env.fog_density = 0.012
 	env.adjustment_enabled = true
 	env.adjustment_saturation = 1.08
 	var we := WorldEnvironment.new()
 	we.environment = env
 	add_child(we)
+	acender(-1)
+
+
+## A luz de uma seção (arte/01, a luz das cinco tintas), tirada da tinta pelo Tema: o preenchimento no ambiente,
+## a névoa e a chave nas luzes da sala. `numero` -1 é o salão, 0 o pódio.
+func acender(numero: int, lado_b := false) -> void:
+	var luz := Tema.luz_da_secao(numero, lado_b)
+	env.background_color = Tema.FITA
+	env.ambient_light_color = luz.preenchimento
+	env.ambient_light_energy = 0.42
+	env.fog_light_color = luz.nevoa
+	env.fog_density = luz.densidade
+	var sol := get_node_or_null("Sol") as DirectionalLight3D
+	if sol:
+		sol.light_color = luz.preenchimento
+	if sala and numero > 0:
+		sala.acender(luz)
+	elif salao:
+		salao.acender(luz)
 
 
 func _interface() -> void:
@@ -222,6 +239,8 @@ func _mostrar(qual: String) -> void:
 	lobby.visible = qual == "lobby"
 	hud.visible = _hud_visivel()
 	salao.pedestais_no.visible = qual in ["lobby", "podio"]
+	if qual != "sala":
+		acender(0 if qual == "podio" else -1)
 	if qual == "lobby":
 		for l in 4:
 			var p := jogadores[l]
@@ -331,6 +350,7 @@ func _entrar_na_sala(id: String, com_cortina := true) -> void:
 		hud.create_livre = not (sala is SalaJogo and (((sala as SalaJogo).botoes_pedidos >> Forja.CREATE) & 1
 			or (sala as SalaJogo).cega))
 		_mostrar("sala")
+		acender(sala.numero())
 		hud.sala = {"nome": sala.nome, "acao": sala.acao}
 		hud.placa = {}
 	if com_cortina:
@@ -448,10 +468,8 @@ func _ir_para_o_podio() -> void:
 		var bloco := CSGBox3D.new()
 		bloco.size = Vector3(1.5, 1.0, 1.5)
 		var mat := StandardMaterial3D.new()
-		mat.albedo_color = Color("#8784b3").lerp(Forja.cor_do_lugar(l), 0.25)
-		mat.emission_enabled = int(e.degrau) == 1
-		mat.emission = Forja.cor_do_lugar(l)
-		mat.emission_energy_multiplier = 0.6
+		mat.albedo_color = Tema.OXIDO_BRILHO.lerp(Forja.cor_do_lugar(l), 0.25)
+		Tema.emissivo(mat, 0.6 if int(e.degrau) == 1 else 0.0, l)
 		bloco.material = mat
 		var base: Vector3 = salao.pedestais[l]
 		bloco.position = base + Vector3(0, -0.5, 0)
