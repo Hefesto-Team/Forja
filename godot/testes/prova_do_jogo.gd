@@ -173,6 +173,7 @@ func _prova_do_percurso() -> void:
 	var viu_depois := [false, false, false, false]
 	var vazia := [false, false, false, false]
 	var tremeu_sem_lugar := [false, false, false, false]
+	var texto_no_mundo := 0
 	nq = 0
 	while jogo.estado == "intro" and nq < 1800:
 		await _quadros(1)
@@ -201,6 +202,14 @@ func _prova_do_percurso() -> void:
 		for s in 4:
 			if not Forja.ocupado(s):
 				tremeu_sem_lugar[s] = tremeu_sem_lugar[s] or float(_perc_do_sim(s).get("forte", 0.0)) > 0.0
+		# nenhuma palavra na introdução: nem as placas das salas, nem o «P1» em cima dos bonecos
+		if jogo.estado == "intro":
+			for id in jogo.salao.portoes:
+				if (jogo.salao.portoes[id].placa as Node3D).is_visible_in_tree():
+					texto_no_mundo += 1
+			for p in jogo.jogadores:
+				if p.etiqueta.is_visible_in_tree():
+					texto_no_mundo += 1
 	_esperar(armaduras == 4, "a introdução acende as quatro armaduras (%d)" % armaduras)
 	for l in 4:
 		_esperar(not vazia[l] and viu_antes[l] and grafite[l], "introdução: a armadura do P%d é grafite antes de acender" % (l + 1))
@@ -212,6 +221,13 @@ func _prova_do_percurso() -> void:
 			_esperar(martelou[l], "a martelada do P%d chegou à mão dele" % (l + 1))
 	_esperar(nq >= 60 * 20, "a introdução dura mais de 20 s sem ninguém apertar (%d quadros)" % nq)
 	_esperar(jogo.estado == "lobby", "a introdução acaba sozinha e leva à construção")
+	_esperar(texto_no_mundo == 0, "a introdução não mostra placa nem «P1» no mundo (%d)" % texto_no_mundo)
+	var placas_de_volta := true
+	for id in jogo.salao.portoes:
+		placas_de_volta = placas_de_volta and (jogo.salao.portoes[id].placa as Node3D).visible
+	for p in jogo.jogadores:
+		placas_de_volta = placas_de_volta and p.etiqueta.visible
+	_esperar(placas_de_volta, "depois da introdução as placas e o «P1»…«P4» voltam")
 	Forja.robo_confirma = false  # o robô do fluxo espera: as checagens do lobby apertam à mão
 	# ◻ segurado um segundo, antes de confirmar: a reserva passa ao próximo lugar livre
 	Forja.ctl.simulador_cabo(1, false)  # o P2 vaga

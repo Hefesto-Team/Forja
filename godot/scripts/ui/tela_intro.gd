@@ -51,6 +51,7 @@ func comecar(sala: Salao, bonecos: Array) -> void:
 		p.animar("static")
 		p.cabeca(false)
 		p.acender(0.0)
+	_texto_do_mundo(false)
 	queue_redraw()
 
 
@@ -64,6 +65,7 @@ func terminar() -> void:
 		p.cabeca(true)
 		p.acender(1.0)
 		p.animar("idle")
+	_texto_do_mundo(true)
 	_estatica = 0.0
 	queue_redraw()
 
@@ -127,6 +129,19 @@ func _acender_a_armadura(l: int) -> void:
 	var p: ForjaPlayer = jogadores[l]
 	var pouco := not Opcoes.tremor
 	Efeitos.faiscas(salao, p.global_position + Vector3(0, 1.6, 0), Tema.JOGADOR[l], 8 if pouco else 24, 0.8)
+
+
+## A introdução não tem uma palavra: as placas das salas e o «P1»…«P4» em cima
+## dos bonecos somem enquanto ela dura e voltam no fim.
+func _texto_do_mundo(visivel: bool) -> void:
+	if salao:
+		for id in salao.portoes:
+			var placa = salao.portoes[id].get("placa")
+			if placa is Node3D:
+				placa.visible = visivel
+	for p in jogadores:
+		if p.etiqueta:
+			p.etiqueta.visible = visivel
 
 
 ## A câmera da introdução: a bigorna parada até 9 s; depois, em 2 compassos,
