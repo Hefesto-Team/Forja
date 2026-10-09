@@ -113,8 +113,7 @@ func entrar(js: Array) -> void:
 		p.controlavel = false
 	Itens.novo_minigame()
 	for p in jogadores:
-		if Itens.do_lugar(p.lugar) != Itens.NENHUM:
-			Itens.registrar(p.lugar, "leva")
+		Itens.registrar(p.lugar, "leva")
 	if papel_som >= 0:
 		# o som de cada um, achado como um jogo acha; o aviso mostra e deixa trocar
 		Forja.som_preparar(papel_som)

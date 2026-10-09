@@ -356,7 +356,14 @@ func _runa(pai: Node3D, tamanho: Vector3, pos: Vector3, giro_z := 0.0, eixo := 2
 	fundo.rotation.z = giro_z
 	linha.rotation.z = giro_z
 	_mats_runa.append(mat)
-	_area_runa += tamanho.x * tamanho.y
+	# a área no espaço do "Item", o mesmo de _area_item: a malha do Kenney leva a
+	# escala dela (2,3 no martelo, 0,9 no escudo) e a runa, filha dela, também
+	var k := 1.0
+	var no: Node = pai
+	while no != null and not (no is BoneAttachment3D):
+		k *= (no as Node3D).scale.x
+		no = no.get_parent()
+	_area_runa += tamanho.x * tamanho.y * k * k
 
 
 ## A roupa (arte/04): cada parte na sua faixa de valor, o néon do dono só no
