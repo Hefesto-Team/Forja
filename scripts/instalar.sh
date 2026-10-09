@@ -6,6 +6,7 @@
 #   scripts/instalar.sh modulo     compila o módulo nativo e baixa a engine
 #   scripts/instalar.sh trilha     o gerador de música (placa de vídeo; uns 20 GB)
 #   scripts/instalar.sh tudo       os três, nesta ordem
+#   scripts/instalar.sh desinstalar  tira o que a Forja trouxe (pede senha)
 #
 # Nada aqui conhece a máquina de ninguém: tudo sai da raiz do repositório e do
 # $HOME de quem roda. A senha, quando é pedida, é a do próprio sudo e não fica
@@ -17,6 +18,10 @@ set -uo pipefail
 
 RAIZ="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 LISTA="$RAIZ/scripts/requisitos-sistema.txt"
+OFICINA="${FORJA_OFICINA:-$RAIZ/oficina}"
+# Os pacotes que a Forja instalou nesta máquina, um por linha. O que já estava
+# aqui antes não entra, e por isso o desinstalar nunca tira o que era seu.
+REGISTRO="$OFICINA/pacotes-do-sistema.txt"
 
 if [[ -t 1 ]]; then
   N=$'\e[0m'; B=$'\e[1m'; VERDE=$'\e[38;5;114m'; AMARELO=$'\e[38;5;222m'; CINZA=$'\e[38;5;245m'
@@ -116,6 +121,12 @@ sistema() {
   echo "${CINZA}O sudo vai pedir a sua senha. Ela não fica gravada em lugar nenhum.${N}"
   # shellcheck disable=SC2086
   sudo apt-get update -qq && sudo apt-get install -y $(echo "$faltam" | tr '\n' ' ')
+  mkdir -p "$OFICINA"
+  local p
+  while read -r p; do
+    dpkg -s "$p" >/dev/null 2>&1 && echo "$p"
+  done <<<"$faltam" | cat - "$REGISTRO" 2>/dev/null | sort -u >"$REGISTRO.novo"
+  mv "$REGISTRO.novo" "$REGISTRO"
   local resto; resto="$(pacotes_que_faltam | grep -v '^$' || true)"
   [[ -z "$resto" ]] && ok "o sistema está pronto" || falta "ainda faltam: $resto"
 }
@@ -141,11 +152,39 @@ trilha() {
   ok "a trilha está pronta: ./run.sh trilha"
 }
 
+# ------------------------------------------------------------- desinstalar --
+
+desinstalar() {
+  titulo "A trilha"
+  if [[ -d "$OFICINA/ace-step" || -d "$OFICINA/ollama" || -d "$OFICINA/trilha-venv" ]]; then
+    bash "$RAIZ/scripts/trilha_ambiente.sh" desinstalar
+  else
+    ok "nada da trilha nesta máquina"
+  fi
+
+  titulo "O sistema"
+  local meus=""
+  [[ -s "$REGISTRO" ]] && meus="$(grep -vE '^\s*(#|$)' "$REGISTRO" | while read -r p; do
+    dpkg -s "$p" >/dev/null 2>&1 && echo "$p"; done || true)"
+  if [[ -z "$meus" ]]; then
+    ok "a Forja não instalou nenhum pacote nesta máquina"
+    return 0
+  fi
+  echo "A Forja instalou $(echo "$meus" | wc -l) pacote(s) nesta máquina:"
+  echo "$meus" | sed 's/^/  /'
+  echo "${CINZA}O que já estava aqui antes da Forja não está nesta lista e fica.${N}"
+  read -r -p "Remover? [s/N] " r
+  [[ "$r" == "s" || "$r" == "S" ]] || { echo "deixei como estava"; return 0; }
+  # shellcheck disable=SC2086
+  sudo apt-get remove -y $(echo "$meus" | tr '\n' ' ') && rm -f "$REGISTRO"
+}
+
 case "${1:-conferir}" in
   conferir) conferir ;;
   sistema)  sistema ;;
   modulo)   modulo ;;
   trilha)   trilha ;;
   tudo)     sistema && modulo && trilha && conferir ;;
-  *) sed -n '2,15p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'; exit 1 ;;
+  desinstalar) desinstalar ;;
+  *) sed -n '2,16p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'; exit 1 ;;
 esac

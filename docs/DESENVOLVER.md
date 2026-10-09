@@ -15,14 +15,12 @@ Godot 4.4 desenha; um módulo nativo com o SDL3 dentro fala com os controles
 commit) — nunca o que a distro tiver —, e os caminhos da máquina saem do
 binário.
 
-No Debian ou Ubuntu:
+No Debian ou Ubuntu, os pacotes estão em `scripts/requisitos-sistema.txt`:
 
 ```sh
-sudo apt install build-essential cmake ninja-build pkg-config git curl unzip \
-  libasound2-dev libpulse-dev libpipewire-0.3-dev \
-  libx11-dev libxext-dev libxrandr-dev libxcursor-dev libxfixes-dev libxi-dev libxss-dev libxtst-dev libxkbcommon-dev \
-  libwayland-dev wayland-protocols libdecor-0-dev libdrm-dev libgbm-dev libgl1-mesa-dev libegl1-mesa-dev \
-  libdbus-1-dev libudev-dev
+scripts/instalar.sh conferir       # diz o que falta, sem instalar nada
+scripts/instalar.sh sistema        # instala o que falta (pede senha) e anota em oficina/ o que instalou
+scripts/instalar.sh desinstalar    # tira a trilha e só os pacotes que a Forja instalou
 sudo apt install mingw-w64          # só para o módulo do Windows
 ```
 

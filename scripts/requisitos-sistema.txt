@@ -1,6 +1,7 @@
 # Os pacotes de sistema da Forja (Debian/Ubuntu/Pop!_OS).
 # Uma linha por pacote; o que vem depois de # é comentário.
 # Quem instala é o scripts/instalar.sh, que também confere sem instalar nada.
+# O scripts/instalar.sh desinstalar remove só o que ele mesmo instalou.
 
 # compilar
 build-essential
@@ -15,6 +16,7 @@ zstd                  # o pacote do Ollama vem em .tar.zst
 # som
 libasound2-dev
 libpulse-dev
+libpulse-mainloop-glib0  # vem junto com o libpulse-dev
 libpipewire-0.3-dev
 
 # janela e entrada (X11)
