@@ -52,7 +52,7 @@ func montar(e) -> void:
 	# o troféu do vencedor: o objeto de jogo em ouro de lâmpada
 	var t := Mundo.peca(self, "mini-arena/trophy", Vector3(0.95, 2.0, 0.35), -0.4, 1.6)
 	var ouro := StandardMaterial3D.new()
-	ouro.albedo_color = Color("#d9a441")
+	ouro.albedo_color = Fita.SECAO[3]  # o ouro do pódio é a tinta mostarda
 	ouro.metallic = 0.55
 	ouro.roughness = 0.35
 	for mi in t.find_children("*", "MeshInstance3D", true, false):
@@ -78,20 +78,21 @@ func montar(e) -> void:
 	Hud.camada(self, _hud)
 
 
-## O confete: tiras de fita cortada, papel creme e a cor de quem venceu.
+## O confete de fita (07, o confete de fita): 160 tiras de 0,05 × 0,22 ×
+## 0,008 m, 50 % óxido que pega luz, 20 % etiqueta, 30 % a cor de quem venceu.
 func _confete() -> void:
 	var rng := RandomNumberGenerator.new()
 	rng.seed = 21
 	var papel := Fita.fosco(Fita.ETIQUETA, 0.7)
-	var oxido := Fita.fosco(Color("#5a3a2a"), 0.6)
+	var oxido := Fita.fosco(Fita.OXIDO_BRILHO, 0.6)
 	var dono := Fita.neon(Fita.JOGADOR[VENCEDOR], 1.0)
-	for i in 120:
+	for i in 160:
 		var s := MeshInstance3D.new()
 		var b := BoxMesh.new()
 		b.size = Vector3(0.05, 0.22, 0.008)
 		s.mesh = b
 		var r := rng.randf()
-		s.material_override = dono if r < 0.35 else (oxido if r < 0.45 else papel)
+		s.material_override = dono if r < 0.30 else (oxido if r < 0.80 else papel)
 		s.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 		add_child(s)
 		s.position = Vector3(rng.randf_range(-6.5, 6.5), rng.randf_range(0.6, 5.2), rng.randf_range(-2.5, 3.5))
@@ -118,7 +119,7 @@ func _hud(ci: CanvasItem) -> void:
 	var x := 690.0
 	for b in botoes:
 		var r := Rect2(x, 970, 300 if b[0] == "cross" else 200, 64)
-		Hud.caixa(ci, Rect2(r.position + Vector2(0, 5), r.size), Color(0, 0, 0, 0.45), 10)
+		Hud.caixa(ci, Rect2(r.position + Vector2(0, 5), r.size), Fita.SOMBRA, 10)
 		Hud.caixa(ci, r, Color(Fita.CASCO, 0.94), 10)
 		Hud.glifo(ci, b[0], Rect2(r.position + Vector2(12, 10), Vector2(44, 44)), Fita.ETIQUETA)
 		Hud.texto(ci, Fita.archivo(600), 32, r.position + Vector2(66, 12), b[1], Fita.ETIQUETA)

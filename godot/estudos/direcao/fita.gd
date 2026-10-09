@@ -12,17 +12,22 @@ const FITA := Color("#0d0a16")       ## o fundo de tudo: a fita
 const CASCO := Color("#17121f")      ## o casco do cassete: placas do HUD, o plástico
 const CASCO_ALTO := Color("#241c30")  ## o casco iluminado, a borda do plástico
 const GRAFITE := Color("#3a3346")    ## trilho, segmento apagado do VU, linha estrutural
+const JANELA := Color("#07050c")     ## o vidro escuro da janela do cassete, o fundo da célula do leader
+const SOMBRA := Color(0, 0, 0, 0.45)  ## a sombra deslocada de placa, etiqueta e adesivo (nunca traço)
 
 # --- a etiqueta: o papel e a tinta ---
 const ETIQUETA := Color("#efe4c8")   ## o papel da etiqueta, o texto claro do HUD
 const ETIQUETA_SOMBRA := Color("#cfc2a0")  ## a dobra do papel, a linha pautada
 const TINTA := Color("#1c1626")      ## a caneta sobre a etiqueta
 const TINTA_SUAVE := Color("#5a4f66")  ## o rótulo impresso sobre a etiqueta
+const MUDO := Color("#857a95")       ## o texto secundário sobre o casco (o desligado, a dica)
 
 # --- o cenário: o par próprio, escuro, que nunca encosta nos jogadores ---
 const VIOLETA := Color("#4a3aa8")    ## o néon da arquitetura (tubo na parede, beira do palco); nunca acima de L 50
 const VIOLETA_FUNDO := Color("#1d1638")  ## a luz de preenchimento, a névoa
 const TUNGSTENIO := Color("#ffd9a8")  ## a luz quente de lâmpada (pódio, foco da bigorna): luz, nunca traço
+const OXIDO := Color("#3b2a22")      ## a fita magnética em si: o rolo, a tira do confete no escuro
+const OXIDO_BRILHO := Color("#7a5640")  ## o óxido que pega luz: a face da tira que vira, o cabo do martelo
 
 # --- os jogadores: os únicos néons saturados da tela ---
 const JOGADOR := [

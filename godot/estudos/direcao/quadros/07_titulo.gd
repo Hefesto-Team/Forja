@@ -69,10 +69,10 @@ func _hud(ci: CanvasItem) -> void:
 		ci.draw_line(Vector2(et.position.x + 330, et.end.y - 30 - i * 0), Vector2(et.end.x - 36, et.end.y - 30), Fita.ETIQUETA_SOMBRA, 2.0)
 	# a janela com os carretéis
 	var jan := Rect2(Vector2(r.get_center().x - 300, et.end.y + 34), Vector2(600, 170))
-	Hud.caixa(ci, jan, Color("#07050c"), 22, Fita.GRAFITE, 3)
+	Hud.caixa(ci, jan, Fita.JANELA, 22, Fita.GRAFITE, 3)
 	var c1 := jan.position + Vector2(140, jan.size.y * 0.5)
 	var c2 := jan.position + Vector2(jan.size.x - 140, jan.size.y * 0.5)
-	ci.draw_line(c1 + Vector2(0, 66), c2 + Vector2(0, 40), Color("#3b2a22"), 4.0, true)
+	ci.draw_line(c1 + Vector2(0, 66), c2 + Vector2(0, 40), Fita.OXIDO, 4.0, true)
 	Hud.carretel(ci, c1, 70, 0.95)
 	Hud.carretel(ci, c2, 70, 0.3)
 	# o pé do cassete (o trapézio com os furos da cabeça)
@@ -80,7 +80,7 @@ func _hud(ci: CanvasItem) -> void:
 		Vector2(r.end.x - 290, r.end.y - 80), Vector2(r.end.x - 230, r.end.y)])
 	ci.draw_colored_polygon(pe, Fita.CASCO_ALTO)
 	for x in [-180.0, -60.0, 60.0, 180.0]:
-		ci.draw_circle(Vector2(r.get_center().x + x, r.end.y - 36), 14, Color("#07050c"))
+		ci.draw_circle(Vector2(r.get_center().x + x, r.end.y - 36), 14, Fita.JANELA)
 	# o começar, pulsando: o eco é a batida que passou
 	var bt := Rect2(760, 920, 400, 82)
 	Hud.caixa(ci, bt.grow(10), Color(Fita.ETIQUETA, 0.12), 18)
