@@ -25,6 +25,8 @@ var create_livre := true
 var _avisos: Array = []  # [texto, restante]
 var _rets: Array[Rect2] = []   ## o que o salão desenhou neste quadro (a prova confere que cabe na tela)
 
+const LARG_CHIP := 340.0
+
 
 func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -55,18 +57,15 @@ func _draw() -> void:
 		draw_rect(Rect2(0, i * 7, w, 7), Color(Tema.FITA, 0.55 * (1.0 - i / 20.0)))
 
 	if sala.is_empty():
-		Desenho.cabecalho(self, Vector2(Tema.MARGEM_X, 40), 60.0)
+		Desenho.cabecalho(self, Vector2(Tema.MARGEM_X, Tema.MARGEM_Y), 60.0)
 	else:
 		# o nome e a ação num quadro: a arena é clara e o texto não pode sumir nela
-		var fn := Tema.archivo(700)
-		var fa := Tema.archivo(500)
-		var nome := str(sala.get("nome", ""))
-		var acao := str(sala.get("acao", ""))
-		var larg := maxf(Desenho.largura(nome, fn, Tema.T_SUBTITULO), Desenho.largura(acao, fa, Tema.T_ROTULO)) + 56
-		var q := Rect2(Vector2(Tema.MARGEM_X - 28, 40), Vector2(larg, 118))
+		var qd := quadro_da_sala(str(sala.get("nome", "")), str(sala.get("acao", "")), w)
+		var q: Rect2 = qd["rect"]
 		Desenho.moldura(self, q, Color(Tema.CASCO, 0.94), Tema.GRAFITE, 2, Tema.RAIO_QUADRO)
-		Desenho.texto(self, q.position + Vector2(28, 56), nome, fn, Tema.T_SUBTITULO, Tema.ETIQUETA)
-		Desenho.texto(self, q.position + Vector2(28, 96), acao, fa, Tema.T_ROTULO, Tema.ETIQUETA)
+		Desenho.texto(self, q.position + Vector2(28, 56), qd["nome"], Tema.archivo(700), Tema.T_SUBTITULO, Tema.ETIQUETA)
+		Desenho.paragrafo(self, q.position + Vector2(28, 96), qd["acao"], Tema.archivo(500), Tema.T_ROTULO, Tema.ETIQUETA,
+			q.size.x - 56.0 + 1.0, 2)
 
 	_lugares(Vector2(w - Tema.MARGEM_X, 40))
 
@@ -76,7 +75,7 @@ func _draw() -> void:
 
 	# as dicas de baixo
 	var pares := [["create", "Diagnóstico"], ["options", "Pausa"]] if create_livre and Forja.bancada else [["options", "Pausa"]]
-	Desenho.dicas_a_direita(self, Vector2(w - Tema.MARGEM_X, h - Tema.MARGEM_Y), pares, Tema.T_SELO)
+	Desenho.dicas_a_direita(self, Vector2(w - Tema.MARGEM_X, h - Tema.MARGEM_Y), pares, Tema.T_SELO, not sala.is_empty())
 
 	# os avisos
 	# o texto que some sozinho é grande e curto: 46 px, até duas linhas
@@ -163,9 +162,31 @@ func retangulos() -> Array[Rect2]:
 	return _rets
 
 
+## O quadro do nome e da ação da sala: do recuo da margem até antes do primeiro
+## chip de lugar, nunca por cima dele. A ação cabe em até duas linhas. Devolve
+## {rect, nome, acao}; o painel da sala desce as faixas dele para baixo do `rect`.
+static func quadro_da_sala(nome: String, acao: String, w: float) -> Dictionary:
+	var x := float(Tema.MARGEM_X - 28)
+	var x_chips := w - Tema.MARGEM_X - (LARG_CHIP * 4 + 16.0 * 3)
+	var larg := x_chips - 24.0 - x
+	var fn := Tema.archivo(700)
+	var fa := Tema.archivo(500)
+	var dito_nome := Desenho.caber(nome, fn, Tema.T_SUBTITULO, larg - 56.0, 1)
+	var dita_acao := Desenho.caber(acao, fa, Tema.T_ROTULO, larg - 56.0, 2)
+	var uma := fa.get_height(Tema.t(Tema.T_ROTULO))
+	var extra := maxf(0.0, Desenho.altura_paragrafo(dita_acao, fa, Tema.T_ROTULO, larg - 56.0, 2) - uma)
+	return {"rect": Rect2(Vector2(x, 40), Vector2(larg, 118.0 + ceilf(extra))), "nome": dito_nome, "acao": dita_acao}
+
+
+## A linha de status de um chip, cortada no chip: nunca passa para o chip do lado
+## (dois chips com «Brasa · vida 1 · 1 balas» e «Brasa · derrubado» se tocavam).
+static func linha_do_status(linha: String) -> String:
+	return Desenho.caber(linha, Tema.archivo(500), Tema.T_SELO, LARG_CHIP - 40.0, 1)
+
+
 ## Os lugares, da direita para a esquerda a partir de `fim` (P4 mais à direita).
 func _lugares(fim: Vector2) -> void:
-	var larg := 340.0
+	var larg := LARG_CHIP
 	var alt := 92.0
 	var x := fim.x - (larg * 4 + 16 * 3)
 	for l in 4:
@@ -193,8 +214,7 @@ func _lugares(fim: Vector2) -> void:
 		if linha != "":
 			# a linha encolhe até caber (cortada, "4 bala" viraria "4 bal")
 			# a letra não encolhe (nada abaixo de 30 px): a linha que não cabe fecha com «…»
-			var fl := Tema.archivo(500)
-			var dita := Desenho.caber(linha, fl, Tema.T_SELO, larg - 40, 1)
-			Desenho.texto(self, r.position + Vector2(20, 76), dita, fl, Tema.T_SELO, Tema.ETIQUETA_SOMBRA, HORIZONTAL_ALIGNMENT_LEFT, larg - 40)
+			Desenho.texto(self, r.position + Vector2(20, 76), linha_do_status(linha), Tema.archivo(500), Tema.T_SELO,
+				Tema.ETIQUETA_SOMBRA, HORIZONTAL_ALIGNMENT_LEFT, larg - 40)
 		else:
 			Desenho.leds(self, r.position + Vector2(20, 60), int(info.get("leds", 0)), 10.0)

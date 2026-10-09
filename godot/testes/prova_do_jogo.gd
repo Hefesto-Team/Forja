@@ -83,6 +83,7 @@ func _ready() -> void:
 	_prova_do_registro_v2()
 	_prova_dos_sons_em_pcm()
 	await _prova_da_cor_e_da_letra()
+	_prova_da_letra_e_da_margem()
 	if falhas > 0:
 		printerr("%d falha(s)" % falhas)
 		get_tree().quit(1)
@@ -2402,3 +2403,43 @@ func _prova_da_cor_e_da_letra() -> void:
 				_esperar(m == null or (m is ShaderMaterial and not (m as ShaderMaterial).shader.code.contains("tingir")),
 					"boneco P%d: o corpo sem o tom do dono" % (p.lugar + 1))
 	_esperar(corpos > 0, "boneco: a prova achou o corpo (%d superfícies)" % corpos)
+
+
+## F09b: a letra mínima e a margem segura moram no tema, e o HUD parte delas.
+func _prova_da_letra_e_da_margem() -> void:
+	var antes := Tema.escala_texto
+	Tema.escala_texto = 1.0
+	_esperar(Tema.LETRA_MINIMA == 30, "tema: a letra mínima é 30")
+	_esperar(Tema.t(20) == Tema.LETRA_MINIMA, "tema: nada se desenha abaixo da letra mínima (%d)" % Tema.t(20))
+	_esperar(Tema.t(Tema.T_SELO) == 30, "tema: o selo continua em 30")
+	Tema.escala_texto = 1.15
+	_esperar(Tema.t(Tema.T_SELO) > 30, "tema: a escala grande ainda cresce a letra (%d)" % Tema.t(Tema.T_SELO))
+	Tema.escala_texto = antes
+	_esperar(is_equal_approx(Tema.AREA_SEGURA, 0.05), "tema: a área segura é de 5%")
+	_esperar(Tema.MARGEM_X >= 1920 * Tema.AREA_SEGURA and Tema.MARGEM_Y >= 1080 * Tema.AREA_SEGURA, "tema: as margens cobrem a área segura")
+	# o quadro da sala no HUD acaba antes do primeiro chip de lugar
+	var x_chips := 1920.0 - Tema.MARGEM_X - (HudJogo.LARG_CHIP * 4 + 16.0 * 3)
+	for par in [["O Impacto", "Sinta o golpe e levante o escudo do lado."], ["A Centelha", "Aperte o botão da runa antes do anel fechar."],
+			["Os Caminhos", "Ande no escuro e sinta o caminho."]]:
+		var q: Dictionary = HudJogo.quadro_da_sala(par[0], par[1], 1920.0)
+		var r: Rect2 = q["rect"]
+		_esperar(r.end.x <= x_chips - 24.0 + 0.5, "HUD: o quadro de «%s» acaba antes dos chips (%.0f)" % [par[0], r.end.x])
+		_esperar(r.position.x + 28.0 >= Tema.MARGEM_X, "HUD: o texto do quadro de «%s» começa na margem" % par[0])
+		_esperar(r.end.y > 150.0 and r.end.y < 260.0, "HUD: o quadro de «%s» tem altura de quadro (%.0f)" % [par[0], r.end.y])
+	# a linha de status cabe no chip: não passa para o texto do chip do lado
+	for linha in ["Brasa · vida 100 · 99 balas", "Maré · vida 100 · 99 balas", "Brasa · derrubado", "Rodada 12 de 12 · 9999 ✓", "Brasa · vida 100 · 99 balas · recarregando a arma agora"]:
+		var dita := HudJogo.linha_do_status(linha)
+		_esperar(Desenho.largura(dita, Tema.archivo(500), Tema.T_SELO) <= HudJogo.LARG_CHIP - 40.0 + 0.5,
+			"HUD: a linha «%s» cabe no chip" % linha)
+	# as dicas e as perguntas na raia não saem da margem, nem com a fila apertada
+	var painel := PainelSala.new()
+	painel.size = Vector2(1920, 1080)
+	for folga in [PainelSala.FOLGA_PILULA, PainelSala.FOLGA_PERGUNTA]:
+		var itens := [[0, [], Rect2(Vector2(30, 600), Vector2(300, 52))], [1, [], Rect2(Vector2(74, 600), Vector2(300, 52))],
+			[2, [], Rect2(Vector2(1700, 600), Vector2(300, 52))], [3, [], Rect2(Vector2(1838, 600), Vector2(300, 52))]]
+		painel._afastar(itens, folga)
+		for it in itens:
+			var rr: Rect2 = it[2]
+			_esperar(rr.position.x + folga >= Tema.MARGEM_X - 0.5 and rr.end.x - folga <= 1920 - Tema.MARGEM_X + 0.5,
+				"painel: o texto do lugar %d fica na área segura (%.0f a %.0f)" % [it[0] + 1, rr.position.x + folga, rr.end.x - folga])
+	painel.free()
