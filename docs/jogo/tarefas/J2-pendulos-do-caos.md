@@ -1,21 +1,104 @@
 # J2 — Pêndulos do Caos
 
-**Sprint:** J · **Slot:** S02_J07 · **Tamanho:** M · **Depende de:** H04, H08, F09, F03, H07, J1 (o `secao.gd`)
+**Sprint:** J · **Slot:** S02_J07 · **Tamanho:** M · **Depende de:** H04, H08, F09, F03, F05, H07, G05, G14, J1 (o `secao.gd`)
 
 ## Por quê
 
-Virar no alto é um golpe de pulso — o controle gira rápido para o centro no
-instante em que o pêndulo chega ao topo do arco: não é a inclinação que
-conta, é a velocidade do giro, no tempo; o giroscópio medido pelo pico.
+Virar no alto é um golpe de pulso: o controle gira rápido para o centro no
+instante em que o pêndulo chega ao topo do arco. Conta a velocidade do giro,
+no tempo, e o giroscópio é medido pelo pico; o arremesso do pêndulo travado
+é o melhor tombo da seção.
 
 ## Ler antes
 
 - [O molde de minigame](molde-de-minigame.md) (o exemplo da FICHA dele é este minigame)
-- [H04 — O kit do minigame](H04-o-kit-do-minigame.md)
-- [A linha n.º 7 em 03](../03-os-45-minigames.md#s2--a-viga--giroscópio-e-acelerômetro)
-- [O índice da seção](J-a-viga.md) e a [J1](J1-a-viga.md#o-cenário) (o `secao.gd`)
+- [H08 — Os acréscimos do kit](H08-os-acrescimos-do-kit.md) (a fila de notas, `anotar`, `andamento`, `tempo_que_resta`)
+- [J1 — O secao.gd](J1-a-viga.md#o-secaogd) (a caverna, `agendar`, `vento`, `momento`, `gancho`, `levantar`)
 
-## A ficha de dados
+## Arquivos que mudam
+
+| arquivo | o que muda | de todos? |
+| --- | --- | --- |
+| `godot/scripts/minigames/s02/pendulos_do_caos.gd` | **novo**: o minigame | não |
+| `godot/scripts/minigames/catalogo.gd` | o slot `S02_J07` | sim: as cinco |
+| `godot/scripts/traducoes.gd` | o título, o verbo, o microjogo e o status | sim: as cinco |
+| `godot/testes/prova_do_jogo.gd` | `_prova_dos_pendulos()` e a linha no `_prova_da_ficha` | sim: as cinco |
+| `godot/testes/captura_jogo.gd` | os momentos de `"S02_J07"` | sim: as cinco |
+
+O `secao.gd`, `"momento"` em `TIPOS_DO_JOGO`, a linha `momento` no 13 e o
+`_linhas_do_minigame()` da prova são da J1: esta ficha só os usa.
+
+### O estado de hoje
+
+Não existe `pendulos_do_caos.gd`. A ficha anterior trazia o código com
+`Tema.AMARELO` nas faíscas, `#8a5a33`, `#4a4e5e`, `#5b6275` e `#b9b0ff`
+soltos, o rangido pelo alto-falante, o aviso do vento pela vibração e a
+câmera a 13 m (os discos das pontas saíam do quadro). Esta ficha troca tudo
+isso pelos tokens do Tema e pelo `secao.gd`, e acrescenta o arremesso como
+momento, a mancha de lava, as vidas na trave e a reta.
+
+### Ao terminar
+
+1. `godot/scripts/minigames/catalogo.gd`: em `MINIGAMES`,
+   `"S02_J07": preload("res://scripts/minigames/s02/pendulos_do_caos.gd")`;
+   na lista `minigames` da S02, `"S02_J07"` logo depois de `"S02_J06"`.
+2. `godot/scripts/traducoes.gd`: `"Pêndulos do Caos": "Pendulums of Chaos"`,
+   `"Vire no alto!": "Flip at the top!"`, `"Vire!": "Flip!"`; em
+   `EN_PADROES`, `["^Quedas: (\\d+) de (\\d+)$", "Falls: $1 of $2"]`.
+3. `godot/testes/prova_do_jogo.gd` e `godot/testes/captura_jogo.gd`: o que
+   está em **Provas**.
+4. `"$GODOT" --headless --path godot --import --quit`; o
+   `pendulos_do_caos.gd.uid` entra no commit.
+5. O quadro sai do cabeçalho desta ficha: nada a editar nele.
+6. Commit (sem trailer): `feat(pendulos): os Pêndulos do Caos, a virada no alto do arco, o arremesso e o vento dos fantasmas`.
+
+## Como se joga
+
+- **A faixa:** `MUS_S02_J07`. Até a H05, a sintetizada da seção a 96 BPM;
+  com a gerada, `mus_s02_j07` a 130 BPM (o bolero que cresce em camadas).
+- **O pêndulo:** cada um de pé no disco do seu pêndulo, que balança pela
+  batida: `φ = A · cos(π · (batida − 0,5·l) / 2)`. O alto do arco (o ápice)
+  cai em `2m + 0,5·l`: à direita com `m` par, à esquerda com `m` ímpar. É o
+  hoqueto em colcheias: os quatro pêndulos em onda.
+- **A nota é o ápice:** no alto à direita, vire para a esquerda (para o
+  centro); no alto à esquerda, para a direita. O toque é o quadro em que a
+  velocidade de rolagem passa de **2,5 rad/s** para o lado pedido
+  (`-Forja.giro(l).z` é a velocidade para a direita), dentro da janela que
+  abre meio tempo antes. Nada até `FOLGA_PERDIDA` (0,140 s) depois: nota
+  perdida. A nota é perigo físico: `julgar_toque(l, alvo, n, true)`.
+- **O perigo:** o erro soma 1; PERFEITO e ÓTIMO tiram 1; BOM não mexe. **No
+  1, o pêndulo trava meio tempo** (faíscas no pivô). **No 2, trava e
+  arremessa o cavaleiro:** o lançamento sai na colcheia seguinte, ele voa 2
+  tempos num arco de 2,5 m de altura até a lava, girando uma volta, e volta
+  ao disco 8 tempos depois do lançamento (5 tempos fixos mais 3 tempos ×
+  `levantar`), com o perigo zerado. A mancha de lava fica no disco vazio até
+  ele voltar.
+- **A terceira queda o faz fantasma:** ele fica na plataforma da frente
+  (`z = 4,2`), com a luz `VIOLETA` em cima, e continua virando no tempo do
+  pêndulo dele (vazio). Cada ÓTIMO ou PERFEITO do fantasma **sopra vento**
+  no líder (o vivo com menos quedas; empate, mais pontos; nunca ele mesmo):
+  por 4 tempos × o `tranco` do fantasma, o líder precisa virar com **3,5
+  rad/s**. O vento não muda janela nenhuma.
+- **Os pontos** (ERRO, BOM, ÓTIMO, PERFEITO): `[0, 20, 35, 50]`; o fantasma
+  ganha 10 por sopro (o desempate entre fantasmas).
+
+### A curva
+
+Os terços de 90 s: 30 s e 60 s (`andamento()` 1/3 e 2/3).
+
+| trecho | o balanço | o mundo |
+| --- | --- | --- |
+| 0 a 30 s | 4 tempos, `A = 0,6 rad`; um ápice a cada 2 tempos por lugar | o tique do ápice na primeira frase (batidas 4 a 19) |
+| 30 a 60 s, o bolero cresce | 2 tempos, `φ = 0,75 · cos(π · (batida − 0,25·l))`; um ápice por tempo, em `k + 0,25·l` | a lava sobe de 0,6 a 1,0 em 2 batidas; a câmera recua 10 % em 2 batidas |
+| 60 s ao fim, a reta | 4 tempos, `A = 0,75` (o arco do pico fica grande) | — |
+| as últimas 16 batidas | igual à reta | o sopro de cada fantasma vai em todos os vivos, não só no líder; a linha `momento` `reta` |
+
+`Ritmo.simples[l]`: o pêndulo balança igual, mas só um ápice a cada dois é
+nota. A troca de fórmula na entrada e na saída do pico dá um salto no
+ângulo: o tranco das faíscas no pivô (12, `GRAFITE`) cobre os dois
+instantes.
+
+### A ficha de dados
 
 ```gdscript
 const FICHA := {
@@ -29,115 +112,28 @@ const FICHA := {
 	"faixa": "MUS_S02_J07",
 	"duracao": 90.0,
 	"fim": "ultimo_em_pe",
-	"sensacoes": ["acerto", "perfeito", "erro", "golpe", "aviso", "explosao"],
+	"sensacoes": ["acerto", "perfeito", "erro", "golpe_dir", "golpe_esq", "explosao"],
 	"material": "metal",
 	"microjogo": {"verbo": "Vire!", "segundos": 6.0},
 }
 ```
 
-## Como se joga
+### O fim e o vencedor
 
-- **A faixa:** `MUS_S02_J07` — até a H05, a sintetizada a 96 bpm; com a
-  gerada, 130 bpm ("bolero que cresce em camadas").
-- **O pêndulo:** cada um de pé no disco do seu pêndulo, que balança pela
-  batida: `φ = A · cos(π · (batida − 0,5·l) / 2)`, `A = 0,6 rad`. O alto do
-  arco (o ápice) cai em `2m + 0,5·l`: à direita com `m` par, à esquerda com
-  `m` ímpar — o hoqueto em colcheias, os quatro pêndulos em onda.
-- **A nota é o ápice:** no alto à direita, **vire para a esquerda** (para o
-  centro); no alto à esquerda, para a direita. O toque é o quadro em que a
-  velocidade de rolagem passa de **2,5 rad/s** para o lado pedido
-  (`-Forja.giro(l).z` é a velocidade para a direita), dentro da janela que
-  abre meio tempo antes. Nada até `FOLGA_PERDIDA`, o do kit → nota perdida.
-  Perigo físico: `julgar_toque(l, alvo, n, true)`.
-- **O perigo:** o erro soma 1; PERFEITO e ÓTIMO tiram 1. **No 2, o pêndulo
-  trava e arremessa o cavaleiro:** ele voa para a lava, e volta ao disco 8
-  tempos depois, com o perigo zerado. **A terceira queda o faz fantasma.**
-- **O fantasma** fica na plataforma da frente (`z = 4.2`) e continua virando
-  no tempo do pêndulo dele (vazio). Cada acerto ÓTIMO ou PERFEITO dele sopra
-  **vento** no líder (o vivo com menos quedas; empate, mais pontos; nunca
-  ele mesmo): por 4 tempos, o líder precisa virar com **3,5 rad/s**. O vento
-  se vê (faíscas lilás do fantasma ao disco do líder) e se sente
-  (`Forja.sentir(lider, "aviso", ms)`); não muda janela nenhuma.
-- **Os pontos por julgamento** (ERRO, BOM, ÓTIMO, PERFEITO): `[0, 20, 35, 50]`;
-  o fantasma ganha 10 por sopro (desempate entre fantasmas).
-- **A progressão:** `andamento()` do kit (em tempo de música, H08). De 0 a 1/3, o balanço de 4
-  tempos. **O pico (1/3 a 2/3), o bolero cresce:** o balanço de 2 tempos
-  (`φ = A · cos(π · (batida − 0,25·l))`, um ápice por tempo, em `k + 0,25·l`)
-  e `A = 0,75`. De 2/3 em diante, 4 tempos de novo. `Ritmo.simples[l]`: o
-  pêndulo balança igual, mas só um ápice a cada dois é nota.
-
-## O cenário
-
-`SECAO.montar(self)` (a caverna) e, em cima da lava:
-
-| o quê | peça | onde (m) |
-| --- | --- | --- |
-| a trave | `Kit.caixa(20.0, 0.3, 0.3)`, `#8a5a33`, e dois `column` nas pontas | `(0, 5.4, 0.8)`; `column` em `x = ±10.5, z = 0.8` |
-| o pêndulo | um `Node3D` no pivô, girando em `rotation.z = φ`; a corrente: 7 `Kit.caixa(0.08, 0.55, 0.08)`, ferro; o disco: `CylinderMesh` de raio 0,7, altura 0,15, **8 lados** (`radial_segments = 8`), `#5b6275` | pivô em `(RAIAS[l], 5.3, 0.8)`; o disco a 4,2 m abaixo |
-| o cavaleiro | o boneco, `preso`, de costas | no disco: `pivô + (4.2·sin φ, −4.2·cos φ + 0.1, 0)`; `p.modelo.rotation.z = φ · 0.5` |
-| o fantasma | o mesmo boneco na plataforma da frente, com uma `OmniLight3D` `#b9b0ff` (0,6) em cima | `(RAIAS[l], 0.1, 4.2)` |
-
-Câmera: `camera_pos = Vector3(0, 6.0, 13.0)`, `camera_olhar = Vector3(0, 2.4, 0.0)`.
-Nada liso: o disco é octogonal, a corrente em caixas. A cor do lugar só no
-aro do boneco.
-
-## O repertório
-
-| recurso | o que acontece, e quando |
-| --- | --- |
-| **giroscópio (a feature)** | a velocidade do giro, no ápice |
-| vibração | o kit por nota; o arremesso: `golpe`; virar fantasma: `explosao`; o vento chegando no líder: `aviso` |
-| barra de luz | o kit (`_reagir`, H08): branco no perfeito, a cor do lugar escurecida no erro |
-| alto-falante do dono | perfeito: a nota (o kit); ótimo e bom: `Forja.som_falante(l, "clique", 0.4)`; erro: a nota quebrada (o kit); **o metal rangendo** (`"material:metal"`, 0,6) meio tempo antes de cada ápice com `perigo == 1` |
-| gatilho | R2: `GATILHO_RESISTENCIA (0, 6)` com `perigo == 1`, Off com 0 — a mão sente que o pêndulo pesa |
-| háptica por material | `metal`, pelo kit |
-| som na TV | a nota (o kit); `vento` no sopro do fantasma; `falha` no arremesso |
-
-## A falha
-
-O pêndulo trava (um tranco: `φ` para por meio tempo, faíscas no pivô) e,
-no segundo erro, arremessa: o cavaleiro sai do disco num arco para a frente
-e para baixo, até a lava, em 2 tempos (pela batida), com `fall`. Volta ao
-disco 8 tempos depois com `jump`. Na terceira queda, vira fantasma.
-
-## O fim e o vencedor
-
-`fim: ultimo_em_pe`: com dois ou mais presentes, quando sobra um vivo (ou
-nenhum), todos acabam. Senão, os 90 s. `vencedor()`: os vivos antes dos
+`"fim": "ultimo_em_pe"`: com dois ou mais presentes, quando sobra um vivo
+(ou nenhum), todos acabam; senão, os 90 s. `vencedor()`: os vivos antes dos
 fantasmas; depois menos quedas; depois pontos; depois o lugar.
 
-## Com menos de quatro
+### Com menos de quatro
 
 Com dois ou três, igual. Sozinho: joga os 90 s, ou até virar fantasma (a
 terceira queda acaba o minigame dele). **O controle que cai:** o pêndulo
-balança vazio de nota (não há erro), e o vento não o escolhe como líder;
-ao voltar, a nota é o próximo ápice dele.
+balança vazio de nota (não há erro), e o vento não o escolhe; ao voltar, a
+nota é o próximo ápice dele. **Sem giroscópio:** a velocidade vem da
+diferença da rolagem pela gravidade entre dois quadros; sem nada, do
+analógico esquerdo (`SECAO.rolagem`); a linha `troca` diz qual.
 
-## O robô
-
-```gdscript
-# O kit chama robo(l, dt) antes de jogar(dt), a cada quadro, de quem ainda joga.
-func robo(l: int, _dt: float) -> void:
-	if not Forja.robo:
-		return
-	var e: Dictionary = j[l]
-	# volta devagar ao nível (abaixo da velocidade que conta como virada)
-	var giro := SECAO.giro_para(l, 0.0, 0.0)
-	giro.z = clampf(giro.z, -1.5, 1.5)
-	if float(e.caiu_b) < 0.0 and float(e.b) >= 0.0:
-		if int(e.robo_n) != int(e.n):
-			# o temperamento (--robo=bom|medio|ruim): quando não acerta, 200 ms atrasado
-			e.robo_n = int(e.n)
-			e.robo_mira = 0.0 if Forja.robo_acerta() else 0.20
-		var alvo := Ritmo.t_da_batida(float(e.b)) + float(e.robo_mira)
-		var agora := Ritmo.t_musica()
-		if agora >= alvo - 0.01 and agora <= alvo + 0.08:
-			# o golpe de pulso: 4,5 rad/s para o lado pedido (o z do giro é o contrário da rolagem)
-			giro.z = -4.5 * float(e.pedido)
-	Forja.robo_girar(l, giro, 0.06)
-```
-
-## Os ganchos
+### Os ganchos
 
 `godot/scripts/minigames/s02/pendulos_do_caos.gd`:
 
@@ -151,14 +147,15 @@ extends Minigame
 ##
 ## A falha: o pêndulo trava; no segundo erro, arremessa o cavaleiro na lava.
 ## O vencedor: o último em pé; senão, quem caiu menos.
-## O alto-falante do dono: o clique no acerto, a nota no perfeito, o metal
-## rangendo com o pêndulo pesado.
+## O alto-falante do dono: o clique no acerto, a nota no perfeito (o kit).
 ## O registro mede: o pico da velocidade de giro em cada virada, pedida e
-## feita (a linha `entrada`), e o atraso (o kit).
+## feita (a linha `entrada`), o atraso (o kit), o arremesso e a reta (a
+## linha `momento`), o vento (a linha `pista`).
 ## O robô: um golpe de 4,5 rad/s no ápice (ou 200 ms atrasado); volta devagar.
 ## Com menos de quatro: sozinho, joga até o tempo ou até virar fantasma.
-## A régua: "Vire no alto!" e o giroscópio bastam; sem a tela, o ápice se ouve
-## na nota de cada um e o rangido avisa; nada pergunta pelo controle.
+## A régua: "Vire no alto!" e o giroscópio bastam; sem a tela, o ápice bate
+## no lado certo da mão na primeira frase e o metal range no perigo; nada
+## pergunta pelo controle.
 
 const SECAO := preload("res://scripts/minigames/s02/secao.gd")
 
@@ -169,25 +166,34 @@ const AMPLITUDE_PICO := 0.75
 const CORDA := 4.2
 const Y_PIVO := 5.3
 const Z_PENDULO := 0.8
+const Z_FANTASMA := 4.2
 const VIRADA := 2.5  ## rad/s
 const VIRADA_COM_VENTO := 3.5
 const VENTO := 4.0  ## tempos
 const ARREMESSA := 2  ## perigo
 const VIDAS := 3
-const FORA := 8.0
+const VOO := 2.5  ## m: a altura do arco do arremesso
+const VOO_TEMPOS := 2.0
+const FORA_FIXO := 5.0  ## tempos; mais 3 × levantar = 8 no neutro
+const QUEDA := 3.0  ## tempos: a parte da volta que o Fôlego encurta
 const PONTOS := [0, 20, 35, 50]
 const SOPRO := 10
+const CAMERA := Vector3(0, 7.0, 18.0)
+const OLHAR := Vector3(0, 2.2, 0.8)
 
 var j := {}
 var contagem := [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]
+var _no_pico := false
+var _reta := false
 
 
 func montar() -> void:
-	camera_pos = Vector3(0, 6.0, 13.0)
-	camera_olhar = Vector3(0, 2.4, 0.0)
+	SECAO.limpar()
+	camera_pos = CAMERA
+	camera_olhar = OLHAR
 	SECAO.montar(self)
-	var madeira := Kit.material(Color("#8a5a33"), 0.0, 0.85)
-	var ferro := Kit.material(Color("#4a4e5e"), 0.0, 0.5)
+	var madeira := Kit.material(Tema.OXIDO_BRILHO, 0.0, 0.85)
+	var ferro := Kit.material(Tema.GRAFITE, 0.0, 0.5)
 	Kit.caixa(self, Vector3(20.0, 0.3, 0.3), Vector3(0, Y_PIVO + 0.1, Z_PENDULO), madeira)
 	for x in [-10.5, 10.5]:
 		Kit.peca(self, "column", Vector3(x, 0, Z_PENDULO))
@@ -203,23 +209,31 @@ func montar() -> void:
 		c.top_radius = 0.7
 		c.bottom_radius = 0.7
 		c.height = 0.15
-		c.radial_segments = 8
+		c.radial_segments = 8  # octogonal: nada liso
 		disco.mesh = c
 		disco.position = Vector3(0, -CORDA, 0)
-		disco.material_override = Kit.material(Color("#5b6275"), 0.0, 0.6)
+		disco.material_override = ferro
 		pivo.add_child(disco)
-		var brilho := OmniLight3D.new()
-		brilho.light_color = Color("#b9b0ff")
-		brilho.light_energy = 0.0
-		brilho.omni_range = 3.0
-		brilho.position = Vector3(RAIAS[l], 2.2, 4.2)
-		add_child(brilho)
+		# a mancha de lava no disco vazio (o rastro do arremesso)
+		var mancha := Kit.cilindro(pivo, 0.4, 0.02, Vector3(0.12, -CORDA + 0.09, 0.05), Kit.material(Tema.TUNGSTENIO, 0.8, 0.6))
+		mancha.visible = false
+		# as vidas na trave: três caixas na cor do dono; cada queda apaga uma
+		var vidas := []
+		for v in VIDAS:
+			vidas.append(Kit.caixa(self, Vector3(0.2, 0.2, 0.2), Vector3(RAIAS[l] - 0.3 + 0.3 * v, Y_PIVO + 0.4, Z_PENDULO), Kit.material(Tema.JOGADOR[l], 1.0, 0.5)))
+		var fantasma := OmniLight3D.new()  # a luz do fantasma, acesa na terceira queda
+		fantasma.light_color = Tema.VIOLETA
+		fantasma.light_energy = 0.0
+		fantasma.omni_range = 3.0
+		fantasma.position = Vector3(RAIAS[l], 2.2, Z_FANTASMA)
+		add_child(fantasma)
 		maos_livres(p)
 		p.preso = true
 		p.rotation.y = PI
 		j[l] = {"n": 0, "b": -1.0, "pedido": 0, "aberta": false, "antes": false, "pico": 0.0, "perigo": 0,
-			"quedas": 0, "fantasma": false, "caiu_b": -1.0, "trava_b": -99.0, "vento_ate": -1.0, "rangeu": -1,
-			"rol_antes": 0.0, "t_antes": 0.0, "fora": false, "pivo": pivo, "brilho": brilho,
+			"quedas": 0, "fantasma": false, "caiu_b": -1.0, "lancou_t": -1.0, "trava_b": -99.0,
+			"vento_ate": -1.0, "rangeu": -1, "tiquei": -1, "rol_antes": 0.0, "t_antes": 0.0, "fora": false,
+			"pivo": pivo, "mancha": mancha, "vidas": vidas, "luz_fantasma": fantasma,
 			"robo_n": -1, "robo_mira": 0.0}
 		Forja.gatilho(l, 1, Forja.GATILHO_OFF)
 		_mostrar(l)
@@ -233,7 +247,8 @@ func _fi(l: int) -> float:
 		b = float(e.trava_b)
 	if no_pico():
 		return AMPLITUDE_PICO * cos(PI * (b - 0.25 * l))
-	return AMPLITUDE * cos(PI * (b - 0.5 * l) / 2.0)
+	var a := AMPLITUDE if andamento() < 1.0 / 3.0 else AMPLITUDE_PICO
+	return a * cos(PI * (b - 0.5 * l) / 2.0)
 
 
 ## O próximo ápice do lugar depois de `desde`, e para que lado ele vira.
@@ -256,7 +271,7 @@ func _proxima(l: int, desde: float) -> void:
 
 func iniciar_jogo() -> void:
 	for l in presentes():
-		SECAO.anotar_troca(self, l)  # sem giroscópio ou acelerômetro: a linha `troca` (H08)
+		SECAO.anotar_troca(self, l)
 		_proxima(l, BATIDA_DA_PRIMEIRA_NOTA - 0.01)
 
 
@@ -273,8 +288,24 @@ func _virando(l: int) -> float:
 	return v
 
 
+func _ultimas_16() -> bool:
+	return tempo_que_resta() <= 16.0 * 60.0 / Ritmo.bpm
+
+
 func jogar(_dt: float) -> void:
+	SECAO.pulsos()
 	var agora := Ritmo.t_musica()
+	var pico := SECAO.pico_suave(self)
+	camera_pos = OLHAR + (CAMERA - OLHAR) * (1.0 + 0.1 * pico)
+	SECAO.lava(self, 0.6 + 0.4 * pico)
+	if no_pico() != _no_pico:
+		_no_pico = no_pico()
+		for l in presentes():  # o salto da fórmula: o tranco no pivô
+			Efeitos.faiscas(self, (j[l].pivo as Node3D).global_position, Tema.GRAFITE, 12, 0.5)
+	if not _reta and _ultimas_16():
+		_reta = true
+		SECAO.momento(self, "reta", -1, Vector3(0, Y_PIVO - CORDA, Z_PENDULO), 1.6,
+			{"ordem": vencedor(), "objeto": "vidas_na_trave"})
 	var vivos := 0
 	for l in presentes():
 		var e: Dictionary = j[l]
@@ -290,7 +321,8 @@ func jogar(_dt: float) -> void:
 			e.fora = false
 			_proxima(l, Ritmo.batida())
 		if float(e.caiu_b) >= 0.0:
-			if Ritmo.batida() >= float(e.caiu_b) + FORA and not bool(e.fantasma):
+			var volta := float(e.caiu_b) + FORA_FIXO + SECAO.levantar(l, QUEDA)
+			if Ritmo.batida() >= volta and not bool(e.fantasma):
 				_voltar(l)
 			if not bool(e.fantasma):
 				continue
@@ -302,15 +334,25 @@ func jogar(_dt: float) -> void:
 
 func _nota(l: int, e: Dictionary, agora: float) -> void:
 	var alvo := Ritmo.t_da_batida(float(e.b))
-	var meio_tempo := 0.5 * 60.0 / Ritmo.bpm
+	var tempo := 60.0 / Ritmo.bpm
+	var meio_tempo := 0.5 * tempo
 	var velocidade := _virando(l)
 	var limiar := VIRADA_COM_VENTO if Ritmo.batida() < float(e.vento_ate) else VIRADA
 	var sim := velocidade * float(e.pedido) >= limiar
 	if agora < alvo - meio_tempo:
 		e.antes = sim
-		if int(e.rangeu) != int(e.n) and agora >= alvo - 2.0 * meio_tempo and int(e.perigo) >= 1 and not bool(e.fantasma):
+		var aviso := alvo - tempo - SECAO.pista_s(l)
+		# o tique do ápice, no lado do alto do arco, só na primeira frase
+		if int(e.tiquei) != int(e.n) and agora >= aviso and float(e.b) < BATIDA_DA_PRIMEIRA_NOTA + 16.0 and not bool(e.fantasma):
+			e.tiquei = int(e.n)
+			var lado_alto := -int(e.pedido)  # vira para a esquerda: o alto é à direita
+			Forja.som_haptica(l, "clique" if lado_alto < 0 else "", "clique" if lado_alto > 0 else "", 0.4)
+			anotar("pista", l, {"canal": "haptica", "o": "apice", "lado": lado_alto})
+		# o metal range com o pêndulo pesado
+		if int(e.rangeu) != int(e.n) and agora >= aviso + meio_tempo and int(e.perigo) >= 1 and not bool(e.fantasma):
 			e.rangeu = int(e.n)
-			Forja.som_falante(l, "material:metal", 0.6)
+			Forja.textura(l, "metal", 0.6)
+			anotar("pista", l, {"canal": "haptica", "o": "rangido", "perigo": int(e.perigo)})
 		return
 	e.pico = maxf(float(e.pico), absf(velocidade))
 	var cruzou := sim and (not bool(e.antes) or not bool(e.aberta))
@@ -347,7 +389,8 @@ func falha(l: int) -> void:
 		_proxima(l, float(e.b))
 		return
 	e.trava_b = Ritmo.batida()
-	Efeitos.faiscas(self, (e.pivo as Node3D).global_position, Tema.AMARELO, 16, 0.6)
+	Efeitos.faiscas(self, (e.pivo as Node3D).global_position, Tema.JOGADOR[l], 16, 0.6)
+	SECAO.parar([e.pivo], 2)
 	if not treinando:
 		_perigo(l, int(e.perigo) + 1)
 	if int(e.perigo) >= ARREMESSA:
@@ -364,82 +407,136 @@ func _perigo(l: int, novo: int) -> void:
 		Forja.gatilho(l, 1, Forja.GATILHO_OFF)
 
 
+## O segundo erro: o lançamento sai na colcheia seguinte (o momento cai no tempo).
 func _arremessar(l: int) -> void:
 	var e: Dictionary = j[l]
-	e.caiu_b = Ritmo.batida()
+	e.caiu_b = ceilf(Ritmo.batida() * 2.0) / 2.0
 	e.quedas = int(e.quedas) + 1
 	_perigo(l, 0)
-	Forja.sentir(l, "golpe")
+	SECAO.agendar(Ritmo.t_da_batida(float(e.caiu_b)), _lanca.bind(l))
+	SECAO.agendar(Ritmo.t_da_batida(float(e.caiu_b) + VOO_TEMPOS), _na_lava.bind(l))
+
+
+## O grito: o pêndulo lança, o boneco voa, a mancha fica no disco.
+func _lanca(l: int) -> void:
+	var e: Dictionary = j[l]
+	e.lancou_t = Ritmo.t_musica()
 	var p := jogador(l)
+	(e.mancha as Node3D).visible = true
+	var vidas: Array = e.vidas
+	var apaga := VIDAS - int(e.quedas)
+	if apaga >= 0 and apaga < vidas.size():
+		(vidas[apaga] as MeshInstance3D).material_override = Kit.material(Tema.GRAFITE, 0.0, 0.5)
+	Forja.sentir(l, "golpe_dir", 60)  # o fraco 1,0 por 60 ms: o tranco da corrente
+	tremer(Sala.TREMOR_EXPLOSAO)
 	if p:
-		p.gesto("fall", 1.3)
+		p.gesto("fall", VOO_TEMPOS * 60.0 / Ritmo.bpm)
 		Som.tocar("falha", p.global_position, -4.0)
+		SECAO.parar([p, e.pivo], 3)
+	SECAO.momento(self, "arremesso", l, _pouso(l), VOO * SECAO.gancho(l, "empurrao"),
+		{"queda": int(e.quedas), "fantasma": int(e.quedas) >= VIDAS})
 	if int(e.quedas) >= VIDAS:
 		e.fantasma = true
-		Forja.sentir(l, "explosao")
-		(e.brilho as OmniLight3D).light_energy = 0.6
 		if presentes().size() == 1:
 			acabou[l] = true  # sozinho, virar fantasma acaba o minigame
+
+
+## O pouso na lava, 2 tempos depois: o forte 1,0 por 120 ms e o respingo.
+func _na_lava(l: int) -> void:
+	var e: Dictionary = j[l]
+	Forja.sentir(l, "golpe_esq", 120)
+	Efeitos.faiscas(self, _pouso(l), Tema.TUNGSTENIO, 30, 0.9)
+	if bool(e.fantasma):
+		(e.luz_fantasma as OmniLight3D).light_energy = 1.2
+
+
+## Onde o arremessado cai: na lava, para o centro e para a frente (no quadro).
+func _pouso(l: int) -> Vector3:
+	return Vector3(RAIAS[l] * 0.6, -1.45, 2.4)
 
 
 func _voltar(l: int) -> void:
 	var e: Dictionary = j[l]
 	e.caiu_b = -1.0
+	e.lancou_t = -1.0
+	(e.mancha as Node3D).visible = false
 	var p := jogador(l)
 	if p:
 		p.gesto("jump", 0.5)
+		Efeitos.anel(self, (e.pivo as Node3D).global_position + Vector3(0, -CORDA + 1.0, 0), Tema.JOGADOR[l], 0.6)
 	_proxima(l, Ritmo.batida())
 
 
-## O fantasma sopra vento no líder: o vivo com menos quedas (empate: mais pontos).
+## O fantasma sopra vento no líder (nas últimas 16 batidas, em todos os vivos).
 func _soprar(l: int) -> void:
+	var alvos := []
 	var lider := -1
 	for o in presentes():
-		if o == l or bool(j[o].fantasma) or not conectado(o):
+		if o == l or bool(j[o].fantasma) or not conectado(o) or float(j[o].caiu_b) >= 0.0:
 			continue
+		alvos.append(o)
 		if lider < 0 or int(j[o].quedas) < int(j[lider].quedas) or \
 				(int(j[o].quedas) == int(j[lider].quedas) and int(pontos[o]) > int(pontos[lider])):
 			lider = o
 	if lider < 0:
 		return
+	if not _ultimas_16():
+		alvos = [lider]
 	marcar(l, SOPRO)
-	j[lider].vento_ate = Ritmo.batida() + VENTO
-	Forja.sentir(lider, "aviso", int(30000.0 / Ritmo.bpm))
-	var disco := (j[lider].pivo as Node3D).global_position + Vector3(0, -CORDA, 0)
-	Efeitos.faiscas(self, disco, Color("#b9b0ff"), 24, 0.8)
-	Som.tocar("vento", disco, -8.0)
+	var dura := maxf(0.25, roundf(VENTO * SECAO.gancho(l, "tranco") * 4.0) / 4.0)
+	var de := Vector3(RAIAS[l], 1.2, Z_FANTASMA)
+	for o in alvos:
+		j[o].vento_ate = Ritmo.batida() + dura
+		var disco := (j[o].pivo as Node3D).global_position + Vector3(0, -CORDA, 0)
+		SECAO.vento(o, 0.5, RAIAS[l] < RAIAS[o])
+		anotar("pista", o, {"canal": "haptica", "o": "vento", "de": l, "tempos": dura})
+		# o fio lilás de ponta a ponta: 5 sopros de faísca em 400 ms
+		for i in 5:
+			var ponto := de.lerp(disco, i / 4.0)
+			SECAO.agendar(Ritmo.t_musica() + 0.1 * i, func() -> void: Efeitos.faiscas(self, ponto, Tema.VIOLETA, 6, 0.4))
+		Som.tocar("vento", disco, -8.0)
 
 
 func _mostrar(l: int) -> void:
 	var e: Dictionary = j[l]
 	var fi := _fi(l) if fase == "jogo" else 0.0
 	var pivo: Node3D = e.pivo
-	pivo.rotation.z = fi
 	var p := jogador(l)
-	if p == null:
-		return
-	if bool(e.fantasma) and (float(e.caiu_b) < 0.0 or Ritmo.batida() - float(e.caiu_b) >= 2.0):
-		p.position = Vector3(RAIAS[l], 0.1, 4.2)
+	if pivo.process_mode != Node.PROCESS_MODE_DISABLED:
+		pivo.rotation.z = fi
+	if p == null or p.process_mode == Node.PROCESS_MODE_DISABLED:
+		return  # o hit-stop congela o boneco também
+	var no_disco := pivo.global_position + Vector3(CORDA * sin(fi), -CORDA * cos(fi) + 0.1, 0)
+	var s := 0.0
+	if float(e.caiu_b) >= 0.0:
+		s = clampf((Ritmo.batida() - float(e.caiu_b)) / VOO_TEMPOS, 0.0, 1.0)
+	if bool(e.fantasma) and s >= 1.0:
+		p.position = Vector3(RAIAS[l], 0.1, Z_FANTASMA)
 		if p.modelo:
-			p.modelo.rotation.z = 0.0
+			p.modelo.rotation = Vector3.ZERO
 		p.animar("idle")
 		return
-	var no_disco := pivo.global_position + Vector3(CORDA * sin(fi), -CORDA * cos(fi) + 0.1, 0)
 	if float(e.caiu_b) >= 0.0:
-		var s := clampf((Ritmo.batida() - float(e.caiu_b)) / 2.0, 0.0, 1.0)
-		var lava := Vector3(no_disco.x, -1.6, 2.4)
-		p.position = no_disco.lerp(lava, s) + Vector3(0, sin(s * PI) * 1.5, 0)
-	else:
-		p.position = no_disco
+		var alto := VOO * SECAO.gancho(l, "empurrao")
+		p.position = no_disco.lerp(_pouso(l), s) + Vector3(0, sin(s * PI) * alto, 0)
+		if p.modelo:
+			p.modelo.rotation.x = TAU * s  # uma volta no ar
+		return
+	p.position = no_disco
 	if p.modelo:
-		p.modelo.rotation.z = fi * 0.5
+		p.modelo.rotation = Vector3(0, 0, fi * 0.5)
 	p.animar("idle")
+
+
+## Quem caiu e ainda não voltou, e o fantasma, estão fora da rodada (arte/09).
+func fora_da_rodada(l: int) -> bool:
+	return j.has(l) and (float(j[l].caiu_b) >= 0.0 or bool(j[l].fantasma))
 
 
 func ao_terminar() -> void:
 	for p in jogadores:
 		if p.modelo:
-			p.modelo.rotation.z = 0.0
+			p.modelo.rotation = Vector3.ZERO
 
 
 func vencedor() -> Array:
@@ -464,15 +561,48 @@ func status(lugar: int) -> String:
 	return super(lugar)
 ```
 
-## O que o registro mede
+### O robô
 
-- O kit: `nota` por ápice e `toque` (o atraso entre o alto do arco e o golpe).
-- A linha `entrada` em cada virada: o lado pedido, **o pico da velocidade**
-  de giro na janela (rad/s) e o limiar que valia (2,5 ou 3,5 com vento); no
-  começo, quais sensores o controle tem. Cruzado: um giroscópio que nunca
-  passa de 3 rad/s, ou que dá picos só num sentido, aparece aqui.
+```gdscript
+# O kit chama robo(l, dt) antes de jogar(dt), a cada quadro, de quem ainda joga.
+func robo(l: int, _dt: float) -> void:
+	if not Forja.robo:
+		return
+	var e: Dictionary = j[l]
+	# volta devagar ao nível (abaixo da velocidade que conta como virada)
+	var giro := SECAO.giro_para(l, 0.0, 0.0)
+	giro.z = clampf(giro.z, -1.5, 1.5)
+	if (float(e.caiu_b) < 0.0 or bool(e.fantasma)) and float(e.b) >= 0.0:
+		if int(e.robo_n) != int(e.n):
+			# o temperamento (--robo=bom|medio|ruim): quando não acerta, 200 ms atrasado
+			e.robo_n = int(e.n)
+			e.robo_mira = 0.0 if Forja.robo_acerta() else 0.20
+		var alvo := Ritmo.t_da_batida(float(e.b)) + float(e.robo_mira)
+		var agora := Ritmo.t_musica()
+		if agora >= alvo - 0.01 and agora <= alvo + 0.08:
+			# o golpe de pulso: 4,5 rad/s para o lado pedido (o z do giro é o contrário da rolagem)
+			giro.z = -4.5 * float(e.pedido)
+	Forja.robo_girar(l, giro, 0.06)
+```
 
-## Armadilhas
+O robô `bom` passa de 3,5 rad/s: o vento não o derruba. O `ruim` (o P4 da
+mesa padrão) erra 1 em 3, junta dois erros, voa e vira fantasma antes do
+fim.
+
+### O registro
+
+- O kit: `nota` por ápice e `toque` (o atraso entre o alto do arco e o
+  golpe).
+- `entrada`: `sensores` no começo; em cada virada, `o` `giro`, `pedido`,
+  `pico` (a velocidade máxima na janela, rad/s), `limiar` (2,5 ou 3,5 com
+  vento), `n`. Um giroscópio que nunca passa de 3 rad/s, ou que dá picos só
+  num sentido, aparece aqui.
+- `pista`: `haptica` `apice` (com o `lado`), `rangido` e `vento` (`de`,
+  `tempos`).
+- `momento`: `arremesso` (`lugar`, `queda`, `fantasma`) e `reta` (`ordem`,
+  `objeto` `vidas_na_trave`).
+
+### Armadilhas
 
 - **Velocidade, não ângulo:** a condição é `-Forja.giro(l).z` (para a
   direita positivo) contra o `pedido`; a postura não entra.
@@ -480,54 +610,234 @@ func status(lugar: int) -> String:
   virada para o outro lado, e no pico a janela seguinte já está aberta.
 - **O fantasma continua com notas** (o `toque` dele sopra); ele não pontua
   pelo julgamento, só pelo sopro, e não tem perigo nem queda.
-- **O salto do pêndulo** na entrada e na saída do pico (a fórmula muda):
-  o tranco das faíscas no pivô disfarça; não tente emendar a fase.
+- **O arremesso espera a colcheia:** `caiu_b` é a colcheia seguinte; até
+  ela, o boneco fica no disco (`s` = 0). A linha `momento` e o `golpe_dir`
+  saem no mesmo quadro (`_lanca`, pela fila do `secao.gd`).
+- **A vibração cala a háptica:** enquanto `sentir` vibra, `som_haptica` do
+  lugar devolve −1 (F05). O vento e o tique tocam fora das vibrações; a
+  prova não conta o vento pelo `som_virtual`, conta a linha `pista`.
 - **O fim por último em pé** só com dois ou mais presentes; sozinho, quem
-  acaba o minigame é o `_arremessar` (a terceira queda) ou os 90 s.
+  acaba o minigame é o `_lanca` (a terceira queda) ou os 90 s.
+
+## A cena
+
+### O secao.gd
+
+O da [J1](J1-a-viga.md#o-secaogd), sem mudança: `SECAO.montar` (a caverna
+cobalto), `lava`, `pico_suave`, `agendar`, `pulsos`, `parar`, `vento`,
+`momento`, `gancho`, `levantar`, `pista_s`.
+
+### Por lugar
+
+| o quê | peça | onde (m) | cor |
+| --- | --- | --- | --- |
+| a trave | `Kit.caixa(20; 0,3; 0,3)` e duas `column` do Mini Dungeon | `(0; 5,4; 0,8)`; as `column` em x ±10,5 | `OXIDO_BRILHO` (a madeira) |
+| as vidas | 3 × `Kit.caixa(0,2; 0,2; 0,2)` | `(RAIAS[l] − 0,3 + 0,3·v; 5,7; 0,8)` | `JOGADOR[l]` a 1,0; a apagada, `GRAFITE` |
+| a corrente | 7 × `Kit.caixa(0,08; 0,55; 0,08)` | do pivô `(RAIAS[l]; 5,3; 0,8)` para baixo | `GRAFITE` |
+| o disco | `CylinderMesh` r 0,7, altura 0,15, 8 lados | 4,2 m abaixo do pivô | `GRAFITE` |
+| a mancha | `Kit.cilindro` r 0,4 × 0,02 | no disco, visível do lançamento à volta | `TUNGSTENIO` a 0,8 |
+| o cavaleiro | o boneco de costas, `preso`, mãos livres | no disco: `pivô + (4,2·sin φ; −4,2·cos φ + 0,1; 0)`; `modelo.rotation.z = φ · 0,5` | o da montagem |
+| o fantasma | o mesmo boneco na plataforma da frente e a `OmniLight3D` 1,2, alcance 3 | `(RAIAS[l]; 0,1; 4,2)`; a luz em y 2,2 | `VIOLETA` (só a luz) |
+| o pouso | — | `(RAIAS[l] · 0,6; −1,45; 2,4)` | as 30 faíscas `TUNGSTENIO` |
+
+### A câmera
+
+`"camera": "fixa"`, o plano de arena: 35 mm, 15° de cima, sem corte.
+`camera_pos = (0; 7,0; 18,0)`, `camera_olhar = (0; 2,2; 0,8)` (17,9 m: os
+discos no alto do arco, x ±8,9, ficam no quadro). O fov é o global de hoje
+(40). **No pico**, recua 10 % em 2 batidas e volta em 2
+(`SECAO.pico_suave`). O tremor: `tremer(Sala.TREMOR_EXPLOSAO)` no
+lançamento.
+
+### A luz e o brilho
+
+A luz é a da seção (`SECAO.montar`: o cobalto até a G15). O que brilha:
+
+| o quê | energia | dono |
+| --- | --- | --- |
+| as vidas na trave | 1,0 | o lugar, `JOGADOR[l]` |
+| as faíscas do tranco no pivô (16) | as de `Efeitos.faiscas` | o lugar |
+| a mancha no disco | 0,8 | o mundo, `TUNGSTENIO` |
+| a luz do fantasma | 1,2 | o fantasma, `VIOLETA` |
+| o fio do vento (5 × 6 faíscas) | as de `Efeitos.faiscas` | o fantasma, `VIOLETA` |
+| a lava, as brasas, o néon | os da J1 | o mundo |
+
+## O som
+
+| evento | id do mapa | onde | volume |
+| --- | --- | --- | --- |
+| a faixa | `mus_s02_j07` (130 BPM); até a H05, a sintetizada a 96 | TV | o da faixa |
+| o arremesso | `Som.tocar("falha")` = `fx_tropeco_0..2` | TV, no boneco | −4 dB |
+| o sopro do fantasma | `Som.tocar("vento")` = `sint_vento` | TV, no disco do alvo | −8 dB |
+| BOM e ÓTIMO | `mod_clique` (`som_falante(l, "clique", 0.4)`) | alto-falante do dono | 0,4 |
+| PERFEITO e ERRO | `mod_nota_pN`, `mod_nota_quebrada_pN` (o kit) | alto-falante do dono | o do kit |
+| o tique do ápice (primeira frase) | `mod_clique` nos atuadores (`som_haptica(l, "clique", "", 0.4)`) | o atuador do lado do alto | 0,4 |
+| o rangido, com o perigo 1 | `mod_material_metal` (`Forja.textura(l, "metal", 0.6)`) | atuadores do dono | 0,6 |
+| a textura do acerto | `mod_material_metal` (o kit, `"material": "metal"`) | atuadores do dono | o do kit |
+
+A lava não tem id próprio: o pouso é só faísca e vibração. O mapa não tem J2
+no `mod_clique` nos atuadores.
+
+## O controle
+
+| recurso | o evento | para quem | o quê | a prova sem o controle na mão |
+| --- | --- | --- | --- | --- |
+| giroscópio | cada ápice | o dono | a velocidade de rolagem contra o limiar | o robô (`robo_girar`) e a linha `entrada` com o `pico` |
+| vibração | o acerto e o erro | o dono | o kit | o kit (H08) |
+| vibração | o lançamento | o arremessado | `sentir(l, "golpe_dir", 60)`: o fraco 1,0 por 60 ms | `percepcao(l).fraco` ≥ 0,95 de +0 a +0,05 s do `lancou_t` |
+| vibração | o pouso na lava, 2 tempos depois | o arremessado | `sentir(l, "golpe_esq", 120)`: o forte 1,0 por 120 ms | `percepcao(l).forte` ≥ 0,95 de +2 tempos a +2 tempos + 0,1 s |
+| háptica | o sopro do fantasma | o alvo | `SECAO.vento(alvo, 0.5, ...)`: um lado, e 400 ms depois o outro | a linha `pista` `vento` |
+| háptica | o ápice, na primeira frase | o dono | `"clique"` a 0,4 no atuador do lado do alto, 1 tempo antes (mais o Faro) | a linha `pista` `apice` |
+| háptica | o perigo 1 | o dono | o rangido `textura(l, "metal", 0.6)` meio tempo antes da janela | a linha `pista` `rangido` |
+| gatilho R2 | o perigo muda | o dono | perigo 1: `GATILHO_RESISTENCIA` de 0 com força 6; senão `GATILHO_OFF` | `percepcao(l).gatilho_dir == 0x21` com perigo 1 |
+| barra de luz | o julgamento | o dono | o kit | o kit |
+| alto-falante | o acerto | o dono | `clique` 0,4; a nota do kit | `som_virtual(l).falante` |
+| microfone | — | — | Não se aplica: a seção é do corpo | — |
+
+## O cavaleiro
+
+- **A peça aparece inteira e na cor dela.** O minigame não tinge o boneco:
+  a cabeça (humana, orc, autômato, golem ou raposa), o superior e o
+  inferior vêm da montagem com os tons próprios (G13). A cor do lugar fica
+  nas vidas da trave, nas faíscas do tranco e no anel da volta. O fantasma
+  é o mesmo boneco sob a luz `VIOLETA`: nada se pinta. As animações (`idle`,
+  `fall`, `jump`) e a volta no ar (`modelo.rotation.x`) servem às cinco
+  raças.
+- **As mãos livres** (`maos_livres(p)`): o pêndulo não usa o item.
+- **Os stats** (`SECAO.gancho`; sem a classe `Cavaleiro`, o neutro). Nenhum
+  mexe na janela, nos pontos, nos limiares (2,5 e 3,5 rad/s) nem nas 3
+  vidas.
+
+| gancho | o que muda aqui | stat 1 | stat 5 |
+| --- | --- | --- | --- |
+| `empurrao` | a altura do arco do arremesso (2,5 m) | ×1,16 | ×0,84 |
+| `tranco` | como fantasma, os tempos do vento que ele sopra (4, à semicolcheia) | ×0,84 | ×1,16 |
+| `levantar` | os 3 tempos da volta ao disco que o Fôlego encurta (mais 5 fixos) | 3,75 | 2,25 |
+| `pista` | o tique do ápice e o rangido chegam antes | −40 ms | +40 ms |
+
+## As reações
+
+- **`car_em_chamas`** e **`car_por_um_fio`**: os do kit. O `car_acorde` não
+  se aplica (não há nota de todos).
+- **Os adesivos `rea_*`:** quem voou e ainda não voltou, e o fantasma
+  (`fora_da_rodada(l)`).
+- Nenhum carimbo próprio deste minigame.
+
+## A diversão
+
+**O grito: o arremesso** (`arremesso`), degrau estrondo. O segundo erro
+trava o pêndulo e lança o cavaleiro: ele voa 2 tempos num arco de 2,5 m,
+dá uma volta no ar e cai na lava com 30 faíscas; a câmera treme
+(`TREMOR_EXPLOSAO`) e o pêndulo para 3 quadros.
+
+- **O rastro:** a mancha de lava no disco vazio até ele voltar (8 tempos);
+  a vida apagada na trave até o fim; na terceira queda, o fantasma lilás na
+  frente.
+- **Confere pelo robô (mesa padrão):** pelo menos 3 linhas `momento`
+  `arremesso` em 90 s, a primeira antes de 30 s; uma linha `momento` `reta`;
+  nos `momento` com `x_tela` ≥ 0, 0,2 ≤ `x_tela` ≤ 0,8 e `altura_tela` ≥
+  0,08.
+- **Confere pela prancha:** um disco vazio com a mancha laranja em 1 quadro
+  de cada 4.
+
+**A curva:** a tabela de **Como se joga**. Pelo robô: as notas por segundo
+do 2.º terço ≥ 1,5 × as do 1.º. Nas últimas 16 batidas, um sopro de
+fantasma tem 2 ou mais linhas `pista` `vento` com o mesmo `de` no mesmo
+quadro (quando há 2 ou mais vivos).
+
+**Quem está perdendo:** o fantasma continua jogando, e o sopro dele pesa no
+líder; o fio lilás de ponta a ponta mostra de quem veio. Pelo robô: com o
+P4 fantasma, pelo menos 1 linha `pista` `vento` com `de` = 3.
+
+**O que se cortou:** nada.
 
 ## Pronto quando
 
 Os pêndulos jogam do aviso ao resultado com 4, 3, 2 e 1 jogador e com o robô
-nos três temperamentos (o ruim vira fantasma e sopra vento); o cabo que cai
-e volta não derruba ninguém; o último em pé fecha o minigame; o fim tem
-sempre vencedor; `bash tests/prova_do_jogo.sh` passa; e
-`bash tests/prova_visual.sh` passa com a prancha **olhada**.
+nos três temperamentos (o `ruim` vira fantasma e sopra vento); o cabo que
+cai e volta não derruba ninguém; o último em pé fecha o minigame; o fim tem
+sempre vencedor; `_prova_dos_pendulos()` passa; e a prancha mostra a
+mancha laranja num disco vazio.
 
 ## Provas
 
-Em `godot/testes/prova_do_jogo.gd`:
+**`godot/testes/prova_do_jogo.gd`**, no `match` de `_prova_da_ficha`:
+`"S02_J07": await _prova_dos_pendulos()`.
 
 ```gdscript
-## S02_J07 (J2): os pêndulos abrem pelo catálogo; a virada do robô chega pelo
-## giroscópio simulado de cada um; o fim tem vencedor.
+## Pêndulos do Caos (S02_J07): o arremesso no tempo (o fraco, depois o forte),
+## o R2 do perigo, o vento do fantasma e a régua da diversão.
 func _prova_dos_pendulos() -> void:
-	# a espera é a da H08: o aviso em quadros, o jogo pelo relógio de parede (90 s de música e o treino)
-	var mg = await _joga_o_minigame("S02_J07", 130.0)
+	var visto := {"r2": 0, "fraco": {}, "forte": {}}
+	var olhar := func(mg: Minigame) -> void:
+		var tempo := 60.0 / Ritmo.bpm
+		for l in mg.presentes():
+			var e: Dictionary = mg.j[l]
+			var per := Forja.percepcao(l)
+			if int(e.perigo) == 1 and int(per.get("gatilho_dir", 0)) == 0x21:
+				visto.r2 += 1
+			var t0 := float(e.lancou_t)
+			if t0 >= 0.0:
+				var d := Ritmo.t_musica() - t0
+				if d >= 0.0 and d <= 0.05 and float(per.get("fraco", 0.0)) >= 0.95:
+					visto.fraco[l] = true
+				if d >= 2.0 * tempo and d <= 2.0 * tempo + 0.1 and float(per.get("forte", 0.0)) >= 0.95:
+					visto.forte[l] = true
+	var mg := await _joga_o_minigame("S02_J07", 130.0, olhar)
 	if mg == null:
 		return
-	for l in 4:
-		var c: Array = mg.contagem[l]
-		_esperar(int(c[2]) + int(c[3]) >= 1, "S02_J07 P%d: virou no alto %s" % [l + 1, c])
+	_esperar(visto.r2 > 0, "S02_J07: o R2 pesa com o perigo 1 (0x21)")
+	var arremessos := []
+	var reta := 0
+	var vento_do_p4 := 0
+	for ev in _linhas_do_minigame("S02_J07"):
+		if ev.get("tipo", "") == "momento" and ev.get("nome", "") == "arremesso":
+			arremessos.append(float(ev.get("t_musica", 0.0)))
+			var l := int(ev.get("lugar", 0))
+			_esperar(visto.fraco.has(l) and visto.forte.has(l), "S02_J07 P%d: o fraco no lançamento e o forte no pouso" % [l + 1])
+			if float(ev.get("x_tela", -1.0)) >= 0.0:
+				_esperar(float(ev.x_tela) >= 0.2 and float(ev.x_tela) <= 0.8 and float(ev.altura_tela) >= 0.08,
+					"S02_J07: o arremesso no meio da tela (%s)" % [ev])
+		if ev.get("tipo", "") == "momento" and ev.get("nome", "") == "reta":
+			reta += 1
+		if ev.get("tipo", "") == "pista" and ev.get("o", "") == "vento" and int(ev.get("de", -1)) == 3:
+			vento_do_p4 += 1
+	_esperar(arremessos.size() >= 3 and arremessos.min() < 30.0,
+		"S02_J07: 3 ou mais arremessos, o primeiro antes de 30 s (%s)" % [arremessos])
+	_esperar(reta <= 1, "S02_J07: no máximo uma linha momento reta (%d)" % reta)
+	if bool(mg.j[3].fantasma):
+		_esperar(vento_do_p4 >= 1, "S02_J07: o P4 fantasma soprou vento")
 	_esperar(mg.vencedor().size() == 4, "S02_J07: a colocação tem os quatro")
-	var q := 0
-	while (jogo.estado != "salao" or jogo._trocando) and q < 900:
-		await _quadros(5)
-		q += 5
-	_esperar(jogo.estado == "salao", "S02_J07: de volta ao salão")
 ```
 
-**Na sessão:** `bash tests/prova_do_jogo.sh` e `bash tests/prova_visual.sh`.
+A `reta` pode faltar quando o último em pé fecha antes das últimas 16
+batidas: a prova pede no máximo uma.
+
+**`godot/testes/captura_jogo.gd`**, no dicionário `momentos`:
+
+```gdscript
+		"S02_J07": [
+			["pendulos_apice", fase.call("jogo", 6.0)],
+			["pendulos_arremesso", na_sala.call(func(sala) -> bool:
+				for l in sala.j:
+					var e: Dictionary = sala.j[l]
+					if float(e.caiu_b) >= 0.0 and Ritmo.batida() - float(e.caiu_b) >= 0.9 and Ritmo.batida() - float(e.caiu_b) <= 1.1:
+						return true
+				return false)],
+		],
+```
+
+**Os comandos:** `SALA=S02_J07 bash tests/prova_do_jogo.sh` e
+`SALAS=S02_J07 bash tests/prova_visual.sh`.
+
+**As pranchas que o jogador do time olha:**
+
+- `pendulos_arremesso`: o boneco no alto do arco, de cabeça para baixo, e a
+  mancha laranja no disco vazio;
+- `S02_J07_fim`: as vidas apagadas na trave de quem caiu;
+- o boneco de cada lugar: a cabeça, o superior e o inferior em tons
+  diferentes, sem a cor do lugar no corpo.
 
 **O André (local):** `./run-local.sh -- --sala=S02_J07`: o golpe de pulso no
 alto é natural, a onda dos quatro pêndulos se vê e se ouve, o arremesso faz
 rir, o fantasma quer soprar, e o bolero do meio aperta.
-
-## Ao terminar
-
-- Catálogo: `"S02_J07": preload("res://scripts/minigames/s02/pendulos_do_caos.gd")`
-  em `MINIGAMES` e na lista da S02.
-- `traducoes.gd`: `"Pêndulos do Caos": "Pendulums of Chaos"`, `"Vire no alto!": "Flip at the top!"`,
-  `"Vire!": "Flip!"`; em `EN_PADROES`, `["^Quedas: (\\d+) de (\\d+)$", "Falls: $1 of $2"]`.
-- Importe e ponha o `.uid` no commit.
-- No [quadro](README.md), a J2 **feito**, com o commit.
-- Commit (sem trailer): `feat: os Pêndulos do Caos — virar num golpe no alto do arco`
