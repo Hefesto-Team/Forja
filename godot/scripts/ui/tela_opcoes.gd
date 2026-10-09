@@ -68,7 +68,7 @@ func trocar(dx: int) -> void:
 		"vibracao":
 			Opcoes.vibracao[quem] = clampi(int(Opcoes.vibracao[quem]) + dx * Opcoes.PASSO, 0, 100)
 			# mostrar, não contar: o controle sente a força nova
-			Forja.vibrar(quem, 0.6, 0.6, 160)
+			Forja.sentir(quem, "golpe")
 		"tempo":
 			var ms := clampi(int(Opcoes.tempo_ms[quem]) + dx * Opcoes.TEMPO_PASSO, Opcoes.TEMPO_MIN, Opcoes.TEMPO_MAX)
 			Ritmo.definir_desvio(quem, ms / 1000.0, "opcoes")

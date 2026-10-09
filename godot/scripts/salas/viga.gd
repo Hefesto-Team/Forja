@@ -354,7 +354,7 @@ func _travessia(l: int, p: ForjaPlayer, e: Dictionary, dt: float) -> void:
 		e.quedas += 1
 		Som.tocar("falha", p.global_position, -4.0)
 		p.gesto("fall", 1.3)
-		Forja.vibrar(l, 0.6, 0.2, 180)
+		Forja.sentir(l, "golpe")
 		var onde := _pos_do_boneco(l, e)
 		Efeitos.faiscas(self, Vector3(onde.x + e.inclinacao * 0.8, -1.3, onde.z), Tema.LARANJA, 30, 0.9)
 	if e.progresso >= 1.0:
@@ -419,7 +419,7 @@ func _arremessar(l: int, p: ForjaPlayer, alvo: Vector3, sino: int) -> void:
 			Som.no_controle(l, "sino_viga", 0.6)
 			Efeitos.faiscas(self, alvo, Tema.AMARELO, 30, 1.0)
 			Efeitos.anel(self, alvo, Tema.AMARELO, 0.5)
-			Forja.vibrar(l, 0.0, 0.35, 70)
+			Forja.sentir(l, "acerto")
 			var cai := pivo.create_tween()
 			cai.tween_property(pivo, "rotation:z", 0.9 * (1.0 if sino % 2 else -1.0), 0.18)
 			cai.tween_property(pivo, "scale", Vector3.ONE * 0.01, 0.35).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_IN)
@@ -456,7 +456,7 @@ func _pedra(l: int, p: ForjaPlayer, e: Dictionary, dt: float) -> void:
 	Efeitos.faiscas(self, ponto, Tema.LARANJA, 34, 1.1)
 	Som.tocar("martelo", ponto, 0.0)
 	Som.no_controle(l, "pedra" if e.golpes >= 2 else "martelo", 0.7)
-	Forja.vibrar(l, 0.8, 0.4, 120)
+	Forja.sentir(l, "perfeito")
 	var nos: Dictionary = n[l]
 	nos.racha.visible = true
 	nos.fogo_pedra.light_energy = 1.4

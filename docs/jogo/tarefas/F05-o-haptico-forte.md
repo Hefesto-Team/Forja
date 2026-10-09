@@ -327,3 +327,29 @@ de `_prova_do_percurso()` e `_prova_das_sensacoes()` no fim de `_ready()`.)
 - Se `"golpe_esq"`/`"golpe_dir"` e o registro do firmware ainda não estiverem
   no 13 ("As sensações", "O registro v2"), acrescentar no mesmo commit.
 - Commit sugerido: `feat: o háptico forte — a tabela de sensações com o piso, o firmware e as opções no registro`
+
+## O que foi feito (leva 1, o-controle)
+
+- **A tabela e o piso** (`godot/scripts/forja.gd`): `Forja.SENSACOES` com as nove sensações (as sete
+  do piso de 05 mais `golpe_esq` e `golpe_dir`, um motor só) e `Forja.sentir(lugar, nome, ms)`. As 17
+  chamadas com número solto das salas, do lobby, do pódio e das Opções passaram a pedir o nome; só o
+  `forja.gd` chama `Forja.vibrar`. Cada sensação grava `sensacao` na linha do tempo, com a escala do lugar.
+- **O motor vence** (suspeita e): enquanto a sensação de um lugar vibra, no relógio do jogo, a
+  `som_haptica` do mesmo lugar não toca e devolve -1.
+- **O firmware e as opções no registro** (suspeitas b e f): o evento `conexao` ganhou `firmware` e
+  `rumble_escala_cheia` (e a linha do registro e o `Forja.pad(i)`); a linha `sessao` com
+  `"evento": "opcoes"` grava a escala de vibração e o gatilho de cada lugar, no começo e quando as
+  Opções fecham.
+- **O experimento `haptico`** na bancada: cada sensação em cada controle; no simulador mede o que
+  chegou ao motor, no aparelho pergunta senti ou não senti. `docs/jogo/05-haptica-e-controle.md` ganhou
+  «A medição», com o protocolo do André para as suspeitas c e g; o modo seco **não** foi implementado
+  (é a F10, e o CONTRATO ainda o proíbe).
+
+**Provas:** `bash tests/prova_do_jogo.sh` verde (as duas rodadas); `bash tests/prova_da_bancada.sh` verde
+(`haptico` 36 de 36 medidos; com `motores-trocados`, 32 de 36 falham, só a `explosao` passa).
+Mordidas medidas: tirar a regra do motor reprova «com o motor do P1 vibrando, a háptica dele não toca»;
+uma `Forja.vibrar` solta na Viga reprova «nenhuma vibração fora da tabela de sensações» (e aponta o
+`viga.gd:357`). A prova tinha um erro de tipo (`var vibra_fora :=` sem tipo) que o primeiro rodar pegou.
+
+**Para o André (local):** o que está em «Para o André (local)» acima, em especial o experimento
+`haptico` no cabo e no rádio e a decisão do modo seco, que agora tem a [F10](F10-o-rumble-seco.md).

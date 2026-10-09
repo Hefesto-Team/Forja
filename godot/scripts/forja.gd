@@ -124,6 +124,20 @@ func _ready() -> void:
 		push_warning("FORJA sem o módulo nativo: só o teclado, e nenhuma saída chega a controle")
 	Opcoes.carregar(robo)
 	aplicar_opcoes()
+	registrar_opcoes()
+
+
+## As opções de cada lugar no registro, no começo e a cada vez que as opções
+## fecham (a escala de vibração muda o que o motor recebe).
+func registrar_opcoes() -> void:
+	var escala: Array = []
+	var gat: Array = []
+	for l in 4:
+		escala.append(Opcoes.escala_vibracao(l))
+		gat.append(Opcoes.GATILHO[int(Opcoes.gatilho[l])])
+	evento("sessao", 0, {"evento": "opcoes", "escala_vibracao": escala, "gatilho": gat,
+		"volume_controle": Opcoes.volume_controle, "volume_tv": Opcoes.volume_tv})
+	registrar("opções: vibração %s · gatilho %s" % [escala, gat])
 
 
 ## As opções da sessão no que o Godot controla: o volume da TV (o barramento
@@ -204,7 +218,8 @@ func _conferir_numeros() -> void:
 		assert(p[0] == p[1], "a numeração do jogo e a do módulo discordam")
 
 
-func _process(_dt: float) -> void:
+func _process(dt: float) -> void:
+	_agora += dt
 	_teclas_antes = _teclas_agora
 	_teclas_agora = {}
 	for k in _TECLAS:
@@ -458,8 +473,39 @@ func _teclado_segura(botao: int) -> bool:
 
 # ---------------------------------------------------------------- as saídas --
 
+## As sensações (docs/jogo/05, o piso de força): as salas pedem pelo nome, e
+## toda vibração do jogo sai desta tabela. [forte, fraco, ms]
+const SENSACOES := {
+	"toque":     [0.0, 0.45,  60],   # navegar na interface
+	"acerto":    [0.3, 0.6,   80],
+	"perfeito":  [0.5, 0.8,  100],
+	"erro":      [0.7, 0.3,  160],
+	"golpe":     [1.0, 0.6,  250],   # golpe recebido, queda
+	"explosao":  [1.0, 1.0,  400],   # explosão, fim de rodada
+	"aviso":     [0.6, 0.0,  200],   # perigo um tempo antes
+	"golpe_esq": [1.0, 0.0,  250],   # o golpe que vem da esquerda: só o motor forte
+	"golpe_dir": [0.0, 1.0,  250],   # o da direita: só o motor fraco
+}
+var _agora := 0.0  ## o relógio do jogo (a soma dos quadros), para o motor e a háptica
+var _motor_ate := [0.0, 0.0, 0.0, 0.0]
+
+
+## Uma sensação no controle do lugar, pelo nome da tabela (`ms` troca a duração).
+## O motor vence a háptica por áudio do mesmo lugar enquanto vibra (05, suspeita e).
+func sentir(l: int, nome: String, ms := -1) -> bool:
+	if not SENSACOES.has(nome):
+		push_error("sensação que não existe: %s" % nome)
+		return false
+	var s: Array = SENSACOES[nome]
+	var dur := int(s[2]) if ms < 0 else ms
+	_motor_ate[clampi(l, 0, 3)] = _agora + dur / 1000.0
+	evento("sensacao", l + 1, {"nome": nome, "escala": Opcoes.escala_vibracao(l), "ms": dur})
+	return vibrar(l, float(s[0]), float(s[1]), dur)
+
+
 ## Os dois motores: forte (esquerda, o contrapeso grande) e fraco (direita).
-## A vibração passa pela escala do lugar (as opções: 0 a 100%).
+## A vibração passa pela escala do lugar (as opções: 0 a 100%). Só o forja.gd
+## chama; as salas pedem `sentir`.
 func vibrar(l: int, forte: float, fraco: float, ms: int) -> bool:
 	var k := Opcoes.escala_vibracao(l)
 	return ctl.vibrar(l, forte * k, fraco * k, ms) if modulo else false
@@ -798,6 +844,8 @@ func som_falante(l: int, som: String, ganho := 0.9) -> int:
 ## Um som nos atuadores: `esq` no esquerdo, `dir` no direito ("" = nenhum).
 ## "passo:<chão>:<variação>" é o passo dos Caminhos.
 func som_haptica(l: int, esq: String, dir: String, ganho := 1.0) -> int:
+	if _agora < _motor_ate[clampi(l, 0, 3)]:
+		return -1  # o motor vence (05, suspeita e)
 	# a háptica é vibração: a escala do lugar vale nela também
 	return ctl.som_haptica(l, esq, dir, ganho * Opcoes.escala_vibracao(l)) if modulo else -1
 

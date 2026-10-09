@@ -40,6 +40,39 @@ Os valores ficam num lugar só (a tabela de eventos de `godot/scripts/forja.gd`)
 e as salas pedem o **evento**, não os números. É isso que impede o piso de
 voltar a cair sala a sala.
 
+## A medição
+
+O que se mediu das sete suspeitas e o que fica para o aparelho (F05):
+
+- **(a) o jogo pedia pouco: aplicada.** A tabela do piso mora em
+  `Forja.SENSACOES` (`godot/scripts/forja.gd`), com duas sensações direcionais
+  além das do piso: `golpe_esq` (`[1,0]`, só o motor forte) e `golpe_dir`
+  (`[0,1]`, só o fraco), que a Prova e o Impacto precisam. As salas pedem
+  `Forja.sentir(lugar, "nome")`; só o `forja.gd` chama `Forja.vibrar`.
+- **(b) o corte pela metade: no registro.** O evento `conexao` traz
+  `firmware` (`"0x0224"`) e `rumble_escala_cheia` (se o SDL manda o rumble
+  inteiro), e a linha do registro diz o mesmo. Falta só ler de um aparelho de
+  verdade, no cabo e no rádio.
+- **(d) outro dono do motor: o Godot não vibra.** A prova do jogo lê os
+  scripts e reprova `start_joy_vibration`, `ctl.intensidade` e qualquer
+  `Forja.vibrar` fora do `forja.gd`. O que o kernel (`hid-playstation`) manda
+  por cima fica para a bancada com o aparelho.
+- **(e) rumble e háptica por áudio: o motor vence.** Enquanto a sensação de um
+  lugar vibra (a duração dela, no relógio do jogo), a `som_haptica` do mesmo
+  lugar não toca e devolve -1: o evento vence, o passo cede.
+- **(f) a escala salva: no registro.** A linha `sessao` com `"evento": "opcoes"`
+  grava a escala de vibração e o gatilho de cada lugar, no começo e a cada
+  vez que as opções fecham; cada `sensacao` leva a escala do momento.
+- **(c) o modo suave e (g) a ponte descarta bytes: o protocolo do André.**
+  Rodar `./run-local.sh -- --experimento=haptico` com um DualSense no cabo e
+  um no rádio, sem olhar a tela, respondendo ✕ senti / ○ não senti a cada
+  pulso; copiar as linhas `experimento haptico` do registro para
+  [`experimental/RESULTADOS.md`](../../experimental/RESULTADOS.md) com o firmware
+  que aparece em cada uma; cruzar com o registro da ponte
+  ([08](08-a-noite-de-6-horas.md)). Só então decidir se o modo seco merece
+  emenda ao CONTRATO. O roteiro da comparação às cegas é a [F10](tarefas/F10-o-rumble-seco.md).
+  **A decisão fica em aberto aqui:** nenhum código monta o bloco de rumble.
+
 ## A força máxima que é legítima
 
 - **No cabo, a háptica por áudio é a força de verdade.** O controle aparece

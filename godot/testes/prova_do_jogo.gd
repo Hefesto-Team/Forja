@@ -60,6 +60,7 @@ func _ready() -> void:
 	jogo = load("res://scenes/main.tscn").instantiate()
 	add_child(jogo)
 	await _prova_do_percurso()
+	await _prova_do_motor_que_vence()
 	await _prova_do_aviso_sozinho()
 	await _prova_do_relatorio()
 	await _prova_de_fogo()
@@ -69,6 +70,7 @@ func _ready() -> void:
 	_prova_das_frases()
 	_prova_das_maiusculas()
 	_prova_da_identidade()
+	_prova_das_sensacoes()
 	if falhas > 0:
 		printerr("%d falha(s)" % falhas)
 		get_tree().quit(1)
@@ -962,6 +964,71 @@ func _linha_do_tempo() -> Array:
 				if e is Dictionary:
 					linhas.append(e)
 	return linhas
+
+
+func _scripts(pasta: String) -> Array:
+	var lista: Array = []
+	for f in DirAccess.get_files_at(pasta):
+		if f.ends_with(".gd"):
+			lista.append(pasta.path_join(f))
+	for d in DirAccess.get_directories_at(pasta):
+		lista.append_array(_scripts(pasta.path_join(d)))
+	return lista
+
+
+## Toda vibração passa pela tabela de sensações (13): Forja.vibrar só no forja.gd,
+## e nenhum outro dono do motor (o start_joy_vibration do Godot, o ctl.intensidade).
+func _prova_das_sensacoes() -> void:
+	var achados: Array = []
+	for arq in _scripts("res://scripts"):
+		var n := 0
+		for linha in FileAccess.get_file_as_string(arq).split("\n"):
+			n += 1
+			var codigo: String = linha.split("#")[0]
+			var vibra_fora: bool = codigo.contains("Forja.vibrar(") and not arq.ends_with("/forja.gd")
+			if vibra_fora or codigo.contains("start_joy_vibration") or codigo.contains(".intensidade("):
+				achados.append("%s:%d" % [arq.get_file(), n])
+	_esperar(achados.is_empty(), "nenhuma vibração fora da tabela de sensações (%s)" % [achados])
+	var piso := {"toque": [0.0, 0.45, 60], "acerto": [0.3, 0.6, 80], "perfeito": [0.5, 0.8, 100],
+		"erro": [0.7, 0.3, 160], "golpe": [1.0, 0.6, 250], "explosao": [1.0, 1.0, 400], "aviso": [0.6, 0.0, 200]}
+	for nome in piso:
+		_esperar(Forja.SENSACOES.get(nome, []) == piso[nome], "a sensação «%s» é a do piso de 05" % nome)
+	# toda vibração que saiu na sessão é uma sensação da tabela (e as opções de fábrica: escala 1)
+	var permitidos := {}
+	for nome in Forja.SENSACOES:
+		var s: Array = Forja.SENSACOES[nome]
+		permitidos["%.2f/%.2f" % [s[0], s[1]]] = true
+	var fora: Array = []
+	var sensacoes := 0
+	for e in _linha_do_tempo():
+		if e.get("tipo") == "sensacao":
+			sensacoes += 1
+		if e.get("tipo") == "saida" and e.get("o") == "vibracao" and float(e.get("forte", 0.0)) + float(e.get("fraco", 0.0)) > 0.0:
+			var k := "%.2f/%.2f" % [float(e.get("forte", 0.0)), float(e.get("fraco", 0.0))]
+			if not permitidos.has(k):
+				fora.append(k)
+	_esperar(sensacoes > 20 and fora.is_empty(), "toda vibração da sessão veio da tabela (%d sensações; fora: %s)" % [sensacoes, fora.slice(0, 5)])
+	var opcoes := _linha_do_tempo().filter(func(e): return e.get("tipo") == "sessao" and e.get("evento") == "opcoes")
+	_esperar(not opcoes.is_empty(), "a linha do tempo tem a escala de vibração de cada lugar")
+	var conexoes := _linha_do_tempo().filter(func(e): return e.get("tipo") == "conexao" and e.get("evento") == "conectou")
+	_esperar(conexoes.size() >= 4 and conexoes.all(func(e): return str(e.get("firmware", "")).begins_with("0x") and e.has("rumble_escala_cheia")),
+		"toda conexão registra o firmware e o rumble inteiro ou pela metade")
+
+
+## O motor vence: com o lugar vibrando, a háptica por áudio dele espera.
+func _prova_do_motor_que_vence() -> void:
+	jogo._entrar_na_sala("caminhos", false)
+	await _quadros(2)
+	_esperar(Forja.som_tem(0, Forja.PAPEL_HAPTICA), "Caminhos: o P1 tem a háptica (a placa virtual)")
+	Forja.sentir(0, "golpe")
+	_esperar(Forja.som_haptica(0, "pulso", "pulso") == -1, "com o motor do P1 vibrando, a háptica dele não toca")
+	await _quadros(20)
+	_esperar(Forja.som_haptica(0, "pulso", "pulso") != -1, "o motor parou: a háptica volta")
+	jogo.sala.terminar()
+	var q := 0
+	while (jogo.estado != "salao" or jogo._trocando) and q < 900:
+		await _quadros(5)
+		q += 5
 
 
 ## O lugar nasce na conexão (F04): a linha do tempo diz que os quatro reservaram P1..P4, na ordem.

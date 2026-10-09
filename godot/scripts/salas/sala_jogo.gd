@@ -254,7 +254,7 @@ func _quadro_aviso() -> void:
 		if not prontos[l] and t_fase > 0.5:
 			if Forja.apertou(l, Forja.CRUZ) or (Forja.robo and t_fase > 1.4 + 0.2 * l):
 				prontos[l] = true
-				Forja.vibrar(l, 0.0, 0.3, 60)
+				Forja.sentir(l, "toque")
 				Som.tocar("tique", p.global_position + Vector3(0, 1, 0))
 		if prontos[l]:
 			n_prontos += 1

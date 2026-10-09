@@ -293,7 +293,7 @@ func _susto() -> void:
 		var l: int = p.lugar
 		if not jogando[l] or not _conectado(l):
 			continue
-		Forja.vibrar(l, 1.0, 1.0, 700)
+		Forja.sentir(l, "explosao", 700)
 		Forja.luz(l, Color(1.0, 0.08, 0.04))
 		_luz_do_susto = true
 		Forja.som_falante(l, "grito", 1.0)

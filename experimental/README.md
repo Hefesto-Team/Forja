@@ -17,7 +17,7 @@ análise é `nativo/nucleo/analise.c`, lógica pura provada sem aparelho em
 
 ```sh
 ./run-local.sh -- --experimento=laco          # Linux, com os controles na mesa
-experimental/rodar.sh                          # os cinco, um depois do outro
+experimental/rodar.sh                          # os seis, um depois do outro
 experimental/rodar.sh -- --simular=4 --robo    # a rodada de teste, sem aparelho
 bash tests/prova_da_bancada.sh                 # a prova da bancada (o CI roda)
 ```
@@ -119,6 +119,24 @@ touchpad "não senti"). O resultado diz o nó usado e **como** ele foi achado
 **Como ler:** no cabo, o nó é a placa de quatro canais; no rádio, só existe
 se o Hefesto o publicar. Três de quatro lados certos passa; "não senti" diz
 que nada chegou.
+
+### `haptico` — o háptico forte
+
+**A pergunta:** cada sensação da tabela do jogo (`Forja.SENSACOES`) chega
+inteira ao motor de cada controle? E o firmware de cada um, e a escala de
+vibração das opções, ajudam a explicar um háptico fraco?
+
+**Como:** um controle de cada vez, as nove sensações na ordem da tabela, 1,5 s
+entre uma e outra. O nome da sensação não aparece na tela: quem sente não
+sabe qual é. No simulador, a bancada mede sozinha o que chegou ao motor
+(forte e fraco, com a escala do lugar) e não pergunta. No aparelho, pergunta
+a cada pulso: **✕ senti · ○ não senti**; sem resposta em 2 s, "não medido".
+
+**Como ler:** cada linha traz o nome, os valores pedidos, o que chegou, o
+firmware (`0x0224`, o mesmo do evento `conexao`) e a escala. No aparelho, anote
+no [RESULTADOS.md](RESULTADOS.md) o firmware e quais sensações não foram
+sentidas: é com essas linhas, no cabo e no rádio, que se decide o resto das
+suspeitas do [05](../docs/jogo/05-haptica-e-controle.md#a-medição).
 
 ## As regras
 

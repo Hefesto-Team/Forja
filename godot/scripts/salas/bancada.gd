@@ -25,6 +25,8 @@ const EXPERIMENTOS := {
 		"Que bytes do report USB 0x01 mudam com o modo do gatilho, e quais com o aperto."],
 	"haptica-nomeada": ["A háptica pelo nó do Hefesto",
 		"A háptica chega pelo nó «Háptica do Controle N» (o caminho do rádio), dos dois lados?"],
+	"haptico": ["O háptico forte",
+		"Cada sensação da tabela chega inteira ao motor de cada controle? Com o firmware e a escala de cada um."],
 }
 const TENTATIVAS := 5
 const TAXA := 48000
@@ -169,6 +171,8 @@ func _process(dt: float) -> void:
 			fim = _gatilho_cru(dt)
 		"haptica-nomeada":
 			fim = _haptica_nomeada(dt)
+		"haptico":
+			fim = _haptico(dt)
 		_:
 			fim = true
 	if fim:
@@ -508,3 +512,67 @@ func _haptica_nomeada(dt: float) -> bool:
 				_resultado(l, "haptica", 0 if int(c.certos) >= 3 else 1, "«%s», %s: lado certo %d de 4, \"não senti\" %d, sem resposta %d" % [
 					Forja.som_nome(l, F.PAPEL_HAPTICA), Forja.som_como(l, F.PAPEL_HAPTICA), int(c.certos), int(c.como[2]), int(c.perdidos)])
 	return todos
+
+
+# ------------------------------------------------------------ 6. o háptico forte --
+# um lugar de cada vez, cada sensação da tabela (Forja.SENSACOES), 1,5 s entre
+# uma e outra. No simulado, a bancada mede sozinha o que chegou ao motor; no
+# aparelho, pergunta: ✕ senti · ○ não senti (quem sente não sabe qual é).
+
+const HAPTICO_ENTRE_S := 1.5
+const HAPTICO_RESPOSTA_S := 2.0
+
+
+func _haptico(dt: float) -> bool:
+	if _vez >= ordem.size():
+		return true
+	var l: int = ordem[_vez]
+	var nomes: Array = Forja.SENSACOES.keys()
+	var nome: String = nomes[_k]
+	var s: Array = Forja.SENSACOES[nome]
+	if _etapa == 0:
+		Forja.sentir(l, nome)
+		agora = "P%d: sensação %d de %d" % [l + 1, _k + 1, nomes.size()]
+		_etapa = 1
+		_quadros = 0
+		_te = 0.0
+		return false
+	_te += dt
+	_quadros += 1
+	var escala := Opcoes.escala_vibracao(l)
+	var fw := str(Forja.pad(Forja.pad_do_lugar(l)).get("firmware", "?"))
+	if _etapa == 1:
+		var pc := Forja.percepcao(l)
+		if not pc.is_empty():
+			if _quadros >= 2:
+				var forte := float(pc.get("forte", 0.0))
+				var fraco := float(pc.get("fraco", 0.0))
+				var certo := absf(forte - float(s[0]) * escala) < 0.03 and absf(fraco - float(s[1]) * escala) < 0.03
+				_resultado(l, "sensacao_" + nome, 0 if certo else 1,
+					"%s: forte %.2f · fraco %.2f · %d ms (chegou %.2f · %.2f) · firmware %s · escala %.2f" % [
+						nome, float(s[0]), float(s[1]), int(s[2]), forte, fraco, fw, escala])
+				_etapa = 2
+		elif Forja.apertou(l, F.CRUZ):
+			_resultado(l, "sensacao_" + nome, 0, "%s: senti · forte %.2f · fraco %.2f · %d ms · firmware %s · escala %.2f" % [
+				nome, float(s[0]), float(s[1]), int(s[2]), fw, escala])
+			_etapa = 2
+		elif Forja.apertou(l, F.CIRCULO):
+			_resultado(l, "sensacao_" + nome, 1, "%s: não senti · forte %.2f · fraco %.2f · %d ms · firmware %s · escala %.2f" % [
+				nome, float(s[0]), float(s[1]), int(s[2]), fw, escala])
+			_etapa = 2
+		elif _te >= HAPTICO_RESPOSTA_S:
+			_resultado(l, "sensacao_" + nome, 2, "%s: sem resposta · firmware %s" % [nome, fw])
+			_etapa = 0
+			_haptico_proxima(nomes.size())
+		return false
+	if _te >= HAPTICO_ENTRE_S:
+		_etapa = 0
+		_haptico_proxima(nomes.size())
+	return false
+
+
+func _haptico_proxima(n: int) -> void:
+	_k += 1
+	if _k >= n:
+		_proximo()
+

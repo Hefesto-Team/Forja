@@ -289,7 +289,7 @@ func _jogar(l: int, p: ForjaPlayer, e: Dictionary, dt: float) -> void:
 					Efeitos.anel(self, centro, Tema.AMARELO, 0.6)
 					Som.tocar("carimbo", centro, 0.0)
 					Som.no_controle(l, "carimbo", 0.6)
-					Forja.vibrar(l, 0.5, 0.3, 90)
+					Forja.sentir(l, "perfeito")
 				else:
 					e.fora += 1
 					Som.tocar("bigorna", centro, -12.0)

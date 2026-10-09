@@ -226,7 +226,7 @@ func _iniciar_golpe() -> void:
 	estado = GOLPE
 	t_estado = 0.0
 	var l := atual.x
-	if Forja.vibrar(l, 1.0 if atual.y == 0 else 0.0, 1.0 if atual.y == 1 else 0.0, GOLPE_MS):
+	if Forja.sentir(l, "golpe_esq" if atual.y == 0 else "golpe_dir", GOLPE_MS):
 		j[l].rumble_ok = true
 	for p in jogadores:
 		if jogando[p.lugar] and p.lugar != l and _conectado(p.lugar):

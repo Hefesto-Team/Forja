@@ -69,6 +69,10 @@ Dictionary info_do_pad(int i, const Pad *p) {
   d["simulado"] = p->simulado;
   d["lugar"] = p->slot;
   d["reserva"] = p->reserva;
+  char fw[8];
+  snprintf(fw, sizeof(fw), "0x%04x", p->fw);
+  d["firmware"] = texto(fw);
+  d["rumble_escala_cheia"] = p->rumble_escala_cheia;
   d["espelho_de"] = p->espelho_de;
   d["bateria"] = p->bateria;
   d["carregando"] = p->energia == SDL_POWERSTATE_CHARGING;

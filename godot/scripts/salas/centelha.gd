@@ -336,7 +336,7 @@ func _acertou(l: int, p: ForjaPlayer, base: int) -> void:
 	Som.tocar("martelo", bigorna_topo, -6.0)
 	Som.no_controle(l, "martelo", 0.55)  # o martelo soa na mão de quem martelou
 	p.gesto("attack-melee-right", 0.45)
-	Forja.vibrar(l, 0.0, 0.2, 50)
+	Forja.sentir(l, "acerto")
 	if r != null and r.tipo == "botao" and e.janela > JANELA_MINIMA * ritmo_nivel:
 		e.janela -= 0.08
 	_proxima(l)

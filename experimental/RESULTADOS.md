@@ -19,6 +19,7 @@ apaga.
 | `eco` | não medido (sem microfone de verdade) | ainda não rodado | ainda não rodado |
 | `gatilho-cru` | não medido (sem report cru) | ainda não rodado | não se aplica (o jogo só lê o report USB) |
 | `haptica-nomeada` | medido: 4 de 4; com `haptica-trocada`, falhou 0 de 4 | ainda não rodado | ainda não rodado |
+| `haptico` | medido: 36 de 36; com `motores-trocados`, falhou 32 de 36 | ainda não rodado | ainda não rodado |
 
 ## `laco`
 
@@ -56,3 +57,4 @@ apaga.
 | 2026-09-27 | simulador, 2 controles, `--defeito haptica-trocada` | 2 simulados | falhou: lado certo 0 de 4, nos 2 | a prova da prova: com os canais 3 e 4 trocados, a bancada acusa |
 | 2026-09-28 | jogo 3D, simulador, 4 controles | 4 simulados | medido: lado certo 4 de 4, nos 4 | o mesmo no jogo 3D |
 | 2026-09-28 | jogo 3D, simulador, 4 controles, `--defeitos=haptica-trocada` | 4 simulados | falhou: lado certo 0 de 4, nos 4 | a prova da prova no jogo 3D (`tests/prova_da_bancada.sh`) |
+

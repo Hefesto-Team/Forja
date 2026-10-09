@@ -461,7 +461,7 @@ func _ir_para_o_podio() -> void:
 		tw.tween_property(jogadores[l], "global_position", base + Vector3(0, altura, 0), 0.7).set_delay(espera)
 		if int(e.degrau) == 1:
 			jogadores[l].gesto("emote-yes", 2.0)
-			Forja.vibrar(l, 0.4, 0.6, 400)
+			Forja.sentir(l, "perfeito", 400)
 			# a fanfarra na TV e na mão de quem venceu
 			get_tree().create_timer(0.9).timeout.connect(func() -> void:
 				Som.tocar("vitoria_noite")
@@ -629,11 +629,11 @@ func _quadro_lobby(dt: float) -> void:
 				var p := jogadores[l]
 				p.visual(p.modelo_i + dx, p.item_i + dy)
 				p.gesto("interact-right", 0.5)
-				Forja.vibrar(l, 0.0, 0.25, 40)
+				Forja.sentir(l, "toque")
 		if Forja.apertou(l, Forja.CRUZ) and not lobby.prontos[l]:
 			lobby.prontos[l] = true
 			jogadores[l].gesto("emote-yes", 1.2)
-			Forja.vibrar(l, 0.0, 0.5, 90)
+			Forja.sentir(l, "acerto")
 			Forja.evento("visual", l + 1, {"boneco": ForjaPlayer.NOME_DO_MODELO[jogadores[l].modelo_i],
 				"leva": ForjaPlayer.ITENS[jogadores[l].item_i].nome})
 		elif Forja.apertou(l, Forja.CIRCULO):
@@ -693,7 +693,7 @@ func _quadro_salao() -> void:
 				_entrar_na_sala(perto)
 				return
 	elif quem >= 0 and Forja.apertou(quem, Forja.CRUZ):
-		Forja.vibrar(quem, 0.2, 0.0, 60)
+		Forja.sentir(quem, "erro")
 
 
 ## A bigorna no meio do salão: ✕ entra n'A Prova, □ escolhe uma partida, △
@@ -816,6 +816,7 @@ func _fechar_overlay() -> void:
 	placar.visible = false
 	if overlay_antes_de_fechar == "opcoes":
 		Opcoes.gravar(Forja.robo)
+		Forja.registrar_opcoes()
 	tela_opcoes.visible = false
 	creditos.visible = false
 	titulo.visible = estado == "titulo"

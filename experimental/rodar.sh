@@ -4,7 +4,7 @@
 # do tempo e o registro vão para relatorios/. No fim de cada um, ○ fecha e o
 # próximo abre.
 #
-#   experimental/rodar.sh                              os cinco
+#   experimental/rodar.sh                              os seis
 #   experimental/rodar.sh laco eco                     só esses
 #   experimental/rodar.sh -- --simular=4 --robo        depois de --, argumentos do jogo
 #   GODOT=<binário> experimental/rodar.sh              outro Godot
@@ -27,7 +27,7 @@ while (($#)); do
   experimentos+=("$1")
   shift
 done
-((${#experimentos[@]})) || experimentos=(laco quatro-mics eco gatilho-cru haptica-nomeada)
+((${#experimentos[@]})) || experimentos=(laco quatro-mics eco gatilho-cru haptica-nomeada haptico)
 
 mkdir -p "$RAIZ/relatorios"
 for exp in "${experimentos[@]}"; do

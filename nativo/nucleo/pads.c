@@ -338,16 +338,22 @@ static void conectou(Forja *a, SDL_JoystickID id) {
     ev_str(&ev, "evento", "conectou");
     ev_str(&ev, "nome", p->nome);
     ev_str(&ev, "vid_pid", p->vidpid);
+    char fw[8];
+    snprintf(fw, sizeof(fw), "0x%04x", p->fw);
+    ev_str(&ev, "firmware", fw);
+    ev_bool(&ev, "rumble_escala_cheia", p->rumble_escala_cheia);
     ev_str(&ev, "origem", pad_origem_rotulo(p));
     ev_str(&ev, "conexao", conexao_rotulo(p->origem.conexao));
     ev_bool(&ev, "efeitos", p->cap_efeitos);
     ev_num(&ev, "giro_hz_declarado", p->giro_hz_declarado);
     ev_fim(&ev, &a->lt);
   }
-  reg_linha(&a->reg, "conectou: %s [%s] · %s · %s · efeitos %s · giro %s (%.0f Hz declarados) · toque %s",
+  reg_linha(&a->reg,
+            "conectou: %s [%s] · %s · %s · efeitos %s · giro %s (%.0f Hz declarados) · toque %s · firmware 0x%04x · rumble %s",
             p->nome, p->vidpid, pad_origem_rotulo(p), conexao_rotulo(p->origem.conexao),
             p->cap_efeitos ? "sim" : "não", p->cap_giro ? "sim" : "não", p->giro_hz_declarado,
-            p->cap_touch ? "sim" : "não");
+            p->cap_touch ? "sim" : "não", p->fw,
+            p->rumble_escala_cheia ? "inteiro" : "pela metade (firmware abaixo de 2.24)");
   if (a->pads.contrato_estrito && p->origem.conexao == CONEXAO_BT && origem_eh_dualsense(p->origem.tipo))
     reg_linha(&a->reg, "%s: no rádio, só entrada — este jogo não fala o relatório 0x31. ligue o "
                        "DualSense no cabo, ou um DualSense virtual USB.",

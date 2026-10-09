@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# A prova da bancada, sem aparelho: os cinco experimentos do experimental/,
+# A prova da bancada, sem aparelho: os seis experimentos do experimental/,
 # headless, com quatro DualSense simulados e o robô. O que precisa de aparelho
 # de verdade (o microfone, o report cru) tem de sair "não medido", com o
 # porquê; o que o simulador alcança (os quatro microfones, a háptica pelo nó)
@@ -69,6 +69,11 @@ rodar haptica-nomeada haptica-nomeada
 esperar haptica-nomeada 4 "medido: «placa virtual do controle simulado», simulado: quatro canais, como no cabo: lado certo 4 de 4"
 rodar haptica-nomeada haptica-trocada --defeitos=haptica-trocada
 esperar haptica-trocada 4 "falhou: .*lado certo 0 de 4"
+
+rodar haptico haptico
+esperar haptico 36 "medido: "
+rodar haptico motores-trocados --defeitos=motores-trocados
+esperar motores-trocados 32 "falhou: "
 
 [ "$FALHAS" -eq 0 ] || { echo "prova da bancada: $FALHAS falha(s)"; exit 1; }
 echo "prova da bancada ok — o que precisa de aparelho diz que não mediu, e o que o simulador alcança mede"

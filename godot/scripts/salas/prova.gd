@@ -345,7 +345,7 @@ func _golpe(alvo: Dictionary, autor: int, vx: float) -> void:
 	if alvo.lugar >= 0:
 		# o tiro que anda para a direita veio da esquerda: o motor da esquerda
 		var da_esquerda := vx > 0.0
-		_saida(alvo.lugar, Forja.vibrar(alvo.lugar, 1.0 if da_esquerda else 0.0, 0.0 if da_esquerda else 1.0, 220))
+		_saida(alvo.lugar, Forja.sentir(alvo.lugar, "golpe_esq" if da_esquerda else "golpe_dir"))
 		alvo.luz_pisca = 0.16
 	if int(alvo.vida) <= 0:
 		alvo.fora = VOLTA_S
@@ -373,7 +373,7 @@ func _martelada(i: int) -> void:
 	Efeitos.faiscas(self, e.pos + Vector3(0, 0.4, 0), Tema.AMARELO, 50, 1.6)
 	Efeitos.anel(self, e.pos + Vector3(0, 0.15, 0), Tema.AMARELO, MARTELADA_RAIO, Vector3.UP)
 	Som.tocar("martelo", e.pos, 2.0)
-	_saida(e.lugar, Forja.vibrar(e.lugar, 0.6, 0.6, 150))
+	_saida(e.lugar, Forja.sentir(e.lugar, "perfeito"))
 	for k in lut.size():
 		var o: Dictionary = lut[k]
 		if o.equipe == e.equipe or float(o.fora) > 0.0:
@@ -383,7 +383,7 @@ func _martelada(i: int) -> void:
 			continue
 		o.atordoado = 1.2
 		if o.lugar >= 0:
-			_saida(o.lugar, Forja.vibrar(o.lugar, 1.0, 1.0, 380))
+			_saida(o.lugar, Forja.sentir(o.lugar, "explosao"))
 		_golpe(o, i, d.x)
 
 
@@ -445,7 +445,7 @@ func _jogador(i: int, dt: float) -> void:
 			e.municao = int(e.municao) - 1
 			e.tiros = int(e.tiros) + 1
 			_mostrar_municao(e)
-			_saida(l, Forja.vibrar(l, 0.0, 0.35, 60))
+			_saida(l, Forja.sentir(l, "toque"))
 			if int(e.municao) == 0:
 				_armar(e, false)
 		else:
