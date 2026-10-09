@@ -33,16 +33,16 @@ Os estados, e o que cada um quer dizer, estão em
 
 | ficha | título | tamanho | depende de | estado |
 | --- | --- | --- | --- | --- |
-| [G01](G01-titulo-e-introducao.md) | O título e a introdução | M | F00, F04, F07, F08, F09 | em voo (o-cavaleiro) |
-| [G02](G02-a-construcao-do-cavaleiro.md) | A construção do cavaleiro | G | F00, F04, F05, F06, F07, F08, G01, F09 | em voo (o-cavaleiro) |
-| [G03](G03-o-item-com-mecanica.md) | O item com mecânica | M | F00, F05, F06, G02, F09 | em voo (o-cavaleiro) |
+| [G01](G01-titulo-e-introducao.md) | O título e a introdução | M | F00, F04, F07, F08, F09 | feito |
+| [G02](G02-a-construcao-do-cavaleiro.md) | A construção do cavaleiro | G | F00, F04, F05, F06, F07, F08, G01, F09 | feito |
+| [G03](G03-o-item-com-mecanica.md) | O item com mecânica | M | F00, F05, F06, G02, F09 | feito |
 | [G04](G04-o-hud-de-cada-jogador.md) | O HUD de cada jogador | G | F00, F02, F07, F09, G02, G03 | pronta |
 | [G05](G05-a-camera-dos-quatro.md) | A câmera dos quatro | M | F00, F09 | em voo (a-fita) |
-| [G06](G06-o-salao-e-a-colecao.md) | O salão e a coleção | M | F00, G02, F09 | em voo (o-cavaleiro) |
+| [G06](G06-o-salao-e-a-colecao.md) | O salão e a coleção | M | F00, G02, F09 | feito |
 | [G07](G07-a-narrativa-leve.md) | A narrativa leve | P | F00, F07, G03, G04, G06, F09 | pronta |
-| [G08](G08-a-arte-bonecos-e-coerencia.md) | A arte: bonecos e coerência | G | F00, G01, G02, F09 | em voo (o-cavaleiro) |
-| [G09](G09-o-teclado-do-nome.md) | O teclado de tela para o nome | M | F00, F07, F08, F09, G02 | em voo (o-cavaleiro) |
-| [G10](G10-a-biblioteca-kenney.md) | A biblioteca Kenney | G | F00, G08 (a parte A e o `scripts/conferir_bonecos.py`) | em voo (o-cavaleiro) |
+| [G08](G08-a-arte-bonecos-e-coerencia.md) | A arte: bonecos e coerência | G | F00, G01, G02, F09 | feito |
+| [G09](G09-o-teclado-do-nome.md) | O teclado de tela para o nome | M | F00, F07, F08, F09, G02 | feito |
+| [G10](G10-a-biblioteca-kenney.md) | A biblioteca Kenney | G | F00, G08 (a parte A e o `scripts/conferir_bonecos.py`) | feito |
 | [G11](G11-a-interface-com-o-ui-pack.md) | A interface com o UI Pack e os prompts | M | F00, F07, F09, G04, G10 | pronta |
 | [G12](G12-a-apresentacao-do-minigame.md) | A apresentação do minigame | M | H04, H06, G08, G11, F07, F09 | pronta |
 | [G13](G13-o-cavaleiro-montavel.md) | O cavaleiro montável | G | F00, F07, F09, G02, G10, G14 | pronta |
