@@ -123,7 +123,7 @@ escreve só estes (todos opcionais, menos `montar`, `jogar` e `robo`):
 | `toque(l, julgamento)` | um toque julgado BOM, OTIMO ou PERFEITO | a consequência no mundo e os pontos: `marcar(l, PONTOS[julgamento])` (no 2v2, `marcar_equipe(equipe[l], ...)`) |
 | `falha(l)` | um toque ERRO ou uma nota perdida (o Escudo já foi descontado) | a falha física |
 | `vencedor()` | no fim | os lugares na ordem de colocação (padrão: pelos pontos) |
-| `destaque()` | no fim do coop e do 2v2 | quem jogou melhor (padrão: o primeiro do `vencedor()`) |
+| `destaque()` | no fim do coop e do 2v2 | quem jogou melhor (padrão: o primeiro do `vencedor()`; no 2v2, pelos acertos de cada um, `acertos[l]`, porque a dupla tem os mesmos pontos) |
 | `robo(l, dt)` | a cada quadro, antes de `jogar`, para cada lugar em jogo e conectado | o jogo do robô, **só pelo controle simulado** |
 
 No coop, o minigame só põe `coop_venceu = true` quando todos venceram; o kit
@@ -230,7 +230,8 @@ jogo:
   var n: int = abertas[0]
   if _robo_nota[l] != n:
   	_robo_nota[l] = n
-  	_robo_mira[l] = 0.0 if Forja.robo_acerta() else 0.25   # 250 ms atrasado: a nota passa
+  	# a mira soma o desvio do lugar (G02), que o Ritmo desconta do toque
+  	_robo_mira[l] = float(Ritmo.desvio[l]) if Forja.robo_acerta() else 0.25   # 250 ms atrasado: a nota passa
   if _robo_apertou[l] != n and Ritmo.t_musica() >= alvo_da(l, n) + float(_robo_mira[l]):
   	Forja.robo_apertar(l, Forja.CRUZ, 0.05)
   	_robo_apertou[l] = n
@@ -270,8 +271,8 @@ para o que é do minigame todo), que acrescenta o `slot`:
 | --- | --- | --- |
 | `entrada` | o que o jogador fez: o toque cru | `o` (`"botao"`, `"gatilho"`, `"sensores"`…) e os valores |
 | `jogo` | o que o minigame fez no mundo | `o` (o nome da coisa) e os valores |
-| `pista` | a pista que o minigame deu a um jogador | `canal` (`haptica`, `alto_falante`, `rumble`, `tela`) e o que foi |
-| `troca` | o minigame trocou de canal por falta de recurso | `de` → `para`: `giroscopio` → `analogico`, `haptica` → `rumble`, `microfone` → `sem_microfone`, `alto_falante` → `tv` |
+| `pista` | a pista que o minigame deu a um jogador | `canal` (`haptica`, `alto_falante`, `rumble`, `tela`, `tv`) e o que foi |
+| `troca` | o minigame trocou de canal por falta de recurso | `de` → `para`: `giroscopio` → `analogico`, `haptica` → `rumble`, `microfone` → `sem_microfone`, `alto_falante` → `tv` ou `rumble`, `touchpad` → `botoes` (`Minigame.TROCAS`) |
 | `voz` | o nível do microfone e o limiar (os minigames de voz) | `nivel`, `limiar` |
 | `estacao` | o trecho de um medley que começou ou acabou | `nome`, `evento` (`comecou`/`acabou`) |
 
