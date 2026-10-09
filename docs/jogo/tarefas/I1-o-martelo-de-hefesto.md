@@ -12,7 +12,7 @@ fundo — os vereditos da bancada de hoje continuam saindo daqui.
 ## Ler antes
 
 - [O molde de minigame](molde-de-minigame.md) (a FICHA, os ganchos, o que o kit dá pronto)
-- [H04 — O kit do minigame](H04-o-kit-do-minigame.md) (o `minigame.gd` e o `martelo_de_hefesto.gd` que ela deixou)
+- [O kit do minigame, no 13](../13-arquitetura.md#o-kit-do-minigame--h04) (o `minigame.gd` e o `martelo_de_hefesto.gd` que ela deixou)
 - [O índice da seção](I-a-centelha.md) (as convenções da seção)
 
 O resto (a linha n.º 1 em 03, a régua da diversão, a bíblia de arte, o mapa do

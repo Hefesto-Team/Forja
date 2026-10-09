@@ -12,7 +12,7 @@ no tempo, e o giroscópio é medido pelo pico; o arremesso do pêndulo travado
 ## Ler antes
 
 - [O molde de minigame](molde-de-minigame.md) (o exemplo da FICHA dele é este minigame)
-- [H08 — Os acréscimos do kit](H08-os-acrescimos-do-kit.md) (a fila de notas, `anotar`, `andamento`, `tempo_que_resta`)
+- [As decisões comuns dos minigames, no 13](../13-arquitetura.md#as-decisões-comuns-dos-minigames--h08) (a fila de notas, `anotar`, `andamento`, `tempo_que_resta`)
 - [J1 — O secao.gd](J1-a-viga.md#o-secaogd) (a caverna, `agendar`, `vento`, `momento`, `gancho`, `levantar`)
 
 ## Arquivos que mudam

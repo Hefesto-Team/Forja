@@ -14,7 +14,7 @@ fim com a plataforma em pé.
 - [O molde de minigame](molde-de-minigame.md) (onde mora, a FICHA, o robô, o registro, a prova)
 - [O kit, no 13](../13-arquitetura.md#o-kit-do-minigame--h04) e, no mesmo arquivo, a seção «As decisões comuns dos
   minigames — H08» (a linha `estacao`, a `troca`)
-- [A Q1](Q1-a-prova.md), «Os ganchos» (o `_gancho`, o `_respondeu`)
+- [A Q1, «Os ganchos»](Q1-a-prova.md#os-ganchos) (o `_gancho`, o `_respondeu`)
 
 Tudo o mais que esta ficha usa (as cores, o brilho, a câmera, o movimento, o som, os stats, a régua da diversão)
 está escrito aqui dentro, com o número. As mecânicas das estações estão escritas aqui no menor tamanho; o medley não

@@ -15,7 +15,7 @@ as velas pegam fogo e ela cai atrás do muro. É o único momento grande do jogo
 ## Ler antes
 
 - [O molde de minigame](molde-de-minigame.md) (o kit, a ficha de dados, o catálogo, a régua, o coop)
-- [A M1, A Galeria](M1-a-galeria.md) (o cenário comum `CenarioDaGaleria`, a luz, o impacto, o coice e o
+- [A M1, «A cena»](M1-a-galeria.md#a-cena) (o cenário comum `CenarioDaGaleria`, a luz, o impacto, o coice e o
   `_joga_o_minigame` da prova)
 
 Tudo o que esta ficha tira da bíblia de arte, do mapa do áudio, da régua da diversão e do RPG está escrito aqui ou

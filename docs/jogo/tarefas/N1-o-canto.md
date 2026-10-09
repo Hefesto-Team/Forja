@@ -13,7 +13,7 @@ primeiro minigame da seção: muda a sala para o kit e cria o cenário comum que
 
 - [O molde de minigame](molde-de-minigame.md) (a FICHA, os ganchos, o que o kit dá pronto)
 - [`godot/scripts/salas/canto.gd`](../../../godot/scripts/salas/canto.gd) (inteiro: esta ficha o desmonta)
-- [A F01, o Modo bancada](F01-o-modo-bancada.md) (o canto às cegas fica só nele)
+- [O Modo bancada, no 13](../13-arquitetura.md#o-modo-bancada--f01) (o canto às cegas fica só nele)
 
 O resto (a bíblia de arte, o mapa do áudio, a régua da diversão, o RPG) já está copiado nesta ficha, com os
 números. Não abra outro documento.

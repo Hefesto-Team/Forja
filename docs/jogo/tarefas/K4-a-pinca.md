@@ -13,7 +13,7 @@ sentado. Cada peça vira um "solta, solta!" da sala.
 
 - [O molde de minigame](molde-de-minigame.md) (a FICHA, os ganchos, o que o kit dá pronto)
 - [O índice da seção](K-o-molde.md) (as convenções do toque)
-- [K1 — O Molde](K1-o-molde.md) (o `secao.gd` inteiro, a função `momento` e o kit que a seção usa)
+- [K1 — O Molde, o `secao.gd`](K1-o-molde.md#godotscriptsminigamess03secaogd-novo-o-arquivo-inteiro) (o `secao.gd` inteiro, a função `momento` e o kit que a seção usa)
 
 O resto (a bíblia de arte, o mapa do áudio, a régua da diversão e o RPG) já está copiado nesta ficha, com os
 números. Não abra outro documento.

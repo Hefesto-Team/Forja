@@ -25,6 +25,7 @@ tem o mesmo molde:
 2. Abrir uma sessão **nova**. Uma ficha, uma sessão.
 3. Pedir: "Faça a ficha `docs/jogo/tarefas/<ficha>.md`". A sessão lê a ficha,
    os arquivos que ela cita e as [regras de execução](o-time/regras.md) — nada mais.
+   O «Ler antes» se lê por `python3 scripts/ler_antes.py <ficha>`, que imprime só a seção de cada link.
 4. Fazer, rodar a prova rápida (`bash tests/prova_do_jogo.sh`) e commitar
    (`feat:`/`fix:`/`docs:`, sem trailer).
 5. No mesmo commit: marcar a ficha **feito** no quadro.

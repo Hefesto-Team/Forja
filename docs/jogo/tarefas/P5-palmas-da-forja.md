@@ -12,8 +12,8 @@ no colo, ouvindo).
 ## Ler antes
 
 - [O molde de minigame](molde-de-minigame.md) (a FICHA, os ganchos, o que o kit dá pronto)
-- [A P1](P1-a-voz.md), as partes «O ouvido inteiro (`ouvido.gd`)» (a voz, os 6 dB, o mudo, a escuta) e «O
-  cenário comum (`cenario_da_voz.gd`)» (a cripta, a câmera, o exagero, os ganchos do cavaleiro). A P1 cria os dois em
+- A P1, as partes [«O ouvido inteiro (`ouvido.gd`)»](P1-a-voz.md#o-ouvido-inteiro-godotscriptsminigamess08ouvidogd) (a voz, os 6 dB, o mudo, a escuta) e [«O
+  cenário comum (`cenario_da_voz.gd`)»](P1-a-voz.md#o-cenário-comum-godotscriptsminigamess08cenario_da_vozgd) (a cripta, a câmera, o exagero, os ganchos do cavaleiro). A P1 cria os dois em
   `godot/scripts/minigames/s08/`; se ela já entrou, valem os arquivos, e esta ficha só os chama.
 
 O resto (a bíblia de arte, o mapa do áudio, a régua da diversão, o RPG) já está copiado nesta ficha, com os

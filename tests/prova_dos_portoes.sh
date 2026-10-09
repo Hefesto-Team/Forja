@@ -114,6 +114,33 @@ espera 0 "ficha pronta: deixa passar a ficha com todas as partes" python3 "$P/fi
 A="$(arvore ficha-a-fazer)"; ficha_tree "$A" "a fazer" "# Z1"
 espera 0 "ficha pronta: não confere a ficha que não está pronta" python3 "$P/ficha_pronta.py" --raiz "$A"
 
+# o «Ler antes» pela âncora (WT01): o 13 de mentira tem 30 KB, um título com acento e travessão, e um título de
+# mentira dentro de um bloco de código (que não é título)
+grande_tree() { # <pasta> <ler antes>
+  ficha_tree "$1" "pronta" "$(ficha_inteira "$2")"
+  { echo "# O 13"; echo; echo "## As decisões comuns — H08"; echo; echo "texto"; echo; echo '```gdscript'
+    echo "## Só no código"; echo '```'; echo; echo "## Outra"; echo; seq 1 6000; } > "$1/docs/jogo/13.md"
+}
+A="$(arvore ler-sem-ancora)"; grande_tree "$A" '- [13](../13.md)'
+espera 1 "ficha pronta: reprova o link sem âncora para arquivo de 30 KB" python3 "$P/ficha_pronta.py" --raiz "$A"
+A="$(arvore ler-com-ancora)"; grande_tree "$A" '- [13](../13.md#as-decisões-comuns--h08)'
+espera 0 "ficha pronta: deixa passar a âncora com acento e travessão" python3 "$P/ficha_pronta.py" --raiz "$A"
+espera 0 "ler_antes: imprime só a seção da âncora" \
+  bash -c "python3 '$RAIZ/scripts/ler_antes.py' '$A/docs/jogo/tarefas/Z1.md' | grep -q '^== .*13.md#as-decisões-comuns--h08 (.* caracteres) ==' \
+    && ! python3 '$RAIZ/scripts/ler_antes.py' '$A/docs/jogo/tarefas/Z1.md' | grep -q '^5999\$'"
+A="$(arvore ler-ancora-errada)"; grande_tree "$A" '- [13](../13.md#as-decisoes-comuns-h08)'
+espera 1 "ficha pronta: reprova a âncora que não casa" python3 "$P/ficha_pronta.py" --raiz "$A"
+espera 1 "ler_antes: a âncora que não casa sai 1" python3 "$RAIZ/scripts/ler_antes.py" "$A/docs/jogo/tarefas/Z1.md"
+A="$(arvore ler-titulo-no-codigo)"; grande_tree "$A" '- [13](../13.md#só-no-código)'
+espera 1 "ficha pronta: o título dentro do bloco de código não é âncora" python3 "$P/ficha_pronta.py" --raiz "$A"
+A="$(arvore ler-ficha-feita)"; grande_tree "$A" '- [Z0](Z0.md#o-kit)'
+printf '| [Z0](Z0.md) | A feita | P | — | feito |\n' >> "$A/docs/jogo/tarefas/README.md"
+printf '# Z0\n\n## O kit\n\ntexto\n' > "$A/docs/jogo/tarefas/Z0.md"
+espera 1 "ficha pronta: reprova o link para ficha feita, mesmo com âncora" python3 "$P/ficha_pronta.py" --raiz "$A"
+A="$(arvore ler-o-que-muda)"; grande_tree "$A" '- [13](../13.md)'
+sed -i 's|^Não se aplica: a ficha de prova.$|- `docs/jogo/13.md`|' "$A/docs/jogo/tarefas/Z1.md"
+espera 0 "ficha pronta: o arquivo grande que a ficha muda se lê inteiro" python3 "$P/ficha_pronta.py" --raiz "$A"
+
 # --- a arte -----------------------------------------------------------------------------------------------------
 arte_tree() { # <pasta> <linha de gdscript>
   mkdir -p "$1/godot/scripts/ui" "$1/godot/scenes" "$1/godot/assets/fontes"

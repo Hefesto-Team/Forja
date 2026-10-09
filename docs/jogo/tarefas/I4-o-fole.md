@@ -11,7 +11,7 @@ resistência dizendo ao dedo onde fica o seu ponto.
 
 ## Ler antes
 
-- [H04 — O kit do minigame](H04-o-kit-do-minigame.md) (o `minigame.gd`)
+- [O kit do minigame, no 13](../13-arquitetura.md#o-kit-do-minigame--h04) (o `minigame.gd`)
 - [O índice da seção](I-a-centelha.md) (as convenções da seção)
 - [I1, a cena](I1-o-martelo-de-hefesto.md#a-cena) (o `secao.gd` inteiro, que esta ficha só chama)
 

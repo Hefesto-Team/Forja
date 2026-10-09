@@ -14,7 +14,7 @@ porque medem os quatro vereditos da sala. Esta ficha também cria o cenário com
 ## Ler antes
 
 - [O molde de minigame](molde-de-minigame.md) (o kit, a ficha de dados, o catálogo, a régua)
-- [F01, o Modo bancada](F01-o-modo-bancada.md) (o que a Galeria faz com e sem a bancada)
+- [O Modo bancada, no 13](../13-arquitetura.md#o-modo-bancada--f01) (o que a Galeria faz com e sem a bancada)
 - [A Galeria de hoje](../../../godot/scripts/salas/galeria.gd) (inteira: a bancada continua dela)
 
 Tudo o que esta ficha tira da bíblia de arte, do mapa do áudio, da régua da diversão e do RPG está escrito

@@ -11,7 +11,7 @@ sente os dois lados de uma vez. O Cerco defende o lado que vem; aqui se ataca o 
 ## Ler antes
 
 - [O molde de minigame](molde-de-minigame.md) (a FICHA, os ganchos, o que o kit dá pronto)
-- [L1 — O Cerco](L1-o-cerco.md): o cenário comum inteiro (o `escuro`, a lanterna da vida, o exagero) está em
+- [L1 — O Cerco, «A cena»](L1-o-cerco.md#a-cena): o cenário comum inteiro (o `escuro`, a lanterna da vida, o exagero) está em
   «A cena», no código de `cenario_do_impacto.gd`; o modelo (o hoqueto, a pista de um lado, o robô, o `momento`) está em «Como se joga»,
   «O controle» e «O robô». Se a L1 já entrou, valem `cenario_do_impacto.gd` e `o_cerco.gd` em
   `godot/scripts/minigames/s04/`.
