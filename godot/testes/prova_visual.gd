@@ -249,7 +249,8 @@ func _fotografar() -> void:
 	var frases: Array = []
 	# um nó que desenhou em mais de um quadro durante a coleta vale pelo último: o
 	# que está na tela é o último desenho, e dois estados do mesmo texto («Nenhum
-	# controle» e «4 controles») não se encavalam, um só foi apagado pelo outro
+	# controle» e «4 controles») não se encavalam, um só foi apagado pelo outro; nem o
+	# cartão que desliza, desenhado duas vezes 31 px adiante
 	var ultimo := {}
 	for r in Desenho.retangulos:
 		ultimo[r.no] = maxi(int(ultimo.get(r.no, -1)), int(r.quadro))
@@ -270,7 +271,8 @@ func _fotografar() -> void:
 	var quadro := img.duplicate() as Image
 	quadro.convert(Image.FORMAT_RGB8)
 	quadro.resize(QUADRO.x, QUADRO.y, Image.INTERPOLATE_BILINEAR)
-	quadros.append({"t": t, "estado": estado, "sala": id, "pausa": jogo.overlay == "pausa" or estado == "podio", "pq": peq, "img": quadro})
+	quadros.append({"t": t, "estado": estado, "sala": id, "pausa": jogo.overlay == "pausa" or estado == "podio",
+		"trocando": bool(jogo._trocando), "pq": peq, "img": quadro})
 	textos.append({"t": t, "estado": estado, "sala": id, "frases": frases})
 
 
@@ -502,6 +504,9 @@ func _autoteste() -> int:
 		q.pausa = true
 	ok.call(ChecagensVisuais.tela_parada(parados).is_empty(), "parada: na pausa passa")
 	ok.call(ChecagensVisuais.tela_vazia({"pq": cinza}), "vazia: um quadro de uma cor só reprova")
+	ok.call(ChecagensVisuais.telas_vazias([{"t": 2.0, "estado": "sala", "sala": "viga", "trocando": false, "pq": cinza}]).size() == 1
+		and ChecagensVisuais.telas_vazias([{"t": 2.0, "estado": "sala", "sala": "viga", "trocando": true, "pq": cinza}]).is_empty(),
+		"vazia: o preto da troca de tela passa, o de fora dela reprova")
 	var riscado := cinza.duplicate()
 	for i in riscado.size() / 2:
 		riscado[i] = 250 if i % 2 == 0 else 10
@@ -524,6 +529,19 @@ func _autoteste() -> int:
 	var r: Rect2 = Desenho.retangulos[0].rect
 	ok.call(absf(r.size.y - 100.0) < 0.5 and absf(r.position.y - 222.0) < 0.5 and r.size.x > 100.0 and absf(r.position.x - 100.0) < 0.5,
 		"coleta: o retângulo de uma linha é a caixa da tinta (%s)" % [r])
+	# um desenho do nó (o texto e a sombra) é um só; o desenho seguinte, depois de
+	# outro nó, é outro, e só o último vale na tela
+	var outro := Node2D.new()
+	add_child(outro)
+	Desenho.retangulos.clear()
+	Desenho.anotar(no, Vector2(100, 300), "Hefesto", ThemeDB.fallback_font, 40, Color.WHITE)
+	Desenho.anotar(no, Vector2(102, 302), "Hefesto", ThemeDB.fallback_font, 40, Color.BLACK)
+	Desenho.anotar(outro, Vector2(100, 600), "Forja", ThemeDB.fallback_font, 40, Color.WHITE)
+	Desenho.anotar(no, Vector2(131, 300), "Hefesto", ThemeDB.fallback_font, 40, Color.WHITE)
+	var d: Array = Desenho.retangulos.map(func(x): return int(x.quadro))
+	ok.call(d[0] == d[1] and d[2] != d[1] and d[3] != d[0] and d[3] != d[2],
+		"coleta: o mesmo nó desenhado de novo é outro desenho (%s)" % [d])
+	outro.queue_free()
 	Desenho.retangulos.clear()
 	no.queue_free()
 	print("autoteste da prova visual: %s" % ("ok" if erros[0] == 0 else "%d falha(s)" % erros[0]))

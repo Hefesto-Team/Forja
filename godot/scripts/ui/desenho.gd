@@ -93,6 +93,12 @@ static func t(s: String) -> String:
 ## redesenho, lê e esvazia; fora dela, ninguém liga e nada custa.
 static var coletar_retangulos := false
 static var retangulos: Array = []
+## Qual desenho do nó guardou o texto: muda quando outro nó desenha ou o quadro
+## de processo muda. O quadro desenhado (`get_frames_drawn`) não basta: sem
+## `--fixed-fps`, um quadro que não se desenhou junta dois desenhos com o mesmo número.
+static var _desenho := 0
+static var _desenho_no := 0
+static var _desenho_quadro := -1
 
 
 ## Guarda um texto já traduzido que acaba de ser desenhado em `pos` (a linha de
@@ -118,7 +124,12 @@ static func anotar(ci: CanvasItem, pos: Vector2, traduzido: String, f: Font, px:
 			x += largura - tam.x
 	var local := Rect2(Vector2(x, pos.y - 0.78 * px), tam)
 	var m := ci.get_global_transform_with_canvas()
-	retangulos.append({"frase": traduzido, "rect": m * local, "tam": px, "cor": cor, "no": ci.get_instance_id(), "quadro": Engine.get_frames_drawn()})
+	var no := ci.get_instance_id()
+	if no != _desenho_no or Engine.get_process_frames() != _desenho_quadro:
+		_desenho += 1
+		_desenho_no = no
+		_desenho_quadro = Engine.get_process_frames()
+	retangulos.append({"frase": traduzido, "rect": m * local, "tam": px, "cor": cor, "no": no, "quadro": _desenho})
 
 
 static func texto(ci: CanvasItem, pos: Vector2, s: String, f: Font, tam: int, cor: Color,

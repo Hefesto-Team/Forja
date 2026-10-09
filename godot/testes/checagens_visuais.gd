@@ -7,7 +7,7 @@ extends RefCounted
 ## relógio, fim sem vencedor), nunca a aparência da arte: nenhuma delas conhece
 ## uma cor do tema.
 ##
-## Um quadro: {t: float (s de jogo), estado, sala, pausa: bool, pq: PackedByteArray
+## Um quadro: {t: float (s de jogo), estado, sala, pausa: bool, trocando: bool, pq: PackedByteArray
 ## (o quadro em 96×54 RGB8, para parada e vazia)}.
 ## Um texto: {frase, rect: Rect2 (pixels do jogo), tam: int (px), cor: Color,
 ## contraste: float (-1: não medido)}.
@@ -87,10 +87,12 @@ static func tela_vazia(quadro: Dictionary) -> bool:
 	return float(perto) / float(n) > VAZIA_FRACAO
 
 
+## A troca de tela passa pelo preto de propósito (o fade): só o quadro de fora da
+## troca conta. A troca que fica no preto aparece como tela parada.
 static func telas_vazias(quadros: Array) -> Array:
 	var achados: Array = []
 	for q in quadros:
-		if tela_vazia(q):
+		if not bool(q.get("trocando", false)) and tela_vazia(q):
 			achados.append("tela vazia em %s (%s)" % [hora(float(q.t)), _onde(q)])
 	return achados
 
