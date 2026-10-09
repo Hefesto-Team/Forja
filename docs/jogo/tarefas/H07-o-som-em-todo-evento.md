@@ -999,3 +999,13 @@ que não soou, o que soou alto demais e o que estalou.
 - **Fica para a mão.** A seção «Para o André (local)»: pio só no controle de quem entrou,
   clique da navegação, nota e música no perfeito, erro abafado, textura no cabo e vibração
   no rádio; `scripts/gauntlet.sh`, `tests/prova_de_poucos.sh`, `./run-local.sh`.
+- **A conferência.** A régua «kit: o P3 voltou com o alto-falante» passava sem a cura: a placa
+  virtual do simulado não perde o P3 quando o cabo sai, então tirar o `_abrir_o_som(true)` do
+  `_ao_mudar_os_controles()` não reprovava nada. Agora a prova refaz a placa com o cabo fora
+  (o que o nó de áudio que some faz no aparelho), confere que ela ficou sem o P3, e só a volta
+  pela cura o devolve; a mordida reprovou. Entraram também as réguas que faltavam no «Pronto
+  quando» e nos passos: um som por vez no alto-falante (o sino soa, o clique chega, o sino sai
+  pela rampa; sem o `mixer_parar` do `somc_falante` reprovou), o combo sobe 1,5 dB e desce, a
+  nota quebrada no controle do dono (o P4 que não aperta) e o clique de quem navegou (o P2 nas
+  opções). Cada uma mordida e devolvida; as mordidas do C (rampa de 40 ms, pio a 0,95) e do
+  jogo que o implementador fez foram refeitas e reprovaram de novo. Verde depois.
