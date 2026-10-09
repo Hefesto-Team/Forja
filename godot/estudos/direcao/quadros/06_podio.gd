@@ -103,9 +103,13 @@ func _hud(ci: CanvasItem) -> void:
 	var cor: Color = Fita.JOGADOR[VENCEDOR]
 	# o nome de quem venceu, grande, com o desregistro da impressão
 	var f := Fita.bungee()
-	var palavra := "FAÍSCA!"
+	var palavra := "OBSIDIANA!"  ## o P2 da montagem (10)
 	var tam := 150
 	var w := Hud.largura_do(f, tam, palavra)
+	# o nome cabe entre a etiqueta e a borda: no máximo 880 px de largura
+	if w > 880.0:
+		tam = int(tam * 880.0 / w)
+		w = Hud.largura_do(f, tam, palavra)
 	var c := Vector2(960, 150)
 	ci.draw_set_transform(c, -0.03, Vector2.ONE)
 	Hud.texto(ci, f, tam, Vector2(-w * 0.5 + 12, -tam * 0.5 + 12), palavra, Fita.FITA)

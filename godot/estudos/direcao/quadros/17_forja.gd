@@ -100,7 +100,9 @@ func _martelada(vp: SubViewport, n: int) -> void:
 	var raiz := Node3D.new()
 	vp.add_child(raiz)
 	var feito := n == 8
-	_palco(raiz, Fita.TUNGSTENIO if feito else Color("#8a7cff"), 5.0 if feito else 3.0)
+	## A chave é sempre tungstênio: o violeta pintava a peça que entra. O que falta
+	## fica em GRAFITE; a peça desta martelada ganha o contorno de lâmpada.
+	_palco(raiz, Fita.TUNGSTENIO, 5.0 if feito else 3.5)
 	var c := Montar.cavaleiro(raiz, 0, Vector3.ZERO, PECAS, {"item": "martelo", "anim": "holding-right", "t_anim": 0.1, "anel": false})
 	var esq: Skeleton3D = c.find_child("Skeleton3D", true, false)
 	var acesas := {"head": n >= 1, "body-sup": n >= 3, "body-inf": n >= 5}
@@ -133,7 +135,7 @@ func _acender(mi: MeshInstance3D, acesa: bool, agora: bool) -> void:
 		if base == null:
 			base = mi.mesh.surface_get_material(s)
 		var m: Material = base.duplicate()
-		m.next_pass = Fita.contorno(Fita.TUNGSTENIO, 0.010, 2.6)
+		m.next_pass = Fita.contorno(Fita.TUNGSTENIO, 0.016, 3.0)
 		mi.set_surface_override_material(s, m)
 
 

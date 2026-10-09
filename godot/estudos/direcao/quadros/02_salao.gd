@@ -17,7 +17,7 @@ const PORTAO_X := [-8.0, -4.0, 0.0, 4.0, 8.0]
 const FUNDO_Z := -8.0
 ## Quem venceu: a Centelha (o portão aceso).
 const VENCIDA := 0
-const NOMES := ["Brasa", "Faísca", "Rebite", "Bigorna"]
+const NOMES := ["Basalto", "Obsidiana", "Latão", "Faísca"]  ## os da montagem (10): a mesma noite em todos os quadros
 var p1_cabeca := Vector2.ZERO
 
 
