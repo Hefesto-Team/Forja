@@ -10,7 +10,9 @@
 #   4. Na integração, os portões (`scripts/portoes/rodar.sh`) e as provas rápidas, na ordem; o primeiro vermelho
 #      para tudo, diz qual foi e o topo de antes da costura (para desfazer: `git reset --keep <topo de antes>`).
 #   5. Com --pesadas, depois das rápidas, o `scripts/ci-local.sh --rapido` pelo semáforo da máquina (a variável
-#      VEZ, um comando que faz fila; sem ela, roda direto).
+#      VEZ, um comando que faz fila; sem ela, roda direto): é ele que compila o módulo e roda a prova do jogo.
+#      Sem --pesadas, o verde é só dos portões e das provas de ferramenta, e a última linha diz isso. Antes de
+#      marcar «feito» no quadro, a costura roda com --pesadas.
 #
 # As provas rápidas são as do repositório (a lista PROVAS abaixo); `--prova "<comando>"` (repetível) troca a lista
 # inteira pelo que for pedido. Toda prova roda na raiz da integração.
@@ -116,4 +118,9 @@ if [ -n "$REGISTRO" ]; then
   [ -f "$REGISTRO" ] || printf '# A costura\n\n| hora | ramo | commits | topo |\n| --- | --- | --- | --- |\n' > "$REGISTRO"
   printf '| %s | %s | %s | %s |\n' "$(date '+%d/%m %H:%M')" "$RAMO" "${#FALTAM[@]}" "$TOPO" >> "$REGISTRO"
 fi
-echo "costura: verde — ${#FALTAM[@]} commit(s) de $RAMO, topo $TOPO"
+if [ "$PESADAS" -eq 1 ]; then
+  echo "costura: verde — ${#FALTAM[@]} commit(s) de $RAMO, topo $TOPO"
+else
+  # sem --pesadas, o jogo não rodou: o verde é dos portões e das provas de ferramenta, não da prova do jogo
+  echo "costura: verde sem as pesadas — ${#FALTAM[@]} commit(s) de $RAMO, topo $TOPO; a prova do jogo não rodou (--pesadas)"
+fi

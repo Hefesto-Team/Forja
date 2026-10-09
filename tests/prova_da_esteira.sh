@@ -131,6 +131,8 @@ ficha V01 "scripts/portoes/arte.json"
 espera 0 "esteira: lê o quadro de mentira" bash -c "python3 '$RAIZ/scripts/esteira.py' --raiz '$Q' > '$TMP/esteira.json'"
 confere "esteira: despacha a base a fazer e a seção toda pronta, na ordem do quadro" \
   "[p['secao'] for p in d['prontas_para_despachar']] == ['F', 'G']"
+confere "esteira: a seção pronta diz se é base (o molde não pede «A diversão» à base)" \
+  "[(p['secao'], p['base']) for p in d['prontas_para_despachar']] == [('F', True), ('G', False)]"
 confere "esteira: a dependência de dentro da seção não segura (F02 depende de F01)" \
   "next(p for p in d['prontas_para_despachar'] if p['secao'] == 'F')['fichas'] == ['F01', 'F02']"
 confere "esteira: sem «Arquivos que mudam», os arquivos são estimados e o «Ler antes» não conta" \
