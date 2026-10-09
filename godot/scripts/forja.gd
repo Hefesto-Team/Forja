@@ -1110,3 +1110,17 @@ func capacidade(l: int, qual: String) -> bool:
 	if p < 0:
 		return false
 	return bool(pad(p).get(qual, false))
+
+
+## A sessão acelerada (a WE02): o --acelerado com controles simulados e o módulo,
+## a mesma condição em que o `ctl.acelerar(true)` põe a linha do tempo no tempo
+## do jogo. Nela o Ritmo também mede o tempo do jogo. O jogo de verdade nunca é
+## acelerado: sem --simular não há sessão acelerada.
+func acelerada() -> bool:
+	return modulo and simular > 0 and _args.has("acelerado")
+
+
+## O tempo do jogo em µs (a soma dos quadros, o mesmo `_agora` do motor), para o
+## Ritmo na sessão acelerada.
+func agora_us() -> int:
+	return int(round(_agora * 1000000.0))

@@ -70,7 +70,9 @@ rodar() {
   caixa_julgar "$TMP/$nome.log" || FALHAS=$((FALHAS + 1))
 }
 # a rodada «forma-a» é o jogo (sem o Modo bancada); a «antes» é a camada de validação (--bancada)
-rodar forma-a "alto-falante: Alto-falante do Controle 1 (DualSense Wireless Controller)"
-rodar antes "nenhum alto-falante de controle na lista (2 dispositivos)" --bancada
+# --acelerado nas duas (a WE02): as duas jogam o kit, e na sessão acelerada o relógio do ritmo e o t da linha do
+# tempo são o tempo do jogo, que a máquina carregada não estica (a prova do relógio desliga isso enquanto mede)
+rodar forma-a "alto-falante: Alto-falante do Controle 1 (DualSense Wireless Controller)" --acelerado
+rodar antes "nenhum alto-falante de controle na lista (2 dispositivos)" --bancada --acelerado
 [ "$FALHAS" -eq 0 ] || exit 1
 echo "prova do jogo ok — os quatro lugares, as salas e o relatório; com o nome da Sony o jogo acha o alto-falante, sem ele diz que não achou"

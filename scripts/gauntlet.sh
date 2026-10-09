@@ -31,12 +31,14 @@ caixa_pasta gauntlet; SAIDA="$CAIXA_PASTA"   # no vermelho, a pasta fica em .cac
 caixa_montar "$SAIDA/caixa"
 falhas=0
 
+# --acelerado (a WE02): a prova do kit conta os prazos em quadros e o Ritmo mede o tempo do jogo, como na
+# tests/prova_do_jogo.sh; no relógio de parede, a máquina carregada muda o julgamento
 rodar() {
   local nome="$1"
   shift
   mkdir -p "$SAIDA/$nome"
   timeout 600 caixa "$GODOT" --headless --fixed-fps 60 --path "$RAIZ/godot" res://testes/prova_do_jogo.tscn \
-    -- --simular=4 --robo --semente="$SEMENTE" --relatorios="$SAIDA/$nome" --bancada "$@" >"$SAIDA/$nome.log" 2>&1
+    -- --simular=4 --robo --semente="$SEMENTE" --relatorios="$SAIDA/$nome" --bancada --acelerado "$@" >"$SAIDA/$nome.log" 2>&1
 }
 
 caixa "$GODOT" --headless --path "$RAIZ/godot" --import >/dev/null 2>&1 || true

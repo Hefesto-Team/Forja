@@ -12,6 +12,12 @@ extends Node
 ##
 ## O tempo é medido uma vez por quadro, antes das salas (process_priority), e
 ## todo mundo naquele quadro lê o mesmo número.
+##
+## Na sessão acelerada (só com --simular e --acelerado, a prova: Forja.acelerada),
+## o relógio do sistema dá lugar ao tempo do jogo, a soma dos quadros que o Forja
+## já faz, e a posição da faixa não é lida: o quadro tem duração fixa, e a
+## máquina carregada não estica o tempo entre a mira do robô e o julgamento
+## (docs/jogo/tarefas/WE02-o-kit-no-relogio-do-quadro.md).
 
 signal batida_cheia(n: int)  ## a cada tempo inteiro (n = 0 é o primeiro tempo da faixa)
 signal compasso(n: int)  ## a cada 4 tempos (n = 0 é o primeiro compasso)
@@ -32,13 +38,17 @@ var _base_us := 0  ## o relógio do sistema: no instante _base_us, o t valia _ba
 var _base_t := 0.0
 var _pausado := false
 var _batida_anterior := -1
+var _no_jogo := false  ## o _agora_us da última vez foi o tempo do jogo (a sessão acelerada)
+## A prova do relógio mede a placa e o sistema de verdade mesmo na sessão acelerada:
+## liga isto enquanto mede (a WE02). Fora da sessão acelerada não muda nada.
+var pelo_relogio_de_verdade := false
 
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	process_priority = -90  # depois do Forja (-101) e do módulo (-100), antes das salas (0)
 	Input.use_accumulated_input = false
-	_base_us = Time.get_ticks_usec()
+	_base_us = _agora_us()
 	ler_das_opcoes()
 
 
@@ -76,7 +86,7 @@ func tocar(slot_da_faixa: String, bpm_da_faixa: float, primeiro_tempo_s: float) 
 	_pelo_audio = _tocador != null
 	_laco_s = Musica.laco_s(_tocador)
 	_base_t = 0.0
-	_base_us = Time.get_ticks_usec() + int((AudioServer.get_time_to_next_mix() + _latencia) * 1000000.0)
+	_base_us = _agora_us() + int((AudioServer.get_time_to_next_mix() + _latencia) * 1000000.0)
 
 
 ## Para de seguir a faixa (a música é da Musica: quem para o som é ela). O
@@ -86,7 +96,7 @@ func parar() -> void:
 	dono = ""
 	_tocador = null
 	if _pelo_audio:
-		_para_o_sistema(Time.get_ticks_usec())
+		_para_o_sistema(_agora_us())
 
 
 ## A pausa (e o diagnóstico) por cima do minigame: o tempo para, e a faixa também.
@@ -96,9 +106,9 @@ func pausar(sim: bool) -> void:
 	_pausado = sim
 	if is_instance_valid(_tocador):
 		_tocador.stream_paused = sim
-	if not sim and not _pelo_audio:
+	if not sim and (not _pelo_audio or _no_jogo):
 		_base_t = _t
-		_base_us = Time.get_ticks_usec()
+		_base_us = _agora_us()
 
 
 ## A posição da música que se ouve agora, em s (nunca anda para trás).
@@ -133,8 +143,8 @@ static func posicao_continua(pos: float, anterior: float, voltas: int, laco_s: f
 func _medir() -> float:
 	if _pausado:
 		return _t
-	var agora_us := Time.get_ticks_usec()
-	if _pelo_audio:
+	var agora_us := _agora_us()
+	if _pelo_audio and not _no_jogo:
 		if is_instance_valid(_tocador) and _tocador.playing:
 			var pos := _tocador.get_playback_position() + AudioServer.get_time_since_last_mix()
 			var r := posicao_continua(pos, _pos_anterior, _voltas, _laco_s)
@@ -144,6 +154,18 @@ func _medir() -> float:
 		# a faixa parou (outra entrou, o jingle cortou): segue pelo sistema
 		_para_o_sistema(agora_us)
 	return _base_t + (agora_us - _base_us) / 1000000.0
+
+
+## O agora do relógio, em µs: o tempo do jogo na sessão acelerada, o do sistema
+## fora dela. Quando a base troca, o relógio segue do ponto em que estava.
+func _agora_us() -> int:
+	var no_jogo := Forja.acelerada() and not pelo_relogio_de_verdade
+	var agora := Forja.agora_us() if no_jogo else Time.get_ticks_usec()
+	if no_jogo != _no_jogo:
+		_no_jogo = no_jogo
+		_base_t = _t
+		_base_us = agora
+	return agora
 
 
 func _para_o_sistema(agora_us: int) -> void:
