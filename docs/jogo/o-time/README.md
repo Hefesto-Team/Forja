@@ -15,7 +15,7 @@ Vale para quem chega: a Vitória, o André e a Amanda usam o mesmo time e as mes
 | **3. A execução** | a ficha pronta vira código, conferido e jogado | o implementador, o conferente, o jogador e a costura ([papéis](papeis.md#a-execução)) |
 
 A régua que separa a etapa 2 da 3 está em [A ficha pronta](ficha-pronta.md). O motor que move as fichas está em
-[A esteira](a-esteira.md). Todo som e toda música do jogo estão no [mapa do áudio](o-mapa-do-audio.md).
+[A esteira](a-esteira.md), e o que nunca se faz ao executar, em [As regras de execução](regras.md). Todo som e toda música do jogo estão no [mapa do áudio](o-mapa-do-audio.md).
 
 ## A ordem
 

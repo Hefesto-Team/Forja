@@ -44,6 +44,7 @@ provas, parando no conflito e no primeiro vermelho). A prova dos dois é o `test
 - **Nada na tela dela:** Godot só por `--headless` ou `xvfb-run`.
 - **O controle real:** nunca. As provas rodam na caixa (`bwrap`) com o simulador.
 - **O commit:** em português, sem trailer e sem símbolos na mensagem.
+- **As regras:** cada papel recebe o [regras.md](regras.md), inteiro, pelo link, não colado.
 
 ## Quando a esteira para
 

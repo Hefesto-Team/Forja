@@ -84,3 +84,15 @@ Ler o `regras.md` inteiro (menos de dois minutos) e marcar no relato a regra que
 
 Pôr a linha da WT04 no [quadro](README.md) como **feito**, com o commit, e dizer no relato que o molde da esteira
 pode trocar o texto colado pelo link.
+
+## O que foi feito (leva 1, as-regras)
+
+- **Entrou:** `docs/jogo/o-time/regras.md` (49 linhas: «Os princípios», «Nunca» e «O commit»), com um link no
+  COMO-CONTRIBUIR («As regras da casa»), no 12 (o passo 3 do ciclo), na a-esteira («Os limites») e no README do time.
+  A regra do controle aponta para a a-esteira, sem terceira cópia.
+- **Provas:** `bash tests/prova_da_esteira.sh` com as quatro checagens (34 casos); sem o arquivo, a checagem do
+  repositório reprova («falta o docs/jogo/o-time/regras.md»), e a prova morde a si mesma com o arquivo ausente, com
+  61 linhas e com o 12 sem o link. `bash tests/prova_sem_rastro.sh` e `bash scripts/portoes/rodar.sh` verdes.
+- **Fica para quem cuida do molde da esteira:** trocar o texto das regras colado no começo de cada papel por
+  «as regras: `docs/jogo/o-time/regras.md`, inteiro».
+- **Fica para o André:** ler o `regras.md` e dizer a regra que ele não conhecia ou não pratica.
