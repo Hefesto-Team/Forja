@@ -97,6 +97,9 @@ registro de uma prova vermelha fica.
   `tests/prova_do_som.sh`, `tests/prova_da_exportacao.sh` e `scripts/gauntlet.sh` trocaram o `mktemp` e o `trap`
   próprios pelo `caixa_pasta`. Na exportação, a pasta nasce depois da conferência do binário (o «sem forja.x86_64» sai
   2 sem deixar pasta). A prova visual não mudou. O que cada prova confere e o filtro do verde também não.
+- **Na conferência:** a prova da exportação guarda o `WINEPREFIX` dentro da pasta, e o vermelho copiava o prefixo
+  inteiro (centenas de MB, até cinco cópias). O `CAIXA_SEM_GUARDAR="wine"` tira o prefixo da cópia; os logs do `.exe`
+  já vão para `dist/o-exe-no-wine/`. Um caso a mais na prova dos portões (69), que reprova com a cura desligada.
 - **`tests/prova_dos_portoes.sh`:** a mordida do passo 4, com a `tests/prova_do_jogo.sh` de verdade numa árvore de
   mentira e um `GODOT` de mentira (seis casos): com rc 124 a prova sai 1, a pasta fica com o `forma-a.log` e o
   `antes.log`, a última linha é «o registro: <caminho>» e o caminho existe, e das seis pastas velhas e a nova ficam
