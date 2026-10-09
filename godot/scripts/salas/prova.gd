@@ -91,11 +91,6 @@ func _init() -> void:
 	camera_olhar = Vector3(0, 0, 0.9)
 
 
-func sair() -> void:
-	Forja.som_encerrar()
-	super()
-
-
 func montar() -> void:
 	pilares = PILARES_CATAVENTO if variante == 1 else PILARES
 	Kit.arena(self, 6, 4)
@@ -108,7 +103,8 @@ func montar() -> void:
 		Kit.peca(self, "column", c, 0.0, 2.2)
 		Kit.cilindro(self, CASCALHO, 0.03, c + Vector3(0, 0.03, 0), Kit.material(COR_CHAO[1], 0.0, 0.95))
 	# o clique seco, o sino do especial e os passos saem do controle de cada um
-	Forja.som_preparar(F.PAPEL_ALTO_FALANTE)
+	if not Forja.som_pronto():
+		Forja.som_preparar(F.PAPEL_ALTO_FALANTE)
 	_montar_lutadores()
 
 

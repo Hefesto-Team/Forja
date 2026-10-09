@@ -112,8 +112,8 @@ func entrar(js: Array) -> void:
 	if papel_som >= 0:
 		# o som de cada um, achado como um jogo acha; o aviso mostra e deixa trocar
 		Forja.som_preparar(papel_som)
-	elif sfx_no_controle:
-		# os efeitos no alto-falante de cada controle (o martelo na mão, o tiro)
+	elif sfx_no_controle and not Forja.som_pronto():
+		# a placa abre na entrada do lugar (main.gd); aqui só se ainda não abriu
 		Forja.som_preparar(Forja.PAPEL_ALTO_FALANTE)
 
 
@@ -123,8 +123,9 @@ func sair() -> void:
 		p.preso = false
 		if _itens.has(p.lugar):
 			p.visual(p.modelo_i, int(_itens[p.lugar]))
-	if papel_som >= 0 or sfx_no_controle:
-		Forja.som_encerrar()
+	if papel_som >= 0:
+		# a placa fica aberta: volta ao papel de sempre (o alto-falante)
+		Forja.som_preparar(Forja.PAPEL_ALTO_FALANTE)
 	super()
 
 

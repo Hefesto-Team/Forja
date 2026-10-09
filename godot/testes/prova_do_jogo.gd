@@ -56,6 +56,7 @@ func _ready() -> void:
 	await _prova_do_relogio()
 	_prova_das_janelas()
 	_prova_dos_jingles()
+	await _prova_da_musica_que_reage()
 	_prova_das_faixas()
 	_prova_da_paridade()
 	Desenho._coletar = "memoria"  # colhe cada frase desenhada (F02, F07)
@@ -157,10 +158,19 @@ func _prova_do_percurso() -> void:
 	# o ✕ só confirma: em ordem inversa, cada um fica com o lugar que a conexão deu
 	for s in [3, 2, 1, 0]:
 		await _aperta(s, Forja.CRUZ)
+		# o pio do cavaleiro sai no controle de quem entrou, e só nele (H07)
+		var nivel := float(Forja.som_virtual(s).get("falante", 0.0))
+		var outros := 0.0
+		for o in 4:
+			if o != s:
+				outros = maxf(outros, float(Forja.som_virtual(o).get("falante", 0.0)))
+		_esperar(nivel > 0.1 and outros < 0.05, "P%d entrou: o pio no controle dele (%.2f; os outros %.2f)" % [s + 1, nivel, outros])
+		await _quadros(20)
 	await _quadros(4)
 	for s in 4:
 		_esperar(Forja.pad_do_lugar(s) == _pad_do_sim(s), "o ✕ confirma: o simulado %d é P%d, mesmo apertando por último" % [s + 1, s + 1])
 	_esperar(Forja.jogadores() == 4, "os quatro entraram")
+	_esperar(Forja.som_pronto(), "a placa de áudio dos quatro abriu na entrada")
 	_prova_da_calibracao()
 	await _prova_do_tempo_nas_opcoes()
 	for l in 4:
@@ -466,6 +476,7 @@ func _prova_do_kit() -> void:
 		q += 5
 	_esperar(jogo.estado == "salao", "kit: de volta ao salão pelo fechamento")
 	_esperar(not Ritmo._pausado and Ritmo.slot == "", "kit: o relógio solto ao sair")
+	_esperar(Forja.som_tem(2, Forja.PAPEL_ALTO_FALANTE), "kit: o P3 voltou com o alto-falante")
 
 
 ## Entra na sala e espera o jogo começar (o robô fica pronto no aviso).
@@ -567,6 +578,7 @@ func _termina_a_sala(sala, features: Array) -> void:
 		await _quadros(5)
 		q += 5
 	_esperar(jogo.estado == "salao", "%s: de volta ao salão pelo veredito" % id)
+	_esperar(Forja.som_pronto(), "%s: a placa de áudio continua aberta" % id)
 	for l in 4:
 		var p := _perc(l)
 		_esperar(int(p.get("gatilho_dir", 0)) == 0x05 and float(p.get("forte", 1.0)) == 0.0,
@@ -663,6 +675,28 @@ func _prova_do_relatorio() -> void:
 		"registro: a nota perdida, sem desvio (%s)" % [perdido])
 	_esperar(calibracoes.any(func(ev): return int(ev.get("desvio_ms", 0)) == 80 and ev.get("transporte", "") == "simulado"),
 		"registro: a calibração de +80 ms, com o transporte do controle")
+	# o som em todo evento (H07): cada lugar recebeu sons no controle, com a
+	# placa (a virtual, nos simulados), o pio na entrada e a nota do perfeito
+	var sons := [0, 0, 0, 0]
+	var pios := 0
+	var notas := 0
+	var materiais := 0
+	for f in arquivos:
+		if not (f.begins_with("linha-do-tempo-") and f.ends_with(".jsonl")):
+			continue
+		for linha in FileAccess.get_file_as_string(pasta.path_join(f)).split("\n", false):
+			var ev = JSON.parse_string(linha)
+			if not ev is Dictionary or ev.get("tipo", "") != "som_controle":
+				continue
+			var l := int(ev.get("lugar", -1))
+			if l >= 0 and l < 4 and ev.get("placa", false):
+				sons[l] += 1
+			pios += 1 if str(ev.get("som", "")).begins_with("pio:") else 0
+			notas += 1 if str(ev.get("som", "")) == "nota:0" else 0
+			materiais += 1 if str(ev.get("som", "")).begins_with("material:") else 0
+	_esperar(sons.all(func(n): return n > 0), "registro: cada controle recebeu som, com a placa (%s)" % [sons])
+	_esperar(pios >= 4 and notas >= 1, "registro: o pio de cada um e a nota do perfeito (%d pios, %d notas)" % [pios, notas])
+	_esperar(materiais > 0, "registro: a textura do material chegou ao controle (%d)" % materiais)
 	var json := ""
 	for f in arquivos:
 		if f.begins_with("relatorio-") and f.ends_with(".json"):
@@ -816,6 +850,7 @@ func _prova_da_partida() -> void:
 	_esperar(Placar.frase_do_vencedor(lista) == "P2 venceu a noite", "partida: a frase diz quem venceu")
 	for l in 4:
 		_esperar(not jogo.jogadores[l].controlavel, "partida: no pódio, o P%d fica no pedestal" % (l + 1))
+	_esperar(Forja.som_pronto(), "partida: no pódio, a placa de áudio continua aberta")
 	await _quadros(60)
 	await _aperta(0, Forja.CIRCULO)
 	q = 0
@@ -823,6 +858,7 @@ func _prova_da_partida() -> void:
 		await _quadros(2)
 		q += 2
 	_esperar(jogo.estado == "salao" and jogo.partida == null and not jogo.placar.visible, "partida: ○ no pódio volta ao salão")
+	_esperar(Forja.som_pronto(), "partida: ○ no pódio, a placa de áudio continua aberta")
 
 
 ## O relógio (H01): a volta do laço (a conta pura), o relógio do sistema sem
@@ -1280,8 +1316,9 @@ func _prova_do_registro_v2() -> void:
 		t_antes = t
 		if int(e.get("jogador", 0)) > 0:
 			lugar_ok = lugar_ok and int(e.get("lugar", -1)) == int(e.get("jogador")) - 1
-		if e.get("tipo") == "saida":
-			saidas += 1
+		# o seq é um contador só por lugar: a saída e o som mandado ao controle (H07) saem numa ordem
+		if e.get("tipo") == "saida" or e.get("tipo") == "som_controle":
+			saidas += 1 if e.get("tipo") == "saida" else 0
 			var chave := int(e.get("lugar", -1))
 			var n := int(e.get("seq", 0))
 			seq_ok = seq_ok and n == int(seq.get(chave, 0)) + 1
@@ -1290,7 +1327,7 @@ func _prova_do_registro_v2() -> void:
 	_esperar(t_ok, "o t nunca anda para trás")
 	_esperar(t_antes <= processo + 0.5, "o t é o relógio de parede (%.1f s na linha, %.1f s de processo)" % [t_antes, processo])
 	_esperar(lugar_ok, "toda linha com jogador tem o lugar (jogador - 1)")
-	_esperar(saidas > 100 and seq_ok, "toda saída tem seq, de 1 em 1 por lugar (%d saídas)" % saidas)
+	_esperar(saidas > 100 and seq_ok, "toda saída e todo som no controle têm seq, de 1 em 1 por lugar (%d saídas)" % saidas)
 	var con := linhas.filter(func(e): return e.get("tipo") == "conexao" and e.get("evento") == "conectou")
 	var con_ok := con.size() >= 4
 	for e in con:
@@ -1475,3 +1512,16 @@ func _prova_dos_jingles() -> void:
 	if Forja.modulo:
 		for nome in Som.JINGLES:
 			_esperar(Som.jingle(nome) > 0.0 and Som.ultimo_jingle == nome, "jingle: %s tem som" % nome)
+
+
+## A música que reage (H07): o erro abafa e abre, o perfeito abaixa e volta.
+## Os tweens andam no tempo do jogo: a espera é em quadros.
+func _prova_da_musica_que_reage() -> void:
+	Musica.reagir("erro")
+	_esperar(Musica._passa_baixa.cutoff_hz < 1000.0, "música: o erro abafa (%.0f Hz)" % Musica._passa_baixa.cutoff_hz)
+	await _quadros(40)
+	_esperar(is_equal_approx(Musica._passa_baixa.cutoff_hz, Musica.ABERTO_HZ), "música: e abre de novo")
+	Musica.reagir("perfeito")
+	_esperar(is_equal_approx(AudioServer.get_bus_volume_db(Musica._bus), -2.0), "música: o perfeito abaixa 2 dB")
+	await _quadros(12)
+	_esperar(is_equal_approx(AudioServer.get_bus_volume_db(Musica._bus), 0.0), "música: e volta")

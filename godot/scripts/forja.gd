@@ -896,6 +896,25 @@ func som_haptica(l: int, esq: String, dir: String, ganho := 1.0) -> int:
 	return ctl.som_haptica(l, esq, dir, ganho * Opcoes.escala_vibracao(l)) if modulo else -1
 
 
+## A placa de áudio dos controles está aberta (H07: ela abre na entrada do
+## lugar e fica aberta até ele sair)?
+func som_pronto() -> bool:
+	return ctl.som_preparado() if modulo else false
+
+
+## A textura de um material na mão do lugar (docs/jogo/05#a-háptica-por-material):
+## no cabo, a onda nos atuadores e, mais baixa, no alto-falante; sem placa
+## (o rádio), a sensação pelo rumble — nunca os dois no mesmo instante
+## (docs/jogo/05, a suspeita e). O gelo é de um atuador só.
+func tocar_material(l: int, material: String, sensacao: String, forca := 1.0) -> void:
+	var nome := "material:" + material
+	if som_tem(l, PAPEL_HAPTICA):
+		som_haptica(l, nome, "" if material == "gelo" else nome, forca)
+		som_falante(l, nome, 0.35 * forca)
+	else:
+		sentir(l, sensacao)
+
+
 func som_parar(l: int) -> void:
 	if modulo:
 		ctl.som_parar(l)
