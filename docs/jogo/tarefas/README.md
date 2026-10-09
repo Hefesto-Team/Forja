@@ -177,6 +177,21 @@ que está escrito em dois lugares. São base: vão de **a fazer** direto para **
 | [V07](V07-o-codigo-sem-uso.md) | O código sem uso | P | F05, F10 | a fazer |
 | [V08](V08-os-portoes-de-arte-e-som-reprovam.md) | Os portões de arte e som reprovam | M | a bíblia aprovada, a G14, V05, o mapa do áudio com os arquivos | a fazer |
 
+## X — Os módulos
+
+As extrações do [15 — Os módulos importáveis](../15-os-modulos.md), na ordem de lá. Cada uma muda código de lugar e
+corta dependência, sem mudar comportamento. São base: vão de **a fazer** direto para **em voo**.
+
+| ficha | título | tamanho | depende de | estado |
+| --- | --- | --- | --- | --- |
+| [X01](X01-o-pacote-do-texto.md) | O pacote do texto de tela | M | V03 | a fazer |
+| [X02](X02-o-pacote-do-placar.md) | O pacote do placar | P | X01, V04 | a fazer |
+| [X03](X03-o-pacote-do-ritmo.md) | O pacote do relógio de ritmo | M | H01, H02, H03 | a fazer |
+| [X04](X04-o-pacote-do-dualsense.md) | O pacote do DualSense | G | F04, F05, F06, F10, X01 | a fazer |
+| [X05](X05-o-pacote-do-robo.md) | O pacote do robô de prova | P | X04, V02, F08 | a fazer |
+| [X06](X06-o-pacote-da-costura.md) | O pacote da costura das telas | G | X01, as fichas G que mexem no `main.gd` | a fazer |
+| [X07](X07-o-pacote-do-minigame.md) | O pacote do kit de minigame | G | X03, X04, X06, H04, H08, a seção I | a fazer |
+
 ## A soma
 
 Com o retrabalho, a faixa está em [Como trabalhar](../12-como-trabalhar.md#o-orçamento).

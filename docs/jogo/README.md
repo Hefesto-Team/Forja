@@ -31,6 +31,7 @@ dele.
 | [12 — Como trabalhar](12-como-trabalhar.md) | o método: uma ficha por sessão, o que roda onde, o orçamento |
 | [13 — A arquitetura](13-arquitetura.md) | a base comum que toda ficha usa: APIs, registro, kit, paridade, prova visual |
 | [14 — Os assets da Kenney](14-os-assets-kenney.md) | o pacote All-in-1: o que entra, como entra, recolorir |
+| [15 — Os módulos importáveis](15-os-modulos.md) | as sete peças que outro jogo pode importar: a interface, o que soltar, o pacote e a ordem |
 | [O quadro](tarefas/README.md) | as fichas, na ordem de trabalho, com o estado e o gasto de cada uma |
 
 As sprints que executam isto estão no topo do [SPRINTS](../../SPRINTS.md),
