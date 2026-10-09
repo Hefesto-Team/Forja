@@ -171,6 +171,15 @@ func _prova_do_percurso() -> void:
 		_esperar(Forja.pad_do_lugar(s) == _pad_do_sim(s), "o ✕ confirma: o simulado %d é P%d, mesmo apertando por último" % [s + 1, s + 1])
 	_esperar(Forja.jogadores() == 4, "os quatro entraram")
 	_esperar(Forja.som_pronto(), "a placa de áudio dos quatro abriu na entrada")
+	# um som por vez no alto-falante (H07): o sino longo soa; o clique chega,
+	# o sino sai pela rampa, e quando o clique (20 ms) acaba não sobra nada
+	Forja.som_falante(0, "sino", 0.9)
+	await _quadros(5)
+	var com_sino := float(Forja.som_virtual(0).get("falante", 0.0))
+	Forja.som_falante(0, "clique", 0.5)
+	await _quadros(4)
+	var depois := float(Forja.som_virtual(0).get("falante", 0.0))
+	_esperar(com_sino > 0.1 and depois < 0.05, "o alto-falante toca um som por vez: o clique tira o sino (%.2f, depois %.2f)" % [com_sino, depois])
 	_prova_da_calibracao()
 	await _prova_do_tempo_nas_opcoes()
 	for l in 4:
