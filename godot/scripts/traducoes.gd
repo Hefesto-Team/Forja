@@ -280,6 +280,11 @@ const EN := {
 	"Quatro estalos": "Four clicks",
 	"Um golpe que ressoa": "A ringing blow",
 	"Duas ondas": "Two waves",
+	# o título da fita (G01)
+	"Nenhum controle encontrado": "No controller found",
+	"Jogar no teclado": "Play on the keyboard",
+	"Gravar": "Record",
+	"Nove salas, quatro cavaleiros": "Nine rooms, four knights",
 }
 
 ## Os textos com número: [padrão, substituição] (a substituição usa $1, $2…).

@@ -130,20 +130,13 @@ func _roteiro() -> bool:
 	if jogo.estado != "titulo":
 		falhas.append("o jogo não abriu no título (%s)" % jogo.estado)
 		return false
-	# antes do robô de fluxo (G01, G02), o roteiro aperta ✕ de cada lugar, com
-	# intervalo, como um jogador: ninguém entra por código
+	# o ✕ do P1 é o PLAY; da introdução ao salão, quem aperta é o robô do fluxo (main.gd _robo)
 	await _aperta(0, Forja.CRUZ)
-	if not await _ate(func() -> bool: return jogo.estado == "lobby", 10.0, "o lobby"):
+	if not await _ate(func() -> bool: return jogo.estado == "intro", 10.0, "a introdução"):
 		return false
-	await _esperar_s(0.6)
-	for s in n:
-		await _aperta(s, Forja.CRUZ)
-		await _esperar_s(0.4)
-	await _esperar_s(0.8)
-	for s in n:
-		await _aperta(s, Forja.CRUZ)  # ✕ de novo: pronto
-		await _esperar_s(0.4)
-	if not await _ate(func() -> bool: return jogo.estado == "salao" and not jogo._trocando, 25.0, "o salão"):
+	if not await _ate(func() -> bool: return jogo.estado == "lobby", 40.0, "o lobby"):
+		return false
+	if not await _ate(func() -> bool: return jogo.estado == "salao" and not jogo._trocando, 40.0, "o salão"):
 		return false
 	await _esperar_s(1.5)
 	if not await _ir_ate_a_bigorna():

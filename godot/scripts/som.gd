@@ -47,6 +47,7 @@ const GRAVADOS := {
 
 var _streams := {}
 var _gravados := {}  ## nome da gravação -> Array[AudioStreamWAV]
+var _arquivos := {}  ## id do mapa -> o AudioStreamWAV do arquivo (null: não há)
 var _no_controle := {}  ## "nome_k" já registrado no módulo
 var _rng := RandomNumberGenerator.new()
 var _players: Array[AudioStreamPlayer3D] = []
@@ -106,14 +107,26 @@ func versoes(gravacao: String) -> Array:
 	return lista
 
 
+## O som de um arquivo pelo id do mapa (assets/sons/<id>.wav), sem tom sorteado: o
+## que tem o nome do id é a versão única e aprovada. null: não há arquivo.
+func arquivo(nome: String) -> AudioStreamWAV:
+	if _arquivos.has(nome):
+		return _arquivos[nome]
+	var caminho := "res://assets/sons/%s.wav" % nome
+	var w: AudioStreamWAV = load(caminho) if ResourceLoader.exists(caminho) else null
+	_arquivos[nome] = w
+	return w
+
+
 func tocar(nome: String, pos: Variant = null, volume_db := 0.0, tom := 1.0) -> void:
-	var s: AudioStream = null
-	var lista := versoes(GRAVADOS.get(nome, ""))
-	if not lista.is_empty():
-		s = lista[_rng.randi() % lista.size()]
-		tom *= _rng.randf_range(0.95, 1.05)
-	else:
-		s = stream(nome)
+	var s: AudioStream = arquivo(nome)
+	if s == null:
+		var lista := versoes(GRAVADOS.get(nome, ""))
+		if not lista.is_empty():
+			s = lista[_rng.randi() % lista.size()]
+			tom *= _rng.randf_range(0.95, 1.05)
+		else:
+			s = stream(nome)
 	if s == null:
 		return
 	if pos is Vector3:
@@ -153,6 +166,13 @@ func laco(nome: String, pai: Node3D, pos: Vector3, volume_db := -8.0) -> AudioSt
 func no_controle(lugar: int, nome: String, ganho := 0.7) -> void:
 	if not Forja.modulo:
 		return
+	var inteiro := arquivo(nome)
+	if inteiro != null:
+		if not _no_controle.has(nome):
+			_no_controle[nome] = Forja.ctl.som_registrar(nome, inteiro.data, inteiro.mix_rate)
+		if _no_controle[nome]:
+			Forja.som_falante(lugar, nome, ganho)
+		return
 	var gravacao: String = GRAVADOS.get(nome, "")
 	var lista := versoes(gravacao)
 	if lista.is_empty():
@@ -164,3 +184,12 @@ func no_controle(lugar: int, nome: String, ganho := 0.7) -> void:
 		_no_controle[chave] = Forja.ctl.som_registrar(chave, w.data, w.mix_rate)
 	if _no_controle[chave]:
 		Forja.som_falante(lugar, chave, ganho)
+
+
+## O pio do cavaleiro do lugar (arte/03): a nota do lugar e o intervalo da
+## cabeça, na TV e no alto-falante do dono.
+func pio(lugar: int, boneco: int) -> void:
+	var i := wrapi(boneco, 0, ForjaPlayer.INTERVALO_DO_MODELO.size())
+	var id := "pio_p%d_%s" % [lugar + 1, ForjaPlayer.INTERVALO_DO_MODELO[i]]
+	tocar(id, null, -12.0)
+	no_controle(lugar, id, 0.85)

@@ -61,6 +61,18 @@ var _stick_antes := [Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO]
 var _portao_perto := ""
 var _robo_placar_rodada := -1  ## o placar em que o robô já apertou ✕ (partida × 100 + sala)
 var _robo_placar_t := 0.0  ## o `placar._t` do último ✕ do robô: se não chegou, ele aperta de novo
+var intro: TelaIntro
+var _viu_a_intro := false  ## a introdução é só na primeira vez da sessão
+var _t_titulo := 0.0  ## os segundos desde que o título abriu (o relógio quando não há música)
+var play_ms := -1  ## o instante (ms) em que alguém deu o PLAY; -1 até lá. A G07 lê no fim da fita
+var _toca_titulo: AudioStreamPlayer
+var _mapa_titulo := {}
+var _titulo_pos_ant := 0.0
+var _titulo_voltas := 0
+var _conectados_no_titulo := -1  ## quantos lugares havia na última vez que o título achou os alto-falantes
+var _foco_do_titulo: CameraAttributesPractical
+var _robo_estado := ""
+var _robo_espera := 0.0
 
 
 func _ready() -> void:
@@ -80,6 +92,7 @@ func _ready() -> void:
 	_interface()
 	pausa.escolheu.connect(_na_pausa)
 	escolha.escolheu.connect(_comecar_a_partida.bind(true))
+	Forja.registrar("FORJA %s" % Forja.versao())
 	_mostrar("titulo")
 	_abrir_pelos_args.call_deferred()
 
@@ -136,7 +149,8 @@ func _interface() -> void:
 	placar = Placar.new()
 	tela_opcoes = TelaOpcoes.new()
 	creditos = TelaCreditos.new()
-	for c in [titulo, lobby, hud, painel, resultado, diagnostico, livro, pausa, escolha, placar, tela_opcoes, creditos]:
+	intro = TelaIntro.new()
+	for c in [titulo, lobby, hud, painel, resultado, diagnostico, livro, pausa, escolha, placar, tela_opcoes, creditos, intro]:
 		ui.add_child(c)
 	cortina = ColorRect.new()
 	cortina.color = Color(Tema.CASA, 0.0)
@@ -151,6 +165,8 @@ func _interface() -> void:
 	placar.visible = false
 	tela_opcoes.visible = false
 	creditos.visible = false
+	intro.visible = false
+	intro.musica_do_titulo_volta.connect(_tocar_o_titulo)
 	tela_opcoes.mudou.connect(func(_c: String) -> void: Forja.aplicar_opcoes())
 
 
@@ -215,12 +231,24 @@ func _todos_entram() -> void:
 # ------------------------------------------------------------------ estados --
 
 func _mostrar(qual: String) -> void:
+	var antes := estado
 	estado = qual
-	Musica.tocar(sala_id if qual == "sala" else qual)
+	if antes == "titulo" and qual != "titulo":
+		Forja.som_encerrar()  # o alto-falante dos controles era só do pio
+	if qual == "titulo":
+		_t_titulo = 0.0
+		_conectados_no_titulo = -1
+		titulo.play_desde = -1.0
+		_tocar_o_titulo()
+	elif qual != "intro":
+		_toca_titulo = null
+		Musica.tocar(sala_id if qual == "sala" else qual)
 	titulo.visible = qual == "titulo"
+	intro.visible = qual == "intro"
 	lobby.visible = qual == "lobby"
 	hud.visible = _hud_visivel()
-	salao.pedestais_no.visible = qual in ["lobby", "podio"]
+	salao.pedestais_no.visible = qual in ["lobby", "podio", "intro"]
+	_focar_o_titulo(qual == "titulo")
 	if qual == "lobby":
 		for l in 4:
 			var p := jogadores[l]
@@ -571,9 +599,8 @@ func _sair_da_sala() -> void:
 
 func _process(dt: float) -> void:
 	_t += dt
-	if estado == "lobby" or estado == "titulo":
-		_sincronizar_jogadores()
 	if estado == "lobby":
+		_sincronizar_jogadores()
 		for l in 4:
 			lobby.pes[l] = camera.unproject_position(salao.pedestais[l])
 			lobby.visual[l] = [Desenho.maiusc(ForjaPlayer.NOME_DO_MODELO[jogadores[l].modelo_i]), Desenho.maiusc(ForjaPlayer.ITENS[jogadores[l].item_i].nome)]
@@ -582,7 +609,8 @@ func _process(dt: float) -> void:
 			_quadro_overlay()
 		else:
 			match estado:
-				"titulo": _quadro_titulo()
+				"titulo": _quadro_titulo(dt)
+				"intro": _quadro_intro(dt)
 				"lobby": _quadro_lobby(dt)
 				"salao": _quadro_salao()
 				"sala": _quadro_sala()
@@ -593,6 +621,8 @@ func _process(dt: float) -> void:
 	_mover_camera(dt)
 	for l in 4:
 		_stick_antes[l] = Forja.mover(l)
+	if Forja.robo:
+		_robo(dt)
 
 
 func _algum_pad_apertou(botao: int) -> int:
@@ -602,21 +632,168 @@ func _algum_pad_apertou(botao: int) -> int:
 	return -1
 
 
-func _quadro_titulo() -> void:
+## O título: a forja pulsa na batida; qualquer botão de um controle com lugar dá
+## o pio dele; ✕ ou Options dá o PLAY (e senta o controle que ainda não tinha
+## lugar); △ abre os créditos. O corte espera o próximo tempo 1 depois das 4
+## batidas do cassete descendo.
+func _quadro_titulo(dt: float) -> void:
+	_t_titulo += dt
+	var batidas := _batidas_do_titulo()
+	titulo.batidas = batidas
+	_achar_os_alto_falantes()
+	var pulso := _pulso_da_forja(batidas, clampf(_t_titulo / 2.0, 0.0, 1.0))
+	titulo.pulso = pulso
+	salao.pulso = pulso
+	titulo.contador_s = float(Time.get_ticks_msec() - play_ms) / 1000.0 if play_ms >= 0 else 0.0
 	if not Forja.modulo:
-		if Forja.apertou(0, Forja.CRUZ):
-			_trocar(_ir_para_o_lobby)
-		return
-	if Forja.conectados() == 0:
-		if Forja.tecla_apertou(KEY_ENTER) or Forja.tecla_apertou(KEY_SPACE):
+		if titulo.play_desde < 0.0 and Forja.apertou(0, Forja.CRUZ):
+			_dar_play(0)
+	elif Forja.conectados() == 0:
+		if titulo.play_desde < 0.0 and (Forja.tecla_apertou(KEY_ENTER) or Forja.tecla_apertou(KEY_SPACE)):
 			if Forja.jogar_no_teclado():
-				_trocar(_ir_para_o_lobby)
+				_dar_play(0)
+	else:
+		for p in Forja.pads():
+			var i := int(p.pad)
+			var l := int(p.lugar)
+			var play := Forja.pad_apertou(i, Forja.CRUZ) or Forja.pad_apertou(i, Forja.OPTIONS)
+			# o controle sem lugar que aperta ✕ ou Options se senta, para ter pio e vibração
+			if l < 0 and play and titulo.play_desde < 0.0:
+				l = Forja.entrar(i)
+				if l >= 0:
+					Forja.registrar("P%d entrou" % (l + 1))
+					_achar_os_alto_falantes()
+			if l >= 0:
+				for b in [Forja.CRUZ, Forja.CIRCULO, Forja.QUADRADO, Forja.TRIANGULO, Forja.OPTIONS]:
+					if Forja.pad_apertou(i, b):
+						Som.pio(l, jogadores[l].modelo_i)
+						Forja.sentir(l, "toque")
+						Forja.gatilhos_off(l)
+						break
+			if titulo.play_desde >= 0.0:
+				continue
+			if Forja.pad_apertou(i, Forja.TRIANGULO):
+				_abrir_overlay("creditos", 0)
+				return
+			if play and l >= 0:
+				_dar_play(l)
+	# o corte: no primeiro tempo 1 depois das 4 batidas do PLAY
+	if titulo.play_desde >= 0.0 and batidas >= ceil((titulo.play_desde + 4.0) / 4.0) * 4.0:
+		_trocar(_ir_para_a_intro if not _viu_a_intro else _ir_para_o_lobby)
+
+
+## O alto-falante de cada controle com lugar, achado de novo quando um se senta
+## (o módulo só acha o som de quem já ocupa o lugar).
+func _achar_os_alto_falantes() -> void:
+	if Forja.jogadores() != _conectados_no_titulo:
+		_conectados_no_titulo = Forja.jogadores()
+		Forja.som_preparar(Forja.PAPEL_ALTO_FALANTE)
+
+
+## A energia da forja na batida (0..1): sobe com o `entrada` e cai em cada tempo.
+func _pulso_da_forja(batidas: float, entrada: float) -> float:
+	return entrada * (0.55 + 0.45 * pow(1.0 - fposmod(batidas, 1.0), 3.0))
+
+
+## O PLAY: o clunk na TV, o motor da fita na mão de quem apertou, o cassete desce.
+func _dar_play(l: int) -> void:
+	Som.tocar("fx_play", null, -6.0)
+	Forja.sentir(l, "fita")
+	titulo.play_desde = _batidas_do_titulo()
+	play_ms = Time.get_ticks_msec()
+	Forja.registrar("PLAY (P%d)" % (l + 1))
+
+
+func _ir_para_a_intro() -> void:
+	_viu_a_intro = true
+	_mostrar("intro")
+	intro.comecar(salao, jogadores)
+
+
+## A introdução: 24 s sem uma palavra. Qualquer botão a pula, depois de 0,5 s
+## (o ✕ que deu o PLAY não conta).
+func _quadro_intro(dt: float) -> void:
+	_t_titulo += dt
+	salao.pulso = _pulso_da_forja(_batidas_do_titulo(), 1.0)
+	intro.quadro(dt)
+	var pulou := false
+	if intro.t > 0.5:
+		if Forja.modulo:
+			for p in Forja.pads():
+				for b in [Forja.CRUZ, Forja.CIRCULO, Forja.QUADRADO, Forja.TRIANGULO, Forja.OPTIONS]:
+					if Forja.pad_apertou(int(p.pad), b):
+						pulou = true
+		elif Forja.apertou(0, Forja.CRUZ):
+			pulou = true
+	if pulou or intro.acabou:
+		_trocar(func() -> void:
+			intro.terminar()
+			_ir_para_o_lobby())
+
+
+## A faixa do título, do zero (o relógio da batida parte dela). A gerada, se
+## existe; senão a sintetizada de reserva.
+func _tocar_o_titulo() -> void:
+	var slot: String = Musica.TELAS.titulo if not Musica.mapa_gerado(Musica.TELAS.titulo).is_empty() else "titulo"
+	_toca_titulo = Musica.tocar_do_zero(slot)
+	_mapa_titulo = Musica.mapa(slot)
+	_titulo_pos_ant = 0.0
+	_titulo_voltas = 0
+
+
+## As batidas desde o começo da faixa do título, pelo relógio de áudio (sem
+## música, pelo tempo do título a 115 BPM).
+func _batidas_do_titulo() -> float:
+	if _toca_titulo == null or not _toca_titulo.playing:
+		return _t_titulo * 115.0 / 60.0
+	var pos := _toca_titulo.get_playback_position() + AudioServer.get_time_since_last_mix()
+	var r := Ritmo.posicao_continua(pos, _titulo_pos_ant, _titulo_voltas, Musica.laco_s(_toca_titulo))
+	_titulo_voltas = int(r[1])
+	_titulo_pos_ant = pos
+	var s := float(r[0]) - AudioServer.get_output_latency() - float(_mapa_titulo.get("primeiro_tempo", 0.0))
+	return s * float(_mapa_titulo.get("bpm", 115.0)) / 60.0
+
+
+## O foco do título (arte/01): a forja fora de foco atrás do cassete.
+func _focar_o_titulo(ligado: bool) -> void:
+	if _foco_do_titulo == null:
+		_foco_do_titulo = CameraAttributesPractical.new()
+		_foco_do_titulo.dof_blur_far_distance = 3.0
+		_foco_do_titulo.dof_blur_far_transition = 2.0
+		_foco_do_titulo.dof_blur_amount = 0.06
+		camera.attributes = _foco_do_titulo
+	_foco_do_titulo.dof_blur_far_enabled = ligado
+
+
+## O robô do fluxo (--robo): só aperta botões no controle simulado, como uma
+## pessoa. Título: espera 3,0 s e aperta ✕ no primeiro lugar com controle.
+## Construção: a cada 0,6 s, ✕ em cada lugar com controle que ainda não está pronto.
+## A introdução ele não pula.
+func _robo(dt: float) -> void:
+	if _trocando or overlay != "" or not Forja.robo_confirma:
 		return
-	if _algum_pad_apertou(Forja.TRIANGULO) >= 0:
-		_abrir_overlay("creditos", 0)
+	if estado != _robo_estado:
+		_robo_estado = estado
+		_robo_espera = 3.0 if estado == "titulo" else 0.6
+	_robo_espera -= dt
+	if _robo_espera > 0.0:
 		return
-	if _algum_pad_apertou(Forja.CRUZ) >= 0 or _algum_pad_apertou(Forja.OPTIONS) >= 0:
-		_trocar(_ir_para_o_lobby)
+	match estado:
+		"titulo":
+			if titulo.play_desde >= 0.0:
+				return
+			for l in 4:
+				var lg := Forja.lugar(l)
+				if bool(lg.get("conectado", false)) or bool(lg.get("reservado", false)):
+					Forja.robo_apertar(l, Forja.CRUZ)
+					_robo_espera = 3.0  # se o aperto se perder (temperamento), tenta de novo
+					return
+		"lobby":
+			_robo_espera = 0.6
+			for l in 4:
+				var lg := Forja.lugar(l)
+				if (bool(lg.get("conectado", false)) or bool(lg.get("reservado", false))) and not lobby.prontos[l]:
+					Forja.robo_apertar(l, Forja.CRUZ)
 
 
 var _quadrado_t := {}  ## pad → quanto tempo o ◻ está segurado (antes de confirmar o lugar)
@@ -968,10 +1145,14 @@ func _na_pausa(acao: String) -> void:
 func _pose_da_camera() -> Array:
 	match estado:
 		"titulo":
-			# o giro lento em volta da bigorna; parado com o movimento desligado
-			var a := _t * 0.08 if Opcoes.tremor else 0.0
-			var centro := salao.bigorna.global_position + Vector3(0, 1.3, 0)
-			return [centro + Vector3(sin(a) * 7.5 + 3.0, 3.2, cos(a) * 7.5 + 2.0), centro]
+			# a forja de frente, o push-in de 3 % da distância em 8 compassos (parado
+			# com o movimento desligado)
+			var b := salao.bigorna.global_position
+			var olhar := b + Vector3(0, 1.0, 0)
+			var k := 1.0 - (0.03 * TelaIntro.entra_sai(fmod(titulo.batidas, 32.0) / 32.0) if Opcoes.tremor else 0.0)
+			return [olhar + Vector3(0, 0, 9.0) * k, olhar]
+		"intro":
+			return intro.pose_da_camera()
 		"lobby":
 			return [Vector3(0, 2.9, 14.2), Vector3(0, 0.55, 4.4)]
 		"podio":
@@ -1006,22 +1187,32 @@ func _pose_da_camera() -> Array:
 const FOV_16_9 := 40.0
 
 
+## A lente de cada momento, em mm (arte/01); o FOV vem de `Lente.fov`.
+func _lente() -> float:
+	match estado:
+		"titulo":
+			return 85.0
+		"intro":
+			return 35.0
+	return Lente.PADRAO
+
+
 func _enquadrar() -> void:
 	var tam := get_viewport().get_visible_rect().size
 	if tam.y <= 0.0:
 		return
 	if tam.x / tam.y < 16.0 / 9.0 - 0.01:
 		camera.keep_aspect = Camera3D.KEEP_WIDTH
-		camera.fov = rad_to_deg(2.0 * atan(tan(deg_to_rad(FOV_16_9) * 0.5) * 16.0 / 9.0))
+		camera.fov = rad_to_deg(2.0 * atan(tan(deg_to_rad(Lente.fov(_lente())) * 0.5) * 16.0 / 9.0))
 	else:
 		camera.keep_aspect = Camera3D.KEEP_HEIGHT
-		camera.fov = FOV_16_9
+		camera.fov = Lente.fov(_lente())
 
 
 func _mover_camera(dt: float) -> void:
 	_enquadrar()
 	var pose := _pose_da_camera()
-	var k := minf(1.0, dt * (1.2 if estado == "titulo" else 4.0))
+	var k := minf(1.0, dt * (1.2 if estado in ["titulo", "intro"] else 4.0))
 	_cam_pos = _cam_pos.lerp(pose[0], k)
 	_cam_olhar = _cam_olhar.lerp(pose[1], k)
 	camera.global_position = _cam_pos

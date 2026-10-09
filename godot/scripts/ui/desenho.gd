@@ -251,3 +251,47 @@ static func dicas_a_esquerda(ci: CanvasItem, inicio: Vector2, pares: Array, tam 
 		var par: Array = pares[i]
 		x += Glifo.dica(ci, Vector2(x, inicio.y), par[0], par[1], tam, Tema.FG, Tema.SUAVE, i == 0)
 		x += 40.0
+
+
+# ------------------------------------------------------------- o cassete --
+## A caixa chapada do cassete: fundo, raio e, se pedir, a borda (a placa, a etiqueta, o botão).
+static func caixa(ci: CanvasItem, r: Rect2, fundo: Color, raio := 10, borda := Color(Tema.FITA, 0.0), largura := 0) -> void:
+	var s := StyleBoxFlat.new()
+	s.bg_color = fundo
+	s.draw_center = fundo.a > 0.0
+	s.set_corner_radius_all(raio)
+	if largura > 0:
+		s.border_color = borda
+		s.set_border_width_all(largura)
+	s.anti_aliasing = true
+	ci.draw_style_box(s, r)
+
+
+## Um carretel: o cubo com seis dentes e a fita enrolada (0 a 1).
+static func carretel(ci: CanvasItem, c: Vector2, raio: float, fita: float, cor_cubo := Tema.ETIQUETA, giro := 0.0) -> void:
+	var r_fita := lerpf(raio * 0.42, raio, fita)
+	ci.draw_circle(c, r_fita, Tema.OXIDO)  # a fita magnética
+	ci.draw_arc(c, r_fita - 1.5, PI * 1.05, PI * 1.45, 18, Tema.OXIDO_BRILHO, 2.0, true)
+	ci.draw_circle(c, raio * 0.42, cor_cubo)
+	ci.draw_circle(c, raio * 0.2, Tema.CASCO)
+	for i in 6:
+		var a := i * TAU / 6.0 + 0.3 + giro
+		var d := Vector2(cos(a), sin(a))
+		ci.draw_line(c + d * raio * 0.2, c + d * raio * 0.33, Tema.CASCO, 3.0, true)
+
+
+## O contador de fita: rodas de número numa janela preta. `pos` é o canto de cima
+## à esquerda; devolve o retângulo que ocupou.
+static func contador(ci: CanvasItem, pos: Vector2, digitos: String, tam := 60) -> Rect2:
+	var f := Tema.vt()
+	var w_d := f.get_string_size("0", HORIZONTAL_ALIGNMENT_LEFT, -1, tam).x + 10.0
+	var r := Rect2(pos, Vector2(w_d * digitos.length() + 14, tam * 0.95 + 12))
+	caixa(ci, r, Tema.JANELA, 6, Tema.GRAFITE, 2)
+	for i in digitos.length():
+		var cel := Rect2(pos + Vector2(7 + i * w_d, 6), Vector2(w_d - 4, tam * 0.95))
+		caixa(ci, cel, Tema.CASCO, 3)
+		var base := Vector2(cel.position.x, cel.position.y - tam * 0.1 + f.get_ascent(tam))
+		texto(ci, base, digitos[i], f, tam, Tema.ETIQUETA, HORIZONTAL_ALIGNMENT_CENTER, cel.size.x)
+		# a dobra da roda: a linha do meio
+		ci.draw_line(Vector2(cel.position.x, cel.get_center().y), Vector2(cel.end.x, cel.get_center().y), Color(Tema.JANELA, 0.55), 2.0)
+	return r

@@ -122,6 +122,7 @@ func _prova_do_percurso() -> void:
 	_esperar(Forja.conectados() == 4, "quatro DualSense simulados (%d)" % Forja.conectados())
 	_esperar(Forja.jogadores() == 0, "ninguém no lugar antes do lobby")
 	_esperar(jogo.estado == "titulo", "o jogo abre no título")
+	Forja.robo_confirma = false  # o robô do fluxo espera: as checagens de conexão não têm botão nenhum
 	for s in 4:
 		var p := _perc_do_sim(s)
 		_esperar(int(p.get("player_index", -9)) == s and int(p.get("leds_jogador", 0)) == Forja.LEDS_DO_LUGAR[s]
@@ -137,9 +138,53 @@ func _prova_do_percurso() -> void:
 			"ordem trocada: o simulado %d, o %dº a chegar, é P%d" % [s + 1, l + 1, l + 1])
 	await _religar([0, 1, 2])  # de volta: o simulado N é o PN
 
-	await _aperta(0, Forja.CRUZ)
-	await _quadros(40)
-	_esperar(jogo.estado == "lobby", "✕ no título leva ao lobby")
+	# o título: quem aperta ✕ é o robô do fluxo (main.gd _robo), no controle do P1
+	Forja.robo_confirma = true
+	var pio := [0.0, 0.0]
+	var fita := 0.0
+	var nq := 0
+	var nq_play := -1
+	# a batida do título segue a placa de som, que anda em tempo de parede; o
+	# jogo, sem janela, anda muito mais depressa: o laço espera pelo relógio de parede
+	var t_parede := Time.get_ticks_msec()
+	while jogo.estado == "titulo" and Time.get_ticks_msec() - t_parede < 20000:
+		await _quadros(1)
+		nq += 1
+		for l in 2:
+			pio[l] = maxf(pio[l], float(Forja.som_virtual(l).get("falante", 0.0)))
+		if jogo.play_ms >= 0:
+			if nq_play < 0:
+				nq_play = nq
+			# depois dos 60 ms do toque do pio, só o motor da fita (400 ms) segue na mão
+			if nq - nq_play >= 8:
+				fita = maxf(fita, float(_perc(0).get("fraco", 0.0)))
+	_esperar(jogo.play_ms >= 0, "o ✕ no título deu o PLAY")
+	_esperar(fita > 0.0, "o PLAY vibrou no controle do P1 (%.2f)" % fita)
+	_esperar(pio[0] > 0.05, "o pio do P1 saiu no alto-falante do P1 (%.2f)" % pio[0])
+	_esperar(pio[1] < 0.02, "e não no do P2 (%.2f)" % pio[1])
+	_esperar(jogo.estado == "intro", "o PLAY leva à introdução")
+	_esperar(int(round(jogo._batidas_do_titulo())) % 4 <= 1, "o corte caiu no tempo 1")
+	var armaduras := 0
+	var martelou := [false, false, false, false]
+	nq = 0
+	while jogo.estado == "intro" and nq < 1800:
+		await _quadros(1)
+		nq += 1
+		for l in 4:
+			martelou[l] = martelou[l] or float(_perc(l).get("forte", 0.0)) > 0.0
+		if jogo.intro.t > 18.0:
+			var n := 0
+			for p in jogo.jogadores:
+				if p.visible:
+					n += 1
+			armaduras = maxi(armaduras, n)
+	_esperar(armaduras == 4, "a introdução acende as quatro armaduras (%d)" % armaduras)
+	for l in 4:
+		if Forja.ocupado(l):
+			_esperar(martelou[l], "a martelada do P%d chegou à mão dele" % (l + 1))
+	_esperar(nq >= 60 * 20, "a introdução dura mais de 20 s sem ninguém apertar (%d quadros)" % nq)
+	_esperar(jogo.estado == "lobby", "a introdução acaba sozinha e leva à construção")
+	Forja.robo_confirma = false  # o robô do fluxo espera: as checagens do lobby apertam à mão
 	# ◻ segurado um segundo, antes de confirmar: a reserva passa ao próximo lugar livre
 	Forja.ctl.simulador_cabo(1, false)  # o P2 vaga
 	await _quadros(4)
@@ -154,7 +199,8 @@ func _prova_do_percurso() -> void:
 	await _religar([1, 3])  # o simulado 2 volta a P2 e o 4 a P4
 	# o ✕ só confirma: em ordem inversa, cada um fica com o lugar que a conexão deu
 	for s in [3, 2, 1, 0]:
-		await _aperta(s, Forja.CRUZ)
+		if int(Forja.pad(_pad_do_sim(s)).get("lugar", -1)) < 0:  # o P1 já se sentou no título
+			await _aperta(s, Forja.CRUZ)
 	await _quadros(4)
 	for s in 4:
 		_esperar(Forja.pad_do_lugar(s) == _pad_do_sim(s), "o ✕ confirma: o simulado %d é P%d, mesmo apertando por último" % [s + 1, s + 1])
@@ -187,6 +233,7 @@ func _prova_do_percurso() -> void:
 		await _aperta(s, Forja.CRUZ)
 	await _quadros(150)
 	_esperar(jogo.estado == "salao", "com os quatro prontos, o salão")
+	Forja.robo_confirma = true  # o robô do fluxo volta para as salas
 
 	await _aperta(0, Forja.CREATE)
 	if Forja.bancada:

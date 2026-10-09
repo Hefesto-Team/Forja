@@ -10,6 +10,7 @@ extends Node
 ## id -> [tônica MIDI, bpm, energia]; sem entrada: silêncio
 const FAIXAS := {
 	"salao": [57, 92, 0],
+	"titulo": [60, 115, 1],
 	"centelha": [60, 108, 2],
 	"viga": [55, 96, 1],
 	"molde": [62, 100, 1],
