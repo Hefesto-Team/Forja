@@ -66,7 +66,7 @@ func _joga(id: String, n: int) -> void:
 	jogo._entrar_na_sala(id, false)
 	await _quadros(2)
 	var sala = jogo.sala
-	if not sala is SalaJogo or sala.id != id:
+	if not sala is SalaJogo or (sala.id != id and Catalogo.apelido(sala.id) != id):
 		_esperar(false, "%s: a sala abriu" % id)
 		return
 	# só as salas que mudam dizem; A Prova sempre muda com menos de quatro
