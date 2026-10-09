@@ -69,6 +69,30 @@ const PELE_LATAO := Color("#bda978")
 const PELE_ESCORIA := Color("#a3958e")
 const PELE_RAPOSA := Color("#cd8d6d")
 
+# --- a luz que não é de lugar: a pergunta, o alarme, as equipes, o ar e a matéria acesa das salas (G14b) ---
+## As quatro cores que a luz do controle pergunta (O Impacto, A Prova): verde, azul, violeta e branco.
+## Longe das quatro de JOGADOR (ΔE no OKLab de 0,15 ou mais; a prova confere): a pergunta nunca é a cor de um lugar.
+const PERGUNTA := [Color("#00c853"), Color("#1f3dff"), Color("#ab45ff"), Color("#ffffff")]
+const LANTERNA_NEUTRA := Color("#8c8c99")  ## a lanterna enquanto a pergunta corre: a tela não sopra a cor
+## O vermelho do golpe e do susto, na luz do controle e na chama; a fase escura é `ALARME.darkened(k)`.
+const ALARME := Color("#ff0000")
+const EQUIPE := [Color("#ff4500"), Color("#0059ff")]  ## a luz da Brasa e a da Maré (o disco, a bala, a faísca do acerto)
+## O ar de cada sala (as partículas da `atmosfera`: a poeira ou as brasas), pelo id da sala.
+const AR := {
+	"centelha": Color("#ff9a52"), "caminhos": Color("#7ff0b0"), "canto": Color("#b88cff"),
+	"galeria": Color("#c28bff"), "impacto": Color("#6fa8ff"), "molde": Color("#f1c86a"),
+	"prova": Color("#ffb86c"), "viga": Color("#ff6a3d"), "voz": Color("#7fe8ff"),
+}
+const BRONZE := Color("#b07838")         ## o sino grande d'O Canto
+const BRONZE_CLARO := Color("#c08a42")   ## o sino pequeno de cada jogador d'O Canto
+const METAL_FRIO := Color("#5a1a08")     ## o metal do molde, brasa apagada
+const METAL_QUENTE := Color("#ff7a2a")   ## o metal do molde aquecido
+const METAL_NO_PONTO := Color("#ff9a3a")  ## o metal do molde no ponto do carimbo (com OURO a 60 %)
+const OURO := Color("#ffd479")           ## o ouro que o metal do molde puxa no ponto
+const FAISCA := Color("#ff9a50")         ## a faísca do tiro no pilar d'A Prova
+const RACHA := Color("#ffb040")          ## a rachadura que acende na pedra d'A Viga
+const BONECO_DE_TREINO := Color("#b9a98a")  ## o orc de treino d'A Prova, desbotado
+
 # --- tamanhos (px na tela lógica de 1920×1080; a escala do 02) ---
 const T_VERBO := 160    ## o verbo da entrada (Bungee)
 const T_DISPLAY := 112  ## o nome do vencedor no pódio (Bungee)

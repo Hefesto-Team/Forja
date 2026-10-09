@@ -138,6 +138,55 @@ luz da seção ([01 O cinema](01-cinema.md#a-luz-das-cinco-tintas)).
 Não existe vermelho de "errou". O erro de um julgamento não tem cor nem palavra
 ([03 O som](03-som.md#o-carimbo-de-cada-julgamento)).
 
+### A luz que não é de lugar
+
+Cor que é luz (a luz do controle numa pergunta, o alarme, a luz das equipes)
+ou matéria acesa do cenário 3D. Nunca traço nem texto na interface 2D.
+
+**A pergunta da luz** (O Impacto, A Prova: «que cor está a sua luz?»). As
+quatro ficam a ΔE OKLab de 0,15 ou mais de cada `JOGADOR` (a prova do jogo
+confere): a luz da pergunta nunca parece a de um lugar. Até 09/10/2026 eram
+âmbar e ciano, as cores do P4 e do P1.
+
+| token | hex | nome | o ΔE mais perto |
+| --- | --- | --- | --- |
+| `PERGUNTA[0]` | `#00c853` | verde | 0,223 (limão) |
+| `PERGUNTA[1]` | `#1f3dff` | azul | 0,402 (magenta) |
+| `PERGUNTA[2]` | `#ab45ff` | violeta | 0,216 (magenta) |
+| `PERGUNTA[3]` | `#ffffff` | branco | 0,206 (ciano) |
+| `LANTERNA_NEUTRA` | `#8c8c99` | a lanterna enquanto a pergunta corre (a tela não sopra a cor) | — |
+
+**O alarme e as equipes.**
+
+| token | hex | trabalho |
+| --- | --- | --- |
+| `ALARME` | `#ff0000` | o vermelho do golpe e do susto, na luz do controle e na chama; a fase escura é `ALARME.darkened(k)` |
+| `EQUIPE[0]` | `#ff4500` | a luz da Brasa (A Prova): o disco, a bala, a faísca do acerto |
+| `EQUIPE[1]` | `#0059ff` | a luz da Maré |
+
+**O ar e a matéria acesa das salas.**
+
+| token | hex | trabalho |
+| --- | --- | --- |
+| `AR["centelha"]` | `#ff9a52` | as brasas d'A Centelha |
+| `AR["caminhos"]` | `#7ff0b0` | a poeira d'Os Caminhos |
+| `AR["canto"]` | `#b88cff` | a poeira d'O Canto |
+| `AR["galeria"]` | `#c28bff` | a poeira d'A Galeria |
+| `AR["impacto"]` | `#6fa8ff` | a poeira d'O Impacto |
+| `AR["molde"]` | `#f1c86a` | a poeira d'O Molde |
+| `AR["prova"]` | `#ffb86c` | as brasas d'A Prova |
+| `AR["viga"]` | `#ff6a3d` | a poeira d'A Viga |
+| `AR["voz"]` | `#7fe8ff` | as brasas frias d'A Voz |
+| `BRONZE` | `#b07838` | o sino grande d'O Canto |
+| `BRONZE_CLARO` | `#c08a42` | o sino pequeno de cada jogador d'O Canto |
+| `METAL_FRIO` | `#5a1a08` | o metal do molde, brasa apagada |
+| `METAL_QUENTE` | `#ff7a2a` | o metal do molde aquecido |
+| `METAL_NO_PONTO` | `#ff9a3a` | o metal do molde no ponto do carimbo |
+| `OURO` | `#ffd479` | o ouro que o metal do molde puxa no ponto |
+| `FAISCA` | `#ff9a50` | a faísca do tiro no pilar d'A Prova |
+| `RACHA` | `#ffb040` | a rachadura que acende na pedra d'A Viga |
+| `BONECO_DE_TREINO` | `#b9a98a` | o orc de treino d'A Prova, desbotado |
+
 ### Do Drácula para a Fita
 
 A tabela que a G14 usa para trocar sem pensar:

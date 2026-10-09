@@ -27,16 +27,16 @@ const DANO := 0.14
 const VIDA_MIN := 0.12
 const PERGUNTA_MAX := 9.0
 const MAX_PERGUNTAS := 5
-## longe das cores dos lugares (azul, vermelho, verde, rosa), para não confundir
+## longe das cores dos lugares (Tema.PERGUNTA): a luz da pergunta nunca parece a de um lugar
 const CORES := [
-	{"nome": "âmbar", "cor": Color(1.0, 0.59, 0.0)},
-	{"nome": "ciano", "cor": Color(0.0, 0.82, 1.0)},
-	{"nome": "violeta", "cor": Color(0.67, 0.27, 1.0)},
-	{"nome": "branco", "cor": Color(1.0, 1.0, 1.0)},
+	{"nome": "verde", "cor": Tema.PERGUNTA[0]},
+	{"nome": "azul", "cor": Tema.PERGUNTA[1]},
+	{"nome": "violeta", "cor": Tema.PERGUNTA[2]},
+	{"nome": "branco", "cor": Tema.PERGUNTA[3]},
 ]
 const BOTAO_COR := [F.CRUZ, F.CIRCULO, F.QUADRADO, F.TRIANGULO]
 const GLIFO_COR := ["cross", "circle", "square", "triangle"]
-const NEUTRO := Color(0.55, 0.55, 0.6)
+const NEUTRO := Tema.LANTERNA_NEUTRA
 
 enum { PAUSA, GOLPE, VOANDO, PERGUNTA, RESPOSTA, ACABOU }
 
@@ -72,7 +72,7 @@ func _init() -> void:
 func montar() -> void:
 	Kit.arena(self, 5, 3)
 	# no escuro: só uma poeira fria e o neon azul, o preenchimento fraco
-	atmosfera(Color("#6fa8ff"), Tema.VIOLETA, false, 30, 22.0, -7.8, 0.1)
+	atmosfera(Tema.AR["impacto"], Tema.VIOLETA, false, 30, 22.0, -7.8, 0.1)
 	# no escuro: um enchimento frio e fraco; a luz de cada raia é a lanterna dele
 	var frio := OmniLight3D.new()
 	frio.position = Vector3(0, 8.0, 3.0)
@@ -377,7 +377,7 @@ func jogar(dt: float) -> void:
 		if e.pisca <= 0.0:
 			_luz_da_vida(l)
 		elif vermelho != e.vermelho:
-			_luz(l, Color(1, 0, 0) if vermelho else Color(0.16, 0, 0))
+			_luz(l, Tema.ALARME if vermelho else Tema.ALARME.darkened(0.84))
 		e.vermelho = vermelho
 	if Forja.robo:
 		for p in jogadores:
@@ -508,7 +508,7 @@ func _mostrar(l: int, dt: float) -> void:
 	var perguntando: bool = (estado == PERGUNTA or estado == RESPOSTA) and e.cor_pedida >= 0
 	var cor := NEUTRO if perguntando else _cor_da_vida(l)
 	if e.pisca > 0.0 and not perguntando:
-		cor = Color(1, 0, 0) if e.vermelho else Color(0.3, 0, 0)
+		cor = Tema.ALARME if e.vermelho else Tema.ALARME.darkened(0.7)
 	var chama: MeshInstance3D = nos.chama
 	var mc: StandardMaterial3D = chama.material_override
 	mc.albedo_color = cor

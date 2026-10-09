@@ -73,7 +73,7 @@ func _init() -> void:
 func montar() -> void:
 	Kit.arena(self, 5, 3)
 	# a capela: poeira violeta, e o neon roxo
-	atmosfera(Color("#b88cff"), Tema.VIOLETA, false, 36, 22.0, -7.8, 0.2)
+	atmosfera(Tema.AR["canto"], Tema.VIOLETA, false, 36, 22.0, -7.8, 0.2)
 	var frio := OmniLight3D.new()
 	frio.position = Vector3(0, 8.0, 4.0)
 	frio.light_energy = 0.55
@@ -160,7 +160,7 @@ func _montar_torre() -> void:
 		Kit.caixa(self, Vector3(0.36, 5.2, 0.36), Vector3(x, 2.6, SINO_TV.z), madeira)
 	Kit.caixa(self, Vector3(4.9, 0.4, 0.46), Vector3(0, 5.2, SINO_TV.z), madeira)
 	Kit.cilindro(self, 0.035, 0.9, SINO_TV + Vector3(0, 0.75, 0), Kit.material(Tema.GRAFITE, 0.0, 0.5))
-	var s := sino(self, SINO_TV, 1.35, Color("#b07838"))
+	var s := sino(self, SINO_TV, 1.35, Tema.BRONZE)
 	sino_tv = s.pivo
 	_mat_tv = s.mat
 	brilho_tv = OmniLight3D.new()
@@ -202,7 +202,7 @@ func _montar_raia(l: int, p: ForjaPlayer) -> Dictionary:
 	var madeira := Kit.material(Tema.OXIDO_BRILHO, 0.0, 0.85)
 	Kit.caixa(self, Vector3(0.12, 1.9, 0.12), base + Vector3(0, 0.95, 0), madeira)
 	Kit.caixa(self, Vector3(0.62, 0.1, 0.12), base + Vector3(-0.25, 1.88, 0), madeira)
-	var s := sino(self, base + Vector3(-0.45, 1.8, 0), 0.34, Color("#c08a42"))
+	var s := sino(self, base + Vector3(-0.45, 1.8, 0), 0.34, Tema.BRONZE_CLARO)
 	var luz := OmniLight3D.new()
 	luz.position = base + Vector3(-0.45, 1.3, 0.5)
 	luz.light_color = Tema.TUNGSTENIO

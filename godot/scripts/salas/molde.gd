@@ -67,7 +67,7 @@ func _init() -> void:
 func montar() -> void:
 	Kit.arena(self, 5, 3)
 	# a oficina: poeira dourada no ar, e o neon roxo
-	atmosfera(Color("#f1c86a"), Tema.VIOLETA, false, 50)
+	atmosfera(Tema.AR["molde"], Tema.VIOLETA, false, 50)
 	luzes([Vector3(-9, 2.5, -4), Vector3(9, 2.5, -4), Vector3(0, 3.0, 4)])
 	for p in jogadores:
 		var l: int = p.lugar
@@ -340,9 +340,9 @@ func _mostrar(l: int) -> void:
 	# o metal: brasa apagada, e no carimbo esquenta e esfria
 	var quente := _calor(e) if passo == CARIMBAR else (1.0 if passo == PRONTO else 0.25)
 	var metal: StandardMaterial3D = nos.metal
-	var cor_metal := Color("#5a1a08").lerp(Color("#ff7a2a"), quente)
+	var cor_metal := Tema.METAL_FRIO.lerp(Tema.METAL_QUENTE, quente)
 	if passo == CARIMBAR and _no_ponto(e):
-		cor_metal = Color("#ff9a3a").lerp(Color("#ffd479"), 0.6)
+		cor_metal = Tema.METAL_NO_PONTO.lerp(Tema.OURO, 0.6)
 	metal.albedo_color = cor_metal.darkened(0.5)
 	Tema.emissivo(metal, (0.3 + 2.2 * quente) * 2.4 / 2.5, "forja")
 	# a letra: o sulco enche de ouro atrás do dedo; pronta, a peça é de ouro

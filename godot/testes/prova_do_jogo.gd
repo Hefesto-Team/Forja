@@ -90,6 +90,7 @@ func _ready() -> void:
 	_prova_do_conforto()
 	_prova_do_virar_pura()
 	await _prova_da_noite_da_fita()
+	_prova_das_cores_da_pergunta()
 	if falhas > 0:
 		printerr("%d falha(s)" % falhas)
 		get_tree().quit(1)
@@ -3124,3 +3125,20 @@ func _prova_da_camera_na_prova() -> void:
 	_esperar(chamada >= 0, "corrida: o main puxa os de trás a cada quadro, antes de mover a câmera")
 	jogo._ir_para_o_salao(false)
 	await _quadros(5)
+
+
+## G14b: a cor que a luz do controle pergunta nunca parece a de um lugar (ΔE OKLab de 0,15 ou mais
+## até cada JOGADOR), e a cor que a prova final não sorteia é a única que lembra a luz da equipe.
+func _prova_das_cores_da_pergunta() -> void:
+	for sala in [SalaImpacto, SalaProva]:
+		for c in sala.CORES:
+			var perto := INF
+			for l in 4:
+				perto = minf(perto, Tema.para_oklab(c.cor).distance_to(Tema.para_oklab(Tema.JOGADOR[l])))
+			_esperar(perto >= 0.15, "pergunta: o %s fica longe das quatro cores de lugar (ΔE %.3f)" % [c.nome, perto])
+	for e in 2:
+		for k in SalaProva.CORES.size():
+			var d := Tema.para_oklab(SalaProva.CORES[k].cor).distance_to(Tema.para_oklab(SalaProva.LUZ_EQUIPE[e]))
+			_esperar((d < 0.15) == (k == SalaProva.COR_PARECIDA[e]),
+				"pergunta: o %s %s a luz da %s (ΔE %.3f)" % [SalaProva.CORES[k].nome,
+				"lembra" if k == SalaProva.COR_PARECIDA[e] else "não lembra", SalaProva.NOME_EQUIPE[e], d])

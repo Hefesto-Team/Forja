@@ -155,7 +155,7 @@ func _cenario() -> void:
 	Efeitos.brasas(self, Vector3(0, -1.2, 0.5), Vector3(22, 0.2, 4.6), Tema.TUNGSTENIO, 70)
 	luzes([Vector3(-10, 2.8, -5.4), Vector3(10, 2.8, -5.4), Vector3(0, 3.4, 4.8)])
 	# a lava: o preenchimento vermelho e o neon laranja
-	atmosfera(Color("#ff6a3d"), Tema.TUNGSTENIO, false, 30, 22.0, -7.8, 0.3)
+	atmosfera(Tema.AR["viga"], Tema.TUNGSTENIO, false, 30, 22.0, -7.8, 0.3)
 
 
 func _shader_lava() -> Shader:
@@ -236,7 +236,7 @@ func _montar_raia(l: int, p: ForjaPlayer) -> Dictionary:
 	var racha := Node3D.new()
 	racha.position = Vector3(x, 0.4, Z_PEDRA + 0.8)
 	add_child(racha)
-	var brasa := Kit.chapado(Color("#ffb040"))
+	var brasa := Kit.chapado(Tema.RACHA)
 	var r1 := Kit.caixa(racha, Vector3(0.05, 0.36, 0.02), Vector3(-0.08, 0.02, 0), brasa)
 	r1.rotation.z = 0.5
 	var r2 := Kit.caixa(racha, Vector3(0.05, 0.3, 0.02), Vector3(0.06, -0.14, 0), brasa)

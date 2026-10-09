@@ -122,6 +122,8 @@ const EN := {
 	"Ciano": "Cyan",
 	"Violeta": "Violet",
 	"Branco": "White",
+	"Verde": "Green",
+	"Azul": "Blue",
 	"Isso: a luz obedeceu": "Right: the light obeyed",
 	"Isso: as luzinhas obedeceram": "Right: the lights obeyed",
 	"Isso: o peso": "Right: the weight",

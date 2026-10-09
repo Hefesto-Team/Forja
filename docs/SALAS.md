@@ -161,7 +161,7 @@ que atirou e o golpe batendo no escudo ou no boneco. A lanterna ao lado de
 cada um é a luz do controle, apagando com a vida (e neutra na pergunta da
 cor). Cada
 jogador leva cinco golpes de cada lado, em três ondas; no fim de cada onda, a
-luz de cada controle acende uma cor sorteada (âmbar, ciano, violeta ou branco)
+luz de cada controle acende uma cor sorteada (verde, azul, violeta ou branco, longe das cores dos lugares)
 e a pessoa diz qual é, olhando o plástico.
 
 | feature | PASSOU | FALHOU |

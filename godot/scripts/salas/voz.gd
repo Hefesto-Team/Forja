@@ -76,7 +76,7 @@ func _init() -> void:
 func montar() -> void:
 	Kit.arena(self, 5, 3)
 	# a cripta: brasas frias, fantasmas, e o neon verde
-	atmosfera(Color("#7fe8ff"), Tema.VIOLETA, true, 40, 22.0, -7.8, 0.15)
+	atmosfera(Tema.AR["voz"], Tema.VIOLETA, true, 40, 22.0, -7.8, 0.15)
 	var frio := OmniLight3D.new()
 	frio.position = Vector3(0, 8.0, 4.0)
 	frio.light_energy = 0.35
@@ -287,7 +287,7 @@ func _susto() -> void:
 		if not jogando[l] or not _conectado(l):
 			continue
 		Forja.sentir(l, "explosao", 700)
-		Forja.luz(l, Color(1.0, 0.08, 0.04))
+		Forja.luz(l, Tema.ALARME)
 		_luz_do_susto = true
 		Forja.som_falante(l, "grito", 1.0)
 		p.gesto("emote-no", 1.2)
