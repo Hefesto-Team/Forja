@@ -57,6 +57,7 @@ func _ready() -> void:
 	_prova_das_janelas()
 	_prova_das_faixas()
 	_prova_da_paridade()
+	_prova_das_contas_da_camera()
 	Desenho._coletar = "memoria"  # colhe cada frase desenhada (F02, F07)
 	jogo = load("res://scenes/main.tscn").instantiate()
 	add_child(jogo)
@@ -65,6 +66,7 @@ func _ready() -> void:
 	await _prova_do_aviso_sozinho()
 	await _prova_do_relatorio()
 	await _prova_de_fogo()
+	await _prova_da_camera_na_prova()
 	_prova_das_contas_da_partida()
 	await _prova_da_partida()
 	_prova_do_modo()
@@ -1635,7 +1637,7 @@ func _prova_do_conforto() -> void:
 				parada_sem_ajuda.append(arq.get_file())
 	var fonte := FileAccess.get_file_as_string("res://scripts/main.gd")
 	_esperar(fonte.contains("Opcoes.confete(22)") and fonte.contains("0.0 if Opcoes.reduzido() else _t * 0.08")
-		and fonte.contains("sala.tremor > 0.0 and not Opcoes.reduzido()"), "movimento: o confete, o giro do título e o tremor da câmera leem o Reduzido")
+		and fonte.contains('estado == "sala" and sala and not Opcoes.reduzido()'), "movimento: o confete, o giro do título e o tremor da câmera leem o Reduzido")
 	_esperar(tremor_velho.is_empty(), "movimento: nenhum script lê o tremor antigo (%s)" % [tremor_velho])
 	_esperar(parada_sem_ajuda.is_empty(), "movimento: toda parada de quadros passa por Opcoes.parada (%s)" % [parada_sem_ajuda])
 	# a lista que desliza
@@ -1818,5 +1820,261 @@ func _prova_da_noite_da_fita() -> void:
 	_esperar(toques.size() >= 1 and toques.all(func(e): return int(e.get("jogador", 0)) == 1),
 		"noite: o toque do ✕ do intervalo só no P1, quem apertou (%s)" % [toques])
 	# fecha a noite sem jogar as faixas que sobram
+	jogo._ir_para_o_salao(false)
+	await _quadros(5)
+
+
+## As contas da câmera e da lente, com uma câmera de verdade (35 mm, 16:9) (G05).
+func _prova_das_contas_da_camera() -> void:
+	_esperar(absf(Lente.fov(35.0) - 37.85) < 0.01, "a lente de 35 mm é 37,8° (%.2f)" % Lente.fov(35.0))
+	_esperar(absf(Lente.fov(28.0) - 46.4) < 0.1 and absf(Lente.fov(50.0) - 27.0) < 0.1, "28 mm é 46,4° e 50 mm é 27,0°")
+	_esperar(absf(Lente.fov(Lente.PADRAO) - 40.0) < 0.01, "o padrão continua 40°")
+	_esperar(absf(Lente.recuo(35.0) - 1.0616) < 0.001 and absf(Lente.recuo(50.0) - 1.5165) < 0.001 and absf(Lente.recuo(28.0) - 0.8493) < 0.001,
+		"a fixa recua 6,16 % a 35 mm, 51,65 % a 50 mm e 85 % a 28 mm")
+	# a lente de cada modo e os limites de 24 a 100 mm
+	var s := Sala.new()
+	var por_modo := {}
+	for modo in ["fixa", "dupla", "grupo", "corrida"]:
+		s.camera_modo = modo
+		por_modo[modo] = s.lente()
+	_esperar(por_modo == {"fixa": 35.0, "dupla": 50.0, "grupo": 35.0, "corrida": 28.0}, "a lente de cada modo (%s)" % [por_modo])
+	s.camera_lente = 10.0
+	var baixa := s.lente()
+	s.camera_lente = 300.0
+	var alta := s.lente()
+	s.camera_lente = 85.0
+	_esperar(baixa == 24.0 and alta == 100.0 and s.lente() == 85.0, "a lente da ficha vale, entre 24 e 100 mm (%.0f, %.0f, %.0f)" % [baixa, alta, s.lente()])
+	# o tremor: três degraus, em batidas, e o maior não é trocado por um menor
+	var bat := 60.0 / (Ritmo.bpm if Ritmo.bpm > 0.0 else 120.0)
+	var degraus := []
+	for amp in [Sala.TREMOR_GOLPE, Sala.TREMOR_ESTRONDO, Sala.TREMOR_EXPLOSAO, Sala.TREMOR_CATASTROFE, 0.03, 0.06, 1.0]:
+		s.abalo = 0.0
+		s.tremer(amp)
+		degraus.append([roundi(s.abalo * 1000.0), roundi(s._abalo_dura / bat)])
+	_esperar(degraus == [[20, 1], [50, 2], [50, 2], [80, 4], [30, 2], [60, 4], [80, 4]],
+		"tremer: golpe 1 batida, estrondo 2, catástrofe 4, e o teto de 0,08 m (mm e batidas: %s)" % [degraus])
+	# a batida é 60 / bpm: a 60 BPM o golpe dura 1 s
+	var bpm_antes: float = Ritmo.bpm
+	Ritmo.bpm = 60.0
+	s.abalo = 0.0
+	s.tremer(Sala.TREMOR_GOLPE)
+	_esperar(is_equal_approx(s._abalo_dura, 1.0), "tremer: a batida é 60 / bpm (%.2f s a 60 BPM)" % s._abalo_dura)
+	Ritmo.bpm = bpm_antes
+	s.abalo = 0.0
+	s.tremer(Sala.TREMOR_CATASTROFE)
+	s.tremer(Sala.TREMOR_GOLPE)
+	_esperar(is_equal_approx(s.abalo, 0.08) and is_equal_approx(s._abalo_dura / bat, 4.0), "um tremor menor não substitui o vivo")
+	s.tremer(0.0)
+	_esperar(is_equal_approx(s.abalo, 0.08), "amplitude zero não zera o tremor vivo")
+	# o desconto é linear, pelo dt somado
+	s._process(bat * 2.0)
+	_esperar(absf(s.abalo - 0.04) < 0.0005, "o abalo cai em linha reta: a meia duração, a metade (%.4f)" % s.abalo)
+	s._process(bat * 2.5)
+	_esperar(s.abalo == 0.0, "o abalo acaba em zero, não abaixo")
+	# os alvos da sala de base: só os visíveis, e a borda da corrida com nós de verdade
+	add_child(s)
+	for i in 3:
+		var n := Node3D.new()
+		s.add_child(n)
+		n.global_position = Vector3(i, 0, -4.0 * i)
+		s.jogadores.append(n)
+	s.jogadores[1].visible = false
+	_esperar(s.alvos_da_camera() == [Vector3(0, 0, 0), Vector3(2, 0, -8)], "a sala de base enquadra só os visíveis (%s)" % [s.alvos_da_camera()])
+	s.jogadores[1].visible = true
+	s.camera_frente = Vector3(0, 0, -1)
+	s.camera_alcance = 5.0
+	s.jogadores[2].global_position = Vector3(2, 0, -12)  # o líder: a corrida vai para −z
+	s.jogadores[1].global_position = Vector3(1, 0, -10)
+	s.puxar_os_de_tras()
+	var zs_puxados := s.jogadores.map(func(n): return snappedf(n.global_position.z, 0.01))
+	_esperar(zs_puxados == [-7.0, -10.0, -12.0], "puxar_os_de_tras: quem ficou 12 m atrás vai para 5 m do líder, sem mexer em quem está perto (%s)" % [zs_puxados])
+	s.free()
+	_esperar(Enquadramento.ALTURA_DO_BONECO >= 1.55 and Enquadramento.ALTURA_DO_BONECO <= 1.7, "o cavaleiro mais alto tem 1,55 m: a altura do enquadramento o cobre")
+	var cam := Camera3D.new()
+	add_child(cam)
+	cam.fov = Lente.fov(35.0)
+	cam.keep_aspect = Camera3D.KEEP_HEIGHT
+	var tv := tan(deg_to_rad(cam.fov) * 0.5)
+	var tam := get_viewport().get_visible_rect().size
+	var th := tv * tam.x / maxf(tam.y, 1.0)
+	var dir := Vector3(0, 17.5, 12.3).normalized()
+	var cantos := [Vector3(-10, 0, -6), Vector3(10, 0, -6), Vector3(-10, 0, 6), Vector3(10, 0, 6)]
+	var pose := Enquadramento.grupo(cantos, dir, Vector2(8.0, 40.0), tv, th)
+	cam.global_position = pose[0]
+	cam.look_at(pose[1])
+	var dentro := 0
+	for c in cantos:
+		if cam.is_position_in_frustum(c) and cam.is_position_in_frustum(c + Vector3(0, 1.6, 0)):
+			dentro += 1
+	_esperar(dentro == 4, "câmera grupo: os quatro cantos da arena na tela (%d)" % dentro)
+	# a margem de 15 %: o canto mais apertado fica a pelo menos 15 % de folga da borda
+	var folga := INF
+	for c in cantos:
+		for h in [0.0, Enquadramento.ALTURA_DO_BONECO]:
+			var tela := cam.unproject_position(c + Vector3(0, h, 0))
+			folga = minf(folga, minf(minf(tela.x, tam.x - tela.x) / tam.x, minf(tela.y, tam.y - tela.y) / tam.y))
+	# 15 %% de margem: o ponto mais apertado fica a (1 − 1/1,15) / 2 = 6,5 %% da borda
+	_esperar(folga > 0.055 and folga < 0.075, "câmera grupo: sobra a margem de 15 %%, justa (%.3f da tela)" % folga)
+	var perto := Enquadramento.grupo([Vector3.ZERO, Vector3(0.5, 0, 0)], dir, Vector2(12.0, 40.0), tv, th)
+	_esperar(is_equal_approx((perto[0] - perto[1]).length(), 12.0), "câmera grupo: dois juntos, a distância mínima")
+	var longe := Enquadramento.grupo([Vector3(-80, 0, 0), Vector3(80, 0, 0)], dir, Vector2(12.0, 30.0), tv, th)
+	_esperar(is_equal_approx((longe[0] - longe[1]).length(), 30.0), "câmera grupo: longe demais, a câmera para na distância máxima")
+	var corrida := [Vector3(0, 0, -20), Vector3(1, 0, -12), Vector3(-1, 0, -6), Vector3(0, 0, -2)]
+	var pc := Enquadramento.corrida(corrida, Vector3(0, 0, -1), dir, Vector2(8.0, 40.0), tv, th)
+	cam.global_position = pc[0]
+	cam.look_at(pc[1])
+	_esperar(cam.is_position_in_frustum(corrida[0]) and cam.is_position_in_frustum(corrida[3]), "câmera corrida: o líder e o último na tela")
+	_esperar(absf(pc[1].z - (-2.0 + (-20.0 + 2.0) * 0.65)) < 0.001, "câmera corrida: o centro puxado 65 %% para o líder (%.2f)" % pc[1].z)
+	var puxadas := Enquadramento.puxar(corrida, Vector3(0, 0, -1), 10.0)
+	_esperar(is_equal_approx(puxadas[3].z, -10.0) and puxadas[0] == corrida[0] and puxadas[2].z == -10.0 and puxadas[1] == corrida[1],
+		"câmera corrida: quem ficou 18 m e 14 m atrás volta para 10 m do líder, quem estava perto fica")
+	cam.queue_free()
+
+
+## A Prova no modo grupo, com o robô jogando: ninguém sai da tela; o tremor por degrau, sem roll (G05).
+func _prova_da_camera_na_prova() -> void:
+	var sala = await _comeca_a_sala("prova")
+	if sala == null:
+		return
+	_esperar(sala.camera_modo == "grupo" and sala.camera_distancia == Vector2(17.0, 25.5), "A Prova enquadra o grupo, de 17 a 25,5 m")
+	var tam_tela := jogo.get_viewport().get_visible_rect().size
+	var cabe_16_9: bool = tam_tela.x / tam_tela.y >= 16.0 / 9.0 - 0.01
+	var fov_certo: float = Lente.fov(35.0) if cabe_16_9 else rad_to_deg(2.0 * atan(tan(deg_to_rad(Lente.fov(35.0)) * 0.5) * 16.0 / 9.0))
+	_esperar(absf(jogo.camera.fov - fov_certo) < 0.05 and (jogo.camera.keep_aspect == Camera3D.KEEP_HEIGHT) == cabe_16_9,
+		"a sala filma a 35 mm (%.2f°, esperado %.2f°)" % [jogo.camera.fov, fov_certo])
+	var tg: Vector2 = jogo._tangentes()
+	var tmeio := tan(deg_to_rad(jogo.camera.fov) * 0.5)
+	var asp := tam_tela.x / tam_tela.y
+	_esperar((absf(tg.x - tmeio) < 0.001 and absf(tg.y - tmeio * asp) < 0.001) if cabe_16_9 else (absf(tg.y - tmeio) < 0.001 and absf(tg.x - tmeio / asp) < 0.001),
+		"as tangentes de meio campo: (vertical, horizontal) = (%.3f, %.3f)" % [tg.x, tg.y])
+	await _quadros(60)
+	var fora := 0
+	for i in 300:
+		await _quadros(1)
+		for p in jogo.jogadores:
+			if not p.visible:
+				continue
+			for h in [0.0, Enquadramento.ALTURA_DO_BONECO]:
+				if not jogo.camera.is_position_in_frustum(p.global_position + Vector3(0, h, 0)):
+					fora += 1
+	_esperar(fora == 0, "A Prova: em 300 quadros, nenhum pé nem cabeça fora da tela (%d)" % fora)
+	# os três degraus: a duração em batidas (no relógio da sala), sem roll
+	var batida := 60.0 / (Ritmo.bpm if Ritmo.bpm > 0.0 else 120.0)
+	for caso in [[Sala.TREMOR_GOLPE, 1.0], [Sala.TREMOR_ESTRONDO, 2.0], [Sala.TREMOR_CATASTROFE, 4.0]]:
+		sala.abalo = 0.0
+		sala.tremer(caso[0])
+		_esperar(is_equal_approx(sala.abalo, caso[0]), "o degrau %.2f m começa inteiro" % caso[0])
+		var t0: float = sala.t
+		var roll := 0.0
+		var q := 0
+		while sala.abalo > 0.0 and q < 600:
+			await _quadros(1)
+			q += 1
+			roll = maxf(roll, absf(jogo.camera.global_basis.x.y))
+		var durou: float = sala.t - t0
+		_esperar(absf(durou - caso[1] * batida) < 0.1, "o degrau %.2f m dura %d batida(s) (%.2f s)" % [caso[0], int(caso[1]), durou])
+		_esperar(roll < 0.001, "o tremor não gira o quadro (%.4f)" % roll)
+	sala.abalo = 0.0
+	sala.tremer(1.0)
+	_esperar(sala.abalo <= Sala.TREMOR_CATASTROFE, "nada treme mais que 0,08 m")
+	# o grupo no main usa as tangentes da câmera de verdade: a pose do main é a da conta
+	var dist_antes: Vector2 = sala.camera_distancia
+	sala.camera_distancia = Vector2(3.0, 60.0)  # sem o piso de 17 m, a conta é que manda
+	var cantos_da_arena := [Vector3(-10, 0, -6), Vector3(10, 0, -6), Vector3(-10, 0, 6), Vector3(10, 0, 6)]
+	for l in 4:  # os quatro nos cantos, na hora (a Prova os recoloca no quadro seguinte)
+		jogo.jogadores[l].global_position = cantos_da_arena[l]
+	var tela_16_9 := Vector2(0.34, 0.34 * 16.0 / 9.0)  # a tela de verdade desta passada pode ser quadrada
+	var esperada: Array = Enquadramento.grupo(sala.alvos_da_camera(), (sala.camera_pos - sala.camera_olhar).normalized(), sala.camera_distancia, tela_16_9.x, tela_16_9.y)
+	var do_main: Array = jogo._pose_da_sala(tela_16_9)
+	var do_main_real: Array = jogo._pose_da_camera()
+	var da_conta_real: Array = Enquadramento.grupo(sala.alvos_da_camera(), (sala.camera_pos - sala.camera_olhar).normalized(), sala.camera_distancia, tg.x, tg.y)
+	_esperar(do_main_real[0].distance_to(da_conta_real[0]) < 0.001, "A Prova: a pose do main usa as tangentes da câmera de verdade")
+	_esperar(do_main[0].distance_to(esperada[0]) < 0.001 and do_main[1].distance_to(esperada[1]) < 0.001, "A Prova: a pose do main é a do Enquadramento.grupo")
+	sala.camera_modo = "corrida"
+	var dir_da_sala: Vector3 = (sala.camera_pos - sala.camera_olhar).normalized()
+	var esperada_c: Array = Enquadramento.corrida(sala.alvos_da_camera(), sala.camera_frente, dir_da_sala, sala.camera_distancia, tela_16_9.x, tela_16_9.y)
+	var do_main_c: Array = jogo._pose_da_sala(tela_16_9)
+	_esperar(do_main_c[0].distance_to(esperada_c[0]) < 0.001 and do_main_c[1].distance_to(esperada_c[1]) < 0.001, "a corrida: a pose do main é a do Enquadramento.corrida")
+	sala.camera_modo = "grupo"
+	sala.camera_distancia = dist_antes
+	# o balanço, conta por conta: no plano da câmera, na amplitude do evento, sem girar
+	var movimento_antes: int = Opcoes.movimento
+	Opcoes.movimento = 0
+	sala.abalo = 0.0
+	sala.tremor = 0.0
+	jogo._mover_camera(0.0)
+	var base: Vector3 = jogo.camera.global_position
+	var giro: Basis = jogo.camera.global_basis
+	for caso in [[0.05, 0.0, 0.05], [0.0, 0.7, 0.08], [0.0, 0.3, 0.036], [0.02, 0.3, 0.036], [0.08, 0.0, 0.08]]:
+		sala.abalo = caso[0]
+		sala.tremor = caso[1]
+		jogo._mover_camera(0.0)
+		var esperado: Vector3 = (giro.x * sin(jogo._t * 71.0) + giro.y * sin(jogo._t * 53.0 + 1.3)) * caso[2]
+		var delta: Vector3 = jogo.camera.global_position - base
+		_esperar(delta.distance_to(esperado) < 0.0005, "o balanço de abalo %.2f e tremor %.1f é de %.3f m no plano da câmera (%.4f)" % [caso[0], caso[1], caso[2], delta.distance_to(esperado)])
+		_esperar(jogo.camera.global_basis.is_equal_approx(giro), "o balanço não gira a câmera")
+	# o movimento reduzido: nem o abalo nem o tremor antigo
+	Opcoes.movimento = 1
+	sala.abalo = Sala.TREMOR_CATASTROFE
+	sala.tremor = 0.7
+	jogo._mover_camera(0.0)
+	var parado: float = (jogo.camera.global_position - base).length()
+	_esperar(parado < 0.0005, "com o movimento reduzido, a câmera não treme (%.4f m)" % parado)
+	Opcoes.movimento = movimento_antes
+	sala.abalo = 0.0
+	sala.tremor = 0.0
+	# a fixa recua, a dupla empurra, o pódio recua: a pose sai da direção da sala
+	var modo_antes: String = sala.camera_modo
+	var olhar: Vector3 = sala.camera_olhar
+	var pos: Vector3 = sala.camera_pos
+	sala.camera_modo = "fixa"
+	var pf: Array = jogo._pose_da_camera()
+	_esperar(pf[0].distance_to(olhar + (pos - olhar) * Lente.recuo(35.0)) < 0.001 and pf[1] == olhar, "fixa: a posição recua 6,16 % sobre o olhar a 35 mm")
+	sala.camera_modo = "dupla"
+	sala.camera_foco = olhar + Vector3(40, 3, 0)
+	var pd: Array = jogo._pose_da_camera()
+	_esperar(pd[1].distance_to(olhar + Vector3(1.5, 0, 0)) < 0.001, "dupla: o empurrão de 15 %% para a ação para em 1,5 m e não sobe (%s)" % [pd[1]])
+	_esperar(pd[0].distance_to(olhar + Vector3(1.5, 0, 0) + (pos - olhar) * Lente.recuo(50.0)) < 0.001, "dupla: a 50 mm, a posição recua e leva o empurrão")
+	sala.camera_foco = olhar + Vector3(4, 0, 0)
+	var pd2: Array = jogo._pose_da_camera()
+	_esperar(pd2[1].distance_to(olhar + Vector3(0.6, 0, 0)) < 0.001, "dupla: o empurrão é 15 % da distância até a ação")
+	sala.camera_modo = modo_antes
+	sala.camera_foco = Vector3.ZERO
+	var estado_antes: String = jogo.estado
+	jogo.estado = "podio"
+	var pp: Array = jogo._pose_da_camera()
+	jogo.estado = estado_antes
+	var olhar_p := Vector3(-4.6, 0.9, 4.4)
+	_esperar(pp[1] == olhar_p and pp[0].distance_to(olhar_p + (Vector3(-4.6, 4.0, 19.5) - olhar_p) * 1.0616) < 0.001, "pódio: o olhar fica e a posição recua para 35 mm")
+	# os alvos: só quem está visível, e A Prova só quem está na partida
+	var jogando_antes: Array = sala.jogando.duplicate()
+	_esperar(sala.alvos_da_camera().size() == 4, "A Prova: os quatro são alvo (%d)" % sala.alvos_da_camera().size())
+	sala.jogando[1] = false
+	_esperar(sala.alvos_da_camera().size() == 3, "A Prova: quem saiu da partida não é alvo (%d)" % sala.alvos_da_camera().size())
+	for l in 4:
+		sala.jogando[l] = false
+	_esperar(sala.alvos_da_camera().size() == 4, "A Prova: sem ninguém na partida, a câmera olha os visíveis (%d)" % sala.alvos_da_camera().size())
+	for l in 4:
+		sala.jogando[l] = jogando_antes[l]
+	jogo.jogadores[2].visible = false
+	_esperar(sala.alvos_da_camera().size() == 3, "A Prova: o boneco escondido não é alvo (%d)" % sala.alvos_da_camera().size())
+	jogo.jogadores[2].visible = true
+	# a corrida: a borda empurra (a Prova recoloca os bonecos a cada quadro: a conta se confere na hora)
+	sala.camera_modo = "corrida"
+	var alcance_antes: float = sala.camera_alcance
+	sala.camera_alcance = 4.0  # a arena tem 13,8 m: com 14 ninguém ficaria para trás
+	var zs := [-6.0, -5.0, 6.0, -3.0]
+	for l in 4:
+		var b: Vector3 = jogo.jogadores[l].global_position
+		jogo.jogadores[l].global_position = Vector3(b.x, b.y, zs[l])
+	sala.puxar_os_de_tras()
+	var z2: float = jogo.jogadores[2].global_position.z
+	var z3: float = jogo.jogadores[3].global_position.z
+	_esperar(z2 < -0.5 and z2 > -3.5 and absf(z3 - (-3.0)) < 1.5, "corrida: quem ficou 12 m atrás volta para 4 m do líder, quem estava a 3 m fica (%.2f, %.2f)" % [z2, z3])
+	sala.camera_alcance = alcance_antes
+	sala.camera_modo = modo_antes
+	var fonte_main := FileAccess.get_file_as_string("res://scripts/main.gd")
+	var chamada := fonte_main.find('if estado == "sala" and sala and sala.camera_modo == "corrida":\n\t\tsala.puxar_os_de_tras()\n\t_mover_camera(dt)')
+	_esperar(chamada >= 0, "corrida: o main puxa os de trás a cada quadro, antes de mover a câmera")
 	jogo._ir_para_o_salao(false)
 	await _quadros(5)
