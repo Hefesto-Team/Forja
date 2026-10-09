@@ -263,6 +263,9 @@ func _fotografar() -> void:
 			r.contraste = _contraste(img, r.rect, r.cor)
 			frases.append(r)
 	Desenho.retangulos.clear()
+	# o relógio que a tela mostra também não sobe (a conta da sala é outra régua)
+	if sala is SalaJogo and sala.fase == "jogo" and not sala.treinando:
+		observacoes.append_array(ChecagensVisuais.relogios_na_tela(t, "%s#%d" % [id, sala.get_instance_id()], frases))
 	var peq := ChecagensVisuais.pequeno(img)
 	var quadro := img.duplicate() as Image
 	quadro.convert(Image.FORMAT_RGB8)
@@ -455,6 +458,15 @@ func _autoteste() -> int:
 	ok.call(ChecagensVisuais.texto(10.0, contador, TELA).is_empty(), "texto: o contador com o número trocado no mesmo lugar passa")
 	contador[1].frase = "Tempo 81"
 	ok.call(ChecagensVisuais.texto(10.0, contador, TELA).size() == 1, "texto: duas frases diferentes no mesmo lugar reprovam")
+	var linhas := limpo.duplicate(true)
+	linhas[0].frase = "Brasa · vida 3"
+	linhas[1].frase = "Brasa · vida 2"
+	linhas[1].rect = Rect2(200, 212, 300, 40)
+	ok.call(ChecagensVisuais.texto(10.0, linhas, TELA).size() == 1, "texto: duas linhas iguais exceto pelo número, uma sobre a outra, reprovam")
+	linhas[1].frase = "Brasa · vida 3"
+	ok.call(ChecagensVisuais.texto(10.0, linhas, TELA).size() == 1, "texto: a mesma frase duas vezes, uma sobre a outra, reprova")
+	linhas[1].rect = Rect2(202, 202, 300, 40)
+	ok.call(ChecagensVisuais.texto(10.0, linhas, TELA).is_empty(), "texto: a mesma frase deslocada 2 px (a sombra) passa")
 	var sobe := [
 		{"t": 1.0, "slot": "centelha", "fase": "jogo", "resta": 80.0},
 		{"t": 2.0, "slot": "centelha", "fase": "jogo", "resta": 79.0},
@@ -463,8 +475,18 @@ func _autoteste() -> int:
 	ok.call(ChecagensVisuais.relogio_sobe(sobe).size() == 1, "relógio: um relógio que sobe reprova")
 	sobe[2].resta = 78.0
 	ok.call(ChecagensVisuais.relogio_sobe(sobe).is_empty(), "relógio: o relógio que desce passa")
+	var na_tela: Array = []
+	for par in [[10.0, "80 s"], [12.0, "78 s"], [14.0, "81 s"]]:
+		na_tela.append_array(ChecagensVisuais.relogios_na_tela(par[0], "viga#1", [{"frase": par[1], "rect": Rect2(700, 170, 80, 30)}]))
+	ok.call(ChecagensVisuais.relogio_sobe(na_tela).size() == 1, "relógio: o relógio da tela que sobe («78 s», «81 s») reprova")
+	na_tela.clear()
+	for par in [[10.0, "Brasa 0 × 0 Maré · 1:30"], [12.0, "Brasa 1 × 0 Maré · 1:28"], [14.0, "Brasa 1 × 0 Maré · 1:26"]]:
+		na_tela.append_array(ChecagensVisuais.relogios_na_tela(par[0], "prova#1", [{"frase": par[1], "rect": Rect2(90, 172, 300, 30)}]))
+	ok.call(na_tela.size() == 3 and ChecagensVisuais.relogio_sobe(na_tela).is_empty(), "relógio: o «1:30» da tela que desce passa")
 	var sem := [{"tipo": "minigame", "evento": "terminou", "slot": "viga", "pontos": [1, 2]}]
 	ok.call(ChecagensVisuais.fim_sem_vencedor(sem).size() == 1, "fim: um minigame sem vencedor reprova")
+	sem[0]["vencedor"] = -1
+	ok.call(ChecagensVisuais.fim_sem_vencedor(sem).size() == 1, "fim: o vencedor -1 (ninguém) reprova")
 	sem[0]["vencedor"] = 1
 	ok.call(ChecagensVisuais.fim_sem_vencedor(sem).is_empty(), "fim: com vencedor passa")
 	ok.call(ChecagensVisuais.minuscula(["Pontos", "tempo"]).size() == 1, "minúscula: «tempo» reprova")

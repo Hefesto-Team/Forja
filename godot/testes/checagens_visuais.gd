@@ -112,9 +112,9 @@ static func texto(t: float, frases: Array, tela: Vector2) -> Array:
 			achados.append("%s: «%s» com contraste %.1f:1 (o mínimo é %.1f)" % [hora(t), _curta(f.frase), c, CONTRASTE_MIN])
 		for j in range(i + 1, frases.size()):
 			var g: Dictionary = frases[j]
-			if g.frase == f.frase or _sem_numeros(g.frase) == _sem_numeros(f.frase):
-				continue  # a mesma frase duas vezes é sombra ou contorno; o mesmo texto com o número
-				# trocado («80 s», «81 s») é um contador amostrado em dois quadros, não colisão
+			if _sem_numeros(g.frase) == _sem_numeros(f.frase) and _mesmo_lugar(r, g.rect, int(f.tam)):
+				continue  # a mesma frase no mesmo lugar é sombra ou contorno, e o mesmo texto com o
+				# número trocado («80 s», «81 s») ali é um contador; em outro lugar, é colisão
 			var inter := r.intersection(g.rect)
 			if inter.get_area() <= 0.0:
 				continue
@@ -122,6 +122,37 @@ static func texto(t: float, frases: Array, tela: Vector2) -> Array:
 			if menor > 0.0 and inter.get_area() / menor >= SOBREPOSICAO_MIN:
 				achados.append("%s: «%s» encavalada com «%s» (%s e %s)" % [hora(t), _curta(f.frase), _curta(g.frase), _ret(r), _ret(g.rect)])
 	return achados
+
+
+## Dois retângulos no mesmo lugar: os centros a menos de 0,4 do corpo da letra na
+## horizontal (o número que muda de largura) e 0,15 na vertical (a sombra).
+static func _mesmo_lugar(a: Rect2, b: Rect2, tam: int) -> bool:
+	var d := (a.get_center() - b.get_center()).abs()
+	return d.x <= 0.4 * float(tam) and d.y <= 0.15 * float(tam)
+
+
+## Os relógios que a TELA mostra (o que a pessoa lê, não a conta da sala): cada
+## frase que é só um tempo («80 s») ou termina num tempo («… · 1:29») vira uma
+## observação para `relogio_sobe`, com a chave do lugar em que foi desenhada.
+static func relogios_na_tela(t: float, chave: String, frases: Array) -> Array:
+	var obs: Array = []
+	var so_s := RegEx.create_from_string("^(\\d+) s$")
+	var mm_ss := RegEx.create_from_string("(\\d+):(\\d\\d)$")
+	for f in frases:
+		var frase := str(f.frase)
+		var resta := -1.0
+		var m := so_s.search(frase)
+		if m != null:
+			resta = float(m.get_string(1))
+		else:
+			m = mm_ss.search(frase)
+			if m != null:
+				resta = float(int(m.get_string(1)) * 60 + int(m.get_string(2)))
+		if resta >= 0.0:
+			var r: Rect2 = f.rect
+			obs.append({"t": t, "slot": "%s · relógio na tela em %d,%d" % [chave, int(r.position.x), int(r.position.y)],
+				"fase": "jogo", "resta": resta})
+	return obs
 
 
 ## Junta os achados que são o mesmo defeito parado na tela: a chave é a frase
@@ -169,7 +200,7 @@ static func fim_sem_vencedor(eventos: Array) -> Array:
 	var achados: Array = []
 	for e in eventos:
 		if str(e.get("evento", "")) == "terminou" and str(e.get("tipo", "minigame")) == "minigame" and e.has("slot") \
-				and not e.has("vencedor"):
+				and (not e.has("vencedor") or int(e.vencedor) < 0):
 			achados.append("o minigame %s terminou sem vencedor" % e.slot)
 	return achados
 

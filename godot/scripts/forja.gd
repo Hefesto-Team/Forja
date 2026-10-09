@@ -91,6 +91,9 @@ var robo_confirma := true
 const ROBO_ACERTA := {"bom": 0.95, "medio": 0.66, "ruim": 0.30}
 var robo_temperamento := ""
 var _robo_rng := RandomNumberGenerator.new()
+## O tremor da mão tem o seu sorteio: o eixo se mexe a cada quadro, e a conta dele
+## não pode mudar o sorteio dos toques (a mesma semente, com ou sem --fixed-fps).
+var _robo_rng_mao := RandomNumberGenerator.new()
 var semente := 0
 var pasta_relatorios := ""
 var sala_pedida := ""
@@ -116,6 +119,7 @@ func _ready() -> void:
 	process_priority = -101
 	_ler_args()
 	_robo_rng.seed = semente + 101
+	_robo_rng_mao.seed = semente + 202
 	pasta_relatorios = _resolver_pasta()
 	if ClassDB.class_exists("ForjaControles") and not _args.has("sem-modulo"):
 		ctl = ClassDB.instantiate("ForjaControles")
@@ -1013,7 +1017,7 @@ func robo_eixo(l: int, e: int, v: float, segundos := 0.06) -> void:
 	var p := pad_do_lugar(l)
 	if modulo and p >= 0:
 		if robo_temperamento != "":
-			v = clampf(v + _robo_rng.randfn(0.0, 0.4 * (1.0 - float(ROBO_ACERTA[robo_temperamento]))), -1.0, 1.0)
+			v = clampf(v + _robo_rng_mao.randfn(0.0, 0.4 * (1.0 - float(ROBO_ACERTA[robo_temperamento]))), -1.0, 1.0)
 		ctl.robo_eixo(p, e, v, segundos)
 
 
