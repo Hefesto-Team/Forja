@@ -295,3 +295,26 @@ static func contador(ci: CanvasItem, pos: Vector2, digitos: String, tam := 60) -
 		# a dobra da roda: a linha do meio
 		ci.draw_line(Vector2(cel.position.x, cel.get_center().y), Vector2(cel.end.x, cel.get_center().y), Color(Tema.JANELA, 0.55), 2.0)
 	return r
+
+
+# ------------------------------------------------------------- o nome --
+## O nome do cavaleiro é da pessoa: não passa pela tabela de traduções (G09). O mesmo desenho de
+## `texto`, `caber` e `largura`, sem o `t()`.
+static func nome(ci: CanvasItem, pos: Vector2, s: String, f: Font, tam: int, cor: Color,
+		alinhamento := HORIZONTAL_ALIGNMENT_LEFT, largura_da_caixa := -1.0) -> void:
+	ci.draw_string(f, pos, s, alinhamento, largura_da_caixa, Tema.t(tam), cor)
+	if coletar_retangulos:
+		anotar(ci, pos, s, f, Tema.t(tam), cor, alinhamento, largura_da_caixa)
+
+
+## O nome que cabe na `largura` em uma linha: corta o fim e fecha com reticências.
+static func nome_que_cabe(s: String, f: Font, tam: int, largura_da_caixa: float) -> String:
+	var r := s
+	while r.length() > 1 and f.get_string_size(r, HORIZONTAL_ALIGNMENT_LEFT, -1, Tema.t(tam)).x > largura_da_caixa:
+		s = s.left(s.length() - 1)
+		r = s + "…"
+	return r
+
+
+static func largura_do_nome(s: String, f: Font, tam: int) -> float:
+	return f.get_string_size(s, HORIZONTAL_ALIGNMENT_LEFT, -1, Tema.t(tam)).x

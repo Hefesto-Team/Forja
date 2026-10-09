@@ -41,6 +41,13 @@ var _robo_erro := [0.0, 0.0, 0.0, 0.0]
 var _batida_vista := -1
 var _sorteios := [0, 0, 0, 0]
 var _entrou_agora := [false, false, false, false]   ## o ✕ que confirmou o lugar não é o da forja
+## O teclado do nome de cada lugar (G09): aberto com R1 na linha Nome, um por lugar.
+var teclados: Array = [null, null, null, null]
+var nome_escrito := [false, false, false, false]    ## o nome gravado foi digitado (não o sorteado sem mudança)
+var t_nome_ms := [0, 0, 0, 0]                       ## quanto tempo o teclado ficou aberto, em ms de parede
+var _nome_antes := ["", "", "", ""]                 ## o nome de antes de abrir: volta com o campo vazio e ◯
+var _robo_teclado := [0, 0, 0, 0]                   ## o passo do robô no teclado
+var _robo_erro_do_teclado := [false, false, false, false]
 
 
 func _ready() -> void:
@@ -77,6 +84,11 @@ func abrir() -> void:
 		_robo_espera[l] = 0.0
 		_robo_batida[l] = 0
 		_robo_erro[l] = 0.0
+		teclados[l] = null
+		nome_escrito[l] = false
+		t_nome_ms[l] = 0
+		_robo_teclado[l] = 0
+		_robo_erro_do_teclado[l] = false
 	contagem = -1.0
 	_batida_vista = -1
 	Itens.novo_minigame()   # o Escudo volta inteiro na construção: a última sala pode tê-lo quebrado (G03)
@@ -93,6 +105,10 @@ func entrou(l: int) -> void:
 	golpes[l] = []
 	prontos[l] = false
 	linha[l] = 0
+	teclados[l] = null
+	nome_escrito[l] = false
+	t_nome_ms[l] = 0
+	_robo_teclado[l] = 0
 	var guardado: Dictionary = Opcoes.cavaleiro[l]
 	if Opcoes.noite_dos_cavaleiros == Opcoes.noite() and not guardado.is_empty():
 		p.vestir(guardado)
@@ -142,6 +158,9 @@ func quadro(dt: float, dx: Array, dy: Array) -> void:
 		if not Forja.ocupado(l):
 			continue
 		var p: ForjaPlayer = jogadores[l]
+		if teclados[l] != null:
+			_quadro_do_teclado(l)   # o teclado aberto toma os botões deste lugar, e só deste
+			continue
 		var cruz: bool = Forja.apertou(l, Forja.CRUZ) and not _entrou_agora[l]
 		var circulo: bool = Forja.apertou(l, Forja.CIRCULO)
 		match etapa[l]:
@@ -152,6 +171,8 @@ func quadro(dt: float, dx: Array, dy: Array) -> void:
 					_comecar_a_forja(l)
 				elif Forja.apertou(l, Forja.TRIANGULO):
 					_sortear(l)
+				elif Forja.apertou(l, Forja.R1) and linha[l] == NOME:
+					_abrir_o_teclado(l)
 				elif dy[l] != 0:
 					var nova := clampi(linha[l] + dy[l], BONECO, NOME)
 					if nova != linha[l]:
@@ -187,6 +208,119 @@ func quadro(dt: float, dx: Array, dy: Array) -> void:
 					Forja.sentir(l, "acerto")
 					Forja.registrar("P%d confirmou o cavaleiro guardado" % (l + 1))
 	_entrou_agora = [false, false, false, false]
+
+
+# ------------------------------------------------------------ o teclado --
+
+## Os nomes que os outros lugares ocupados já têm (o único na mesa).
+func _nomes_dos_outros(l: int) -> Array:
+	var nomes: Array = []
+	for j in 4:
+		if j != l and Forja.ocupado(j) and jogadores.size() > j and str(jogadores[j].nome) != "":
+			nomes.append(TecladoDoNome.nome_final(str(jogadores[j].nome)))
+	return nomes
+
+
+## R1 na linha Nome: abre o teclado com o nome de agora no campo.
+func _abrir_o_teclado(l: int) -> void:
+	var t := TecladoDoNome.new()
+	_nome_antes[l] = str(jogadores[l].nome)
+	t.outros = _nomes_dos_outros(l)
+	t.abrir(_nome_antes[l], Time.get_ticks_msec())
+	teclados[l] = t
+	_robo_teclado[l] = 1
+	_robo_erro_do_teclado[l] = false
+	Som.tocar("ui_tique", null, -12.0)
+	Som.no_controle(l, "ui_tique", 0.6)
+	Forja.sentir(l, "toque")
+
+
+## O som de uma tecla que entrou: a TV a −12 dB e o clique do módulo na mão do dono.
+func _som_da_tecla(l: int) -> void:
+	Som.tocar("ui_tecla", null, -12.0)
+	Forja.som_falante(l, "clique")
+	Forja.sentir(l, "toque")
+
+
+func _som_do_cursor(l: int) -> void:
+	Som.tocar("ui_tique", null, -12.0)
+	Som.no_controle(l, "ui_tique", 0.6)
+	Forja.sentir(l, "toque")
+
+
+## Os botões do lugar com o teclado aberto (a tabela da ficha G09).
+func _quadro_do_teclado(l: int) -> void:
+	var t: TecladoDoNome = teclados[l]
+	t.outros = _nomes_dos_outros(l)
+	if _entrou_agora[l]:
+		return
+	if t.quadro(Forja.mover(l), Time.get_ticks_msec()):
+		_som_do_cursor(l)
+	if Forja.apertou(l, Forja.CRUZ):
+		var estava_no_pronto := t.no_pronto()
+		match t.escolher():
+			"tecla":
+				_som_da_tecla(l)
+			"pronto":
+				_fechar_o_teclado(l, true)
+			_:
+				if estava_no_pronto:
+					Forja.sentir(l, "toque")   # o Pronto apagado: só a mão responde
+	elif Forja.apertou(l, Forja.CIRCULO):
+		if t.apagar():
+			_som_da_tecla(l)
+		else:
+			_fechar_o_teclado(l, false)
+	elif Forja.apertou(l, Forja.TRIANGULO):
+		_sortear_o_nome(l)
+	elif Forja.apertou(l, Forja.R1):
+		if not t.no_pronto():
+			t.para_o_pronto()
+			_som_do_cursor(l)
+
+
+## △ no teclado: um nome do arquétipo que ninguém usa, no campo, e o cursor em Pronto.
+func _sortear_o_nome(l: int) -> void:
+	var t: TecladoDoNome = teclados[l]
+	var livres := nomes_para_sortear(l)
+	var rng := RandomNumberGenerator.new()
+	rng.seed = Forja.semente * 31 + l + 1000 * _sorteios[l]
+	_sorteios[l] += 1
+	t.sortear(str(livres[rng.randi_range(0, livres.size() - 1)]))
+	_som_da_tecla(l)
+
+
+## Os nomes que o △ do teclado pode pôr: os do arquétipo do lugar que ninguém da mesa usa.
+## Hoje o lugar ainda não tem arquétipo (vem com a montagem em peças, G13): são os 24.
+## Sem nenhum livre, qualquer um dos 24.
+func nomes_para_sortear(l: int) -> Array:
+	var usados := _nomes_dos_outros(l)
+	var livres: Array = []
+	for n in NOMES:
+		if not (n in usados):
+			livres.append(n)
+	return livres if not livres.is_empty() else NOMES.duplicate()
+
+
+## Fecha o teclado. `grava`: o Pronto (o nome do campo vai para o cavaleiro); senão o nome volta
+## ao de antes de abrir.
+func _fechar_o_teclado(l: int, grava: bool) -> void:
+	var t: TecladoDoNome = teclados[l]
+	var ms := Time.get_ticks_msec() - t.abriu_em_ms
+	t_nome_ms[l] += ms
+	if grava:
+		jogadores[l].nome = TecladoDoNome.nome_final(t.texto)
+		Som.tocar("ui_confirma", null, -12.0)
+		Som.no_controle(l, "ui_confirma", 0.85)
+		Forja.sentir(l, "toque")
+		if t.digitou:
+			nome_escrito[l] = true
+			Forja.evento("momento", l + 1, {"slot": "montagem", "nome": "nome_escrito", "t_musica": Ritmo.t_musica()})
+		Forja.registrar("P%d escreveu o nome %s" % [l + 1, jogadores[l].nome])
+	else:
+		jogadores[l].nome = _nome_antes[l]
+		_som_de_voltar(l)
+	teclados[l] = null
 
 
 func _som_de_voltar(l: int) -> void:
@@ -296,7 +430,10 @@ func _forjou(l: int) -> void:
 	Efeitos.faiscas(salao, jogadores[l].global_position + Vector3(0, 1.6, 0), Forja.cor_do_lugar(l), 24, 1.0)
 	Forja.sentir(l, "perfeito")
 	Som.pio(l, jogadores[l].modelo_i)
-	Forja.evento("cavaleiro", l + 1, jogadores[l].cavaleiro())
+	var ev: Dictionary = jogadores[l].cavaleiro()
+	ev["nome_escrito"] = nome_escrito[l]
+	ev["t_nome_ms"] = t_nome_ms[l]
+	Forja.evento("cavaleiro", l + 1, ev)
 	Forja.registrar("P%d forjou o cavaleiro" % (l + 1))
 
 
@@ -330,10 +467,87 @@ func robo(l: int, dt: float) -> void:
 			_robo_batida[l] += 1
 			_robo_erro[l] = 0.0 if Forja.robo_acerta() else 0.12   # a mediana absorve um ou dois
 		return
+	if teclados[l] != null:
+		_robo_escreve(l)
+		return
 	if _robo_espera[l] > 0.0 or etapa[l] == FORJADO:
+		return
+	if etapa[l] == EDITANDO and _robo_teclado[l] == 0:
+		# o nome primeiro, pelo teclado: o lugar 1 escreve «Dona Brasa», os outros sorteiam
+		if linha[l] < NOME:
+			Forja.robo_apertar(l, Forja.BAIXO)
+		else:
+			Forja.robo_apertar(l, Forja.R1)
+		_robo_espera[l] = 0.4
 		return
 	Forja.robo_apertar(l, Forja.CRUZ)   # EDITANDO: começa a forja; GUARDADO: confirma
 	_robo_espera[l] = 0.9 + 0.1 * l + (0.0 if Forja.robo_acerta() else 1.5)
+
+
+## O nome que o robô do lugar 1 escreve; os outros lugares apertam △ e ✕.
+const ROBO_NOME := "DONA BRASA"
+
+
+## O robô com o teclado aberto, só pelo controle simulado e olhando o cursor a cada quadro (um aperto
+## perdido se corrige sozinho): anda até a tecla da próxima letra, aperta ✕; se `Forja.robo_acerta()`
+## falhar uma vez, escreve a tecla vizinha e a apaga com a tecla ◯ do botão. No fim, Pronto.
+func _robo_escreve(l: int) -> void:
+	var t: TecladoDoNome = teclados[l]
+	if _robo_espera[l] > 0.0:
+		return
+	_robo_espera[l] = 0.12
+	if l != 0:
+		# △ sorteia e leva o cursor a Pronto; ✕ fecha
+		if _robo_teclado[l] == 1:
+			_robo_teclado[l] = 2
+			Forja.robo_apertar(l, Forja.TRIANGULO)
+		elif t.no_pronto():
+			Forja.robo_apertar(l, Forja.CRUZ)
+		return
+	var alvo := ROBO_NOME
+	var feito := t.texto
+	var certo := TecladoDoNome.formatar(alvo)
+	if feito == certo:
+		_robo_alvo_do_cursor(l, Vector2i(TecladoDoNome.PRIMEIRA_DO_PRONTO, TecladoDoNome.LINHAS - 1))
+		return
+	if not certo.begins_with(feito):
+		# o que sobrou de errado: apaga com o botão ◯
+		_robo_erro_do_teclado[l] = false
+		Forja.robo_apertar(l, Forja.CIRCULO)
+		return
+	if _robo_teclado[l] == 1 and feito.length() == 3:
+		_robo_teclado[l] = 2   # decide uma vez: a quarta letra sai errada quando o robô não acerta
+		_robo_erro_do_teclado[l] = not Forja.robo_acerta()
+	var proxima := certo.substr(feito.length(), 1).to_upper()
+	if _robo_erro_do_teclado[l]:
+		proxima = "Z"   # um erro de mão, apagado em seguida com ◯
+	if proxima == " ":
+		_robo_alvo_do_cursor(l, Vector2i(6, 3))
+		return
+	_robo_alvo_do_cursor(l, _tecla_da_letra(proxima))
+
+
+## Um passo do robô até a tecla `alvo`; no lugar, ✕.
+func _robo_alvo_do_cursor(l: int, alvo: Vector2i) -> void:
+	var t: TecladoDoNome = teclados[l]
+	var c := t.cursor
+	if t.no_pronto() and alvo.y == TecladoDoNome.LINHAS - 1 and alvo.x >= TecladoDoNome.PRIMEIRA_DO_PRONTO:
+		Forja.robo_apertar(l, Forja.CRUZ)
+		return
+	if c == alvo:
+		Forja.robo_apertar(l, Forja.CRUZ)
+	elif c.x != alvo.x:
+		Forja.robo_apertar(l, Forja.DIREITA if alvo.x > c.x else Forja.ESQUERDA)
+	else:
+		Forja.robo_apertar(l, Forja.BAIXO if alvo.y > c.y else Forja.CIMA)
+
+
+static func _tecla_da_letra(letra: String) -> Vector2i:
+	for r in TecladoDoNome.LINHAS:
+		for c in TecladoDoNome.COLUNAS:
+			if TecladoDoNome.GRADE[r][c] == letra:
+				return Vector2i(c, r)
+	return Vector2i(0, 0)
 
 
 func _draw() -> void:
@@ -345,5 +559,13 @@ func _draw() -> void:
 		Desenho.texto(self, Vector2(0, 1000), "Todos prontos", Tema.fonte(600), Tema.T_CORPO, Tema.VERDE,
 			HORIZONTAL_ALIGNMENT_CENTER, size.x)
 	else:
-		Desenho.dicas_a_esquerda(self, Vector2(196, 1000),
-			[["cruz", "Forjar"], ["triangulo", "Sortear"], ["esquerda", "Trocar"], ["circulo", "Voltar"]])
+		var escrevendo := false
+		for t in teclados:
+			escrevendo = escrevendo or t != null
+		if escrevendo:
+			# a última linha de teclas termina em y 1000: as dicas descem para dentro da área segura
+			Desenho.dicas_a_esquerda(self, Vector2(196, 1022),
+				[["cruz", "Escolher"], ["circulo", "Apagar"], ["triangulo", "Sortear"], ["r1", "Pronto"]])
+		else:
+			Desenho.dicas_a_esquerda(self, Vector2(196, 1000),
+				[["cruz", "Forjar"], ["triangulo", "Sortear"], ["esquerda", "Trocar"], ["r1", "Escrever"], ["circulo", "Voltar"]])
