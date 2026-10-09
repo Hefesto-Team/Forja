@@ -248,8 +248,8 @@ def _trocar_linha(arquivo, chave, linha, apagar_antes=()):
 def escrever_licencas(pasta, info, assets, licencas):
     pacote, versao, papel, n = info
     _trocar_linha(assets / "LEIA-ME.md", "`kenney/%s/`" % pasta,
-                  "| `kenney/%s/` | %s (%s), %d modelos | Kenney (www.kenney.nl), %s %s | CC0, `kenney/%s/License.txt` |"
-                  % (pasta, pacote, papel, n, pacote, versao, pasta),
+                  "| `kenney/%s/` | %s (%s), %d %s | Kenney (www.kenney.nl), %s %s | CC0, `kenney/%s/License.txt` |"
+                  % (pasta, pacote, papel, n, "modelo" if n == 1 else "modelos", pacote, versao, pasta),
                   apagar_antes=("| `kenney/` |",))
     _trocar_linha(licencas, "`kenney/%s/`" % pasta,
                   "| %s %s (`kenney/%s/`) | Kenney (www.kenney.nl) | CC0 1.0 |" % (pacote, versao, pasta),
