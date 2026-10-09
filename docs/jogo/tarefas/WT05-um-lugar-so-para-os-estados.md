@@ -90,3 +90,27 @@ mudou.
 ## Ao terminar
 
 Pôr a linha da WT05 no [quadro](README.md) como **feito**, com o commit (pelo `--marcar`).
+
+## O que foi feito (leva 1, as-regras)
+
+- **A lista mora na a-esteira**, «Os estados de uma ficha», com **espera o André** (o que dava para fazer sem ele está
+  feito; o texto depois diz o quê) e a frase de que quem trabalha à mão marca **em voo** com o nome; **fazendo** segue
+  aceito na leitura como sinônimo. O 12 (passos 1 e 5), o cabeçalho do quadro e o COMO-CONTRIBUIR apontam para ela;
+  `grep -n 'fazendo' docs/jogo/12-como-trabalhar.md docs/jogo/tarefas/README.md` não acha nada.
+- **O `scripts/esteira.py`:** a `ESTADOS` ficou no script (`a fazer` a `feito`, mais `espera o André`; o `fazendo`
+  passou para `SINONIMOS`), e a prova compara as duas listas. Estado fora da lista sai 2 com a ficha e o texto; o
+  estado com texto depois segue pelo começo, agora com a palavra inteira («prontamente» não é «pronta»). Sobre o
+  quadro de hoje, a saída só muda na F10, que passa a ler «espera o André» em vez da célula inteira.
+- **`bash scripts/costura.sh --marcar <ficha> <estado> [--integracao DIR]`** chama o `esteira.py --marcar`, que troca
+  a última coluna da linha e recusa, sem mudar nada, o estado fora da lista, o que tem `|`, e a ficha que o quadro não
+  tem (ou tem duas vezes).
+- **O mapa e a soma:** o `docs/jogo/README.md` diz «com o estado de cada uma»; a «A soma» do quadro, que mandava ler
+  uma faixa que o 12 não tem, aponta para onde o gasto existe: a esteira o registra no ANDAMENTO de quem coordena, por
+  seção (a validar por ela: o gasto por ficha não existe e não foi inventado).
+- **Provas:** `bash tests/prova_da_esteira.sh`, 44 casos, dez novos. Com o `esteira.py` e o `costura.sh` de antes,
+  cinco reprovam (as listas, «quase pronta» que sai 2 e diz a ficha, o estado com texto depois, a troca de uma linha
+  só); com o `--marcar` sem a recusa, os dois da recusa; com o estado lido inteiro, sem o começo, o estado com texto
+  depois. A ficha que o quadro não tem sai 2 também no script de antes (que não conhece o `--marcar`).
+- **Não mudou** o estado de nenhuma ficha. A costura desta ficha pede a esteira parada (ela lê o quadro a cada volta).
+- **Para o André:** numa árvore à parte, `bash scripts/costura.sh --marcar F10 "espera o André"` e `git diff`: só a
+  linha da F10 muda (e perde o texto entre parênteses, que o `--marcar` troca pelo que se passou).

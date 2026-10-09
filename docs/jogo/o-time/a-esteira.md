@@ -17,6 +17,13 @@ a fazer → enriquecida → pronta → em voo → conferida → jogada → feito
 - **conferida:** o conferente corrigiu e as provas passaram na worktree.
 - **jogada:** o jogador do time jogou e a diversão aconteceu.
 - **feito:** costurada na integração, com o commit.
+- **espera o André:** o que dava para fazer sem ele está feito, e o resto espera a mão dele (jogar, ligar o controle,
+  o roteiro às cegas); o texto depois diz o que já foi feito.
+
+Quem trabalha à mão, fora da esteira, marca **em voo** com o próprio nome («em voo (Ana)»). O **fazendo** das linhas
+antigas segue valendo na leitura, como sinônimo de **em voo**. O estado pode trazer texto depois do nome
+(«feito, sem a parte B»); o que vale é o começo. Um estado fora desta lista faz o `scripts/esteira.py` parar, e o
+`scripts/costura.sh --marcar <ficha> <estado>` muda a linha do quadro recusando o que não está aqui.
 
 As bases (F, H, DevOps, direção, pesquisa, RPG) vão de **a fazer** direto para **em voo**: são fundação e não esperam
 enriquecimento.

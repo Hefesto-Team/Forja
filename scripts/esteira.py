@@ -11,9 +11,12 @@ Lê:
   docs/jogo/o-time/ESPERA-ELA.md  a tabela `| desde | o que ela decide | o que espera |`
   cada ficha                      a parte `## Arquivos que mudam` (os caminhos em crase)
 
-Os estados: a fazer, enriquecida, pronta, em voo (com o conjunto: «em voo (o-controle)»),
-conferida, jogada, feito. «fazendo» conta como em voo. As bases (--bases, padrão F, H, V, X)
-vão de «a fazer» direto para em voo; as outras seções só saem com toda ficha «pronta».
+Os estados são os de docs/jogo/o-time/a-esteira.md, «Os estados de uma ficha» (a lista ESTADOS
+abaixo; tests/prova_da_esteira.sh confere que as duas são iguais): a fazer, enriquecida, pronta,
+em voo (com o conjunto: «em voo (o-controle)»), conferida, jogada, feito, espera o André. Vale o
+começo da célula («feito, sem a parte B»); «fazendo» conta como em voo. Um estado fora da lista
+faz a esteira sair 2, com a ficha e o texto. As bases (--bases, padrão F, H, V, X) vão de «a fazer»
+direto para em voo; as outras seções só saem com toda ficha «pronta».
 
 Uma seção está pronta para despachar quando:
   1. nenhuma ficha dela está em voo, conferida ou jogada, e alguma ainda não está feita;
@@ -45,7 +48,10 @@ Saída (stdout, JSON):
    "dependencias_em_texto": {"<ficha>": "<texto>"}}
 
 Uso: python3 scripts/esteira.py [--raiz DIR] [--bases F,H,V,X] [--limite 4]
-rc: 0 leu; 2 não leu o quadro.
+     python3 scripts/esteira.py [--raiz DIR] --marcar <ficha> <estado>
+       troca a última coluna da linha da ficha no quadro (é o que o `scripts/costura.sh --marcar` chama);
+       recusa o estado fora da lista e a ficha que o quadro não tem, sem mudar nada.
+rc: 0 leu (ou marcou); 2 não leu o quadro, achou um estado fora da lista, ou recusou o --marcar.
 """
 import argparse
 import fnmatch
@@ -62,21 +68,26 @@ LINK_MD = re.compile(r"\[([^\]]*)\]\([^)]*\)")
 CRASE = re.compile(r"`([^`\s]+)`")
 PREFIXOS = ("godot/", "scripts/", "tests/", "docs/", "nativo/", "src/", "include/", "cmake/", "tools/",
             "udev/", "oficina/", "experimental/", "third_party/", ".github/")
-ESTADOS = ["a fazer", "enriquecida", "pronta", "em voo", "fazendo", "conferida", "jogada", "feito"]
+ESTADOS = ["a fazer", "enriquecida", "pronta", "em voo", "conferida", "jogada", "feito", "espera o André"]
+SINONIMOS = {"fazendo": "em voo"}   # o nome antigo de quem trabalha à mão, aceito na leitura
 NO_AR = {"em voo", "conferida", "jogada"}
 
 
 def estado_de(texto: str):
-    """(estado normalizado, conjunto) de «em voo (o-controle)», «feito, sem…», «fazendo — Ana»."""
+    """(estado normalizado, conjunto) de «em voo (o-controle)», «feito, sem…», «fazendo — Ana».
+
+    O estado fora da lista volta como None (com o texto no lugar do conjunto); a célula vazia é «a fazer»."""
     t = texto.strip()
     baixo = t.lower()
-    for e in ESTADOS:
-        if baixo.startswith(e):
+    if not baixo:
+        return "a fazer", None
+    for e in ESTADOS + list(SINONIMOS):
+        if baixo.startswith(e.lower()) and not baixo[len(e):len(e) + 1].isalnum():
             resto = t[len(e):].strip(" ,:—-")
             m = re.match(r"^\(([^)]+)\)", resto)
             conjunto = (m.group(1) if m else resto.split(",")[0]).strip(" `*") or None
-            return ("em voo" if e == "fazendo" else e), conjunto
-    return baixo or "a fazer", None
+            return SINONIMOS.get(e, e), conjunto
+    return None, t
 
 
 def partes_da_ficha(texto: str):
@@ -130,8 +141,15 @@ def cruzamento(lista_a, lista_b):
     return sorted({a for a in lista_a for b in lista_b if cruzam(a, b)})
 
 
+class EstadoDesconhecido(Exception):
+    pass
+
+
 def ler_quadro(raiz: Path):
-    """[{letra, nome, apelido, fichas: [{codigo, arquivo, titulo, depende, estado, conjunto}]}]."""
+    """[{letra, nome, apelido, fichas: [{codigo, arquivo, titulo, depende, estado, conjunto}]}].
+
+    Levanta EstadoDesconhecido com a lista «FICHA: «texto»» das linhas de estado fora da lista."""
+    ruins = []
     secoes, atual = [], None
     for linha in (raiz / QUADRO).read_text(encoding="utf-8").splitlines():
         m = SECAO.match(linha)
@@ -151,9 +169,35 @@ def ler_quadro(raiz: Path):
             if len(cols) < 4:
                 continue
             estado, conjunto = estado_de(cols[-1])
+            if estado is None:
+                ruins.append(f"{m.group(1)}: «{cols[-1]}»")
+                continue
             atual["fichas"].append({"codigo": m.group(1), "arquivo": m.group(2), "titulo": cols[0],
                                     "depende": cols[-2], "estado": estado, "conjunto": conjunto})
+    if ruins:
+        raise EstadoDesconhecido(ruins)
     return [s for s in secoes if s["fichas"]]
+
+
+def marcar(raiz: Path, ficha: str, estado: str) -> int:
+    """Troca a última coluna da linha da ficha no quadro; 2, sem mudar nada, no estado fora da lista."""
+    if estado_de(estado)[0] is None or not estado.strip() or "|" in estado or "\n" in estado:
+        print(f"esteira: «{estado}» não é estado de ficha; os estados: {', '.join(ESTADOS)} "
+              f"(docs/jogo/o-time/a-esteira.md#os-estados-de-uma-ficha)", file=sys.stderr)
+        return 2
+    caminho = raiz / QUADRO
+    linhas = caminho.read_text(encoding="utf-8").split("\n")
+    achou = [i for i, l in enumerate(linhas) if (m := LINHA.match(l)) and m.group(1) == ficha]
+    if len(achou) != 1:
+        print(f"esteira: a ficha {ficha} está {len(achou)} vezes no quadro; nada mudou", file=sys.stderr)
+        return 2
+    i = achou[0]
+    corpo = linhas[i].rstrip().rstrip("|")
+    antes = corpo[corpo.rindex("|") + 1:].strip()
+    linhas[i] = f"{corpo[:corpo.rindex('|') + 1]} {estado.strip()} |"
+    caminho.write_text("\n".join(linhas), encoding="utf-8")
+    print(f"{ficha}: de «{antes}» para «{estado.strip()}»")
+    return 0
 
 
 def ler_espera(raiz: Path):
@@ -208,13 +252,22 @@ def main() -> int:
     ap.add_argument("--raiz", type=Path, default=Path(__file__).resolve().parent.parent)
     ap.add_argument("--bases", default="F,H,V,X", help="as seções que não esperam enriquecimento")
     ap.add_argument("--limite", type=int, default=4, help="conjuntos juntos, contando os em voo")
+    ap.add_argument("--marcar", nargs=2, metavar=("FICHA", "ESTADO"), help="muda o estado da ficha no quadro")
     a = ap.parse_args()
     raiz = a.raiz.resolve()
     bases = {b.strip() for b in a.bases.split(",") if b.strip()}
     try:
+        if a.marcar:
+            return marcar(raiz, *a.marcar)
         secoes = ler_quadro(raiz)
     except OSError as e:
         print(f"esteira: não li o quadro: {e}", file=sys.stderr)
+        return 2
+    except EstadoDesconhecido as e:
+        print("esteira: estado fora da lista no quadro (os estados: docs/jogo/o-time/a-esteira.md"
+              "#os-estados-de-uma-ficha):", file=sys.stderr)
+        for r in e.args[0]:
+            print(f"  {r}", file=sys.stderr)
         return 2
     espera = ler_espera(raiz)
     pasta = (raiz / QUADRO).parent

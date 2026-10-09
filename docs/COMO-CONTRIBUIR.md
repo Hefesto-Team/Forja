@@ -38,8 +38,9 @@ Cada uma nasceu de um defeito real.
   nenhum "olhe o LED" na tela do jogador. A validação vai para o registro e
   para o Modo bancada ([docs/jogo](jogo/README.md#as-regras-de-ouro)).
 - **Trabalho novo é uma ficha do [quadro](jogo/tarefas/README.md):** uma sessão
-  por ficha, lendo só a ficha e o que ela cita, e o quadro atualizado no mesmo
-  commit ([como trabalhar](jogo/12-como-trabalhar.md)). O mapa das sprints está
+  por ficha, lendo só a ficha e o que ela cita, e o estado dela no quadro
+  atualizado no mesmo commit ([os estados](jogo/o-time/a-esteira.md#os-estados-de-uma-ficha),
+  [como trabalhar](jogo/12-como-trabalhar.md)). O mapa das sprints está
   no [SPRINTS.md](../SPRINTS.md).
 - Os documentos têm um mapa: [docs/README.md](README.md). Compilar, exportar e
   provar: [docs/DESENVOLVER.md](DESENVOLVER.md).

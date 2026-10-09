@@ -18,6 +18,10 @@
 # inteira pelo que for pedido. Toda prova roda na raiz da integração.
 #
 # Uso: bash scripts/costura.sh <ramo> [--integracao DIR] [--base REF] [--prova CMD]... [--pesadas] [--registro ARQ]
+#      bash scripts/costura.sh --marcar <ficha> <estado> [--integracao DIR]
+#   --marcar      só troca o estado da ficha no quadro da integração (a última coluna da linha), pelo
+#                 `scripts/esteira.py --marcar`; recusa o estado fora da lista de docs/jogo/o-time/a-esteira.md
+#                 («Os estados de uma ficha») e não costura nada
 #   --integracao  a árvore de integração (padrão: a árvore onde este script está)
 #   --base        o ponto de onde o ramo nasceu, para o `git cherry` (padrão: o merge-base)
 #   --registro    um arquivo .md onde a costura que deu verde ganha uma linha (hora, ramo, commits, topo)
@@ -28,7 +32,7 @@ set -uo pipefail
 AQUI="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 INT="$(cd "$AQUI/.." && pwd)"
 RAMO="" BASE="" REGISTRO="" PESADAS=0
-PEDIDAS=()
+PEDIDAS=() MARCAR=()
 PROVAS=(
   "bash scripts/portoes/rodar.sh"
   "bash tests/prova_dos_portoes.sh"
@@ -43,12 +47,18 @@ while [ $# -gt 0 ]; do
     --prova) shift; PEDIDAS+=("${1:-}") ;;
     --pesadas) PESADAS=1 ;;
     --registro) shift; REGISTRO="${1:-}" ;;
+    --marcar) [ $# -ge 3 ] || { echo "uso: bash scripts/costura.sh --marcar <ficha> <estado>" >&2; exit 2; }
+      MARCAR=("$2" "$3"); shift 2 ;;
     -h|--ajuda) awk 'NR > 1 && /^#/ {sub(/^# ?/, ""); print} /^set -uo/ {exit}' "${BASH_SOURCE[0]}"; exit 0 ;;
     -*) echo "costura: opção desconhecida: $1" >&2; exit 2 ;;
     *) [ -n "$RAMO" ] && { echo "costura: um ramo só (já veio $RAMO)" >&2; exit 2; }; RAMO="$1" ;;
   esac
   shift
 done
+if [ ${#MARCAR[@]} -gt 0 ]; then
+  [ -z "$RAMO" ] || { echo "costura: --marcar não costura; tire o ramo $RAMO" >&2; exit 2; }
+  exec python3 "$AQUI/esteira.py" --raiz "$INT" --marcar "${MARCAR[@]}"
+fi
 [ -n "$RAMO" ] || { echo "uso: bash scripts/costura.sh <ramo> [--integracao DIR] [--prova CMD]..." >&2; exit 2; }
 [ ${#PEDIDAS[@]} -gt 0 ] && PROVAS=("${PEDIDAS[@]}")
 [ -d "$INT" ] || { echo "costura: a integração $INT não existe" >&2; exit 2; }
