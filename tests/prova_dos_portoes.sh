@@ -379,6 +379,38 @@ espera 0 "caixa_fonte: num repositório, o módulo da fonte versionada passa" mo
 printf 'int novo(void) { return 1; }\n' > "$A/nativo/src/novo.c"
 espera 2 "caixa_fonte: o .c novo, ainda sem git add, também conta" monta "$A"
 
+# --- a tela curta do rodar.sh (WT03): uma árvore com o rodar.sh de verdade e portões de mentira ---------------
+curto_tree() { # <pasta> <rc do portão barulhento>
+  mkdir -p "$1/scripts/portoes" "$1/tests"
+  cp "$P/rodar.sh" "$1/scripts/portoes/"
+  local quieto='print("quieto: 0 achados")'
+  for g in mensagens_de_commit ficha_pronta teste_mudo caixa arte; do echo "$quieto" > "$1/scripts/portoes/$g.py"; done
+  echo "$quieto" > "$1/scripts/check_texto_de_tela.py"
+  printf '#!/usr/bin/env bash\necho "ok   sem rastro"\n' > "$1/tests/prova_sem_rastro.sh"
+  printf 'import sys\nfor i in range(500):\n    print(f"AVISO som: docs/x{i}.md: um aviso velho")\nprint("FAIL som: docs/novo.md: o achado novo")\nprint("som: 501 achados")\nsys.exit(%s)\n' "$2" \
+    > "$1/scripts/portoes/som.py"
+}
+A="$(arvore curto)"; curto_tree "$A" 1
+espera 1 "rodar.sh: o portão que reprova dá 1" bash "$A/scripts/portoes/rodar.sh"
+bash "$A/scripts/portoes/rodar.sh" > "$A/tela.txt" 2>&1
+espera 0 "rodar.sh: 500 avisos e 1 FAIL cabem em 20 linhas, com o FAIL e o caminho do log" \
+  bash -c '[ "$(wc -l < "$1/tela.txt")" -le 20 ] && grep -q "^FAIL som: docs/novo.md" "$1/tela.txt" \
+    && grep -q "o resto: .cache/portoes/som.log" "$1/tela.txt" && [ "$(grep -c "^AVISO" "$1/.cache/portoes/som.log")" -eq 500 ]' _ "$A"
+bash "$A/scripts/portoes/rodar.sh" --tudo > "$A/tudo.txt" 2>&1
+espera 0 "rodar.sh: --tudo mostra os 500 avisos" bash -c '[ "$(grep -c "^AVISO" "$1/tudo.txt")" -eq 500 ]' _ "$A"
+mkdir -p "$A/docs"; echo um > "$A/docs/x7.md"
+git -C "$A" init -q -b main; git -C "$A" config user.name prova; git -C "$A" config user.email prova@forja.invalid
+git -C "$A" config commit.gpgsign false; git -C "$A" config core.hooksPath /dev/null
+git -C "$A" add docs/x7.md; git -C "$A" commit -q -m "docs: a base"
+echo dois >> "$A/docs/x7.md"
+bash "$A/scripts/portoes/rodar.sh" --desde HEAD > "$A/desde.txt" 2>&1
+espera 0 "rodar.sh: --desde mostra o aviso do arquivo mudado, e só ele" \
+  bash -c '[ "$(grep -c "^AVISO" "$1/desde.txt")" -eq 1 ] && grep -q "^AVISO som: docs/x7.md:" "$1/desde.txt"' _ "$A"
+A="$(arvore curto-ok)"; curto_tree "$A" 0
+espera 0 "rodar.sh: com os portões em ok dá 0" bash "$A/scripts/portoes/rodar.sh"
+A="$(arvore curto-erro)"; curto_tree "$A" 2
+espera 2 "rodar.sh: o portão que não conferiu dá 2" bash "$A/scripts/portoes/rodar.sh"
+
 # --- o rodar.sh -------------------------------------------------------------------------------------------------
 espera 0 "rodar.sh: os portões do repositório passam (a arte e o som em aviso)" bash "$P/rodar.sh"
 

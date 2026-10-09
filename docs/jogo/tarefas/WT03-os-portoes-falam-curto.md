@@ -78,3 +78,28 @@ aparecem e os dos outros arquivos não.
 ## Ao terminar
 
 Pôr a linha da WT03 no [quadro](README.md) como **feito**, com o commit.
+
+## O que foi feito (leva 1, a-caixa)
+
+- **`scripts/portoes/rodar.sh`:** o `roda` grava a saída inteira de cada portão em `.cache/portoes/<nome>.log` (o nome
+  sem espaço nem acento, pelo `iconv`: `texto-de-tela.log`), sem `tee`, e o código sai do `$?` direto. No fim, depois
+  do resumo de sempre: as linhas `FAIL` e `ERRO` dos portões que não deram `ok`, cortadas em 12 (e «(mais N
+  linhas)»), «o resto: .cache/portoes/<nome>.log» de cada um deles, e uma linha com onde mora a saída inteira.
+  `--desde <ref>` junta ao corte os avisos cujo caminho está em `git diff --name-only <ref>` (e diz quando o git não
+  acha a referência). `--tudo` é a saída de antes, com o `tee`. O `.cache/portoes/` não é apagado.
+- **`.github/workflows/forja.yml`:** o passo dos portões roda com `--tudo`.
+- **`scripts/portoes/LEIA-ME.md`:** o `--desde`, o `--tudo` e onde fica a saída inteira.
+- **`tests/prova_dos_portoes.sh`:** seis casos numa árvore com o `rodar.sh` de verdade e portões de mentira (um deles
+  imprime 500 avisos e um FAIL): sai 1, a tela fica em até 20 linhas com o FAIL e o caminho do log, e o log tem os
+  500; `--tudo` mostra os 500; `--desde` num repositório mostra só o aviso do arquivo mudado; com tudo `ok` sai 0; com
+  o portão que não conferiu sai 2.
+
+**Provas:**
+
+- `bash scripts/portoes/rodar.sh` na árvore desta leva: 10 linhas, rc 0; `bash scripts/portoes/rodar.sh --tudo | wc -l`:
+  388 (a ficha mediu 385 antes do portão da caixa da WE01).
+- A mordida: com o `rodar.sh` mostrando sempre a saída inteira, reprovam o caso das 20 linhas e o do `--desde`; com o
+  `--desde` sem ler o git, reprova o do `--desde`. De volta, «68 casos» ok.
+
+**Fica para a mão (o André):** `bash scripts/portoes/rodar.sh --desde origin/main` depois de mexer numa ficha, e
+conferir que os avisos dela aparecem e os dos outros arquivos não.
