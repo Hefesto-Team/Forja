@@ -11,10 +11,10 @@
 
 /* A cor de lightbar de cada lugar, a que o controle recebe ao entrar. */
 const SDL_Color LUZ_DO_LUGAR[MAX_JOGADORES] = {
-    {0, 72, 255, 255},  /* P1 */
-    {255, 24, 8, 255},  /* P2 */
-    {0, 255, 64, 255},  /* P3 */
-    {255, 8, 168, 255}, /* P4 */
+    {41, 230, 255, 255}, /* P1 ciano (Tema.JOGADOR) */
+    {255, 62, 165, 255}, /* P2 magenta */
+    {212, 255, 74, 255}, /* P3 limão */
+    {238, 154, 30, 255}, /* P4 âmbar */
 };
 
 static float limitar(float v, float a, float b) { return v < a ? a : (v > b ? b : v); }
