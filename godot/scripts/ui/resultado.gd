@@ -104,7 +104,13 @@ func _draw() -> void:
 	var topo := maxf(170.0 if compacto else 24.0, (size.y - total) * 0.5)
 	var r := Rect2(Vector2((size.x - LARG) * 0.5, topo), Vector2(LARG, alt))
 	Desenho.moldura(self, r, Color(Tema.PAINEL, 0.97), Tema.LINHA, 2, Tema.RAIO_QUADRO)
-	Desenho.texto(self, r.position + Vector2(48, 84), titulo, Tema.fonte(700), 52, Tema.FG)
+	# o título encolhe até caber ao lado da dica «Continuar» (um nome longo, como
+	# «O Martelo de Hefesto», não encavala com ela)
+	var tam_titulo := 52
+	var cabe_titulo := LARG - 96.0 - Glifo.largura_dica("cruz", "Continuar", Tema.T_ROTULO, true) - 40.0
+	while tam_titulo > 36 and Tema.fonte(700).get_string_size(Desenho.t(titulo), HORIZONTAL_ALIGNMENT_LEFT, -1, Tema.t(tam_titulo)).x > cabe_titulo:
+		tam_titulo -= 2
+	Desenho.texto(self, r.position + Vector2(48, 84), titulo, Tema.fonte(700), tam_titulo, Tema.FG)
 	var frase := _frase()
 	if str(frase[0]) != "":
 		Desenho.texto(self, r.position + Vector2(48, 148), str(frase[0]), Tema.fonte(700), Tema.T_CORPO + 8, frase[1],
