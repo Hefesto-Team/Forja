@@ -92,6 +92,18 @@ TV, uma vez, e a sala ouve com ele.
 eco é privado e a sala não sabe o que cada um ouviu; quando todo mundo sobe
 igual, não há corrida para ver.
 
+**O número: 60 degraus** (09/10/2026). Com 24, o robô `bom` chegava ao topo
+aos 47,8 s em média (p10 44,4 s), no meio do pico, e a reta não acontecia em
+nenhuma partida da mesa padrão. Com 60, a reta acontece em 99,3 % das
+partidas da mesa padrão (98,4 % com os quatro `bom`, 94,6 % com um P1 que
+nunca erra), e o topo vira a chegada da reta: o P1 `bom` está no degrau 51
+em média na batida 209 e chega ao topo em 29 % das partidas, todas nas
+últimas 16 batidas; nas outras, vence o mais alto aos 100 s. A escada não
+cresce na tela: os 60 degraus cabem nos mesmos 5,28 m de alto, com a pedra
+mais fina (0,088 × 0,112 m por degrau). O tombo continua de 4 degraus e
+desloca o cavaleiro 0,57 m. A conta inteira está na
+[ficha](../tarefas/N2-eco-do-abismo.md#a-diversão).
+
 ---
 
 ## N3 — Coral dos Quatro
@@ -103,10 +115,11 @@ chamadas, a vez dos quatro é a mesma batida: o acorde inteiro (dó, ré, fá,
 sol) soa junto, o vitral acende dois painéis de uma vez, e o coro de pedra
 abre a boca. Degrau "estrondo" para o acorde fechado; o acorde que falha
 range.
-- **Rastro:** os painéis acesos ficam até o fim; o vitral é o placar.
+- **Rastro:** os painéis acesos ficam até o fim; o vitral é o placar. A
+  risca de cada trinca também fica, mesmo no painel que reacende.
 - **Confere:** mesa boa, pelo menos 2 linhas `momento` `acorde` entre 30 e
-  60 s; mesa fraca, o vitral acende pelo menos metade dos painéis e não
-  fecha (a quase vitória existe); na prancha, o vitral com mais painéis no quadro de 60 s
+  60 s; mesa fraca, o vitral acende pelo menos metade dos painéis (14 de
+  28) e não fecha (a quase vitória existe); na prancha, o vitral com mais painéis no quadro de 60 s
   que no de 30.
 
 **A curva.**
@@ -120,13 +133,26 @@ range.
 responder. Na roda da entrada, a vez anda P1, P2, P3, P4: é contar.
 
 **Quem está perdendo.** É coop. O vitral perde só um painel por compasso;
-a falha não desfaz a noite.
+a falha não desfaz a noite. A metade do coro basta para acender: duas vozes
+seguram as outras duas.
 
 **O que se corta.** Nada.
 
 **Por que 3.** O acorde dividido é bonito e o vitral é um bom placar. Mas
 fora do acorde dos quatro, cada um canta sozinho e espera; o acorde
 precisa vir mais vezes.
+
+**O número: 28 painéis, e a metade do coro acende** (09/10/2026). Com 12
+painéis e a falta contada por nota, a mesa boa fechava o vitral aos 43,5 s,
+no pico, e a mesa fraca chegava à metade em 2 % das partidas. Agora o vitral
+tem 4 colunas × 7 fileiras no mesmo quadro, a falta conta por voz, e o
+compasso (comum ou acorde) acende com pelo menos 2 das 4 vozes e trinca com
+menos. As 23 chamadas antes da reta dão 27 painéis no máximo: com 28, o
+vitral não fecha antes da reta em nenhuma mesa. Pelo robô: a mesa boa fecha
+em 99,9 % das partidas, no primeiro acorde da reta (84,0 s em média), com 8
+painéis aos 30 s e 19,9 aos 60 s; a mesa fraca chega à metade em 81,2 % e
+fecha em 0,7 %; a mesa padrão, 92,1 % e 2,6 %. A conta inteira está na
+[ficha](../tarefas/N3-coral-dos-quatro.md#a-diversão).
 
 ---
 
