@@ -30,11 +30,28 @@ Medido em 08/10/2026 com `bash scripts/portoes/rodar.sh` (arte: 193 avisos em 46
 - **Cor de jogador fora do jogador:** nenhum acesso por índice literal hoje; o portão segue olhando.
 - **Som:** o `docs/jogo/audio/mapa.csv` não existe, então 36 ids tocados ficam sem conferência (a V05 cria o mapa);
   `godot/scripts/salas/canto.gd:297` e `:299` tocam um id que mora numa variável e o portão não lê.
+- **O mapa da direção de arte, medido antes de entrar** (o `docs/jogo/audio/mapa.csv` da árvore da direção, 258 linhas,
+  posto numa raiz de rascunho em 08/10/2026): `som.py` dá 164 avisos, e a maior parte é o portão que não lê o mapa
+  como ele é escrito, não defeito do som:
+  - 37 linhas com `arquivo` = `(módulo)` (o som que o módulo sintetiza no controle) saem como «o arquivo não existe»;
+  - os 36 ids tocados não casam com nenhuma linha: o mapa escreve a gravação como `<gravação>_<n>` (as versões que
+    `Som.versoes` carrega, `godot/scripts/som.gd:96-101`), a síntese da TV como `sint_<id>` e a do controle como
+    `mod_<id>`, e o nome tocado passa por `GRAVADOS` (`som.gd:39`) antes de virar gravação (`sucesso` toca
+    `vitoria_sala`);
+  - 36 arquivos passam do teto de −1 dBFS de `som.json`, e a bíblia (`docs/jogo/arte/03-som.md`) deixa o pico da
+    Kenney medido no próprio mapa (a coluna `pico_dbfs` chega a −0,9);
+  - 53 estalam pela régua de `som.json` (0,25 ms, 5 % do fundo); a bíblia pede outra régua, a primeira e a última
+    amostra abaixo de 0,001 (`03-som.md:384`).
+- **Os portões de arte da direção:** `docs/jogo/arte/12-portoes.md` (na árvore da direção) pede oito portões e uma
+  «catraca» (o número de defeitos não sobe) no lugar do modo aviso; `arte.py` tem quatro (cor, fonte, tamanho, cor
+  de jogador) e não tem contraste, emissivo com dono, na batida nem emoji na tela.
 
 ## Arquivos que mudam
 
 - os arquivos que o portão apontar (a lista sai do `rodar.sh`, não desta ficha)
 - `scripts/portoes/arte.json` e `scripts/portoes/som.json` (`"modo": "reprova"`)
+- `scripts/portoes/som.py` e `scripts/portoes/arte.py` (o mapa lido como é escrito; os portões do `12-portoes.md`)
+- `tests/prova_dos_portoes.sh` (um caso por forma de id e por portão novo)
 - `.github/workflows/forja.yml` (o comentário do passo dos portões diz que estão valendo)
 
 ## Passos
@@ -43,8 +60,13 @@ Medido em 08/10/2026 com `bash scripts/portoes/rodar.sh` (arte: 193 avisos em 46
 2. Cor: trocar cada literal pelo token da bíblia mais perto pelo papel (não pelo tom); o que não tem papel na bíblia
    vai para o diretor de arte, não vira token novo por conta própria.
 3. Fonte e tamanho: o tema da G14 já resolve o grosso; o lobby e o painel sobem para 30.
-4. Som: os arquivos que o portão reprova voltam para o diretor de som com a medida.
-5. Com zero aviso, `"modo": "reprova"` nos dois `.json`, e o CI vermelho prova que vale (um `Color("#123456")`
+4. Som: primeiro o portão lê o mapa como ele é: pula o `(módulo)`, casa o id tocado com as linhas pela tabela
+   `GRAVADOS` e pelas formas `<gravação>_<n>`, `sint_<id>` e `mod_<id>` (cada forma com um caso na prova), e a
+   régua do pico e do estalo passa a ser a da bíblia, escrita em `som.json`. Depois, os arquivos que o portão
+   reprova voltam para o diretor de som com a medida.
+5. Arte: acertar `arte.py` com o `12-portoes.md` da direção (os quatro portões que faltam, e a catraca no lugar do
+   aviso, se o arquiteto escolher a catraca), com um caso na prova para cada portão novo.
+6. Com zero aviso, `"modo": "reprova"` nos dois `.json`, e o CI vermelho prova que vale (um `Color("#123456")`
    numa sala, num commit de teste que não sobe).
 
 ## Pronto quando

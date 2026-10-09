@@ -193,7 +193,7 @@ func cor_do_lugar(l: int) -> Color
 
 **Depende de:** nada (o SDL3 entra estático no binário, como hoje).
 
-**O acoplamento a soltar:** `forja.gd` mistura sete coisas (os comentários de seção em `:229`, `:293`, `:353`, `:449`,
+**O acoplamento a soltar:** `forja.gd` mistura onze partes (os comentários de seção em `:229`, `:293`, `:353`, `:449`,
 `:514`, `:587`, `:658`, `:692`, `:731`, `:823`, `:877`). O pacote leva **os lugares, a entrada, as saídas e o som de
 cada controle**. Ficam no jogo: os argumentos (`--robo`, `--bancada`), o relatório e os vereditos, as medidas, A Prova
 (a carga), as provas às cegas e a bancada, que são o diagnóstico do Forja e não do controle. O `aplicar_opcoes`
@@ -269,10 +269,10 @@ var cortina_s := 0.35
 
 **Depende de:** nada.
 
-**O acoplamento a soltar:** o `main.gd` sabe tudo de todo mundo (as treze telas em `:44-57`, a câmera, o salão, a
+**O acoplamento a soltar:** o `main.gd` sabe tudo de todo mundo (as doze telas em `:45-56`, a câmera, o salão, a
 partida). A costura leva só o mecanismo (estado, cortina, camada, a vez de cada uma); cada tela do Forja implementa
 `entrar/sair/quadro` e o `main` fica com a montagem e as regras do Forja (o que vem depois do quê). É a extração que
-mais toca código que outras fichas editam (`grep -l main.gd docs/jogo/tarefas/*.md` dá 25): vai depois das telas G.
+mais toca código que outras fichas editam (`grep -l main.gd docs/jogo/tarefas/*.md` dá 29, 25 antes das fichas V e X): vai depois das telas G.
 
 ### 7. O kit de minigame — `forja_minigame`
 
