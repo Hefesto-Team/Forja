@@ -101,7 +101,7 @@ No [13](../13-arquitetura.md), na tabela «Os eventos do jogo», depois da linha
 
 ### A ficha de dados
 
-```gdscript
+```gdscript arquivo=godot/scripts/minigames/s01/martelo_de_hefesto.gd parte=2
 const FICHA := {
 	"slot": "S01_J01",
 	"titulo": "O Martelo de Hefesto",
@@ -256,7 +256,7 @@ Fole: sobe ao meio (0,48) em meio segundo de música, segura, e afunda até o
 fim nos 60 ms antes da nota. Tudo por tempo de música: vale igual na prova e
 no sofá.
 
-```gdscript
+```gdscript arquivo=godot/scripts/minigames/s01/martelo_de_hefesto.gd parte=5
 # O kit chama robo(l, dt) antes de jogar(dt), a cada quadro, de quem ainda joga.
 func robo(l: int, _dt: float) -> void:
 	if not Forja.robo:
@@ -309,7 +309,7 @@ O arquivo `godot/scripts/minigames/s01/martelo_de_hefesto.gd`, inteiro, na
 ordem: o cabeçalho, as constantes, a FICHA (acima), o estado, os ganchos, o
 que se vê, o robô (acima).
 
-```gdscript
+```gdscript arquivo=godot/scripts/minigames/s01/martelo_de_hefesto.gd
 extends Minigame
 ## O Martelo de Hefesto (S01_J01), o primeiro d'A Centelha. Cada um tem a sua
 ## bigorna; em cima dela acende uma runa com o botão da vez e um anel que fecha
@@ -826,7 +826,7 @@ O que se vê (no fim do arquivo, antes do robô): o `_montar_runa(l)`, inteiro.
 `ring_segments` 4), as marcas em caixa, as cores nos tokens com dono, e os
 dois materiais das marcas criados uma vez.
 
-```gdscript
+```gdscript arquivo=godot/scripts/minigames/s01/martelo_de_hefesto.gd parte=3
 func _montar_runa(l: int) -> Dictionary:
 	var raiz := Node3D.new()
 	raiz.position = _bigorna(l) + Vector3(0, 2.55, 0)
@@ -900,7 +900,7 @@ func _montar_runa(l: int) -> Dictionary:
 
 O `_mostrar_runa(l)`:
 
-```gdscript
+```gdscript arquivo=godot/scripts/minigames/s01/martelo_de_hefesto.gd parte=4
 func _mostrar_runa(l: int) -> void:
 	var n: Dictionary = runas[l]
 	var e: Dictionary = j[l]
