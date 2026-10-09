@@ -64,7 +64,7 @@ desregistro da impressão e o contorno `FITA` de 6 px
 | `car_virada` | VIRADA! | no placar, quem passa a ser o primeiro | ao lado da linha dele no placar | Bungee 64 | quem virou |
 | `car_em_chamas` | EM CHAMAS | 5 julgamentos "Ressonância!" seguidos do mesmo jogador | acima da cabeça dele | Bungee 46 | ele |
 | `car_por_um_fio` | POR UM FIO | o vencedor do minigame ganha por 2 % dos pontos ou menos | acima da cabeça do vencedor, no resultado | Bungee 64 | o vencedor |
-| `car_liga` | LIGA! | a peça entra em liga com o corpo ([04](04-o-cavaleiro.md#a-liga)) | sobre a linha "Arma ou amuleto" da coluna dele | Bungee 46 | ele |
+| `car_liga` | LIGA! | a peça entra em liga com o corpo ([04](../sistemas/README.md#a-arma-ou-o-amuleto)) | sobre a linha "Arma ou amuleto" da coluna dele | Bungee 46 | ele |
 | `car_acorde` | ACORDE MAIOR! | os quatro acertam "Ressonância!" no mesmo tempo 1 | centro da tela, y = 300 | Bungee 112 | os quatro |
 | `car_emburrado` | (sem palavra) | o último colocado, no inserto do resultado | acima da cabeça dele | a cara de fita de 160 px, em tinta, carretéis meio fechados e a janela virada para baixo | ele |
 
@@ -133,8 +133,8 @@ a cabeça do dono sai da tela, o adesivo vai para o cartão.
 | entra | cola em 120 ms: escala 1,35 a 1,0, `MOLA`, rotação sorteada entre −8° e +8° | bate em 80 ms: escala 1,35 a 1,0, `MOLA`, rotação −4° |
 | fica | 4 batidas (2000 ms a 120), entre 1600 e 2800 ms | 4 batidas, entre 1600 e 2800 ms; o `car_virada`, 2 batidas |
 | sai | descola em 1 colcheia: a ponta de cima levanta (escala Y de 1 a 0, pivô na base), `ENTRA` | some em 170 ms (opacidade) |
-| o som | `reacao_pop` a −18 dB na TV e no alto-falante do controle do dono ([03](03-som.md#a-interface)) | pedido ao diretor de som: um id por carimbo no mapa do áudio |
-| a vibração | o toque de interface no controle do dono (piso do doc 05) | nenhuma; a vibração é do evento |
+| o som | `reacao_pop` a −18 dB na TV e no alto-falante do controle do dono ([03](03-som.md#a-interface)) | cada carimbo tem o seu id: `car_acorde`, `jin_virada`, `car_em_chamas`, `car_por_um_fio`, `car_liga`; o `car_emburrado` não soma som ao `fx_derrota` do inserto ([03](03-som.md#os-carimbos-do-jogo)) |
+| a vibração | o toque no controle do dono: 0 / 0,45 / 60 ms (piso do doc 05) | o acerto no dono: 0,3 / 0,6 / 80 ms; o `car_acorde` nos quatro ([03, o casamento](03-som.md#o-casamento-evento-por-evento)) |
 
 A entrada do adesivo cai na próxima colcheia depois de soltar o dedo.
 

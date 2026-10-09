@@ -35,8 +35,9 @@ ouvido, o chão que se sente, a voz, e tudo junto no fim.
 ### Os cavaleiros
 
 Os jogadores são os Cavaleiros de Néon. Cada armadura é um instrumento que
-soa uma nota só: Dó, Mi, Sol e Si. Juntas, as quatro fazem o acorde da Forja
-(Dó com sétima maior). Nenhum cavaleiro toca a música inteira. É por isso que
+soa uma nota só: Dó, Ré, Fá e Sol. Juntas, as quatro fazem o acorde da Forja
+(Dó suspenso, que cabe sobre as 45 faixas em tom menor; o
+[03](03-som.md#a-voz-de-cada-cavaleiro) diz por quê). Nenhum cavaleiro toca a música inteira. É por isso que
 o jogo é em grupo.
 
 Cada pessoa monta o seu cavaleiro peça por peça (cabeça, tronco superior,
@@ -98,7 +99,7 @@ Cinco. Tudo o que entra obedece aos cinco.
    ninguém.
 5. **Ver, ouvir e sentir no mesmo quadro.** Um evento só está pronto quando a
    imagem, o som na TV, o som no controle do dono e a vibração acontecem no
-   mesmo quadro de 16,7 ms ([a háptica](08-haptica.md)).
+   mesmo quadro de 16,7 ms ([o casamento](03-som.md#o-casamento-evento-por-evento)).
 
 ## O teste que decide se algo entra
 
@@ -128,7 +129,7 @@ Toda ideia nova (um objeto, um som, um efeito, uma tela, uma frase) responde
 | [05 O movimento](05-movimento.md) | a grade da batida, as seis curvas, o golpe (antecipação, impacto, hit-stop), o squash, a Kenney na batida, as poses, o mundo que respira |
 | [06 A interface e o texto](06-interface-e-texto.md) | os objetos de fita (placa, etiqueta, deck, J-card), as doze transições com a cortina e o rasgo, a espera do corte, o texto como voz |
 | [07 O brilho e os efeitos](07-vfx.md) | o dono e o teto de cada brilho, as partículas e o confete de fita, o carimbo, o erro sem vermelho, o pós da fita, a Dissonância |
-| [08 A háptica](08-haptica.md) | a vibração e o gatilho como linguagem, casados com o som (do diretor de som e háptica) |
+| 08 A háptica | não é arquivo à parte: a vibração e o gatilho, evento por evento, moram em [03 O som, o casamento](03-som.md#o-casamento-evento-por-evento) |
 | [09 As reações](09-reacoes.md) | os emojis da Forja: os oito adesivos do jogador e os seis carimbos do jogo, o gesto, o limite, onde e quanto duram |
 | [10 A acessibilidade](10-acessibilidade.md) | o daltonismo medido no OKLab, o contraste, o texto mínimo, o movimento reduzido, o piscar, quando falta um canal |
 | [11 O que nunca](11-o-que-nunca.md) | a lista do que não entra |

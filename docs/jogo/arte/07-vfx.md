@@ -151,6 +151,7 @@ O efeito inteiro está no [01](01-cinema.md#a-dissonância). O que é VFX:
 ## O controle também é luz
 
 A luz do controle (lightbar) é a cor do lugar, sempre, e as lâmpadas são o
-padrão do lugar ([02](02-cor-e-letra.md#os-jogadores)). O que pisca na luz e
-quando está no [08 A háptica](08-haptica.md); o branco do perfeito (0,15 s)
+padrão do lugar ([02](02-cor-e-letra.md#os-jogadores)). O que pisca na luz
+está no [doc 05](../05-haptica-e-controle.md#a-identidade-p1p4) e cai no mesmo
+quadro do som e da vibração ([03, o casamento](03-som.md#o-casamento-evento-por-evento)); o branco do perfeito (0,15 s)
 conta como piscar ([10](10-acessibilidade.md#o-piscar)).

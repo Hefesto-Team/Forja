@@ -150,7 +150,7 @@ Um alto-falante pequeno na frente do controle. No cabo, recebe o canal 2 da plac
 | **fontes** | `hid-playstation.c` (volume e pré-amp quando o fone sai); Death Stranding (o BB chora no alto-falante do controle, desde o PS4); Ghostwire: Tokyo (vozes do outro mundo saem do controle, no blog da PlayStation de maio de 2021); Astro Bot (boa parte dos sons sai do controle, nas análises) |
 | **licença da referência** | Linux: GPL-2.0-or-later, só leitura |
 
-**A mágica.** Quem joga: ouve a própria nota (Dó, Mi, Sol ou Si) sair da mão. Os outros: ouvem que saiu da mão
+**A mágica.** Quem joga: ouve a própria nota (Dó, Ré, Fá ou Sol) sair da mão. Os outros: ouvem que saiu da mão
 dele, mas não o quê (a mágica 2).
 
 ### 5. O fone no controle

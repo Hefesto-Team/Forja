@@ -29,8 +29,8 @@ Soprar. O acorde final em 32 chamadas e respostas, com voltas extras.
 ### 1. O acorde dos quatro colos
 
 - **Quem joga:** na queda do dragão, o controle dele toca uma nota do acorde.
-- **Os outros:** a sala ouve Dó, Mi, Sol e Si dos quatro colos juntos.
-- **Os números:** Dó, Mi, Sol e Si, uma por lugar, 1,6 s, volume 0,8.
+- **Os outros:** a sala ouve Dó, Ré, Fá e Sol dos quatro colos juntos, o acorde da Forja ([03 O som](../arte/03-som.md#a-voz-de-cada-cavaleiro)).
+- **Os números:** Dó5, Ré5, Fá5 e Sol5, uma por lugar, 1,6 s, volume 0,8.
 - **Como se prova sem o controle:** `som_virtual(l).falante` dos quatro no mesmo quadro. Com `--defeitos=som-vizinho`,
   reprova.
 - **O que falta:** as quatro notas no `sons_salas.c`.
