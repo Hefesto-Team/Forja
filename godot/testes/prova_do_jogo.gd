@@ -76,6 +76,7 @@ func _ready() -> void:
 	_prova_da_identidade()
 	_prova_das_sensacoes()
 	_prova_do_registro_v2()
+	_prova_dos_sons_em_pcm()
 	if falhas > 0:
 		printerr("%d falha(s)" % falhas)
 		get_tree().quit(1)
@@ -1746,3 +1747,24 @@ func _prova_da_musica_que_reage() -> void:
 	_esperar(is_equal_approx(AudioServer.get_bus_volume_db(Musica._bus), 1.5), "música: o combo sobe 1,5 dB")
 	await _quadros(150)
 	_esperar(is_equal_approx(AudioServer.get_bus_volume_db(Musica._bus), 0.0), "música: e desce de novo")
+
+
+## Todo som de assets/sons é PCM de 16 bits (compress/mode=0 no .import): o
+## alto-falante do controle recebe `w.data` como PCM16 (Som.no_controle), e um
+## arquivo comprimido sai ali como ruído. O medidor do falante não distingue
+## PCM de dado comprimido; esta conta é a que distingue (G02).
+func _prova_dos_sons_em_pcm() -> void:
+	var dir := DirAccess.open("res://assets/sons")
+	_esperar(dir != null, "sons: a pasta assets/sons abre")
+	if dir == null:
+		return
+	var vistos := 0
+	for f in dir.get_files():
+		if not f.ends_with(".wav.import"):
+			continue
+		var id := f.trim_suffix(".wav.import")
+		var w := Som.arquivo(id)
+		vistos += 1
+		_esperar(w != null and w.format == AudioStreamWAV.FORMAT_16_BITS,
+			"sons: %s.wav carrega em PCM de 16 bits (formato %s)" % [id, str(w.format) if w != null else "nenhum"])
+	_esperar(vistos > 0, "sons: a pasta tem sons para conferir (%d)" % vistos)
