@@ -77,7 +77,7 @@ func montar() -> void:
 		martelo_na_mao(p)
 		var forja := OmniLight3D.new()
 		forja.position = _bigorna(l) + Vector3(0, 1.4, 0.8)
-		forja.light_color = Forja.cor_do_lugar(l).lerp(Color("#ffb070"), 0.5)
+		forja.light_color = Forja.cor_do_lugar(l).lerp(Tema.TUNGSTENIO, 0.5)
 		forja.light_energy = 0.9
 		forja.omni_range = 4.0
 		add_child(forja)
@@ -147,7 +147,7 @@ func _montar_runa(l: int) -> Dictionary:
 	anel.mesh = t
 	anel.rotation.x = PI * 0.5
 	var cor: Color = Forja.cor_do_lugar(l)
-	anel.material_override = Kit.material(cor, 2.2)
+	anel.material_override = Kit.material(cor, 2.2, 0.8, l)
 	raiz.add_child(anel)
 	var marcas: Array = []
 	for s in 8:
@@ -180,20 +180,20 @@ func _montar_runa(l: int) -> Dictionary:
 	bf.size = Vector3(0.22, 1.4 * 0.27, 0.05)
 	faixa.mesh = bf
 	faixa.position.y = 1.4 * (0.35 + 0.62) * 0.5
-	faixa.material_override = Kit.material(Tema.TUNGSTENIO, 0.9)
+	faixa.material_override = Kit.material(Tema.TUNGSTENIO, 0.9, 0.8, "forja")
 	fole.add_child(faixa)
 	var topo := MeshInstance3D.new()
 	var btp := BoxMesh.new()
 	btp.size = Vector3(0.22, 1.4 * 0.08, 0.05)
 	topo.mesh = btp
 	topo.position.y = 1.4 * 0.96
-	topo.material_override = Kit.material(Tema.TUNGSTENIO, 0.9)
+	topo.material_override = Kit.material(Tema.TUNGSTENIO, 0.9, 0.8, "forja")
 	fole.add_child(topo)
 	var nivel := MeshInstance3D.new()
 	var bn := BoxMesh.new()
 	bn.size = Vector3(0.1, 1.0, 0.07)
 	nivel.mesh = bn
-	nivel.material_override = Kit.material(Tema.VIOLETA, 1.6)
+	nivel.material_override = Kit.material(Tema.VIOLETA, 1.0)
 	fole.add_child(nivel)
 	return {"raiz": raiz, "glifo": glifo, "anel": anel, "marcas": marcas, "fole": fole, "nivel": nivel,
 		"faixa": faixa, "topo": topo}
@@ -235,7 +235,7 @@ func _mostrar_runa(l: int) -> void:
 		var m: MeshInstance3D = n.marcas[s]
 		m.visible = r.tipo == "analogico"
 		var aceso := (int(e.setores) >> s) & 1
-		m.material_override = Kit.material(Tema.TUNGSTENIO if aceso else Tema.GRAFITE, 2.0 if aceso else 0.0)
+		m.material_override = Kit.material(Tema.TUNGSTENIO if aceso else Tema.GRAFITE, 2.0 if aceso else 0.0, 0.8, "forja")
 	var fole: Node3D = n.fole
 	fole.visible = r.tipo == "gatilho"
 	if r.tipo == "gatilho":
@@ -346,7 +346,7 @@ func _acertou(l: int, p: ForjaPlayer, base: int) -> void:
 	e.pop = 1.0
 	var bigorna_topo := _bigorna(l) + Vector3(0, 0.8, 0)
 	Efeitos.faiscas(self, bigorna_topo, Tema.TUNGSTENIO, 26, 1.0)
-	Efeitos.anel(self, runas[l].raiz.global_position, Forja.cor_do_lugar(l), 0.7)
+	Efeitos.anel(self, runas[l].raiz.global_position, Forja.cor_do_lugar(l), 0.7, Vector3.BACK, l)
 	Som.tocar("bigorna_aguda" if r != null and r.tipo == "botao" else "bigorna", bigorna_topo, -2.0)
 	Som.tocar("martelo", bigorna_topo, -6.0)
 	Som.no_controle(l, "martelo", 0.55)  # o martelo soa na mão de quem martelou

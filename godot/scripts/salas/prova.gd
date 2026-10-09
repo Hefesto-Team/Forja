@@ -186,7 +186,7 @@ func _montar_lutadores() -> void:
 		cil.bottom_radius = 0.7
 		cil.height = 0.02
 		disco.mesh = cil
-		var mat := Kit.material(LUZ_EQUIPE[e.equipe], 1.0, 0.6)
+		var mat := Kit.material(LUZ_EQUIPE[e.equipe], 1.0, 0.6, "forja")
 		mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 		mat.albedo_color.a = 0.55
 		disco.material_override = mat
@@ -322,7 +322,7 @@ func _atirar(i: int, ang: float) -> void:
 	var e: Dictionary = lut[i]
 	var dir := Vector3(cos(ang), 0, sin(ang))
 	var pos: Vector3 = e.pos + dir * 0.6 + Vector3(0, 1.0, 0)
-	var bala := Kit.esfera(self, 0.13, pos, Kit.material(LUZ_EQUIPE[e.equipe].lightened(0.35), 3.0))
+	var bala := Kit.esfera(self, 0.13, pos, Kit.material(LUZ_EQUIPE[e.equipe].lightened(0.35), 2.4, 0.8, "forja"))
 	tiros.append({"no": bala, "pos": pos, "vel": dir * TIRO_V, "vida": TIRO_VIDA, "dono": i, "equipe": e.equipe})
 	Som.tocar("tiro", pos, -14.0 if e.lugar < 0 else -10.0)
 	if e.lugar >= 0:
@@ -371,7 +371,7 @@ func _martelada(i: int) -> void:
 	e.avisou = false
 	tremor = 0.7
 	Efeitos.faiscas(self, e.pos + Vector3(0, 0.4, 0), Tema.TUNGSTENIO, 50, 1.6)
-	Efeitos.anel(self, e.pos + Vector3(0, 0.15, 0), Tema.TUNGSTENIO, MARTELADA_RAIO, Vector3.UP)
+	Efeitos.anel(self, e.pos + Vector3(0, 0.15, 0), Tema.TUNGSTENIO, MARTELADA_RAIO, Vector3.UP, "forja")
 	Som.tocar("martelo", e.pos, 2.0)
 	_saida(e.lugar, Forja.sentir(e.lugar, "perfeito"))
 	for k in lut.size():
@@ -720,7 +720,7 @@ func _mostrar(e: Dictionary, dt: float) -> void:
 	var disco: MeshInstance3D = e.disco
 	disco.position = Vector3(pos.x, 0.06, pos.z)
 	var md: StandardMaterial3D = e.mat_disco
-	md.emission_energy_multiplier = 1.0 + 2.5 * float(e.dano)
+	Tema.emissivo(md, (1.0 + 2.5 * float(e.dano)) * 2.4 / 3.5, "forja")
 	disco.visible = not fora
 	var andando := float(e.andando)
 	if e.lugar >= 0:

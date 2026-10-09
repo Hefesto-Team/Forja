@@ -110,11 +110,11 @@ func _montar_bancada(l: int, p: ForjaPlayer) -> Dictionary:
 	var cor: Color = Forja.cor_do_lugar(l)
 	var e: Dictionary = j[l]
 	var letra: Dictionary = LETRAS[e.letra]
-	Kit.caixa(self, Vector3(2.8, 0.8, 1.7), Vector3(cx, 0.4, 0.3), Kit.material(Color("#4b4558"), 0.0, 0.9))
-	Kit.caixa(self, Vector3(2.9, 0.08, 1.8), Vector3(cx, 0.82, 0.3), Kit.material(Color("#6a6180"), 0.0, 0.8))
+	Kit.caixa(self, Vector3(2.8, 0.8, 1.7), Vector3(cx, 0.4, 0.3), Kit.material(Tema.GRAFITE, 0.0, 0.9))
+	Kit.caixa(self, Vector3(2.9, 0.08, 1.8), Vector3(cx, 0.82, 0.3), Kit.material(Tema.OXIDO_BRILHO, 0.0, 0.8))
 	var fogo := OmniLight3D.new()
 	fogo.position = Vector3(cx, 2.4, 1.2)
-	fogo.light_color = cor.lerp(Color("#ffb070"), 0.55)
+	fogo.light_color = cor.lerp(Tema.TUNGSTENIO, 0.55)
 	fogo.light_energy = 0.8
 	fogo.omni_range = 4.5
 	add_child(fogo)
@@ -128,16 +128,16 @@ func _montar_bancada(l: int, p: ForjaPlayer) -> Dictionary:
 	placa.rotation.x = deg_to_rad(INCLINACAO)
 	add_child(placa)
 	var metades: Array = []
-	var metal := Kit.material(Color("#3a1a10"), 0.4, 0.55)
+	var metal := Kit.material(Tema.OXIDO, 0.4, 0.55, "forja")
 	for lado in [-1.0, 1.0]:
 		var metade := Node3D.new()
 		placa.add_child(metade)
 		Kit.caixa(metade, Vector3(LARGURA * 0.5 + 0.12, 0.16, ALTURA + 0.26), Vector3(lado * (LARGURA * 0.25 + 0.06), 0, 0),
-			Kit.material(Color("#5d566d"), 0.0, 0.85))
+			Kit.material(Tema.OXIDO_BRILHO, 0.0, 0.85))
 		Kit.caixa(metade, Vector3(LARGURA * 0.5 - 0.02, 0.03, ALTURA), Vector3(lado * LARGURA * 0.25, 0.085, 0), metal)
 		metades.append(metade)
 	# a letra: o sulco entre os pontos e os pontos numerados
-	var sulco := Kit.material(Color("#1c1622"), 0.0, 0.9)
+	var sulco := Kit.material(Tema.CASCO, 0.0, 0.9)
 	var sulcos: Array = []
 	var n_pts: int = letra.x.size()
 	for k in n_pts - 1:
@@ -149,7 +149,7 @@ func _montar_bancada(l: int, p: ForjaPlayer) -> Dictionary:
 	var pontos: Array = []
 	for k in n_pts:
 		var c := _no_molde(letra.x[k], letra.y[k], 0.11)
-		var disco := Kit.cilindro(placa, 0.07, 0.03, c, Kit.material(Color("#1c1622")))
+		var disco := Kit.cilindro(placa, 0.07, 0.03, c, Kit.material(Tema.CASCO))
 		var rotulo := Label3D.new()
 		rotulo.text = str(k + 1)
 		rotulo.font = Tema.archivo(700)
@@ -175,7 +175,7 @@ func _montar_bancada(l: int, p: ForjaPlayer) -> Dictionary:
 	var dedos: Array = []
 	for d in 2:
 		var cd := cor if d == 0 else cor.lerp(Tema.ETIQUETA, 0.45)
-		var esf := Kit.esfera(placa, 0.07, Vector3.ZERO, Kit.material(cd, 2.2))
+		var esf := Kit.esfera(placa, 0.07, Vector3.ZERO, Kit.material(cd, 2.2, 0.8, l))
 		esf.visible = false
 		dedos.append(esf)
 	var ligacao := Kit.caixa(placa, Vector3(0.025, 0.01, 1.0), Vector3.ZERO, Kit.chapado(Color(Tema.ETIQUETA, 0.6)))
@@ -205,11 +205,11 @@ func _montar_bancada(l: int, p: ForjaPlayer) -> Dictionary:
 	# as três lâmpadas dos carimbos, na borda de longe
 	var lampadas: Array = []
 	for k in CARIMBOS:
-		var lp := Kit.esfera(placa, 0.07, Vector3(-0.3 + k * 0.3, 0.12, -ALTURA * 0.5 - 0.06), Kit.material(Color("#2a2433")))
+		var lp := Kit.esfera(placa, 0.07, Vector3(-0.3 + k * 0.3, 0.12, -ALTURA * 0.5 - 0.06), Kit.material(Tema.OXIDO))
 		lampadas.append(lp)
 	var ouro := OmniLight3D.new()
 	ouro.position = Vector3(cx, 1.9, 1.0)
-	ouro.light_color = Color("#ffd479")
+	ouro.light_color = Tema.TUNGSTENIO
 	ouro.light_energy = 0.0
 	ouro.omni_range = 3.5
 	add_child(ouro)
@@ -287,7 +287,7 @@ func _jogar(l: int, p: ForjaPlayer, e: Dictionary, dt: float) -> void:
 					e.carimbos += 1
 					marcar(l, 120)
 					Efeitos.faiscas(self, centro, Tema.TUNGSTENIO, 30, 1.0)
-					Efeitos.anel(self, centro, Tema.TUNGSTENIO, 0.6)
+					Efeitos.anel(self, centro, Tema.TUNGSTENIO, 0.6, Vector3.BACK, "forja")
 					Som.tocar("carimbo", centro, 0.0)
 					Som.no_controle(l, "carimbo", 0.6)
 					Forja.sentir(l, "perfeito")
@@ -344,8 +344,7 @@ func _mostrar(l: int) -> void:
 	if passo == CARIMBAR and _no_ponto(e):
 		cor_metal = Color("#ff9a3a").lerp(Color("#ffd479"), 0.6)
 	metal.albedo_color = cor_metal.darkened(0.5)
-	metal.emission = cor_metal
-	metal.emission_energy_multiplier = 0.3 + 2.2 * quente
+	Tema.emissivo(metal, (0.3 + 2.2 * quente) * 2.4 / 2.5, "forja")
 	# a letra: o sulco enche de ouro atrás do dedo; pronta, a peça é de ouro
 	for k in nos.sulcos.size():
 		var s: MeshInstance3D = nos.sulcos[k]
@@ -411,7 +410,7 @@ func _mostrar(l: int) -> void:
 		lp.visible = passo >= CARIMBAR
 		if k < int(e.carimbos) and lp.get_meta("aceso", false) == false:
 			lp.set_meta("aceso", true)
-			lp.material_override = Kit.material(Tema.TUNGSTENIO, 2.4)
+			lp.material_override = Kit.material(Tema.TUNGSTENIO, 2.4, 0.8, "forja")
 	var ouro: OmniLight3D = nos.ouro
 	ouro.light_energy = 1.6 if passo == PRONTO else 0.0
 
@@ -421,7 +420,7 @@ var _mat_ouro := {}
 
 func _ouro(forte: bool) -> StandardMaterial3D:
 	if not _mat_ouro.has(forte):
-		var m := Kit.material(Color("#e8b44c"), 2.2 if forte else 1.1, 0.5)
+		var m := Kit.material(Tema.OXIDO_BRILHO, 2.2 if forte else 1.1, 0.5, "forja")
 		m.metallic = 0.2
 		_mat_ouro[forte] = m
 	return _mat_ouro[forte]

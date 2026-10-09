@@ -79,18 +79,17 @@ func montar() -> void:
 	atmosfera(Color("#7fe8ff"), Tema.VIOLETA, true, 40, 22.0, -7.8, 0.15)
 	var frio := OmniLight3D.new()
 	frio.position = Vector3(0, 8.0, 4.0)
-	frio.light_color = Color("#5a4f8f")
 	frio.light_energy = 0.35
 	frio.omni_range = 26.0
-	add_child(frio)
+	add_child(enchimento(frio))
 	# as velas do fundo
 	for x in [-8.5, -5.0, 5.0, 8.5]:
 		var base := Vector3(x, 0.0, -4.6)
-		Kit.cilindro(self, 0.1, 0.5, base + Vector3(0, 0.25, 0), Kit.material(Color("#e8dcc0"), 0.0, 0.9))
-		Kit.esfera(self, 0.07, base + Vector3(0, 0.58, 0), Kit.material(Color("#ffb050"), 3.0))
+		Kit.cilindro(self, 0.1, 0.5, base + Vector3(0, 0.25, 0), Kit.material(Tema.OXIDO_BRILHO, 0.0, 0.9))
+		Kit.esfera(self, 0.07, base + Vector3(0, 0.58, 0), Kit.material(Tema.TUNGSTENIO, 2.4, 0.8, "forja"))
 		var vela := OmniLight3D.new()
 		vela.position = base + Vector3(0, 0.8, 0.3)
-		vela.light_color = Color("#ff9a40")
+		vela.light_color = Tema.TUNGSTENIO
 		vela.light_energy = 0.9
 		vela.omni_range = 4.0
 		add_child(vela)
@@ -131,10 +130,8 @@ func _montar_guardiao() -> Dictionary:
 	nariz.rotation.x = -0.25
 	# os olhos, com a pálpebra de pedra por cima
 	var palpebras: Array = []
-	var mat_olho := Kit.material(Color("#ff3a1a"), 0.0)
-	mat_olho.emission_enabled = true
-	mat_olho.emission = Color("#ff3a1a")
-	mat_olho.emission_energy_multiplier = 0.0
+	var mat_olho := Kit.material(Tema.TUNGSTENIO, 0.0)
+	Tema.emissivo(mat_olho, 0.0, "forja")
 	for lado in [-1.0, 1.0]:
 		Kit.caixa(pivo, Vector3(0.34, 0.22, 0.12), Vector3(lado * 0.55, 0.3, 0.56), mat_olho)
 		var pa := Kit.caixa(pivo, Vector3(0.5, 0.44, 0.12), Vector3(lado * 0.55, 0.28, 0.62), pedra)
@@ -146,21 +143,21 @@ func _montar_guardiao() -> Dictionary:
 	var fundo := Kit.caixa(boca, Vector3(1.1, 1.0, 0.1), Vector3.ZERO, Kit.material(Tema.JANELA, 0.0, 1.0))
 	var dentes := Node3D.new()
 	boca.add_child(dentes)
-	var osso := Kit.material(Tema.ETIQUETA, 0.0, 0.8)
+	var osso := Kit.material(Tema.OXIDO_BRILHO, 0.0, 0.8)
 	for k in 5:
 		Kit.caixa(dentes, Vector3(0.12, 0.16, 0.06), Vector3(-0.3 + 0.15 * k, 0.4, 0.06), osso)
 		Kit.caixa(dentes, Vector3(0.12, 0.16, 0.06), Vector3(-0.3 + 0.15 * k, -0.4, 0.06), osso)
 	boca.scale = Vector3(1, 0.12, 1)
 	var brilho := OmniLight3D.new()
 	brilho.position = GUARDIAO + Vector3(0, 0.2, 1.6)
-	brilho.light_color = Color("#ff4020")
+	brilho.light_color = Tema.TUNGSTENIO
 	brilho.light_energy = 0.0
 	brilho.omni_range = 7.0
 	add_child(brilho)
 	var foco := SpotLight3D.new()
 	foco.position = GUARDIAO + Vector3(0, 3.0, 3.0)
 	foco.look_at_from_position(foco.position, GUARDIAO)
-	foco.light_color = Color("#b0a0ff")
+	foco.light_color = Tema.VIOLETA
 	foco.light_energy = 1.4
 	foco.spot_range = 8.0
 	foco.spot_angle = 30.0
@@ -172,7 +169,7 @@ func _montar_guardiao() -> Dictionary:
 func _montar_raia(l: int, p: ForjaPlayer) -> Dictionary:
 	var x: float = RAIAS[l]
 	# o chão da raia: a laje de pedra com a borda na cor do lugar
-	Kit.cilindro(self, 1.4, 0.06, Vector3(x, 0.03, Z_JOGADOR), Kit.material(Color("#211b2b"), 0.0, 0.95))
+	Kit.cilindro(self, 1.4, 0.06, Vector3(x, 0.03, Z_JOGADOR), Kit.material(Tema.CASCO, 0.0, 0.95))
 	var borda := MeshInstance3D.new()
 	var tor := TorusMesh.new()
 	tor.inner_radius = 1.35
@@ -184,26 +181,22 @@ func _montar_raia(l: int, p: ForjaPlayer) -> Dictionary:
 	borda.scale = Vector3(1, 0.35, 1)
 	var cor_l := Forja.cor_do_lugar(l)
 	var mat_borda := Kit.material(cor_l.darkened(0.5), 0.0, 0.7)
-	mat_borda.emission_enabled = true
-	mat_borda.emission = cor_l
-	mat_borda.emission_energy_multiplier = 0.1
+	Tema.emissivo(mat_borda, 0.1, l)
 	borda.material_override = mat_borda
 	add_child(borda)
 	# o braseiro da voz, à frente do boneco: a chama sobe com o que o microfone
 	# ouve (e apaga no mudo)
 	var bras := Vector3(x, 0.0, Z_JOGADOR - 1.05)
-	var pedra := Kit.material(Color("#4a4452"), 0.0, 0.9)
+	var pedra := Kit.material(Tema.GRAFITE, 0.0, 0.9)
 	Kit.cilindro(self, 0.18, 0.55, bras + Vector3(0, 0.27, 0), pedra)
 	Kit.cilindro(self, 0.28, 0.22, bras + Vector3(0, 0.62, 0), pedra, 0.42)
-	var mat_chama := Kit.material(Color("#ff8a2a"), 0.0)
-	mat_chama.emission_enabled = true
-	mat_chama.emission = Color("#ff7a1a")
-	mat_chama.emission_energy_multiplier = 2.5
+	var mat_chama := Kit.material(Tema.TUNGSTENIO, 0.0)
+	Tema.emissivo(mat_chama, 1.8, "forja")
 	var chama := Kit.cilindro(self, 0.24, 1.0, bras + Vector3(0, 1.2, 0), mat_chama, 0.0)
-	var brasa := Kit.esfera(self, 0.2, bras + Vector3(0, 0.75, 0), Kit.material(Color("#ff5a1a"), 1.2))
+	var brasa := Kit.esfera(self, 0.2, bras + Vector3(0, 0.75, 0), Kit.material(Tema.TUNGSTENIO, 1.2, 0.8, "forja"))
 	var luz := OmniLight3D.new()
 	luz.position = bras + Vector3(0, 1.3, 0.3)
-	luz.light_color = Color("#ff9a40")
+	luz.light_color = Tema.TUNGSTENIO
 	luz.light_energy = 0.4
 	luz.omni_range = 3.2
 	add_child(luz)
@@ -211,7 +204,7 @@ func _montar_raia(l: int, p: ForjaPlayer) -> Dictionary:
 	var foco := SpotLight3D.new()
 	foco.position = Vector3(x, 5.5, Z_JOGADOR + 1.6)
 	foco.look_at_from_position(foco.position, Vector3(x, 0.8, Z_JOGADOR))
-	foco.light_color = cor_l.lerp(Color.WHITE, 0.5)
+	foco.light_color = cor_l.lerp(Tema.ETIQUETA, 0.5)
 	foco.light_energy = 0.0
 	foco.spot_range = 8.0
 	foco.spot_angle = 22.0
@@ -512,7 +505,7 @@ func _process(dt: float) -> void:
 	flash = maxf(0.0, flash - dt * 0.9)
 	tremor = flash * 1.4
 	var mo: StandardMaterial3D = g.mat_olho
-	mo.emission_energy_multiplier = 0.2 + 3.2 * olhos + 4.0 * flash
+	Tema.emissivo(mo, (0.2 + 3.2 * olhos + 4.0 * flash) * 2.4 / 7.4, "forja")
 	for pa in g.palpebras:
 		var pal: Node3D = pa
 		pal.scale = Vector3(1, maxf(0.02, 1.0 - olhos), 1)
@@ -543,7 +536,7 @@ func _mostrar(l: int, dt: float) -> void:
 	var da_vez: bool = fase == "jogo" and estado == CHAMADO and vez == l
 	foco.light_energy = lerpf(foco.light_energy, 5.0 if da_vez else 0.0, minf(1.0, dt * 6.0))
 	var mb: StandardMaterial3D = nos.mat_borda
-	mb.emission_energy_multiplier = lerpf(mb.emission_energy_multiplier, 1.6 if da_vez else 0.1, minf(1.0, dt * 6.0))
+	Tema.emissivo(mb, lerpf(Tema.brilho_de(mb), 1.6 if da_vez else 0.1, minf(1.0, dt * 6.0)), l)
 	var p := jogador(l)
 	if p:
 		p.animar("interact-right" if da_vez and float(e.chama) > 0.35 else "idle", 1.0)
