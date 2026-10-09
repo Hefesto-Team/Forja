@@ -13,15 +13,20 @@ const KIT := "res://assets/kenney/%s.glb"
 ## As salas, na ordem do percurso. `lado`: a parede do portão; `aberta`: a sala
 ## já existe neste marco (as outras ficam de portão fechado).
 const PORTOES := [
-	{"id": "centelha", "nome": "A Centelha", "sobre": "Seção 1", "icone": "stick_l", "lado": "oeste", "t": 3.0, "aberta": true},
-	{"id": "viga", "nome": "A Viga", "sobre": "Seção 2", "icone": "giroscopio", "lado": "oeste", "t": -3.0, "aberta": true},
-	{"id": "molde", "nome": "O Molde", "sobre": "Seção 3", "icone": "touchpad", "lado": "norte", "t": -6.0, "aberta": true},
-	{"id": "impacto", "nome": "O Impacto", "sobre": "Seção 4", "icone": "rumble_esquerdo", "lado": "norte", "t": -2.0, "aberta": true},
-	{"id": "galeria", "nome": "A Galeria", "sobre": "Seção 5", "icone": "r2", "lado": "norte", "t": 2.0, "aberta": true},
-	{"id": "voz", "nome": "A Voz", "sobre": "Seção 8", "icone": "mic", "lado": "norte", "t": 6.0, "aberta": true},
-	{"id": "caminhos", "nome": "Os Caminhos", "sobre": "Seção 7", "icone": "rumble_direito", "lado": "leste", "t": -3.0, "aberta": true},
-	{"id": "canto", "nome": "O Canto", "sobre": "Seção 6", "icone": "alto-falante", "lado": "leste", "t": 3.0, "aberta": true},
+	{"id": "centelha", "nome": "A Centelha", "lado": "oeste", "t": 3.0, "aberta": true},
+	{"id": "viga", "nome": "A Viga", "lado": "oeste", "t": -3.0, "aberta": true},
+	{"id": "molde", "nome": "O Molde", "lado": "norte", "t": -6.0, "aberta": true},
+	{"id": "impacto", "nome": "O Impacto", "lado": "norte", "t": -2.0, "aberta": true},
+	{"id": "galeria", "nome": "A Galeria", "lado": "norte", "t": 2.0, "aberta": true},
+	{"id": "voz", "nome": "A Voz", "lado": "norte", "t": 6.0, "aberta": true},
+	{"id": "caminhos", "nome": "Os Caminhos", "lado": "leste", "t": -3.0, "aberta": true},
+	{"id": "canto", "nome": "O Canto", "lado": "leste", "t": 3.0, "aberta": true},
 ]
+
+## A luz do portão: acesa quando a seção foi vencida na noite, apagada a de quadro (arte/02).
+const FOCO_ACESO := 3.2
+const FOCO_APAGADO := 0.55
+const VITRINE_MAX := 18   ## os troféus que a vitrine mostra: os 18 últimos
 
 const X_OESTE := -12.0
 const X_LESTE := 12.0
@@ -33,6 +38,11 @@ var pedestais: Array[Vector3] = []
 var pedestais_no: Node3D  ## os quatro pedestais do lobby (somem no título)
 var luzes_das_bigornas: Array[OmniLight3D] = []  ## a luz quente da bigorna de cada lugar
 var _tw_bigorna := [null, null, null, null]
+var vitrine_no: Node3D
+var trofeus_no: Node3D
+var _cores_dos_trofeus: Array[Color] = []   ## o albedo do copo (ou do cubo) de cada troféu da vitrine
+var _amb: AudioStreamPlayer3D
+var _mat_do_tubo: ShaderMaterial
 var bigorna: Node3D
 var _cenas := {}
 var _tochas: Array[OmniLight3D] = []
@@ -50,6 +60,10 @@ func _ready() -> void:
 	_bigorna()
 	_pedestais()
 	_enfeites()
+	_vitrine()
+	mostrar_colecao()
+	# o fogo do salão: um laço de 8 s preso à bigorna (só toca com o salão à mostra)
+	_amb = Som.laco("amb_salao", self, bigorna.position, 0.0)
 
 
 func _process(dt: float) -> void:
@@ -168,41 +182,56 @@ func _portao(p: Dictionary) -> void:
 	var portao := peca("gate", pos + frente * 0.2, rot, K)
 	var anim: AnimationPlayer = portao.find_child("AnimationPlayer", true, false)
 
-	# a placa: o nome da sala e o que ela prova, virada para o salão
+	# a placa vira a etiqueta do cassete, em 3D: o papel, a tarja na tinta da seção, o nome
+	# na caneta, a linha impressa e uma marca por minigame da seção (arte/02)
 	var placa := Node3D.new()
 	placa.position = pos + frente * 1.15 + Vector3(0, 2.75, 0)
 	placa.rotation.y = rot
 	add_child(placa)
+	var n := Musica.SALA_DA_SECAO.find(str(p.id))
+	var papel := Kit.caixa(placa, Vector3(2.9, 0.95, 0.04), Vector3.ZERO, Kit.material(Tema.ETIQUETA_SOMBRA, 0.0, 0.9))
+	papel.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	var tarjas: Array = []
+	for i in 2:
+		var t := Kit.caixa(placa, Vector3(2.9, 0.10, 0.05), Vector3(0, 0.33, 0.01), Kit.material(Tema.tinta_da_secao(n), 0.0, 0.9))
+		t.visible = i == 0
+		tarjas.append(t)
 	var nome := Label3D.new()
 	nome.text = Desenho.t(p.nome)
-	nome.font = Tema.fonte(700)
-	nome.font_size = 96
-	nome.pixel_size = 0.004
-	nome.outline_size = 18
-	nome.outline_modulate = Color(Tema.CASA, 0.85)
-	nome.modulate = Tema.FG if p.aberta else Tema.MUDO
+	nome.font = Tema.marcador()
+	nome.font_size = 88
+	nome.pixel_size = 0.0042
+	nome.modulate = Tema.TINTA
+	nome.shaded = true
+	nome.outline_size = 0
+	nome.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+	nome.position = Vector3(-1.3, -0.03, 0.03)
 	placa.add_child(nome)
-	var icone := Sprite3D.new()
-	icone.texture = Desenho.glifo(p.icone)
-	icone.pixel_size = 0.0055
-	icone.position.y = 0.72
-	icone.modulate = Tema.ROXO if p.aberta else Tema.COMMENT
-	icone.shaded = false
-	icone.texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
-	placa.add_child(icone)
-	var sobre := Label3D.new()
-	sobre.text = Desenho.t(p.sobre) if p.aberta else Desenho.t(p.sobre) + " · " + Desenho.t("Em breve")
-	sobre.font = Tema.fonte(500)
-	sobre.font_size = 64
-	sobre.pixel_size = 0.004
-	sobre.width = 700
-	sobre.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	sobre.vertical_alignment = VERTICAL_ALIGNMENT_TOP
-	sobre.position.y = -0.3
-	sobre.outline_size = 14
-	sobre.outline_modulate = Color(Tema.CASA, 0.85)
-	sobre.modulate = Tema.ROXO if p.aberta else Tema.COMMENT
-	placa.add_child(sobre)
+	var faixas := Label3D.new()
+	faixas.font = Tema.vt()
+	faixas.font_size = 72
+	faixas.pixel_size = 0.0036
+	faixas.modulate = Tema.TINTA_SUAVE
+	faixas.shaded = true
+	faixas.outline_size = 0
+	faixas.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+	faixas.position = Vector3(-1.3, -0.32, 0.03)
+	placa.add_child(faixas)
+	var marcas: Array = []
+	var minis := Colecao.minigames_da_secao(str(p.id))
+	for i in minis.size():
+		marcas.append(Kit.caixa(placa, Vector3(0.12, 0.12, 0.01), Vector3(1.25 - 0.18 * i, -0.32, 0.03), Kit.material(Tema.ETIQUETA_SOMBRA, 0.0, 0.9)))
+	var foco := SpotLight3D.new()
+	foco.position = pos + frente * 5.0 + Vector3(0, 6.5, 0)
+	foco.light_color = Tema.TUNGSTENIO
+	foco.light_energy = FOCO_APAGADO
+	foco.spot_range = 24.0
+	foco.spot_angle = 12.0
+	foco.shadow_enabled = false
+	add_child(foco)
+	foco.look_at_from_position(foco.position, pos + frente * 0.6 + Vector3(0, 1.4, 0), Vector3.UP)
+	var tubo := Kit.caixa(placa, Vector3(3.1, 0.06, 0.06), Vector3(0, 0.57, 0.01), _material_do_tubo())
+	tubo.visible = false
 
 	# as tochas dos dois lados do portão
 	var luzes: Array[OmniLight3D] = []
@@ -214,7 +243,10 @@ func _portao(p: Dictionary) -> void:
 	portoes[p.id] = {
 		"no": moldura, "porta": portao, "anim": anim, "frente": frente, "pos": pos,
 		"placa": placa, "luzes": luzes, "aberta": p.aberta, "aberto": false, "dados": p,
+		"n": n, "papel": papel, "tarjas": tarjas, "marcas": marcas, "tubo": tubo, "foco": foco, "faixas": faixas,
+		"aceso": false,
 	}
+	_etiqueta(str(p.id), false)
 
 
 func _tocha(pos: Vector3, acesa: bool) -> OmniLight3D:
@@ -446,7 +478,6 @@ func _enfeites() -> void:
 	peca("barrel", Vector3(10.1, 0, -7.3), 0.7)
 	peca("wood-structure", Vector3(9.8, 0, 7.0), 0.0, K * 0.9)
 	peca("rocks", Vector3(-10.3, 0, 7.3), 0.4, K * 0.8)
-	peca("stones", Vector3(10.4, 0, -1.0), 1.1, K * 0.7)
 	peca("chest", Vector3(-10.0, 0.1, 0.0), PI * 0.5, K)
 	peca("table", Vector3(8.6, 0, 6.6), 0.2, K)
 	peca("pot", Vector3(7.7, 0, 7.3), 0.0, K * 0.9)
@@ -494,3 +525,142 @@ func saida_do_portao(id: String, lugar: int) -> Vector3:
 func centro_do_portao(id: String) -> Vector3:
 	var g: Dictionary = portoes.get(id, {})
 	return g.get("pos", Vector3.ZERO)
+
+
+# ----------------------------------------------------------------- a coleção --
+
+func _material_do_tubo() -> ShaderMaterial:
+	if _mat_do_tubo == null:
+		# o dono do tubo é a forja (teto 2,4 do arte/07); 1,3 de energia, para o glow pegar sem estourar
+		_mat_do_tubo = Kit.neon(Tema.TUNGSTENIO, 1.3)
+	return _mat_do_tubo
+
+
+## O estado de uma etiqueta: o papel, a tarja, o texto impresso, as marcas, a luz e o tubo.
+func _etiqueta(id: String, acesa: bool, lado_b := false) -> void:
+	var g: Dictionary = portoes[id]
+	var dados: Dictionary = g.dados
+	var n: int = g.n
+	g.aceso = acesa
+	((g.papel as MeshInstance3D).material_override as StandardMaterial3D).albedo_color = Tema.ETIQUETA if acesa else Tema.ETIQUETA_SOMBRA
+	var tinta := Tema.tinta_da_secao(n)
+	var tarjas: Array = g.tarjas
+	for i in tarjas.size():
+		var t := tarjas[i] as MeshInstance3D
+		(t.material_override as StandardMaterial3D).albedo_color = tinta if acesa else tinta.darkened(0.15)
+		# o lado B: duas caixas finas de 0,058 com 0,033 de vão no lugar da inteira
+		t.visible = i == 0 and not lado_b
+	if lado_b:
+		_tarja_dupla(g, tinta if acesa else tinta.darkened(0.15))
+	else:
+		for k in 2:
+			var b := (g.placa as Node3D).get_node_or_null("TarjaB%d" % k) as Node3D
+			if b:
+				b.visible = false
+	var marcas: Array = g.marcas
+	var vencidas := Colecao.marcas(id)
+	for i in marcas.size():
+		var m := marcas[i] as MeshInstance3D
+		var feita: bool = i < vencidas.size() and vencidas[i]
+		var cor := Tema.TINTA if feita else (Tema.ETIQUETA_SOMBRA if acesa else Tema.TINTA_SUAVE)
+		(m.material_override as StandardMaterial3D).albedo_color = cor
+	var total := marcas.size()
+	var linha := "S%d · EM BREVE" % n
+	if dados.aberta:
+		linha = "S%d · %d FAIXA%s" % [n, total, "" if total == 1 else "S"]
+	(g.faixas as Label3D).text = Desenho.t(linha)
+	(g.foco as SpotLight3D).light_energy = FOCO_ACESO if acesa else FOCO_APAGADO
+	(g.tubo as MeshInstance3D).visible = acesa
+
+
+func _tarja_dupla(g: Dictionary, cor: Color) -> void:
+	var placa: Node3D = g.placa
+	for k in 2:
+		var nome := "TarjaB%d" % k
+		var t := placa.get_node_or_null(nome) as MeshInstance3D
+		if t == null:
+			t = Kit.caixa(placa, Vector3(2.9, 0.058, 0.05), Vector3(0, 0.33 + (0.0165 + 0.029) * (1.0 if k == 0 else -1.0), 0.01), Kit.material(cor, 0.0, 0.9))
+			t.name = nome
+		(t.material_override as StandardMaterial3D).albedo_color = cor
+		t.visible = true
+
+
+## Acende etiquetas, marcas e tubos pela Colecao, refaz a vitrine; `lado_b` põe a tarja dupla.
+func mostrar_colecao(lado_b := false) -> void:
+	for p in PORTOES:
+		_etiqueta(str(p.id), Colecao.secao_acesa(str(p.id)), lado_b)
+	_refazer_a_vitrine()
+
+
+func portao_aceso(id: String) -> bool:
+	return bool(portoes.get(id, {}).get("aceso", false))
+
+
+func trofeus_na_vitrine() -> int:
+	return trofeus_no.get_child_count() if trofeus_no else 0
+
+
+## O albedo do copo da taça i (ou do cubo de um coop): a cor de quem venceu.
+func cor_do_trofeu(i: int) -> Color:
+	return _cores_dos_trofeus[i] if i >= 0 and i < _cores_dos_trofeus.size() else Color(0, 0, 0, 0)
+
+
+## O som de fundo do salão só corre com o salão à mostra.
+func pausar_ambiente(pausado: bool) -> void:
+	if _amb:
+		_amb.stream_paused = pausado
+
+
+## A vitrine da parede leste, entre os dois portões: dois montantes e três prateleiras.
+func _vitrine() -> void:
+	vitrine_no = Node3D.new()
+	vitrine_no.name = "Vitrine"
+	vitrine_no.position = Vector3(10.6, 0.0, 0.0)
+	vitrine_no.rotation.y = -PI * 0.5
+	add_child(vitrine_no)
+	var madeira := Kit.material(Tema.OXIDO, 0.0, 0.9)
+	for lado in [-1.0, 1.0]:
+		Kit.caixa(vitrine_no, Vector3(0.08, 1.9, 0.5), Vector3(lado * 1.25, 0.95, 0), madeira)
+	for y in [0.6, 1.2, 1.8]:
+		Kit.caixa(vitrine_no, Vector3(2.5, 0.08, 0.5), Vector3(0, y, 0), madeira)
+	trofeus_no = Node3D.new()
+	trofeus_no.name = "Trofeus"
+	vitrine_no.add_child(trofeus_no)
+
+
+func _refazer_a_vitrine() -> void:
+	for c in trofeus_no.get_children():
+		trofeus_no.remove_child(c)
+		c.queue_free()
+	_cores_dos_trofeus.clear()
+	var lista: Array = Colecao.trofeus
+	var de := maxi(0, lista.size() - VITRINE_MAX)
+	var madeira := Kit.material(Tema.OXIDO, 0.0, 0.9)
+	for i in range(de, lista.size()):
+		var k := i - de
+		var t := Node3D.new()
+		t.position = Vector3(-1.0 + (k % 6) * 0.4, 0.64 + floorf(k / 6.0) * 0.6, 0)
+		trofeus_no.add_child(t)
+		var trofeu: Dictionary = lista[i]
+		var lugar := int(trofeu.get("lugar", 0))
+		var cor: Color = Tema.JOGADOR[clampi(lugar, 0, 3)]
+		match str(trofeu.get("tipo", "vitoria")):
+			"recorde":
+				Kit.caixa(t, Vector3(0.16, 0.04, 0.16), Vector3(0, 0.02, 0), madeira)
+				var moeda := Kit.peca(t, "coin", Vector3(0, 0.12, 0), 0.0, 0.8)
+				moeda.rotation.x = PI * 0.5
+				_cores_dos_trofeus.append(cor)
+			"coop":
+				var primeiro := Color(0, 0, 0, 0)
+				for q in 4:
+					var mc := Kit.material(Tema.JOGADOR[q], 0.0, 0.6)
+					Kit.caixa(t, Vector3(0.07, 0.07, 0.07), Vector3(-0.105 + q * 0.07, 0.035, 0), mc)
+					if q == 0:
+						primeiro = Tema.JOGADOR[0]
+				_cores_dos_trofeus.append(primeiro)
+			_:
+				var m := Kit.material(cor, 0.0, 0.6)
+				Kit.caixa(t, Vector3(0.16, 0.04, 0.16), Vector3(0, 0.02, 0), m)
+				Kit.cilindro(t, 0.03, 0.10, Vector3(0, 0.09, 0), m)
+				var copo := Kit.cilindro(t, 0.06, 0.14, Vector3(0, 0.21, 0), m, 0.09)
+				_cores_dos_trofeus.append((copo.material_override as StandardMaterial3D).albedo_color)

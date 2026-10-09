@@ -318,3 +318,25 @@ static func nome_que_cabe(s: String, f: Font, tam: int, largura_da_caixa: float)
 
 static func largura_do_nome(s: String, f: Font, tam: int) -> float:
 	return f.get_string_size(s, HORIZONTAL_ALIGNMENT_LEFT, -1, Tema.t(tam)).x
+
+
+# ----------------------------------------------------------------- o chip --
+## O chip de um lugar no salão (400 x 64): a faixa da cor do dono, «P#» na cor dele e
+## `palavra` (o nome do cavaleiro, ou «Sem controle»). Com controle o chip é de quem está
+## pronto; sem, fica apagado. A cor nunca sozinha: o «P#» e a palavra vão escritos.
+static func chip(ci: CanvasItem, r: Rect2, lugar: int, pronto: bool, palavra := "") -> void:
+	var cor: Color = Tema.JOGADOR[clampi(lugar, 0, 3)]
+	caixa(ci, r, Tema.CASCO, 10, cor if pronto else Tema.GRAFITE, 3)
+	ci.draw_rect(Rect2(r.position + Vector2(6, 10), Vector2(8, r.size.y - 20)), cor if pronto else Tema.GRAFITE)
+	var f6 := Tema.archivo(700)
+	var f5 := Tema.archivo(600)
+	var base := r.position.y + r.size.y * 0.5 + 11.0
+	texto(ci, Vector2(r.position.x + 28, base), "P%d" % (lugar + 1), f6, 32, Tema.tom_para_a_borda(cor) if pronto else Tema.MUDO)
+	var x := r.position.x + 28 + largura("P4", f6, 32) + 18.0
+	var cabe := r.end.x - 18.0 - x
+	if palavra != "":
+		if pronto:
+			var nm := nome_que_cabe(palavra, f5, 32, cabe)
+			nome(ci, Vector2(x, base), nm, f5, 32, Tema.ETIQUETA)
+		else:
+			texto(ci, Vector2(x, base), caber(palavra, f5, 32, cabe, 1), f5, 32, Tema.LARANJA)

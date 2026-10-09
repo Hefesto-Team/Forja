@@ -69,6 +69,7 @@ func _ready() -> void:
 	await _prova_do_relatorio()
 	await _prova_de_fogo()
 	_prova_das_contas_da_partida()
+	_prova_das_contas_da_colecao()
 	_prova_das_contas_dos_itens()
 	_prova_do_teclado()
 	await _prova_da_partida()
@@ -961,7 +962,15 @@ func _prova_do_cavaleiro_guardado() -> void:
 	for a in ForjaPlayer.ACABAMENTOS:
 		maior = maxf(maior, float(a.metal))
 	_esperar(maior <= 0.2, "o metal de nenhum acabamento passa de 0,2 (%.2f)" % maior)
+	var colecao_antes := [Colecao.vencidos.duplicate(), Colecao.recordes.duplicate(), Colecao.trofeus.duplicate(), Colecao.desbloqueados.duplicate()]
+	Colecao.zerar()
 	_esperar(ForjaPlayer.acabamentos_disponiveis() == [0, 1, 2], "os acabamentos livres são três (%s)" % [ForjaPlayer.acabamentos_disponiveis()])
+	Colecao.desbloqueados = ["Dourado", "Cromado", "Néon"]
+	_esperar(ForjaPlayer.acabamentos_disponiveis() == [0, 1, 2, 3, 4, 5], "com a coleção, o Dourado, o Cromado e o Néon se oferecem (%s)" % [ForjaPlayer.acabamentos_disponiveis()])
+	Colecao.vencidos = colecao_antes[0]
+	Colecao.recordes = colecao_antes[1]
+	Colecao.trofeus = colecao_antes[2]
+	Colecao.desbloqueados = colecao_antes[3]
 	_esperar(ForjaPlayer.ITENS.size() == 7 and ForjaPlayer.ITENS[0].id == "" and ForjaPlayer.ITENS[1].id == "martelo", "os sete itens, o 0 de mãos livres")
 	remove_child(p)
 	p.free()
@@ -1250,6 +1259,101 @@ func _prova_da_partida() -> void:
 		q += 2
 	_esperar(jogo.estado == "salao" and jogo.partida == null and not jogo.placar.visible, "partida: ○ no pódio volta ao salão")
 	_esperar(Forja.som_pronto(), "partida: ○ no pódio, a placa de áudio continua aberta")
+	await _prova_da_colecao_no_salao()
+
+
+## O salão depois da partida (G06): o portão aceso, o contador, a vitrine, a dica presa e os sons do ✕.
+func _prova_da_colecao_no_salao() -> void:
+	await _quadros(4)
+	_esperar(Colecao.vencidos.has("centelha"), "coleção: A Centelha foi vencida nesta noite")
+	_esperar(jogo.salao.portao_aceso("centelha"), "o portão d'A Centelha acendeu")
+	# o robô já venceu os outros portões no percurso: tira o d'A Voz da noite para ver um apagado
+	var voz_antes = Colecao.vencidos.get("voz", null)
+	Colecao.vencidos.erase("voz")
+	jogo.salao.mostrar_colecao()
+	var foco: SpotLight3D = jogo.salao.portoes["centelha"].foco
+	var foco_fechado: SpotLight3D = jogo.salao.portoes["voz"].foco
+	_esperar(is_equal_approx(foco.light_energy, Salao.FOCO_ACESO) and is_equal_approx(foco_fechado.light_energy, Salao.FOCO_APAGADO), "o foco: %.2f aceso, %.2f apagado" % [foco.light_energy, foco_fechado.light_energy])
+	_esperar((jogo.salao.portoes["centelha"].tubo as Node3D).visible and not (jogo.salao.portoes["voz"].tubo as Node3D).visible, "o tubo de tungstênio só no portão aceso")
+	_esperar(not jogo.salao.portao_aceso("voz"), "um portão que ninguém venceu não acende")
+	if voz_antes != null:
+		Colecao.vencidos["voz"] = voz_antes
+	jogo.salao.mostrar_colecao()
+	_esperar(jogo.hud.vencidas == Colecao.secoes_acesas() and jogo.hud.vencidas >= 1, "o contador do salão (%d/9)" % jogo.hud.vencidas)
+	_esperar(jogo.salao.trofeus_na_vitrine() == mini(Colecao.trofeus.size(), 18), "a vitrine mostra os troféus (%d)" % Colecao.trofeus.size())
+	var dono: int = int(Colecao.vencidos["centelha"])
+	var primeiro := -1
+	for i in Colecao.trofeus.size():
+		if Colecao.trofeus[i].id == "centelha" and Colecao.trofeus[i].tipo == "vitoria":
+			primeiro = i
+	var de := maxi(0, Colecao.trofeus.size() - 18)
+	_esperar(primeiro >= de and jogo.salao.cor_do_trofeu(primeiro - de).is_equal_approx(Tema.JOGADOR[dono]), "a taça tem a cor de quem venceu")
+	_esperar(ForjaPlayer.acabamentos_disponiveis().has(3), "a construção oferece o Dourado")
+	# a dica presa e o som do ✕, sem entrar
+	jogo.jogadores[0].global_position = jogo.salao.saida_do_portao("centelha", 0)
+	await _quadros(3)
+	_esperar(jogo.hud.dica_presa.get("lugar", -1) == 0, "perto do portão, a dica presa ao P1")
+	var tela := Rect2(Vector2.ZERO, jogo.hud.size)
+	_esperar(jogo.hud.retangulos().all(func(r): return tela.encloses(r)), "o contador, os chips e a dica presa cabem na tela")
+	jogo._som_do_cruz(0, true)
+	var falante := 0.0
+	var t_parede := Time.get_ticks_msec()   # o som de 90 ms anda em tempo de parede; o jogo, sem janela, anda mais depressa
+	while Time.get_ticks_msec() - t_parede < 400:
+		await _quadros(1)
+		falante = maxf(falante, float(Forja.som_virtual(0).get("falante", 0.0)))
+	_esperar(falante > 0.0 or not Forja.modulo, "o ✕ soa no alto-falante de quem apertou (%.2f)" % falante)
+	jogo.jogadores[0].global_position = Vector3(-3.0, 0.05, 3.2)
+	await _quadros(3)
+	_esperar(jogo.hud.dica_presa.is_empty(), "longe do portão, nenhuma dica")
+
+
+## As contas da coleção, sem sala (G06).
+func _prova_das_contas_da_colecao() -> void:
+	var antes := [Colecao.vencidos.duplicate(), Colecao.recordes.duplicate(), Colecao.trofeus.duplicate(), Colecao.desbloqueados.duplicate()]
+	Colecao.zerar()
+	_esperar(Colecao.registrar("molde", [0, 0, 0, 0], [0, 1]).desbloqueou == [], "coleção: ninguém pontuou, nada se ganha")
+	_esperar(Colecao.trofeus.is_empty() and not Colecao.vencidos.has("molde"), "coleção: zero pontos não é vitória")
+	_esperar(Colecao.registrar("molde", [10, 40, 40, 0], [0, 1, 2]).desbloqueou == ["Dourado"], "coleção: a primeira vitória desbloqueia o Dourado")
+	_esperar(Colecao.vencidos["molde"] == 1, "coleção: o empate em cima vai para o menor lugar")
+	var r := Colecao.registrar("molde", [90, 0, 0, 0], [0, 1])
+	var tipos := Colecao.trofeus.map(func(t): return str(t.tipo))
+	_esperar(tipos == ["vitoria", "recorde"] and r.recorde == 0, "coleção: vencer de novo com mais pontos é recorde (%s)" % [tipos])
+	_esperar(Colecao.secao_acesa("molde") and not Colecao.secao_acesa("viga"), "coleção: a seção acende só com os minigames dela vencidos")
+	Colecao.registrar("viga", [5, 0, 0, 0], [0])
+	Colecao.registrar("canto", [0, 5, 0, 0], [1])
+	_esperar(Colecao.secoes_acesas() == 3 and Colecao.desbloqueado("Cromado"), "coleção: três seções acesas desbloqueiam o Cromado")
+	Colecao.registrar("caminhos", [1, 1, 1, 1], [0, 1, 2, 3], true, true)
+	_esperar(Colecao.desbloqueado("Néon"), "coleção: o coop sem erro desbloqueia o Néon")
+	_esperar(Colecao.registrar("caminhos", [1, 1, 1, 1], [0, 1, 2, 3], true, false).desbloqueou == [], "coleção: nada se ganha duas vezes")
+	# o arquivo: outra noite começa vazia e a mais velha se apaga
+	var arq := "user://prova_colecao.cfg"
+	var noite_antes := Colecao.noite
+	Colecao.noite = "2026-10-01"
+	Colecao.gravar(false, arq)
+	Colecao.zerar()
+	Colecao.noite = "2026-10-02"
+	Colecao.ler(arq)
+	_esperar(Colecao.vencidos.is_empty() and Colecao.trofeus.is_empty(), "coleção: outra noite começa vazia")
+	Colecao.noite = "2026-10-01"
+	Colecao.ler(arq)
+	_esperar(Colecao.vencidos.has("molde") and Colecao.desbloqueado("Néon"), "coleção: a mesma noite volta do arquivo")
+	for k in Colecao.NOITES_GUARDADAS + 2:
+		Colecao.noite = "2026-11-%02d" % (k + 1)
+		Colecao.gravar(false, arq)
+	var cfg := ConfigFile.new()
+	cfg.load(arq)
+	_esperar(cfg.get_sections().size() <= Colecao.NOITES_GUARDADAS and not cfg.has_section("2026-10-01"), "coleção: o arquivo guarda só as %d noites mais novas (%d)" % [Colecao.NOITES_GUARDADAS, cfg.get_sections().size()])
+	DirAccess.remove_absolute(ProjectSettings.globalize_path(arq))
+	Colecao.gravar(true, arq)   # o robô não grava
+	_esperar(not FileAccess.file_exists(arq), "coleção: com o robô nada se grava")
+	Colecao.noite = noite_antes
+	for a in ForjaPlayer.ACABAMENTOS:
+		_esperar(float(a.get("metal", 0.0)) <= 0.2 and float(a.get("acento", 1.6)) <= 3.0, "acabamento %s: metal até 0,2 e acento até 3,0" % a.nome)
+	_esperar(ForjaPlayer.ACABAMENTOS[5].nome == "Néon" and float(ForjaPlayer.ACABAMENTOS[5].acento) == 2.4, "o Néon tem o acento de 2,4")
+	Colecao.vencidos = antes[0]
+	Colecao.recordes = antes[1]
+	Colecao.trofeus = antes[2]
+	Colecao.desbloqueados = antes[3]
 
 
 ## O relógio (H01): a volta do laço (a conta pura), o relógio do sistema sem

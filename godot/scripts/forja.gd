@@ -141,6 +141,7 @@ func _ready() -> void:
 	if not modulo:
 		push_warning("FORJA sem o módulo nativo: só o teclado, e nenhuma saída chega a controle")
 	Opcoes.carregar(robo)
+	Colecao.carregar(robo)
 	aplicar_opcoes()
 	registrar_opcoes()
 
