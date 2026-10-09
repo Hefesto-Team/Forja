@@ -107,6 +107,8 @@ caixa_julgar() {
 ## mais novas da prova, mostra as últimas 20 linhas do maior registro e, por
 ## último, «o registro: <caminho>». Uso, logo depois do source:
 ##   caixa_pasta prova-do-jogo; TMP="$CAIXA_PASTA"
+## CAIXA_SEM_GUARDAR="wine ..." diz as subpastas que pesam e não são registro:
+## no vermelho elas não são copiadas.
 _CAIXA_RAIZ="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 caixa_pasta() {
   CAIXA_NOME="$1"
@@ -120,6 +122,9 @@ _caixa_fim() {
     rm -rf "$CAIXA_PASTA"
     return 0
   fi
+  # o que não é registro e pesa (o prefixo do Wine da prova da exportação) não vai para o .cache
+  local x
+  for x in ${CAIXA_SEM_GUARDAR:-}; do rm -rf "${CAIXA_PASTA:?}/$x"; done
   local base="$_CAIXA_RAIZ/.cache/provas"
   local destino="$base/$CAIXA_NOME-$(date +%Y%m%d-%H%M%S)"
   local n=2
