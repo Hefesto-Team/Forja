@@ -1386,6 +1386,18 @@ func _prova_da_letra_e_da_margem() -> void:
 		_esperar(r.end.x <= x_chips - 24.0 + 0.5, "HUD: o quadro de «%s» acaba antes dos chips (%.0f)" % [par[0], r.end.x])
 		_esperar(r.position.x + 28.0 >= Tema.MARGEM_X, "HUD: o texto do quadro de «%s» começa na margem" % par[0])
 		_esperar(r.end.y > 150.0 and r.end.y < 260.0, "HUD: o quadro de «%s» tem altura de quadro (%.0f)" % [par[0], r.end.y])
+	# a ação de toda sala cabe inteira no quadro, também com o texto grande das Opções
+	var antes_q := Tema.escala_texto
+	for esc in [1.0, 1.15]:
+		Tema.escala_texto = esc
+		for id in jogo.SALAS:
+			var sl = jogo.SALAS[id].new()
+			var qs: Dictionary = HudJogo.quadro_da_sala(str(sl.nome), str(sl.acao), 1920.0)
+			sl.free()
+			_esperar(not str(qs["acao"]).ends_with("…"), "HUD: a ação de «%s» cabe inteira (%.2f×: %s)" % [id, esc, qs["acao"]])
+			_esperar((qs["rect"] as Rect2).end.x <= x_chips - 24.0 + 0.5 and (qs["rect"] as Rect2).end.y < 300.0,
+				"HUD: o quadro de «%s» fica antes dos chips (%.2f×)" % [id, esc])
+	Tema.escala_texto = antes_q
 	# a linha de status cabe no chip: não passa para o texto do chip do lado
 	for linha in ["Brasa · vida 100 · 99 balas", "Maré · vida 100 · 99 balas", "Brasa · derrubado", "Rodada 12 de 12 · 9999 ✓", "Brasa · vida 100 · 99 balas · recarregando a arma agora"]:
 		var dita := HudJogo.linha_do_status(linha)
