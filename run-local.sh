@@ -28,15 +28,8 @@ fi
 echo "==> módulo nativo (SDL3 + godot-cpp; a primeira vez baixa e compila)"
 "$ROOT/scripts/compilar.sh" linux
 
-if [[ ! -x "$GODOT_BIN" ]]; then
-  echo "==> baixando Godot ${GODOT_VER} (editor Linux x86_64, ~60 MB)"
-  mkdir -p "$ROOT/tools"
-  tmp="$(mktemp -d)"
-  curl -fsSL -o "$tmp/godot.zip" "$GODOT_URL"
-  unzip -o -q "$tmp/godot.zip" -d "$ROOT/tools"
-  chmod +x "$GODOT_BIN"
-  rm -rf "$tmp"
-fi
+# O download e a conferência do sha512 moram no engine.sh, num lugar só.
+forja_baixar_engine
 
 echo "==> importando os assets (a primeira vez demora)"
 "$GODOT_BIN" --headless --path "$ROOT/godot" --import >"$ROOT/build/godot-import.log" 2>&1 || true

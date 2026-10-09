@@ -25,7 +25,6 @@ cd "$RAIZ"
 source "$RAIZ/scripts/engine.sh"   # a versão da engine mora lá (ADR-009)
 GODOT_VER="$FORJA_GODOT_VER"
 GODOT_BIN="$FORJA_GODOT"
-GODOT_URL="https://github.com/godotengine/godot/releases/download/${GODOT_VER}/Godot_v${GODOT_VER}_linux.x86_64.zip"
 MODELOS_URL="https://github.com/godotengine/godot/releases/download/${GODOT_VER}/Godot_v${GODOT_VER}_export_templates.tpz"
 MODELO_LINUX="linux_release.x86_64"
 MODELO_LINUX_SHA256="d9f79ab89b5ae369aeed11c6052d402e8218cd503bf85b4a235f9c30c46a7c63"
@@ -45,18 +44,9 @@ DIST="$RAIZ/dist"
 
 diga() { printf '==> %s\n' "$*"; }
 
+# O download e a conferência do sha512 moram no engine.sh, num lugar só.
 garantir_godot() {
-  if [[ -x "$GODOT_BIN" ]]; then
-    return
-  fi
-  diga "baixando Godot ${GODOT_VER} (editor Linux x86_64, ~60 MB)"
-  mkdir -p "$RAIZ/tools"
-  local tmp
-  tmp="$(mktemp -d)"
-  curl -fsSL -o "$tmp/godot.zip" "$GODOT_URL"
-  unzip -o -q "$tmp/godot.zip" -d "$RAIZ/tools"
-  chmod +x "$GODOT_BIN"
-  rm -rf "$tmp"
+  forja_baixar_engine || exit 1
 }
 
 confere() { # $1 = arquivo, $2 = sha256
