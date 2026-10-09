@@ -27,7 +27,8 @@ Tudo o mais está copiado aqui: o `_pista`, o `_respondeu`, os ids de som e os n
 | `godot/scripts/minigames/catalogo.gd` | `"S07_J33"` em `MINIGAMES` e na seção `S07`, depois do `S07_J32` | **sim** |
 | `godot/scripts/traducoes.gd` | as frases novas | **sim** |
 | `godot/testes/prova_do_jogo.gd` | a `_prova_passo_no_fosso()` no `match` de `_prova_da_ficha` | **sim** |
-| `godot/assets/kenney/platformer-kit/` | `python3 scripts/importar_kenney.py "oficina/kenney/3.7.0/3D assets" platformer-kit` (G10) | **sim** |
+| `scripts/importar_kenney.py` | a linha nova, no formato das que já estão lá (pasta → pacote, papel, filtro): `platformer-kit` → Platformer Kit em `APROVADOS`, papel `cenario`, filtro «tudo» (a G10 manda os kits da coluna «entra» do 14 entrarem assim quando um minigame pede) | **sim** |
+| `godot/assets/kenney/platformer-kit/` | `python3 scripts/importar_kenney.py platformer-kit` (G10), depois da linha acima | **sim** |
 | `docs/jogo/sistemas/minigames.csv`, linha da O3 | `genero` de `corrida` para `tct`; os ganchos não mudam | **sim** |
 
 ## A ficha de dados
@@ -121,9 +122,16 @@ lente: a cabeça dos cavaleiros do fundo fica a 69 % da meia altura, os pés dos
 do plasma a 87 %. Roll zero. Nunca corta. Enquanto o kit não tem a lente por sala, vale o campo de 40°
 de hoje com a mesma pose.
 
-**A luz** (S7, lado B, tinta petróleo `Tema.SECAO[2]`): `Tema.luz_da_secao(7, "B")` (G15): névoa `#011311`,
-preenchimento `#11413b`, chave `#e5d7ad`, com a chave a ×0,85 e a névoa a ×1,3. Saem o `luzes(...)`, o
-`atmosfera(Color("#ffb070"), Tema.CIANO, ...)` e o plasma `Tema.CIANO` de hoje.
+**A luz** (S7, tinta petróleo `Tema.SECAO[2]` = `#1f8a7e`): a ficha não chama `Tema.luz_da_secao`. A entrada da sala
+chama `acender(7, partida.lado() == "B")` (G15 e G16), e o lado não é fixo: a S7 pode cair no lado A (antes do
+intervalo) ou no B (depois). A G15 tira de `Tema.luz_da_secao(7, lado_b)` a névoa `#011311`, o preenchimento `#11413b` e a chave
+`#e5d7ad`, com densidade 0,012 e energia da chave 1,8; no lado B, densidade ×1,3 (0,0156) e chave ×0,85 (1,53). A
+chave são as tochas de `luzes()`: a ficha as monta com `luzes([Vector3(-9, 2.5, -4), Vector3(9, 2.5, -4), Vector3(0,
+3.0, 4)])`, e o `Sala.acender(luz)` as pinta. Quando a ficha mexe na chave, multiplica a `light_energy` dessas tochas
+sobre a `energia_chave` que a G15 pôs. O preenchimento é `environment.ambient_light_energy` (0,42 pela G15) e a névoa é
+`environment.fog_density` (sobre a `densidade`), com `var environment := get_viewport().find_world_3d().environment`.
+A ficha não escreve cor de luz em hex: saem o `atmosfera(Color("#ffb070"), Tema.CIANO, ...)`
+e o plasma `Tema.CIANO` de hoje, e as tochas do `luzes(...)` de hoje dão lugar às três de cima.
 
 - **O pico:** na entrada do vapor, a chave sobe 20 % em 1 batida e a névoa abre (densidade ×0,8); volta em 2 batidas no
   fim do pico. Com `Opcoes.flashes` desligado, sobe 10 % em 2 batidas.

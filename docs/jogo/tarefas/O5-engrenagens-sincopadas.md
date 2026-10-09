@@ -27,7 +27,7 @@ H08), os ids de som, os números de luz e câmera.
 | `godot/scripts/minigames/catalogo.gd` | `"S07_J35"` em `MINIGAMES` e na seção `S07`, depois do `S07_J34` | **sim** |
 | `godot/scripts/traducoes.gd` | as frases novas | **sim** |
 | `godot/testes/prova_do_jogo.gd` | a `_prova_engrenagens()` no `match` de `_prova_da_ficha` | **sim** |
-| `godot/assets/kenney/factory-kit/` | `python3 scripts/importar_kenney.py "oficina/kenney/3.7.0/3D assets" factory-kit` (G10), se a O4 ainda não importou | **sim** (a O4 usa) |
+| `godot/assets/kenney/factory-kit/` | `python3 scripts/importar_kenney.py factory-kit` (G10; já está em `APROVADOS`), se a O4 ainda não importou | **sim** (a O4 usa) |
 
 ## A ficha de dados
 
@@ -81,7 +81,11 @@ A faixa é `MUS_S07_J35`, 130 bpm (uma batida = 0,4615 s). `BATIDA_DA_PRIMEIRA_N
   (`FOLGA_PERDIDA`, do kit) → `_respondeu(l, n, "nenhuma")`, `nota_perdida(l, n)`.
 - **A subida:** cada salto julgado sobe a **equipe** 1 engrenagem (`_subir(e, 1)`) e marca `marcar_equipe(e,
   PONTOS[j])`, `PONTOS := [0, 50, 75, 100]` (os pontos vão para os dois da dupla: o kit).
-- **A meta:** `META := 16` engrenagens.
+- **A meta:** `META := 68` engrenagens. O número vem da conta da partida (400 sementes; salto certo +1, erro −1, a
+  mestra +3, a reta +2): a equipe perfeita chega na batida 120 (55,4 s), depois da mestra; com os quatro `bom`, na
+  mediana na 132 (60,9 s), e a mestra decide em todas; na mesa padrão, a Brasa chega em 77 % das sementes, na mediana
+  na batida 184 (84,9 s), e a reta é anotada em 82 %. Com 16, a equipe perfeita chegava na batida 36 (16,6 s), a
+  partida acabava antes do pico e a prova `_mestra_decidiu >= 0` falhava.
 - **A partitura simples** (`Ritmo.simples[l]`): o lugar salta só nos compassos pares; nos ímpares, nem clique nem nota
   para ele. No pico, salta nos quatro.
 - **O pico, a engrenagem-mestra:** os `PICO_COMPASSOS := 4` compassos a partir de `_pico_m := floor((_fim_b -
@@ -104,9 +108,16 @@ do `montar()`. `alvos_da_camera()` devolve os quatro bonecos da torre (jogadores
 de pé, o centro dela. A G05 amortece (`k = dt * 4.0`): nunca salta. Lente de 35 mm por sala quando o kit tiver; até lá,
 o campo de 40° de hoje. Roll zero.
 
-**A luz** (S7, lado B, tinta petróleo `Tema.SECAO[2]`): `Tema.luz_da_secao(7, "B")` (G15): névoa `#011311`,
-preenchimento `#11413b`, chave `#e5d7ad`, chave ×0,85 e névoa ×1,3. Saem `luzes(...)`, `atmosfera(Color("#ffb070"),
-...)` e o ferro `#3b3f4c` / `#5b6275` de hoje.
+**A luz** (S7, tinta petróleo `Tema.SECAO[2]` = `#1f8a7e`): a ficha não chama `Tema.luz_da_secao`. A entrada da sala
+chama `acender(7, partida.lado() == "B")` (G15 e G16), e o lado não é fixo: a S7 pode cair no lado A (antes do
+intervalo) ou no B (depois). A G15 tira de `Tema.luz_da_secao(7, lado_b)` a névoa `#011311`, o preenchimento `#11413b` e a chave
+`#e5d7ad`, com densidade 0,012 e energia da chave 1,8; no lado B, densidade ×1,3 (0,0156) e chave ×0,85 (1,53). A
+chave são as tochas de `luzes()`: a ficha as monta com `luzes([Vector3(-9, 2.5, -4), Vector3(9, 2.5, -4), Vector3(0,
+3.0, 4)])`, e o `Sala.acender(luz)` as pinta. Quando a ficha mexe na chave, multiplica a `light_energy` dessas tochas
+sobre a `energia_chave` que a G15 pôs. O preenchimento é `environment.ambient_light_energy` (0,42 pela G15) e a névoa é
+`environment.fog_density` (sobre a `densidade`), com `var environment := get_viewport().find_world_3d().environment`.
+A ficha não escreve cor de luz em hex: saem o `atmosfera(Color("#ffb070"), ...)` e o ferro
+`#3b3f4c` / `#5b6275` de hoje, e as tochas do `luzes(...)` de hoje dão lugar às três de cima.
 
 - **O pico:** quando a mestra entra (batida 92), a chave sobe 20 % em 1 batida e fica até ela decidir.
 - **A decisão:** a chave sobe mais 40 % por 1 batida e volta à luz da seção em 2 batidas. Com `Opcoes.flashes`
@@ -119,13 +130,16 @@ preenchimento `#11413b`, chave `#e5d7ad`, chave ×0,85 e névoa ×1,3. Saem `luz
 | --- | --- | --- | --- | --- |
 | o chão | `Kit.arena(self, 5, 3)` (do kit) | — | — | — |
 | as torres | um `Node3D` por equipe | — | — | `(X_TORRE[e], 0, -1.0)`, `X_TORRE := [-3.6, 3.6]` |
-| o eixo | `Kit.cilindro(torre, 0.2, ALTURA_ENG * (META + 2), Vector3(0, ALTURA_ENG * (META + 2) / 2.0, 0), Kit.material(Tema.OXIDO_BRILHO, 0.2, 0.7))` | — | 15,3 m | no centro da torre |
-| as engrenagens | `factory-kit/cog-a`, `META + 1` por torre | 4,4 | 2,2 m de diâmetro, 0,48 m de espessura | `(0, ALTURA_ENG * nivel, 0)`, `ALTURA_ENG := 0.9`; o topo de cada uma fica a `+0.15` |
+| o eixo | `Kit.cilindro(torre, 0.2, ALTURA_ENG * (META + 2), Vector3(0, ALTURA_ENG * (META + 2) / 2.0, 0), Kit.material(Tema.OXIDO_BRILHO, 0.2, 0.7))` | — | 17,5 m | no centro da torre |
+| as engrenagens | `factory-kit/cog-a`, `META + 1` por torre | 4,4, e depois `scale.y *= 0.5` (achatada) | 2,2 m de diâmetro, 0,25 m de espessura | `(0, ALTURA_ENG * nivel, 0)`, `ALTURA_ENG := 0.25`: as engrenagens empilham encostadas; o topo de cada uma fica a `+0.08` (a peça vai de −0,15 a +0,075 m na escala 1) |
 | a mestra | `factory-kit/cog-e`, uma | 14,4 | 7,2 m de diâmetro, 1,58 m (4 vezes o cavaleiro) | num `Node3D` `_mestra` em `(0, y_m, -4.5)`, de pé (`rotation.x = PI / 2`) |
-| o Aprendiz | `load("res://assets/kenney/character-human.glb").instantiate()` | `ForjaPlayer.ESCALA` | 1,8 m | no lugar do membro que falta |
+| o Aprendiz | `load(Kit.caminho("mini-dungeon-personagens/character-human")).instantiate()` (G10) | `ForjaPlayer.ESCALA` | 1,8 m | no lugar do membro que falta |
 
 - **As engrenagens giram** pela batida: `rotation.y = (1 if nivel % 2 == 0 else -1) * Ritmo.batida() * PI / 4`. A
   torre que ganhou a mestra gira ×4 por 2 batidas.
+- **A torre cabe na câmera:** 69 engrenagens de 0,25 m dão 17,25 m; a maior distância de altura entre as duplas é
+  `META * ALTURA_ENG` = 17 m, e a câmera `"grupo"` no teto de `camera_distancia` (28 m) vê 20,4 m na vertical com o
+  campo de 40°. As duas duplas cabem sempre no quadro.
 - **A mestra:** escondida (`visible = false`) até a batida 92; aí sobe de `y = -3.6` a `y_m` em 2 batidas, com
   `y_m = maxf(3.8, ALTURA_ENG * (_altura[0] + _altura[1]) / 2.0 + 1.0)`, medido na entrada. Gira no próprio eixo
   `PI / 8` por batida. Depois da decisão, fica de pé e girando até o fim, pintada da equipe que a ganhou.
@@ -148,7 +162,7 @@ preenchimento `#11413b`, chave `#e5d7ad`, chave ×0,85 e névoa ×1,3. Saem `luz
 Sem luz de dono: o dono se lê pela borda do disco e pelos acentos do cavaleiro. O Aprendiz não tem borda.
 
 **Os cavaleiros na cena:** o minigame **não** chama `raia(l)` nem `posicionar(l)` (a dupla está na torre). A em
-`X_TORRE[e] - 0.9`, B em `X_TORRE[e] + 0.9`, `z = -1.0`, na altura `ALTURA_ENG * _altura[e] + 0.15`, de frente para a
+`X_TORRE[e] - 0.9`, B em `X_TORRE[e] + 0.9`, `z = -1.0`, na altura `ALTURA_ENG * _altura[e] + 0.08`, de frente para a
 câmera (`rotation.y = 0`), `p.preso = true`. O salto: `p.gesto("jump", 0.35)`, e a altura anda por `lerpf` na meia
 batida depois do salto (pela batida, dividida pelo `velocidade`).
 
@@ -213,11 +227,25 @@ o inferior e o item. A ficha **nunca recolore** nem muda a energia de uma peça:
 no disco e nos dentes, nunca na roupa.
 
 **O Aprendiz não é jogador:** é o `character-human` do pacote, tingido inteiro de `Tema.ETIQUETA_SOMBRA` (`#cfc2a0`)
-pelo `_tingir` de `prova.gd` (linhas 200 a 209, copiado), sem cabeça, roupa nem item da G13, sem contorno, sem borda no
-disco. A cor de areia sem acento é o que o separa dos cavaleiros. **Não** use o `character-orc`: o orc agora é uma raça
-de jogador. Ele anima pelo `AnimationPlayer` dele (`jump`, `idle`, `fall`).
+pelo `_tingir` abaixo, sem cabeça, roupa nem item da G13, sem contorno, sem borda no disco. A cor de areia sem acento é o que o separa dos cavaleiros. **Não** use o `character-orc`: o orc agora é uma raça
+de jogador. Ele anima pelo `AnimationPlayer` dele (`jump`, `idle`, `fall`). O `_tingir`, copiado de
+`godot/scripts/salas/prova.gd` (linhas 200 a 210), com a cor `Tema.ETIQUETA_SOMBRA`:
 
-Os ganchos (`Cavaleiro.gancho(l, "<gancho>")`, H04; a linha 35 do `minigames.csv`):
+```gdscript
+static func _tingir(n: Node, cor: Color) -> void:
+	if n is MeshInstance3D:
+		var mi := n as MeshInstance3D
+		if mi.mesh:
+			for s in mi.mesh.get_surface_count():
+				var mat := StandardMaterial3D.new()
+				mat.albedo_color = cor
+				mat.roughness = 0.9
+				mi.set_surface_override_material(s, mat)
+	for filho in n.get_children():
+		_tingir(filho, cor)
+```
+
+Os ganchos (`Cavaleiro.gancho(l, "<gancho>")`, H04; a O5 no `minigames.csv`):
 
 | stat | gancho | o que muda aqui | 1 | 3 | 5 |
 | --- | --- | --- | --- | --- | --- |
@@ -329,8 +357,8 @@ extends Minigame
 
 const FICHA := { ... }   # a de cima
 
-const META := 16
-const ALTURA_ENG := 0.9
+const META := 68
+const ALTURA_ENG := 0.25
 const PONTOS := [0, 50, 75, 100]
 const ACERTO_APRENDIZ := 0.8
 const X_TORRE := [-3.6, 3.6]

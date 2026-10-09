@@ -25,7 +25,7 @@ Tudo o mais está copiado aqui: o `_pista`, o `_respondeu`, o `_robo_sente`, os 
 | `godot/scripts/minigames/catalogo.gd` | `"S07_J32"` em `MINIGAMES` e na seção `S07`, depois do `S07_J31` | **sim** |
 | `godot/scripts/traducoes.gd` | as frases novas | **sim** |
 | `godot/testes/prova_do_jogo.gd` | a `_prova_neblina()` no `match` de `_prova_da_ficha` | **sim** |
-| `godot/assets/kenney/graveyard-kit/`, `hexagon-kit/` | importados pela O1; se faltarem, `python3 scripts/importar_kenney.py "oficina/kenney/3.7.0/3D assets" graveyard-kit hexagon-kit` (G10) | **sim** |
+| `godot/assets/kenney/graveyard-kit/`, `hexagon-kit/` | importados pela O1 (a linha `hexagon-kit` de `APROVADOS` é dela); se faltarem, `python3 scripts/importar_kenney.py graveyard-kit hexagon-kit` (G10) | **sim** |
 
 ## A ficha de dados
 
@@ -75,8 +75,11 @@ A faixa é `MUS_S07_J32`, 100 bpm (uma batida = 0,6 s). `BATIDA_DA_PRIMEIRA_NOTA
   só soa quando ele pisa firme. A melodia da neblina é a soma dos pés certos.
 - **Os pontos e o avanço** (`toque`): uma laje por salto julgado; `marcar(l, PONTOS[j])` com `PONTOS := [0, 50, 75,
   100]`; `_respondeu(l, n, "certo")`.
-- **A meta:** `META := 24` lajes; um marco a cada `MARCO := 4`, para todos. A diversão pede «marco a cada 4 para quem
-  está em último»: já é 4 para todos hoje, e fica assim.
+- **A meta:** `META := 100` lajes; um marco a cada `MARCO := 4`, para todos. A diversão pede «marco a cada 4 para quem
+  está em último»: já é 4 para todos hoje, e fica assim. O número vem da conta da partida (500 sementes): o robô
+  `bom` chega em 84 % delas, no mínimo na batida 142 e na mediana na 159; o perfeito, na mediana na 155. Com os 8 de
+  cortesia, toda chegada passa de `RETA_B` (150): o pico (batida 85) e a reta acontecem em toda partida. Com 24, o
+  `bom` chegava na batida 43 (26 s), antes dos dois.
 - **A partitura simples** (`Ritmo.simples[l]`): dali em diante, só as batidas pares podem ser firmes (as ímpares viram
   neblina).
 - **O pico, a neblina engrossa:** as 16 batidas a partir de `_pico_b := BATIDA_DA_PRIMEIRA_NOTA + floor((_fim_b -
@@ -96,10 +99,17 @@ de fora (x ±6, até 1,8 m de altura) fica a 77 % da meia largura e a cerca de f
 da lente. Roll zero. Nunca corta. Enquanto o kit não tem a lente por sala, vale o campo de 40° de
 hoje com a mesma pose.
 
-**A luz** (S7, lado B, tinta petróleo `Tema.SECAO[2]`): `Tema.luz_da_secao(7, "B")` (G15) dá a névoa `#011311`, o
-preenchimento `#11413b` e a chave `#e5d7ad`, com a chave a ×0,85 e a névoa a ×1,3. **O terror é a mesma luz,
-escurecida:** a chave e o preenchimento a ×0,35 da energia que a G15 devolve. Saem o `atmosfera(Color("#b9b0ff"), ...)`,
-as tochas `#ffb070` e a laje `#0d0b14` de hoje.
+**A luz** (S7, tinta petróleo `Tema.SECAO[2]` = `#1f8a7e`): a ficha não chama `Tema.luz_da_secao`. A entrada da sala
+chama `acender(7, partida.lado() == "B")` (G15 e G16), e o lado não é fixo: a S7 pode cair no lado A (antes do
+intervalo) ou no B (depois). A G15 tira de `Tema.luz_da_secao(7, lado_b)` a névoa `#011311`, o preenchimento `#11413b` e a chave
+`#e5d7ad`, com densidade 0,012 e energia da chave 1,8; no lado B, densidade ×1,3 (0,0156) e chave ×0,85 (1,53). A
+chave são as tochas de `luzes()`: a ficha as monta com `luzes([Vector3(-9, 2.5, -4), Vector3(9, 2.5, -4), Vector3(0,
+3.0, 4)])`, e o `Sala.acender(luz)` as pinta. Quando a ficha mexe na chave, multiplica a `light_energy` dessas tochas
+sobre a `energia_chave` que a G15 pôs. O preenchimento é `environment.ambient_light_energy` (0,42 pela G15) e a névoa é
+`environment.fog_density` (sobre a `densidade`), com `var environment := get_viewport().find_world_3d().environment`.
+A ficha não escreve cor de luz em hex: sai o `atmosfera(Color("#b9b0ff"), ...)` de hoje, a
+cor `#ffb070` das tochas passa a vir da G15 e sai a laje `#0d0b14`. **O terror é a mesma luz, escurecida:** na entrada,
+depois do `acender`, a chave e o preenchimento a ×0,35 da energia que a G15 pôs.
 
 - **O pico:** a regra do pico do 01 (chave +20 %) não vale no terror. Na batida `_pico_b`, a chave desce de ×0,35 para
   ×0,25 em 1 batida e a densidade da névoa sobe ×1,5; volta em 2 batidas depois das 16. Com `Opcoes.flashes` desligado,
@@ -327,7 +337,7 @@ extends Minigame
 
 const FICHA := { ... }   # a de cima
 
-const META := 24
+const META := 100
 const MARCO := 4
 const PASSO := 1.2
 const PONTOS := [0, 50, 75, 100]

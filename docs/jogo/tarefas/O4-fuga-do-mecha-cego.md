@@ -26,7 +26,9 @@ e o contrato do `Cega` da bancada (o mesmo da O1).
 | `godot/scripts/minigames/catalogo.gd` | `"S07_J34"` em `MINIGAMES` e na seção `S07`, depois do `S07_J33` | **sim** |
 | `godot/scripts/traducoes.gd` | as frases novas | **sim** |
 | `godot/testes/prova_do_jogo.gd` | a `_prova_mecha_cego()` no `match` de `_prova_da_ficha` | **sim** |
-| `godot/assets/kenney/factory-kit/`, `modular-cave-kit/`, `graveyard-kit/` | `python3 scripts/importar_kenney.py "oficina/kenney/3.7.0/3D assets" factory-kit modular-cave-kit graveyard-kit` (G10; o `graveyard-kit` já vem da O1) | **sim** (a O5 usa o `factory-kit`) |
+| `docs/jogo/sistemas/minigames.csv`, linha da O4 | o gancho `raio` passa de «o holofote se vê de mais longe» para «o passo do mecha se sente de mais longe», que é o que a tabela de stats abaixo faz | **sim** |
+| `scripts/importar_kenney.py` | a linha nova, no formato das que já estão lá (pasta → pacote, papel, filtro): `modular-cave-kit` → Modular Cave Kit (o fator 0,25 já está em `ESCALA_DO_PACOTE`, G10) em `APROVADOS`, papel `cenario`, filtro «tudo» (a G10 manda os kits da coluna «entra» do 14 entrarem assim quando um minigame pede) | **sim** |
+| `godot/assets/kenney/factory-kit/`, `modular-cave-kit/`, `graveyard-kit/` | `python3 scripts/importar_kenney.py factory-kit modular-cave-kit graveyard-kit` (G10), depois da linha acima; o `graveyard-kit` já vem da O1 | **sim** (a O5 usa o `factory-kit`) |
 
 ## A ficha de dados
 
@@ -90,8 +92,9 @@ uma ou duas **paradas**. Em cada parada o mecha sorteia onde está, com o `_rng`
   fuga só fecha se todos acertam.
 - **A partitura simples** (`Ritmo.simples[l]`): os passos da ronda normal começam 1 batida antes (`b0 - 1`, cinco
   passos); a fuga não muda. No pico e na reta, nada muda.
-- **O pico:** as três rondas a partir de `_pico_f := floor((_fim_b - BATIDA_DA_PRIMEIRA_NOTA) / FRASE / 2)` = 14 (b0 de
-  116 a 132, 49,7 s a 66 s).
+- **O pico:** o terço do meio da partida, em rondas inteiras: as `PICO_RONDAS := 8` rondas a partir de `_pico_f :=
+  ceili((_fim_b / 3.0 - BATIDA_DA_PRIMEIRA_NOTA) / FRASE)` = 10 (b0 de 84 a 140; de 36,0 s até o fim da ronda 17, na
+  batida 148, 63,4 s). A ronda 18 acabaria em 66,9 s, depois dos dois terços (66,6 s), e fica fora.
 - **A reta:** as rondas com `b0 >= _fim_b - 16` (b0 220 e 228). A ronda 228 é cortada pelo fim aos 100 s: vale o que
   couber.
 - **Ensina sem falar:** na ronda 0, o mecha fica **à vista** a ronda inteira, no x dele; o primeiro passo vem do lado
@@ -105,10 +108,17 @@ crescer sobre a sala. Medido com a projeção da lente: os cavaleiros de fora (x
 largura, e o topo do mecha (6,6 m) a 83 % da meia altura. Roll zero. Nunca corta. Enquanto o kit não tem a lente por
 sala, vale o campo de 40° de hoje com a mesma pose.
 
-**A luz** (S7, lado B, tinta petróleo `Tema.SECAO[2]`): `Tema.luz_da_secao(7, "B")` (G15): névoa `#011311`,
-preenchimento `#11413b`, chave `#e5d7ad`, chave ×0,85 e névoa ×1,3. **O terror é a mesma luz, escurecida:** a chave e o
-preenchimento a ×0,35. Saem o `atmosfera(Color("#b9b0ff"), ...)`, as tochas `#ffb070`, o aço `#4a4452` e o olho
-`#ff3a1a` de hoje.
+**A luz** (S7, tinta petróleo `Tema.SECAO[2]` = `#1f8a7e`): a ficha não chama `Tema.luz_da_secao`. A entrada da sala
+chama `acender(7, partida.lado() == "B")` (G15 e G16), e o lado não é fixo: a S7 pode cair no lado A (antes do
+intervalo) ou no B (depois). A G15 tira de `Tema.luz_da_secao(7, lado_b)` a névoa `#011311`, o preenchimento `#11413b` e a chave
+`#e5d7ad`, com densidade 0,012 e energia da chave 1,8; no lado B, densidade ×1,3 (0,0156) e chave ×0,85 (1,53). A
+chave são as tochas de `luzes()`: a ficha as monta com `luzes([Vector3(-9, 2.5, -4), Vector3(9, 2.5, -4), Vector3(0,
+3.0, 4)])`, e o `Sala.acender(luz)` as pinta. Quando a ficha mexe na chave, multiplica a `light_energy` dessas tochas
+sobre a `energia_chave` que a G15 pôs. O preenchimento é `environment.ambient_light_energy` (0,42 pela G15) e a névoa é
+`environment.fog_density` (sobre a `densidade`), com `var environment := get_viewport().find_world_3d().environment`.
+A ficha não escreve cor de luz em hex: saem o `atmosfera(Color("#b9b0ff"), ...)`, o aço
+`#4a4452` e o olho `#ff3a1a` de hoje, e a cor `#ffb070` das tochas passa a vir da G15. **O terror é a mesma luz,
+escurecida:** na entrada, depois do `acender`, a chave e o preenchimento a ×0,35 da energia que a G15 pôs.
 
 - **O pico:** a luz não muda (a pressa do mecha é o pico).
 - **A catástrofe:** em cada pego, a chave sobe 40 % (de ×0,35 a ×0,49) por 1 batida e volta em 1 batida; com
@@ -169,8 +179,8 @@ Só ids do mapa (`docs/jogo/audio/mapa.csv`):
 | o pego, no dono | `mod_grito` | alto-falante do dono | `Forja.som_falante(l, "grito", 0.5)` |
 | o barulho do fantasma | `carimbo_*` | TV | `Som.tocar("carimbo", pos, -4.0)` |
 
-A TV nunca toca nada durante os passos: um som posicional do mecha entregaria o lado a todos. `mod_material_metal` ainda
-não lista a O4 na coluna `fichas` do mapa: o diretor de som acrescenta.
+A TV nunca toca nada durante os passos: um som posicional do mecha entregaria o lado a todos. `mod_material_metal` já
+lista a O4 na coluna `fichas` do mapa.
 
 ## O controle
 
@@ -254,16 +264,16 @@ rodada); os vivos, não.
 ele, o olho acende, o holofote cai sobre a raia, o cavaleiro faz `die`, o alto-falante dele grita. A sala inteira prende
 o ar em cada parada.
 
-- **O exagero:** o objeto é 3,7 vezes o cavaleiro; a chave +40 % por 1 batida; `tremer(Sala.TREMOR_EXPLOSAO)` (G05,
-  o degrau pede 0,08 por 4 batidas); **sem** hit-stop; a mão (`golpe`), a barra (mágica 2), a TV (sino) e o grito no
+- **O exagero:** o objeto é 3,7 vezes o cavaleiro; a chave +40 % por 1 batida; `tremer(Sala.TREMOR_EXPLOSAO)` (G05:
+  é o tremor do degrau nesta versão, e a ficha não cria outro); **sem** hit-stop; a mão (`golpe`), a barra (mágica 2), a TV (sino) e o grito no
   mesmo quadro.
 - **O rastro:** o cavaleiro fica caído no holofote até o fim da ronda (o holofote apaga no `b0` seguinte); a lanterna
   caída fica no chão até o fim da partida.
 - **O dono do grito:** a luz de dono dos outros cai 30 % por 1 batida e volta em 1 batida.
 - **A linha:** no pego, `anotar("momento", l, {"nome": "pego", "t_musica": Ritmo.t_musica()})`. Na batida `_fim_b -
   16`, `anotar("momento", -1, {"nome": "reta", "t_musica": Ritmo.t_musica(), "ordem": vencedor()})`.
-- **A curva:** 0 a 49,7 s, o mecha anda (um lado por parada); 49,7 a 66 s, o mecha corre (atravessa a mão, duas
-  varreduras); 66 s ao fim, as rondas normais e os fantasmas fazendo barulho; nas últimas 16 batidas, duas paradas por
+- **A curva:** 0 a 36,0 s, o mecha anda (um lado por parada); 36,0 a 63,4 s, o mecha corre (atravessa a mão, duas
+  varreduras); 63,4 s ao fim, as rondas normais e os fantasmas fazendo barulho; nas últimas 16 batidas, duas paradas por
   ronda, e as fugas valem 2.
 - **Quem está perdendo:** o fantasma aperta ✕ uma vez por ronda, nos passos; os passos da ronda seguinte chegam a 0,6
   para todos os vivos. Fica.
@@ -364,7 +374,7 @@ const FICHA := { ... }   # a de cima
 const FRASE := 8
 const XS_MECHA := [-8.0, -4.0, 0.0, 4.0, 8.0]
 const PONTOS_FUGA := [0, 25, 40, 50]
-const PICO_RONDAS := 3
+const PICO_RONDAS := 8
 const PICO_PARES := [[1.0, 0.0], [0.7, 0.3], [0.3, 0.7], [0.0, 1.0]]   ## (partida, chegada)
 const OUVIDO := 10.0
 const ABAFADO := 0.6
@@ -417,7 +427,7 @@ func iniciar_jogo() -> void:
 	_rng.seed = rng.seed + 34
 	_robo_rng.seed = rng.seed + 99
 	_fim_b = int(floor(duracao / _t_batida()))
-	_pico_f = int(floor(float(_fim_b - BATIDA_DA_PRIMEIRA_NOTA) / FRASE / 2.0))
+	_pico_f = ceili((_fim_b / 3.0 - BATIDA_DA_PRIMEIRA_NOTA) / FRASE)
 	for l in presentes():
 		_rumble[l] = not Forja.som_tem(l, Forja.PAPEL_HAPTICA) or not Forja.som_estereo(l, Forja.PAPEL_HAPTICA)
 		if _rumble[l]:

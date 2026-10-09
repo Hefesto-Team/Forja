@@ -29,6 +29,7 @@ números de luz e câmera.
 | `godot/scripts/minigames/minigame.gd` | `"momento"` em `TIPOS_DO_JOGO`, se ainda não estiver | **sim** (o kit) |
 | `docs/jogo/13-arquitetura.md` | a linha `momento` na tabela «Os eventos do jogo», no mesmo commit | **sim** |
 | `godot/scripts/salas/caminhos.gd` e o `.uid` | saem (`git rm`) | não |
+| `scripts/importar_kenney.py` | três linhas novas, no formato das que já estão lá (pasta → pacote, papel, filtro): `mini-forest` → Mini Forest, `hexagon-kit` → Hexagon Kit, `tower-defense-kit` → Tower Defense Kit em `APROVADOS`, papel `cenario`, filtro «tudo» (a G10 manda os kits da coluna «entra» do 14 entrarem assim quando um minigame pede) | **sim** |
 | `godot/assets/kenney/mini-forest/`, `hexagon-kit/`, `tower-defense-kit/`, `graveyard-kit/` | importados pelo script da G10 | **sim** (a O2 e a O4 usam o `graveyard-kit`) |
 
 Na `prova_do_jogo.gd`, o que sai e o que muda (as linhas de hoje):
@@ -96,14 +97,18 @@ falar que o chão vem de baixo e passa.
   `nota_perdida(l, k)` com `_motivo[l] = "parou"`.
 - **Os pontos e o avanço** (`toque`): o cavaleiro avança `AVANCO[j]` trechos (BOM 1,0; ÓTIMO 1,25; PERFEITO 1,5) e
   marca `round(100 * avanço)`.
-- **A meta:** `META := 12.0` trechos até o portão. Um trecho = `LADRILHO := 1.5` m.
+- **A meta:** `META := 57.0` trechos até o portão. Um trecho = `LADRILHO := 1.5` m. O número vem da conta da
+  partida: o perfeito faz 48 trechos até 66 s e chega na batida 178 ou depois, e com a `CORTESIA` de 8 batidas a
+  partida passa de `RETA_B` (184); o robô `bom` (95 %) chega em 44 % das sementes, perto da batida 182; o `medio` não
+  chega. Assim o pico e a reta acontecem em toda partida. A trilha tem `META + 3` = 60 trechos.
 - **A partitura simples** (`Ritmo.simples[l]`): as bifurcações de `k` ímpar, fora do pico, viram corredor reto: sem
   senha, sem nota; o cavaleiro anda 0,5 trecho sozinho em `b0 + 6`.
 - **O relógio:** a `duracao` é 100 s de música (o kit conta em tempo de música, H08). `FIM_BATIDA :=
   BATIDA_DA_PRIMEIRA_NOTA + 196` só serve para prever as bifurcações.
-- **O pico, a descida** (33 a 66 s): `_pico_k = floor((FIM_BATIDA - BATIDA_DA_PRIMEIRA_NOTA) / CICLO / 2)` = 12. As
-  bifurcações 12 a 15 vêm no dobro (`CICLO_PICO := 4`): o 1º passo da senha em `b0`, **nos dois atuadores**, as trilhas
-  e a escolha em `b0 + 2`, e o avanço vale 1,5 vez.
+- **O pico, a descida** (33 a 66 s): toda bifurcação que **começa** com `b0` de `PICO_DE_B := 66` (33 s) até antes de
+  `PICO_ATE_B := 132` (66 s) vem no dobro (`CICLO_PICO := 4`): o 1º passo da senha em `b0`, **nos dois atuadores**, as
+  trilhas e a escolha em `b0 + 2`, e o avanço vale 1,5 vez. O pico se mede pela batida, não pelo número da
+  bifurcação: com o hoqueto, cada lugar entra e sai nele na sua vez.
 - **A reta** (as últimas 16 batidas, de `RETA_B := FIM_BATIDA - 16` em diante): cada bifurcação certa vale **2 trechos**
   (no lugar de `AVANCO[j]`) e `200` pontos, para todos. Nenhuma regra nova.
 - **A lama se espalha** (quem está perdendo): quando alguém cai na lama de chão `c`, a próxima bifurcação do líder
@@ -118,17 +123,24 @@ falar que o chão vem de baixo e passa.
 77 % da meia largura e as placas de fora (x ±6,8) a 74 %, medido com a projeção da lente. Roll zero. **Nunca corta** durante o jogo. Enquanto o kit não tem a lente por sala, a câmera do main fica com o
 campo de hoje (40°) e a pose acima vale do mesmo jeito (2 % mais aberta).
 
-**A luz da seção** (S7, lado B, tinta petróleo `Tema.SECAO[2]` = `#1f8a7e`): por `Tema.luz_da_secao(7, "B")` (G15),
-que devolve a névoa `#011311`, o preenchimento `#11413b` e a chave `#e5d7ad` do [01](../arte/01-cinema.md#a-luz-de-cada-seção),
-com a chave a ×0,85 e a névoa a ×1,3 do lado A. A ficha não escreve cor de luz em hex: sai o
-`atmosfera(Color("#b9b0ff"), ...)` de hoje e saem as tochas `#ffb070`.
+**A luz** (S7, tinta petróleo `Tema.SECAO[2]` = `#1f8a7e`): a ficha não chama `Tema.luz_da_secao`. A entrada da sala
+chama `acender(7, partida.lado() == "B")` (G15 e G16), e o lado não é fixo: a S7 pode cair no lado A (antes do
+intervalo) ou no B (depois). A G15 tira de `Tema.luz_da_secao(7, lado_b)` a névoa `#011311`, o preenchimento `#11413b` e a chave
+`#e5d7ad`, com densidade 0,012 e energia da chave 1,8; no lado B, densidade ×1,3 (0,0156) e chave ×0,85 (1,53). A
+chave são as tochas de `luzes()`: a ficha as monta com `luzes([Vector3(-9, 2.5, -4), Vector3(9, 2.5, -4), Vector3(0,
+3.0, 4)])`, e o `Sala.acender(luz)` as pinta. Quando a ficha mexe na chave, multiplica a `light_energy` dessas tochas
+sobre a `energia_chave` que a G15 pôs. O preenchimento é `environment.ambient_light_energy` (0,42 pela G15) e a névoa é
+`environment.fog_density` (sobre a `densidade`), com `var environment := get_viewport().find_world_3d().environment`.
+A ficha não escreve cor de luz em hex: sai o `atmosfera(Color("#b9b0ff"), ...)` de hoje e
+a cor `#ffb070` das tochas passa a vir da G15.
 
-- **O pico:** na batida de `_pico_k`, a chave sobe 20 % em 1 batida (0,5 s) e a névoa abre (densidade ×0,8); volta em
-  2 batidas quando a bifurcação 15 acaba. Com `Opcoes.flashes` desligado, sobe 10 % em 2 batidas.
+- **O pico:** na batida `PICO_DE_B` (66, 33 s), a chave sobe 20 % em 1 batida (0,5 s) e a névoa abre (densidade
+  ×0,8); volta em 2 batidas a partir de `PICO_ATE_B` (132, 66 s). Com `Opcoes.flashes` desligado, sobe 10 % em 2 batidas.
 - **O dono do grito:** na lama de `l`, a luz de dono das outras três raias cai 30 % por 1 batida e volta em 1 batida.
 
 **As peças Kenney** (G10, `Kit.peca(pai, "<pacote>/<peça>", pos, rot_y, escala)`; sem barra = `mini-dungeon`). Antes:
-`python3 scripts/importar_kenney.py "oficina/kenney/3.7.0/3D assets" mini-forest hexagon-kit tower-defense-kit graveyard-kit`.
+as três linhas novas de `APROVADOS` (em «Arquivos que mudam») e `python3 scripts/importar_kenney.py mini-forest hexagon-kit
+tower-defense-kit graveyard-kit`, que acha o All-in-1 em `oficina/kenney/` sozinho.
 
 | papel | peça | escala | onde |
 | --- | --- | --- | --- |
@@ -176,10 +188,10 @@ Só ids do [mapa do áudio](../o-time/o-mapa-do-audio.md) (`docs/jogo/audio/mapa
 | a lama, na TV | `fx_tropeco_*` (hoje `falha_*`, que ele substitui) | TV | `Som.tocar("falha", pos, -4.0)` |
 | a chegada | `portao_0` | TV | `Som.tocar("portao", pos)` |
 | a chegada, no dono | `mod_coleta` | alto-falante do dono | `Forja.som_falante(l, "coleta", 0.7)` |
-| a descida (o pico) | `sobe_0` | TV | `Som.tocar("sobe")` na bifurcação 12 |
+| a descida (o pico) | `sobe_0` | TV | `Som.tocar("sobe")` na batida `PICO_DE_B` (66) |
 
-A nota de cada um e o julgamento escrito são do kit. `fx_tropeco_*` e `falha_*` ainda não listam a O1 na coluna
-`fichas` do mapa: o diretor de som acrescenta.
+A nota de cada um e o julgamento escrito são do kit. `fx_tropeco_*` e `falha_*` já listam a O1 na coluna `fichas` do
+mapa.
 
 ## O controle
 
@@ -232,7 +244,7 @@ do começo ao fim. A lama é uma caixa em volta dele, não uma cor nele. A luz d
 e não chega às peças. A raça não muda a raia, o passo nem a janela; o superior e o inferior ficam nas faixas de
 valor da bíblia do cavaleiro (tecido L 0,46 a 0,58, couro 0,22 a 0,36), com o néon do dono só nos acentos a 1,6.
 
-Os ganchos (`Cavaleiro.gancho(l, "<gancho>")`, H04; a linha 31 do `minigames.csv`):
+Os ganchos (`Cavaleiro.gancho(l, "<gancho>")`, H04; a O1 no `minigames.csv`):
 
 | stat | gancho | o que muda aqui | 1 | 3 | 5 |
 | --- | --- | --- | --- | --- | --- |
@@ -263,14 +275,15 @@ No máximo 1 carimbo vivo por jogador e 2 na tela. Adesivos `rea_*`: só de quem
 -0.5`), faz `fall` (0,8 s), e a bifurcação seguinte se perde no lamaçal: sem senha, sem nota, `walk` a 0,4 e avanço de
 0,25 trecho, enquanto os outros passam.
 
-- **O exagero:** 48 partículas de lama; `tremer(Sala.TREMOR_GOLPE)` (G05; o degrau pede 2 batidas, amplitude 0,05);
+- **O exagero:** 48 partículas de lama; `tremer(Sala.TREMOR_GOLPE)` (G05: é o tremor do degrau nesta versão, e a ficha não cria outro);
   hit-stop de 3 quadros (50 ms) só no cavaleiro (`p.anim.speed_scale = 0.0` e volta a 1,0 depois de 0,05 s de
   música); a mão, a TV e o quadro no mesmo quadro de 16,7 ms.
 - **O rastro:** a caixa de lama fica em volta dele até o fim da bifurcação seguinte (8 batidas = 4 s); a placa de lama
   fica no caminho e quem vem atrás a vê.
 - **A linha:** na queda, `anotar("momento", l, {"nome": "lama", "t_musica": Ritmo.t_musica()})`. Na batida `RETA_B`,
   `anotar("momento", -1, {"nome": "reta", "t_musica": Ritmo.t_musica(), "ordem": <os lugares por _dist, do maior ao menor>})`.
-- **A curva:** 0 a 33 s, uma bifurcação a cada 8 batidas; 33 a 66 s, a descida no dobro; 66 s ao fim, a reta.
+- **A curva:** 0 a 33 s, uma bifurcação a cada 8 batidas; 33 a 66 s, a descida no dobro; 66 a 92 s, uma a cada 8 de
+  novo; 92 s (batida 184) ao fim, a reta.
 - **Ensina sem falar:** a primeira senha de cada um vem com a placa certa acesa por 1 batida.
 - **Quem está na frente se vê:** a distância na pista (o portão de cada raia mais perto).
 
@@ -305,8 +318,9 @@ const FIM_BATIDA := BATIDA_DA_PRIMEIRA_NOTA + 196
 const RETA_B := FIM_BATIDA - 16
 const CICLO := 8
 const CICLO_PICO := 4
-const PICO_BIFURCACOES := 4
-const META := 12.0
+const PICO_DE_B := 66.0      ## 33 s
+const PICO_ATE_B := 132.0    ## 66 s
+const META := 57.0
 const CORTESIA := 8.0
 const LADRILHO := 1.5
 const AVANCO := [0.0, 1.0, 1.25, 1.5]
@@ -336,7 +350,6 @@ var _passo_b := [-9.0, -9.0, -9.0, -9.0]
 var _passos_dados := [0, 0, 0, 0]
 var _chegada: Array = []
 var _fim_batida := -1.0
-var _pico_k := 999
 var _reta_anotada := false
 var _rumble := [false, false, false, false]
 var _chao := {}           ## lugar -> Cega (a bancada)
@@ -357,7 +370,7 @@ func montar() -> void:
 	camera_pos = Vector3(0, 12.6, 8.6)
 	camera_olhar = Vector3(0, 0.4, -1.6)
 	Kit.arena(self, 5, 3)
-	# a luz da seção: Tema.luz_da_secao(7, "B") (G15), ver «A cena»
+	luzes([Vector3(-9, 2.5, -4), Vector3(9, 2.5, -4), Vector3(0, 3.0, 4)])   # a cor e a energia: acender (G15), «A cena»
 	for p in jogadores:
 		var l: int = p.lugar
 		_nos[l] = _montar_raia(l)
@@ -367,7 +380,6 @@ func montar() -> void:
 
 func iniciar_jogo() -> void:
 	_robo_rng.seed = rng.seed + 99
-	_pico_k = int(floor(float(FIM_BATIDA - BATIDA_DA_PRIMEIRA_NOTA) / CICLO / 2.0))
 	var ordem := presentes()
 	for i in ordem.size():
 		var l: int = ordem[i]
@@ -394,17 +406,17 @@ func jogar(_dt: float) -> void:
 			continue
 		if _fora[l]:
 			_fora[l] = false
-			while _b0[l] + _ciclo(_k[l]) - 2 < b + 0.5:
+			while _b0[l] + _ciclo_de(_b0[l]) - 2 < b + 0.5:
 				_pular(l)
 		_senha_na_mao(l, b)
 		var k: int = _k[l]
-		var escolha := _b0[l] + _ciclo(k) - 2
+		var escolha := _b0[l] + _ciclo_de(_b0[l]) - 2
 		var alvo := Ritmo.t_da_batida(escolha)
 		acender_raia(l, clampf(1.0 - absf(Ritmo.t_musica() - alvo) * 4.0, 0.0, 1.0))
 		if _lama[l] == k or _reto[l]:
 			if b >= escolha and _passo_b[l] < escolha:
 				_andar(l, 0.25 if _lama[l] == k else 0.5, escolha)
-		elif _escolheu[l] < 0 and b >= _b0[l] + _ciclo(k) / 2:
+		elif _escolheu[l] < 0 and b >= _b0[l] + _ciclo_de(_b0[l]) / 2:
 			var d := _direcao(l)
 			if d >= 0:
 				_escolher(l, d, alvo)
@@ -420,8 +432,8 @@ func jogar(_dt: float) -> void:
 				_respondeu(l, k, "nenhuma")
 				_motivo[l] = "parou"
 				nota_perdida(l, k)
-		if b >= _b0[l] + _ciclo(k):
-			_b0[l] += _ciclo(k)
+		if b >= _b0[l] + _ciclo_de(_b0[l]):
+			_b0[l] += _ciclo_de(_b0[l])
 			_k[l] = k + 1
 			_nova_bifurcacao(l)
 	if _fim_batida > 0.0 and b >= _fim_batida:
@@ -432,8 +444,8 @@ func jogar(_dt: float) -> void:
 
 func toque(l: int, j: int) -> void:
 	var k: int = _k[l]
-	var b_escolha := _b0[l] + _ciclo(k) - 2
-	var ganho: float = 2.0 if b_escolha >= RETA_B else AVANCO[j] * (1.5 if _no_pico(k) else 1.0)
+	var b_escolha := _b0[l] + _ciclo_de(_b0[l]) - 2
+	var ganho: float = 2.0 if b_escolha >= RETA_B else AVANCO[j] * (1.5 if _no_pico(_b0[l]) else 1.0)
 	if _enlameada[l] == k:
 		ganho *= 0.5
 	marcar(l, int(round(100.0 * ganho)))
@@ -469,9 +481,9 @@ func dar_vereditos(l: int) -> Array:
 
 As funções que faltam, pelo que já foi dito:
 
-- `_ciclo(k)`: `CICLO_PICO` se `_no_pico(k)`, senão `CICLO`. `_no_pico(k)`: `k >= _pico_k and k < _pico_k + PICO_BIFURCACOES`.
+- `_ciclo_de(b0)`: `CICLO_PICO` se `_no_pico(b0)`, senão `CICLO`. `_no_pico(b0)`: `b0 >= PICO_DE_B and b0 < PICO_ATE_B`.
 - `_nova_bifurcacao(l)`: sorteia a senha e os outros dois chãos com `_rng[l]`, põe a certa numa das três posições,
-  `_escolheu[l] = -1`, `_passos_dados[l] = 0`, `_reto[l] = Ritmo.simples[l] and k % 2 == 1 and not _no_pico(k)`, zera
+  `_escolheu[l] = -1`, `_passos_dados[l] = 0`, `_reto[l] = Ritmo.simples[l] and k % 2 == 1 and not _no_pico(_b0[l])`, zera
   `_robo_votos[l]`, e `nova_nota(l, k, Ritmo.t_da_batida(escolha))` se não for reta nem lama.
 - `_pular(l)`: avança `_b0` e `_k` sem nota.
 - `_senha_na_mao(l, b)`: os passos em `b0` (esquerdo) e `b0 + 2` (direito), no pico só `b0` (os dois), adiantados pelo
@@ -509,13 +521,13 @@ func robo(l: int, _dt: float) -> void:
 	if _lama[l] == k or _reto[l] or _escolheu[l] >= 0 or _robo_k[l] == k:
 		return
 	var b := Ritmo.batida()
-	if b < _b0[l] + _ciclo(k) / 2:
+	if b < _b0[l] + _ciclo_de(_b0[l]) / 2:
 		return
 	if _robo_mira_de[l] != k:
 		_robo_mira_de[l] = k
 		_robo_certo[l] = Forja.robo_acerta()
 		_robo_atraso[l] = 0.0 if _robo_certo[l] or _robo_rng.randf() < 0.5 else 0.25
-	var alvo := Ritmo.t_da_batida(_b0[l] + _ciclo(k) - 2)
+	var alvo := Ritmo.t_da_batida(_b0[l] + _ciclo_de(_b0[l]) - 2)
 	if Ritmo.t_musica() < alvo + float(_robo_atraso[l]):
 		return
 	var sentido := _mais_votado(l)   # o chão que a mão sentiu, ou -1
@@ -642,7 +654,7 @@ func _prova_os_caminhos() -> void:
 	var olhar := func(mg: Minigame) -> void:
 		var b := Ritmo.batida()
 		for l in mg.presentes():
-			if mg._no_pico(mg._k[l]) or mg._reto[l] or mg._lama[l] == mg._k[l]:
+			if mg._no_pico(mg._b0[l]) or mg._reto[l] or mg._lama[l] == mg._k[l]:
 				continue
 			var v := Forja.som_virtual(l)
 			var e := float(v.get("esq", 0.0))
