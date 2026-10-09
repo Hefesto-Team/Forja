@@ -190,8 +190,7 @@ static void dar_reserva(Forja *a, int idx, int s, const char *evento) {
   pad_leds_do_slot(a, p);
   Evento ev;
   ev_iniciar(&ev, &a->lt, "conexao", s + 1);
-  ev_str(&ev, "evento", evento);
-  ev_int(&ev, "lugar", s);
+  ev_str(&ev, "evento", evento); /* o lugar vai na cabeça (jogador - 1) */
   ev_str(&ev, "nome", p->nome);
   ev_fim(&ev, &a->lt);
   reg_linha(&a->reg, "%s %s %s", pads_rotulo_slot(s), SDL_strcmp(evento, "trocou") == 0 ? "passou a ser de" : "reservou", p->nome);

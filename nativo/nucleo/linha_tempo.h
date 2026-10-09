@@ -18,6 +18,7 @@ typedef struct LinhaTempo {
 
 typedef struct Evento {
   TextoBuf b;
+  unsigned cabeca; /* o que a cabeça já escreveu além de t e tipo: 1 jogador e lugar, 2 t_musica */
 } Evento;
 
 void lt_abrir(LinhaTempo *lt, const char *caminho, Uint64 inicio_ns);
@@ -29,7 +30,9 @@ void lt_t_musica(double s);
 
 /* Um evento: tipo ("saida", "entrada", "sala", "jogo", "confirmacao",
  * "conexao") e jogador (1..4, 0 = a mesa). Toda linha com jogador leva também
- * o `lugar` (jogador - 1). Campos, e fim. */
+ * o `lugar` (jogador - 1). Campos, e fim. Um campo com o nome de uma chave que
+ * a cabeça já escreveu (t, tipo, jogador, lugar, t_musica) não entra: a cabeça
+ * vence, e a linha nunca tem chave repetida. */
 void ev_iniciar(Evento *e, const LinhaTempo *lt, const char *tipo, int jogador);
 void ev_str(Evento *e, const char *chave, const char *valor);
 void ev_num(Evento *e, const char *chave, double valor);

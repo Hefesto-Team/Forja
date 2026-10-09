@@ -1192,3 +1192,22 @@ func _prova_do_registro_v2() -> void:
 		_esperar(is_equal_approx(float(a.get("t_musica", -1.0)), 12.5) and int(a.get("lugar", -1)) == 1,
 			"com a música informada a linha leva t_musica, e o lugar vem com o jogador")
 		_esperar(not (sondas[1] as Dictionary).has("t_musica"), "sem a música (-1) a linha volta a não ter t_musica")
+	# a cabeça vence: um campo com o nome de uma chave da cabeça não entra de novo (JSON com chave
+	# repetida quebra leitor estrito, e o Ritmo e a reserva mandam lugar como campo)
+	Forja.t_musica(3.0)
+	Forja.evento("sonda", 3, {"lugar": 9, "jogador": 9, "t_musica": 99.0, "tipo": "outro", "dupla": true})
+	Forja.t_musica(-1.0)
+	var repetidas := 0
+	var cruas := 0
+	for f in DirAccess.get_files_at(pasta):
+		if f.begins_with("linha-do-tempo-") and f.ends_with(".jsonl"):
+			for s in FileAccess.get_file_as_string(pasta.path_join(f)).split("\n", false):
+				cruas += 1
+				for chave in ["\"t\": ", "\"tipo\": ", "\"jogador\": ", "\"lugar\": ", "\"t_musica\": "]:
+					if s.count(chave) > 1:
+						repetidas += 1
+	_esperar(cruas > 100 and repetidas == 0, "nenhuma linha repete chave da cabeça (%d repetidas em %d linhas)" % [repetidas, cruas])
+	var dupla := _linha_do_tempo().filter(func(e): return e.get("tipo") == "sonda" and e.get("dupla") == true)
+	_esperar(dupla.size() == 1 and int(dupla[0].get("lugar", -1)) == 2 and int(dupla[0].get("jogador", -1)) == 3
+		and is_equal_approx(float(dupla[0].get("t_musica", -1.0)), 3.0),
+		"o campo repetido cede à cabeça: lugar 2, jogador 3 e t_musica 3")

@@ -343,3 +343,15 @@ trocado reprovam as quatro checagens correspondentes; com `--acelerado` o `t` da
 
 **Para o André (local):** o que está em «Para o André (local)» acima (gauntlet, `prova_de_poucos`,
 a exportação e uma partida com um controle no cabo e outro no rádio, para ver `usb` e `bt`).
+
+**Conferência (leva 1, o-controle):** a cabeça escrevia `jogador` e `lugar`, e o campo `lugar`
+entrava de novo: a reserva (`dar_reserva`, no `pads.c`) e o Ritmo (`nota`, `toque`, a calibração)
+o mandam, e 35 linhas por sessão saíam com chave repetida (o `JSON.parse_string` do Godot fica com
+a última e esconde; um leitor estrito reprova). O mesmo valia para o `t_musica` assim que a H01
+chamar `Forja.t_musica` com o Ritmo tocando. Cura na origem: o `Evento` guarda o que a cabeça
+escreveu e todo `ev_*` pula a chave que já está lá (a cabeça vence); a reserva parou de mandar o
+`lugar` como campo; o `lt_abrir` zera a música da sessão. A prova lê as linhas cruas e conta chave
+da cabeça repetida (0 em 4445 linhas), e uma sonda com `lugar`, `jogador` e `t_musica` de mentira
+confere que o campo cede à cabeça. Mordida: sem a cura, 35 repetidas e as duas checagens
+reprovam. Para a H01: com a música informada, o `t_musica` do Ritmo cede ao da cabeça; se os dois
+diferirem, vale o da cabeça.
