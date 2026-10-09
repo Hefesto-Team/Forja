@@ -326,7 +326,7 @@ FICHA; redeclarar `RAIAS` na filha é erro de análise; o minigame **não tem**
 | as raias | `raia(l) -> Node3D` monta a laje, a borda na cor do lugar e a luz da vez em `RAIAS[l]`; `posicionar(l)` põe o boneco nela |
 | quem está conectado | `conectado(l) -> bool` |
 | o relógio | `Ritmo.tocar(...)` com a faixa da ficha na fase `jogo` |
-| o julgamento | `julgar_toque(l, t_alvo, n := -1, perigo := false) -> int`: chama `Ritmo.julgar` (com a folga de quem está em último se `perigo`), aplica o item (G03), grava o `toque` com o número da nota, chama `sentir` e o som da nota |
+| o julgamento | `julgar_toque(l, t_alvo, n := -1, perigo := false) -> int`: chama `Ritmo.julgar` (com a folga de quem está em último se `perigo`) com a janela de `Itens.janela_perfeito`, aplica `Itens.pontos_do_acerto`, `Itens.absorve_erro` e `Itens.ganho_da_nota` (G03), grava o `toque` com o número da nota, chama `sentir` e o som da nota |
 | as notas | `nova_nota(l, n, t_alvo)` registra a nota; `nota_perdida(l, n)` registra o erro sem toque e chama `falha` |
 | quem joga | `presentes()`, `na_raia(l)` (a guarda de `dica`/`status`), `acender_raia(l, forca)` |
 | a ficha | `conferir_a_ficha()` no `entrar()`, com `Minigame.CHAVES` |
@@ -460,36 +460,41 @@ vale o `mini-dungeon`. A curadoria (o que entra e o que não) é o
 
 ### O item — G03
 
-**Hoje:** `player.gd` tem `ITENS` (mãos livres, espada, lança, espada e
-escudo, lança e escudo, poção, chave), só visual.
+**Hoje:** o `player.gd` tem `ITENS` com os sete (0 «Mãos livres», 1 Martelo,
+2 Escudo, 3 Fole, 4 Lanterna, 5 Diapasão, 6 Âncora), cada um com `"icone"`; o
+corpo leva o item no `BoneAttachment3D` `"Item"` e a runa acende no néon do
+dono. A mecânica é a classe `Itens`.
 
-**Alvo:** `godot/scripts/itens.gd` (`class_name Itens`, estático). A mecânica
-lê `Itens.escolhido[l]`, não o item visual do boneco, porque
-`SalaJogo.maos_livres` troca o que o boneco leva na mão.
+**Alvo:** `godot/scripts/itens.gd` (`class_name Itens`, estático). O índice é o
+mesmo do `ITENS`; a mecânica lê `Itens.escolhido`, porque a sala pode tirar o
+item visual (`SalaJogo.maos_livres`).
 
 ```gdscript
 enum { NENHUM, MARTELO, ESCUDO, FOLE, LANTERNA, DIAPASAO, ANCORA }
-static var escolhido := [NENHUM, NENHUM, NENHUM, NENHUM]
-static var escudo_inteiro := [false, false, false, false]
-static func novo_minigame() -> void                                                        # repõe o Escudo
+const PERFEITO := 3                                   # o julgamento, na numeração do Ritmo (ERRO 0, BOM 1, OTIMO 2, PERFEITO 3)
+static var escolhido := [NENHUM, NENHUM, NENHUM, NENHUM]   # a construção escreve; a sala não mexe
+static var em_liga := [false, false, false, false]         # a G13 escreve ao forjar; até lá, false
+static func do_lugar(l: int) -> int
 static func pontos_do_acerto(l: int, pontos: int, julgamento: int, no_tempo_forte: bool) -> int  # Martelo: mexe em pontos, não no julgamento
 static func absorve_erro(l: int) -> bool                                                   # Escudo, uma vez por minigame
-static func combo_inicial(l: int) -> int
-static func combo_maximo(l: int, normal: int) -> int
+static func escudo_inteiro(l: int) -> bool
+static func combo_inicial(l: int, normal: int) -> int
 static func acertos_para_voltar_o_combo(l: int, normal: int) -> int                        # Fole
+static func combo_maximo(l: int, normal: int) -> int
 static func antecipacao_s(l: int, bpm: float) -> float                                     # Lanterna: meio tempo da faixa
 static func janela_perfeito(l: int, janela: Vector2) -> Vector2                            # Lanterna encolhe 10 ms
 static func ganho_da_nota(l: int, genero: String) -> float                                 # Diapasão
 static func puxa_o_combo_da_equipe(l: int, genero: String) -> bool                         # Diapasão, só em dupla e coop
 static func resiste_a_empurrao(l: int) -> float                                            # Âncora, 0..1
-static func velocidade(l: int) -> float                                                    # Âncora anda um pouco mais devagar
+static func velocidade(l: int, genero: String) -> float                                    # Âncora anda mais devagar na corrida
 static func sentir(l: int) -> void                                                         # o item se sente no controle (L2)
+static func novo_minigame() -> void                                                        # repõe o Escudo dos quatro
 static func registrar(l: int, efeito: String) -> void                                      # linha `item` da linha do tempo
 ```
 
 O gatilho do item mexe **só no L2**; o R2 fica com o minigame. Até o kit
-(H04), o Escudo age só onde a sala chama `SalaJogo.errou(l)`; nas salas às
-cegas, nunca.
+(H04), o Escudo age só onde a sala chama `SalaJogo.errou(l)` (a Centelha); nas
+salas às cegas, nunca.
 
 ### A tela de resultado — F03
 

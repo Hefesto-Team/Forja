@@ -219,6 +219,9 @@ func _todos_entram() -> void:
 		if int(p.lugar) < 0:
 			Forja.entrar(int(p.pad))
 	_sincronizar_jogadores()
+	for l in 4:
+		if Forja.ocupado(l):
+			Itens.escolhido[l] = jogadores[l].item_i
 
 
 # ------------------------------------------------------------------ estados --

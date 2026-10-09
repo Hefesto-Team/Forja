@@ -49,6 +49,7 @@ var n := {}  ## lugar -> os nós da raia
 
 
 func _init() -> void:
+	usa_gatilho = true
 	id = "galeria"
 	nome = "A Galeria"
 	acao = "Sinta o gatilho e atire."

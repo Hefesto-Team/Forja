@@ -16,7 +16,7 @@ const NOME_DO_MODELO := ["humano", "orc"]
 ## O intervalo do pio de cada modelo (arte/03), alinhado com MODELOS.
 const INTERVALO_DO_MODELO := ["segunda", "quinta_baixo"]
 ## O item: o índice é o de Itens (G03). "id" é o de docs/jogo/sistemas/itens.csv.
-## A peça 3D de cada um é da G03: até lá o _segurar() deixa as mãos livres.
+## O corpo leva o item que o _segurar() monta; a regra é a da classe Itens.
 const ITENS := [
 	{"id": "", "nome": "Mãos livres", "icone": ""},
 	{"id": "martelo", "nome": "Martelo", "icone": "item_martelo"},
@@ -36,16 +36,17 @@ const ACABAMENTOS := [
 	{"nome": "Riscado", "rugoso": 0.75, "metal": 0.1},
 	{"nome": "Dourado", "rugoso": 0.5, "metal": 0.2, "livre": false},
 ]
-## Onde cada item senta no osso do braço (espaço do osso, unidades do kit; o
-## braço solto aponta para baixo, a frente do boneco é +z): deslocamento,
-## rotação em graus e escala. De frente, a espada fica em pé ao lado do corpo,
-## a lança apoiada no chão e o escudo de frente no braço esquerdo.
-const POSE_DO_ITEM := {
-	"weapon-sword": {"pos": Vector3(-0.035, -0.1, 0.05), "rot": Vector3(0, 0, 14), "escala": 0.85},
-	"weapon-spear": {"pos": Vector3(-0.03, -0.29, 0.05), "rot": Vector3(0, 0, 4), "escala": 1.0},
-	"potion": {"pos": Vector3(-0.01, -0.2, 0.04), "rot": Vector3.ZERO, "escala": 0.5},
-	"key": {"pos": Vector3(-0.02, -0.17, 0.05), "rot": Vector3(0, 0, 90), "escala": 0.45},
-	"shield-round": {"pos": Vector3(0.03, -0.07, 0.075), "rot": Vector3.ZERO, "escala": 0.9},
+## As malhas da Kenney dos itens que as têm (a G10 troca o caminho por Kit.caminho).
+const MALHA_DO_ITEM := {
+	"martelo": "res://assets/kenney/survival-kit/tool-hammer.glb",
+	"escudo": "res://assets/kenney/shield-round.glb",
+}
+## O emblema em relevo de cada amuleto no disco do medalhão (G03): [tamanho x y, posição x y].
+const EMBLEMA := {
+	"fole": [[Vector2(0.022, 0.026), Vector2(0, 0.002)], [Vector2(0.006, 0.010), Vector2(0, -0.016)]],
+	"lanterna": [[Vector2(0.016, 0.022), Vector2(0, -0.002)], [Vector2(0.012, 0.003), Vector2(0, 0.012)]],
+	"diapasao": [[Vector2(0.004, 0.024), Vector2(-0.006, 0.004)], [Vector2(0.004, 0.024), Vector2(0.006, 0.004)],
+		[Vector2(0.016, 0.004), Vector2(0, -0.008)], [Vector2(0.004, 0.012), Vector2(0, -0.016)]],
 }
 
 var lugar := 0
@@ -67,6 +68,10 @@ var aro: MeshInstance3D
 var etiqueta: Label3D
 var _anim_atual := ""
 var _roupas: Array = []  ## [material do corpo, a cor que o _vestir deu], para o acender
+var _mats_runa: Array[Material] = []  ## a linha da runa do item, para acender e o encaixe
+var _area_runa := 0.0   ## a área de frente das linhas da runa
+var _area_item := 0.0   ## a área de frente do item (o AABB das malhas)
+var _acesa := 1.0       ## o último acender(k): o item que se troca nasce com a mesma luz
 var _yaw := PI
 var _gesto := 0.0
 
@@ -181,28 +186,160 @@ func descricao_do_visual() -> String:
 	return "%s · %s" % [NOME_DO_MODELO[modelo_i], ITENS[item_i].nome]
 
 
-## Prende os itens nos ossos dos braços (a mão direita, o braço esquerdo).
+## Prende o item escolhido num BoneAttachment3D "Item" (G03): o Martelo na mão
+## direita, a Âncora na mão direita, o Escudo no braço esquerdo, os três amuletos
+## num medalhão no peito. Apaga só o "Item" anterior. A runa é o acento do
+## item, no néon do dono.
 func _segurar() -> void:
 	var esqueleto: Skeleton3D = modelo.find_child("Skeleton3D", true, false)
 	if esqueleto == null:
 		return
-	for filho in esqueleto.get_children():
-		if filho is BoneAttachment3D:
-			filho.queue_free()
-	var escolha: Dictionary = ITENS[item_i]
-	for lado in ["direita", "esquerda"]:
-		if not escolha.has(lado):
-			continue
-		var peca: String = escolha[lado]
-		var presa := BoneAttachment3D.new()
-		presa.bone_name = "arm-right" if lado == "direita" else "arm-left"
-		esqueleto.add_child(presa)
-		var item: Node3D = load("res://assets/kenney/%s.glb" % peca).instantiate()
-		var pose: Dictionary = POSE_DO_ITEM.get(peca, {})
-		item.rotation_degrees = pose.get("rot", Vector3.ZERO)
-		item.position = pose.get("pos", Vector3.ZERO)
-		item.scale = Vector3.ONE * float(pose.get("escala", 1.0))
-		presa.add_child(item)
+	var velho := esqueleto.find_child("Item", false, false)
+	if velho:
+		esqueleto.remove_child(velho)
+		velho.queue_free()
+	_mats_runa.clear()
+	_area_runa = 0.0
+	_area_item = 0.0
+	var id := String(ITENS[item_i].id)
+	if id == "":
+		return
+	var presa := BoneAttachment3D.new()
+	presa.name = "Item"
+	presa.bone_name = "torso" if id in EMBLEMA else ("arm-left" if id == "escudo" else "arm-right")
+	esqueleto.add_child(presa)
+	match id:
+		"martelo":
+			var m := _malha_do_item(presa, id, Vector3(-0.01, -0.13, 0.0), Vector3(60, 0, 0), 2.3)
+			var c := _caixa_em(m, m)
+			var h := c.size.y
+			_medir_o_item(presa)
+			_runa(m, Vector3(0.002, 0.25 * h, 0.8 * c.size.z),
+				Vector3(c.end.x + 0.001, c.end.y - 0.125 * h, c.position.z + c.size.z * 0.5), 0.0, 0)
+		"escudo":
+			var m := _malha_do_item(presa, id, Vector3(0.03, -0.07, 0.075), Vector3.ZERO, 0.9)
+			var c := _caixa_em(m, m)
+			var r := maxf(c.size.x, c.size.y) * 0.5
+			var centro := Vector2(c.position.x + c.size.x * 0.5, c.position.y + c.size.y * 0.5)
+			_medir_o_item(presa)
+			# o aro: um octógono regular de 8 caixas, de vértice a 0,975 r do centro
+			var apotema := 0.975 * r * cos(deg_to_rad(22.5))
+			for i in 8:
+				var giro := deg_to_rad(45.0 * i)
+				var dir := Vector2.from_angle(giro + PI * 0.5)
+				_runa(m, Vector3(0.746 * r, 0.05 * r, 0.004),
+					Vector3(centro.x + dir.x * apotema, centro.y + dir.y * apotema, c.end.z + 0.002), giro)
+		"ancora":
+			var raiz := Node3D.new()
+			raiz.position = Vector3(-0.01, -0.13, 0.0)
+			raiz.rotation_degrees = Vector3(60, 0, 0)
+			presa.add_child(raiz)
+			var metal := Kit.material(Itens.METAL, 0.0, 0.55)
+			metal.metallic = 0.2
+			Kit.caixa(raiz, Vector3(0.025, 0.20, 0.025), Vector3(0, 0.10, 0), metal)
+			Kit.caixa(raiz, Vector3(0.06, 0.02, 0.02), Vector3(0, 0.21, 0), metal)
+			Kit.caixa(raiz, Vector3(0.10, 0.02, 0.02), Vector3(0, 0.17, 0), metal)
+			var pontas: Array[Vector3] = []
+			for lado in [-1.0, 1.0]:
+				var braco := Kit.caixa(raiz, Vector3(0.07, 0.02, 0.02), Vector3(lado * 0.04, 0.015, 0), metal)
+				braco.rotation.z = lado * 0.6
+				pontas.append(Vector3(lado * (0.04 + 0.035 * cos(0.6)), 0.015 + 0.035 * sin(0.6), 0.0))
+			_medir_o_item(presa)
+			for ponta in pontas:
+				_runa(raiz, Vector3(0.02, 0.02, 0.02), ponta)
+		_:
+			var rest := esqueleto.get_bone_global_rest(esqueleto.find_bone("torso"))
+			var raiz := Node3D.new()
+			raiz.transform = Transform3D(rest.basis.inverse(), rest.affine_inverse() * Vector3(0, 0.28, 0.105))
+			presa.add_child(raiz)
+			var disco := MeshInstance3D.new()
+			var cil := CylinderMesh.new()
+			cil.top_radius = 0.03
+			cil.bottom_radius = 0.03
+			cil.height = 0.008
+			cil.radial_segments = 8
+			cil.rings = 1
+			disco.mesh = cil
+			disco.material_override = Kit.material(Itens.CERAMICA, 0.0, 0.35)
+			disco.rotation_degrees = Vector3(90, 0, 0)
+			raiz.add_child(disco)
+			var latao := Kit.material(Itens.LATAO, 0.0, 0.5)
+			latao.metallic = 0.2
+			for par in EMBLEMA[id]:
+				Kit.caixa(raiz, Vector3(par[0].x, par[0].y, 0.004), Vector3(par[1].x, par[1].y, 0.006), latao)
+			_medir_o_item(presa)
+			# o quadro em volta do emblema: quatro linhas de 0,002, um quadrado de 0,030 de lado
+			for lado in [-1.0, 1.0]:
+				_runa(raiz, Vector3(0.030, 0.002, 0.004), Vector3(0, lado * 0.014, 0.006))
+				_runa(raiz, Vector3(0.002, 0.030, 0.004), Vector3(lado * 0.014, 0, 0.006))
+
+
+## A malha da Kenney do item, presa e com o material do jogo (rugosidade 0,55 e
+## metal 0,2 no máximo: arte/02, a arma em metal batido).
+func _malha_do_item(presa: Node3D, id: String, pos: Vector3, rot_graus: Vector3, escala: float) -> Node3D:
+	var item: Node3D = load(MALHA_DO_ITEM[id]).instantiate()
+	item.position = pos
+	item.rotation_degrees = rot_graus
+	item.scale = Vector3.ONE * escala
+	presa.add_child(item)
+	var malhas: Array = item.find_children("*", "MeshInstance3D", true, false)
+	if item is MeshInstance3D:
+		malhas.append(item)
+	for n in malhas:
+		var mi: MeshInstance3D = n
+		for s in mi.mesh.get_surface_count():
+			var base := mi.mesh.surface_get_material(s)
+			if base is StandardMaterial3D:
+				var peca: StandardMaterial3D = base.duplicate()
+				peca.roughness = 0.55
+				peca.metallic = 0.2
+				mi.set_surface_override_material(s, peca)
+	return item
+
+
+## O AABB das malhas de `no` (e dele mesmo) no espaço de `ate`, só pelas
+## transformações locais: o jogador pode ainda não estar na árvore.
+static func _caixa_em(no: Node3D, ate: Node3D) -> AABB:
+	var uniao := AABB()
+	var primeiro := true
+	var lista: Array = no.find_children("*", "MeshInstance3D", true, false)
+	if no is MeshInstance3D:
+		lista.append(no)
+	for n in lista:
+		var mi: MeshInstance3D = n
+		var t := Transform3D.IDENTITY
+		var c: Node = mi
+		while c != null and c != ate:
+			t = (c as Node3D).transform * t
+			c = c.get_parent()
+		var a: AABB = t * mi.get_aabb()
+		uniao = a if primeiro else uniao.merge(a)
+		primeiro = false
+	return uniao
+
+
+## A área de frente do item (x × y do AABB das malhas, no espaço do "Item").
+func _medir_o_item(presa: Node3D) -> void:
+	var c := _caixa_em(presa, presa)
+	_area_item = c.size.x * c.size.y
+
+
+## A runa: o vão em Tema.JANELA (1,5 vez a linha) 0,001 atrás e a linha no néon
+## do dono a 1,6. `eixo` é a normal da face (0 x, 1 y, 2 z); `giro_z` gira as
+## duas caixas em z (o aro do escudo).
+func _runa(pai: Node3D, tamanho: Vector3, pos: Vector3, giro_z := 0.0, eixo := 2) -> void:
+	var normal := Vector3.ZERO
+	normal[eixo] = 1.0
+	var vao := tamanho * 1.5
+	vao[eixo] = 0.001
+	var fundo := Kit.caixa(pai, vao, pos - normal * 0.001, Kit.material(Tema.JANELA, 0.0, 0.9))
+	var mat := Kit.material(Tema.JOGADOR[lugar], 1.6)
+	mat.emission_energy_multiplier = 1.6 * _acesa
+	var linha := Kit.caixa(pai, tamanho, pos, mat)
+	fundo.rotation.z = giro_z
+	linha.rotation.z = giro_z
+	_mats_runa.append(mat)
+	_area_runa += tamanho.x * tamanho.y
 
 
 ## A roupa na cor do lugar: o corpo do boneco multiplicado pela cor (a cabeça fica).
@@ -227,6 +364,9 @@ func acender(k: float) -> void:
 	for par in _roupas:
 		var m: StandardMaterial3D = par[0]
 		m.albedo_color = Tema.GRAFITE.lerp(par[1], k)
+	_acesa = k
+	for m in _mats_runa:
+		(m as StandardMaterial3D).emission_energy_multiplier = 1.6 * k
 	if aro:
 		aro.visible = k >= 0.5
 

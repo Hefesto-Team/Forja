@@ -77,6 +77,7 @@ var fin := {}  ## lugar -> a prova final e o que ela precisa
 
 
 func _init() -> void:
+	usa_gatilho = true
 	id = "prova"
 	nome = "A Prova"
 	acao = "Brasa contra Maré."

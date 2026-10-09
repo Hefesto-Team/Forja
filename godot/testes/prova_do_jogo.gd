@@ -69,6 +69,7 @@ func _ready() -> void:
 	await _prova_do_relatorio()
 	await _prova_de_fogo()
 	_prova_das_contas_da_partida()
+	_prova_das_contas_dos_itens()
 	await _prova_da_partida()
 	_prova_do_modo()
 	_prova_das_frases()
@@ -339,6 +340,32 @@ func _prova_do_percurso() -> void:
 			if jogo.lobby.etapa[l] == TelaLobby.FORJADO and float(Forja.som_virtual(l).get("falante", 0.0)) > 0.05:
 				pio_f[l] = true
 	_esperar(jogo.estado == "salao", "com os quatro forjados, o salão (%d quadros, %d ms)" % [nq_f, Time.get_ticks_msec() - t_forja])
+	for l in 4:
+		var pi: ForjaPlayer = jogo.jogadores[l]
+		_esperar(Itens.escolhido[l] == pi.item_i and Itens.escolhido[l] >= 1,
+			"P%d: a mecânica leva o item escolhido (%d)" % [l + 1, Itens.escolhido[l]])
+		var esqueleto: Skeleton3D = pi.modelo.find_child("Skeleton3D", true, false)
+		var presa: BoneAttachment3D = esqueleto.find_child("Item", false, false)
+		_esperar(presa != null, "P%d: o item no corpo" % (l + 1))
+		if presa == null:
+			continue
+		var osso: String = {Itens.MARTELO: "arm-right", Itens.ANCORA: "arm-right", Itens.ESCUDO: "arm-left"}.get(pi.item_i, "torso")
+		_esperar(presa.bone_name == osso, "P%d: o item no osso %s" % [l + 1, osso])
+		# o tamanho do item é o do maior lado dele no espaço dele (a pose do braço não entra),
+		# contra o boneco inteiro (0,755 × a escala do kit)
+		var uniao := AABB()
+		var primeiro := true
+		for mi in presa.find_children("*", "MeshInstance3D", true, false):
+			var a: AABB = presa.global_transform.affine_inverse() * mi.global_transform * mi.get_aabb()
+			uniao = a if primeiro else uniao.merge(a)
+			primeiro = false
+		var alto := uniao.get_longest_axis_size() * presa.global_transform.basis.get_scale().y
+		var corpo := 0.755 * ForjaPlayer.ESCALA
+		var faixa := Vector2(0.06, 0.14) if osso == "torso" else Vector2(0.12, 0.60)
+		_esperar(alto >= faixa.x * corpo and alto <= faixa.y * corpo,
+			"P%d: o item no tamanho (%.2f do corpo)" % [l + 1, alto / corpo])
+		_esperar(pi._mats_runa.size() >= 1, "P%d: o item tem a runa" % (l + 1))
+		_esperar(pi._area_runa <= 0.12 * pi._area_item, "P%d: a runa em até 12 %% do item (%.3f)" % [l + 1, pi._area_runa / maxf(pi._area_item, 0.0001)])
 	var nomes_f := {}
 	for l in 4:
 		_esperar(perfeito[l], "P%d: a oitava vibrou o perfeito no controle" % (l + 1))
@@ -424,7 +451,33 @@ func _prova_do_percurso() -> void:
 	# As salas de entrada, jogadas pelo robô do começo ao fim: cada lugar sai
 	# com PASSOU em cada feature da sala. Com um defeito de mentira ligado, a
 	# feature que ele quebra tem de sair FALHOU (a prova da prova).
-	await _joga_a_sala("centelha", ["botoes", "analogicos", "gatilhos_analogicos"])
+	var centelha = await _comeca_a_sala("centelha")
+	if centelha:
+		Itens.escolhido[1] = Itens.ESCUDO
+		Itens.escolhido[0] = Itens.MARTELO
+		Itens.novo_minigame()
+		var qt := 0
+		while is_instance_valid(centelha) and centelha.treinando and qt < 1200:
+			await _quadros(2)
+			qt += 2
+		Itens.sentir(1)
+		await _quadros(2)
+		_esperar(int(_perc(1).get("gatilho_esq", 0)) == 0x21, "Centelha: o L2 do P2 firme com o Escudo inteiro")
+		var golpe := 0.0
+		var metal := 0.0
+		_esperar(centelha.errou(1), "Centelha: o Escudo do P2 absorve o primeiro erro")
+		for q in 20:
+			await _quadros(1)
+			golpe = maxf(golpe, float(_perc(1).get("forte", 0.0)))
+			metal = maxf(metal, float(Forja.som_virtual(1).get("falante", 0.0)))
+		_esperar(golpe > 0.0, "Centelha: o golpe chegou à mão do P2 (%.2f)" % golpe)
+		_esperar(metal > 0.0, "Centelha: o metal saiu no alto-falante do P2 (%.2f)" % metal)
+		_esperar(int(_perc(1).get("gatilho_esq", 0)) == 0x05, "Centelha: o L2 do P2 afrouxa quando o escudo quebra")
+		_esperar(not centelha.errou(1), "Centelha: o segundo erro do P2 é de verdade")
+		_esperar(not centelha.errou(0), "Centelha: o P1, sem Escudo, erra de verdade")
+		await _termina_a_sala(centelha, ["botoes", "analogicos", "gatilhos_analogicos"])
+		for l in 2:
+			Itens.escolhido[l] = jogo.jogadores[l].item_i
 	await _prova_do_kit()
 	await _joga_a_sala("viga", ["giroscopio", "acelerometro"])
 	await _joga_a_sala("molde", ["touchpad_dois_dedos", "touchpad_clique"])
@@ -916,6 +969,7 @@ func _prova_do_relatorio() -> void:
 	var perdido := {}
 	var ruins: Array = []
 	var calibracoes: Array = []
+	var absorveu := 0
 	for f in arquivos:
 		if not (f.begins_with("linha-do-tempo-") and f.ends_with(".jsonl")):
 			continue
@@ -930,6 +984,8 @@ func _prova_do_relatorio() -> void:
 					perdido = ev
 			elif ev.get("tipo", "") == "calibracao":
 				calibracoes.append(ev)
+			if ev is Dictionary and str(ev.get("tipo", "")) == "item" and str(ev.get("efeito", "")) == "absorveu":
+				absorveu += 1
 	_esperar(ruins.is_empty(), "linha do tempo: toda linha é JSON (%d não: %s)" % [ruins.size(), ruins.slice(0, 2)])
 	_esperar(julgado.get("julgamento", "") == "perfeito" and absf(float(julgado.get("desvio_ms", 0.0)) - 12.0) < 0.01,
 		"registro: o toque julgado, com o desvio (%s)" % [julgado])
@@ -972,6 +1028,7 @@ func _prova_do_relatorio() -> void:
 	for ev in da_construcao:
 		lugares_c[int(ev.get("lugar", -1))] = true
 	_esperar(lugares_c.size() == 4 and da_construcao.size() >= 4, "a linha do tempo tem a calibração dos quatro (%d linhas, %d lugares)" % [da_construcao.size(), lugares_c.size()])
+	_esperar(absorveu >= 1, "o registro tem o Escudo agindo")
 	var json := ""
 	for f in arquivos:
 		if f.begins_with("relatorio-") and f.ends_with(".json"):
@@ -1825,3 +1882,40 @@ func _prova_dos_sons_em_pcm() -> void:
 		_esperar(w != null and w.format == AudioStreamWAV.FORMAT_16_BITS,
 			"sons: %s.wav carrega em PCM de 16 bits (formato %s)" % [id, str(w.format) if w != null else "nenhum"])
 	_esperar(vistos > 0, "sons: a pasta tem sons para conferir (%d)" % vistos)
+
+
+## As contas dos seis itens, sem sala (como as da partida), com e sem liga (G03).
+func _prova_das_contas_dos_itens() -> void:
+	var antes: Array = Itens.escolhido.duplicate()
+	var liga_antes: Array = Itens.em_liga.duplicate()
+	Itens.em_liga = [false, false, false, false]
+	Itens.escolhido = [Itens.MARTELO, Itens.ESCUDO, Itens.FOLE, Itens.LANTERNA]
+	_esperar(Itens.pontos_do_acerto(0, 100, Itens.PERFEITO, true) == 200, "Martelo: o perfeito no tempo forte vale o dobro")
+	_esperar(Itens.pontos_do_acerto(0, 100, Itens.PERFEITO, false) == 85, "Martelo: fora do tempo forte, 85%")
+	_esperar(Itens.pontos_do_acerto(1, 100, Itens.PERFEITO, true) == 100, "sem Martelo, os pontos não mudam")
+	Itens.novo_minigame()
+	_esperar(Itens.absorve_erro(1) and not Itens.absorve_erro(1), "Escudo: absorve o primeiro erro, só ele")
+	_esperar(not Itens.escudo_inteiro(1), "Escudo: quebrou")
+	Itens.novo_minigame()
+	_esperar(Itens.escudo_inteiro(1), "Escudo: inteiro de novo no minigame seguinte")
+	_esperar(Itens.combo_inicial(1, 3) == 0, "Escudo: começa com o combo em 0")
+	_esperar(not Itens.absorve_erro(0), "sem Escudo, nada se absorve")
+	_esperar(Itens.acertos_para_voltar_o_combo(2, 10) == 5 and Itens.combo_maximo(2, 20) == 15, "Fole: volta na metade, teto de 3/4")
+	_esperar(is_equal_approx(Itens.antecipacao_s(3, 120.0), 0.25), "Lanterna: meio tempo antes")
+	_esperar(Itens.janela_perfeito(3, Vector2(-0.040, 0.060)).is_equal_approx(Vector2(-0.035, 0.055)), "Lanterna: o perfeito encolhe 10 ms")
+	Itens.em_liga = [true, true, true, true]
+	_esperar(Itens.pontos_do_acerto(0, 100, Itens.PERFEITO, false) == 100, "Martelo em liga: fora do tempo forte, 100%")
+	_esperar(Itens.combo_inicial(1, 3) == 3, "Escudo em liga: começa com o bônus")
+	_esperar(Itens.combo_maximo(2, 20) == 20, "Fole em liga: o combo máximo é o normal")
+	_esperar(Itens.janela_perfeito(3, Vector2(-0.040, 0.060)).is_equal_approx(Vector2(-0.040, 0.060)), "Lanterna em liga: não encolhe")
+	Itens.em_liga = [false, false, false, false]
+	Itens.escolhido = [Itens.DIAPASAO, Itens.ANCORA, Itens.NENHUM, Itens.NENHUM]
+	_esperar(is_equal_approx(Itens.ganho_da_nota(0, "coop"), 1.3) and is_equal_approx(Itens.ganho_da_nota(0, "tct"), 1.0), "Diapasão: nada no todos contra todos")
+	_esperar(Itens.puxa_o_combo_da_equipe(0, "2v2") and not Itens.puxa_o_combo_da_equipe(0, "tct"), "Diapasão: puxa o combo só em equipe")
+	_esperar(is_equal_approx(Itens.resiste_a_empurrao(1), 0.5) and is_equal_approx(Itens.velocidade(1, "corrida"), 0.9), "Âncora: resiste e anda mais devagar")
+	Itens.em_liga = [true, true, false, false]
+	_esperar(is_equal_approx(Itens.ganho_da_nota(0, "tct"), 1.3), "Diapasão em liga: a nota mais alta no todos contra todos")
+	_esperar(is_equal_approx(Itens.velocidade(1, "corrida"), 1.0), "Âncora em liga: a velocidade normal")
+	Itens.escolhido = antes
+	Itens.em_liga = liga_antes
+	Itens.novo_minigame()

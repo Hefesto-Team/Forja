@@ -571,3 +571,36 @@ sugerido (sem trailer):
 ```
 feat: os seis itens têm mecânica, liga, lugar no corpo e registro; o Escudo já age n'A Centelha
 ```
+
+
+## O que foi feito (leva 1, o-cavaleiro)
+
+- **A regra** (`scripts/itens.gd`, `class_name Itens`): a API da ficha inteira, lendo `Itens.escolhido` (não o item visual do boneco, que a
+  sala pode tirar da mão). `pontos_do_acerto`, `absorve_erro`/`escudo_inteiro`/`combo_inicial`, `acertos_para_voltar_o_combo`/`combo_maximo`,
+  `antecipacao_s`/`janela_perfeito`, `ganho_da_nota`/`puxa_o_combo_da_equipe`, `resiste_a_empurrao`/`velocidade`, `sentir`, `novo_minigame`,
+  `registrar`. O «em liga» é um vetor `Itens.em_liga` que a G13 escreve ao forjar; até lá, tudo `false`.
+- **O corpo** (`player.gd`): cada item na mão/costas/peito com a malha do Kenney (`MALHA_DO_ITEM`), o osso e o tamanho da ficha; o emblema
+  do Diapasão e do amuleto; a runa do item (anel que acende com o `acender`). `_segurar` novo.
+- **A construção e o salão** (`tela_lobby.gd`, `main.gd`): trocar de item sente no L2 (`Itens.sentir`) e o escolhido vai para `Itens.escolhido`
+  ao entrar no salão. Toda sala que usa o gatilho (`usa_gatilho`: Galeria e Prova) deixa o L2 por conta dela.
+- **O Escudo n'A Centelha** (`sala_jogo.gd errou`, `centelha.gd`): o primeiro erro de cada minigame é absorvido (som `escudo`, metal no
+  controle, golpe, L2 afrouxa, linhas `item` com `absorveu` e `quebrou` no registro). O combo fica; o segundo erro zera.
+- **O survival-kit** entrou em `godot/assets/kenney/survival-kit/` (só o martelo e o escudo do estudo): paliativo até a G10 trazer o kit.
+- **As provas** (`prova_do_jogo.gd`): os seis itens no corpo, cada um no osso certo e no tamanho certo (maior lado do item contra o corpo de
+  1,51 m); as contas de cada item (`_prova_das_contas_dos_itens`); o L2 firme/pesado/solto; a Centelha com Escudo; o registro.
+
+### Desvios e decisões (a validar por ela)
+
+- O teste de tamanho da ficha comparava o item com o AABB global do body-mesh (0,74 m, sem a cabeça, e girado): dava 0,85 a 1,32 para o mesmo
+  martelo. Troquei por «maior lado do item no espaço dele contra 0,755 × `ForjaPlayer.ESCALA`», com as mesmas faixas.
+- `Bancada` não entra em `usa_gatilho`: a ficha a listou, mas ela é `Sala`, não `SalaJogo`.
+- Sem `Kit.caminho` (G10), sem `Tema.neon` (G15) e sem `acender_acento()` (G08): a runa usa `Kit.material`, e o caminho do modelo é uma constante.
+- O quadro do medalhão (0,030) corta o cabo do Diapasão (emblema em y -0,022): literal, como está na ficha.
+- O aro do Escudo: caixas em octógono regular, vértice a 0,975 r.
+- `Itens.ajustar_julgamento` saiu da arquitetura (a ficha H04, de outro conjunto, ainda o cita).
+- Ao entrar no minigame grava-se a linha `item` com `leva` para cada lugar com item; quem está de mãos livres (NENHUM) não grava nada.
+
+### O que fica para a mão
+
+Está em «Para o André (local)» acima: a prova visual sem `--fixed-fps` com placa de vídeo, o L2 nos seis itens com o DualSense de verdade,
+a Centelha com Escudo no controle, `scripts/gauntlet.sh` e `prova_de_poucos.sh`.

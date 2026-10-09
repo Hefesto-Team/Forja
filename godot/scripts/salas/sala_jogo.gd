@@ -94,6 +94,8 @@ const TREINO_MAX := 15.0
 var na_prova_de_fogo := ""
 var seguir := "Voltar ao salão"
 var _teste_dir := [0.0, 0.0, 0.0, 0.0]  ## o segundo pulso do teste da háptica
+## true: a sala usa o L2 (a Galeria, A Prova, a Bancada); o item não mexe nele (G03)
+var usa_gatilho := false
 
 
 func entrar(js: Array) -> void:
@@ -109,6 +111,10 @@ func entrar(js: Array) -> void:
 		Forja.med_comecar(p.lugar, botoes_pedidos)
 		Forja.med_repouso(p.lugar, true)
 		p.controlavel = false
+	Itens.novo_minigame()
+	for p in jogadores:
+		if Itens.do_lugar(p.lugar) != Itens.NENHUM:
+			Itens.registrar(p.lugar, "leva")
 	if papel_som >= 0:
 		# o som de cada um, achado como um jogo acha; o aviso mostra e deixa trocar
 		Forja.som_preparar(papel_som)
@@ -127,6 +133,22 @@ func sair() -> void:
 		# a placa fica aberta: volta ao papel de sempre (o alto-falante)
 		Forja.som_preparar(Forja.PAPEL_ALTO_FALANTE)
 	super()
+
+
+## Um erro do lugar. Devolve true se o item absorveu (o Escudo): a sala não
+## quebra o combo nem pune; o escudo quebra, o L2 afrouxa e o som diz (G03).
+## No treino o Escudo não se gasta.
+func errou(l: int) -> bool:
+	var p := jogador(l)
+	if p == null or treinando or not Itens.absorve_erro(l):
+		return false
+	Som.tocar("escudo", p.global_position + Vector3(0, 1.2, 0), -4.0)
+	Som.no_controle(l, "escudo", 0.8)
+	Forja.sentir(l, "golpe")   # 1,0 / 0,6 / 250 ms
+	if not usa_gatilho:
+		Itens.sentir(l)   # o escudo quebrado solta o L2
+	Itens.registrar(l, "quebrou")
+	return true
 
 
 ## As mãos livres para a sala; o que o boneco levava volta na saída.
@@ -335,6 +357,8 @@ func comecar() -> void:
 	for p in jogadores:
 		jogando[p.lugar] = true
 		Forja.med_repouso(p.lugar, false)
+		if not usa_gatilho:
+			Itens.sentir(p.lugar)
 	Forja.evento("sala", 0, {"sala": id, "evento": "jogo_comecou"})
 	Forja.evento("minigame", 0, {"slot": id, "evento": "comecou"})
 	_som_do_comeco()
