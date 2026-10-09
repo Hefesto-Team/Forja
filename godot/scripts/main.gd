@@ -282,7 +282,7 @@ func _mostrar(qual: String) -> void:
 	_focar_o_titulo(qual == "titulo")
 	# o contorno de néon do dono: 1,6 na montagem, 2,4 no resto (G08)
 	for p in jogadores:
-		p.brilho_do_contorno(ForjaPlayer.CONTORNO_MONTAGEM if qual == "lobby" else ForjaPlayer.CONTORNO_JOGO)
+		p.contornar(ForjaPlayer.CONTORNO_MONTAGEM if qual == "lobby" else ForjaPlayer.CONTORNO_JOGO)
 	if qual != "sala":
 		acender(0 if qual == "podio" else -1)
 	if qual == "lobby":

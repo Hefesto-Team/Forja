@@ -1,7 +1,8 @@
 class_name ForjaPlayer
 extends CharacterBody3D
 ## Um jogador no mundo: o boneco do kit Mini Dungeon (Kenney, CC0) com a roupa
-## na cor de luz do lugar, um aro no chão da mesma cor e o "P1" em cima. Anda
+## sem tom no corpo; o dono é o contorno de néon, o anel no chão e a luz, os três
+## na cor de luz do lugar, e o "P1" em cima. Anda
 ## pelo analógico esquerdo do controle do lugar (o d-pad também serve).
 ##
 ## O visual é do jogador: o boneco (humano ou orc) e o que ele leva nas mãos,
@@ -11,6 +12,7 @@ extends CharacterBody3D
 const VELOCIDADE := 4.6
 const CORRIDA := 6.8
 const ESCALA := 2.0
+const CONTORNO_LARGURA := 0.012
 ## Os bonecos registrados: o arquivo e o intervalo do pio (arte/03). A G10
 ## acrescenta os 12 do Mini Characters; a G13 troca por peças.
 const BONECOS := [
@@ -19,7 +21,6 @@ const BONECOS := [
 ]
 ## Os shaders do cavaleiro (arte/04): a roupa por faixa de valor, o contorno e o néon.
 const SH_CAVALEIRO := preload("res://shaders/cavaleiro.gdshader")
-const SH_CONTORNO := preload("res://shaders/contorno.gdshader")
 const SH_NEON := preload("res://shaders/neon.gdshader")
 ## O contorno: 1,6 na montagem, 2,4 no resto (arte/07).
 const CONTORNO_MONTAGEM := 1.6
@@ -72,7 +73,11 @@ var cor: Color  ## a cor do lugar (Forja.cor_do_lugar), posta em `montar`
 var hp := 100.0
 var cooldown := 0.0
 ## false: parado pelo jogo (lobby, transição); a entrada não mexe nele
-var controlavel := true
+var controlavel := true:
+	set(v):
+		controlavel = v
+		if luz_de_dono:
+			luz_de_dono.visible = v
 ## true: a sala posiciona e anima o boneco (na viga, caindo na lava); a física
 ## e a escolha da animação ficam paradas
 var preso := false
@@ -83,6 +88,7 @@ var acabamento_i := 0
 var nome := ""
 var anim: AnimationPlayer
 var aro: Node3D   ## o anel de 8 lados no chão e as lâmpadas do lugar (Kit.anel_do_dono)
+var luz_de_dono: OmniLight3D  ## a luz do lugar no chão em volta de quem se mexe (só com `controlavel`)
 var etiqueta: Label3D
 var _anim_atual := ""
 var _mats_corpo: Array[ShaderMaterial] = []    ## os do body*, para o acento, o acabamento e o acender
@@ -114,6 +120,15 @@ func montar(l: int) -> void:
 	add_child(forma)
 
 	aro = Kit.anel_do_dono(self, l)
+
+	luz_de_dono = OmniLight3D.new()
+	luz_de_dono.light_color = cor
+	luz_de_dono.light_energy = 0.9
+	luz_de_dono.omni_range = 3.4
+	luz_de_dono.shadow_enabled = false
+	luz_de_dono.position.y = 0.6
+	luz_de_dono.visible = controlavel
+	add_child(luz_de_dono)
 
 	etiqueta = Label3D.new()
 	etiqueta.text = "P%d" % (l + 1)
@@ -155,6 +170,7 @@ func visual(m: int, item: int) -> void:
 		_animar("idle")
 	_segurar()
 	_aplicar_acabamento()
+	contornar(_brilho_do_contorno)
 
 
 ## Os índices de ACABAMENTOS que já são do jogador: os livres e os que a coleção da
@@ -211,6 +227,96 @@ static func nome_do_boneco(i: int) -> String:
 
 func descricao_do_visual() -> String:
 	return "%s · %s" % [str(BONECOS[modelo_i].nome).to_lower(), ITENS[item_i].nome]
+
+
+## O contorno de néon do lugar em todas as superfícies do boneco e do que ele leva
+## (`next_pass`, o casco que cresce pela normal suavizada): 2,4 no jogo, 1,6 na
+## montagem. Chamar de novo troca a energia.
+func contornar(energia: float) -> void:
+	_brilho_do_contorno = energia
+	if modelo == null:
+		return
+	_contornar_em(modelo)
+	for c in _contornos:
+		c.set_shader_parameter("energia", energia * _acesa)
+
+
+func _contornar_em(n: Node) -> void:
+	if n is MeshInstance3D:
+		var mi := n as MeshInstance3D
+		if mi.mesh:
+			# o corpo e a cabeça já levam o contorno da roupa (_vestir), e o que já tem contorno só troca a energia
+			if _ja_contornado(mi.material_override) or _ja_contornado(mi.get_surface_override_material(0)):
+				pass
+			elif mi.material_override:
+				# a peça com material único (a runa, o vão dela): o contorno no próprio material,
+				# que a runa acende e apaga
+				_suavizar(mi)
+				mi.material_override.next_pass = _novo_contorno()
+			else:
+				_suavizar(mi)
+				for s in mi.mesh.get_surface_count():
+					var base: Material = mi.get_surface_override_material(s)
+					if base == null:
+						base = mi.mesh.surface_get_material(s)
+					if base == null:
+						continue
+					var m: Material = base.duplicate()
+					m.next_pass = _novo_contorno()
+					mi.set_surface_override_material(s, m)
+	for filho in n.get_children():
+		_contornar_em(filho)
+
+
+func _ja_contornado(m: Material) -> bool:
+	return m != null and m.next_pass is ShaderMaterial and _contornos.has(m.next_pass)
+
+
+## O casco de néon do lugar, na energia de agora; entra na lista que `acender` e `contornar` regulam.
+func _novo_contorno() -> ShaderMaterial:
+	var c := Tema.contorno(cor, CONTORNO_LARGURA, _brilho_do_contorno * _acesa, lugar)
+	_contornos.append(c)
+	return c
+
+
+## A normal suavizada (a soma das normais dos vértices no mesmo ponto) gravada no
+## TANGENT: os blocos do kit têm a normal partida em cada face, e sem isto o casco
+## do contorno abriria nos cantos. Uma vez por malha (o resultado fica em cache).
+static var _malhas_suaves := {}
+
+
+static func _suavizar(mi: MeshInstance3D) -> void:
+	var original := mi.mesh as ArrayMesh
+	if original == null or _malhas_suaves.values().has(original):
+		return
+	if _malhas_suaves.has(original):
+		mi.mesh = _malhas_suaves[original]
+		return
+	var nova := ArrayMesh.new()
+	for s in original.get_surface_count():
+		var arr: Array = original.surface_get_arrays(s)
+		var vs: PackedVector3Array = arr[Mesh.ARRAY_VERTEX]
+		var ns: PackedVector3Array = arr[Mesh.ARRAY_NORMAL]
+		if ns.size() == vs.size():
+			var soma := {}
+			for i in vs.size():
+				var k := vs[i].snapped(Vector3.ONE * 0.0005)
+				soma[k] = soma.get(k, Vector3.ZERO) + ns[i]
+			var tg := PackedFloat32Array()
+			tg.resize(vs.size() * 4)
+			for i in vs.size():
+				var n: Vector3 = soma[vs[i].snapped(Vector3.ONE * 0.0005)]
+				n = n.normalized() if n.length() > 0.0001 else ns[i]
+				tg[i * 4] = n.x
+				tg[i * 4 + 1] = n.y
+				tg[i * 4 + 2] = n.z
+				tg[i * 4 + 3] = 1.0
+			arr[Mesh.ARRAY_TANGENT] = tg
+		var flags: int = original.surface_get_format(s) & Mesh.ARRAY_FLAG_USE_8_BONE_WEIGHTS
+		nova.add_surface_from_arrays(original.surface_get_primitive_type(s), arr, [], {}, flags)
+		nova.surface_set_material(s, original.surface_get_material(s))
+	_malhas_suaves[original] = nova
+	mi.mesh = nova
 
 
 ## Prende o item escolhido num BoneAttachment3D "Item" (G03): o Martelo na mão
@@ -362,8 +468,8 @@ func _runa(pai: Node3D, tamanho: Vector3, pos: Vector3, giro_z := 0.0, eixo := 2
 	var vao := tamanho * 1.5
 	vao[eixo] = 0.001
 	var fundo := Kit.caixa(pai, vao, pos - normal * 0.001, Kit.material(Tema.JANELA, 0.0, 0.9))
-	var mat := Kit.material(Tema.JOGADOR[lugar], 1.6)
-	mat.emission_energy_multiplier = 1.6 * _acesa
+	var mat := Kit.material(Tema.JOGADOR[lugar], 0.0, 0.8)
+	Tema.emissivo(mat, 1.6 * _acesa, lugar)
 	var linha := Kit.caixa(pai, tamanho, pos, mat)
 	fundo.rotation.z = giro_z
 	linha.rotation.z = giro_z
@@ -414,11 +520,7 @@ func _vestir(n: Node) -> void:
 				m.set_shader_parameter("rugoso_cima", RUGOSO_CABECA)
 				m.set_shader_parameter("rugoso_baixo", RUGOSO_CABECA)
 				m.set_shader_parameter("tem_acento", false)
-			var ctn := ShaderMaterial.new()
-			ctn.shader = SH_CONTORNO
-			ctn.set_shader_parameter("cor", Tema.JOGADOR[lugar])
-			ctn.set_shader_parameter("largura", 0.012)
-			ctn.set_shader_parameter("energia", _brilho_do_contorno * _acesa)
+			var ctn := Tema.contorno(Tema.JOGADOR[lugar], CONTORNO_LARGURA, _brilho_do_contorno * _acesa, lugar)
 			m.next_pass = ctn
 			m.set_shader_parameter("dono", Tema.JOGADOR[lugar])
 			m.set_shader_parameter("apagado", Tema.GRAFITE)
@@ -428,13 +530,6 @@ func _vestir(n: Node) -> void:
 			mi.set_surface_override_material(s, m)
 			_contornos.append(ctn)
 			(_mats_corpo if corpo else _mats_cabeca).append(m)
-
-
-## O contorno de todo casco: 1,6 na montagem, 2,4 no resto.
-func brilho_do_contorno(energia: float) -> void:
-	_brilho_do_contorno = energia
-	for c in _contornos:
-		c.set_shader_parameter("energia", energia * _acesa)
 
 
 ## O encaixe de uma peça (a G13 chama; a G03 chama ao trocar o item): o acento do
@@ -452,7 +547,7 @@ func _acento_em(v: float) -> void:
 	for m in _mats_corpo:
 		m.set_shader_parameter("acento", v)
 	for m in _mats_runa:
-		(m as StandardMaterial3D).emission_energy_multiplier = v * _acesa
+		Tema.emissivo(m, v * _acesa, lugar)
 
 
 ## A armadura apagada (0: o corpo em Tema.GRAFITE, sem acento, sem aro, sem
@@ -467,7 +562,7 @@ func acender(k: float) -> void:
 	for c in _contornos:
 		c.set_shader_parameter("energia", _brilho_do_contorno * k)
 	for m in _mats_runa:
-		(m as StandardMaterial3D).emission_energy_multiplier = 1.6 * k
+		Tema.emissivo(m, 1.6 * k, lugar)
 	if aro:
 		aro.visible = k >= 0.5
 
