@@ -27,17 +27,20 @@ DEFEITOS=(troca-cruz-circulo analogico-curto gatilho-digital giro-invertido acel
 
 SAIDA="$(mktemp -d)"
 trap 'rm -rf "$SAIDA"' EXIT
+# a caixa (tests/caixa.sh): o jogo não acha o controle ligado na máquina
+source "$RAIZ/tests/caixa.sh"
+caixa_montar "$SAIDA/caixa"
 falhas=0
 
 rodar() {
   local nome="$1"
   shift
   mkdir -p "$SAIDA/$nome"
-  timeout 600 "$GODOT" --headless --fixed-fps 60 --path "$RAIZ/godot" res://testes/prova_do_jogo.tscn \
+  timeout 600 caixa "$GODOT" --headless --fixed-fps 60 --path "$RAIZ/godot" res://testes/prova_do_jogo.tscn \
     -- --simular=4 --robo --semente="$SEMENTE" --relatorios="$SAIDA/$nome" --bancada "$@" >"$SAIDA/$nome.log" 2>&1
 }
 
-"$GODOT" --headless --path "$RAIZ/godot" --import >/dev/null 2>&1 || true
+caixa "$GODOT" --headless --path "$RAIZ/godot" --import >/dev/null 2>&1 || true
 
 echo "==> limpo, quatro controles simulados"
 if rodar limpo; then

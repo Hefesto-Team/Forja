@@ -150,6 +150,7 @@ bool forja_abrir(Forja *f, const char *pasta, int simular, bool robo, unsigned l
   FORJA = f;
   f->intensidade = 1.0f;
   f->simular = simular;
+  f->so_virtuais = simular > 0;
   f->robo = robo;
   f->semente = semente;
   if (!f->semente) {

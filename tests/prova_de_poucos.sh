@@ -17,22 +17,17 @@ GODOT="$FORJA_GODOT"
 [ -x "$GODOT" ] || { echo "sem Godot: rode ./run-local.sh uma vez, ou GODOT=<binário>"; exit 2; }
 TMP="$(mktemp -d /tmp/forja-prova-de-poucos-XXXXXX)"
 trap 'rm -rf "$TMP"' EXIT
+# a caixa (tests/caixa.sh): o jogo não acha o controle ligado na máquina
+source "$RAIZ/tests/caixa.sh"
+caixa_montar "$TMP"
 
-CAIXA=()
-if command -v bwrap > /dev/null; then
-  CAIXA=(bwrap --dev-bind / / --dev /dev --tmpfs /run/udev --tmpfs /sys/class/input
-         --tmpfs /sys/class/hidraw)
-fi
-export FORJA_SYSFS="$TMP/sys-vazio"
-mkdir -p "$FORJA_SYSFS"
-
-"${CAIXA[@]}" "$GODOT" --headless --path "$RAIZ/godot" --import --quit > "$TMP/import.log" 2>&1
+caixa "$GODOT" --headless --path "$RAIZ/godot" --import --quit > "$TMP/import.log" 2>&1
 
 rodar() {
   local nome="$1"
   shift
   mkdir -p "$TMP/rel-$nome"
-  timeout 600 "${CAIXA[@]}" "$GODOT" --headless --fixed-fps 60 --path "$RAIZ/godot" res://testes/prova_de_poucos.tscn \
+  timeout 600 caixa "$GODOT" --headless --fixed-fps 60 --path "$RAIZ/godot" res://testes/prova_de_poucos.tscn \
     -- --robo --semente=7 --relatorios="$TMP/rel-$nome" --bancada "$@" > "$TMP/$nome.log" 2>&1
   local rc=$?
   grep -E "FAIL|SCRIPT ERROR|prova de poucos ok" "$TMP/$nome.log"

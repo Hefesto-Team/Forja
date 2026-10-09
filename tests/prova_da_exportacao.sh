@@ -32,12 +32,9 @@ trap 'rm -rf "$TMP"' EXIT
 
 [ -x "$LINUX" ] || { echo "sem $LINUX: rode scripts/exportar.sh linux"; exit 2; }
 
-# Numa prova o jogo não tem de achar controle de verdade (ver prova_do_jogo.sh).
-CAIXA=()
-if command -v bwrap > /dev/null; then
-  CAIXA=(bwrap --dev-bind / / --dev /dev --tmpfs /run/udev --tmpfs /sys/class/input
-         --tmpfs /sys/class/hidraw)
-fi
+# Numa prova o jogo não tem de achar controle de verdade: a caixa (tests/caixa.sh).
+source "$RAIZ/tests/caixa.sh"
+caixa_montar "$TMP"
 ARGS=(--headless --fixed-fps 60 -- --simular=4 --robo --semente=7 --prova-de-fogo --sair-no-fim)
 
 FALHAS=0
@@ -169,7 +166,7 @@ PY
 
 echo "==> o binário Linux exportado: a Prova de Fogo com o robô"
 mkdir -p "$TMP/linux"
-timeout 900 "${CAIXA[@]}" "$LINUX" "${ARGS[@]}" --relatorios="$TMP/linux" > "$TMP/linux.log" 2>&1
+timeout 900 caixa "$LINUX" "${ARGS[@]}" --relatorios="$TMP/linux" > "$TMP/linux.log" 2>&1
 rc=$?
 grep -E "SCRIPT ERROR|^ERROR" "$TMP/linux.log" | head -20
 if [ "$rc" -ne 0 ]; then
@@ -181,7 +178,7 @@ fi
 
 echo "==> o binário Linux exportado: uma partida de 3 jogada pelo robô, só pelo controle"
 mkdir -p "$TMP/linux-partida"
-timeout 900 "${CAIXA[@]}" "$LINUX" --headless --fixed-fps 60 -- --simular=4 --robo --semente=7 --partida=3 --sair-no-fim \
+timeout 900 caixa "$LINUX" --headless --fixed-fps 60 -- --simular=4 --robo --semente=7 --partida=3 --sair-no-fim \
   --relatorios="$TMP/linux-partida" > "$TMP/linux-partida.log" 2>&1
 rc=$?
 grep -E "SCRIPT ERROR|^ERROR" "$TMP/linux-partida.log" | head -20
@@ -207,7 +204,7 @@ if [ -f "$APPIMAGE" ]; then
   echo "==> o AppImage: a mesma Prova de Fogo"
   mkdir -p "$TMP/appimage"
   chmod +x "$APPIMAGE"
-  APPIMAGE_EXTRACT_AND_RUN=1 timeout 900 "${CAIXA[@]}" "$APPIMAGE" "${ARGS[@]}" --relatorios="$TMP/appimage" > "$TMP/appimage.log" 2>&1
+  APPIMAGE_EXTRACT_AND_RUN=1 timeout 900 caixa "$APPIMAGE" "${ARGS[@]}" --relatorios="$TMP/appimage" > "$TMP/appimage.log" 2>&1
   rc=$?
   if [ "$rc" -ne 0 ]; then
     tail -n 40 "$TMP/appimage.log"
@@ -243,10 +240,10 @@ else
   export WINEPREFIX="$TMP/wine" WINEDEBUG=-all WINEDLLOVERRIDES="mscoree,mshtml="
   versao_do_wine="$("$WINE" --version 2> /dev/null | tail -n 1)"
   echo "    $versao_do_wine"
-  "${CAIXA[@]}" "$WINE" wineboot --init > "$TMP/wineboot.log" 2>&1
+  caixa "$WINE" wineboot --init > "$TMP/wineboot.log" 2>&1
   mkdir -p "$TMP/windows"
   rel="$("$WINE" winepath -w "$TMP/windows" 2> /dev/null)"
-  WINEDEBUG="+seh,+loaddll" timeout 1500 "${CAIXA[@]}" "$WINE" "$WINDOWS" "${ARGS[@]}" --relatorios="$rel" \
+  WINEDEBUG="+seh,+loaddll" timeout 1500 caixa "$WINE" "$WINDOWS" "${ARGS[@]}" --relatorios="$rel" \
     > "$TMP/windows.log" 2>&1
   rc=$?
   "$WINESERVER" -w 2> /dev/null

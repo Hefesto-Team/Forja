@@ -15,9 +15,12 @@ SAIDA="$(realpath -m "${1:-$RAIZ/dist/trailer.avi}")"
 mkdir -p "$(dirname "$SAIDA")"
 REL="$(mktemp -d)"
 trap 'rm -rf "$REL"' EXIT
-"$GODOT" --headless --path "$RAIZ/godot" --import --quit > /dev/null 2>&1
+# a caixa (tests/caixa.sh): o jogo não acha o controle ligado na máquina
+source "$RAIZ/tests/caixa.sh"
+caixa_montar "$REL/caixa"
+caixa "$GODOT" --headless --path "$RAIZ/godot" --import --quit > /dev/null 2>&1
 ROTEIRO=trailer SAIDA="$REL" xvfb-run -a -s "-screen 0 1280x720x24" \
-  "$GODOT" --rendering-driver opengl3 --fixed-fps 60 --path "$RAIZ/godot" --resolution 1280x720 \
+  caixa "$GODOT" --rendering-driver opengl3 --fixed-fps 60 --path "$RAIZ/godot" --resolution 1280x720 \
   --write-movie "$SAIDA" res://testes/captura_jogo.tscn -- --simular=4 --robo --semente=7 --relatorios="$REL"
 echo "==> $SAIDA"
 if command -v ffmpeg > /dev/null; then

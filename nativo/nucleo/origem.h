@@ -81,6 +81,12 @@ const char *conexao_rotulo(Conexao c);
 int origem_eh_dualsense(OrigemTipo t);
 /* 1 quando a origem é um nó virtual (uhid ou uinput). */
 int origem_eh_virtual(OrigemTipo t);
+/* A sessão aberta com --simular só aceita o controle virtual do SDL (o
+ * SDL_AttachVirtualJoystick do simulador): numa prova, o DualSense ligado na
+ * máquina não ganha lugar. `so_virtuais` é a marca da sessão (nasceu com
+ * --simular), `virtual_do_sdl` diz se o controle que chegou é do simulador.
+ * 1 aceita, 0 recusa. */
+int origem_aceitar_na_sessao(int so_virtuais, int virtual_do_sdl);
 
 /* A raiz do sysfs: FORJA_SYSFS (as provas montam um sysfs de mentira) ou /sys. */
 const char *origem_raiz_sysfs(void);

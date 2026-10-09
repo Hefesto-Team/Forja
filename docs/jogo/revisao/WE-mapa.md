@@ -36,8 +36,11 @@ e o `tests/prova_visual.sh`.
 ## As provas que abrem o Godot
 
 `tests/prova_do_jogo.sh`, `prova_de_poucos.sh`, `prova_da_bancada.sh`, `prova_da_exportacao.sh`, `prova_visual.sh`,
-`telas.sh`, `scripts/gauntlet.sh` e `scripts/trailer.sh`. Cada uma monta o próprio isolamento, e quase todas o deixam
-opcional (a [WE01](../tarefas/WE01-a-caixa-unica.md)). A regra: nenhuma delas pode enxergar o DualSense ligado na máquina.
+`telas.sh`, `scripts/gauntlet.sh` e `scripts/trailer.sh`. A regra: nenhuma delas pode enxergar o DualSense ligado na
+máquina. Todas chamam o Godot (e o jogo exportado) pelo `caixa` de `tests/caixa.sh` (a
+[WE01](../tarefas/WE01-a-caixa-unica.md)): o `bwrap` com um `/dev` novo, sem hidraw nem input, o `pactl` e o `pw-cat`
+de mentira e o sysfs vazio. Sem o `bwrap`, a prova sai 2 antes de abrir o Godot; só o CI (a variável `CI`) roda direto.
+No módulo, a sessão aberta com `--simular` só aceita os controles simulados, e o registro diz quem foi recusado.
 
 - A régua do jogo mora em `godot/testes/prova_do_jogo.gd` (a [V02](../tarefas/V02-a-prova-do-jogo-em-partes.md) a divide).
 - O robô e os 20 defeitos de mentira moram em `nativo/nucleo/simulador.c`.
@@ -46,9 +49,9 @@ opcional (a [WE01](../tarefas/WE01-a-caixa-unica.md)). A regra: nenhuma delas po
 
 ## Os portões
 
-Reprovam: o texto de tela, o sem rastro, as mensagens de commit, a ficha pronta e o teste mudo (o Godot pela tela de
-mentira só com `--audio-driver Dummy`). A arte e o som ficam em aviso até a [V08](../tarefas/V08-os-portoes-de-arte-e-som-reprovam.md).
-A WE01 acrescenta o portão da caixa.
+Reprovam: o texto de tela, o sem rastro, as mensagens de commit, a ficha pronta, o teste mudo (o Godot pela tela de
+mentira só com `--audio-driver Dummy`) e a caixa. A arte e o som ficam em aviso até a [V08](../tarefas/V08-os-portoes-de-arte-e-som-reprovam.md).
+O portão da caixa (`scripts/portoes/caixa.py`, da WE01) reprova a chamada do Godot que abre cena ou jogo fora do `caixa`.
 
 ## As fichas desta área
 

@@ -283,6 +283,23 @@ A="$(arvore codigo-sem-mao)"; mao_ficha "$A/Z8.md" 0
 espera 0 "ficha código: --marcar --sim marca o mesmo corpo sem a linha" \
   bash -c "python3 '$RAIZ/scripts/ficha_codigo.py' '$A/Z8.md' --marcar --sim >/dev/null && grep -q '^\`\`\`gdscript arquivo=godot/scripts/z8.gd\$' '$A/Z8.md'"
 
+# --- a caixa ---------------------------------------------------------------------------------------------------
+caixa_tree() { # <pasta> <linhas do script>
+  mkdir -p "$1/tests" "$1/scripts"; printf '%s\n' "$2" > "$1/scripts/prova.sh"
+}
+A="$(arvore caixa-solta)"; caixa_tree "$A" 'timeout 600 "$GODOT" --headless --fixed-fps 60 --path godot \
+  res://testes/prova_do_jogo.tscn -- --simular=4 --robo'
+espera 1 "caixa: reprova o Godot que abre o jogo fora da caixa, com a linha continuada" python3 "$P/caixa.py" --raiz "$A"
+A="$(arvore caixa-opcional)"; caixa_tree "$A" '"${CAIXA[@]}" "$GODOT" --headless --path godot -- --simular=4'
+espera 1 "caixa: reprova a caixa opcional (o array que fica vazio sem o bwrap)" python3 "$P/caixa.py" --raiz "$A"
+A="$(arvore caixa-ok)"; caixa_tree "$A" 'timeout 600 caixa "$GODOT" --headless --path godot res://testes/prova.tscn -- --robo
+xvfb-run -a caixa "$GODOT" --audio-driver Dummy --path godot -- --simular=4
+"$GODOT" --headless --path godot --import --quit
+"$GODOT" --headless -s scripts/comparar_telas.gd -- a b
+godot --export-release "Linux" dist/forja.x86_64
+# "$GODOT" --path godot -- --simular=4 num comentário'
+espera 0 "caixa: deixa passar a chamada pela caixa, o --import, o -s, o --export e o comentário" python3 "$P/caixa.py" --raiz "$A"
+
 # --- o rodar.sh -------------------------------------------------------------------------------------------------
 espera 0 "rodar.sh: os portões do repositório passam (a arte e o som em aviso)" bash "$P/rodar.sh"
 

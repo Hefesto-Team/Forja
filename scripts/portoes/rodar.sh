@@ -6,6 +6,7 @@
 #     sem rastro         nenhum termo interno, campo de modelo em ficha, trailer, AGENTS.md (tests/prova_sem_rastro.sh)
 #     mensagens          os commits novos sem símbolo nem trailer (mensagens_de_commit.py)
 #     ficha pronta       ficha «pronta» no quadro tem todas as partes da ficha pronta (ficha_pronta.py)
+#     caixa              prova e script abrem o jogo só pelo `caixa` (tests/caixa.sh), sem ver o controle (caixa.py)
 #   A DIREÇÃO (em AVISO até a bíblia entrar; não reprovam):
 #     arte               cor só por token, só as fontes da bíblia, texto de 30 px ou mais, cor de jogador só no
 #                        jogador (arte.py, regras em arte.json)
@@ -54,6 +55,7 @@ roda base "sem rastro" bash "$RAIZ/tests/prova_sem_rastro.sh" --so-varrer
 roda base "mensagens de commit" python3 "$AQUI/mensagens_de_commit.py" --raiz "$RAIZ"
 roda base "ficha pronta" python3 "$AQUI/ficha_pronta.py" --raiz "$RAIZ"
 roda base "teste mudo" python3 "$AQUI/teste_mudo.py" --raiz "$RAIZ"
+roda base "caixa" python3 "$AQUI/caixa.py" --raiz "$RAIZ"
 roda arte "arte" python3 "$AQUI/arte.py" --raiz "$RAIZ"
 roda som "som" python3 "$AQUI/som.py" --raiz "$RAIZ"
 

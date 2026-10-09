@@ -200,8 +200,16 @@ static void provas_do_sysfs(void) {
 }
 #endif
 
+static void provas_da_sessao(void) {
+  espera(origem_aceitar_na_sessao(1, 1), "com --simular, o controle simulado entra");
+  espera(!origem_aceitar_na_sessao(1, 0), "com --simular, o controle de verdade é recusado");
+  espera(origem_aceitar_na_sessao(0, 0), "sem a marca, o controle de verdade entra");
+  espera(origem_aceitar_na_sessao(0, 1), "sem a marca, o simulado também entra");
+}
+
 void provas_origem(void) {
   provas_da_regra();
+  provas_da_sessao();
 #if defined(__linux__)
   provas_do_sysfs();
 #endif
