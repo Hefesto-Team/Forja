@@ -76,8 +76,9 @@ const FICHA := {
 	"faixa": "MUS_S03_J12",
 	"duracao": 75.0,
 	"fim": "tempo",
-	"sensacoes": ["acerto", "perfeito", "erro", "golpe"],
+	"sensacoes": ["toque", "acerto", "perfeito", "aviso", "erro", "golpe"],
 	"material": "gelo",
+	"textura_no_acerto": false,  # a racha que corre na mão (_racha_na_mao) é o sentir do acerto
 	"microjogo": {"verbo": "Rache!", "segundos": 6.0},
 	"gesto": "attack-melee-right",
 }
@@ -257,7 +258,7 @@ func toque(l: int, julgamento: int) -> void:
 	var bloco: Node3D = nos.bloco
 	Som.tocar("tique", bloco.global_position, -4.0, 1.6)
 	if julgamento != Ritmo.PERFEITO:
-		Forja.som_falante(l, "material:gelo", 0.5)
+		Forja.som_falante(l, "clique", 0.5)  # a textura do gelo é dos atuadores (H08), nunca do alto-falante
 	_racha_na_mao(l, int(e.dir))
 	var p := jogador(l)
 	if p:
@@ -271,12 +272,18 @@ func toque(l: int, julgamento: int) -> void:
 
 
 ## A racha corre na mão: o atuador do lado de onde o dedo saiu e, 40 ms depois, o outro.
+## Sem a háptica (o motor do lugar vibrando, ou sem o módulo: `som_haptica` devolve −1),
+## o acerto se sente pelo `Forja.sentir(l, "acerto")` e a racha não corre.
 func _racha_na_mao(l: int, dir: int) -> void:
 	var primeiro := "pulso"
+	var tocou: int
 	if dir > 0:
-		Forja.som_haptica(l, primeiro, "", 0.6)
+		tocou = Forja.som_haptica(l, primeiro, "", 0.6)
 	else:
-		Forja.som_haptica(l, "", primeiro, 0.6)
+		tocou = Forja.som_haptica(l, "", primeiro, 0.6)
+	if tocou < 0:
+		Forja.sentir(l, "acerto")
+		return
 	await get_tree().create_timer(RACHA_MS / 1000.0).timeout
 	if dir > 0:
 		Forja.som_haptica(l, "", primeiro, 0.6)
@@ -362,8 +369,7 @@ func _chegou(de: int, para: int) -> void:
 	e.frio_ate = Ritmo.batida() + 4.0
 	var topo := (e.nos.pilha as Node3D).global_position + Vector3(0, BLOCO_FILA.y * int(e.fila), 0)
 	Som.tocar("pedra", topo, -2.0)
-	Efeitos.faiscas(self, topo, Tema.JOGADOR[de], 24, 0.8)
-	Forja.som_falante(para, "material:gelo", 0.5)
+	Efeitos.faiscas(self, topo, Tema.JOGADOR[de], 24, 0.8)  # o gelo na mão do líder vem do frio_ate, pela textura
 	var c := int(floorf(Ritmo.batida() / 4.0))
 	var chave := "%d:%d" % [para, c]
 	chegadas[chave] = int(chegadas.get(chave, 0)) + 1
@@ -398,10 +404,15 @@ func _avalanche(l: int, quem_soltou: int) -> void:
 			_rampa(x)
 
 
-## O forte de 0 a 1,0 em 600 ms: seis pulsos de 100 ms que sobem.
+## O forte de 0 a 1,0 em 600 ms: seis pulsos de 100 ms que sobem pela tabela de
+## sensações (F05: o forte de cada uma é 0; 0,3; 0,5; 0,6; 0,7; 1,0). Nunca o
+## Forja.vibrar, que só o forja.gd chama.
+const RAMPA := ["toque", "acerto", "perfeito", "aviso", "erro", "golpe"]
+
+
 func _rampa(x: int) -> void:
-	for k in 6:
-		Forja.vibrar(x, (k + 1) / 6.0, 0.0, 100)
+	for nome in RAMPA:
+		Forja.sentir(x, nome, 100)
 		await get_tree().create_timer(0.1).timeout
 
 
@@ -572,9 +583,9 @@ Os ids são os do [mapa do áudio](../o-time/o-mapa-do-audio.md).
 
 | evento | na TV | no controle do dono |
 | --- | --- | --- |
-| a rachadura | `tique` (`tique_0..2`, `sint_tique`), −4 dB, tom 1,6 (agudo, vidro) | Ressonância: a nota (o kit); bom e ótimo: `Forja.som_falante(l, "material:gelo", 0.5)` (`mod_material_gelo`) |
-| o bloco quebra | `pedra` (`pedra_0..4`, `sint_pedra`), 0 dB | `Forja.som_falante(l, "coleta", 0.8)` (`mod_coleta`) |
-| o bloco chega ao líder | `pedra`, −2 dB | no líder: `material:gelo` a 0,5 |
+| a rachadura | `tique` (`tique_0..2`, `sint_tique`), −4 dB, tom 1,6 (agudo, vidro) | Ressonância: a nota (o kit); bom e ótimo: `Forja.som_falante(l, "clique", 0.5)` (`mod_clique`) |
+| o bloco quebra | `pedra` (`pedra_0..4`, só na TV), 0 dB | `Forja.som_falante(l, "coleta", 0.8)` (`mod_coleta`) |
+| o bloco chega ao líder | `pedra`, −2 dB | nada no alto-falante: o gelo do líder é a textura nos atuadores (`mod_material_gelo`, H08) |
 | a avalanche | `pedra`, +3 dB, tom 0,7 (grave) | em quem soltou o terceiro bloco: `Som.no_controle(l, "pedra", 0.9)` |
 | a falha | a nota quebrada (o kit) | a nota quebrada (o kit) |
 
@@ -585,15 +596,15 @@ Os ids são os do [mapa do áudio](../o-time/o-mapa-do-audio.md).
 | evento | vibração | háptica e alto-falante | luz | gatilho | para os outros |
 | --- | --- | --- | --- | --- | --- |
 | o dedo riscando | — | a textura `gelo` nos atuadores, a cada quarto de tempo (`SECAO.textura(l, "gelo")`) | — | R2 Off | nada |
-| a rachadura | o kit | a racha corre na mão: `Forja.som_haptica` com `"pulso"` a 0,6 no atuador do lado de onde o dedo saiu e, 40 ms depois, no outro | o kit | — | nada |
+| a rachadura | nenhuma do kit: a FICHA desliga a textura do acerto (`"textura_no_acerto": false`) | a racha corre na mão: `Forja.som_haptica` com `"pulso"` a 0,6 no atuador do lado de onde o dedo saiu e, 40 ms depois, no outro; se o `som_haptica` devolver −1, `Forja.sentir(l, "acerto")` no lugar dela | o kit | — | nada |
 | o bloco quebra | o kit | `coleta` a 0,8 no alto-falante | o kit | — | o líder recebe o bloco 1 batida depois |
-| o bloco chega | — | no líder: `material:gelo` a 0,5 e a textura `gelo` por 1 compasso | — | — | — |
-| a avalanche | no líder: `Forja.sentir(l, "golpe")` (1,0/0,6/250 ms); nos outros (nem o líder, nem quem soltou): o forte de 0 a 1,0 em 600 ms (seis pulsos de 100 ms) | em quem soltou: `pedra` a 0,9 no alto-falante | — | — | é para todos |
+| o bloco chega | — | no líder: a textura `gelo` nos atuadores por 1 compasso (`frio_ate`, `SECAO.textura(l, "gelo")`, um atuador só, nunca junto do motor) | — | — | — |
+| a avalanche | no líder: `Forja.sentir(l, "golpe")` (1,0/0,6/250 ms); nos outros (nem o líder, nem quem soltou): o forte de 0 a 1,0 em 600 ms, seis pulsos de 100 ms pela tabela: `toque`, `acerto`, `perfeito`, `aviso`, `erro`, `golpe` (`_rampa`) | em quem soltou: `pedra` a 0,9 no alto-falante | — | — | é para todos |
 | a falha | o kit: 0,7/0,3/160 ms | a nota quebrada | o kit | — | nada |
 
 **Sem o controle na mão:** o robô risca pelo `Forja.robo_tocar`; a prova lê a linha `sensacao` do golpe (F05) e as
 `saida` de vibração da rampa (F06). O `som_haptica` devolve −1 quando o motor do lugar está vibrando (F05): a racha
-não toca por cima do golpe, e isso é o certo.
+não toca por cima do golpe, e o acerto cai para o `Forja.sentir(l, "acerto")`, que a prova lê como linha `sensacao`.
 
 **O que espera ela:** nada. O touchpad lido pelo SDL basta; a regra udev do touchpad-mouse não muda esta ficha.
 
@@ -654,8 +665,9 @@ bancada, pela prova visual da F09):
 | 9. o impacto | para cada `avalanche`, uma linha `sensacao` `golpe` do mesmo lugar a até 16,7 ms | o quadro seguinte mostra a pilha caída ou a neve |
 | 10. o placar no mundo | a ordem do `vencedor()` bate com `quebrados` no `momento` `reta` e no fim | a pilha atrás do líder diz quem lidera |
 
-Até o robô por lugar (`--robo=bom,medio,medio,ruim`, pedido ao arquiteto) existir, a prova roda com `--robo=medio`
-nos quatro e confere os itens 1, 4, 5, 8, 9 e 10; os itens 6 e 7 esperam.
+Até o robô por lugar (`--robo=bom,medio,medio,ruim`, pedido ao arquiteto) existir, a prova roda com o `--robo` da
+`prova_do_jogo.sh` (sem valor: o `bom` nos quatro) e confere os itens 1, 4, 5, 8, 9 e 10; os itens 6 e 7 esperam. Se a
+semente 7 der menos de 1 avalanche entre 25 e 75 s, mostre o registro e não mude a semente nem o mínimo.
 
 ## Pronto quando
 

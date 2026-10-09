@@ -150,11 +150,13 @@ func montar() -> void:
 		var placa: Node3D = nos.placa
 		Kit.caixa(placa, Vector3(2.4, 0.02, 0.03), Vector3(0, 0.1, 0), linha)
 		Kit.caixa(placa, Vector3(0.03, 0.02, 1.2), Vector3(0, 0.1, 0), linha)
+		# o neon é um ShaderMaterial (G15): a vez forte é outro material, nunca o Tema.emissivo
 		var vez_mat := Tema.neon(Tema.JOGADOR[l], 1.5, l)
 		var vez := Kit.caixa(placa, Vector3(1.15, 0.02, 0.55), Vector3.ZERO, vez_mat)
 		vez.visible = false
 		nos["vez"] = vez
 		nos["vez_mat"] = vez_mat
+		nos["vez_perto"] = Tema.neon(Tema.JOGADOR[l], 2.4, l)
 		maos_livres(p)
 		p.position = Vector3(RAIAS[l] - 1.45, 0.05, 0.35)
 		p.rotation.y = PI * 0.5
@@ -372,8 +374,7 @@ func _apito() -> void:
 	abertas = maxi(0, abertas - 1)
 	_mostrar_o_numero()
 	SECAO.apagao(self)
-	Som.tocar("apito", _porta.global_position, 0.0)
-	Som.tocar("falha", _porta.global_position, -4.0)
+	Som.tocar("falha", _porta.global_position, 0.0)  # o tropeço, nunca um bipe: o 03 proíbe o «buzz» de erro
 	for l in presentes():
 		if conectado(l):
 			Forja.sentir(l, "golpe")
@@ -449,7 +450,7 @@ func _mostrar(agora_b: float) -> void:
 				vez.position = SECAO.no_molde(c.x, c.y, 0.11)
 				vez.visible = true
 				var perto := Ritmo.t_musica() >= Ritmo.t_da_batida(float(nota.b)) - SECAO.aviso_s(l)
-				Tema.emissivo(nos.vez_mat, 2.4 if perto else 1.5, l)
+				vez.material_override = nos.vez_perto if perto else nos.vez_mat
 				break
 
 
@@ -569,12 +570,12 @@ Os ids são os do [mapa do áudio](../o-time/o-mapa-do-audio.md).
 
 | evento | na TV | no controle do dono |
 | --- | --- | --- |
-| a chamada de uma nota | `nota` (`mod_nota_p1..p4`), −4 dB, com o tom do dono (`TOM_DO_LUGAR`) | **a nota dele**: `Forja.som_falante(dono, "nota:%d" % dono, 0.6)` (o segredo) |
+| a chamada de uma nota | `nota` (`sint_nota`, a nota na TV), −4 dB, com o tom do dono (`TOM_DO_LUGAR`) | **a nota dele**: `Forja.som_falante(dono, "nota:%d" % dono, 0.6)` (o segredo) |
 | a resposta certa | a nota (o kit) | Ressonância: a nota (o kit); bom e ótimo: `Forja.som_falante(l, "clique", 0.4)` (`mod_clique`) |
 | a resposta errada | a nota quebrada (o kit) | a nota quebrada (o kit) |
 | a senha abre | `confirma` (`confirma_0..2`, `sint_confirma`), 0 dB | — |
-| a senha longa abre | `confirma` e `portao` (`portao_0`, `sint_portao`), 0 dB | — |
-| o apito | `apito` (`jin_apito`), 0 dB, e `falha` (`fx_tropeco_0..2`), −4 dB | — |
+| a senha longa abre | `confirma` e `portao` (`portao_0`), 0 dB | — |
+| o apito | só `falha` (`falha_0..2`, que a `fx_tropeco_0..2` substitui), 0 dB: o tropeço da sala. Nenhum bipe e nunca o `jin_apito`, que é o fim de todo minigame (o 03 proíbe o «buzz» de erro) | — |
 | a porta abre (a vitória) | `portao`, +3 dB, e `sucesso` (`vitoria_sala_0..1`), 0 dB | — |
 
 **A faixa:** `mus_s03_j13` (140 BPM, Sol menor, a fazer). Até a H05, a sintetizada da seção a 100 bpm.

@@ -83,7 +83,7 @@ const FICHA := {
 	"faixa": "MUS_S03_J15",
 	"duracao": 90.0,
 	"fim": "tempo",
-	"sensacoes": ["acerto", "perfeito", "erro", "golpe"],
+	"sensacoes": ["toque", "acerto", "perfeito", "erro", "golpe"],
 	"material": "madeira",
 	"microjogo": {"verbo": "Carimbe!", "segundos": 6.0},
 	"gesto": "attack-melee-right",
@@ -250,7 +250,10 @@ func jogar(_dt: float) -> void:
 	var dono: int = _sinc.dono
 	if not bool(_sinc.pulsou) and agora >= alvo and dono >= 0 and float(_sinc.b) < BATIDA_DA_PRIMEIRA_NOTA + FRASE:
 		_sinc.pulsou = true
-		Forja.som_haptica(dono, "pulso", "pulso", 0.35)  # a síncope na mão, só na primeira frase, só no dono
+		# a síncope na mão, só na primeira frase, só no dono; sem a háptica (o motor do dono
+		# vibrando, ou sem o módulo: −1), o `toque` no motor fraco no lugar dela
+		if Forja.som_haptica(dono, "pulso", "pulso", 0.35) < 0:
+			Forja.sentir(dono, "toque", 40)
 	for l in presentes():
 		if acabou[l] or not conectado(l) or not Forja.apertou(l, Forja.TOUCHPAD):
 			continue
@@ -325,11 +328,12 @@ func _borrar(l: int, porque: String) -> void:
 	_rachado(l)
 
 
-## O selo rachado: dois toques de 30 ms no motor forte, o segundo 60 ms depois do primeiro.
+## O selo rachado: dois `erro` de 30 ms (0,7/0,3, a tabela da F05), o segundo 60 ms
+## depois do primeiro. O `Forja.vibrar` só o forja.gd chama.
 func _rachado(l: int) -> void:
-	Forja.vibrar(l, 0.5, 0.0, 30)
+	Forja.sentir(l, "erro", 30)
 	await get_tree().create_timer(0.06).timeout
-	Forja.vibrar(l, 0.5, 0.0, 30)
+	Forja.sentir(l, "erro", 30)
 
 
 ## O selo do lugar no lingote. Por cima: o lingote é dele, por enquanto. Por
@@ -575,7 +579,7 @@ Os ids são os do [mapa do áudio](../o-time/o-mapa-do-audio.md).
 | --- | --- | --- |
 | o clique do dono | a nota (o kit) e `carimbo` (`carimbo_0..4`), 0 dB | dono: Ressonância, a nota (o kit); bom e ótimo, `Som.no_controle(l, "carimbo", 0.6)` |
 | o selo por cima fica | `carimbo`, 0 dB, e `golpe` (`golpe_*`), −4 dB | ladrão: `Som.no_controle(l, "carimbo", 0.6)` |
-| o borrão | `falha` (`falha_0..2`), −12 dB | — |
+| o borrão | `falha` (`falha_0..2`, que a `fx_tropeco_0..2` substitui), −12 dB | — |
 | o lingote vai à pilha | `tique` (`tique_0..2`), −8 dB | — |
 | o lingote de ouro tem dono | `confirma` (`confirma_0..2`), 0 dB | — |
 | o selo por cima (o lingote pula) | `golpe`, −2 dB, e `carimbo` duas vezes na prensa, −2 dB, tom 0,7 | dono roubado: `Forja.som_falante(dono, "tropeco", 0.7)` (`mod_tropeco`) |
@@ -587,15 +591,17 @@ Os ids são os do [mapa do áudio](../o-time/o-mapa-do-audio.md).
 
 | evento | vibração | háptica e alto-falante | luz | gatilho | para os outros |
 | --- | --- | --- | --- | --- | --- |
-| a síncope do dono, nas 32 batidas depois da primeira nota | — | `Forja.som_haptica(dono, "pulso", "pulso", 0.35)` na batida da síncope, só no dono | — | R2 Off | nada |
+| a síncope do dono, nas 32 batidas depois da primeira nota | — | `Forja.som_haptica(dono, "pulso", "pulso", 0.35)` na batida da síncope, só no dono; se devolver −1, `Forja.sentir(dono, "toque", 40)` no lugar dela | — | R2 Off | nada |
 | o clique do dono | o kit | o carimbo a 0,6, ou a nota no perfeito | o kit: branco no perfeito | — | nada |
 | o selo por cima fica | `Forja.sentir(l, "perfeito")` no ladrão | o carimbo a 0,6 | — | — | — |
-| o borrão (o selo rachado) | dois toques `Forja.vibrar(l, 0.5, 0.0, 30)`, o segundo 60 ms depois do primeiro | — | — | — | nada |
+| o borrão (o selo rachado) | dois `Forja.sentir(l, "erro", 30)` (0,7/0,3), o segundo 60 ms depois do primeiro | — | — | — | nada |
 | o lingote roubado | `Forja.sentir(dono, "golpe")` no dono (1,0/0,6/250 ms) | o tropeço a 0,7 no dono | — | — | o ladrão já sentiu o perfeito |
 | o dono erra | o kit: 0,7/0,3/160 ms | a nota quebrada | o kit | — | nada |
 
 **Sem o controle na mão:** o robô clica pelo `Forja.robo_apertar`; a prova lê as linhas `sensacao` do golpe e do
-perfeito (F05) e as `saida` dos dois toques do borrão (F06).
+perfeito e os dois `erro` de 30 ms do borrão (F05), e as `saida` de vibração delas (F06). O pulso da primeira frase
+se confere pelo simulador: o `som_haptica` do dono na batida da síncope, ou, quando ele devolve −1, a linha
+`sensacao` `toque` de 40 ms.
 
 **O que espera ela:** nada. O clique do touchpad é um botão; a regra udev do touchpad-mouse não muda esta ficha.
 

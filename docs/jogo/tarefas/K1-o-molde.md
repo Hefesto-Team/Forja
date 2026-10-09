@@ -65,18 +65,20 @@ var camera_pos; var camera_olhar; var rng; var treinando; var jogadores; var pon
 
 Do `Forja`: `Forja.dedo(l, i)` (um Vector3: `x` e `y` de 0 a 1, y para baixo; `z = 1` é o dedo encostado),
 `Forja.capacidade(l, "toque")`, `Forja.apertou(l, Forja.TOUCHPAD)`, `Forja.gatilho(l, 1, Forja.GATILHO_OFF)`,
-`Forja.sentir(l, nome)` (F05), `Forja.vibrar(l, forte, fraco, ms)`, `Forja.textura(l, mat)`,
+`Forja.sentir(l, nome, ms := -1)` (F05: toda vibração sai por ela, pelo nome da tabela; o `Forja.vibrar` só o
+`forja.gd` chama, e a prova da F05 reprova qualquer outro script que o chame), `Forja.textura(l, mat)`,
 `Forja.som_falante(l, som, ganho)`, `Forja.som_tem(l, Forja.PAPEL_HAPTICA)`, `Forja.robo`,
 `Forja.robo_tocar(l, dedo, x, y, s)`, `Forja.robo_apertar(l, botao, s)`, `Forja.robo_acerta()`,
 `Forja.med_pedir(l, o)` e `Forja.med_tracou(l)`.
 
 Do `Ritmo`, do `Som`, do `Tema`, do `Kit` e dos `Itens`: `Ritmo.t_musica()`, `Ritmo.batida()`,
 `Ritmo.t_da_batida(b)`, `Ritmo.bpm`, `Ritmo.simples[l]`, `Ritmo.PERFEITO`, `Ritmo.ERRO`; `Som.tocar(nome, pos, db,
-tom)`, `Som.no_controle(l, nome, ganho)`; `Tema.luz_da_secao("S03", "A")` (G15: um `Dictionary` com `nevoa`,
-`preenchimento` e `chave`, três cores), `Tema.neon(cor, energia, dono)`, `Tema.emissivo(material, energia, dono)`
+tom)`, `Som.no_controle(l, nome, ganho)`; `Tema.luz_da_secao(3)` (G15: a seção pelo número, a S03 é o 3, lado A; um `Dictionary` com `nevoa`,
+`preenchimento` e `chave`, três cores), `Tema.neon(cor, energia, dono)` (um `ShaderMaterial`: a energia muda trocando de material, um por energia,
+criado no `montar`), `Tema.emissivo(material, energia, dono)` (só sobre `StandardMaterial3D`)
 (o dono é o lugar, com teto 3,0; `"forja"`, com teto 2,4 e `TUNGSTENIO`; `"mundo"`, com teto 1,2), os tokens da
 G14 e `Tema.archivo(peso)`; `Kit.arena(sala, largura, fundo)`, `Kit.peca(pai, nome, pos, rot_y, escala := 2.0)`,
-`Kit.caminho(nome)` (G10), `Kit.caixa(pai, tamanho, pos, mat)`, `Kit.material(cor, brilho, rugoso)`,
+`Kit.caminho(nome)` (G10), `Kit.caixa(pai, tamanho, pos, mat)`, `Kit.material(cor, brilho, rugoso, dono := "mundo")` (G15: com brilho > 0, chama o `Tema.emissivo` com o dono),
 `Kit.chapado(cor)`; `Efeitos.faiscas(pai, pos, cor, n, forca)`; `Itens.antecipacao_s(l, bpm)` (a Lanterna, G03).
 
 ### A função `momento` (em `minigame.gd`, de todos)
@@ -157,7 +159,7 @@ static func montar(sala: Minigame, cam_pos: Vector3, cam_olhar: Vector3) -> void
 	sala.camera_pos = cam_pos
 	sala.camera_olhar = cam_olhar
 	Kit.arena(sala, 5, 3)
-	var luz: Dictionary = Tema.luz_da_secao("S03", "A")
+	var luz: Dictionary = Tema.luz_da_secao(3)
 	sala.atmosfera(luz.preenchimento, Tema.VIOLETA, false, 50)
 	var chave := OmniLight3D.new()
 	chave.position = CHAVE_POS
@@ -509,6 +511,7 @@ func montar() -> void:
 		nos["pontos"] = pontos_nos
 		nos["sulco"] = sulco
 		nos["alvo_mat"] = Tema.neon(Tema.JOGADOR[l], ALVO_ENERGIA, l)
+		nos["alvo_acerto"] = Tema.neon(Tema.JOGADOR[l], ALVO_ACERTO, l)
 		nos["alvo"] = SECAO.anel8(placa, 0.17, Vector3.ZERO, nos.alvo_mat)
 		nos["prox"] = SECAO.disco8(placa, 0.07, 0.035, Vector3.ZERO, nos.alvo_mat)
 		nos["aceso"] = Tema.neon(Tema.JOGADOR[l], 1.4, l)
@@ -796,10 +799,10 @@ func _coro() -> void:
 	if int(coro.n) != vivos.size() or vivos.size() < 2:
 		return
 	for x in vivos:
-		Forja.vibrar(x, 1.0, 0.6, 120)
+		Forja.sentir(x, "golpe", 120)  # o forte: 1,0/0,6
 	await get_tree().create_timer(0.12).timeout
 	for x in vivos:
-		Forja.vibrar(x, 0.7, 0.4, 120)
+		Forja.sentir(x, "perfeito", 120)  # o fraco: 0,5/0,8
 
 
 ## A peça pronta, de caixas: a espada (lâmina e guarda), o escudo, o elmo. A
@@ -881,9 +884,9 @@ func _mostrar(l: int) -> void:
 		var i := int(e.roteiro[passo_i][2])
 		alvo.position = SECAO.no_molde(letra.x[i], letra.y[i], 0.13)
 		alvo.scale = Vector3.ONE * (0.92 + 0.1 * sin(Ritmo.batida() * TAU))
-	var energia := ALVO_ACERTO if int(e.acerto_q) > 0 else ALVO_ENERGIA
+	# o neon é um ShaderMaterial (G15): o acerto troca de material, nunca passa pelo Tema.emissivo
+	alvo.material_override = nos.alvo_acerto if int(e.acerto_q) > 0 else nos.alvo_mat
 	e.acerto_q = maxi(0, int(e.acerto_q) - 1)
-	Tema.emissivo(nos.alvo_mat, energia, l)
 	# o primeiro ponto da próxima peça acende 1 aviso antes dela, enquanto a vez é o carimbo
 	var prox: MeshInstance3D = nos.prox
 	var fim := float(e.s) + float(e.tam)
@@ -1029,7 +1032,7 @@ Entre o último ponto e o carimbo, e entre o carimbo e o abrir, o robô não toc
   50°: `camera_pos = Vector3(0.2, 11.2, 8.4)`, `camera_olhar = Vector3(0.2, 0.9, -0.3)`. Não corta durante o jogo.
   **No pico** (o terço do meio), ela recua 10 % (`pos = olhar + (pos − olhar) × 1,1`) em 1 batida e volta em 2
   (`SECAO.pico`).
-- **A luz:** petróleo, a da S03 lado A (`Tema.luz_da_secao("S03", "A")`: a névoa `#011311`, o preenchimento
+- **A luz:** petróleo, a da S03 lado A (`Tema.luz_da_secao(3)`: a névoa `#011311`, o preenchimento
   `#11413b` e a chave `#e5d7ad`). A chave é um OmniLight3D em (0; 7,5; 5,0), com energia 1,4 e alcance 26. No pico,
   a chave vai a ×1,2 e a névoa a ×0,8. A névoa do main volta como estava quando a sala sai. O neon do ar é
   `Tema.VIOLETA` (`atmosfera(preenchimento, VIOLETA, false, 50)`). Cada bancada tem a sua luz de tungstênio
@@ -1092,7 +1095,7 @@ os tempos 1 e 3 pesados: o carimbo da peça de 4 tempos cai no 4, a resposta ao 
 | o ponto acerta | o kit: acerto 0,3/0,6/80 ms; Ressonância 0,5/0,8/100 ms | o clique (`mod_clique`) a 0,4, ou a nota no perfeito | o kit: branco no perfeito | — | nada |
 | o carimbo | o kit | `carimbo` a 0,6 no alto-falante | o kit | — | nada |
 | o molde fecha (primeira peça) | `Forja.sentir(l, "golpe")`: 1,0/0,6/250 ms | — | — | — | nada |
-| o desmolde dos quatro (todos desmoldam a menos de 0,4 s) | nos quatro: `Forja.vibrar(l, 1.0, 0.6, 120)`, pausa de 120 ms, `Forja.vibrar(l, 0.7, 0.4, 120)` (`_coro`) | — | — | — | é para todos |
+| o desmolde dos quatro (todos desmoldam a menos de 0,4 s) | nos quatro: `Forja.sentir(l, "golpe", 120)` (1,0/0,6), pausa de 120 ms, `Forja.sentir(l, "perfeito", 120)` (0,5/0,8) (`_coro`) | — | — | — | é para todos |
 | o erro | o kit: 0,7/0,3/160 ms | a nota quebrada | o kit: a cor do lugar escurecida | — | nada |
 
 **Sem o controle na mão:** o robô toca e clica pelo `Forja.robo_tocar` e pelo `Forja.robo_apertar`; a prova lê cada
@@ -1101,8 +1104,8 @@ sensação no registro (a linha `sensacao`, F05) e a `saida` de vibração com `
 **O que espera ela** (o ESPERA-ELA do quadro): no Linux, o touchpad também vira mouse; a regra udev
 `LIBINPUT_IGNORE_DEVICE=1` pede o sudo dela. Esta ficha não depende da regra: o jogo lê o touchpad pelo SDL e o
 cursor que anda junto não atrapalha a tela de jogo. Quando a regra entrar, nada muda aqui. A onda própria do tique
-(150 Hz, 12 ms) é do diretor de som; até ela ter id no mapa, o tique da textura é `Forja.sentir(l, "toque")`
-(0/0,45/60 ms). O gatilho fica Off; a emenda do gatilho (SLOPE, MULTIPLE) não se usa.
+(150 Hz, 12 ms) é do diretor de som e não entra nesta ficha: até ela ter id no mapa, o dedo traçando sente só a
+textura `pedra` nos atuadores (`SECAO.textura`), sem tique e sem motor. O gatilho fica Off; a emenda do gatilho (SLOPE, MULTIPLE) não se usa.
 
 ## O cavaleiro
 
@@ -1166,8 +1169,9 @@ bancada, pela prova visual da F09):
 | 9. o impacto | para cada `desmolde`, uma linha `sensacao` do mesmo lugar a até 16,7 ms (o golpe do kit no carimbo) | o quadro seguinte ao desmolde ainda mostra a peça na estante |
 | 10. o placar no mundo | a ordem do `vencedor()` bate com a ordem das estantes (`valor`) no `momento` `reta` e no fim | no quadro de 60 s, quem olha diz a ordem pelas estantes, e ela bate com o registro |
 
-Até o robô por lugar (`--robo=bom,medio,medio,ruim`, pedido ao arquiteto na régua) existir, a prova roda com
-`--robo=medio` nos quatro e confere os itens 1, 4, 5, 8, 9 e 10; os itens 6 e 7 esperam o robô por lugar.
+Até o robô por lugar (`--robo=bom,medio,medio,ruim`, pedido ao arquiteto na régua) existir, a prova roda com o
+`--robo` da `prova_do_jogo.sh` (sem valor: o `bom` nos quatro, 95 % de acerto) e confere os itens 1, 4, 5, 8, 9 e 10;
+os itens 6 e 7 esperam o robô por lugar.
 
 ## Pronto quando
 
@@ -1238,8 +1242,12 @@ func _prova_do_molde() -> void:
 	_esperar(not v.is_empty() and float(mg.j[v[0]].valor) >= float(mg.j[v[-1]].valor), "Molde: o vencedor tem a maior estante")
 ```
 
-O `_confere_os_vereditos` e o `_joga_o_minigame` são os da H08; o `_linha_do_tempo` é o da F01. Com `--robo=medio`
-nos quatro, as tortas vêm dos 200 ms atrasados do temperamento.
+O `_confere_os_vereditos` e o `_joga_o_minigame` são os da H08; o `_linha_do_tempo` é o da F01. A prova roda com o
+`--robo` da `prova_do_jogo.sh`, sem valor: o `bom` nos quatro. As tortas vêm dos 5 % de notas que o `bom` erra (200 ms
+atrasado, fora dos 140 ms do bom): uma `PECA` de 4 notas sai torta com 1 − 0,95⁴ ≈ 18,5 %; fora da fornada, os
+quatro desmoldam juntos no tempo 1, e um grupo de 4 mistura torta e inteira com 1 − 0,815⁴ − 0,185⁴ ≈ 56 %. Em 90 s
+a 100 bpm há cerca de 20 grupos: uns 11 mistos, contra o mínimo de 3. Se a semente 7 der menos de 3, mostre o
+registro e não mude a semente nem o mínimo.
 
 ### `godot/testes/captura_jogo.gd`
 

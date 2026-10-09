@@ -82,7 +82,7 @@ const FICHA := {
 	"faixa": "MUS_S03_J14",
 	"duracao": 80.0,
 	"fim": "tempo",
-	"sensacoes": ["acerto", "perfeito", "erro", "toque"],
+	"sensacoes": ["acerto", "perfeito", "erro", "toque", "golpe"],
 	"material": "metal",
 	"microjogo": {"verbo": "Estique!", "segundos": 6.0},
 	"gesto": "interact-right",
@@ -266,8 +266,10 @@ func _segurar(l: int, e: Dictionary, agora: float) -> void:
 		julgar_toque(l, alvo, int(e.n))
 
 
-## O ferro na mão: até 0,30, a textura metal; daí até o estalo, o motor fraco
-## sobe de 0,1 a 0,45 a cada quarto de tempo; no branco, um tique no alto-falante.
+## O ferro na mão: até 0,30, a textura metal; daí até o estalo, o `toque` (o motor
+## fraco a 0,45, 60 ms) bate cada vez mais junto: a cada 1 tempo a 0,30, a cada
+## quarto de tempo a 0,90; no branco, um tique no alto-falante. Toda vibração sai
+## pelo `Forja.sentir` (F05): o `Forja.vibrar` só o forja.gd chama.
 func _sentir_o_ferro(l: int, e: Dictionary) -> void:
 	var a := float(e.abertura)
 	if a < SOPRO:
@@ -277,10 +279,10 @@ func _sentir_o_ferro(l: int, e: Dictionary) -> void:
 			e.soprou = true
 			Som.tocar("sopro", (e.nos.placa as Node3D).global_position, -10.0)
 		var b := Ritmo.batida()
-		if b - float(e.vib_b) >= 0.25:
+		var u := clampf((a - SOPRO) / (ESTALO_ATE - SOPRO), 0.0, 1.0)
+		if b - float(e.vib_b) >= lerpf(1.0, 0.25, u):
 			e.vib_b = b
-			var u := clampf((a - SOPRO) / (ESTALO_ATE - SOPRO), 0.0, 1.0)
-			Forja.vibrar(l, 0.0, lerpf(0.1, 0.45, u), int(15000.0 / Ritmo.bpm))
+			Forja.sentir(l, "toque")
 	if not bool(e.tiquei) and a >= float(e.estalo) - BRANCO:
 		e.tiquei = true
 		Som.no_controle(l, "tique", 0.5)
@@ -298,6 +300,7 @@ func _estalar(l: int, e: Dictionary) -> void:
 	e.estalou = true
 	_estalo(l)
 	_perder(l, e)  # o ferro estala com ou sem o Escudo; o Escudo só tira o erro
+	Forja.sentir(l, "golpe")  # depois do erro do kit: o estrondo é o que fica no motor
 
 
 func toque(l: int, julgamento: int) -> void:
@@ -396,7 +399,6 @@ func _estalo(l: int) -> void:
 	SECAO.so_um(self, l)
 	Som.tocar("martelo", onde, 2.0, 0.8)
 	Som.tocar("falha", onde, -4.0)
-	Forja.vibrar(l, 0.8, 0.0, 80)
 	Som.no_controle(l, "martelo", 0.8)
 	var rosto := onde + Vector3(-1.4, 1.0, 0.0)
 	var p := jogador(l)
@@ -498,7 +500,7 @@ Em `MINIGAMES`: `"S03_J14": preload("res://scripts/minigames/s03/a_pinca.gd"),`.
   treino: todo mundo vê o estalo antes de 10 s). Os dedos passaram do ponto: **o ferro estala**, a peça vale zero e
   conta como erro.
 - **O aviso, visto e sentido:** o ferro vai de `OXIDO_BRILHO` a `TUNGSTENIO` a partir de 0,60 e fica `ETIQUETA` (o
-  branco) a 0,04 do ponto de estalo. A vibração do motor fraco sobe de 0,1 (a 0,30) a 0,45 (a 0,90). No branco, um
+  branco) a 0,04 do ponto de estalo. O `toque` no motor fraco bate cada vez mais junto: a cada tempo a 0,30, a cada quarto de tempo a 0,90. No branco, um
   tique no alto-falante do dono.
 - **O hoqueto em semínimas:** o lugar `l` pega em `4c + l` e solta `L = 2` tempos depois; as quatro notas longas se
   cruzam no compasso. Na partitura simples (`Ritmo.simples[l]`), uma peça a cada 2 compassos (o kit dobra o passo).
@@ -604,7 +606,7 @@ Os ids são os do [mapa do áudio](../o-time/o-mapa-do-audio.md).
 | o ferro passa de 0,30 | `sopro` (`sint_sopro`), −10 dB, uma vez por peça | — |
 | o ferro chega ao branco | — | `Som.no_controle(l, "tique", 0.5)` (`tique_0..2`), uma vez por peça |
 | soltar e encaixar | a nota (o kit) e `martelo` (`martelo_0..4`), −6 dB, na estante | `Forja.som_falante(l, "coleta", 0.7)` (`mod_coleta`) |
-| o estalo | `martelo`, +2 dB, tom 0,8 (grave), e `falha` (`falha_0..2`), −4 dB | `Som.no_controle(l, "martelo", 0.8)` |
+| o estalo | `martelo`, +2 dB, tom 0,8 (grave), e `falha` (`falha_0..2`, que a `fx_tropeco_0..2` substitui), −4 dB | `Som.no_controle(l, "martelo", 0.8)` |
 | a peça cai | a nota quebrada (o kit) e `falha`, −6 dB | a nota quebrada (o kit) |
 
 **A faixa:** `mus_s03_j14` (118 BPM, Si menor, a fazer). Até a H05, a sintetizada da seção a 100 bpm.
@@ -615,14 +617,14 @@ Os ids são os do [mapa do áudio](../o-time/o-mapa-do-audio.md).
 | --- | --- | --- | --- | --- | --- |
 | pegar | o kit, e `Forja.sentir(l, "toque")` (a pinça fecha no ferro) | o clique a 0,4, ou a nota no perfeito | o kit: branco no perfeito | R2 Off | nada |
 | esticando até 0,30 | — | a textura `metal` nos atuadores, a cada quarto de tempo (`SECAO.textura(l, "metal")`) | — | — | nada |
-| esticando de 0,30 em diante | o motor fraco a cada quarto de tempo, por 1/4 de tempo: `Forja.vibrar(l, 0.0, f, 15000 / bpm)`, `f` de 0,1 (a 0,30) a 0,45 (a 0,90) | — | — | — | nada |
+| esticando de 0,30 em diante | `Forja.sentir(l, "toque")` (0/0,45, 60 ms), cada vez mais junto: a cada `lerpf(1,0; 0,25; u)` tempo, `u` de 0 (a 0,30) a 1 (a 0,90) | — | — | — | nada |
 | o branco | — | o tique a 0,5 no alto-falante | — | — | nada |
 | encaixar | o kit | a coleta a 0,7 | o kit | — | nada |
-| o estalo | `Forja.vibrar(l, 0.8, 0.0, 80)`: forte 0,8 por 80 ms | a martelada a 0,8 no alto-falante | o kit, no erro | — | as bancadas dos outros a 70 % por 1 batida |
+| o estalo | `Forja.sentir(l, "golpe")` (1,0/0,6, 250 ms), depois do erro do kit no mesmo quadro | a martelada a 0,8 no alto-falante | o kit, no erro | — | as bancadas dos outros a 70 % por 1 batida |
 | a peça cai | o kit: 0,7/0,3/160 ms | a nota quebrada | o kit | — | nada |
 
-**Sem o controle na mão:** o robô pega e estica pelo `Forja.robo_tocar`; a prova lê as linhas `saida` de vibração
-(F06) do estalo e da subida, e as `sensacao` do `toque` (F05). O `som_haptica` da textura devolve −1 quando o motor
+**Sem o controle na mão:** o robô pega e estica pelo `Forja.robo_tocar`; a prova lê as linhas `sensacao` (F05) do
+`golpe` do estalo e do `toque` da subida, e as `saida` de vibração delas (F06). O `som_haptica` da textura devolve −1 quando o motor
 do lugar está vibrando (F05): de 0,30 em diante a textura cala e a vibração fala, e isso é o certo.
 
 **O que espera ela** (o ESPERA-ELA do quadro): no Linux, o touchpad também vira mouse; a regra udev
@@ -680,7 +682,7 @@ bancada, pela prova visual da F09):
 | 6. a falha | o P4 tem pelo menos 6 linhas `toque` com `erro` | 1 quadro em 5 mostra faíscas de tungstênio na placa do P4 |
 | 7. quem perde joga | a maior distância entre duas `nota` seguidas de cada lugar é de até 8 batidas | o P4 aparece em 100 % dos quadros de jogo |
 | 8. a câmera | cada `estalo` tem 0,1 ≤ `x_tela` ≤ 0,9 e `altura_tela` ≥ 0,05 | o ferreiro sentado e as metades se veem no quadro de 480 × 270 |
-| 9. o impacto | para cada `estalo`, uma linha `saida` de vibração (0,8 forte) do mesmo lugar a até 16,7 ms | o quadro seguinte mostra as metades no ar |
+| 9. o impacto | para cada `estalo`, uma linha `sensacao` `golpe` do mesmo lugar a até 16,7 ms | o quadro seguinte mostra as metades no ar |
 | 10. o placar no mundo | a ordem do `vencedor()` bate com `ferro` no `momento` `reta` e no fim | a estante mais cheia é a do líder |
 
 Até o robô por lugar (`--robo=bom,medio,medio,ruim`, pedido ao arquiteto) existir, a prova roda com o `--robo` da

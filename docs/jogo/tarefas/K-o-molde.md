@@ -20,15 +20,15 @@ Um arquivo só, criado pela K1 e usado pelos cinco:
 
 | função | o que faz |
 | --- | --- |
-| `SECAO.montar(sala)` | `Kit.arena(sala, 5, 3)`; `atmosfera(Color("#f1c86a"), Tema.ROXO, false, 50)` (a poeira dourada, o neon roxo); as três tochas; no fundo, `table` e `chair` do kit, `barrel`, `banner` |
-| `SECAO.bancada(sala, l, com_molde := true) -> Dictionary` | a bancada do lugar em `x = RAIAS[l] + 0.45` e **a placa na proporção do touchpad** (2,4 × 1,2 m, 2:1), inclinada 32° para a câmera — o touchpad **é** a placa: o dedo aparece onde o jogo o vê. Com o molde: as duas metades de pedra e o metal no fundo. Devolve `{placa, metades, metal, dedos, ligacao, ouro}` |
+| `SECAO.montar(sala, cam_pos, cam_olhar)` | `Kit.arena(sala, 5, 3)`; a luz da S3 pela G15 (`Tema.luz_da_secao(3)`: névoa `#011311`, preenchimento `#11413b`, chave `#e5d7ad`); `atmosfera(luz.preenchimento, Tema.VIOLETA, false, 50)`; no fundo, as bancadas, a máquina e os barris dos pacotes (G10), com a reserva do mini-dungeon (`SECAO.peca`) |
+| `SECAO.bancada(sala, l, com_molde := true) -> Dictionary` | a bancada do lugar em `x = RAIAS[l] + 0.45` e **a placa na proporção do touchpad** (2,4 × 1,2 m, 2:1), inclinada 40° para a câmera — o touchpad **é** a placa: o dedo aparece onde o jogo o vê. Com o molde: as duas metades de pedra e o metal no fundo. Devolve `{placa, metades, metal, dedos, ligacao, ouro}` |
 | `SECAO.no_molde(x, y, altura := 0.12) -> Vector3` | um ponto do touchpad (0 a 1, y para baixo) na placa |
 | `SECAO.distancia(a, b) -> float` | a distância entre dois toques em larguras do touchpad (como o núcleo mede) |
 | `SECAO.mostrar_dedos(sala, l, nos)` | os dois dedos na placa (discos de 8 lados na cor do lugar) e a ligação entre eles |
 | `SECAO.disco8(pai, raio, altura, pos, mat)`, `SECAO.anel8(pai, raio, pos, mat)` | disco e anel facetados (8 lados), no lugar das esferas e dos toros lisos (11) |
 | `SECAO.textura(l, material)` | a textura sob o dedo, só na háptica: `Forja.textura(l, material)` (H08) no máximo a cada quarto de tempo; no rádio, nada |
 
-O código inteiro está na [K1](K1-o-molde.md#o-cenário).
+O código inteiro está na [K1](K1-o-molde.md), na parte do `secao.gd`. Onde este índice e uma ficha K divergem, vale a ficha.
 
 ## As convenções da seção
 
