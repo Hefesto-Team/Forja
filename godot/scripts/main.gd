@@ -965,9 +965,12 @@ func _quadro_salao() -> void:
 ## O ✕ no salão: `ui_confirma` num portão aberto ou na bigorna, `ui_volta` no fechado, na TV e no
 ## alto-falante de quem apertou, com o toque na mão.
 func _som_do_cruz(lugar: int, confirma: bool) -> void:
-	var id := "ui_confirma" if confirma else "ui_volta"
-	Som.tocar(id, null, -12.0)
-	Som.no_controle(lugar, id, 0.85)
+	if confirma:
+		Som.tocar("ui_confirma", null, -12.0)
+		Som.no_controle(lugar, "ui_confirma", 0.85)
+	else:
+		Som.tocar("ui_volta", null, -12.0)
+		Som.no_controle(lugar, "ui_volta", 0.85)
 	Forja.sentir(lugar, "toque")
 
 

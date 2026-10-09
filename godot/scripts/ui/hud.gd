@@ -148,7 +148,7 @@ func _dica_presa(w: float, h: float) -> void:
 	draw_rect(r, Tema.ETIQUETA)
 	draw_rect(Rect2(r.position + Vector2(0, 14), Vector2(r.size.x, 12)), tarja)
 	# a ponta, do lado do cavaleiro
-	var py := r.position.y + 56.0
+	var py := r.position.y + 40.0   # a ponta vai de 40 a 72 px do topo
 	if lado_direito:
 		draw_colored_polygon(PackedVector2Array([Vector2(r.position.x, py), Vector2(r.position.x - 16, py + 16), Vector2(r.position.x, py + 32)]), Tema.ETIQUETA)
 	else:

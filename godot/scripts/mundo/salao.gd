@@ -601,7 +601,7 @@ func trofeus_na_vitrine() -> int:
 
 ## O albedo do copo da taça i (ou do cubo de um coop): a cor de quem venceu.
 func cor_do_trofeu(i: int) -> Color:
-	return _cores_dos_trofeus[i] if i >= 0 and i < _cores_dos_trofeus.size() else Color(0, 0, 0, 0)
+	return _cores_dos_trofeus[i] if i >= 0 and i < _cores_dos_trofeus.size() else Color()
 
 
 ## O som de fundo do salão só corre com o salão à mostra.
@@ -650,13 +650,12 @@ func _refazer_a_vitrine() -> void:
 				moeda.rotation.x = PI * 0.5
 				_cores_dos_trofeus.append(cor)
 			"coop":
-				var primeiro := Color(0, 0, 0, 0)
+				var cubos: Array[Color] = []
 				for q in 4:
 					var mc := Kit.material(Tema.JOGADOR[q], 0.0, 0.6)
 					Kit.caixa(t, Vector3(0.07, 0.07, 0.07), Vector3(-0.105 + q * 0.07, 0.035, 0), mc)
-					if q == 0:
-						primeiro = Tema.JOGADOR[0]
-				_cores_dos_trofeus.append(primeiro)
+					cubos.append(mc.albedo_color)
+				_cores_dos_trofeus.append(cubos[0])   # o coop não tem dono: a prova lê o primeiro cubo
 			_:
 				var m := Kit.material(cor, 0.0, 0.6)
 				Kit.caixa(t, Vector3(0.16, 0.04, 0.16), Vector3(0, 0.02, 0), m)
