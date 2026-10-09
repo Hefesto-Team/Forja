@@ -32,6 +32,7 @@ typedef struct Forja {
   Registro reg;
   LinhaTempo lt;
   Pads pads;
+  long seq_saida[MAX_JOGADORES + 1]; /* o seq das saídas, por lugar; o último, dos pads sem lugar */
 
   char pasta_relatorios[1024]; /* termina em '/' */
   char base_arquivos[64];      /* "20260927-193005" */

@@ -312,3 +312,34 @@ func _prova_do_registro_v2() -> void:
 - Se `lt_t_musica`, `Forja.t_musica`, `--acelerado` e o `transporte` `"virtual"`
   ainda não estiverem no 13 ("O registro v2"), acrescentar no mesmo commit.
 - Commit sugerido: `feat: o registro v2 — relógio de parede, lugar em toda linha e seq em toda saída`
+
+## O que foi feito (leva 1, o-controle)
+
+- **O formato v2** (`nativo/nucleo/linha_tempo.c`, `.h`): `hefesto-tech-demo/linha-do-tempo/2`; toda linha
+  com `jogador` ganha `lugar` (jogador - 1); `t_musica` na cabeça quando alguém informa a posição
+  (`lt_t_musica`, `Forja.t_musica(s)`); `ev_nums` e `ev_strs`. `ForjaControles::evento` grava
+  `Array` e vetores empacotados (inteiros, números ou textos, até 16 itens) como lista JSON; a
+  lista mista segue texto.
+- **O relógio**: o `t` é sempre o relógio de parede (monotônico); o do jogo só com `--acelerado` (e
+  controles simulados), e a linha `sessao` diz `"relogio": "parede"` (ou `"jogo"` na linha de troca).
+  O comentário de `relogio.h` agora diz a verdade.
+- **O seq e o transporte**: `ev_saida` numera as saídas por lugar (`Forja.seq_saida`, que nunca zera),
+  e o pad reservado (F04) sai com o lugar dele via `pad_lugar`. A conexão diz `transporte`
+  (`usb`, `bt`, `virtual` no simulado, `desconhecido`) pelo `pad_transporte()`, que a linha do
+  registro e o `Forja.pad(i)["transporte"]` repetem.
+- **Os leitores**: `tests/prova_da_exportacao.sh` reprova formato fora de 1 e 2; ADR 003, o 13 e o
+  DESENVOLVER dizem o v2.
+
+**Medido:** o `nan` temido não existia (`tb_json_num` já escreve `null`); a prova grava um NaN de
+propósito para segurar isso. O `Ritmo` já escreve `t_musica` como campo de `nota` e `toque`; a
+cabeça só o ganha de `Forja.t_musica`, que **ninguém chama ainda** (a H01 liga).
+
+**Provas:** `scripts/compilar.sh linux` e `testes` verdes; `bash tests/prova_do_jogo.sh` verde, com
+`_prova_do_registro_v2` (formato e relógio, `t` sem recuo, `lugar`, `seq` de 1 em 1 em mais de 100
+saídas, a conexão virtual com firmware, os pontos do minigame como array, a sonda de listas, NaN e
+`t_musica`). Mordidas medidas: sem o `lugar` no C, com o `seq` parado em 1 e com o transporte
+trocado reprovam as quatro checagens correspondentes; com `--acelerado` o `t` da última linha é
+1066 s contra 114 s de processo e «o t é o relógio de parede» reprova.
+
+**Para o André (local):** o que está em «Para o André (local)» acima (gauntlet, `prova_de_poucos`,
+a exportação e uma partida com um controle no cabo e outro no rádio, para ver `usb` e `bt`).

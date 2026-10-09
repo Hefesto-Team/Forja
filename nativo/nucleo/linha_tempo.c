@@ -17,16 +17,24 @@ void lt_fechar(LinhaTempo *lt) {
   lt->arq = NULL;
 }
 
+static double g_t_musica = -1.0;
+
+void lt_t_musica(double s) { g_t_musica = s; }
+
 void ev_iniciar(Evento *e, const LinhaTempo *lt, const char *tipo, int jogador) {
   tb_iniciar(&e->b);
   (void)lt;
   double t = relogio_agora();
   tb_texto(&e->b, "{\"t\": ");
   tb_json_num(&e->b, t, 3);
+  if (g_t_musica >= 0) {
+    tb_texto(&e->b, ", \"t_musica\": ");
+    tb_json_num(&e->b, g_t_musica, 3);
+  }
   tb_texto(&e->b, ", \"tipo\": ");
   tb_json_str(&e->b, tipo);
   if (jogador > 0)
-    tb_printf(&e->b, ", \"jogador\": %d", jogador);
+    tb_printf(&e->b, ", \"jogador\": %d, \"lugar\": %d", jogador, jogador - 1);
 }
 
 void ev_str(Evento *e, const char *chave, const char *valor) {
@@ -49,6 +57,26 @@ void ev_ints(Evento *e, const char *chave, const int *v, int n) {
   tb_printf(&e->b, ", \"%s\": [", chave);
   for (int i = 0; i < n; i++)
     tb_printf(&e->b, "%s%d", i ? ", " : "", v[i]);
+  tb_texto(&e->b, "]");
+}
+
+void ev_nums(Evento *e, const char *chave, const double *v, int n) {
+  tb_printf(&e->b, ", \"%s\": [", chave);
+  for (int i = 0; i < n; i++) {
+    if (i)
+      tb_texto(&e->b, ", ");
+    tb_json_num(&e->b, v[i], 3);
+  }
+  tb_texto(&e->b, "]");
+}
+
+void ev_strs(Evento *e, const char *chave, const char *const *v, int n) {
+  tb_printf(&e->b, ", \"%s\": [", chave);
+  for (int i = 0; i < n; i++) {
+    if (i)
+      tb_texto(&e->b, ", ");
+    tb_json_str(&e->b, v[i]);
+  }
   tb_texto(&e->b, "]");
 }
 

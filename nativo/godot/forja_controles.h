@@ -106,6 +106,8 @@ public:
   bool gravar_relatorio();
   void registrar(const String &linha);
   void evento(const String &tipo, int jogador, const Dictionary &campos);
+  void t_musica(float s);
+  void acelerar(bool sim);
   PackedStringArray registro_recente(int n) const;
 
   /* o simulador e o robô */

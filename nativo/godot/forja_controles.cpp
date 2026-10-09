@@ -11,6 +11,7 @@ extern "C" {
 #include "mascara.h"
 #include "origem.h"
 #include "pads.h"
+#include "relogio.h"
 #include "relatorio.h"
 #include "simulador.h"
 }
@@ -72,6 +73,7 @@ Dictionary info_do_pad(int i, const Pad *p) {
   char fw[8];
   snprintf(fw, sizeof(fw), "0x%04x", p->fw);
   d["firmware"] = texto(fw);
+  d["transporte"] = texto(pad_transporte(p));
   d["rumble_escala_cheia"] = p->rumble_escala_cheia;
   d["espelho_de"] = p->espelho_de;
   d["bateria"] = p->bateria;
@@ -485,6 +487,42 @@ void ForjaControles::registrar(const String &linha) {
   reg_linha(&g_forja.reg, "%s", s.get_data());
 }
 
+/* Uma lista do GDScript vira lista JSON: inteiros, números ou textos (até 16
+ * itens, todos do mesmo tipo); qualquer outra mistura segue virando texto. */
+static void evento_lista(Evento *ev, const char *chave, const Array &a) {
+  const int MAX_ITENS = 16;
+  int n = (int)a.size();
+  bool todos_int = n > 0 && n <= MAX_ITENS, todos_num = todos_int, todos_str = todos_int;
+  for (int i = 0; i < n && (todos_int || todos_num || todos_str); i++) {
+    Variant::Type t = ((Variant)a[i]).get_type();
+    todos_int = todos_int && t == Variant::INT;
+    todos_num = todos_num && (t == Variant::INT || t == Variant::FLOAT);
+    todos_str = todos_str && (t == Variant::STRING || t == Variant::STRING_NAME);
+  }
+  if (todos_int) {
+    int v[MAX_ITENS];
+    for (int i = 0; i < n; i++)
+      v[i] = (int)(int64_t)a[i];
+    ev_ints(ev, chave, v, n);
+  } else if (todos_num) {
+    double v[MAX_ITENS];
+    for (int i = 0; i < n; i++)
+      v[i] = (double)a[i];
+    ev_nums(ev, chave, v, n);
+  } else if (todos_str) {
+    CharString guardado[MAX_ITENS];
+    const char *v[MAX_ITENS];
+    for (int i = 0; i < n; i++) {
+      guardado[i] = String(a[i]).utf8();
+      v[i] = guardado[i].get_data();
+    }
+    ev_strs(ev, chave, v, n);
+  } else {
+    CharString s = String(Variant(a)).utf8();
+    ev_str(ev, chave, s.get_data());
+  }
+}
+
 void ForjaControles::evento(const String &tipo, int jogador, const Dictionary &campos) {
   if (!aberto_)
     return;
@@ -505,12 +543,36 @@ void ForjaControles::evento(const String &tipo, int jogador, const Dictionary &c
     case Variant::FLOAT:
       ev_num(&ev, k.get_data(), (double)v);
       break;
+    case Variant::ARRAY:
+    case Variant::PACKED_INT32_ARRAY:
+    case Variant::PACKED_INT64_ARRAY:
+    case Variant::PACKED_FLOAT32_ARRAY:
+    case Variant::PACKED_FLOAT64_ARRAY:
+    case Variant::PACKED_STRING_ARRAY:
+      evento_lista(&ev, k.get_data(), Array(v));
+      break;
     default: {
       CharString s = String(v).utf8();
       ev_str(&ev, k.get_data(), s.get_data());
     }
     }
   }
+  ev_fim(&ev, &g_forja.lt);
+}
+
+/* A posição da música, que a H01 informa a cada quadro (-1: sem música). */
+void ForjaControles::t_musica(float s) { lt_t_musica((double)s); }
+
+/* --acelerado (só com controles simulados): o t da linha do tempo passa a ser
+ * o tempo do jogo, como era antes da v2. A linha `sessao` registra a troca. */
+void ForjaControles::acelerar(bool sim) {
+  if (!aberto_ || (sim && g_forja.simular <= 0))
+    return;
+  relogio_do_jogo(sim ? &g_forja.t : nullptr);
+  Evento ev;
+  ev_iniciar(&ev, &g_forja.lt, "sessao", 0);
+  ev_str(&ev, "evento", "relogio");
+  ev_str(&ev, "relogio", sim ? "jogo" : "parede");
   ev_fim(&ev, &g_forja.lt);
 }
 
@@ -659,6 +721,8 @@ void ForjaControles::_bind_methods() {
   METODO(gravar_relatorio);
   METODO(registrar, "linha");
   METODO(evento, "tipo", "jogador", "campos");
+  METODO(t_musica, "s");
+  METODO(acelerar, "sim");
   METODO(registro_recente, "n");
 
   METODO(em_sala, "sim");

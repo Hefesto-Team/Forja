@@ -136,6 +136,8 @@ const char *pad_origem_rotulo(const Pad *p);        /* "DualSense nativo", "simu
  * mais rápido que o tempo real e a captura de tela mais devagar. */
 Uint64 pad_agora_ns(const struct Forja *a, const Pad *p);
 
+/* O transporte que o SDL relata: "usb", "bt", "virtual" (o simulado) ou "desconhecido". */
+const char *pad_transporte(const Pad *p);
 /* O lugar do controle: o slot, ou a reserva dada na conexão, ou -1 */
 int pad_lugar(const Pad *p);
 

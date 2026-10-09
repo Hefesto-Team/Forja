@@ -175,8 +175,7 @@ bool forja_abrir(Forja *f, const char *pasta, int simular, bool robo, unsigned l
     return false;
   }
   f->inicio_ns = SDL_GetTicksNS();
-  relogio_iniciar(f->inicio_ns);
-  relogio_do_jogo(&f->t);
+  relogio_iniciar(f->inicio_ns);  /* de parede; o do jogo só com --acelerado (forja_controles) */
   preparar_pasta(f, pasta);
   preparar_relatorio(f);
 
@@ -193,6 +192,7 @@ bool forja_abrir(Forja *f, const char *pasta, int simular, bool robo, unsigned l
     Evento ev;
     ev_iniciar(&ev, &f->lt, "sessao", 0);
     ev_str(&ev, "formato", LINHA_TEMPO_FORMATO);
+    ev_str(&ev, "relogio", "parede");
     ev_str(&ev, "sessao", f->rel.sessao);
     ev_int(&ev, "semente", (long)f->semente);
     ev_str(&ev, "versao", f->rel.versao);

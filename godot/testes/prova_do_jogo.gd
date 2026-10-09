@@ -71,6 +71,7 @@ func _ready() -> void:
 	_prova_das_maiusculas()
 	_prova_da_identidade()
 	_prova_das_sensacoes()
+	_prova_do_registro_v2()
 	if falhas > 0:
 		printerr("%d falha(s)" % falhas)
 		get_tree().quit(1)
@@ -1131,3 +1132,61 @@ func _prova_das_maiusculas() -> void:
 			achadas.append(s)
 	_esperar(achadas.is_empty(), "jogo: toda frase de tela começa com maiúscula (%d: %s)" % [achadas.size(), achadas.slice(0, 60)])
 	_esperar(Desenho._coletados.has("Botão"), "as dicas de botão dizem \"Botão\"")
+
+
+## O registro v2 (F06): o relógio de parede, o lugar em toda linha, o seq em toda saída,
+## o transporte na conexão e as listas do GDScript como listas JSON.
+func _prova_do_registro_v2() -> void:
+	var linhas := _linha_do_tempo()
+	_esperar(not linhas.is_empty() and linhas[0].get("formato") == "hefesto-tech-demo/linha-do-tempo/2"
+		and linhas[0].get("relogio") == "parede", "a linha do tempo é a v2, no relógio de parede")
+	var t_antes := -1.0
+	var t_ok := true
+	var lugar_ok := true
+	var seq := {}
+	var seq_ok := true
+	var saidas := 0
+	for e in linhas:
+		var t := float(e.get("t", -1.0))
+		t_ok = t_ok and t >= t_antes
+		t_antes = t
+		if int(e.get("jogador", 0)) > 0:
+			lugar_ok = lugar_ok and int(e.get("lugar", -1)) == int(e.get("jogador")) - 1
+		if e.get("tipo") == "saida":
+			saidas += 1
+			var chave := int(e.get("lugar", -1))
+			var n := int(e.get("seq", 0))
+			seq_ok = seq_ok and n == int(seq.get(chave, 0)) + 1
+			seq[chave] = n
+	var processo := Time.get_ticks_msec() / 1000.0
+	_esperar(t_ok, "o t nunca anda para trás")
+	_esperar(t_antes <= processo + 0.5, "o t é o relógio de parede (%.1f s na linha, %.1f s de processo)" % [t_antes, processo])
+	_esperar(lugar_ok, "toda linha com jogador tem o lugar (jogador - 1)")
+	_esperar(saidas > 100 and seq_ok, "toda saída tem seq, de 1 em 1 por lugar (%d saídas)" % saidas)
+	var con := linhas.filter(func(e): return e.get("tipo") == "conexao" and e.get("evento") == "conectou")
+	var con_ok := con.size() >= 4
+	for e in con:
+		con_ok = con_ok and e.get("transporte") == "virtual" and str(e.get("firmware", "")).begins_with("0x") and e.has("vid_pid")
+	_esperar(con_ok, "a conexão diz o transporte (virtual, no simulado), o firmware e o VID:PID")
+	var fim := linhas.filter(func(e): return e.get("tipo") == "minigame" and e.get("evento") == "terminou")
+	_esperar(not fim.is_empty() and fim.all(func(e): return e.get("pontos") is Array),
+		"os pontos do minigame são um array JSON de verdade")
+	# nota e toque (o Ritmo) trazem o t_musica deles como campo; a cabeça só o ganha de Forja.t_musica
+	_esperar(not linhas.any(func(e): return e.has("t_musica") and not e.get("tipo") in ["nota", "toque"]),
+		"sem música informada, nenhuma linha tem t_musica na cabeça")
+	# a sonda: listas de inteiros, de números e de textos, um NaN, e a posição da música
+	Forja.t_musica(12.5)
+	Forja.evento("sonda", 2, {"inteiros": [1, 2, 3], "reais": [0.5, 1.5], "textos": ["a", "b"], "misto": [1, "a"], "nao_numero": NAN})
+	Forja.t_musica(-1.0)
+	Forja.evento("sonda", 0, {"fim": true})
+	var sondas := _linha_do_tempo().filter(func(e): return e.get("tipo") == "sonda")
+	_esperar(sondas.size() == 2, "as duas linhas da sonda são JSON de verdade (%d lidas)" % sondas.size())
+	if sondas.size() == 2:
+		var a: Dictionary = sondas[0]
+		_esperar(a.get("inteiros") is Array and a.inteiros == [1.0, 2.0, 3.0] and a.get("reais") == [0.5, 1.5]
+			and a.get("textos") == ["a", "b"], "as listas do GDScript saem como listas JSON")
+		_esperar(a.get("misto") is String and a.get("nao_numero") == null and a.has("nao_numero"),
+			"a lista mista segue texto e o NaN vira null")
+		_esperar(is_equal_approx(float(a.get("t_musica", -1.0)), 12.5) and int(a.get("lugar", -1)) == 1,
+			"com a música informada a linha leva t_musica, e o lugar vem com o jogador")
+		_esperar(not (sondas[1] as Dictionary).has("t_musica"), "sem a música (-1) a linha volta a não ter t_musica")

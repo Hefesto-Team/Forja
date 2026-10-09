@@ -64,13 +64,19 @@ if len(r["controles"]) != 4:
     falha(f"{len(r['controles'])} controles no relatório")
 linhas = glob.glob(pasta + "/linha-do-tempo-*.jsonl")
 fim = False
+formatos = set()
 for arq in linhas:
     for l in open(arq, encoding="utf-8"):
         e = json.loads(l)
+        if e.get("tipo") == "sessao" and "formato" in e:
+            formatos.add(e["formato"])
         if e.get("evento") == "prova_de_fogo" and e.get("o") == "terminou":
             fim = True
 if not fim:
     falha("a Prova de Fogo não terminou na linha do tempo")
+conhecidos = {"hefesto-tech-demo/linha-do-tempo/1", "hefesto-tech-demo/linha-do-tempo/2"}
+if not formatos or not formatos <= conhecidos:
+    falha(f"o formato da linha do tempo é {sorted(formatos) or 'nenhum'}, e a prova lê as versões 1 e 2")
 conta = {}
 for m in r["matriz"]:
     conta[m["resultado"]] = conta.get(m["resultado"], 0) + 1

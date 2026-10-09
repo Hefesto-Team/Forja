@@ -20,7 +20,9 @@ o que ela mandou tem de poder ser comparado com o que chegou.
    sessão grava `linha-do-tempo-<sessão>.jsonl`: uma linha por saída (o que foi
    mandado, a quem, e se o SDL aceitou), por marco de entrada e por
    confirmação. É o que um verificador externo compara com o que o Hefesto
-   repassou.
+   repassou. Na versão 2, toda linha tem `lugar`, o `t` é o relógio de parede
+   (o do jogo só com `--acelerado`), toda `saida` tem `seq` por lugar e a
+   `conexao` tem `transporte` e `firmware`.
 3. **O gauntlet** (`--gauntlet`) roda as salas em sequência, com a semente
    fixa, e fecha com o relatório. Hoje a confirmação é de quem joga; o formato
    já é o que uma automação vai consumir.

@@ -27,6 +27,7 @@ sudo apt install mingw-w64          # só para o módulo do Windows
 ```sh
 ./run-local.sh                 # compila o módulo, baixa o Godot 4.4.1 na primeira vez, e abre o jogo
 ./run-local.sh -- --simular=4  # os argumentos do jogo depois de --
+./run-local.sh -- --simular=4 --robo --acelerado   # o t da linha do tempo é o tempo do jogo, não o de parede
 
 scripts/compilar.sh linux      # godot/bin/libforja.linux.x86_64.so
 scripts/compilar.sh windows    # godot/bin/libforja.windows.x86_64.dll (mingw-w64, sem DLL do mingw)

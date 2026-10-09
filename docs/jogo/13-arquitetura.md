@@ -149,14 +149,13 @@ outro script chama `Forja.vibrar`. Valores e o porquê em
 
 ### O registro v2 — F06, H01, H02, G02, H07
 
-**Hoje:** `linha-do-tempo-<sessão>.jsonl`, formato
-`hefesto-tech-demo/linha-do-tempo/1` (`nativo/nucleo/linha_tempo.h:11`),
-uma linha por evento com `t`, `tipo`, `jogador` (1..4, 0 = a mesa). O `t`
-hoje é **sempre** o tempo do jogo: `relogio_do_jogo(&f->t)` é chamado
-incondicionalmente em `nativo/nucleo/forja.c:179`, e o comentário de
-`nativo/nucleo/relogio.h` (que fala num `--acelerado`) está errado — esse
-argumento não existe. Os `Array` vindos do GDScript em `Forja.evento` hoje
-são gravados como texto.
+**Antes da F06:** formato `hefesto-tech-demo/linha-do-tempo/1`, uma linha por
+evento com `t`, `tipo`, `jogador` (1..4, 0 = a mesa); o `t` era **sempre** o
+tempo do jogo e os `Array` do GDScript saíam como texto. **A F06 entregou o
+v2** (`LINHA_TEMPO_FORMATO` em `nativo/nucleo/linha_tempo.h`; `lt_t_musica`,
+`ev_nums` e `ev_strs` no núcleo; `Forja.t_musica(s)`; `--acelerado`; `seq` em
+`ev_saida`; `pad_transporte` em `nativo/nucleo/pads.c`). O alvo abaixo é o
+que ela escreve.
 
 **Alvo:** formato `hefesto-tech-demo/linha-do-tempo/2`. Toda linha:
 
@@ -172,8 +171,9 @@ são gravados como texto.
   chamado pelo `Ritmo` a cada quadro (H01).
 - `jogador` continua 1..4 para não quebrar leitores, e `lugar` (0..3) vai
   **junto** dele. Linha da mesa (`jogador` 0) não tem `lugar`.
-- `Array` do GDScript vira array JSON, e NaN vira `null` — hoje o
-  `Forja.evento` escreve `nan`, que quebra o JSON (a F06 resolve).
+- `Array` do GDScript vira array JSON (inteiros, números ou textos, até 16
+  itens), e NaN vira `null` (medido na F06: `tb_json_num` já fazia, o `nan`
+  que se temia não existe; a prova grava um NaN e um array de propósito).
 - O transporte e o firmware de cada controle ficam também no dicionário do
   pad (`Forja.pad(i)["transporte"]`, `["firmware"]`), para o jogo repetir
   o transporte onde o cruzamento precisa (a `calibracao`).

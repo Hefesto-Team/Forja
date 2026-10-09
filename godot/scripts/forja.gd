@@ -25,6 +25,7 @@ extends Node
 ##   --experimento=ID   a bancada do experimental/ no lugar do salão
 ##   --defeitos=LISTA   defeitos de mentira nos simulados (a prova que morde)
 ##   --sem-modulo       finge que o módulo não existe
+##   --acelerado        o `t` da linha do tempo é o tempo do jogo, não o relógio de parede (só com --simular)
 
 signal pads_mudaram
 signal aviso(texto: String)
@@ -118,6 +119,8 @@ func _ready() -> void:
 		if modulo:
 			_conferir_numeros()
 			semente = ctl.semente()
+			if _args.has("acelerado") and simular > 0:
+				ctl.acelerar(true)
 	evento("sessao", 0, {"evento": "modo", "bancada": bancada})
 	registrar("Modo bancada: %s" % ("ligado" if bancada else "desligado"))
 	if not modulo:
@@ -488,6 +491,13 @@ const SENSACOES := {
 }
 var _agora := 0.0  ## o relógio do jogo (a soma dos quadros), para o motor e a háptica
 var _motor_ate := [0.0, 0.0, 0.0, 0.0]
+
+
+## A posição da música em segundos, que a linha do tempo carrega em `t_musica`
+## (a H01 chama a cada quadro; -1 = sem música, e a linha não tem o campo).
+func t_musica(s: float) -> void:
+	if modulo:
+		ctl.t_musica(s)
 
 
 ## Uma sensação no controle do lugar, pelo nome da tabela (`ms` troca a duração).
