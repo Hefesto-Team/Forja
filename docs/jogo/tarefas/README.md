@@ -197,6 +197,103 @@ corta dependência, sem mudar comportamento. São base: vão de **a fazer** dire
 | [X06](X06-o-pacote-da-costura.md) | O pacote da costura das telas | G | X01, as fichas G que mexem no `main.gd` | a fazer |
 | [X07](X07-o-pacote-do-minigame.md) | O pacote do kit de minigame | G | X03, X04, X06, H04, H08, a seção I | a fazer |
 
+## W — A revisão
+
+Achados da revisão do projeto inteiro (09/10/2026): a auditoria por área, qualquer PC, a matriz das features, o QA
+jogando, o desempenho e o custo de leitura. Cada achado sobreviveu a quem tentou derrubá-lo. A regra: tudo funciona de
+verdade, em qualquer PC, sem mudar a interface. Os mapas e as próximas etapas estão em [revisao/](../revisao/ETAPAS.md).
+São base: vão de **a fazer** direto para **em voo**, um trilho por grupo, na ordem abaixo.
+
+**as-regras**: as regras do time e o custo de leitura (só documentos e um script; pode voar ao lado de qualquer trilho).
+
+| ficha | título | tamanho | depende de | estado |
+| --- | --- | --- | --- | --- |
+| [WT04](WT04-as-regras-da-casa-no-repositorio.md) | As regras da casa no repositório | P | — | a fazer |
+| [WT01](WT01-o-ler-antes-pela-ancora.md) | O «Ler antes» pela âncora | M | — | a fazer |
+| [WT02](WT02-o-codigo-da-ficha-por-script.md) | O código da ficha sai por script | M | — | a fazer |
+| [WT05](WT05-um-lugar-so-para-os-estados.md) | Um lugar só para os estados da ficha | M | WT04 | a fazer |
+
+**a-caixa**: as provas que mentem: a caixa única, os erros do motor reprovam, a prova do kit no relógio do quadro (depois da a-varredura, que mexe nos mesmos scripts).
+
+| ficha | título | tamanho | depende de | estado |
+| --- | --- | --- | --- | --- |
+| [WE01](WE01-a-caixa-unica.md) | A caixa única das provas | M | — | a fazer |
+| [WQ02](WQ02-o-x-do-robo-nao-cai-na-tela-seguinte.md) | O ✕ do robô não cai na tela seguinte | P | — | a fazer |
+| [WQ01](WQ01-os-erros-do-motor-reprovam.md) | Os erros do motor reprovam a prova | M | WE01 | a fazer |
+| [WQ04](WQ04-o-registro-fica-quando-a-prova-reprova.md) | O registro fica quando a prova reprova | P | WE01 | a fazer |
+| [WQ03](WQ03-a-prova-recusa-o-modulo-de-outra-fonte.md) | A prova recusa o módulo de outra fonte | P | WE01 | a fazer |
+| [WE02](WE02-o-kit-no-relogio-do-quadro.md) | A prova do kit no relógio do quadro | M | — | a fazer |
+| [WT03](WT03-os-portoes-falam-curto.md) | Os portões falam curto | P | — | a fazer |
+
+**a-entrega**: o pacote em qualquer Linux e o CI de casa.
+
+| ficha | título | tamanho | depende de | estado |
+| --- | --- | --- | --- | --- |
+| [WU01](WU01-o-modulo-no-piso-do-godot.md) | O módulo Linux no piso do Godot | M | — | a fazer |
+| [WU03](WU03-a-regra-do-udev-que-cobre-e-avisa.md) | A regra do udev que cobre todo DualSense, e a falta dita | M | — | a fazer |
+| [WU08](WU08-o-pacote-ensina-o-que-falta.md) | O pacote ensina o que falta | P | WU03 | a fazer |
+| [WE04](WE04-o-ci-local-com-casa-propria.md) | O CI local com casa própria | M | — | a fazer |
+| [WE05](WE05-o-godot-baixado-num-lugar-so.md) | O Godot baixado num lugar só, também em casa | P | V01 | a fazer |
+| [WE03](WE03-o-gauntlet-no-ci.md) | O gauntlet no CI | M | WE01 | a fazer |
+
+**o-som-do-controle**: o som, a háptica e o microfone no controle certo, também no Windows (todas mexem em som_controle.c e achar_som.c: em sequência).
+
+| ficha | título | tamanho | depende de | estado |
+| --- | --- | --- | --- | --- |
+| [WU02](WU02-o-windows-provado-num-windows.md) | O Windows provado num Windows | M | — | a fazer |
+| [WU04](WU04-a-lista-de-som-na-ordem-em-que-chegou.md) | A lista de som na ordem em que chegou | P | — | a fazer |
+| [WU05](WU05-a-letra-minuscula-sem-o-locale.md) | A letra minúscula sem o locale | P | WU02 | a fazer |
+| [WU06](WU06-o-som-pelo-nome-nunca-vai-para-outro.md) | O som pelo nome nunca vai para o controle de outro | M | WU04 | a fazer |
+| [WN02](WN02-o-som-que-chega-depois-do-controle.md) | O som que chega depois do controle | M | H07 | a fazer |
+| [WS03](WS03-a-placa-do-controle-nao-fecha-a-toa.md) | A placa do controle não fecha à toa | M | H07 | a fazer |
+| [WO03](WO03-o-periodo-curto-do-som-do-controle.md) | O período curto do som do controle | P | — | a fazer |
+| [WF03](WF03-o-volume-do-fone-no-controle.md) | O volume do fone no controle | P | H07 | a fazer |
+| [WS05](WS05-o-mixer-rouba-pela-rampa.md) | O mixer rouba pela rampa, e tem prova | P | H07 | a fazer |
+| [WO04](WO04-a-lista-de-som-fora-do-quadro.md) | A lista de som fora do quadro | M | WS03 | a fazer |
+
+**o-dono-do-controle**: o DualSense de verdade: um SDL só, o rádio, o Weapon, a volta ao lugar, o toque no instante do aperto (depois da a-fita, que mexe no pads.c).
+
+| ficha | título | tamanho | depende de | estado |
+| --- | --- | --- | --- | --- |
+| [WR03](WR03-o-weapon-com-a-forca-no-byte-certo.md) | O Weapon com a força no byte certo | P | — | a fazer |
+| [WR01](WR01-um-sdl-so-dono-do-dualsense.md) | Um SDL só, dono do DualSense | M | — | a fazer |
+| [WR02](WR02-o-radio-com-tudo-que-o-sdl-sabe.md) | O rádio com tudo o que o SDL sabe | M | WR01 | a fazer |
+| [WN01](WN01-os-controles-iguais-voltam-ao-lugar.md) | Os controles iguais voltam cada um ao seu lugar | M | F04 | a fazer |
+| [WR04](WR04-o-dualsense-pela-steam.md) | O DualSense pela Steam | M | — | a fazer |
+| [WC01](WC01-o-toque-no-instante-do-aperto.md) | O toque julgado no instante do aperto | M | H01, H02, H04 | a fazer |
+| [WO01](WO01-o-aperto-pelo-relogio-do-controle.md) | O aperto do DualSense pelo relógio do controle | M | WC01 | a fazer |
+
+**a-musica**: a música e as reservas.
+
+| ficha | título | tamanho | depende de | estado |
+| --- | --- | --- | --- | --- |
+| [WS02](WS02-a-musica-dona-do-volume.md) | A música dona do volume | M | H07 | a fazer |
+| [WS04](WS04-a-reserva-de-toda-secao.md) | A reserva de toda seção | P | H05 | a fazer |
+| [WS07](WS07-a-reserva-pronta-antes-do-jogo.md) | A reserva pronta antes do jogo | P | H05 | a fazer |
+| [WS06](WS06-o-mapa-diz-onde-o-som-toca.md) | O mapa diz onde o som toca | P | V08 | a fazer |
+| [WS01](WS01-o-som-da-biblia-no-jogo.md) | O som da bíblia no jogo (a H11 que as fichas citam) | G | H04, H06, H07, H08 | a fazer |
+| [WO05](WO05-os-sons-prontos-antes-do-primeiro-toque.md) | Os sons prontos antes do primeiro toque | P | V05 | a fazer |
+
+**o-nucleo**: o núcleo em GDScript (mexe em main.gd e player.gd: depois das telas G).
+
+| ficha | título | tamanho | depende de | estado |
+| --- | --- | --- | --- | --- |
+| [WC02](WC02-o-podio-sem-ciclo.md) | O pódio que não depende da ordem dos presentes | P | — | a fazer |
+| [WC04](WC04-o-argumento-errado-avisa.md) | O argumento de abertura errado avisa e sai | P | — | a fazer |
+| [WO02](WO02-o-boneco-liso-acima-de-60-hz.md) | O boneco liso numa tela acima de 60 Hz | M | — | a fazer |
+| [WC03](WC03-a-traducao-que-lembra.md) | A tradução que lembra | P | V03 | a fazer |
+| [WC05](WC05-o-resto-do-codigo-sem-uso.md) | O resto do código sem uso do núcleo | P | G14 | a fazer |
+| [WJ02](WJ02-os-simbolos-fora-da-fonte.md) | Os símbolos que a fonte do jogo não tem | M | G14 | a fazer |
+| [WF02](WF02-a-luz-do-controle-obedece-aos-flashes.md) | A luz do controle obedece aos Flashes | P | G15 | a fazer |
+| [WJ01](WJ01-quem-venceu-no-empate.md) | Quem venceu, no empate | P | H08 | a fazer |
+
+**sem-modulo**: o jogo sem o módulo nativo e em outras máquinas.
+
+| ficha | título | tamanho | depende de | estado |
+| --- | --- | --- | --- | --- |
+| [WU07](WU07-os-controles-sem-o-modulo.md) | Os controles sem o módulo | G | WR01 | a fazer |
+| [WF01](WF01-o-modulo-para-mac-e-arm.md) | O módulo também para macOS e para ARM | G | WU01 | a fazer |
+
 ## A soma
 
 Com o retrabalho, a faixa está em [Como trabalhar](../12-como-trabalhar.md#o-orçamento).
