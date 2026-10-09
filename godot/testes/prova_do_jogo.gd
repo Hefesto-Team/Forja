@@ -388,6 +388,7 @@ func _prova_do_percurso() -> void:
 	for l in 4:
 		antes_n.append(jogo.jogadores[l].cavaleiro())
 	Forja.robo_confirma = false
+	Itens._escudo = [false, false, false, false]   # o Escudo quebrado na última sala: a construção o devolve inteiro
 	# pela pausa de verdade: Options no salão, desce até «Voltar ao lobby» e ✕
 	var t_volta := Time.get_ticks_msec()
 	while jogo._trocando and Time.get_ticks_msec() - t_volta < 10000:
@@ -407,6 +408,12 @@ func _prova_do_percurso() -> void:
 	while (jogo.estado != "lobby" or jogo._trocando) and Time.get_ticks_msec() - t_volta < 10000:
 		await _quadros(2)
 	_esperar(jogo.estado == "lobby", "a pausa leva de volta à construção")
+	await _quadros(2)
+	for l in 4:
+		var l2 := 0x21 if Itens.escolhido[l] in [Itens.ESCUDO, Itens.ANCORA] else 0x05
+		_esperar(int(_perc(l).get("gatilho_esq", 0)) == l2,
+			"P%d: de volta à construção, o L2 diz o item %d (o Escudo inteiro de novo)" % [l + 1, Itens.escolhido[l]])
+	_esperar(Itens.escolhido.has(Itens.ESCUDO), "a volta à construção tem um Escudo para conferir")
 	for l in 4:
 		_esperar(jogo.lobby.etapa[l] == TelaLobby.GUARDADO and jogo.jogadores[l].cavaleiro() == antes_n[l],
 			"P%d: voltou ao lobby e achou o cavaleiro guardado" % (l + 1))
@@ -471,10 +478,22 @@ func _prova_do_percurso() -> void:
 		_esperar(int(_perc(1).get("gatilho_esq", 0)) == 0x05, "Centelha: o L2 do P2 afrouxa quando o escudo quebra")
 		_esperar(not centelha.errou(1), "Centelha: o segundo erro do P2 é de verdade")
 		_esperar(not centelha.errou(0), "Centelha: o P1, sem Escudo, erra de verdade")
+		# a Centelha pergunta errou() na runa perdida: com o Escudo inteiro, o combo fica
+		Itens.novo_minigame()
+		var e2: Dictionary = centelha.j[1]
+		var r2 = centelha._runa_atual(1)
+		if r2 != null:
+			e2.fila.append(r2.duplicate())   # a runa volta ao fim da fila: o robô ainda a joga
+			e2.combo = 4
+			centelha._perdeu(1, centelha.jogador(1))
+			_esperar(int(e2.combo) == 4 and not Itens.escudo_inteiro(1), "Centelha: a runa perdida com o Escudo passa sem zerar o combo")
 		await _termina_a_sala(centelha, ["botoes", "analogicos", "gatilhos_analogicos"])
 		for l in 2:
 			Itens.escolhido[l] = jogo.jogadores[l].item_i
+	# o P4 entra na Viga de mãos livres: o registro diz o item dele assim mesmo (G03)
+	Itens.escolhido[3] = Itens.NENHUM
 	await _joga_a_sala("viga", ["giroscopio", "acelerometro"])
+	Itens.escolhido[3] = jogo.jogadores[3].item_i
 	await _joga_a_sala("molde", ["touchpad_dois_dedos", "touchpad_clique"])
 
 	# A Galeria, às cegas: a arma do escuro chega ao R2 de cada um no modo dela
@@ -839,6 +858,7 @@ func _prova_do_relatorio() -> void:
 	var ruins: Array = []
 	var calibracoes: Array = []
 	var absorveu := 0
+	var leva := {}
 	for f in arquivos:
 		if not (f.begins_with("linha-do-tempo-") and f.ends_with(".jsonl")):
 			continue
@@ -855,6 +875,10 @@ func _prova_do_relatorio() -> void:
 				calibracoes.append(ev)
 			if ev is Dictionary and str(ev.get("tipo", "")) == "item" and str(ev.get("efeito", "")) == "absorveu":
 				absorveu += 1
+			if ev is Dictionary and str(ev.get("tipo", "")) == "item" and str(ev.get("efeito", "")) == "leva":
+				leva[int(ev.get("lugar", -1))] = true
+				if str(ev.get("item", "")) == str(ForjaPlayer.ITENS[Itens.NENHUM].nome):
+					leva["livres"] = true
 	_esperar(ruins.is_empty(), "linha do tempo: toda linha é JSON (%d não: %s)" % [ruins.size(), ruins.slice(0, 2)])
 	_esperar(julgado.get("julgamento", "") == "perfeito" and absf(float(julgado.get("desvio_ms", 0.0)) - 12.0) < 0.01,
 		"registro: o toque julgado, com o desvio (%s)" % [julgado])
@@ -868,6 +892,9 @@ func _prova_do_relatorio() -> void:
 		lugares_c[int(ev.get("lugar", -1))] = true
 	_esperar(lugares_c.size() == 4 and da_construcao.size() >= 4, "a linha do tempo tem a calibração dos quatro (%d linhas, %d lugares)" % [da_construcao.size(), lugares_c.size()])
 	_esperar(absorveu >= 1, "o registro tem o Escudo agindo")
+	var de_maos_livres: bool = leva.erase("livres")
+	_esperar(leva.size() == 4 and de_maos_livres,
+		"o registro tem o item dos quatro ao entrar na sala, mãos livres também (%d lugares, mãos livres: %s)" % [leva.size(), de_maos_livres])
 	var json := ""
 	for f in arquivos:
 		if f.begins_with("relatorio-") and f.ends_with(".json"):
@@ -1748,7 +1775,10 @@ func _prova_da_peca() -> void:
 		var area: float = 2.0 * float(mat.get_shader_parameter("friso_alto")) * p._medidas.largura_torso \
 			+ 2.0 * float(mat.get_shader_parameter("costura_larg")) * p._medidas.altura_perna
 		_esperar(area <= 0.0801 * (p._medidas.frente_cima + p._medidas.frente_baixo), "P%d: o acento em até 8 %% da frente" % (p.lugar + 1))
-		_esperar(mat.shader.code.contains("uniform float aro = 0.25;"), "P%d: o aro a 0,25" % (p.lugar + 1))
+		# o aro: o valor que o material leva; sem valor escrito, vale o padrão do shader
+		var aro = mat.get_shader_parameter("aro")
+		_esperar(is_equal_approx(float(aro), 0.25) if aro != null else mat.shader.code.contains("uniform float aro = 0.25;"),
+			"P%d: o aro a 0,25" % (p.lugar + 1))
 		_esperar(not mat.shader.code.contains("tingir"), "P%d: nada se tinge" % (p.lugar + 1))
 		p.acender(0.0)
 		_esperar(is_zero_approx(float(mat.get_shader_parameter("acesa"))), "P%d: acender(0) apaga a armadura" % (p.lugar + 1))
