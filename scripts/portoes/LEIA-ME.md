@@ -6,12 +6,19 @@ Os portões são as conferências que nenhuma pessoa precisa lembrar de fazer: r
 ```
 bash scripts/portoes/rodar.sh                 # todos
 bash scripts/portoes/rodar.sh --so base       # só a base (ou --so arte, --so som)
+bash scripts/portoes/rodar.sh --desde main    # e os avisos dos arquivos mudados desde o main
+bash scripts/portoes/rodar.sh --tudo          # a saída inteira de cada portão na tela (o CI usa)
 bash scripts/ci-local.sh --portoes            # o mesmo, mais a prova dos portões
 bash scripts/ci-local.sh --job portoes        # o job do CI inteiro, no contêiner
 ```
 
 O `rodar.sh` sai 0 quando nenhum portão em modo reprova achou nada, 1 quando algum achou, e 2 quando um portão não
 conseguiu conferir (um arquivo que não se leu, um intervalo do git que não existe): o 2 nunca conta como verde.
+
+A tela fala curto: o resumo de cada portão e, de quem não deu ok, as linhas de `FAIL` e de `ERRO` (no máximo 12 no
+total, com o caminho do log). A saída inteira de cada portão fica em `.cache/portoes/<nome>.log` (o nome sem espaço
+nem acento: `texto-de-tela.log`), para ler depois. Os avisos antigos da arte e do som não aparecem; com
+`--desde <ref>`, aparecem os dos arquivos mudados desde a referência. O `--tudo` volta à saída inteira.
 
 ## O que cada um pega
 

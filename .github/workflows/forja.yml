@@ -109,7 +109,8 @@ jobs:
         env:
           ANTES: ${{ github.event.before }}
           BASE_DO_PR: ${{ github.base_ref }}
-        run: bash scripts/portoes/rodar.sh
+        # --tudo: a saída inteira de cada portão no log do CI (o .cache/portoes/ morre com o runner)
+        run: bash scripts/portoes/rodar.sh --tudo
 
       - name: A prova dos portões (cada um reprova o defeito que diz pegar)
         run: bash tests/prova_dos_portoes.sh
