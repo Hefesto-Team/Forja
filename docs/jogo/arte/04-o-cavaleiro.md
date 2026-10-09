@@ -4,8 +4,9 @@ Cada pessoa monta o seu cavaleiro: cabeça, tronco superior, tronco inferior
 e uma arma ou um amuleto, e dá o nome a ele. A sensação que a tela tem que
 dar é de posse: "este é meu, eu montei, e a minha build é boa".
 
-Os stats desta página são **proposta**. Os números servem para a G13 começar
-e para a noite de seis horas medir; nenhum deles é lei até ela dizer.
+Esta página é a arte do cavaleiro: o corte das malhas, a tela, a forja. As
+peças com os seus stats, as regras que impedem, os itens, o pré-montado, o
+nome e a coleção são o RPG, em [sistemas/](../sistemas/README.md).
 
 ## O que a pessoa sente
 
@@ -14,8 +15,8 @@ e para a noite de seis horas medir; nenhum deles é lei até ela dizer.
 2. **Cada troca muda alguma coisa que se vê.** A peça troca no boneco, o VU
    do stat sobe ou desce, o arquétipo na etiqueta pode mudar.
 3. **Uma escolha impede outra.** Não dá para ter tudo. A build é uma decisão.
-4. **Ninguém na mesa tem um igual.** Nem o mesmo corpo, nem o mesmo item, nem
-   o mesmo nome.
+4. **Ninguém na mesa tem um igual.** Nem a mesma cabeça, nem o mesmo nome
+   ([entre jogadores](../sistemas/README.md#entre-jogadores)).
 5. **O nome é dela.** Escrito na caneta, na etiqueta, e dito no pódio.
 
 ## As peças
@@ -43,38 +44,21 @@ corpos.
 
 ### O perfil de cada peça
 
-Cada peça dá 3 pontos de stat, num de seis perfis. Cada perfil aparece duas
-vezes em cada parte. A peça de um personagem nunca tem o mesmo perfil das
-outras duas dele, então o personagem "original" da Kenney é sempre
-equilibrado.
+Cada peça dá +2 num stat (o emblema: Bigorna, Mola, Brasa ou Lume) e +1
+noutro. A peça de cada personagem, o nome que a pessoa lê e os pontos estão
+em [sistemas, as peças](../sistemas/README.md#as-peças) e na tabela
+[pecas.csv](../sistemas/pecas.csv).
 
-| perfil | dá |
+O pio de cada cabeça ([03 O som](03-som.md#o-pio)):
+
+| cabeça de | o pio |
 | --- | --- |
-| Bigorna | Peso +2, Fôlego +1 |
-| Mola | Passo +2, Faro +1 |
-| Brasa | Fôlego +2, Peso +1 |
-| Lume | Faro +2, Passo +1 |
-| Malha | Peso +1, Passo +1, Fôlego +1 |
-| Prumo | Faro +1, Fôlego +1, Passo +1 |
-
-| personagem | cabeça (perfil, pio) | superior | inferior |
-| --- | --- | --- | --- |
-| female-a | Bigorna, a segunda | Brasa | Malha |
-| female-b | Mola, a terça | Lume | Prumo |
-| female-c | Brasa, a quarta | Malha | Bigorna |
-| female-d | Lume, a quinta | Prumo | Mola |
-| female-e | Malha, a quinta de baixo | Bigorna | Brasa |
-| female-f | Prumo, a oitava | Mola | Lume |
-| male-a | Bigorna, a segunda | Brasa | Malha |
-| male-b | Mola, a terça | Lume | Prumo |
-| male-c | Brasa, a quarta | Malha | Bigorna |
-| male-d | Lume, a quinta | Prumo | Mola |
-| male-e | Malha, a quinta de baixo | Bigorna | Brasa |
-| male-f | Prumo, a oitava | Mola | Lume |
-
-O pio de cada cabeça está em [03 O som](03-som.md#o-pio). O nome que a
-pessoa lê em cada peça (até 14 caracteres, dizendo o que se vê: "Coque
-alto", "Jaqueta curta") a G13 escreve olhando o modelo.
+| female-a, male-a | a segunda |
+| female-b, male-b | a terça |
+| female-c, male-c | a quarta |
+| female-d, male-d | a quinta |
+| female-e, male-e | a quinta de baixo |
+| female-f, male-f | a oitava |
 
 ### A cadeira de rodas
 
@@ -87,110 +71,42 @@ nenhum**: o perfil é o da peça inferior escolhida. Em minigame de corrida, a
 cadeira anda na mesma velocidade que as pernas com o mesmo Passo.
 
 Os acessórios do mesmo pacote (`aid-glasses`, `aid-sunglasses`,
-`aid_hearing`, `aid-cane`) entram como acabamento da coleção, sem stat.
+`aid_hearing`, `aid-cane`) entram como acabamento, sem stat. Eles e as
+cadeiras ficam livres desde a primeira noite
+([o que não tem stat](../sistemas/README.md#o-que-não-tem-stat)).
 
-## Os stats
+## Os stats e as regras
 
-Quatro, de 1 a 5. Nenhum mexe na janela de julgamento nem na pontuação: eles
-mudam o corpo, não o ouvido. Quem joga bem no tempo ganha com qualquer
-cavaleiro.
+Os quatro stats, a regra que impede, o que cada item pede, a liga, o
+arquétipo, as regras entre jogadores e o pré-montado estão em
+[sistemas/](../sistemas/README.md):
 
-| stat | o que muda | a conta (proposta) |
-| --- | --- | --- |
-| **Peso** | a massa na física: empurrão, sabotagem, coice | massa ×(0,8 + 0,1·Peso) |
-| **Passo** | a velocidade de andar e de correr | velocidade ×(0,9 + 0,05·(Passo − 1)) |
-| **Fôlego** | o tempo para levantar depois de cair ou ser atordoado | 1,2 s − 0,15 s·(Fôlego − 1) |
-| **Faro** | a antecedência da pista (vibração, bipe, textura) | 20 ms·(Faro − 1), de 0 a 80 ms |
-
-A conta: cada stat começa em 1, e as três peças somam 9 pontos. Nenhum stat
-passa de 5; o ponto que passaria se perde, e o VU mostra o ponto perdido
-piscando uma vez em `GRAFITE`. Montar mal é possível, e se vê.
-
-### A regra que impede
-
-**Peso + Passo ≤ 7.** Quem é pesado não é rápido. A peça que faria a soma
-passar de 7 aparece na lista com a borda em `GRAFITE` e um traço de caneta
-por cima, e ◀▶ pula ela. A soma usa os stats já com o teto de 5. Ela passa
-de 7 quando as três peças são de Bigorna, Mola ou Malha e misturam o pesado
-com o rápido: 152 dos 1728 corpos (conferido por script). Sobram 1576.
-
-Dos 1576 corpos válidos, cada item cabe em: Escudo 1360, Diapasão 1328, Fole
-1248, Lanterna 1056, Martelo 928, Âncora 472. A Âncora é a mais difícil de
-alcançar, e por isso é a mais forte no doc 06b.
+- [os stats](../sistemas/README.md#os-stats) e o que cada um muda em cada gênero;
+- [a regra que impede](../sistemas/README.md#a-regra-que-impede) e como a tela a mostra;
+- [entre jogadores](../sistemas/README.md#entre-jogadores);
+- [a arma ou o amuleto](../sistemas/README.md#a-arma-ou-o-amuleto), com a liga;
+- [o arquétipo](../sistemas/README.md#o-arquétipo) e [a build boa](../sistemas/README.md#a-build-boa);
+- [o pré-montado](../sistemas/README.md#o-pré-montado).
 
 ## A arma ou o amuleto
 
-Seis itens, os mesmos do doc 06b: três armas e três amuletos. Cada um pede
-um stat mínimo. É aqui que uma escolha de corpo abre ou fecha um item.
+Seis itens: três armas e três amuletos. O que cada um pede e faz está em
+[sistemas](../sistemas/README.md#a-arma-ou-o-amuleto) e no doc
+[06b](../06b-a-construcao-do-cavaleiro.md#o-item-tem-mecânica). Aqui, onde
+cada um fica no corpo e de onde vem a malha:
 
-| item | tipo | onde fica | pede | o modelo |
-| --- | --- | --- | --- | --- |
-| Martelo | arma | mão direita | Peso ≥ 3 | `tool-hammer` (Survival Kit) |
-| Escudo | arma | braço esquerdo | Peso ≥ 2 | `shield-round` (Mini Dungeon) |
-| Âncora | arma | mão direita | Peso ≥ 4 | por código (ArrayMesh) |
-| Fole | amuleto | peito | Fôlego ≥ 3 | por código |
-| Lanterna | amuleto | peito | Faro ≥ 3 | por código |
-| Diapasão | amuleto | peito | Faro ≥ 2 e Fôlego ≥ 2 | por código |
+| item | tipo | onde fica | a malha |
+| --- | --- | --- | --- |
+| Martelo | arma | mão direita | `tool-hammer` (Survival Kit) |
+| Escudo | arma | braço esquerdo | `shield-round` (Mini Dungeon) |
+| Âncora | arma | mão direita | por código (ArrayMesh) |
+| Fole | amuleto | peito | por código |
+| Lanterna | amuleto | peito | por código |
+| Diapasão | amuleto | peito | por código |
 
-Armas pedem Peso; amuletos pedem Fôlego e Faro. O corpo pesado empunha, o
-corpo leve carrega. Todo corpo tem pelo menos um item possível: com Peso 1,
-as três peças são de Mola, Lume ou Prumo, e o Faro chega a 4 (a Lanterna).
-
-O efeito de cada item é o do doc
-[06b](../06b-a-construcao-do-cavaleiro.md#o-item-tem-mecânica). Os amuletos
-são medalhões de 12 cm presos no peito, desenhados por código no mesmo estilo
-da bigorna (metal fosco `metallic` ≤ 0,2, o emblema em relevo), com o
-contorno na cor do dono.
-
-### A liga
-
-Quando o corpo supera o pedido do item em 2 ou mais (Peso 5 com o Martelo,
-que pede 3), a peça está **em liga** com o corpo: o efeito sobe um nível e,
-ao entrar na liga, o acorde do lugar toca no controle. É o prêmio de quem
-montou pensando. Os níveis de cada item estão no doc 06b.
-
-"Liga" é a palavra porque "Afinado" já é o julgamento ótimo (doc 07).
-
-### O arquétipo
-
-Os dois stats mais altos dão o nome do tipo do cavaleiro, escrito na etiqueta
-em Permanent Marker. No empate, vale a ordem Peso, Passo, Fôlego, Faro.
-
-| os dois mais altos | arquétipo |
-| --- | --- |
-| Peso e Passo | Aríete |
-| Peso e Fôlego | Muralha |
-| Peso e Faro | Torre |
-| Passo e Fôlego | Corrente |
-| Passo e Faro | Relâmpago |
-| Fôlego e Faro | Eco |
-
-## Entre jogadores
-
-Na mesa, ninguém repete:
-
-- **o item é único por mesa.** Quem pegou o Martelo primeiro fica com ele. Na
-  lista dos outros, o Martelo aparece com o P# e a sublinha na cor de quem
-  pegou, e ◀▶ pula ele;
-- **o corpo é único.** Duas pessoas não montam as mesmas três peças;
-- **o nome é único.**
-
-A leitura de "um impedindo o outro de escolher" é esta (a escolha de um
-fecha a do outro). A regra de dentro da build (Peso + Passo) também impede.
-**Falta ela confirmar** se quer as duas, ou só uma.
-
-## O pré-montado
-
-Todo lugar nasce montado. O sorteio usa a semente
-`Forja.semente * 31 + lugar` e escolhe, nesta ordem:
-
-1. as três peças, entre as que passam na regra de Peso + Passo e não repetem
-   o corpo de ninguém;
-2. o item, entre os que o corpo pode e ninguém pegou;
-3. o nome, entre os 24 de `NOMES` que ninguém usa.
-
-Se o item ficar sem opção, o sorteio refaz as peças. O pré-montado é sempre
-válido.
+Os amuletos são medalhões de 12 cm presos no peito, desenhados por código no
+mesmo estilo da bigorna (metal fosco `metallic` ≤ 0,2, o emblema em relevo),
+com o contorno na cor do dono.
 
 ## A tela de montagem
 
@@ -253,16 +169,16 @@ para o plano dos prontos (85 mm, baixo, travelling pelos quatro).
 
 ## O nome
 
-Os 24 de `NOMES` (G02) com ◀▶, ou o teclado de tela (G09) com ✕ na linha
-Nome. Até 12 caracteres. O nome vai na etiqueta em Permanent Marker, no HUD
+As regras do nome (o sorteado, o tamanho, o filtro, a maiúscula) estão em
+[sistemas, o nome](../sistemas/README.md#o-nome). O nome vai na etiqueta em Permanent Marker, no HUD
 em Archivo Narrow, e no pódio em Bungee.
 
 ## O acabamento e a coleção
 
 O acabamento (fosco, polido, riscado, dourado) sai da montagem: são cinco
-linhas e bastam. Ele vira desbloqueio da coleção (G06), escolhido no salão,
-junto com os acessórios (óculos, aparelho auditivo, bengala). Nenhum muda
-stat.
+linhas e bastam. Ele vira desbloqueio da coleção (G06), escolhido no salão.
+Nenhum muda stat. As regras da coleção e da progressão estão em
+[sistemas, a progressão](../sistemas/README.md#a-progressão-e-a-coleção).
 
 ## O que muda nos outros documentos
 
