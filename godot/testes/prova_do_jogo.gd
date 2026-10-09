@@ -2522,7 +2522,10 @@ func _prova_da_luz() -> void:
 			and is_equal_approx(anel.material_override.get_shader_parameter("energia"), 1.5), "boneco P%d: o anel no chão é néon do lugar a 1,5" % (l + 1))
 		var com_contorno := 0
 		var sem_contorno := 0
+		var quais := []
 		for mi in p.modelo.find_children("*", "MeshInstance3D", true, false):
+			if mi.material_override != null:
+				continue  # o que a sala pendura no boneco (a vara, o martelo) tem o material da sala
 			for s in mi.mesh.get_surface_count():
 				var m = mi.material_override if mi.material_override else mi.get_surface_override_material(s)
 				if m and m.next_pass is ShaderMaterial and m.next_pass.get_shader_parameter("cor") == Tema.JOGADOR[l] \
@@ -2530,7 +2533,9 @@ func _prova_da_luz() -> void:
 					com_contorno += 1
 				else:
 					sem_contorno += 1
-		_esperar(com_contorno > 0 and sem_contorno == 0, "boneco P%d: toda superfície leva o contorno do lugar a 2,4 (%d)" % [l + 1, com_contorno])
+					var np = m.next_pass if m else null
+					quais.append("%s/%d:%s" % [mi.name, s, "sem material" if m == null else ("sem passe" if np == null else "cor %s energia %s" % [np.get_shader_parameter("cor"), np.get_shader_parameter("energia")])])
+		_esperar(com_contorno > 0 and sem_contorno == 0, "boneco P%d: toda superfície leva o contorno do lugar a 2,4 (%d com, sem: %s)" % [l + 1, com_contorno, ", ".join(quais)])
 		var ld: OmniLight3D = p.luz_de_dono
 		_esperar(ld.light_color == Tema.JOGADOR[l] and is_equal_approx(ld.light_energy, 0.9) and is_equal_approx(ld.omni_range, 3.4)
 			and not ld.shadow_enabled and is_equal_approx(ld.position.y, 0.6), "boneco P%d: a luz de dono (0,9, 3,4 m, sem sombra, a 0,6 m)" % (l + 1))
