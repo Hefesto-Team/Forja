@@ -17,6 +17,7 @@
 #     bash scripts/ci-local.sh --job NOME[,NOME] # só estes, para triar (o `PULA-NO-RAPIDO` não vale)
 #     bash scripts/ci-local.sh --listar          # o que roda, o que fica fora e por quê
 #     bash scripts/ci-local.sh --conferir        # diz o que rodaria e sai 1 se rodaria alguma coisa
+#     bash scripts/ci-local.sh --portoes         # os portões e a prova deles direto na árvore, sem act nem docker
 #   para triar, com --job:  --sem-passo 'job|nome do passo' (repetível) tira um passo da cópia do YAML
 #
 # O QUE RODA: a ÁRVORE DO ÍNDICE (`git checkout-index`, só arquivo versionado), exportada para uma pasta de
@@ -38,18 +39,23 @@ set -uo pipefail
 #   EM-TAG|workflow.yml|motivo    o workflow dispara em tag: o act roda `push` com `ref: refs/tags/v<versão>`
 #   FORA-DE-CASA|job|motivo       não roda em casa, com o motivo medido
 TABELA="$(cat <<'FIM_DA_TABELA'
-# O que esta casa decide sobre cada job do forja.yml. Medido em 06/10/2026 com o act 0.2.89:
+# O que esta casa decide sobre cada job dos workflows (forja.yml e rotulos.yml). Medido em 06/10/2026 com o
+# act 0.2.89:
 #   windows  verde em 167 s (apt, o módulo mingw-w64, a conferência da DLL, o upload do artefato)
-#   linux    VERMELHO em «A prova do jogo»: o forja.yml baixa o Godot `GODOT_VERSAO: "4.4.1-stable"` e o
-#            scripts/engine.sh pede o 4.7.2-stable (ADR-009); a prova diz «sem Godot» e sai 2. É defeito do
-#            forja.yml (o YAML e o script discordam da versão; o GitHub roda o mesmo YAML), e o ci-local
-#            o mostra em vez de escondê-lo.
+#   linux    o forja.yml e o scripts/engine.sh pedem o mesmo Godot (4.7.2-stable; o passo «A versão do Godot
+#            é a do engine.sh» reprova se divergirem). Na medida de 06/10 o YAML ainda pedia o 4.4.1 e o job
+#            ficou vermelho em «A prova do jogo»; o YAML foi alinhado depois.
 #   telas, exportar  dependem do `linux` (needs) e ficam sem medida até ele passar.
+#   portoes  só python3 e git, sem Godot: os portões por script (scripts/portoes/rodar.sh) e a prova deles.
+#            Sem o docker, `--portoes` roda os mesmos dois comandos direto na árvore.
 ROLA|windows|rapido
 ROLA|linux|rapido
+ROLA|portoes|rapido
 ROLA|telas|completo
 ROLA|exportar|completo
 FORA-DE-CASA|release|publica: `gh release create` no servidor, e só roda em tag (`if: startsWith(github.ref, 'refs/tags/')`). Nada sai desta casa para o GitHub.
+FORA-DE-CASA|area|rotulos.yml: roda em `pull_request_target` e escreve o rótulo no PR pela API do GitHub (`pull-requests: write`); em casa não há PR nem servidor para receber o rótulo.
+FORA-DE-CASA|roteiro|rotulos.yml: roda no evento `issues` e escreve no quadro Roteiro da organização com o segredo `ROTEIRO_TOKEN`; em casa não há issue nem o segredo.
 FIM_DA_TABELA
 )"
 
@@ -84,6 +90,7 @@ while [ $# -gt 0 ]; do
     --perna) shift; SO_PERNA="${1:-}" ;;
     --listar) listar=1 ;;
     --conferir) conferir=1 ;;
+    --portoes) modo=portoes ;;
     -h|--ajuda) awk 'NR > 1 && /^#/ {sub(/^# ?/, ""); print} /^set -uo/ {exit}' "${BASH_SOURCE[0]}"; exit 0 ;;
     *) echo "ci-local: argumento desconhecido: $1" >&2; exit 2 ;;
   esac
@@ -170,6 +177,14 @@ jobs_do_modo() { # os jobs ROLA do modo
     job) echo "$alvo" | tr ',' '\n' ;;
   esac
 }
+
+if [ "$modo" = portoes ]; then # o job `portoes` sem o act: os mesmos dois comandos, na árvore de trabalho
+  bash "$RAIZ/scripts/portoes/rodar.sh"; rc_p=$?
+  bash "$RAIZ/tests/prova_dos_portoes.sh"; rc_q=$?
+  [ "$rc_p" -eq 2 ] && exit 2
+  [ "$rc_p" -eq 0 ] && [ "$rc_q" -eq 0 ] && { echo "ci-local --portoes: verde"; exit 0; }
+  echo "ci-local --portoes: VERMELHO (portões rc=$rc_p, prova rc=$rc_q)"; exit 1
+fi
 
 if [ "$listar" = 1 ]; then
   conferir_tabela || exit 2

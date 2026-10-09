@@ -16,18 +16,20 @@ ninguém é parado. Esta ficha zera os avisos e vira a chave para reprovar.
 
 ## O estado de hoje
 
-Medido em 08/10/2026 com `bash scripts/portoes/rodar.sh`:
+Medido em 08/10/2026 com `bash scripts/portoes/rodar.sh` (arte: 193 avisos em 46 arquivos; som: 3 avisos):
 
-- **Cor fora de token:** 102 `Color("#…")` fora de `godot/scripts/tema.gd` (os maiores: `salas/voz.gd` 19,
-  `salas/molde.gd` 13, `salas/canto.gd` 12, `salas/viga.gd` 10, `mundo/salao.gd` 9), mais o `light_color` de
-  `godot/scenes/main.tscn:16` e o `default_clear_color` de `godot/project.godot`. O próprio `tema.gd` tem cores que
-  não estão na paleta da bíblia.
-- **Fonte fora da bíblia:** `godot/project.godot` pede `SpaceGrotesk` em `gui/theme/custom_font`; o `tema.gd`
-  carrega Space Grotesk e JetBrains Mono.
-- **Texto abaixo de 30 px:** `godot/scripts/ui/tela_lobby.gd:108` (26) e `:111` (24),
-  `godot/scripts/ui/painel_bancada.gd:57` (o selo em 20).
-- **Cor de jogador fora do jogador:** o que o portão listar (acesso a `Tema.JOGADOR[...]` com índice literal).
-- **Som:** ids tocados fora do mapa (a V05 zera) e os arquivos sem duração, pico ou com clique.
+- **Cor fora de token:** 140 cores escritas fora de `godot/scripts/tema.gd` (`Color("#…")`, `Color8`, `Color(0.x, …)`;
+  os maiores: `salas/voz.gd` 21, `salas/impacto.gd` 19, `salas/molde.gd` 16, `salas/prova.gd` 15, `salas/viga.gd`,
+  `salas/canto.gd` e `salas/caminhos.gd` 12 cada), mais 16 `Color.WHITE`/`Color.BLACK` (os primeiros em
+  `mundo/efeitos.gd`). O próprio `tema.gd` tem 20 cores que não estão na paleta da bíblia (a partir da linha 11).
+- **Fonte fora da bíblia:** `godot/project.godot:42` pede `SpaceGrotesk` em `gui/theme/custom_font`; o `tema.gd:54-55`
+  carrega Space Grotesk e JetBrains Mono, e as duas estão em `godot/assets/fontes/`.
+- **Texto abaixo de 30 px:** 12 chamadas, `godot/scripts/ui/diagnostico.gd` 8 (20 e 22 px),
+  `godot/scripts/ui/painel_bancada.gd:57` (o selo em 20) e `:58` (o parágrafo em 22),
+  `godot/scripts/ui/tela_lobby.gd:108` (26) e `:111` (24).
+- **Cor de jogador fora do jogador:** nenhum acesso por índice literal hoje; o portão segue olhando.
+- **Som:** o `docs/jogo/audio/mapa.csv` não existe, então 36 ids tocados ficam sem conferência (a V05 cria o mapa);
+  `godot/scripts/salas/canto.gd:297` e `:299` tocam um id que mora numa variável e o portão não lê.
 
 ## Arquivos que mudam
 

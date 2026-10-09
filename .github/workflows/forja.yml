@@ -92,6 +92,27 @@ jobs:
           path: godot/bin/libforja.linux.x86_64.so
           if-no-files-found: error
 
+  portoes:
+    name: Os portões — texto de tela, sem rastro, mensagens, ficha pronta; a arte e o som em aviso
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # o portão das mensagens confere os commits novos, e precisa do histórico
+
+      # A BASE reprova desde já: o texto de tela, o sem rastro, as mensagens de commit sem símbolo e a ficha
+      # «pronta» com todas as partes. A ARTE e o SOM entram em AVISO (escrevem o achado e não reprovam) até a
+      # bíblia entrar no jogo. VIRAR PARA REPROVAR: em scripts/portoes/arte.json e scripts/portoes/som.json,
+      # trocar "modo": "aviso" por "modo": "reprova" (a ficha V08). Este passo não muda.
+      - name: Os portões
+        env:
+          ANTES: ${{ github.event.before }}
+          BASE_DO_PR: ${{ github.base_ref }}
+        run: bash scripts/portoes/rodar.sh
+
+      - name: A prova dos portões (cada um reprova o defeito que diz pegar)
+        run: bash tests/prova_dos_portoes.sh
+
   windows:
     name: Windows — o módulo (mingw-w64)
     runs-on: ubuntu-24.04
