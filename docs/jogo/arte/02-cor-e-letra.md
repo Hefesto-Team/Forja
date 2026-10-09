@@ -75,7 +75,7 @@ da peça é a da Kenney, recolorida: o matiz fica, a luz cai na faixa da parte.
 
 | parte | material | faixa de L | croma | rugosidade | metallic | papel do recolorir (`fita.gd` `GRADE`) |
 | --- | --- | --- | --- | --- | --- | --- |
-| cabeça | pele e cabelo | o rosto de 0,68 a 0,80 | até 0,10 | 0,90 | 0 | `personagem` (como hoje) |
+| cabeça | pele e cabelo | o rosto humano no tom da Kenney, a 0,10 do superior ou com a gola acesa; a pele de raça de 0,68 a 0,80 | até 0,10 | 0,90 | 0 | `personagem` (como hoje) |
 | tronco superior | tecido | de 0,46 a 0,58 | de 0,03 a 0,10 | 0,85 | 0 | novo `tecido`: `l0` 0,46, `l1` 0,12, `sat` 0,55 |
 | tronco inferior | couro e lona | de 0,22 a 0,36 | de 0,02 a 0,07 | 0,70 | 0 | novo `couro`: `l0` 0,22, `l1` 0,14, `sat` 0,40 |
 | arma | metal batido (a face do escudo também) | de 0,68 a 0,80 | até 0,03 | de 0,45 a 0,62 | 0,2 | `objeto` (como hoje) |
@@ -87,10 +87,11 @@ acima do couro mais claro (0,36). Em cinza, o cavaleiro tem três faixas: a
 cabeça clara, o tronco médio, as pernas escuras. O item, claro, se lê contra
 o tecido do braço que o segura.
 
-O rosto humano é a exceção, por ora: a pele da Kenney vai de L 0,52 a 0,72 e
-não se clareia, para manter os tons de pele. Só 2 dos 12 rostos caem na
-faixa; o critério (a faixa ou o contraste de 0,10 com o superior) espera o
-diretor de arte, no [04](04-o-cavaleiro.md#o-que-a-medida-deu-em-0910).
+O rosto humano é a exceção: a pele da Kenney vai de L 0,52 a 0,72 e não se
+clareia, para manter os tons de pele. Ele se mede pelo contraste com o
+superior: |ΔL| de 0,10 ou mais, ou a gola acesa do friso entre os dois. Dos
+144 pares de rosto e superior, 93 passam pelo ΔL e 51 pela gola. O critério
+inteiro está no [04](04-o-cavaleiro.md#o-critério-do-rosto).
 
 **A peça nunca é néon.** Duas condições, conferidas por script:
 
