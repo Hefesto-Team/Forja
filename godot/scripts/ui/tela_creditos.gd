@@ -23,7 +23,7 @@ func _process(dt: float) -> void:
 
 
 func _draw() -> void:
-	draw_rect(Rect2(Vector2.ZERO, size), Color(Tema.CASA, 0.94))
+	draw_rect(Rect2(Vector2.ZERO, size), Color(Tema.FITA, 0.94))
 	var a := clampf(_t / 0.8, 0.0, 1.0)
 	var lado := 220.0
 	var c := size * 0.5
@@ -31,12 +31,12 @@ func _draw() -> void:
 	for i in 9:
 		var y := c.y - 150.0 + i * 22.0
 		var meia := sqrt(maxf(0.0, 200.0 * 200.0 - pow(y - (c.y - 60.0), 2.0)))
-		var cor := Tema.ROSA.lerp(Tema.LARANJA, i / 8.0)
+		var cor := Tema.ETIQUETA.lerp(Tema.SECAO[3], i / 8.0)
 		draw_rect(Rect2(Vector2(c.x - meia, y), Vector2(meia * 2.0, 14.0 - i * 1.2)), Color(cor, 0.35 * a))
-	draw_texture_rect(Desenho.LOGO, Rect2(Vector2(c.x - lado * 0.5, c.y - 250.0), Vector2(lado, lado)), false, Color(1, 1, 1, a))
-	var f := Tema.fonte(700)
+	draw_texture_rect(Desenho.LOGO, Rect2(Vector2(c.x - lado * 0.5, c.y - 250.0), Vector2(lado, lado)), false, Color(Tema.ETIQUETA, a))
+	var f := Tema.bungee()
 	var nome := "Hefesto Team"
 	Desenho.texto(self, Vector2(c.x - Desenho.largura(nome, f, Tema.T_DISPLAY) * 0.5, c.y + 110.0), nome, f, Tema.T_DISPLAY,
-		Color(Tema.FG, a))
+		Color(Tema.ETIQUETA, a))
 	if _t > 1.0:
 		Desenho.dicas_a_direita(self, Vector2(size.x - Tema.MARGEM_X, size.y - Tema.MARGEM_Y), [["circulo", "Voltar"]], Tema.T_SELO)

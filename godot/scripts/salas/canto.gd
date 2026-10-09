@@ -73,7 +73,7 @@ func _init() -> void:
 func montar() -> void:
 	Kit.arena(self, 5, 3)
 	# a capela: poeira violeta, e o neon roxo
-	atmosfera(Color("#b88cff"), Tema.ROXO, false, 36, 22.0, -7.8, 0.2)
+	atmosfera(Color("#b88cff"), Tema.VIOLETA, false, 36, 22.0, -7.8, 0.2)
 	var frio := OmniLight3D.new()
 	frio.position = Vector3(0, 8.0, 4.0)
 	frio.light_color = Color("#8a80c8")
@@ -128,7 +128,7 @@ static func sino(pai: Node3D, pos: Vector3, escala: float, cor: Color) -> Dictio
 	var mat := Kit.material(cor, 0.0, 0.35)
 	mat.metallic = 0.75
 	mat.emission_enabled = true
-	mat.emission = Tema.AMARELO
+	mat.emission = Tema.TUNGSTENIO
 	mat.emission_energy_multiplier = 0.0
 	mat.cull_mode = BaseMaterial3D.CULL_DISABLED
 	malha.material_override = mat
@@ -165,7 +165,7 @@ func _montar_torre() -> void:
 	_mat_tv = s.mat
 	brilho_tv = OmniLight3D.new()
 	brilho_tv.position = SINO_TV + Vector3(0, -1.2, 1.4)
-	brilho_tv.light_color = Tema.AMARELO
+	brilho_tv.light_color = Tema.TUNGSTENIO
 	brilho_tv.light_energy = 0.0
 	brilho_tv.omni_range = 6.0
 	add_child(brilho_tv)
@@ -206,7 +206,7 @@ func _montar_raia(l: int, p: ForjaPlayer) -> Dictionary:
 	var s := sino(self, base + Vector3(-0.45, 1.8, 0), 0.34, Color("#c08a42"))
 	var luz := OmniLight3D.new()
 	luz.position = base + Vector3(-0.45, 1.3, 0.5)
-	luz.light_color = Tema.AMARELO
+	luz.light_color = Tema.TUNGSTENIO
 	luz.light_energy = 0.0
 	luz.omni_range = 3.0
 	add_child(luz)
@@ -218,7 +218,7 @@ func _montar_raia(l: int, p: ForjaPlayer) -> Dictionary:
 	Kit.caixa(partitura, Vector3(2.3, 0.03, 0.03), Vector3.ZERO, Kit.material(Color("#8a6a3a"), 0.4, 0.6))
 	var pontos: Array = []
 	for k in NOTAS:
-		pontos.append(Kit.esfera(partitura, 0.09, Vector3.ZERO, Kit.material(Tema.AMARELO, 1.2)))
+		pontos.append(Kit.esfera(partitura, 0.09, Vector3.ZERO, Kit.material(Tema.TUNGSTENIO, 1.2)))
 	var toques: Array = []
 	for k in NOTAS:
 		var anel := MeshInstance3D.new()
@@ -300,13 +300,13 @@ func _tocar_nota(k: int) -> void:
 	# a nota sobe do meio, sem apontar ninguém
 	var nota := Label3D.new()
 	nota.text = "♪" if k % 2 == 0 else "♫"
-	nota.font = Tema.fonte(700)
+	nota.font = Tema.archivo(700)
 	nota.font_size = 150
 	nota.pixel_size = 0.005
 	nota.billboard = BaseMaterial3D.BILLBOARD_ENABLED
-	nota.modulate = Tema.AMARELO
+	nota.modulate = Tema.ETIQUETA
 	nota.outline_size = 14
-	nota.outline_modulate = Color(Tema.CASA, 0.8)
+	nota.outline_modulate = Color(Tema.FITA, 0.8)
 	nota.position = SINO_TV + Vector3(0, -0.6, 0.9)
 	add_child(nota)
 	_notas_no_ar.append([nota, 0.0, -1.0 if k % 2 == 0 else 1.0])
@@ -356,7 +356,7 @@ func _revelar() -> void:
 	else:
 		var dono := jogador(fonte)
 		if dono:
-			Efeitos.faiscas(self, dono.global_position + Vector3(0, 2.2, 0), Tema.AMARELO, 20, 0.8)
+			Efeitos.faiscas(self, dono.global_position + Vector3(0, 2.2, 0), Tema.TUNGSTENIO, 20, 0.8)
 
 
 func _fechar_repeticao() -> void:
@@ -376,7 +376,7 @@ func _fechar_repeticao() -> void:
 		var dono := jogador(fonte)
 		if dono:
 			dono.gesto("emote-yes", 0.8)
-			Efeitos.faiscas(self, dono.global_position + Vector3(0, 2.6, 0), Tema.AMARELO, 36, 1.2)
+			Efeitos.faiscas(self, dono.global_position + Vector3(0, 2.6, 0), Tema.TUNGSTENIO, 36, 1.2)
 	_proxima_rodada()
 
 

@@ -47,32 +47,32 @@ func _process(_dt: float) -> void:
 func _draw() -> void:
 	var h := size.y
 	# a tarja de cima, atrás do título (as placas dos portões ficam por baixo)
-	draw_rect(Rect2(0, 0, size.x, 150), Color(Tema.CASA, 0.86))
+	draw_rect(Rect2(0, 0, size.x, 150), Color(Tema.FITA, 0.86))
 	for i in 24:
-		draw_rect(Rect2(0, 150 + i * 5, size.x, 5), Color(Tema.CASA, 0.86 * (1.0 - i / 24.0)))
+		draw_rect(Rect2(0, 150 + i * 5, size.x, 5), Color(Tema.FITA, 0.86 * (1.0 - i / 24.0)))
 	# a tarja de baixo, atrás dos cartões
 	var topo_cartoes := cartoes[0].position.y
 	for i in 30:
-		draw_rect(Rect2(0, topo_cartoes - 180 + i * 6, size.x, 6), Color(Tema.CASA, 0.82 * i / 30.0))
-	draw_rect(Rect2(0, topo_cartoes, size.x, h - topo_cartoes), Color(Tema.CASA, 0.82))
+		draw_rect(Rect2(0, topo_cartoes - 180 + i * 6, size.x, 6), Color(Tema.FITA, 0.82 * i / 30.0))
+	draw_rect(Rect2(0, topo_cartoes, size.x, h - topo_cartoes), Color(Tema.FITA, 0.82))
 
 	Desenho.cabecalho(self, Vector2(Tema.MARGEM_X, Tema.MARGEM_Y), 72.0)
-	var f := Tema.fonte(700)
+	var f := Tema.bungee()
 	var titulo := "Quem joga"
-	Desenho.texto(self, Vector2(0, 118), titulo, f, Tema.T_TITULO, Tema.FG, HORIZONTAL_ALIGNMENT_CENTER, size.x)
+	Desenho.texto(self, Vector2(0, 118), titulo, f, Tema.T_TITULO, Tema.ETIQUETA, HORIZONTAL_ALIGNMENT_CENTER, size.x)
 	# a linha de baixo do título diz o estado: quem falta, ou que todos estão prontos
 	var sub := "Aperte ✕ no seu controle para entrar."
-	var cor_sub := Tema.SUAVE
+	var cor_sub := Tema.ETIQUETA_SOMBRA
 	if contagem >= 0.0:
 		sub = "Todos prontos"
-		cor_sub = Tema.VERDE
+		cor_sub = Tema.ETIQUETA
 	elif Forja.jogadores() > 0:
 		var faltam := 0
 		for i in 4:
 			if Forja.ocupado(i) and not prontos[i]:
 				faltam += 1
 		sub = "Falta 1 jogador ficar pronto" if faltam == 1 else "Faltam %d jogadores ficarem prontos" % faltam
-	Desenho.texto(self, Vector2(0, 172), sub, Tema.fonte(500 if contagem >= 0.0 else 400), Tema.T_CORPO, cor_sub,
+	Desenho.texto(self, Vector2(0, 172), sub, Tema.archivo(500), Tema.T_CORPO, cor_sub,
 		HORIZONTAL_ALIGNMENT_CENTER, size.x)
 	for i in 4:
 		if Forja.ocupado(i):
@@ -81,11 +81,11 @@ func _draw() -> void:
 	# à direita: quantos controles o jogo vê
 	var n := Forja.conectados()
 	var txt := "%d controle%s" % [n, "s" if n != 1 else ""]
-	var ftxt := Tema.fonte(600)
+	var ftxt := Tema.archivo(600)
 	var wt := Desenho.largura(txt, ftxt, Tema.T_ROTULO)
 	var xd := size.x - Tema.MARGEM_X - wt
-	draw_circle(Vector2(xd - 20, Tema.MARGEM_Y + 32), 7, Tema.VERDE if n > 0 else Tema.LARANJA)
-	Desenho.texto(self, Vector2(xd, Tema.MARGEM_Y + 42), txt, ftxt, Tema.T_ROTULO, Tema.VERDE if n > 0 else Tema.LARANJA)
+	draw_circle(Vector2(xd - 20, Tema.MARGEM_Y + 32), 7, Tema.ETIQUETA if n > 0 else Tema.SECAO[3])
+	Desenho.texto(self, Vector2(xd, Tema.MARGEM_Y + 42), txt, ftxt, Tema.T_ROTULO, Tema.ETIQUETA if n > 0 else Tema.SECAO[3])
 
 
 
@@ -96,18 +96,18 @@ func _seletor(l: int) -> void:
 		return
 	var boneco: String = visual[l][0]
 	var leva: String = visual[l][1]
-	var f1 := Tema.fonte(600)
-	var f2 := Tema.fonte(500)
+	var f1 := Tema.archivo(600)
+	var f2 := Tema.archivo(500)
 	var wd := Glifo.largura_dica("triangulo", "Opções", Tema.T_SELO)
-	var larg := maxf(maxf(Desenho.largura(boneco, f1, 26), Desenho.largura(leva, f2, 24)) + 120.0, wd + 48.0)
+	var larg := maxf(maxf(Desenho.largura(boneco, f1, Tema.T_ROTULO), Desenho.largura(leva, f2, Tema.T_ROTULO)) + 120.0, wd + 48.0)
 	var r := Rect2(Vector2(pes[l].x - larg * 0.5, pes[l].y - 36), Vector2(larg, 124))
-	Desenho.moldura(self, r, Color(Tema.PAINEL, 0.94), Tema.ROXO, 2, 12)
+	Desenho.moldura(self, r, Color(Tema.CASCO, 0.94), Tema.tom_para_a_borda(Forja.cor_do_lugar(l)), 2, 12)
 	var cx := r.get_center().x
-	Glifo.desenhar(self, "esquerda", Rect2(Vector2(r.position.x + 12, r.position.y + 10), Vector2(30, 30)), Tema.SUAVE)
-	Glifo.desenhar(self, "direita", Rect2(Vector2(r.end.x - 42, r.position.y + 10), Vector2(30, 30)), Tema.SUAVE)
-	Desenho.texto(self, Vector2(cx - Desenho.largura(boneco, f1, 26) * 0.5, r.position.y + 35), boneco, f1, 26, Tema.FG)
-	Glifo.desenhar(self, "cima", Rect2(Vector2(r.position.x + 12, r.position.y + 48), Vector2(30, 30)), Tema.SUAVE)
-	Glifo.desenhar(self, "baixo", Rect2(Vector2(r.end.x - 42, r.position.y + 48), Vector2(30, 30)), Tema.SUAVE)
-	Desenho.texto(self, Vector2(cx - Desenho.largura(leva, f2, 24) * 0.5, r.position.y + 72), leva, f2, 24, Tema.ROXO)
+	Glifo.desenhar(self, "esquerda", Rect2(Vector2(r.position.x + 12, r.position.y + 10), Vector2(30, 30)), Tema.ETIQUETA_SOMBRA)
+	Glifo.desenhar(self, "direita", Rect2(Vector2(r.end.x - 42, r.position.y + 10), Vector2(30, 30)), Tema.ETIQUETA_SOMBRA)
+	Desenho.texto(self, Vector2(cx - Desenho.largura(boneco, f1, Tema.T_ROTULO) * 0.5, r.position.y + 36), boneco, f1, Tema.T_ROTULO, Tema.ETIQUETA)
+	Glifo.desenhar(self, "cima", Rect2(Vector2(r.position.x + 12, r.position.y + 48), Vector2(30, 30)), Tema.ETIQUETA_SOMBRA)
+	Glifo.desenhar(self, "baixo", Rect2(Vector2(r.end.x - 42, r.position.y + 48), Vector2(30, 30)), Tema.ETIQUETA_SOMBRA)
+	Desenho.texto(self, Vector2(cx - Desenho.largura(leva, f2, Tema.T_ROTULO) * 0.5, r.position.y + 76), leva, f2, Tema.T_ROTULO, Tema.ETIQUETA)
 	# as opções do lugar (o gatilho e a vibração) antes de ficar pronto
-	Glifo.dica(self, Vector2(cx - wd * 0.5, r.position.y + 112), "triangulo", "Opções", Tema.T_SELO, Tema.ROSA, Tema.SUAVE)
+	Glifo.dica(self, Vector2(cx - wd * 0.5, r.position.y + 112), "triangulo", "Opções", Tema.T_SELO, Tema.ETIQUETA, Tema.ETIQUETA_SOMBRA)

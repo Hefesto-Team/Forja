@@ -31,7 +31,7 @@ func _draw() -> void:
 
 func _aviso() -> void:
 	# a arena fica à mostra: o quadro sobe e o boneco de cada um mostra o gesto
-	draw_rect(Rect2(Vector2.ZERO, size), Color(Tema.CASA, 0.25))
+	draw_rect(Rect2(Vector2.ZERO, size), Color(Tema.FITA, 0.25))
 	var larg := 1120.0
 	# mostrar, não contar: o nome, o verbo numa linha e um ícone da parte do
 	# controle que a sala usa. O resto a sala ensina jogando, pelas dicas curtas
@@ -44,21 +44,21 @@ func _aviso() -> void:
 	# o quadro entra deslizando (a sala nova chega, não aparece)
 	var k := clampf(float(sala.t_fase) / 0.35, 0.0, 1.0)
 	r.position.x += (1.0 - k * k * (3.0 - 2.0 * k)) * 520.0
-	Desenho.moldura(self, r, Color(Tema.PAINEL, 0.97), Tema.LINHA, 2, Tema.RAIO_QUADRO)
+	Desenho.moldura(self, r, Color(Tema.CASCO, 0.97), Tema.GRAFITE, 2, Tema.RAIO_QUADRO)
 	var x := r.position.x + 48
-	Desenho.texto(self, Vector2(x, r.position.y + 92), str(sala.nome), Tema.fonte(700), Tema.T_TITULO, Tema.FG)
+	Desenho.texto(self, Vector2(x, r.position.y + 92), str(sala.nome), Tema.bungee(), Tema.T_TITULO, Tema.ETIQUETA)
 	if str(sala.na_prova_de_fogo) != "":
-		Desenho.texto(self, Vector2(x + Desenho.largura(str(sala.nome), Tema.fonte(700), Tema.T_TITULO) + 28, r.position.y + 88),
-			str(sala.na_prova_de_fogo), Tema.fonte(600), Tema.T_SELO, Tema.LARANJA)
-	Desenho.texto(self, Vector2(x, r.position.y + 156), str(sala.acao), Tema.fonte(500), Tema.T_SUBTITULO, Tema.ROSA,
+		Desenho.texto(self, Vector2(x + Desenho.largura(str(sala.nome), Tema.bungee(), Tema.T_TITULO) + 28, r.position.y + 88),
+			str(sala.na_prova_de_fogo), Tema.archivo(600), Tema.T_SELO, Tema.SECAO[3])
+	Desenho.texto(self, Vector2(x, r.position.y + 156), str(sala.acao), Tema.archivo(500), Tema.T_SUBTITULO, Tema.ETIQUETA,
 		HORIZONTAL_ALIGNMENT_LEFT, larg - 96)
 	# com menos de quatro, o que muda: um selo, não uma frase
 	if poucos != "":
-		Desenho.selo(self, Vector2(x, r.position.y + 180), poucos, Tema.CIANO, Tema.T_SELO)
+		Desenho.selo(self, Vector2(x, r.position.y + 180), poucos, Tema.ETIQUETA, Tema.T_SELO)
 	# o ícone da parte do controle que a sala usa
 	var icone := Desenho.glifo(str(sala.icone))
 	if icone:
-		draw_texture_rect(icone, Rect2(Vector2(r.end.x - 48 - 96, r.position.y + 40), Vector2(96, 96)), false, Tema.CIANO)
+		draw_texture_rect(icone, Rect2(Vector2(r.end.x - 48 - 96, r.position.y + 40), Vector2(96, 96)), false, Tema.ETIQUETA)
 	# quem já está pronto, na ordem dos lugares
 	var y := r.position.y + 216 + (40.0 if poucos != "" else 0.0)
 	var cx := x
@@ -68,24 +68,21 @@ func _aviso() -> void:
 		var cor_id := Tema.tom_para_a_borda(Forja.cor_do_lugar(l))
 		var pronto: bool = sala.prontos[l]
 		var chip := Rect2(Vector2(cx, y), Vector2(250, 64.0 + (ALTURA_SOM if som else 0.0)))
-		Desenho.moldura(self, chip, Tema.SEL if pronto else Tema.APP, cor_id, 3, 12)
-		Desenho.texto(self, chip.position + Vector2(20, 42), "P%d" % (l + 1), Tema.fonte(700), Tema.T_ROTULO, cor_id)
+		Desenho.moldura(self, chip, Tema.CASCO_ALTO if pronto else Tema.CASCO, cor_id, 3, 12)
+		Desenho.texto(self, chip.position + Vector2(20, 42), "P%d" % (l + 1), Tema.bungee(), Tema.T_PSHARP, cor_id)
 		if pronto:
-			Desenho.texto(self, chip.position + Vector2(62, 42), "✓ Pronto", Tema.fonte(600), Tema.T_SELO, Tema.VERDE, HORIZONTAL_ALIGNMENT_LEFT, 180)
+			Desenho.texto(self, chip.position + Vector2(86, 42), "✓ Pronto", Tema.archivo(600), Tema.T_SELO, cor_id, HORIZONTAL_ALIGNMENT_LEFT, 150)
 		else:
-			# encolhe em vez de cortar (com o texto grande não caberia)
-			var tam_ag := Tema.T_SELO
-			while tam_ag > 20 and Desenho.largura("Aguardando", Tema.fonte(400), tam_ag) > 180.0:
-				tam_ag -= 1
-			Desenho.texto(self, chip.position + Vector2(62, 42), "Aguardando", Tema.fonte(400), tam_ag, Tema.MUDO, HORIZONTAL_ALIGNMENT_LEFT, 180)
+			Desenho.texto(self, chip.position + Vector2(86, 42), Desenho.caber("Aguardando", Tema.archivo(500), Tema.T_SELO, 150.0, 1),
+				Tema.archivo(500), Tema.T_SELO, Tema.MUDO, HORIZONTAL_ALIGNMENT_LEFT, 150)
 		if som:
 			_som_do_lugar(chip, l, papel)
 		cx += 258
 	# o aviso não espera para sempre: o trilho esvazia até a sala começar sozinha
 	var trilho := Rect2(Vector2(x, y + 64.0 + (ALTURA_SOM if som else 0.0) + 16.0), Vector2(larg - 96.0, 8.0))
-	draw_rect(trilho, Tema.TRILHO)
+	draw_rect(trilho, Tema.GRAFITE)
 	var resta := 1.0 - clampf(float(sala.t_fase) / SalaJogo.AVISO_MAX, 0.0, 1.0)
-	draw_rect(Rect2(trilho.position, Vector2(trilho.size.x * resta, 8.0)), Tema.ROXO)
+	draw_rect(Rect2(trilho.position, Vector2(trilho.size.x * resta, 8.0)), Tema.ETIQUETA)
 	# os botões, embaixo à direita (a linha dos lugares é dos quatro)
 	var dicas := [["cruz", "Pronto"]]
 	if som:
@@ -106,22 +103,22 @@ func _som_do_lugar(chip: Rect2, l: int, papel: int) -> void:
 	var w := chip.size.x - 40.0
 	var tem := Forja.som_tem(l, papel)
 	var nome := Forja.som_nome(l, papel)
-	var f := Tema.fonte(500)
-	var f2 := Tema.fonte(400)
+	var f := Tema.archivo(500)
+	var f2 := Tema.archivo(500)
 	# o nome do aparelho em até três linhas a 30 px (é o que diz qual é qual)
 	var tam := Tema.T_SELO
 	var nome_cabe := Desenho.caber(nome, f, tam, w, 3)
 	var topo := chip.position.y + 64.0 + 8.0
 	var alt_nome := Desenho.paragrafo(self, Vector2(x, topo + f.get_ascent(Tema.t(tam))), nome_cabe, f, tam,
-		Tema.FG if tem else Tema.LARANJA, w, 3)
+		Tema.ETIQUETA if tem else Tema.SECAO[3], w, 3)
 	var como := Forja.som_como(l, papel) if tem else "Não achado"
 	var y_como := topo + alt_nome + f2.get_ascent(Tema.t(tam))
 	Desenho.texto(self, Vector2(x, y_como), Desenho.caber(como, f2, tam, w, 1), f2, tam, Tema.MUDO)
 	if papel == Forja.PAPEL_MICROFONE and tem:
 		var nivel := float(Forja.som_mic(l).get("nivel", 0.0))
 		var trilho := Rect2(Vector2(x, y_como + 14.0), Vector2(w, 8))
-		draw_rect(trilho, Tema.TRILHO)
-		draw_rect(Rect2(trilho.position, Vector2(w * clampf(nivel, 0.0, 1.0), 8)), Tema.VERDE)
+		draw_rect(trilho, Tema.GRAFITE)
+		draw_rect(Rect2(trilho.position, Vector2(w * clampf(nivel, 0.0, 1.0), 8)), Tema.ETIQUETA)
 
 
 ## As dicas de cada lugar, embaixo da raia de cada um: uma pílula com a frase
@@ -130,7 +127,7 @@ func _dicas() -> void:
 	var cam := get_viewport().get_camera_3d()
 	if cam == null:
 		return
-	var f := Tema.fonte(500)
+	var f := Tema.archivo(500)
 	var tam := Tema.T_SELO
 	# as perguntas primeiro: onde cada uma cairia, e depois lado a lado, sem
 	# uma cobrir a outra (numa câmera mais perto, as raias vizinhas se tocam)
@@ -175,17 +172,17 @@ func _dicas() -> void:
 		var partes: Array = item[1]
 		var r: Rect2 = item[2]
 		var cor_id := Tema.tom_para_a_borda(Forja.cor_do_lugar(l))
-		Desenho.moldura(self, r, Color(Tema.PAINEL, 0.92), cor_id, 2, 12)
+		Desenho.moldura(self, r, Color(Tema.CASCO, 0.92), cor_id, 2, 12)
 		var x := r.position.x + 18.0
 		for parte in partes:
 			var s := str(parte)
 			if s.begins_with("@"):
 				var tex := Desenho.glifo(s.substr(1))
 				if tex:
-					draw_texture_rect(tex, Rect2(Vector2(x, r.position.y + 9.0), Vector2(34, 34)), false, Tema.ROSA)
+					draw_texture_rect(tex, Rect2(Vector2(x, r.position.y + 9.0), Vector2(34, 34)), false, Tema.ETIQUETA)
 				x += 34.0 + 10.0
 			else:
-				Desenho.texto(self, Vector2(x, r.position.y + 34.0), s, f, tam, Tema.FG)
+				Desenho.texto(self, Vector2(x, r.position.y + 34.0), s, f, tam, Tema.ETIQUETA)
 				x += Desenho.largura(s, f, tam) + 10.0
 
 
@@ -198,8 +195,8 @@ const LINHA_RESPOSTA := 52.0
 
 ## A altura do título e a do rodapé (até duas linhas cada).
 func _alturas(q: Dictionary) -> Array:
-	var ft := Tema.fonte(600)
-	var fo := Tema.fonte(500)
+	var ft := Tema.archivo(600)
+	var fo := Tema.archivo(500)
 	var titulo := str(q.get("titulo", ""))
 	var rodape := str(q.get("rodape", ""))
 	var th := Desenho.altura_paragrafo(Desenho.caber(titulo, ft, T_PERGUNTA, LARG_PERGUNTA - 40, 2), ft, T_PERGUNTA, LARG_PERGUNTA - 40, 2)
@@ -256,51 +253,49 @@ func _pergunta(l: int, q: Dictionary, r: Rect2) -> void:
 	var larg := LARG_PERGUNTA
 	var opcoes: Array = q.get("opcoes", [])
 	var rodape := str(q.get("rodape", ""))
-	var ft := Tema.fonte(600)
-	var fo := Tema.fonte(500)
+	var ft := Tema.archivo(600)
+	var fo := Tema.archivo(500)
 	var h := _alturas(q)
 	var titulo := Desenho.caber(str(q.get("titulo", "")), ft, T_PERGUNTA, larg - 40, 2)
 	var cor_id := Tema.tom_para_a_borda(Forja.cor_do_lugar(l))
-	Desenho.moldura(self, r, Color(Tema.PAINEL, 0.95), cor_id, 2, 14)
+	Desenho.moldura(self, r, Color(Tema.CASCO, 0.95), cor_id, 2, 14)
 	Desenho.paragrafo(self, r.position + Vector2(20, 16 + ft.get_ascent(Tema.t(T_PERGUNTA))), titulo, ft, T_PERGUNTA,
-		Tema.FG, larg - 40, 2)
+		Tema.ETIQUETA, larg - 40, 2)
 	var escolhida := int(q.get("escolhida", -1))
 	var certa := int(q.get("certa", -1))
 	var y0 := r.position.y + 16.0 + float(h[0]) + 10.0
 	for i in opcoes.size():
 		var o: Array = opcoes[i]
 		var caixa := Rect2(Vector2(r.position.x + 20.0, y0 + i * LINHA_RESPOSTA), Vector2(larg - 40.0, LINHA_RESPOSTA - 6.0))
-		var borda := Tema.LINHA
-		var fundo := Color(Tema.APP, 0.9)
+		var borda := Tema.GRAFITE
+		var fundo := Color(Tema.CASCO, 0.9)
 		if i == escolhida:
-			fundo = Tema.SEL
+			fundo = Tema.CASCO_ALTO
 		if certa >= 0 and i == certa:
-			borda = Tema.VERDE
+			borda = cor_id  # o acerto é a cor de quem acertou
 		elif certa >= 0 and i == escolhida:
-			borda = Tema.VERMELHO
-		Desenho.moldura(self, caixa, fundo, borda, 2 if borda == Tema.LINHA else 3, 10)
+			borda = Tema.MUDO  # o erro não tem cor (02, «O erro»)
+		Desenho.moldura(self, caixa, fundo, borda, 2 if borda == Tema.GRAFITE else 3, 10)
 		var meio := caixa.position.y + caixa.size.y * 0.5
 		var tex := Desenho.glifo(str(o[0]))
 		if tex:
-			draw_texture_rect(tex, Rect2(Vector2(caixa.position.x + 10, meio - 16), Vector2(32, 32)), false, Tema.ROSA)
+			draw_texture_rect(tex, Rect2(Vector2(caixa.position.x + 10, meio - 16), Vector2(32, 32)), false, Tema.ETIQUETA)
 		var tx := caixa.position.x + 54.0
 		if o.size() > 1 and o[1] is Color:
 			draw_circle(Vector2(tx + 12.0, meio), 12.0, o[1])
-			draw_arc(Vector2(tx + 12.0, meio), 12.0, 0.0, TAU, 24, Tema.LINHA, 1.5)
+			draw_arc(Vector2(tx + 12.0, meio), 12.0, 0.0, TAU, 24, Tema.GRAFITE, 1.5)
 			tx += 34.0
-		# a palavra encolhe para caber inteira em vez de cortar (só se precisar)
+		# a letra não encolhe (nada abaixo de 30 px): a palavra que não cabe fecha com «…»
 		var palavra := str(o[o.size() - 1])
 		var cabe := caixa.end.x - tx - 10.0
 		var tam := T_PERGUNTA
-		while tam > 22 and Desenho.largura(palavra, fo, tam) > cabe:
-			tam -= 1
-		Desenho.texto(self, Vector2(tx, meio + fo.get_ascent(Tema.t(tam)) * 0.36 + 2.0), palavra, fo, tam, Tema.FG,
+		Desenho.texto(self, Vector2(tx, meio + fo.get_ascent(Tema.t(tam)) * 0.36 + 2.0), Desenho.caber(palavra, fo, tam, cabe, 1), fo, tam, Tema.ETIQUETA,
 			HORIZONTAL_ALIGNMENT_LEFT, cabe + 2.0)
 	if rodape != "":
 		var bom := certa >= 0 and escolhida == certa
 		var ry := y0 + opcoes.size() * LINHA_RESPOSTA + 4.0
 		Desenho.paragrafo(self, Vector2(r.position.x + 20, ry + fo.get_ascent(Tema.t(T_PERGUNTA))),
-			Desenho.caber(rodape, fo, T_PERGUNTA, larg - 40, 2), fo, T_PERGUNTA, Tema.VERDE if bom else Tema.LARANJA, larg - 40, 2)
+			Desenho.caber(rodape, fo, T_PERGUNTA, larg - 40, 2), fo, T_PERGUNTA, Tema.ETIQUETA if bom else Tema.ETIQUETA_SOMBRA, larg - 40, 2)
 
 
 func _tempo() -> void:
@@ -311,11 +306,11 @@ func _tempo() -> void:
 		# sem relógio: a linha de progresso da sala, no mesmo lugar
 		var linha := str(sala.progresso())
 		if linha != "":
-			var fp := Tema.fonte(500)
+			var fp := Tema.archivo(500)
 			var lw := Desenho.largura(linha, fp, Tema.T_SELO)
 			var q := Rect2(Vector2(Tema.MARGEM_X - 28, 162), Vector2(lw + 44, 52))
-			Desenho.moldura(self, q, Color(Tema.PAINEL, 0.9), Tema.LINHA, 2, 12)
-			Desenho.texto(self, q.position + Vector2(22, 34), linha, fp, Tema.T_SELO, Tema.SUAVE)
+			Desenho.moldura(self, q, Color(Tema.CASCO, 0.9), Tema.GRAFITE, 2, 12)
+			Desenho.texto(self, q.position + Vector2(22, 34), linha, fp, Tema.T_SELO, Tema.ETIQUETA_SOMBRA)
 		return
 	# o tempo que resta, logo abaixo do nome da sala (o quadro da HUD)
 	if sala.treinando:
@@ -323,14 +318,14 @@ func _tempo() -> void:
 	var resta := maxf(0.0, d - float(sala.t_jogo))
 	var larg := 480.0
 	var p := Vector2(Tema.MARGEM_X - 28, 184)
-	var cor := Tema.LARANJA if resta < 15.0 else Tema.ROXO
+	var cor := Tema.SECAO[3] if resta < 15.0 else Tema.ETIQUETA
 	var r := Rect2(p - Vector2(0, 22), Vector2(larg + 110, 52))
-	Desenho.moldura(self, r, Color(Tema.PAINEL, 0.9), Tema.LINHA, 2, 12)
+	Desenho.moldura(self, r, Color(Tema.CASCO, 0.9), Tema.GRAFITE, 2, 12)
 	var trilho := Rect2(p + Vector2(20, 0), Vector2(larg, 8))
-	draw_rect(trilho, Tema.TRILHO)
+	draw_rect(trilho, Tema.GRAFITE)
 	draw_rect(Rect2(trilho.position, Vector2(larg * resta / d, 8)), cor)
 	var s := "%d s" % int(ceil(resta))
-	var f := Tema.mono(500)
+	var f := Tema.vt()
 	Desenho.texto(self, Vector2(trilho.end.x + 18, p.y + 12), s, f, Tema.T_SELO, cor)
 
 
@@ -338,18 +333,18 @@ func _tempo() -> void:
 func _treino_e_valendo() -> void:
 	if sala.treinando:
 		var s := "Treino — não vale ponto"
-		var f := Tema.fonte(600)
+		var f := Tema.archivo(600)
 		var w := Desenho.largura(s, f, Tema.T_ROTULO) + 56
 		var r := Rect2(Vector2((size.x - w) * 0.5, 176), Vector2(w, 56))
-		Desenho.moldura(self, r, Color(Tema.PAINEL, 0.94), Tema.CIANO, 3, 14)
-		Desenho.texto(self, r.position + Vector2(28, 38), s, f, Tema.T_ROTULO, Tema.CIANO)
+		Desenho.moldura(self, r, Color(Tema.CASCO, 0.94), Tema.ETIQUETA, 3, 14)
+		Desenho.texto(self, r.position + Vector2(28, 38), s, f, Tema.T_ROTULO, Tema.ETIQUETA)
 	elif float(sala.valendo_t) > 0.0:
 		var k: float = 1.4 - float(sala.valendo_t)
 		var escala := 1.0 + 0.35 * maxf(0.0, 1.0 - k / 0.25)
 		var alfa := clampf(float(sala.valendo_t) / 0.4, 0.0, 1.0)
 		var s2 := "Valendo!"
-		var f2 := Tema.fonte(700)
+		var f2 := Tema.bungee()
 		var tam := int(Tema.T_DISPLAY * escala)
 		var w2 := Desenho.largura(s2, f2, tam)
-		Desenho.texto(self, Vector2((size.x - w2) * 0.5 + 4, size.y * 0.42 + 4), s2, f2, tam, Color(Tema.CASA, 0.6 * alfa))
-		Desenho.texto(self, Vector2((size.x - w2) * 0.5, size.y * 0.42), s2, f2, tam, Color(Tema.ROSA, alfa))
+		Desenho.texto(self, Vector2((size.x - w2) * 0.5 + 4, size.y * 0.42 + 4), s2, f2, tam, Color(Tema.FITA, 0.6 * alfa))
+		Desenho.texto(self, Vector2((size.x - w2) * 0.5, size.y * 0.42), s2, f2, tam, Color(Tema.ETIQUETA, alfa))

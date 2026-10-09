@@ -143,21 +143,21 @@ func _montar_raia(l: int, p: ForjaPlayer) -> Dictionary:
 	# o aviso sem lado e a dúvida do escudo à toa
 	var aviso := Label3D.new()
 	aviso.text = "!"
-	aviso.font = Tema.fonte(700)
+	aviso.font = Tema.archivo(700)
 	aviso.font_size = 160
 	aviso.pixel_size = 0.005
 	aviso.billboard = BaseMaterial3D.BILLBOARD_ENABLED
 	aviso.no_depth_test = true
-	aviso.modulate = Tema.LARANJA
+	aviso.modulate = Tema.SECAO[3]
 	aviso.outline_size = 18
-	aviso.outline_modulate = Color(Tema.CASA, 0.9)
+	aviso.outline_modulate = Color(Tema.FITA, 0.9)
 	aviso.position = Vector3(x, 2.55, Z_JOGADOR)
 	aviso.visible = false
 	add_child(aviso)
 	var duvida := aviso.duplicate() as Label3D
 	duvida.text = "?"
 	duvida.font_size = 110
-	duvida.modulate = Tema.AMARELO
+	duvida.modulate = Tema.ETIQUETA
 	duvida.position = Vector3(x + 0.55, 2.3, Z_JOGADOR)
 	add_child(duvida)
 	# a lanterna da raia: a luz do controle, apagando com a vida (neutra na pergunta)
@@ -286,7 +286,7 @@ func _mostrar_golpe(l: int, lado: int, bloqueou: bool) -> void:
 	var tw := bola.create_tween()
 	tw.tween_property(bola, "global_position", ate, MOSTRA * 0.6)
 	var bateu := func() -> void:
-		Efeitos.faiscas(self, ate, Tema.AMARELO if bloqueou else Tema.VERMELHO, 28, 1.0)
+		Efeitos.faiscas(self, ate, Tema.TUNGSTENIO if bloqueou else Tema.SECAO[0], 28, 1.0)
 		if bloqueou:
 			Som.tocar("bigorna", ate, -4.0)
 		else:
@@ -494,7 +494,7 @@ func _mostrar(l: int, dt: float) -> void:
 	var mb: StandardMaterial3D = nos.mat_borda
 	if alvo:
 		mb.emission_enabled = true
-		mb.emission = Tema.VERMELHO
+		mb.emission = Tema.SECAO[0]
 		mb.emission_energy_multiplier = 1.0 + 1.2 * (0.5 + 0.5 * sin(t * 18.0))
 	else:
 		mb.emission_enabled = false
@@ -591,7 +591,7 @@ func _robo(l: int, e: Dictionary, dt: float) -> void:
 			e.robo_cor = 0.7 + 0.8 * rng.randf()
 		e.robo_cor = float(e.robo_cor) - dt
 		if e.robo_cor <= 0.001:
-			Forja.robo_apertar(l, BOTAO_COR[_cor_mais_perto(pc.get("luz", Color.BLACK))], 0.08)
+			Forja.robo_apertar(l, BOTAO_COR[_cor_mais_perto(pc.get("luz", Color.TRANSPARENT))], 0.08)
 			e.robo_cor = 10.0
 	elif estado != PERGUNTA:
 		e.robo_cor = 0.0

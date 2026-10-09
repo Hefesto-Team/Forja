@@ -56,7 +56,7 @@ static func desenhar(ci: CanvasItem, nome: String, r: Rect2, cor: Color, peso :=
 		"l1", "r1", "l2", "r2":
 			var forma := Rect2(p.call(4, 9), Vector2(24, 14) * k)
 			_retangulo_arred(ci, forma, 5.0 * k, cor, t)
-			var f := Tema.fonte(700)
+			var f := Tema.archivo(700)
 			var tam := int(10.0 * k)
 			var texto := nome.to_upper()
 			var larg := f.get_string_size(texto, HORIZONTAL_ALIGNMENT_LEFT, -1, tam).x
@@ -64,7 +64,7 @@ static func desenhar(ci: CanvasItem, nome: String, r: Rect2, cor: Color, peso :=
 				texto, HORIZONTAL_ALIGNMENT_LEFT, -1, tam, cor)
 		"analogico_l", "analogico_r":
 			ci.draw_arc(p.call(16, 16), 11.0 * k, 0.0, TAU, 48, cor, t, true)
-			var f2 := Tema.fonte(700)
+			var f2 := Tema.archivo(700)
 			var tam2 := int(12.0 * k)
 			var letra := "L" if nome == "analogico_l" else "R"
 			var l2 := f2.get_string_size(letra, HORIZONTAL_ALIGNMENT_LEFT, -1, tam2).x
@@ -102,7 +102,7 @@ static func _acao(texto: String) -> String:
 ## Largura de uma dica "Botão [glifo] (ação)" no tamanho `tam`. `com_botao` é
 ## falso na segunda dica em diante de uma fileira: só a primeira diz "Botão".
 static func largura_dica(glifo: String, texto: String, tam: int, com_botao := true) -> float:
-	var f := Tema.fonte(600)
+	var f := Tema.archivo(600)
 	tam = Tema.t(tam)
 	var acao := "(%s)" % Traducoes.traduzir(texto)
 	var w := tam * 1.25 + 10.0 + f.get_string_size(acao, HORIZONTAL_ALIGNMENT_LEFT, -1, tam).x
@@ -117,7 +117,7 @@ static func dica(ci: CanvasItem, pos: Vector2, glifo: String, texto: String, tam
 	tam = Tema.t(tam)
 	var acao := _acao(texto)
 	var lado := tam * 1.25
-	var f := Tema.fonte(600)
+	var f := Tema.archivo(600)
 	var x := 0.0
 	if com_botao:
 		var botao := Desenho.t("Botão")

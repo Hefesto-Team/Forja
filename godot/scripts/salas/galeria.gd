@@ -67,7 +67,7 @@ func montar() -> void:
 	n_alvos = N_ALVOS + variante
 	Kit.arena(self, 5, 3)
 	# o estande: o synthwave inteiro — poeira roxa e neon ciano
-	atmosfera(Color("#c28bff"), Tema.CIANO, false, 50)
+	atmosfera(Color("#c28bff"), Tema.VIOLETA, false, 50)
 	luzes([Vector3(-9, 2.6, -5), Vector3(9, 2.6, -5), Vector3(0, 3.0, 5)])
 	for p in jogadores:
 		var l: int = p.lugar
@@ -99,13 +99,13 @@ func _montar_raia(l: int, p: ForjaPlayer) -> Dictionary:
 	var bau := Kit.peca(self, "chest", Vector3(x, 0.5, Z_BAU - 0.1), 0.0, 1.9)
 	var interroga := Label3D.new()
 	interroga.text = "?"
-	interroga.font = Tema.fonte(700)
+	interroga.font = Tema.archivo(700)
 	interroga.font_size = 120
 	interroga.pixel_size = 0.005
 	interroga.billboard = BaseMaterial3D.BILLBOARD_ENABLED
-	interroga.modulate = Tema.AMARELO
+	interroga.modulate = Tema.ETIQUETA
 	interroga.outline_size = 16
-	interroga.outline_modulate = Color(Tema.CASA, 0.9)
+	interroga.outline_modulate = Color(Tema.FITA, 0.9)
 	interroga.position = Vector3(x, 1.75, Z_BAU)
 	add_child(interroga)
 	# a arma revelada, flutuando sobre o baú
@@ -129,7 +129,7 @@ func _montar_raia(l: int, p: ForjaPlayer) -> Dictionary:
 	anel.rotation.x = PI * 0.5
 	anel.material_override = tinta
 	mira.add_child(anel)
-	Kit.esfera(mira, 0.03, Vector3.ZERO, Kit.chapado(Tema.FG, true))
+	Kit.esfera(mira, 0.03, Vector3.ZERO, Kit.chapado(Tema.ETIQUETA, true))
 	mira.visible = false
 	p.position = Vector3(x, 0.05, Z_JOGADOR)
 	p.rotation.y = PI
@@ -143,7 +143,7 @@ func _montar_raia(l: int, p: ForjaPlayer) -> Dictionary:
 func _alvo_no() -> Node3D:
 	var a := Node3D.new()
 	add_child(a)
-	var cores := [Color("#e9e7f2"), Tema.VERMELHO, Color("#e9e7f2")]
+	var cores := [Tema.ETIQUETA, Tema.SECAO[0], Tema.ETIQUETA]
 	for i in 3:
 		var disco := Kit.cilindro(a, 0.42 - 0.13 * i, 0.04, Vector3(0, 0, 0.012 * i), Kit.material(cores[i], 0.15 if i == 1 else 0.0, 0.6))
 		disco.rotation.x = PI * 0.5
@@ -383,7 +383,7 @@ func _atirar(l: int, p: ForjaPlayer, e: Dictionary) -> void:
 			acertou = true
 			e.acertos += 1
 			marcar(l, 50)
-			Efeitos.faiscas(self, _no_muro(l, Vector2(a.x, a.y)), Tema.AMARELO, 18, 0.8)
+			Efeitos.faiscas(self, _no_muro(l, Vector2(a.x, a.y)), Tema.TUNGSTENIO, 18, 0.8)
 			Som.tocar("alvo", _no_muro(l, Vector2(a.x, a.y)), -4.0)
 			break
 	p.gesto("holding-right-shoot", 0.2)
@@ -422,7 +422,7 @@ func _rastro(l: int, p: ForjaPlayer, ate: Vector3) -> void:
 	c.bottom_radius = 0.018
 	c.height = de.distance_to(ate)
 	risco.mesh = c
-	var m := Kit.chapado(Color(Tema.AMARELO, 0.9))
+	var m := Kit.chapado(Color(Tema.TUNGSTENIO, 0.9))
 	risco.material_override = m
 	add_child(risco)
 	risco.global_position = (de + ate) * 0.5
@@ -431,7 +431,7 @@ func _rastro(l: int, p: ForjaPlayer, ate: Vector3) -> void:
 	var tw := risco.create_tween()
 	tw.tween_property(m, "albedo_color:a", 0.0, 0.12)
 	tw.tween_callback(risco.queue_free)
-	Efeitos.faiscas(self, de, Tema.LARANJA, 6, 0.3)
+	Efeitos.faiscas(self, de, Tema.TUNGSTENIO, 6, 0.3)
 
 
 func _responder_arma(l: int, p: ForjaPlayer, r: int) -> void:
@@ -545,12 +545,12 @@ func _abrir_bau(l: int, arma: int) -> void:
 	nos.aberto = true
 	var bau_topo := Vector3(RAIAS[l], 1.0, Z_BAU)
 	if arma == NENHUMA:
-		Efeitos.faiscas(self, bau_topo, Tema.SUAVE, 12, 0.4)
+		Efeitos.faiscas(self, bau_topo, Tema.ETIQUETA_SOMBRA, 12, 0.4)
 		return
 	var a := _arma(nos.vitrine, arma)
 	a.scale = Vector3.ONE * 2.2
 	a.position.x = -0.25
-	Efeitos.faiscas(self, bau_topo, Tema.AMARELO, 20, 0.7)
+	Efeitos.faiscas(self, bau_topo, Tema.TUNGSTENIO, 20, 0.7)
 
 
 func _guardar_arma(l: int) -> void:

@@ -90,7 +90,7 @@ The house rules for contributing are in [docs/COMO-CONTRIBUIR.md](docs/COMO-CONT
 
 Made by **Hefesto Team**. Code under MIT ([LICENSE](LICENSE)); third-party
 works and their notices in [LICENCAS-DE-TERCEIROS.md](LICENCAS-DE-TERCEIROS.md):
-Kenney's 3D models and sound effects (CC0), Space Grotesk and JetBrains Mono
-(OFL), SDL (zlib), Godot and godot-cpp (MIT). The music is synthesized by the
+Kenney's 3D models and sound effects (CC0), Bungee, VT323, Archivo Narrow
+(OFL) and Permanent Marker (Apache), SDL (zlib), Godot and godot-cpp (MIT). The music is synthesized by the
 game itself. DualSense and PlayStation are trademarks of Sony Interactive
 Entertainment; this project is not affiliated with Sony.

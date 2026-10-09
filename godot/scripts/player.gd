@@ -38,7 +38,7 @@ const POSE_DO_ITEM := {
 }
 
 var lugar := 0
-var cor := Color.WHITE
+var cor: Color  ## a cor do lugar (Forja.cor_do_lugar), posta em `montar`
 var hp := 100.0
 var cooldown := 0.0
 ## false: parado pelo jogo (lobby, transição); a entrada não mexe nele
@@ -90,14 +90,14 @@ func montar(l: int) -> void:
 
 	etiqueta = Label3D.new()
 	etiqueta.text = "P%d" % (l + 1)
-	etiqueta.font = Tema.fonte(700)
+	etiqueta.font = Tema.bungee()
 	etiqueta.font_size = 72
 	etiqueta.pixel_size = 0.0036
 	etiqueta.billboard = BaseMaterial3D.BILLBOARD_ENABLED
 	etiqueta.no_depth_test = true
 	etiqueta.modulate = Tema.tom_para_a_borda(cor)
 	etiqueta.outline_size = 16
-	etiqueta.outline_modulate = Color(Tema.CASA, 0.9)
+	etiqueta.outline_modulate = Color(Tema.FITA, 0.9)
 	etiqueta.position.y = 1.95
 	add_child(etiqueta)
 	_animar("idle")
@@ -118,7 +118,6 @@ func visual(m: int, item: int) -> void:
 		for nome in ["idle", "walk", "sprint"]:
 			if anim and anim.has_animation(nome):
 				anim.get_animation(nome).loop_mode = Animation.LOOP_LINEAR
-		_vestir(modelo)
 		_anim_atual = ""
 		_animar("idle")
 	_segurar()
@@ -150,20 +149,6 @@ func _segurar() -> void:
 		item.position = pose.get("pos", Vector3.ZERO)
 		item.scale = Vector3.ONE * float(pose.get("escala", 1.0))
 		presa.add_child(item)
-
-
-## A roupa na cor do lugar: o corpo do boneco multiplicado pela cor (a cabeça fica).
-func _vestir(n: Node) -> void:
-	for filho in n.get_children():
-		if filho is MeshInstance3D and String(filho.name).begins_with("body"):
-			var mi: MeshInstance3D = filho
-			for s in mi.mesh.get_surface_count():
-				var base := mi.mesh.surface_get_material(s)
-				if base is StandardMaterial3D:
-					var roupa: StandardMaterial3D = base.duplicate()
-					roupa.albedo_color = cor.lerp(Color.WHITE, 0.25)
-					mi.set_surface_override_material(s, roupa)
-		_vestir(filho)
 
 
 func _animar(nome: String, velocidade := 1.0) -> void:

@@ -73,6 +73,7 @@ func _ready() -> void:
 	_prova_da_identidade()
 	_prova_das_sensacoes()
 	_prova_do_registro_v2()
+	await _prova_da_cor_e_da_letra()
 	if falhas > 0:
 		printerr("%d falha(s)" % falhas)
 		get_tree().quit(1)
@@ -1336,3 +1337,28 @@ static func _sem_comentario(linha: String) -> String:
 		elif c == "#":
 			return linha.substr(0, i)
 	return linha
+
+
+## G14: a cor e a letra da Fita. A tabela dos jogadores é uma só (o jogo, a
+## lightbar), as tintas das seções vêm do tema, as duas fontes do app saíram e o
+## boneco não leva o tom do dono (o dono é o contorno e o aro, G15).
+func _prova_da_cor_e_da_letra() -> void:
+	_esperar(Forja.COR_DO_LUGAR == Tema.JOGADOR, "tema: a cor do lugar é a do 02")
+	for l in 4:
+		Forja.luz_do_lugar(l)
+		await _quadros(2)
+		var luz: Color = Forja.estado_saida(l).luz
+		var alvo: Color = Tema.JOGADOR[l]
+		_esperar(absf(luz.r - alvo.r) <= 1.0 / 255.0 and absf(luz.g - alvo.g) <= 1.0 / 255.0
+			and absf(luz.b - alvo.b) <= 1.0 / 255.0, "lightbar: P%d na cor do 02" % (l + 1))
+	_esperar(Tema.tinta_da_secao(6) == Tema.SECAO[1], "tema: S6 é cobalto")
+	_esperar(not FileAccess.file_exists("res://assets/fontes/SpaceGrotesk-wght.ttf"), "tema: Space Grotesk saiu")
+	_esperar(not FileAccess.file_exists("res://assets/fontes/JetBrainsMono-wght.ttf"), "tema: JetBrains Mono saiu")
+	var corpos := 0
+	for p in jogo.jogadores:
+		for mi in p.find_children("body*", "MeshInstance3D", true, false):
+			for s in mi.mesh.get_surface_count():
+				corpos += 1
+				var m = mi.get_surface_override_material(s)
+				_esperar(m == null, "boneco P%d: o corpo sem o tom do dono" % (p.lugar + 1))
+	_esperar(corpos > 0, "boneco: a prova achou o corpo (%d superfícies)" % corpos)

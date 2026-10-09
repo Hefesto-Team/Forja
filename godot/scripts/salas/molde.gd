@@ -67,7 +67,7 @@ func _init() -> void:
 func montar() -> void:
 	Kit.arena(self, 5, 3)
 	# a oficina: poeira dourada no ar, e o neon roxo
-	atmosfera(Color("#f1c86a"), Tema.ROXO, false, 50)
+	atmosfera(Color("#f1c86a"), Tema.VIOLETA, false, 50)
 	luzes([Vector3(-9, 2.5, -4), Vector3(9, 2.5, -4), Vector3(0, 3.0, 4)])
 	for p in jogadores:
 		var l: int = p.lugar
@@ -152,13 +152,13 @@ func _montar_bancada(l: int, p: ForjaPlayer) -> Dictionary:
 		var disco := Kit.cilindro(placa, 0.07, 0.03, c, Kit.material(Color("#1c1622")))
 		var rotulo := Label3D.new()
 		rotulo.text = str(k + 1)
-		rotulo.font = Tema.fonte(700)
+		rotulo.font = Tema.archivo(700)
 		rotulo.font_size = 56
 		rotulo.pixel_size = 0.004
 		rotulo.billboard = BaseMaterial3D.BILLBOARD_ENABLED
 		rotulo.outline_size = 12
-		rotulo.outline_modulate = Color(Tema.CASA, 0.9)
-		rotulo.modulate = Tema.SUAVE
+		rotulo.outline_modulate = Color(Tema.FITA, 0.9)
+		rotulo.modulate = Tema.ETIQUETA_SOMBRA
 		rotulo.position = c + Vector3(0, 0.2, -0.14)
 		placa.add_child(rotulo)
 		pontos.append({"disco": disco, "rotulo": rotulo})
@@ -168,38 +168,38 @@ func _montar_bancada(l: int, p: ForjaPlayer) -> Dictionary:
 	tor.outer_radius = RAIO_PONTO * LARGURA
 	tor.rings = 40
 	alvo.mesh = tor
-	alvo.material_override = Kit.chapado(Tema.AMARELO)
+	alvo.material_override = Kit.chapado(Tema.TUNGSTENIO)
 	placa.add_child(alvo)
 	# os dedos, onde o jogo os vê, e o rastro do que desenha
 	var dedos: Array = []
 	for d in 2:
-		var cd := cor if d == 0 else cor.lerp(Color.WHITE, 0.45)
+		var cd := cor if d == 0 else cor.lerp(Tema.ETIQUETA, 0.45)
 		var esf := Kit.esfera(placa, 0.07, Vector3.ZERO, Kit.material(cd, 2.2))
 		esf.visible = false
 		dedos.append(esf)
-	var ligacao := Kit.caixa(placa, Vector3(0.025, 0.01, 1.0), Vector3.ZERO, Kit.chapado(Color(Tema.FG, 0.6)))
+	var ligacao := Kit.caixa(placa, Vector3(0.025, 0.01, 1.0), Vector3.ZERO, Kit.chapado(Color(Tema.ETIQUETA, 0.6)))
 	ligacao.visible = false
 	var rastro: Array = []
 	for k in N_RASTRO:
-		var r := Kit.esfera(placa, 0.035, Vector3.ZERO, Kit.chapado(Color(Tema.AMARELO, 0.0)))
+		var r := Kit.esfera(placa, 0.035, Vector3.ZERO, Kit.chapado(Color(Tema.TUNGSTENIO, 0.0)))
 		r.visible = false
 		rastro.append(r)
 	# a régua da abertura (fechar abaixo de 15%, abrir além de 45%), na borda de perto
 	var regua := Node3D.new()
 	regua.position = Vector3(0, 0.1, ALTURA * 0.5 + 0.3)
 	placa.add_child(regua)
-	Kit.caixa(regua, Vector3(2.2, 0.02, 0.09), Vector3.ZERO, Kit.chapado(Tema.TRILHO))
-	var enche := Kit.caixa(regua, Vector3(2.2, 0.025, 0.09), Vector3(0, 0.005, 0), Kit.chapado(Tema.AMARELO))
+	Kit.caixa(regua, Vector3(2.2, 0.02, 0.09), Vector3.ZERO, Kit.chapado(Tema.GRAFITE))
+	var enche := Kit.caixa(regua, Vector3(2.2, 0.025, 0.09), Vector3(0, 0.005, 0), Kit.chapado(Tema.TUNGSTENIO))
 	for marca in [0.15, 0.45]:
-		Kit.caixa(regua, Vector3(0.03, 0.03, 0.2), Vector3(-1.1 + 2.2 * marca / 0.7, 0.01, 0), Kit.chapado(Tema.FG))
+		Kit.caixa(regua, Vector3(0.03, 0.03, 0.2), Vector3(-1.1 + 2.2 * marca / 0.7, 0.01, 0), Kit.chapado(Tema.ETIQUETA))
 	regua.visible = false
 	# o termômetro do metal, à direita, com a faixa quente em cima
 	var termo := Node3D.new()
 	termo.position = Vector3(LARGURA * 0.5 + 0.36, 0.1, 0)
 	placa.add_child(termo)
-	Kit.caixa(termo, Vector3(0.12, 0.02, ALTURA), Vector3.ZERO, Kit.chapado(Tema.TRILHO))
-	Kit.caixa(termo, Vector3(0.16, 0.022, ALTURA * 0.2), Vector3(0, 0.002, -ALTURA * 0.4), Kit.chapado(Color(Tema.AMARELO, 0.35)))
-	var nivel := Kit.caixa(termo, Vector3(0.09, 0.03, ALTURA), Vector3(0, 0.006, 0), Kit.chapado(Tema.LARANJA))
+	Kit.caixa(termo, Vector3(0.12, 0.02, ALTURA), Vector3.ZERO, Kit.chapado(Tema.GRAFITE))
+	Kit.caixa(termo, Vector3(0.16, 0.022, ALTURA * 0.2), Vector3(0, 0.002, -ALTURA * 0.4), Kit.chapado(Color(Tema.TUNGSTENIO, 0.35)))
+	var nivel := Kit.caixa(termo, Vector3(0.09, 0.03, ALTURA), Vector3(0, 0.006, 0), Kit.chapado(Tema.TUNGSTENIO))
 	termo.visible = false
 	# as três lâmpadas dos carimbos, na borda de longe
 	var lampadas: Array = []
@@ -260,7 +260,7 @@ func _jogar(l: int, p: ForjaPlayer, e: Dictionary, dt: float) -> void:
 				var alvo := Vector2(letra.x[e.ponto], letra.y[e.ponto])
 				if _distancia(Vector2(d[k].x, d[k].y), alvo) < RAIO_PONTO:
 					var onde: Vector3 = n[l].placa.to_global(_no_molde(alvo.x, alvo.y, 0.14))
-					Efeitos.faiscas(self, onde, Tema.AMARELO, 14, 0.6)
+					Efeitos.faiscas(self, onde, Tema.TUNGSTENIO, 14, 0.6)
 					Som.tocar("tique", onde, -4.0, 1.0 + 0.08 * int(e.ponto))
 					e.ponto += 1
 					p.gesto("interact-right", 0.4)
@@ -285,8 +285,8 @@ func _jogar(l: int, p: ForjaPlayer, e: Dictionary, dt: float) -> void:
 				if _no_ponto(e):
 					e.carimbos += 1
 					marcar(l, 120)
-					Efeitos.faiscas(self, centro, Tema.AMARELO, 30, 1.0)
-					Efeitos.anel(self, centro, Tema.AMARELO, 0.6)
+					Efeitos.faiscas(self, centro, Tema.TUNGSTENIO, 30, 1.0)
+					Efeitos.anel(self, centro, Tema.TUNGSTENIO, 0.6)
 					Som.tocar("carimbo", centro, 0.0)
 					Som.no_controle(l, "carimbo", 0.6)
 					Forja.sentir(l, "perfeito")
@@ -311,7 +311,7 @@ func _novo_passo(l: int, p: ForjaPlayer, e: Dictionary, passo: int) -> void:
 			Som.tocar("sucesso", onde)
 			p.gesto("emote-yes", 1.6)
 			var centro: Vector3 = n[l].placa.to_global(_no_molde(0.5, 0.5, 0.2))
-			Efeitos.faiscas(self, centro, Tema.AMARELO, 48, 1.3)
+			Efeitos.faiscas(self, centro, Tema.TUNGSTENIO, 48, 1.3)
 			return
 	Som.tocar("confirma", onde, -4.0)
 
@@ -360,7 +360,7 @@ func _mostrar(l: int) -> void:
 		disco.material_override = _ouro(false) if feito else disco.material_override
 		var rotulo: Label3D = pt.rotulo
 		rotulo.visible = passo == TRACAR
-		rotulo.modulate = Tema.AMARELO if feito else Tema.SUAVE
+		rotulo.modulate = Tema.ETIQUETA if feito else Tema.ETIQUETA_SOMBRA
 	var alvo: MeshInstance3D = nos.alvo
 	alvo.visible = passo == TRACAR and int(e.ponto) < n_pts
 	if alvo.visible:
@@ -388,7 +388,7 @@ func _mostrar(l: int) -> void:
 		if r.visible:
 			r.position = _no_molde(rastro[k].x, rastro[k].y, 0.13)
 			var mr: StandardMaterial3D = r.material_override
-			mr.albedo_color = Color(Tema.AMARELO, 1.0 - float(k) / N_RASTRO)
+			mr.albedo_color = Color(Tema.TUNGSTENIO, 1.0 - float(k) / N_RASTRO)
 	# a régua da abertura, o termômetro, as lâmpadas
 	var regua: Node3D = nos.regua
 	regua.visible = passo == ABRIR
@@ -397,20 +397,20 @@ func _mostrar(l: int) -> void:
 	enche.scale.x = maxf(0.001, frac)
 	enche.position.x = -1.1 + 1.1 * frac
 	var me: StandardMaterial3D = enche.material_override
-	me.albedo_color = Tema.LARANJA if e.aberto else Tema.AMARELO
+	me.albedo_color = Tema.TUNGSTENIO if e.aberto else Tema.TUNGSTENIO
 	var termo: Node3D = nos.termo
 	termo.visible = passo == CARIMBAR
 	var nivel: MeshInstance3D = nos.nivel
 	nivel.scale.z = maxf(0.001, quente)
 	nivel.position.z = ALTURA * 0.5 * (1.0 - quente)
 	var mn: StandardMaterial3D = nivel.material_override
-	mn.albedo_color = Tema.AMARELO if _no_ponto(e) else Tema.LARANJA
+	mn.albedo_color = Tema.TUNGSTENIO if _no_ponto(e) else Tema.TUNGSTENIO
 	for k in CARIMBOS:
 		var lp: MeshInstance3D = nos.lampadas[k]
 		lp.visible = passo >= CARIMBAR
 		if k < int(e.carimbos) and lp.get_meta("aceso", false) == false:
 			lp.set_meta("aceso", true)
-			lp.material_override = Kit.material(Tema.AMARELO, 2.4)
+			lp.material_override = Kit.material(Tema.TUNGSTENIO, 2.4)
 	var ouro: OmniLight3D = nos.ouro
 	ouro.light_energy = 1.6 if passo == PRONTO else 0.0
 

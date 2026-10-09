@@ -202,7 +202,7 @@ f_onde() {
   printf '  %-26s %s\n' "sons/        efeitos"    "$(conta "$RAIZ/godot/assets/sons" '*.wav') arquivos"
   printf '  %-26s %s\n' "ost/         a trilha"   "$(conta "$ost" '*.ogg') faixas aprovadas"
   printf '  %-26s %s\n' "svg/ glifos/ mapa/"      "o desenho do controle e os ícones"
-  printf '  %-26s %s\n' "fontes/      tipografia" "Space Grotesk e JetBrains Mono (as letras)"
+  printf '  %-26s %s\n' "fontes/      tipografia" "Bungee, VT323, Archivo Narrow e Permanent Marker (as letras)"
   printf '  %-26s %s\n' "forja-logo.svg"          "o logo d'A Forja"
   echo
 

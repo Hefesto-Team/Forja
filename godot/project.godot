@@ -39,10 +39,9 @@ window/stretch/aspect="expand"
 
 [gui]
 
-theme/custom_font="res://assets/fontes/SpaceGrotesk-wght.ttf"
+theme/custom_font="res://assets/fontes/ArchivoNarrow-wght.ttf"
 
 [rendering]
 
 anti_aliasing/quality/msaa_3d=2
-environment/defaults/default_clear_color=Color(0.0667, 0.0706, 0.102, 1)
 anti_aliasing/quality/screen_space_aa=1

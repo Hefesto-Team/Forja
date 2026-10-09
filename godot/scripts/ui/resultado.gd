@@ -75,20 +75,20 @@ func _empatados_no_topo() -> int:
 ## A frase de quem venceu e a cor dela.
 func _frase() -> Array:
 	if coop:
-		return ["Vocês venceram!", Tema.VERDE] if coop_venceu else ["Não deu desta vez.", Tema.LARANJA]
+		return ["Vocês venceram!", Tema.ETIQUETA] if coop_venceu else ["Não deu desta vez.", Tema.SECAO[3]]
 	if colocacao.is_empty():
-		return ["", Tema.FG]
+		return ["", Tema.ETIQUETA]
 	var n := _empatados_no_topo()
 	if n == 2:
-		return ["P%d e P%d empatam!" % [int(colocacao[0]) + 1, int(colocacao[1]) + 1], Tema.FG]
+		return ["P%d e P%d empatam!" % [int(colocacao[0]) + 1, int(colocacao[1]) + 1], Tema.ETIQUETA]
 	if n >= 3:
-		return ["Empate!", Tema.FG]
+		return ["Empate!", Tema.ETIQUETA]
 	var l: int = colocacao[0]
 	return ["P%d venceu!" % (l + 1), Tema.tom_para_a_borda(Forja.cor_do_lugar(l))]
 
 
 func _draw() -> void:
-	draw_rect(Rect2(Vector2.ZERO, size), Color(Tema.CASA, 0.6))
+	draw_rect(Rect2(Vector2.ZERO, size), Color(Tema.FITA, 0.6))
 	var n := colocacao.size()
 	var compacto := sala_da_bancada != null
 	var alt_primeira := 60.0 if compacto else 84.0
@@ -103,11 +103,11 @@ func _draw() -> void:
 	# o quadro da HUD ocupa o alto: com a tabela embaixo, o resultado desce abaixo dele
 	var topo := maxf(170.0 if compacto else 24.0, (size.y - total) * 0.5)
 	var r := Rect2(Vector2((size.x - LARG) * 0.5, topo), Vector2(LARG, alt))
-	Desenho.moldura(self, r, Color(Tema.PAINEL, 0.97), Tema.LINHA, 2, Tema.RAIO_QUADRO)
-	Desenho.texto(self, r.position + Vector2(48, 84), titulo, Tema.fonte(700), 52, Tema.FG)
+	Desenho.moldura(self, r, Color(Tema.CASCO, 0.97), Tema.GRAFITE, 2, Tema.RAIO_QUADRO)
+	Desenho.texto(self, r.position + Vector2(48, 84), titulo, Tema.bungee(), Tema.T_TITULO, Tema.ETIQUETA)
 	var frase := _frase()
 	if str(frase[0]) != "":
-		Desenho.texto(self, r.position + Vector2(48, 148), str(frase[0]), Tema.fonte(700), Tema.T_CORPO + 8, frase[1],
+		Desenho.texto(self, r.position + Vector2(48, 148), str(frase[0]), Tema.archivo(700), Tema.T_CORPO + 8, frase[1],
 			HORIZONTAL_ALIGNMENT_LEFT, LARG - 96)
 	var cols := Partida.colocacoes(pontos, colocacao)
 	var y := r.position.y + 190.0
@@ -117,9 +117,9 @@ func _draw() -> void:
 		var cor_id := Tema.tom_para_a_borda(Forja.cor_do_lugar(l))
 		var tam_nome := Tema.T_CORPO + (8 if i == 0 else 0)
 		var base := y + h * 0.5 + tam_nome * 0.36
-		Desenho.texto(self, Vector2(r.position.x + 48, base), "%dº" % int(cols[l]), Tema.mono(500), tam_nome, Tema.SUAVE)
-		Desenho.texto(self, Vector2(r.position.x + 170, base), "P%d" % (l + 1), Tema.fonte(700), tam_nome, cor_id)
-		Desenho.texto(self, Vector2(r.position.x + 300, base), "%d" % int(pontos[l]), Tema.mono(500), tam_nome, Tema.FG)
+		Desenho.texto(self, Vector2(r.position.x + 48, base), "%dº" % int(cols[l]), Tema.vt(), tam_nome, Tema.ETIQUETA_SOMBRA)
+		Desenho.texto(self, Vector2(r.position.x + 170, base), "P%d" % (l + 1), Tema.bungee(), tam_nome, cor_id)
+		Desenho.texto(self, Vector2(r.position.x + 300, base), "%d" % int(pontos[l]), Tema.vt(), tam_nome, Tema.ETIQUETA)
 		y += h
 	if _t >= 0.8:
 		Desenho.dicas_a_direita(self, Vector2(r.end.x - 48, r.position.y + 84), [["cruz", "Continuar"]], Tema.T_ROTULO)
@@ -168,38 +168,36 @@ func _altura_da_tabela() -> float:
 func _tabela(r: Rect2) -> void:
 	var lugares := _lugares_da_tabela()
 	var linhas := _alturas_da_tabela()
-	Desenho.moldura(self, r, Color(Tema.PAINEL, 0.97), Tema.LINHA, 2, Tema.RAIO_QUADRO)
+	Desenho.moldura(self, r, Color(Tema.CASCO, 0.97), Tema.GRAFITE, 2, Tema.RAIO_QUADRO)
 	var x0 := r.position.x + 48 + COL_NOME
 	for i in lugares.size():
 		var l: int = lugares[i]
 		var cor_id := Tema.tom_para_a_borda(Forja.cor_do_lugar(l))
 		var x := x0 + i * COLUNA
-		Desenho.texto(self, Vector2(x, r.position.y + 62), "P%d" % (l + 1), Tema.fonte(700), Tema.T_CORPO, cor_id)
-		Desenho.texto(self, Vector2(x + 60, r.position.y + 62), "%d" % sala_da_bancada.pontos[l], Tema.mono(500), Tema.T_MONO, Tema.SUAVE)
+		Desenho.texto(self, Vector2(x, r.position.y + 62), "P%d" % (l + 1), Tema.bungee(), Tema.T_CORPO, cor_id)
+		Desenho.texto(self, Vector2(x + 60, r.position.y + 62), "%d" % sala_da_bancada.pontos[l], Tema.vt(), Tema.T_MONO, Tema.ETIQUETA_SOMBRA)
 	var y := r.position.y + 90
 	for li in linhas:
 		var f: String = li[0]
 		var tex := Desenho.glifo(Desenho.GLIFO_DA_FEATURE.get(f, ""))
 		if tex:
-			draw_texture_rect(tex, Rect2(Vector2(r.position.x + 48, y + 8), Vector2(40, 40)), false, Tema.CIANO)
+			draw_texture_rect(tex, Rect2(Vector2(r.position.x + 48, y + 8), Vector2(40, 40)), false, Tema.ETIQUETA)
 		var nome := nome_da_feature(f)
-		var tam := Tema.T_ROTULO
-		while tam > 20 and Desenho.largura(nome, Tema.fonte(500), tam) > COL_NOME - 76:
-			tam -= 1
-		Desenho.texto(self, Vector2(r.position.x + 100, y + 40), nome, Tema.fonte(500), tam, Tema.FG)
+		Desenho.texto(self, Vector2(r.position.x + 100, y + 40), Desenho.caber(nome, Tema.archivo(500), Tema.T_ROTULO, COL_NOME - 76, 1),
+			Tema.archivo(500), Tema.T_ROTULO, Tema.ETIQUETA)
 		for i in lugares.size():
 			var v := _veredito_de(lugares[i], f)
 			if v.is_empty():
 				continue
 			var x := x0 + i * COLUNA
 			var res := clampi(int(v.get("resultado", 0)), 0, 2)
-			var cor: Color = [Tema.MUDO, Tema.VERDE, Tema.VERMELHO][res]
+			var cor: Color = [Tema.MUDO, Tema.ETIQUETA, Tema.SECAO[0]][res]
 			var palavra: String = ["— NÃO MEDIDO", "✓ PASSOU", "✗ FALHOU"][res]
 			Desenho.selo(self, Vector2(x, y + 10), palavra, cor, Tema.T_SELO)
 			if res != 1:
 				var porque := str(v.get("obs", "")) if str(v.get("obs", "")) != "" else str(v.get("medido", ""))
-				porque = Desenho.caber(porque, Tema.fonte(400), Tema.T_SELO, COLUNA - 24, 2)
-				Desenho.paragrafo(self, Vector2(x, y + 70), porque, Tema.fonte(400), Tema.T_SELO, Tema.SUAVE, COLUNA - 24, 2)
+				porque = Desenho.caber(porque, Tema.archivo(500), Tema.T_SELO, COLUNA - 24, 2)
+				Desenho.paragrafo(self, Vector2(x, y + 70), porque, Tema.archivo(500), Tema.T_SELO, Tema.ETIQUETA_SOMBRA, COLUNA - 24, 2)
 		y += li[1]
 
 

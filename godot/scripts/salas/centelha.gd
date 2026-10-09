@@ -51,7 +51,7 @@ func _init() -> void:
 func montar() -> void:
 	Kit.arena(self, 5, 3)
 	# a forja: brasas subindo, e o neon rosa do Hefesto
-	atmosfera(Color("#ff9a52"), Tema.ROSA, true, 60)
+	atmosfera(Color("#ff9a52"), Tema.VIOLETA, true, 60)
 	luzes([Vector3(-9, 2.5, -4), Vector3(9, 2.5, -4), Vector3(0, 3.0, 4)])
 	for p in jogadores:
 		var l: int = p.lugar
@@ -144,7 +144,7 @@ func _montar_runa(l: int) -> Dictionary:
 		var ang := s * PI / 4.0
 		# setor 0 = direita, sentido horário na tela (y do analógico para baixo)
 		m.position = Vector3(cos(ang) * 0.95, -sin(ang) * 0.95, 0)
-		m.material_override = Kit.material(Tema.TRILHO, 0.0)
+		m.material_override = Kit.material(Tema.GRAFITE, 0.0)
 		raiz.add_child(m)
 		marcas.append(m)
 	# o fole: o trilho, a faixa dourada (35–62%), o topo (92%) e o nível
@@ -156,27 +156,27 @@ func _montar_runa(l: int) -> Dictionary:
 	bt.size = Vector3(0.16, 1.4, 0.04)
 	trilho.mesh = bt
 	trilho.position.y = 0.7
-	trilho.material_override = Kit.material(Tema.TRILHO)
+	trilho.material_override = Kit.material(Tema.GRAFITE)
 	fole.add_child(trilho)
 	var faixa := MeshInstance3D.new()
 	var bf := BoxMesh.new()
 	bf.size = Vector3(0.22, 1.4 * 0.27, 0.05)
 	faixa.mesh = bf
 	faixa.position.y = 1.4 * (0.35 + 0.62) * 0.5
-	faixa.material_override = Kit.material(Tema.AMARELO, 0.9)
+	faixa.material_override = Kit.material(Tema.TUNGSTENIO, 0.9)
 	fole.add_child(faixa)
 	var topo := MeshInstance3D.new()
 	var btp := BoxMesh.new()
 	btp.size = Vector3(0.22, 1.4 * 0.08, 0.05)
 	topo.mesh = btp
 	topo.position.y = 1.4 * 0.96
-	topo.material_override = Kit.material(Tema.LARANJA, 0.9)
+	topo.material_override = Kit.material(Tema.TUNGSTENIO, 0.9)
 	fole.add_child(topo)
 	var nivel := MeshInstance3D.new()
 	var bn := BoxMesh.new()
 	bn.size = Vector3(0.1, 1.0, 0.07)
 	nivel.mesh = bn
-	nivel.material_override = Kit.material(Tema.ROSA, 1.6)
+	nivel.material_override = Kit.material(Tema.VIOLETA, 1.6)
 	fole.add_child(nivel)
 	return {"raiz": raiz, "glifo": glifo, "anel": anel, "marcas": marcas, "fole": fole, "nivel": nivel,
 		"faixa": faixa, "topo": topo}
@@ -205,7 +205,7 @@ func _mostrar_runa(l: int) -> void:
 			nome_glifo = "r2" if r.alvo == 1 else "l2"
 	glifo.texture = Desenho.glifo(nome_glifo)
 	var brilho: float = 1.0 + 0.6 * float(e.pop)
-	glifo.modulate = Tema.FG.lerp(Tema.ROSA, e.pop)
+	glifo.modulate = Tema.ETIQUETA.lerp(Tema.ETIQUETA, e.pop)
 	glifo.scale = Vector3.ONE * brilho
 	glifo.position.x = sin(t * 60.0) * 0.08 * e.tremor
 	# o anel fecha com o tempo da runa de botão; nas outras, com a janela maior
@@ -218,7 +218,7 @@ func _mostrar_runa(l: int) -> void:
 		var m: MeshInstance3D = n.marcas[s]
 		m.visible = r.tipo == "analogico"
 		var aceso := (int(e.setores) >> s) & 1
-		m.material_override = Kit.material(Tema.AMARELO if aceso else Tema.TRILHO, 2.0 if aceso else 0.0)
+		m.material_override = Kit.material(Tema.TUNGSTENIO if aceso else Tema.GRAFITE, 2.0 if aceso else 0.0)
 	var fole: Node3D = n.fole
 	fole.visible = r.tipo == "gatilho"
 	if r.tipo == "gatilho":
@@ -330,7 +330,7 @@ func _acertou(l: int, p: ForjaPlayer, base: int) -> void:
 	marcar(l, base + int(100.0 * rapidez) + 10 * (int(e.combo) - 1))
 	e.pop = 1.0
 	var bigorna_topo := _bigorna(l) + Vector3(0, 0.8, 0)
-	Efeitos.faiscas(self, bigorna_topo, Tema.AMARELO, 26, 1.0)
+	Efeitos.faiscas(self, bigorna_topo, Tema.TUNGSTENIO, 26, 1.0)
 	Efeitos.anel(self, runas[l].raiz.global_position, Forja.cor_do_lugar(l), 0.7)
 	Som.tocar("bigorna_aguda" if r != null and r.tipo == "botao" else "bigorna", bigorna_topo, -2.0)
 	Som.tocar("martelo", bigorna_topo, -6.0)
@@ -343,7 +343,7 @@ func _acertou(l: int, p: ForjaPlayer, base: int) -> void:
 	if e.atual >= e.fila.size():
 		acabou[l] = true
 		Som.tocar("sucesso", bigorna_topo)
-		Efeitos.faiscas(self, bigorna_topo + Vector3(0, 0.4, 0), Tema.ROSA, 48, 1.4)
+		Efeitos.faiscas(self, bigorna_topo + Vector3(0, 0.4, 0), Tema.VIOLETA, 48, 1.4)
 		p.gesto("emote-yes", 1.5)
 
 

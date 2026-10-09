@@ -152,10 +152,10 @@ func _cenario() -> void:
 		brilho.light_energy = 1.7
 		brilho.omni_range = 7.5
 		add_child(brilho)
-	Efeitos.brasas(self, Vector3(0, -1.2, 0.5), Vector3(22, 0.2, 4.6), Tema.LARANJA, 70)
+	Efeitos.brasas(self, Vector3(0, -1.2, 0.5), Vector3(22, 0.2, 4.6), Tema.TUNGSTENIO, 70)
 	luzes([Vector3(-10, 2.8, -5.4), Vector3(10, 2.8, -5.4), Vector3(0, 3.4, 4.8)])
 	# a lava: o preenchimento vermelho e o neon laranja
-	atmosfera(Color("#ff6a3d"), Tema.LARANJA, false, 30, 22.0, -7.8, 0.3)
+	atmosfera(Color("#ff6a3d"), Tema.TUNGSTENIO, false, 30, 22.0, -7.8, 0.3)
 
 
 func _shader_lava() -> Shader:
@@ -228,7 +228,7 @@ func _montar_raia(l: int, p: ForjaPlayer) -> Dictionary:
 	for d in [Vector2(1, 0), Vector2(-1, 0), Vector2(0, 1), Vector2(0, -1)]:
 		var tam := Vector3(0.2, 0.04, 0.02) if d.y == 0 else Vector3(0.04, 0.2, 0.02)
 		Kit.caixa(mira, tam, Vector3(d.x * 0.36, d.y * 0.36, 0), tinta)
-	Kit.esfera(mira, 0.035, Vector3.ZERO, Kit.chapado(Tema.FG, true))
+	Kit.esfera(mira, 0.035, Vector3.ZERO, Kit.chapado(Tema.ETIQUETA, true))
 	mira.visible = false
 	# a pedra que guarda o baú, com as rachaduras que acendem na primeira martelada
 	var pedra := Kit.peca(self, "rocks", Vector3(x, 0, Z_PEDRA), l * 1.3, 1.6)
@@ -251,10 +251,10 @@ func _montar_raia(l: int, p: ForjaPlayer) -> Dictionary:
 	# a régua do equilíbrio, em cima do boneco
 	var regua := Node3D.new()
 	add_child(regua)
-	Kit.caixa(regua, Vector3(1.6, 0.09, 0.02), Vector3.ZERO, Kit.chapado(Color(Tema.TRILHO, 0.92), true))
+	Kit.caixa(regua, Vector3(1.6, 0.09, 0.02), Vector3.ZERO, Kit.chapado(Color(Tema.GRAFITE, 0.92), true))
 	for lado in [-1.0, 1.0]:
-		Kit.caixa(regua, Vector3(0.2, 0.11, 0.02), Vector3(lado * 0.7, 0, 0.001), Kit.chapado(Color(Tema.VERMELHO, 0.85), true))
-	var marca := Kit.caixa(regua, Vector3(0.09, 0.3, 0.02), Vector3(0, 0, 0.002), Kit.chapado(Tema.AMARELO, true))
+		Kit.caixa(regua, Vector3(0.2, 0.11, 0.02), Vector3(lado * 0.7, 0, 0.001), Kit.chapado(Color(Tema.SECAO[0], 0.85), true))
+	var marca := Kit.caixa(regua, Vector3(0.09, 0.3, 0.02), Vector3(0, 0, 0.002), Kit.chapado(Tema.TUNGSTENIO, true))
 	# os riscos do vento
 	var riscos: Array = []
 	for k in 10:
@@ -344,7 +344,7 @@ func _travessia(l: int, p: ForjaPlayer, e: Dictionary, dt: float) -> void:
 		if e.progresso >= k / 3.0 and e.checkpoint < k / 3.0:
 			e.checkpoint = k / 3.0
 			var b: MeshInstance3D = n[l].bandeiras[k - 1]
-			b.material_override = Kit.material(Tema.AMARELO, 1.2)
+			b.material_override = Kit.material(Tema.TUNGSTENIO, 1.2)
 			Som.tocar("tique", b.global_position, -6.0, 1.3)
 	# em cima da viga (não nas plataformas), quem passa do limite cai
 	var na_viga: bool = e.progresso > 0.08 and e.progresso < 0.93
@@ -356,7 +356,7 @@ func _travessia(l: int, p: ForjaPlayer, e: Dictionary, dt: float) -> void:
 		p.gesto("fall", 1.3)
 		Forja.sentir(l, "golpe")
 		var onde := _pos_do_boneco(l, e)
-		Efeitos.faiscas(self, Vector3(onde.x + e.inclinacao * 0.8, -1.3, onde.z), Tema.LARANJA, 30, 0.9)
+		Efeitos.faiscas(self, Vector3(onde.x + e.inclinacao * 0.8, -1.3, onde.z), Tema.TUNGSTENIO, 30, 0.9)
 	if e.progresso >= 1.0:
 		e.progresso = 1.0
 		marcar(l, 500 - 80 * int(e.quedas) if e.quedas < 5 else 100)
@@ -417,8 +417,8 @@ func _arremessar(l: int, p: ForjaPlayer, alvo: Vector3, sino: int) -> void:
 		var tocou := func() -> void:
 			Som.tocar("sino_viga", alvo, 0.0, [1.0, 0.84, 1.19, 0.92][sino % 4])
 			Som.no_controle(l, "sino_viga", 0.6)
-			Efeitos.faiscas(self, alvo, Tema.AMARELO, 30, 1.0)
-			Efeitos.anel(self, alvo, Tema.AMARELO, 0.5)
+			Efeitos.faiscas(self, alvo, Tema.TUNGSTENIO, 30, 1.0)
+			Efeitos.anel(self, alvo, Tema.TUNGSTENIO, 0.5)
 			Forja.sentir(l, "acerto")
 			var cai := pivo.create_tween()
 			cai.tween_property(pivo, "rotation:z", 0.9 * (1.0 if sino % 2 else -1.0), 0.18)
@@ -453,7 +453,7 @@ func _pedra(l: int, p: ForjaPlayer, e: Dictionary, dt: float) -> void:
 	var x: float = RAIAS[l]
 	var ponto := Vector3(x, 0.6, Z_PEDRA + 0.7)
 	p.gesto("attack-melee-right", 0.45)
-	Efeitos.faiscas(self, ponto, Tema.LARANJA, 34, 1.1)
+	Efeitos.faiscas(self, ponto, Tema.TUNGSTENIO, 34, 1.1)
 	Som.tocar("martelo", ponto, 0.0)
 	Som.no_controle(l, "pedra" if e.golpes >= 2 else "martelo", 0.7)
 	Forja.sentir(l, "perfeito")
@@ -472,7 +472,7 @@ func _quebrar(l: int) -> void:
 	var x: float = RAIAS[l]
 	nos.pedra.visible = false
 	nos.racha.visible = false
-	Efeitos.faiscas(self, Vector3(x, 0.8, Z_PEDRA), Tema.AMARELO, 60, 1.4)
+	Efeitos.faiscas(self, Vector3(x, 0.8, Z_PEDRA), Tema.TUNGSTENIO, 60, 1.4)
 	for k in 6:
 		var caco := Kit.peca(self, "stones", Vector3(x, 0.4, Z_PEDRA), rng.randf() * TAU, 0.55)
 		var ang := k * TAU / 6.0 + rng.randf() * 0.5
@@ -567,7 +567,7 @@ func _mostrar(l: int, p: ForjaPlayer, dt: float) -> void:
 	var marca: MeshInstance3D = nos.marca
 	marca.position.x = clampf(incl / 1.15, -1.0, 1.0) * 0.72
 	var tinta: StandardMaterial3D = marca.material_override
-	tinta.albedo_color = Tema.VERMELHO if absf(incl) > 1.0 else Tema.AMARELO
+	tinta.albedo_color = Tema.SECAO[0] if absf(incl) > 1.0 else Tema.TUNGSTENIO
 	# o vento: riscos que correm para o lado dele
 	var v := _vento(e) if fase == "jogo" and trecho == VIGA else 0.0
 	var quantos := int(absf(v) * 12.0)

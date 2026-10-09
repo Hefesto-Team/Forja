@@ -92,9 +92,10 @@ func _exit_tree() -> void:
 
 
 func _ambiente() -> void:
+	RenderingServer.set_default_clear_color(Tema.FITA)  # o fundo atrás de tudo, que era do project.godot
 	var env := Environment.new()
 	env.background_mode = Environment.BG_COLOR
-	env.background_color = Tema.CASA
+	env.background_color = Tema.FITA
 	env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
 	env.ambient_light_color = Color("#6d64a0")
 	env.ambient_light_energy = 0.42
@@ -139,7 +140,7 @@ func _interface() -> void:
 	for c in [titulo, lobby, hud, painel, resultado, diagnostico, livro, pausa, escolha, placar, tela_opcoes, creditos]:
 		ui.add_child(c)
 	cortina = ColorRect.new()
-	cortina.color = Color(Tema.CASA, 0.0)
+	cortina.color = Color(Tema.FITA, 0.0)
 	cortina.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	cortina.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	ui.add_child(cortina)

@@ -384,7 +384,7 @@ func terminar() -> void:
 	# o apito fecha a sala: a música para e o resultado vem em seguida
 	Musica.calar()
 	Som.tocar("apito")
-	pulso_de_luz(Tema.AMARELO, 1.6)
+	pulso_de_luz(Tema.TUNGSTENIO, 1.6)
 	ao_terminar()
 
 
@@ -486,7 +486,7 @@ func _quadro_treino() -> void:
 		treinando = false
 		valendo_t = 1.4
 		Som.tocar("especial")
-		pulso_de_luz(Tema.ROSA)
+		pulso_de_luz(Tema.VIOLETA)
 		Forja.evento("sala", 0, {"sala": id, "evento": "valendo", "treino_s": snappedf(t_fase, 0.1)})
 
 

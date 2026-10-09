@@ -181,17 +181,17 @@ static func largura(s: String, f: Font, tam: int) -> float:
 	return f.get_string_size(Traducoes.traduzir(s), HORIZONTAL_ALIGNMENT_LEFT, -1, Tema.t(tam)).x
 
 
-## O selo: mono 600 em fundo cheio, texto escuro (texto sobre acento é #21222c).
+## O selo: VT323 em fundo cheio, texto em TINTA (texto sobre cor é TINTA, 02 «Texto sobre a cor»).
 static func selo(ci: CanvasItem, pos: Vector2, s: String, cor: Color, tam := Tema.T_SELO) -> float:
-	var f := Tema.mono(600)
+	var f := Tema.vt()
 	var w := largura(s, f, tam) + tam * 0.9
 	var h := tam * 1.45
 	var r := Rect2(pos, Vector2(w, h))
 	moldura(ci, r, cor, cor, 0, Tema.RAIO_SELO)
 	var dito := t(s)
-	ci.draw_string(f, Vector2(pos.x + tam * 0.45, pos.y + h * 0.5 + tam * 0.36), dito, HORIZONTAL_ALIGNMENT_LEFT, -1, Tema.t(tam), Tema.APP)
+	ci.draw_string(f, Vector2(pos.x + tam * 0.45, pos.y + h * 0.5 + tam * 0.36), dito, HORIZONTAL_ALIGNMENT_LEFT, -1, Tema.t(tam), Tema.TINTA)
 	if coletar_retangulos:
-		anotar(ci, Vector2(pos.x + tam * 0.45, pos.y + h * 0.5 + tam * 0.36), dito, f, Tema.t(tam), Tema.APP)
+		anotar(ci, Vector2(pos.x + tam * 0.45, pos.y + h * 0.5 + tam * 0.36), dito, f, Tema.t(tam), Tema.TINTA)
 	return w
 
 
@@ -203,35 +203,34 @@ static func leds(ci: CanvasItem, pos: Vector2, mascara: int, lado := 12.0) -> fl
 		var aceso := (mascara >> i) & 1
 		var r := Rect2(Vector2(x, pos.y), Vector2(lado, lado))
 		if aceso:
-			ci.draw_rect(r.grow(lado * 0.35), Color(Tema.LED_ACESO, 0.18))
-			ci.draw_rect(r, Tema.LED_ACESO)
+			ci.draw_rect(r.grow(lado * 0.35), Color(Tema.ETIQUETA, 0.18))
+			ci.draw_rect(r, Tema.ETIQUETA)
 		else:
-			ci.draw_rect(r, Tema.TRILHO)
+			ci.draw_rect(r, Tema.GRAFITE)
 		x += lado + (vao * 2.0 if i == 0 or i == 3 else vao)
 	return x - pos.x
 
 
-## A bateria: trilho, preenchimento roxo e o número em mono verde.
+## A bateria: trilho, preenchimento claro e o número em mono.
 static func bateria(ci: CanvasItem, pos: Vector2, pct: int, carregando: bool, largura_trilho := 90.0) -> float:
 	var h := 8.0
-	ci.draw_rect(Rect2(pos + Vector2(0, -h - 6), Vector2(largura_trilho, h)), Tema.TRILHO)
+	ci.draw_rect(Rect2(pos + Vector2(0, -h - 6), Vector2(largura_trilho, h)), Tema.GRAFITE)
 	if pct >= 0:
-		ci.draw_rect(Rect2(pos + Vector2(0, -h - 6), Vector2(largura_trilho * clampf(pct / 100.0, 0, 1), h)), Tema.ROXO)
-	var f := Tema.mono(500)
+		ci.draw_rect(Rect2(pos + Vector2(0, -h - 6), Vector2(largura_trilho * clampf(pct / 100.0, 0, 1), h)), Tema.ETIQUETA)
+	var f := Tema.vt()
 	var s := ("%d%%" % pct) if pct >= 0 else "—"
 	if carregando:
 		s += " ⚡"
-	ci.draw_string(f, pos + Vector2(largura_trilho + 12, 0), s, HORIZONTAL_ALIGNMENT_LEFT, -1, Tema.T_MONO, Tema.VERDE)
+	ci.draw_string(f, pos + Vector2(largura_trilho + 12, 0), s, HORIZONTAL_ALIGNMENT_LEFT, -1, Tema.T_MONO, Tema.ETIQUETA)
 	return largura_trilho + 12 + largura(s, f, Tema.T_MONO)
 
 
-## O cabeçalho do app: logo e o nome em duas linhas — "Hefesto" rosa, "Tech Demo" claro.
+## O cabeçalho do app: logo e o nome em duas linhas — "Hefesto" em Bungee, "Tech Demo" na etiqueta sombra.
 static func cabecalho(ci: CanvasItem, pos: Vector2, lado := 88.0) -> void:
 	ci.draw_texture_rect(LOGO, Rect2(pos, Vector2(lado, lado)), false)
-	var f := Tema.fonte(700)
 	var tam := int(lado * 0.36)
-	ci.draw_string(f, pos + Vector2(lado + 18, lado * 0.46), "Hefesto", HORIZONTAL_ALIGNMENT_LEFT, -1, tam, Tema.ROSA)
-	ci.draw_string(f, pos + Vector2(lado + 18, lado * 0.46 + tam * 1.12), "Tech Demo", HORIZONTAL_ALIGNMENT_LEFT, -1, tam, Tema.FG)
+	ci.draw_string(Tema.bungee(), pos + Vector2(lado + 18, lado * 0.46), "Hefesto", HORIZONTAL_ALIGNMENT_LEFT, -1, tam, Tema.ETIQUETA)
+	ci.draw_string(Tema.archivo(700), pos + Vector2(lado + 18, lado * 0.46 + tam * 1.12), "Tech Demo", HORIZONTAL_ALIGNMENT_LEFT, -1, tam, Tema.ETIQUETA_SOMBRA)
 
 
 ## Uma fileira de dicas "[glifo] palavra", da direita para a esquerda a partir de `fim`.
@@ -241,7 +240,7 @@ static func dicas_a_direita(ci: CanvasItem, fim: Vector2, pares: Array, tam := T
 		var par: Array = pares[i]
 		var w := Glifo.largura_dica(par[0], par[1], tam, i == 0)
 		x -= w
-		Glifo.dica(ci, Vector2(x, fim.y), par[0], par[1], tam, Tema.FG, Tema.SUAVE, i == 0)
+		Glifo.dica(ci, Vector2(x, fim.y), par[0], par[1], tam, Tema.ETIQUETA, Tema.ETIQUETA_SOMBRA, i == 0)
 		x -= 40.0
 
 
@@ -249,5 +248,5 @@ static func dicas_a_esquerda(ci: CanvasItem, inicio: Vector2, pares: Array, tam 
 	var x := inicio.x
 	for i in pares.size():
 		var par: Array = pares[i]
-		x += Glifo.dica(ci, Vector2(x, inicio.y), par[0], par[1], tam, Tema.FG, Tema.SUAVE, i == 0)
+		x += Glifo.dica(ci, Vector2(x, inicio.y), par[0], par[1], tam, Tema.ETIQUETA, Tema.ETIQUETA_SOMBRA, i == 0)
 		x += 40.0

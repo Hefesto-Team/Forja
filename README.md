@@ -161,7 +161,7 @@ Feito pela **Hefesto Team**.
 O código é MIT ([LICENSE](LICENSE)). O jogo usa obras de terceiros, cada uma
 com o seu aviso em [LICENCAS-DE-TERCEIROS.md](LICENCAS-DE-TERCEIROS.md): os
 modelos 3D e os efeitos sonoros da [Kenney](https://www.kenney.nl) (CC0), as
-fontes Space Grotesk e JetBrains Mono (OFL), o [SDL](https://libsdl.org)
+fontes Bungee, VT323, Archivo Narrow (OFL) e Permanent Marker (Apache), o [SDL](https://libsdl.org)
 (zlib), o [Godot](https://godotengine.org) e o godot-cpp (MIT). A música é
 sintetizada pelo próprio jogo. Nada vem do SDK da Sony.
 
