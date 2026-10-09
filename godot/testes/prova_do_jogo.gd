@@ -541,6 +541,11 @@ func _termina_a_sala(sala, features: Array) -> void:
 	if not is_instance_valid(sala):
 		return
 	_esperar(Musica.atual == "" and Som.ultimo_jingle.begins_with("JIN_"), "%s: o apito parou a música em seco (%s)" % [id, Som.ultimo_jingle])
+	# o fim é visto no máximo 10 quadros depois do apito, antes dos APITO_S do
+	# jingle do resultado: o que soou por último é o apito desta sala, não um
+	# jingle que sobrou de antes
+	_esperar(Som.ultimo_jingle == "JIN_APITO", "%s: o apito soou no fim (%s)" % [id, Som.ultimo_jingle])
+	var jingle_certo := Som.jingle_do_resultado(sala.pontos, sala._presentes_do_fim(), sala.coop, sala.coop_venceu)
 	for l in 4:
 		var lista: Array = sala.vereditos.get(l, [])
 		for f in features:
@@ -572,6 +577,7 @@ func _termina_a_sala(sala, features: Array) -> void:
 		q += 1
 	_esperar(fim[0] >= TelaResultado.AVANCA_S - 0.05 and fim[0] <= TelaResultado.AVANCA_S + 0.1,
 		"%s: o fim avança sozinho em 6 s, robô ou não (%.2f s)" % [id, fim[0]])
+	_esperar(Som.ultimo_jingle == jingle_certo, "%s: o jingle do resultado é o certo (%s; esperado %s)" % [id, Som.ultimo_jingle, jingle_certo])
 	# o robô aperta ✕ no veredito; a cortina leva de volta ao salão
 	q = 0
 	while (jogo.estado != "salao" or jogo._trocando) and q < 600:
@@ -681,6 +687,8 @@ func _prova_do_relatorio() -> void:
 	var pios := 0
 	var notas := 0
 	var materiais := 0
+	var quebradas := 0
+	var cliques := 0
 	for f in arquivos:
 		if not (f.begins_with("linha-do-tempo-") and f.ends_with(".jsonl")):
 			continue
@@ -694,9 +702,15 @@ func _prova_do_relatorio() -> void:
 			pios += 1 if str(ev.get("som", "")).begins_with("pio:") else 0
 			notas += 1 if str(ev.get("som", "")) == "nota:0" else 0
 			materiais += 1 if str(ev.get("som", "")).begins_with("material:") else 0
+			# o P4 do minigame de prova nunca aperta: a nota dele quebra, no controle dele
+			quebradas += 1 if l == 3 and str(ev.get("som", "")) == "nota_quebrada:3" else 0
+			# o P2 andou nas opções: o clique baixinho (0,5) só no controle dele
+			cliques += 1 if l == 1 and str(ev.get("som", "")) == "clique" and is_equal_approx(float(ev.get("ganho", 0.0)), 0.5) else 0
 	_esperar(sons.all(func(n): return n > 0), "registro: cada controle recebeu som, com a placa (%s)" % [sons])
 	_esperar(pios >= 4 and notas >= 1, "registro: o pio de cada um e a nota do perfeito (%d pios, %d notas)" % [pios, notas])
 	_esperar(materiais > 0, "registro: a textura do material chegou ao controle (%d)" % materiais)
+	_esperar(quebradas > 0, "registro: o erro quebra a nota no controle do dono (%d)" % quebradas)
+	_esperar(cliques > 0, "registro: a navegação clica no controle de quem navegou (%d)" % cliques)
 	var json := ""
 	for f in arquivos:
 		if f.begins_with("relatorio-") and f.ends_with(".json"):
@@ -1525,3 +1539,7 @@ func _prova_da_musica_que_reage() -> void:
 	_esperar(is_equal_approx(AudioServer.get_bus_volume_db(Musica._bus), -2.0), "música: o perfeito abaixa 2 dB")
 	await _quadros(12)
 	_esperar(is_equal_approx(AudioServer.get_bus_volume_db(Musica._bus), 0.0), "música: e volta")
+	Musica.reagir("combo")
+	_esperar(is_equal_approx(AudioServer.get_bus_volume_db(Musica._bus), 1.5), "música: o combo sobe 1,5 dB")
+	await _quadros(150)
+	_esperar(is_equal_approx(AudioServer.get_bus_volume_db(Musica._bus), 0.0), "música: e desce de novo")
