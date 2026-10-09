@@ -4,7 +4,7 @@
 
 ## Por quê
 
-Três ferramentas têm prova própria (`--prova`) e o CI nunca a chama, e o baixador dos modelos de exportação não tem
+Seis ferramentas têm prova própria (`--prova`) e o CI nunca a chama, e o baixador dos modelos de exportação não tem
 prova nenhuma: quebram em silêncio e só se descobre no dia de gerar a trilha ou exportar.
 
 ## Ler antes
@@ -18,6 +18,12 @@ prova nenhuma: quebram em silêncio e só se descobre no dia de gerar a trilha o
 - `scripts/kenney.py --prova`, `scripts/mapa_de_batidas.py --prova` e `scripts/trilha_fichas.py --prova` passam
   (medido em 08/10/2026: `ok o catálogo lista 24011 arquivos`, `ok a faixa que escorrega é apontada…`,
   `ok MUS_S01_J01 é «O Martelo de Hefesto…»`), mas `grep -rn -- '--prova' tests .github` não acha nenhuma das três.
+- `scripts/gerar_trilha.py --prova` (o fluxo com o motor de mentira) e `scripts/descrever_trilha.py --prova` (sem
+  rede e sem placa) também passam e também ficam fora (medido em 08/10/2026: `ok o jingle não ganha mapa de batidas`,
+  `ok o trilha_prompts.json voltou como estava`); nenhuma das duas deixa a árvore suja.
+- `scripts/bancada_tui.py --prova` não roda fora da oficina: cai em `ModuleNotFoundError: No module named 'textual'`
+  na linha 28, antes de chegar à prova. Fica fora da prova nova, com a razão escrita nela.
+- `scripts/conferir_ost.py` já roda, pela `tests/prova_do_jogo.sh`; não entra.
 - `kenney.py --prova` diz que «confere sem depender do pacote», e na máquina achou o pacote: falta saber se passa
   sem ele (no CI não há pacote).
 - `scripts/modelos_de_exportacao.py` (90 linhas, `main` em `:66`) baixa os modelos e confere `nome=sha256`; nenhuma
@@ -25,7 +31,7 @@ prova nenhuma: quebram em silêncio e só se descobre no dia de gerar a trilha o
 
 ## Arquivos que mudam
 
-- `tests/prova_das_ferramentas.sh` (nova): roda as três `--prova` e a prova do baixador
+- `tests/prova_das_ferramentas.sh` (nova): roda as cinco `--prova` e a prova do baixador
 - `scripts/modelos_de_exportacao.py` (só se a URL `file://` não funcionar: aceitar caminho local)
 - `.github/workflows/forja.yml` (um passo no job `linux` que roda a prova nova)
 
@@ -39,7 +45,7 @@ prova nenhuma: quebram em silêncio e só se descobre no dia de gerar a trilha o
 
 ## Pronto quando
 
-`bash tests/prova_das_ferramentas.sh` sai 0, e sai 1 quando qualquer das quatro falha (conferido trocando a soma
+`bash tests/prova_das_ferramentas.sh` sai 0, e sai 1 quando qualquer das seis falha (conferido trocando a soma
 esperada na prova).
 
 ## Provas

@@ -25,7 +25,7 @@ tela em inglês, e passa verde. E a tabela é um arquivo só que 31 fichas edita
     `:168` «não medido» (minúscula);
   - `godot/scripts/ui/painel_bancada.gd:33` «experimental/ · a bancada dos experimentos» e `:56` «todos» (as duas
     com minúscula, contra a F07).
-- `godot/scripts/traducoes.gd` tem 387 linhas; `grep -l traducoes.gd docs/jogo/tarefas/*.md | wc -l` dá 31.
+- `godot/scripts/traducoes.gd` tem 387 linhas; `grep -l traducoes.gd docs/jogo/tarefas/*.md | wc -l` dá 33 (31 antes das fichas V e X).
 
 ## O alvo
 

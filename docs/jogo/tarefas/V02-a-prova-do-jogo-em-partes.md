@@ -18,7 +18,7 @@ tempo brigam por ele na costura, e a esteira não consegue dizer que dois conjun
   passa por todas as salas, `_joga_a_sala`/`_comeca_a_sala`/`_termina_a_sala` (`:309-408`) jogam uma sala, e as
   provas de sistema vêm depois (`_prova_do_relogio` `:631`, `_prova_da_calibracao` `:673`, `_prova_das_janelas`
   `:777`, `_prova_das_frases` `:958`, `_prova_das_maiusculas` `:981`…).
-- `grep -l prova_do_jogo.gd docs/jogo/tarefas/*.md | wc -l` dá 76: cada minigame novo acrescenta a checagem dele
+- `grep -l prova_do_jogo.gd docs/jogo/tarefas/*.md | wc -l` dá 79 (76 antes das fichas V e X): cada minigame novo acrescenta a checagem dele
   ali dentro.
 
 ## O alvo

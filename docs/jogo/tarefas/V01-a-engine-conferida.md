@@ -18,7 +18,7 @@ trocado no caminho vira o jogo de todo mundo, e subir de versão exige mexer em 
 - `scripts/engine.sh:21` baixa `Godot_v${FORJA_GODOT_VER}_linux.x86_64.zip` com `curl -fsSL` e descompacta sem
   conferir nada. O SDL, em `scripts/compilar.sh:50-57`, confere `sha256sum` contra `SDL_SHA256` e para se não bate.
 - `.github/workflows/forja.yml` repete o bloco «A versão do Godot é a do engine.sh» + «O Godot em cache» + «Baixar
-  o Godot» três vezes (`:60-78` no job `linux`, `:153-171` no `exportar`, `:249-267` no `telas`), cada um com o
+  o Godot» três vezes (`:60-78` no job `linux`, `:177-195` no `exportar`, `:273-291` no `telas`), cada um com o
   próprio `curl` e o próprio `unzip`, sem soma.
 - As ações vêm por etiqueta móvel (`actions/checkout@v4`, `actions/cache@v4`, `actions/upload-artifact@v4`,
   `actions/download-artifact@v4`, `actions/cache/restore@v4`, `actions/cache/save@v4`): quem move a etiqueta muda o
@@ -45,7 +45,8 @@ trocado no caminho vira o jogo de todo mundo, e subir de versão exige mexer em 
 ## Pronto quando
 
 Um zip com um byte trocado faz `bash scripts/baixar_engine.sh` sair com 1 e não deixar binário em `tools/`, e
-`grep -c 'releases/download' .github/workflows/forja.yml` dá 0.
+`grep -c 'godotengine/godot/releases' .github/workflows/forja.yml` dá 0 (o download do GE-Proton, no `exportar`,
+fica como está).
 
 ## Provas
 

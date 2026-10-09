@@ -21,6 +21,10 @@ seção nova da I a Q precisa lembrar das sete, e o que esquece vira um portão 
 - `godot/scripts/mundo/salao.gd:15-24` `PORTOES`: de novo o nome, a seção («Seção 1»), o ícone, a parede.
 - Os nomes aparecem iguais em `partida.gd` e `salao.gd`; a ordem «centelha, viga, molde, impacto, galeria, canto,
   caminhos, voz, prova» aparece em `main.gd:27` e `musica.gd:31`.
+- A [G06](G06-o-salao-e-a-colecao.md) também mexe em `PORTOES`: tira o `sobre` (o hardware) dele e da placa 3D. O
+  `Catalogo` não ganha `sobre`. Se a V04 entrar antes da G06, o `sobre` fica em `salao.gd` numa tabela id → sobre,
+  que a G06 apaga; se entrar depois, não há `sobre` a levar. As duas mudam `salao.gd`, e a esteira não as solta
+  juntas.
 
 ## O alvo
 
@@ -49,7 +53,9 @@ As entradas que não são seção (`salao`, `podio`, `bancada` em `FAIXAS`) fica
 
 ## Pronto quando
 
-`git grep -n '"A Centelha"' godot/scripts` acha uma linha só, em `catalogo.gd`.
+`git grep -n '"A Centelha"' godot/scripts` acha só três linhas: a de `minigames/catalogo.gd`, a chave da tabela em
+`traducoes.gd` e o `nome` da própria sala em `salas/centelha.gd` (essas duas ficam: são a tradução e a sala, não a
+lista das seções).
 
 ## Provas
 

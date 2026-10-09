@@ -4,7 +4,7 @@
 
 ## Por quê
 
-O `main.gd` decide quem está na tela, a cortina e as camadas, e também tudo o mais do Forja: 25 fichas o editam, e o mecanismo de telas não serve a nenhum outro jogo.
+O `main.gd` decide quem está na tela, a cortina e as camadas, e também tudo o mais do Forja: 25 fichas o editam (29 o citam, contando as V e X), e o mecanismo de telas não serve a nenhum outro jogo.
 
 ## Ler antes
 
@@ -13,7 +13,7 @@ O `main.gd` decide quem está na tela, a cortina e as camadas, e também tudo o 
 
 ## O estado de hoje
 
-- `godot/scripts/main.gd` (989 linhas): `estado` (`:29`), `overlay` (`:58`), as treze telas (`:44-57`), `_mostrar`
+- `godot/scripts/main.gd` (989 linhas): `estado` (`:29`), `overlay` (`:58`), as doze telas (`:45-56`), `_mostrar`
   (`:215`), `_trocar` com a cortina (`:246`), os `_ir_para_*` (`:264-527`) e a vez de cada tela em `_process` (`:542`).
 
 ## Arquivos que mudam

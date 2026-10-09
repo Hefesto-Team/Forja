@@ -21,7 +21,7 @@ O desenho de texto e a tradução são o que todo outro pacote usa, e hoje leem 
 
 - `godot/addons/forja_texto/` (novo): `plugin.cfg`, `plugin.gd`, `desenho.gd` (`ForjaDesenho`), `glifo.gd` (`ForjaGlifo`),
   `traducao.gd` (`ForjaTraducao`), `estilo.gd` (`ForjaEstilo`), `LEIA-ME.md`, `LICENSE`, `testes/prova.gd`
-- `godot/scripts/ui/desenho.gd`, `glifo.gd`, `traducoes.gd` (saem, ou ficam como ponte de uma linha até a última
+- `godot/scripts/ui/desenho.gd`, `godot/scripts/ui/glifo.gd`, `godot/scripts/traducoes.gd` (saem, ou ficam como ponte de uma linha até a última
   chamada mudar; a ficha decide pelo `git grep`: zero chamada antiga, sai)
 - toda chamada `Desenho.`/`Glifo.`/`Traducoes.` em `godot/scripts/**` (troca por script, `sed`, num commit só)
 - `godot/project.godot` (o plugin ligado)
