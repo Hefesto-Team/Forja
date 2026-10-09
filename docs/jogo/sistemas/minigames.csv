@@ -1,0 +1,46 @@
+n,ficha,minigame,genero,peso,passo,folego,faro,ganchos,queda_tempos,estado
+1,I1,O Martelo de Hefesto,tct,—,—,levantar: o boneco balança depois da falha e o martelo não sobe enquanto balança,pista: a runa da próxima nota acende antes,levantar;pista,2,proposta
+2,I2,Marcha dos Escudeiros,corrida,empurrao: o tropeço joga o cavaleiro para trás na esteira,velocidade: cada passo no tempo anda mais,levantar: o tempo caído nas engrenagens,—,empurrao;velocidade;levantar,2,proposta
+3,I3,Portões de Néon,corrida,—,velocidade: o impulso que passa por baixo do portão,levantar: o tempo achatado antes de voltar ao último portão,pista: o portão avisa antes de descer,velocidade;levantar;pista,2,proposta
+4,I4,O Fole,coop,—,—,levantar: a fumaça no rosto tira o soprador da próxima nota,pista: o ponto da sua nota acende antes no gatilho,levantar;pista,1,proposta
+5,I5,A Esteira de Escória,sabotagem,—,—,—,pista: o seu lingote acende antes de chegar à prensa,pista,,proposta
+6,J1,A Viga,sobrevivência,empurrao: o balanço da viga e o vento dos fantasmas levam menos o cavaleiro para a ponta,velocidade: a volta ao centro da viga,levantar: o cavaleiro que pulou cai sentado e levanta,pista: o rangido avisa o balanço antes,empurrao;velocidade;levantar;pista,1,proposta
+7,J2,Pêndulos do Caos,sobrevivência,"empurrao: o arremesso do pêndulo travado vai menos longe; tranco: como fantasma, o vento que sopra empurra mais",—,levantar: voltar ao disco depois de cair,pista: o ápice do arco avisa antes,empurrao;tranco;levantar;pista,3,proposta
+8,J3,Patinação de Dados,corrida,—,velocidade: o patinador chega antes à nota que brilha,levantar: o giro no gelo depois de passar da nota,pista: a nota brilha antes,velocidade;levantar;pista,2,proposta
+9,J4,O Balão dos Foles,2v2,—,—,levantar: o fole que estourou vapor volta a soprar,pista: o tempo e o contratempo da dupla avisam antes,levantar;pista,1,proposta
+10,J5,Mira Óptica,tct,—,—,levantar: a mira embaçada clareia,pista: o alvo acende antes,levantar;pista,2,proposta
+11,K1,O Molde,tct,—,—,levantar: o metal escorrido sai do molde e o traço recomeça,pista: o próximo trecho da forma aparece antes,levantar;pista,1,proposta
+12,K2,Quebra-Gelo,tct,—,—,levantar: o boneco congelado descongela,pista: o contratempo vibra antes,levantar;pista,3,proposta
+13,K3,Hackeando o Terminal,coop,empurrao: o chão vermelho empurra menos para trás,velocidade: a volta ao lugar depois do empurrão,—,pista: o seu quadrante acende antes da sua nota,empurrao;velocidade;pista,,proposta
+14,K4,A Pinça,tct,—,—,levantar: a peça que caiu volta à pinça,pista: o fim da nota longa avisa antes,levantar;pista,1,proposta
+15,K5,O Carimbo,sabotagem,—,—,levantar: o carimbo borrado seca,pista: a síncope acende antes,levantar;pista,1,proposta
+16,L1,O Cerco,sobrevivência,empurrao: o golpe que passa faz cambalear menos,—,levantar: o cambaleio,pista: a mão sente o lado antes do tempo de aviso,empurrao;levantar;pista,2,proposta
+17,L2,Fuga do Titã,coop,empurrao: o tranco do vagão derruba menos,velocidade: o passo até a caldeira,levantar: quem caiu no tranco volta à pá,pista: os passos do titã chegam antes na mão,empurrao;velocidade;levantar;pista,2,proposta
+18,L3,Curto-Circuito,sabotagem,empurrao: o estouro arremessa menos alto,—,levantar: o voo e a fumaça depois do estouro,pista: o coração da bomba acelera antes,empurrao;levantar;pista,3,proposta
+19,L4,Martelos Térmicos,tct,—,—,levantar: a mão queimada (o tremor longo),pista: o tremor do lado chega antes,levantar;pista,2,proposta
+20,L5,A Prensa,sobrevivência e terror,—,velocidade: sair de baixo da prensa,—,"pista: a vibração forte avisa antes; raio: a luz baixa mostra mais chão, e o fantasma acende luz mais larga no caminho dos outros",velocidade;pista;raio,,proposta
+21,M1,A Galeria,tct,—,—,levantar: a arma volta a mirar depois do tiro que espirrou,pista: o alvo acende antes,levantar;pista,1,proposta
+22,M2,Arco de Néon,tct,—,—,levantar: pegar a flecha caída aos pés,pista: o fim da nota longa avisa antes,levantar;pista,1,proposta
+23,M3,Metralhadora de Feitiços,coop,—,—,levantar: a arma superaquecida destrava,pista: a sua frase do ataque avisa antes,levantar;pista,4,proposta
+24,M4,Espada de Fita,2v2,—,—,levantar: a espada mole se firma para a rodada,pista: o pico da nota avisa antes,levantar;pista,1,proposta
+25,M5,A Catapulta,2v2,—,—,levantar: a corda que escapou volta à mão,pista: o contratempo da trava avisa antes,levantar;pista,2,proposta
+26,N1,O Canto,tct,—,—,levantar: o sino rachado volta a soar,—,levantar,1,proposta
+27,N2,Eco do Abismo,corrida e terror,—,velocidade: subir ao degrau aceso,levantar: a queda de um andar,raio: o degrau aceso se vê de mais longe; pista: o eco chega antes,velocidade;levantar;pista;raio,3,proposta
+28,N3,Coral dos Quatro,coop,—,—,levantar: a nota que falta volta no acorde seguinte,pista: a sua vez avisa antes,levantar;pista,1,proposta
+29,N4,Código do Dragão,tct,—,—,levantar: a fumaça do dragão antes da senha recomeçar,—,levantar,2,proposta
+30,N5,Corta-Fio,sabotagem,—,—,levantar: o confete do estouro,pista: o bipe certo chega antes,levantar;pista,2,proposta
+31,O1,Os Caminhos,corrida,—,velocidade: a corrida na trilha,levantar: sair do lamaçal,pista: a textura da senha chega antes,velocidade;levantar;pista,3,proposta
+32,O2,Neblina de Dados,terror,ruido: o salto pesado se ouve de mais longe,velocidade: o salto alcança mais,levantar: voltar do escuro ao ponto anterior,raio: a neblina abre mais em volta; pista: a textura firme chega antes,ruido;velocidade;levantar;pista;raio,2,proposta
+33,O3,Passo no Fosso,corrida,—,velocidade: a travessia das placas,levantar: escorregar no plasma,pista: o contratempo pulsa antes,velocidade;levantar;pista,2,proposta
+34,O4,Fuga do Mecha Cego,terror e sobrevivência,ruido: o passo pesado o mecha ouve de mais longe,velocidade: andar para o lado oposto,—,raio: o holofote se vê de mais longe; pista: os passos do mecha chegam antes,ruido;velocidade;pista;raio,,proposta
+35,O5,Engrenagens Sincopadas,2v2,empurrao: o escorregão desce menos,velocidade: o salto entre engrenagens,levantar: o escorregão de uma engrenagem,pista: a textura dos dentes chega antes,empurrao;velocidade;levantar;pista,2,proposta
+36,P1,A Voz,coop,—,—,levantar: a cinza espalhada tira o sopro do tempo seguinte,pista: os tempos do guardião acendem antes,levantar;pista,1,proposta
+37,P2,O Sopro no Fole,tct,—,—,levantar: a fuligem no rosto,pista: o fim da nota avisa antes,levantar;pista,2,proposta
+38,P3,Zero Absoluto,terror e sobrevivência,ruido: o passo pesado o guardião ouve de mais longe,velocidade: chegar mais longe entre as paradas,levantar: descongelar,pista: o último tempo antes da parada acende antes,ruido;velocidade;levantar;pista,3,proposta
+39,P4,Grito de Guerra,tct,tranco: a onda do grito empurra mais; empurrao: a onda dos outros empurra menos,velocidade: a volta ao centro da arena,levantar: o coice do grito fora do tempo,—,empurrao;tranco;velocidade;levantar,2,proposta
+40,P5,Palmas da Forja,coop,—,—,levantar: a bigorna desafinada,pista: a virada do fim da frase avisa antes,levantar;pista,1,proposta
+41,Q1,A Prova,2v2,—,—,levantar: o terreno cedido tira o cavaleiro do tempo seguinte,pista: a arma da equipe avisa antes,levantar;pista,1,proposta
+42,Q2,Roubo de Bateria,2v2,tranco: a trombada derruba a bateria do outro mais longe; empurrao: a trombada derruba menos,velocidade: correr com a bateria,levantar: pegar de volta a bateria caída,pista: o pulso da bateria e a interferência chegam antes,empurrao;tranco;velocidade;levantar;pista,2,proposta
+43,Q3,Mecha de Dois Pilotos,2v2,tranco: o soco do mecha (a média do Peso da dupla); empurrao: o soco recebido (a média),velocidade: o passo do mecha (a média do Passo da dupla),levantar: o mecha que socou a própria cabeça volta,pista: o tempo do soco avisa antes,empurrao;tranco;velocidade;levantar;pista,2,proposta
+44,Q4,Ruge o Reator,coop e medley,como no minigame de origem de cada trecho,como no minigame de origem de cada trecho,como no minigame de origem de cada trecho,como no minigame de origem de cada trecho,medley,,proposta
+45,Q5,O Último Acorde,coop e medley,como no minigame de origem de cada trecho,como no minigame de origem de cada trecho,como no minigame de origem de cada trecho,como no minigame de origem de cada trecho,medley,,proposta
