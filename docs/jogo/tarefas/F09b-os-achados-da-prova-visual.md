@@ -151,3 +151,17 @@ Marcar F09b como **feito** no [quadro](README.md), com o gasto.
   do «Valendo!» e do cabeçalho, as dicas nas raias dentro da margem.
 - Dizer qual tela parada é espera de propósito, e a decisão da F09c.
 - A passada `livre`, com placa de vídeo (os quadros por segundo; a cor que a régua lê é a do renderizador por software).
+
+### A conferência
+
+- **O «Pronto quando» não fecha:** a tela parada segue em todas as partidas (é do André dizer qual é de propósito), e
+  a prancha olhada na máquina do André falta.
+- **Corrigido na conferência:** o quadro da sala no HUD cortava a ação com «…» no texto grande das Opções («Aperte o
+  botão da runa antes do anel…», «Sinta o golpe e levante o escudo…») e a da bancada já em 1,0×; a ação cabe agora em
+  até três linhas (`HudJogo.LINHAS_DA_ACAO`), e a prova do jogo confere a ação de toda sala de `main.gd` em 1,0× e
+  1,15× (sem «…» e antes dos chips). Mordeu com duas linhas (Centelha e Impacto em 1,15×, a bancada nas duas escalas).
+- **A mordida refeita**, tudo junto (sem o piso do `Tema.t`, sem o limite do `_afastar`, sem o corte do
+  `linha_do_status`, a ação em duas linhas): reprovou cada uma; restaurado, passou.
+- **A prova visual refeita** depois das placas e da conferência (semente 7, `PASSADAS=fixa`): a partida 1 só tem a
+  tela parada do Impacto (o «Tech Demo» sumiu da lista), e a partida 4 só tem telas paradas (Centelha, Galeria no cabo
+  que cai, Prova). A partida 2 não foi refeita (a máquina estava cheia: a partida 1 levou cerca de 40 min).
