@@ -234,3 +234,16 @@ func _ogg(slot: String) -> AudioStreamOggVorbis:
 	s.loop = not slot.begins_with("MUS_S")
 	s.loop_offset = 0.0
 	return s
+
+
+## A música para em seco (o apito): a zero em 20 ms — nunca de uma vez (as
+## rampas do 04) —, e o próximo tocar() começa de novo.
+func parar_seco() -> void:
+	if _tw:
+		_tw.kill()
+	var p := _tocadores[_ativo]
+	_tocadores[1 - _ativo].stop()
+	_tw = create_tween()
+	_tw.tween_property(p, "volume_db", -80.0, 0.02)
+	_tw.tween_callback(p.stop)
+	atual = ""

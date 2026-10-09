@@ -95,7 +95,10 @@ func _sons() -> void:
 		Som.tocar("sobe")
 	if _t >= T_LIDER and not _soou.has("lider"):
 		_soou["lider"] = true
-		Som.tocar("placar" if _virada else "confirma")
+		if _virada:
+			Som.jingle("JIN_VIRADA")
+		else:
+			Som.tocar("confirma")
 
 
 ## A frase do pódio: "P2 venceu a noite" — e, se foi no desempate, o que

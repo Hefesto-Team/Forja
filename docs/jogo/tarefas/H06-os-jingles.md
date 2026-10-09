@@ -305,3 +305,35 @@ som próprio. Diga o que soou fora do lugar ou alto demais.
   real.
 - Commit sugerido (sem trailer):
   `feat: os jingles — o apito que para a música, o jingle do resultado e a contagem no tempo`
+
+## O que foi feito (leva 1, o-kit)
+
+- **O que entrou.** `Som.jingle()`, `Som.JINGLES`, `Som.jingle_do_resultado()` e as receitas
+  `derrota` e `empate` (`som.gd`); `Musica.parar_seco()` (`musica.gd`); a contagem de
+  entrada e `BATIDA_DA_PRIMEIRA_NOTA` (`minigame.gd`, com a desconexão no `sair()`); o
+  `_som_do_comeco()` da `SalaJogo` no lugar do «confirma» solto; `JIN_VIRADA` no placar;
+  o minigame de prova com a primeira nota no tempo 4.
+- **O fim já tinha o apito da F03.** O `terminar()` chamava `Musica.calar()` (que troca para
+  a faixa «voz», silenciosa, com um fade de 0,8 s) e `Som.tocar("apito")`; o `_celebrar()`,
+  chamado aos `APITO_S` (0,5 s), tocava `Som.tocar("sucesso")`. A cura foi nesses dois
+  pontos, sem tween novo: o `terminar()` chama `Musica.parar_seco()` e `Som.jingle("JIN_APITO")`,
+  e o `_celebrar()` toca o jingle do resultado, os meio segundo que a ficha pede, com o
+  `coop` e o `coop_venceu` que a sala já guarda. `_presentes_do_fim()` são os lugares com
+  `jogando[l]`.
+- **A receita `apito` já existia** (2400 Hz, 10 ms de rampa) e só o `terminar()` a usava; um
+  `const` com a chave repetida não carrega no Godot, então ela virou a da ficha (2093 Hz,
+  rampa de 20 ms, o apito do mapa do áudio).
+- **As provas.** A prova do jogo ficou verde antes (a base) e depois. Entraram
+  `_prova_dos_jingles()`, a checagem do apito em `_termina_a_sala()` (as nove salas e o
+  minigame de prova) e, no `_prova_do_kit()`, a da contagem (o tique no tempo 2,3 da faixa
+  e a desconexão no 3,3). Mordidas, as três na mesma rodada: `Musica.calar()` no lugar do
+  `parar_seco()` reprovou «o apito parou a música em seco» em todas as salas;
+  `_som_do_comeco()` sem a conexão reprovou «a contagem de entrada»; o empate fora do
+  `jingle_do_resultado()` reprovou «empate em primeiro». Devolvidos, verde.
+- **O portão do som (aviso)** passou de 164 para 166 achados, todos dos ids novos: o mapa
+  do áudio escreve `jin_apito` e `jin_virada` em minúsculas (a ficha manda `JIN_*`, a grafia
+  do `Musica.caminho`) e não tem `jin_entrada` (tem `jin_entrada_tique` e `jin_entrada_vai`);
+  o `Som.jingle(Som.jingle_do_resultado(...))` é id numa variável. Fica para quando o portão
+  virar (V08) e o mapa e o código escolherem uma grafia só.
+- **A validar por ela.** O «vai» da contagem é o «confirma» de sempre no tempo 3, como a
+  ficha manda: o `jin_entrada_vai` do mapa (martelada de 98 Hz) ainda não está no jogo.

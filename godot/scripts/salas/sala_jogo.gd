@@ -336,8 +336,13 @@ func comecar() -> void:
 		Forja.med_repouso(p.lugar, false)
 	Forja.evento("sala", 0, {"sala": id, "evento": "jogo_comecou"})
 	Forja.evento("minigame", 0, {"slot": id, "evento": "comecou"})
-	Som.tocar("confirma")
+	_som_do_comeco()
 	iniciar_jogo()
+
+
+## O som do começo do jogo (o Minigame troca pela contagem de entrada, H06).
+func _som_do_comeco() -> void:
+	Som.tocar("confirma")
 
 
 ## A sala monta o que precisa quando o jogo começa.
@@ -381,9 +386,10 @@ func terminar() -> void:
 		"vencedor": colocacao[0] if not colocacao.is_empty() else -1,
 		"pontos": pontos, "duracao": snappedf(t_jogo, 0.1)})
 	Forja.gravar_relatorio()
-	# o apito fecha a sala: a música para e o resultado vem em seguida
-	Musica.calar()
-	Som.tocar("apito")
+	# o apito fecha a sala: a música para em seco e o jingle do resultado vem
+	# em seguida (no _celebrar, aos APITO_S da tela de resultado)
+	Musica.parar_seco()
+	Som.jingle("JIN_APITO")
 	pulso_de_luz(Tema.AMARELO, 1.6)
 	ao_terminar()
 
@@ -409,7 +415,17 @@ func _celebrar() -> void:
 		if p != null and is_instance_valid(p):
 			p.gesto("emote-yes", 1.4)
 			Efeitos.faiscas(self, p.global_position + Vector3(0, 2.2, 0), Forja.cor_do_lugar(l), 40, 1.3)
-	Som.tocar("sucesso")
+	# o jingle do resultado (H06): vitória, empate ou, no coop, a de todos ou a derrota
+	Som.jingle(Som.jingle_do_resultado(pontos, _presentes_do_fim(), coop, coop_venceu))
+
+
+## Os lugares que jogaram (os que o resultado conta).
+func _presentes_do_fim() -> Array:
+	var lugares: Array = []
+	for l in 4:
+		if jogando[l]:
+			lugares.append(l)
+	return lugares
 
 
 ## O recurso desligado nas opções do lugar (a vibração em 0%, o gatilho
