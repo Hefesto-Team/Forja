@@ -252,4 +252,18 @@ mapa marcados para ele, pela receita de cada linha, com o gerador do
 
 ## Para a próxima leva
 
-(vazio)
+Do produtor de arte e som, 08/10. Os 13 itens estão feitos; o que segue não coube neles.
+
+- **Item 1, a medida da cabeça.** As cabeças vão de 213 a 340 triângulos, não de 288 a 340. O critério do item 1 tem que dizer 213.
+- **Item 2, os perfis.** O critério cita seis perfis (com Malha e Prumo), mas o `pecas.csv` só tem quatro emblemas: Bigorna, Mola, Brasa e Lume. A prancha 11 mostra os quatro. Decidir se entram os outros dois.
+- **Item 2, a etiqueta.** Na prancha 11 o título «AS PEÇAS» encosta na linha «PRANCHA · ITEM 2» por uns 6 px. Subir o título 8 px.
+- **O female-a.** Tem 160 triângulos por braço e um bastão em cada mão, que vêm do modelo da Kenney. O corte leva o bastão junto com o tronco superior.
+- **O medalhão do diapasão.** No P3 da cadeira ele não aparece. Subir para y +0,17 e z 0,16.
+- **A prancha 13.** As cinco tintas ficaram escuras: a chave em ×1 mal passa da névoa. A arena do S1 mede L 7 de média (medida no PNG, Lab). Subir a chave até a média passar de L 15.
+- **A prancha 17.** O escurecimento das marteladas 1 a 7 esconde a peça que entra. Escurecer só o fundo, não a peça.
+- **A cortina.** No instante de 300 ms a borda está fora da tela (x = −134). A curva tem que pôr a borda na tela já aos 300 ms.
+- **O ícone do exe.** O `forja.ico` vira ficha: o exe usa `scripts/forja.ico`, que não sai do PNG do logo. Gerar o .ico do `forja-logo.svg` em 16, 32, 48 e 256 px.
+- **Os sons no jogo.** Os 77 estão em `godot/estudos/direcao/som/`. A cópia para `godot/assets/sons/` e a troca no jogo são da H11. O subcomando `kenney` do gerador não foi rodado.
+- **A tarja do car_acorde.** Ficou com 80 × 40 px por jogador. Conferir na TV a 3 m.
+- **O README da arte.** Ainda diz «Dó, Mi, Sol e Si». O acorde é Dó, Ré, Fá e Sol (o 03). É do diretor de arte.
+- **A trilha.** O LEIA-ME de `ost/` e o pedido do JIN_COOP_VITORIA ficam para o produtor de música ou a H09.
