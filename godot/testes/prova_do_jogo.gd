@@ -76,6 +76,7 @@ func _ready() -> void:
 	_prova_da_identidade()
 	_prova_das_sensacoes()
 	_prova_do_registro_v2()
+	await _calar_o_som_antes_de_sair()
 	if falhas > 0:
 		printerr("%d falha(s)" % falhas)
 		get_tree().quit(1)
@@ -1559,3 +1560,19 @@ func _prova_da_musica_que_reage() -> void:
 	_esperar(is_equal_approx(AudioServer.get_bus_volume_db(Musica._bus), 1.5), "música: o combo sobe 1,5 dB")
 	await _quadros(150)
 	_esperar(is_equal_approx(AudioServer.get_bus_volume_db(Musica._bus), 0.0), "música: e desce de novo")
+
+
+## Cala todo tocador antes do quit (a WQ01): o som que ainda toca na saída fica
+## preso no servidor de áudio, e o motor acusa «resources still in use at exit».
+## O stop só marca o fim; quem solta o som é o mixer (no tempo de parede) e o
+## quadro seguinte, então espera os dois.
+func _calar_o_som_antes_de_sair() -> void:
+	var pilha: Array[Node] = [get_tree().root]
+	while not pilha.is_empty():
+		var no: Node = pilha.pop_back()
+		if no is AudioStreamPlayer or no is AudioStreamPlayer2D or no is AudioStreamPlayer3D:
+			no.stop()
+		pilha.append_array(no.get_children())
+	for i in 20:
+		OS.delay_msec(10)
+		await get_tree().process_frame

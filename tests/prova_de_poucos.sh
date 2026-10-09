@@ -31,7 +31,11 @@ rodar() {
     -- --robo --semente=7 --relatorios="$TMP/rel-$nome" --bancada "$@" > "$TMP/$nome.log" 2>&1
   local rc=$?
   grep -E "FAIL|SCRIPT ERROR|prova de poucos ok" "$TMP/$nome.log"
+  # o erro do motor que não está em tests/erros_esperados.txt reprova (WQ01)
+  local juizo=0
+  caixa_julgar "$TMP/$nome.log" || juizo=1
   [ "$rc" -eq 0 ] || { echo "FAIL a prova de poucos «$nome» (rc=$rc)"; return 1; }
+  return "$juizo"
 }
 
 FALHAS=0

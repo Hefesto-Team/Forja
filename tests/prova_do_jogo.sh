@@ -64,6 +64,8 @@ rodar() {
   local rc=$?
   grep -E "alto-falante do sistema|FAIL|SCRIPT ERROR|prova do jogo ok" "$TMP/$nome.log"
   [ "$rc" -eq 0 ] || { echo "FAIL a prova com o servidor «$nome» (rc=$rc)"; FALHAS=$((FALHAS + 1)); }
+  # o erro do motor que não está em tests/erros_esperados.txt reprova (WQ01)
+  caixa_julgar "$TMP/$nome.log" || FALHAS=$((FALHAS + 1))
 }
 # a rodada «forma-a» é o jogo (sem o Modo bancada); a «antes» é a camada de validação (--bancada)
 rodar forma-a "alto-falante: Alto-falante do Controle 1 (DualSense Wireless Controller)"

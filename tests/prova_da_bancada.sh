@@ -33,6 +33,8 @@ rodar() {  # $1 experimento, $2 nome da rodada, depois os argumentos a mais
     echo "FAIL $nome: o jogo saiu com erro (rc=$rc)"
     FALHAS=$((FALHAS + 1))
   fi
+  # o erro do motor que não está em tests/erros_esperados.txt reprova (WQ01)
+  caixa_julgar "$TMP/$nome.log" || FALHAS=$((FALHAS + 1))
 }
 esperar() {  # $1 rodada, $2 quantas linhas, $3 o padrão
   local n
