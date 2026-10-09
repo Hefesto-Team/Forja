@@ -1,0 +1,47 @@
+ficha,slot,minigame,momento,janela_inicio_s,janela_fim_s,mesa,minimo,rastro_na_prancha,degrau,nota_hoje,troca
+I1,S01_J01,O Martelo de Hefesto,racha_no_quinto,0,90,padrao,3,2 ou mais lascas no chão da raia do P4 aos 60 s,golpe,3,nao
+I2,S01_J02,Marcha dos Escudeiros,arrastado_na_ladeira,30,60,padrao,4,escudeiro deitado atrás da linha dos outros entre 32 e 58 s,estrondo,4,nao
+I3,S01_J03,Portões de Néon,achatado,0,90,padrao,8,marca de portão no chão em 1 quadro de cada 5,estrondo,4,nao
+I4,S01_J04,O Fole,branco,45,70,boa,1,forja branca no último quadro,catastrofe,2,nao; o fole se vê
+I5,S01_J05,A Esteira de Escória,lingote_de_ouro,80,90,padrao,4,lingotes de ouro em 2 ou mais pilhas no último quadro,golpe,4,nao
+J1,S02_J06,A Viga,pino,10,80,padrao,3,2 ou mais pinos na viga do P1 aos 60 s,estrondo,3,nao
+J2,S02_J07,Pêndulos do Caos,arremesso,0,90,padrao,3,disco vazio com a mancha laranja em 1 quadro de cada 4,estrondo,4,nao
+J3,S02_J08,Patinação de Dados,trombada,30,60,padrao,4,espiral de patim no gelo em 1 quadro de cada 3 do pico,estrondo,2,sim; a pista de todos
+J4,S02_J09,O Balão dos Foles,ultrapassa,0,90,duplas,2,a ordem das alturas troca em 2 quadros seguidos,golpe,4,nao
+J5,S02_J10,Mira Óptica,escudo_de_ouro,25,50,padrao,3,escudo de ouro pendurado numa raia aos 50 s,golpe,3,nao
+K1,S03_J11,O Molde,desmolde,0,90,padrao,3,peça torta na estante do P4 aos 60 s,golpe,2,nao; sai o abrir e fechar
+K2,S03_J12,Quebra-Gelo,avalanche,25,75,padrao,1,3 ou mais blocos atrás do P1 num quadro do pico,catastrofe,2,sim; o gelo vai para o líder
+K3,S03_J13,Hackeando o Terminal,senha_longa,30,60,boa,2,a porta mais alta aos 60 s que aos 30 s,estrondo,4,nao
+K4,S03_J14,A Pinça,estalo,0,80,padrao,4,ferreiro sentado em 1 quadro de cada 4,estrondo,2,sim; o puxa-ferro
+K5,S03_J15,O Carimbo,selo_por_cima,0,90,padrao,5,lingotes com selo duplo em 2 ou mais pilhas no último quadro,golpe,4,nao
+L1,S04_J16,O Cerco,ariete,30,60,padrao,2,o portão rachado aos 60 s,catastrofe,3,nao
+L2,S04_J17,Fuga do Titã,quase_pego,33,100,padrao,1,o braço do titã no quadro do primeiro quase_pego,catastrofe,4,nao
+L3,S04_J18,Curto-Circuito,estouro,0,100,padrao,4,marcas pretas em 2 ou mais raias no último quadro,estrondo,5,nao
+L4,S04_J19,Martelos Térmicos,dupla_quente,25,50,padrao,4,toupeira laranja ao lado de uma cinza em 1 quadro de cada 3 do pico,estrondo,3,nao
+L5,S04_J20,A Prensa,esmagado,0,90,padrao,6,cavaleiro achatado em 1 quadro de cada 4,estrondo,4,nao
+M1,S05_J21,A Galeria,alvo_de_ouro,80,90,padrao,4,moedas em 2 ou mais balcões no último quadro,golpe,3,nao
+M2,S05_J22,Arco de Néon,flecha_de_fogo,27,54,padrao,3,fumaça num alvo em 1 quadro de cada 4 do pico,estrondo,3,nao
+M3,S05_J23,Metralhadora de Feitiços,nau_cai,40,60,boa,1,fumaça da nau no fundo aos 60 s,catastrofe,3,nao
+M4,S05_J24,Espada de Fita,corte,0,90,duplas,4,risco do corte no chão em 1 quadro de cada 3,estrondo,4,nao
+M5,S05_J25,A Catapulta,pedra_propria,0,90,duplas,2,castelo da Brasa com buraco e bandeira turquesa no último quadro,estrondo,4,nao
+N1,S06_J26,O Canto,sino_torto,0,90,padrao,2,sino no chão em 1 quadro de cada 5,estrondo,2,nao; o coro na TV
+N2,S06_J27,Eco do Abismo,despenca,0,100,padrao,3,cavaleiro 4 degraus mais baixo em 2 quadros seguidos,estrondo,3,nao
+N3,S06_J28,Coral dos Quatro,acorde,30,60,boa,2,vitral com mais painéis aos 60 s que aos 30 s,estrondo,3,nao
+N4,S06_J29,Código do Dragão,fumaca_grande,0,100,padrao,1,cavaleiro cinza no quadro seguinte,catastrofe,3,nao
+N5,S06_J30,Corta-Fio,caiu_no_falso,0,90,padrao,3,confete numa raia em 1 quadro de cada 4,estrondo,4,nao
+O1,S07_J31,Os Caminhos,lama,0,100,padrao,4,cavaleiro marrom em 1 quadro de cada 4,estrondo,3,nao
+O2,S07_J32,Neblina de Dados,salto_no_nada,0,100,padrao,4,redemoinho cinza na neblina em 1 quadro de cada 4,estrondo,3,nao
+O3,S07_J33,Passo no Fosso,empurrao,0,90,padrao,6,cavaleiro no plasma em 1 quadro de cada 3 do pico,estrondo,2,sim; a dança das placas
+O4,S07_J34,Fuga do Mecha Cego,pego,0,100,padrao,2,holofote aceso em 1 quadro de cada 5,catastrofe,5,nao
+O5,S07_J35,Engrenagens Sincopadas,mestra,40,55,duplas,1,a mestra na cor de uma dupla aos 60 s,catastrofe,3,nao
+P1,S08_J36,A Voz,rugido,53,80,padrao,1,o guardião de pé e 1 cavaleiro sentado no quadro do rugido,catastrofe,3,nao
+P2,S08_J37,O Sopro no Fole,fuligem,0,80,padrao,3,rosto preto em 1 quadro de cada 4,estrondo,3,nao
+P3,S08_J38,Zero Absoluto,congelou,0,90,padrao,2,bloco de gelo em 1 quadro de cada 5,estrondo,5,nao
+P4,S08_J39,Grito de Guerra,fora_do_ringue,0,90,padrao,2,fantasma na borda em 1 quadro de cada 3 depois de 45 s,catastrofe,5,nao
+P5,S08_J40,Palmas da Forja,lendaria,0,75,boa,1,a espada lendária acesa no último quadro,catastrofe,3,nao
+Q1,S09_J41,A Prova,virada,0,90,duplas,2,a cor do chão do meio troca entre 30 s e 60 s,golpe,4,nao
+Q2,S09_J42,Roubo de Bateria,caiu_na_porta,0,100,duplas,1,bateria no chão perto da base em pelo menos 1 quadro,estrondo,2,nao; sai a interferência
+Q3,S09_J43,Mecha de Dois Pilotos,autossoco,0,100,duplas,2,mecha com a cabeça torta em 1 quadro de cada 4,estrondo,5,nao
+Q4,S09_J44,Ruge o Reator,rugido_do_meio,50,54,boa,1,buracos na plataforma depois do rugido (mesa fraca),catastrofe,4,nao
+Q5,S09_J45,O Último Acorde,levanta,82,120,fraca,1,o dragão de pé num quadro e caído no último,catastrofe,4,nao
+R,RELAMPAGO,O Relâmpago,todos_falharam,0,180,fraca,1,os quatro bonecos sentados no mesmo quadro,estrondo,3,nao; uma cena por carta
