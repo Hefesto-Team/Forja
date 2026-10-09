@@ -346,7 +346,7 @@ func jogar(_dt: float) -> void:
 		_nota(l, e, agora)
 
 
-## A cada tempo: a háptica do lado que pende, 80 Hz por 30 ms ("pulso"), ganho
+## A cada tempo: a háptica do lado que pende, o "pulso" (`mod_pulso`, 120 Hz), ganho
 ## de 0 a 0,6 com a rolagem do controle de 0 a 0,25 rad; cala do meio tempo
 ## antes do pino até o pino (o batimento tem a vez).
 func _tempo(b: int) -> void:
@@ -1119,13 +1119,13 @@ no máximo 1,0.
 | a queda na lava | `Som.tocar("falha")` = `fx_tropeco_0..2` | TV, no boneco | −4 dB |
 | BOM e ÓTIMO | `mod_clique` (`Forja.som_falante(l, "clique", 0.4)`) | alto-falante do dono | ganho 0,4 |
 | PERFEITO e ERRO | `mod_nota_pN`, `mod_nota_quebrada_pN` (o kit) | alto-falante do dono | o do kit |
+| o lado que pende, a cada tempo | `mod_pulso` (`Forja.som_haptica(l, "pulso", "", g)` ou `("", "pulso", g)`) | o atuador do lado que desce | 0 a 0,6 |
 | o rangido, com o perigo ≥ 2 | `mod_material_metal` (`Forja.textura(l, "metal", 0.6)`) | atuadores do dono | 0,6 |
 | a textura do acerto | `mod_material_madeira` (o kit, `"material": "madeira"`) | atuadores do dono | o do kit |
 | o carimbo dos quatro | `car_acorde` (as reações) | TV e alto-falante | o do carimbo |
 
 A lava não tem id próprio no mapa: a queda usa `fx_tropeco`. O mapa ainda não
-tem J1 na coluna das fichas do `car_acorde` e do `mod_material_metal` nos
-atuadores.
+tem J1 na coluna das fichas do `car_acorde` e do `mod_pulso`.
 
 ## O controle
 
@@ -1134,7 +1134,7 @@ atuadores.
 | giroscópio e acelerômetro | toda nota | o dono | a rolagem, a arfagem, o volante e a pancada | o robô (`robo_girar`, `robo_sacudir`) e os vereditos |
 | vibração | o acerto e o erro | o dono | o kit (`acerto`, `perfeito`, `erro`) | o kit (H08) |
 | vibração | o empurrão a um passo da ponta (`perigo` 3) | o dono | `sentir(l, "aviso", 30000/bpm)` meio tempo antes | `percepcao(l).forte` 0,6 |
-| háptica | cada tempo | o dono | o lado que pende: `"pulso"` (80 Hz, 30 ms) no atuador do lado que desce, ganho 0,6 × \|rolagem\| / 0,25 | `som_virtual(l).esq > .dir` com a rolagem ≤ −0,15 rad |
+| háptica | cada tempo | o dono | o lado que pende: `"pulso"` (`mod_pulso`, 120 Hz) no atuador do lado que desce, ganho 0,6 × \|rolagem\| / 0,25 | `som_virtual(l).esq > .dir` com a rolagem ≤ −0,15 rad |
 | háptica | o perigo ≥ 2 | o dono | o rangido `textura(l, "metal", 0.6)` 1 tempo antes da nota (mais o Faro) | a linha `pista` `rangido` |
 | vibração | o pino dos quatro (todos em 400 ms) | cada um que cravou | o batimento: forte 1,0 por 120 ms, pausa de 120 ms, 0,7 por 120 ms; nada vibra do meio tempo antes até o pino | `percepcao(l).forte` 1,0, 0, 0,7 |
 | vibração | o pino sem os quatro, a queda | o dono | `sentir(l, "golpe")` | `percepcao(l).forte` 1,0 |
