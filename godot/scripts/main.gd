@@ -58,7 +58,6 @@ var _toca_titulo: AudioStreamPlayer
 var _mapa_titulo := {}
 var _titulo_pos_ant := 0.0
 var _titulo_voltas := 0
-var _conectados_no_titulo := -1  ## quantos lugares havia na última vez que o título achou os alto-falantes
 var _foco_do_titulo: CameraAttributesPractical
 var _robo_estado := ""
 var _robo_espera := 0.0
@@ -240,14 +239,14 @@ func _mostrar(qual: String) -> void:
 			Forja.gatilhos_off(l)
 	if qual == "titulo":
 		_t_titulo = 0.0
-		_conectados_no_titulo = -1
+		_som_de_quem = ""  # a placa se refaz no título (a construção a fechou ao sair)
 		titulo.play_desde = -1.0
 		_tocar_o_titulo()
 	elif qual == "lobby":
 		_toca_titulo = null
 		var m := Musica.mapa("MUS_TELA_CONSTRUCAO")
 		Ritmo.tocar("MUS_TELA_CONSTRUCAO", m.bpm, m.primeiro_tempo)
-		_conectados_no_titulo = -1  # o alto-falante de quem se senta é achado a cada quadro da construção
+		_som_de_quem = ""  # o alto-falante de quem se senta é achado a cada quadro da construção
 	elif qual != "intro":
 		_toca_titulo = null
 		Musica.tocar(sala_id if qual == "sala" else qual)
@@ -467,7 +466,8 @@ func _registrar_na_colecao(sj: SalaJogo) -> void:
 	for l in 4:
 		if sj.jogando[l]:
 			presentes.append(l)
-	var r := Colecao.registrar(sj.id, sj.pontos, presentes, sj.coop, sj.coop and sj.coop_venceu and sj.erros_do_grupo() == 0)
+	# a coleção fala pelo apelido do portão (H04): o slot do minigame (S01_J01) não acende portão
+	var r := Colecao.registrar(Catalogo.apelido(sj.id), sj.pontos, presentes, sj.coop, sj.coop and sj.coop_venceu and sj.erros_do_grupo() == 0)
 	for nome in r.desbloqueou:
 		Forja.aviso.emit("%s na forja" % nome)
 	if r.recorde >= 0:
@@ -756,11 +756,10 @@ func _quadro_titulo(dt: float) -> void:
 
 
 ## O alto-falante de cada controle com lugar, achado de novo quando um se senta
-## (o módulo só acha o som de quem já ocupa o lugar).
+## (o módulo só acha o som de quem já ocupa o lugar). A placa é uma só, a do
+## `_abrir_o_som`: refazê-la aqui de novo cortaria o pio de quem acabou de entrar.
 func _achar_os_alto_falantes() -> void:
-	if Forja.jogadores() != _conectados_no_titulo:
-		_conectados_no_titulo = Forja.jogadores()
-		Forja.som_preparar(Forja.PAPEL_ALTO_FALANTE)
+	_abrir_o_som()
 
 
 ## A energia da forja na batida (0..1): sobe com o `entrada` e cai em cada tempo.

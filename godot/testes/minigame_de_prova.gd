@@ -76,7 +76,8 @@ func jogar(_dt: float) -> void:
 		if Forja.apertou(l, Forja.CRUZ):
 			contagem[l][julgar_toque(l, alvo, n)] += 1
 			_proxima(l)
-		elif Ritmo.t_musica() > alvo + Ritmo.JANELA_BOM:
+		elif Ritmo.t_musica() - float(Ritmo.desvio[l]) > alvo + Ritmo.JANELA_BOM:
+			# a nota passa pela janela do lugar: o desvio calibrado (G02) a empurra junto
 			nota_perdida(l, n)
 			contagem[l][Ritmo.ERRO] += 1
 			_proxima(l)
@@ -100,7 +101,9 @@ func robo(l: int, _dt: float) -> void:
 	if _robo_nota[l] != n:
 		# o temperamento (--robo=bom|medio|ruim): quando não acerta, aperta tarde demais
 		_robo_nota[l] = n
-		_robo_mira[l] = MIRA[l] if Forja.robo_acerta() else 0.25
+		# o robô toca como o cavaleiro que a construção calibrou: atrasado o
+		# desvio do lugar (G02), que o Ritmo desconta; o julgamento vê a MIRA
+		_robo_mira[l] = (MIRA[l] + float(Ritmo.desvio[l])) if Forja.robo_acerta() else 0.25
 	if Ritmo.t_musica() >= Ritmo.t_da_batida(n) + float(_robo_mira[l]):
 		Forja.robo_apertar(l, Forja.CRUZ, 0.05)
 		_robo_apertou[l] = n
