@@ -637,7 +637,7 @@ func _forca(dt: float) -> bool:
 		var pc := Forja.percepcao(l)
 		var chegou := "aparelho"
 		if not pc.is_empty():
-			var esperado := float(_forca_atual[1]) * Opcoes.escala_vibracao(l)
+			var esperado := float(_forca_atual[1])  # sem a escala das opções (Forja.sentir_forca)
 			var certo := absf(float(pc.get("forte", 0.0)) - esperado) < 0.03 and absf(float(pc.get("fraco", 0.0)) - esperado) < 0.03
 			chegou = "chegou %.2f %.2f" % [float(pc.get("forte", 0.0)), float(pc.get("fraco", 0.0))]
 			_resultado(l, "forca", 0 if certo else 1, "força %.2f por %d ms (%s) · firmware %s" % [

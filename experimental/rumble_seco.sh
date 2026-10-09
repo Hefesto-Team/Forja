@@ -84,11 +84,11 @@ rm -f "$COMANDO" "$COMANDO.ok"
 JOGO=$!
 trap 'kill "$JOGO" 2>/dev/null || true' EXIT
 
-mandar() {  # escreve o comando e espera uma linha nova na resposta do jogo
+mandar() {  # $1 o comando, $2 quantos décimos de segundo esperar a resposta (padrão 100)
   local antes
   antes=$(wc -l < "$COMANDO.ok")
   printf '%s\n' "$1" > "$COMANDO.tmp" && mv "$COMANDO.tmp" "$COMANDO"
-  for _ in $(seq 1 100); do
+  for _ in $(seq 1 "${2:-100}"); do
     [[ $(wc -l < "$COMANDO.ok") -gt $antes ]] && return 0
     sleep 0.2
   done
@@ -96,8 +96,8 @@ mandar() {  # escreve o comando e espera uma linha nova na resposta do jogo
   return 1
 }
 
-# espera o jogo abrir (a primeira resposta é a de um comando de parar)
-mandar "parar $LUGAR"
+# espera o jogo abrir (a primeira vez importa os recursos e demora: até 2 minutos)
+mandar "parar $LUGAR" 600
 mandar "$LUGAR 0 20"
 FW="$(tail -1 "$COMANDO.ok" | awk '{print $5}')"
 echo "Firmware do controle: ${FW:-?}"
@@ -110,8 +110,11 @@ vibrar() {  # $1 modo, $2 força em %, $3 ms
     local b=$((255 * $2 / 100))
     "$SEND" --player "$PLAYER" --left "$b" --right "$b" --quiet
     sleep "$(awk -v ms="$3" 'BEGIN{printf "%.2f", ms/1000}')"
-    # parar o seco pelo caminho do jogo (o SDL manda o pacote de parar)
-    mandar "parar $LUGAR"
+    # parar o seco pelo mesmo forja-send: o pacote com os motores em zero sai sem
+    # os bits de rumble, o mesmo jeito com que o SDL para o dele. Pelo jogo não
+    # dá: o SDL_RumbleGamepad(0, 0) com o SDL já em zero não manda pacote nenhum
+    # (SDL_joystick.c, «Just update the expiration»), e o seco seguiria vibrando.
+    "$SEND" --player "$PLAYER" --left 0 --right 0 --quiet
   fi
 }
 

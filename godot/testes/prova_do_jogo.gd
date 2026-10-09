@@ -986,8 +986,10 @@ func _prova_das_sensacoes() -> void:
 		for linha in FileAccess.get_file_as_string(arq).split("\n"):
 			n += 1
 			var codigo: String = linha.split("#")[0]
-			var vibra_fora: bool = codigo.contains("Forja.vibrar(") and not arq.ends_with("/forja.gd")
-			if vibra_fora or codigo.contains("start_joy_vibration") or codigo.contains(".intensidade("):
+			var vibra_fora: bool = (codigo.contains("Forja.vibrar(") or codigo.contains("ctl.vibrar(")) and not arq.ends_with("/forja.gd")
+			# a força solta (F10) é exceção declarada: só o experimento `forca` da bancada a pede
+			var forca_fora: bool = codigo.contains("sentir_forca(") and not arq.ends_with("/forja.gd") and not arq.ends_with("/bancada.gd")
+			if vibra_fora or forca_fora or codigo.contains("start_joy_vibration") or codigo.contains(".intensidade("):
 				achados.append("%s:%d" % [arq.get_file(), n])
 	_esperar(achados.is_empty(), "nenhuma vibração fora da tabela de sensações (%s)" % [achados])
 	var piso := {"toque": [0.0, 0.45, 60], "acerto": [0.3, 0.6, 80], "perfeito": [0.5, 0.8, 100],

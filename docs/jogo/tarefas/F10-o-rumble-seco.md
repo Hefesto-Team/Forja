@@ -194,8 +194,9 @@ ela mesma manda: não segue para a parte B sem o resultado escrito).
 - **O lado do jogo**: o experimento `forca` na bancada (`godot/scripts/salas/bancada.gd`) vibra os dois
   motores numa força só, pelo caminho do SDL, e obedece a um arquivo de comandos (`--comando=ARQUIVO`:
   `LUGAR FORCA MS`, `parar LUGAR`, `fim`), respondendo no `ARQUIVO.ok` com o firmware. Para isso o
-  `forja.gd` ganhou `Forja.sentir_forca` (uma exceção declarada à tabela de sensações, só da bancada)
-  e `Forja.argumento`. Fica de fora do `rodar.sh` padrão (precisa do `--comando`).
+  `forja.gd` ganhou `Forja.sentir_forca` (uma exceção declarada à tabela de sensações, só da bancada,
+  e sem a escala das opções: o seco do `forja-send` não passa por ela, e o par só compara os dois modos
+  na mesma força) e `Forja.argumento`. Fica de fora do `rodar.sh` padrão (precisa do `--comando`).
 - **A régua**: `tests/prova_da_bancada.sh` roda o `forca` com um arquivo de cinco comandos (3 medidos,
   `parar`, `fim`; o jogo responde cinco linhas) e com `--defeitos=vibra-vizinho` (3 falham). Nenhum
   aparelho é tocado.
@@ -207,12 +208,17 @@ falham); `bash tests/prova_do_jogo.sh` verde, que ainda confere que só o `forja
 (uns 10 minutos por controle; um de firmware antigo, um novo e o Edge, se houver). Colar a linha que
 o roteiro imprime em `experimental/RESULTADOS.md` e avisar: se o seco vencer, vem a parte B.
 
-**Para a parte B (achados de leitura, não de execução):**
-- `forja_ds5_pack` (`src/forja_dualsense.c`) só liga `FORJA_FX_RUMBLE` quando um motor é diferente de
-  zero. Um pacote «de parar» sem esses bits não manda o motor parar no aparelho: a função nova
-  `forja_fx_rumble_seco` precisa mandar **um** pacote com o bit ligado e os dois motores em zero
-  antes de voltar ao pacote sem os bits (a ficha diz «sem os dois bits», o que deixaria o motor
-  ligado). O roteiro de hoje para o seco com `parar` pelo SDL; se o motor continuar vibrando depois de
-  um par, é este o sintoma.
-- O `forja-send` manda um pacote só e não para: o roteiro manda o parar pelo jogo (`SDL_RumbleGamepad`
-  em zero). Anotar no resultado se o motor parou sozinho.
+**Para a parte B (achados de leitura do SDL 3.4.14, não de execução):**
+- O SDL para o próprio rumble com um pacote **sem** os bits de rumble («Leaving emulated rumble bits off
+  will restore audio haptics», `SDL_hidapi_ps5.c`), nos dois modos (o suave, byte 38 `0x04`, e o antigo,
+  byte 0 `0x01`). O «sem os dois bits» da ficha para o seco segue o mesmo caminho; a conferir com o
+  aparelho na parte A (o roteiro para o seco assim).
+- O `SDL_RumbleGamepad(0, 0)` com o SDL já em zero não manda pacote nenhum (`SDL_joystick.c`, «Just
+  update the expiration»). Por isso o roteiro para o seco pelo próprio `forja-send --left 0 --right 0`, e
+  não pelo jogo; e a função nova da parte B não pode contar com um zero do SDL para parar o seco.
+
+**Conferência (leva 1, o-controle):** o roteiro parava o seco pelo jogo, o que não manda pacote (pela leitura, o seco
+seguiria vibrando e o par às cegas ficava viciado), e a força do jogo passava pela escala das opções da
+pessoa (com a vibração em 60%, o suave saía a 60% contra o seco inteiro). As duas coisas foram
+corrigidas: o seco para pelo `forja-send`, e `Forja.sentir_forca` ignora a escala. A prova do jogo
+passou a conferir que só a bancada chama `Forja.sentir_forca`.

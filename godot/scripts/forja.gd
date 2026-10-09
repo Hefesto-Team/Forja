@@ -516,11 +516,13 @@ func sentir(l: int, nome: String, ms := -1) -> bool:
 
 ## A vibração de uma força só nos dois motores, para a bancada (a medição às
 ## cegas do rumble seco, F10): `forca` 0..1, ou 0 para parar. Fora da tabela
-## de sensações de propósito, e só o experimento `forca` chama.
+## de sensações de propósito, e só o experimento `forca` chama. Sem a escala
+## das opções: o seco do forja-send não passa por ela, e o par às cegas só
+## compara os dois modos se a força for a mesma dos dois lados.
 func sentir_forca(l: int, forca: float, ms: int) -> bool:
 	_motor_ate[clampi(l, 0, 3)] = _agora + ms / 1000.0
-	evento("sensacao", l + 1, {"nome": "forca", "forca": forca, "escala": Opcoes.escala_vibracao(l), "ms": ms})
-	return vibrar(l, forca, forca, ms)
+	evento("sensacao", l + 1, {"nome": "forca", "forca": forca, "escala": 1.0, "ms": ms})
+	return ctl.vibrar(l, forca, forca, ms) if modulo else false
 
 
 ## O valor de um argumento da linha de comando (`--nome=valor`), ou `padrao`.

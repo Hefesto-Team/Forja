@@ -160,7 +160,8 @@ nada. O `forja-send` recusa o rádio de propósito: esta medição é no cabo.
 em dois terços dos pares de 75% e 100%, foi o mais forte **e** é o preferido
 para golpe e explosão) e a linha pronta para a seção `rumble-seco` do
 [RESULTADOS.md](RESULTADOS.md). Rode uma vez por controle (firmware antigo,
-novo e Edge, se houver). O jogo manda o parar do seco pelo SDL; se o motor
+novo e Edge, se houver). O seco para pelo próprio `forja-send` (um pacote com
+os motores em zero, sem os bits de rumble, como o SDL para o dele); se o motor
 continuar vibrando depois do par, anote: é um achado para a parte B da F10.
 
 ## As regras

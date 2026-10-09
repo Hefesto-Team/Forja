@@ -145,7 +145,10 @@ vibram de um lado só hoje:
 vibrando, `Forja.som_haptica` daquele lugar devolve -1 (rumble e háptica por
 áudio nunca juntos, suspeita (e) de [05](05-haptica-e-controle.md#por-que-o-háptico-está-fraco)). A prova do jogo confere com `grep` que nenhum
 outro script chama `Forja.vibrar`. Valores e o porquê em
-[05](05-haptica-e-controle.md#o-piso-de-força).
+[05](05-haptica-e-controle.md#o-piso-de-força). A única exceção declarada é
+`Forja.sentir_forca` (F10): a força solta nos dois motores, sem a escala das
+opções, que só o experimento `forca` da bancada pede (a medição às cegas do
+rumble seco); a prova confere que nenhum outro script a chama.
 
 ### O registro v2 — F06, H01, H02, G02, H07
 
