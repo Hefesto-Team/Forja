@@ -954,3 +954,48 @@ que não soou, o que soou alto demais e o que estalou.
   real (ou a H07 **feito** até o passo 7 e a H07b nova no quadro).
 - Commit sugerido (sem trailer):
   `feat: o som em todo evento — a placa aberta, o pio, a nota de cada um, o material, as rampas e a música que reage`
+
+## O que foi feito (leva 1, o-kit)
+
+- **O que entrou (C).** `sint_pio`, `sint_material` e a rampa de 20 ms (`rampa.c`, usada pelo
+  mixer; o `mixer_parar_tudo` agora desce suave); os sons do controle ganham o pio de cada
+  boneco, a nota do lugar, a nota quebrada, a coleta e o material (`sons_salas`); o registro
+  `som_controle` (lugar, `seq`, papel, som, ganho, placa) e um som por vez no alto-falante
+  (`som_controle.c`, `forja_som.cpp`).
+- **O que entrou (Godot).** A placa de áudio abre na entrada do lugar e fica aberta pelas salas,
+  pelo pódio e pelo salão (`Forja.som_pronto()`; o `sair()` das salas e o pódio deixaram de
+  encerrar); o pio de quem entrou e o clique baixinho de quem navega (`main.gd`); o perfeito
+  toca a nota do lugar, o erro a nota quebrada, e a textura do material vai para o controle
+  (`Forja.tocar_material`, `minigame.gd`); a música tem um barramento com passa-baixa e
+  `Musica.reagir()` (erro abafa, perfeito abaixa 2 dB, combo de 8 perfeitos seguidos).
+- **A coleta (passo 11).** Nenhuma sala de hoje toca coleta na TV para um lugar (só a moeda
+  visual do baú da viga, sem som); o som `coleta` ficou pronto para os minigames novos.
+- **O `seq` é um só por lugar.** O `som_controle` usa o contador das saídas da F06, como a
+  ficha manda, e a prova da sequência passou a contar `saida` e `som_controle` numa ordem só
+  («toda saída e todo som no controle têm seq, de 1 em 1 por lugar»); o 13 diz o mesmo.
+- **Provas.** C: `compilar.sh testes` verde (rampa de 20 ms, pio sem estourar, material por
+  nome). Jogo: `prova_do_jogo` verde (pio por entrada no lobby, a placa dos quatro aberta
+  na entrada, nas salas e no pódio, o P3 volta do cabo com o alto-falante, a música que reage,
+  o registro `som_controle` com pio, nota e material). Mordidas, devolvidas e verdes: no C,
+  a rampa de saída 20 para 40 ms reprovou «a rampa de saída leva 20 ms» e o normalizar do pio
+  de 0,8 para 0,95 reprovou «o pio soa, sem estourar»; no jogo, o pio tirado reprovou
+  «P1 a P4 entrou: o pio no controle dele», o `reagir` vazio reprovou «o erro abafa» e «o
+  perfeito abaixa», a nota do perfeito tirada reprovou «o pio de cada um e a nota do
+  perfeito», o `tocar_material` tirado reprovou «a textura do material chegou ao controle» e
+  o `som_encerrar` devolvido ao pódio reprovou «○ no pódio, a placa continua aberta» (as duas
+  últimas checagens entraram porque a primeira rodada de mordidas não as pegou).
+- **O portão do som (aviso)** foi de 166 para 169 achados: ids novos com parâmetro
+  (`pio:`, `nota:`, `material:`) que o mapa do áudio escreve de outro jeito (`pio_p{N}_...`,
+  `mod_material_*`, `mod_nota_quebrada_p1..p4`).
+- **A validar por ela.** (1) O mapa do áudio e a ficha divergem no pio: a ficha manda um pio
+  por boneco (`pio:<boneco>`, 12), o mapa tem um por lugar e intervalo; o código segue a
+  ficha. (2) A receita `apito` já existia (2400 Hz) e virou a da ficha (2093 Hz, H06).
+  (3) Com o motor do rumble ativo, `Forja.som_haptica` devolve -1 sem tocar e o
+  `tocar_material` ainda toca o falante.
+- **Achado, não feito.** Nada corta sem rampa, mas o roubo de voz do mixer (sem voz livre,
+  `MIX_MAX_VOZES` = 48) ainda corta de uma vez; a ficha não mandou mudar. E a checagem do
+  kit «P2 ótimo em 8 de 12» oscilou uma vez com a máquina carregada (robô por tempo de
+  quadro), verde nas outras três rodadas.
+- **Fica para a mão.** A seção «Para o André (local)»: pio só no controle de quem entrou,
+  clique da navegação, nota e música no perfeito, erro abafado, textura no cabo e vibração
+  no rádio; `scripts/gauntlet.sh`, `tests/prova_de_poucos.sh`, `./run-local.sh`.

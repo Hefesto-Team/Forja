@@ -186,8 +186,8 @@ Os tipos, e quem os escreve:
 | tipo | campos | quem |
 | --- | --- | --- |
 | `conexao` | `transporte` (`"usb"`, `"bt"`, `"virtual"` para o simulado, `"desconhecido"`), `firmware` (ex.: `"0x0224"`), `rumble_escala_cheia` (se o SDL manda o rumble sem o corte pela metade), `vid_pid`; `"evento": "reservou"` quando o lugar é dado na conexão (F04) | F05 (firmware), F06 (o resto), F04 (reserva) |
-| `saida` | `seq` (por lugar, cresce, nunca repete), `o` (`vibracao`, `gatilho`, `lightbar`, `leds_jogador`, `player_index`, `led_microfone`, `audio_hid`), os valores, `ok` | F06 (C) |
-| `som_controle` | `seq`, `papel` (`alto_falante`/`haptica`), `som`, `ganho`, `placa` (`true`/`false`) | H07 (C) |
+| `saida` | `seq` (por lugar, cresce, nunca repete; é o mesmo contador do `som_controle`), `o` (`vibracao`, `gatilho`, `lightbar`, `leds_jogador`, `player_index`, `led_microfone`, `audio_hid`), os valores, `ok` | F06 (C) |
+| `som_controle` | `lugar`, `seq` (o mesmo contador por lugar das `saida`, uma ordem só), `papel` (`alto_falante`/`haptica`), `som` (o nome que o jogo pediu; na háptica `esquerdo\|direito` quando os dois lados diferem), `ganho`, `placa` (`true` se o lugar tinha alto-falante ou atuador; `false`: o som não saiu) | H07 (C) |
 | `sensacao` | `nome` (da tabela de sensações), `escala`, `ms` | F05 |
 | `minigame` | `slot`, `evento` (`comecou`/`terminou`), `vencedor` (o lugar 0..3, ou -1 no coop), `pontos`, `itens`, `duracao` | F03 |
 | `nota` | `slot`, `n` (índice), `t_alvo` (em tempo de música) | H01 |
@@ -404,6 +404,33 @@ e a sala antiga sai de `godot/scripts/salas/`.
 - A primeira moradora: `godot/scripts/minigames/s01/martelo_de_hefesto.gd`
   (A Centelha, `S01_J01`, «O Martelo de Hefesto», verbo «Bata!»). O minigame
   de prova do kit é `godot/testes/minigame_de_prova.gd` (`T00_J00`).
+
+### O som em todo evento — H07
+
+Todo evento tem som na TV **e** algo no controle do dono (docs/jogo/05).
+
+- **A placa fica aberta.** `Main._abrir_o_som()` abre a placa de áudio dos
+  controles quando muda quem está (`_sincronizar_jogadores`) e ela fica
+  aberta pelas salas, pelo placar e pelo pódio; as salas só abrem se ainda
+  não abriu (`Forja.som_pronto()`), e só as de som (`papel_som >= 0`)
+  refazem, porque deixam trocar o dispositivo. Um controle que cai e volta
+  refaz a placa (`_caiu` e `_ao_mudar_os_controles`), sem pio. Quem acabou
+  de entrar ouve o pio do cavaleiro (`pio:<boneco>`), só no controle dele.
+- **Um som por vez no alto-falante.** `somc_falante` leva o anterior daquele
+  alto-falante a zero pela rampa (`nativo/som/rampa.h`, `RAMPA_SAIDA_MS`
+  20 ms); `mixer_parar_tudo` também sai pela rampa. Os nomes novos do módulo:
+  `pio:<boneco>` (12), `nota:<lugar>`, `nota_quebrada:<lugar>`, `coleta`,
+  `material:<nome>` (o tipo C é `MaterialHaptico`: `Material` é nome do
+  godot-cpp; `plasma` é a lama).
+- **O GDScript.** `Forja.som_pronto()`; `Forja.tocar_material(l, material,
+  sensacao, forca)`: no cabo, a onda nos atuadores e, mais baixa, no
+  alto-falante; sem placa, o rumble, nunca os dois. `Musica.reagir(evento)`
+  em cima do barramento `Musica` (passa-baixa): o erro abafa por 300 ms, o
+  perfeito abaixa 2 dB por 80 ms, o combo (`Minigame.COMBO`, oito perfeitos
+  seguidos do lugar) sobe 1,5 dB por 2 s. No kit, `_reagir` toca a nota
+  limpa do lugar no perfeito, a quebrada no erro, e o material no acerto.
+- **A navegação** (`Main._passo`) clica baixinho (`clique`, 0,5) no controle
+  de quem navegou.
 
 ### Os acréscimos das telas — G01 a G08
 
