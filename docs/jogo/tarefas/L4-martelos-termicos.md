@@ -11,11 +11,13 @@ sente os dois lados de uma vez. O Cerco defende o lado que vem; aqui se ataca o 
 ## Ler antes
 
 - [O molde de minigame](molde-de-minigame.md) (a FICHA, os ganchos, o que o kit dá pronto)
-- [`cenario_do_impacto.gd`](../../../godot/scripts/minigames/s04/cenario_do_impacto.gd) (o cenário comum que a L1 criou)
-- [`o_cerco.gd`](../../../godot/scripts/minigames/s04/o_cerco.gd) (o modelo: o hoqueto, a pista de um lado, o robô, o `momento`)
+- [L1 — O Cerco](L1-o-cerco.md): o cenário comum inteiro (o `escuro`, a lanterna da vida, o exagero) está em
+  «A cena», no código de `cenario_do_impacto.gd`; o modelo (o hoqueto, a pista de um lado, o robô, o `momento`) está em «Como se joga»,
+  «O controle» e «O robô». Se a L1 já entrou, valem `cenario_do_impacto.gd` e `o_cerco.gd` em
+  `godot/scripts/minigames/s04/`.
 
 O resto (a bíblia de arte, o mapa do áudio, a régua da diversão, o RPG) está copiado nesta ficha, com os números.
-Onde o índice da seção (`L-o-impacto.md`) dá uma cor em hex ou outra câmera, vale o `cenario_do_impacto.gd`.
+Onde o índice da seção (`L-o-impacto.md`) dá uma cor em hex ou outra câmera, vale a L1 (o `cenario_do_impacto.gd`).
 
 ## Arquivos que mudam
 
@@ -194,7 +196,8 @@ Quando as duas quentes de uma nota `AMBAS` são marteladas a até `JUNTOS_S`:
 - as duas cabeças se revelam (`TUNGSTENIO` 2,4 por 1 batida) e as duas chapas voam juntas (`_voo_da_dupla(l)`,
   em «A pilha»);
 - no ápice: `Efeitos.faiscas(self, apice, Tema.TUNGSTENIO, FAISCAS_DA_DUPLA, 1.4)`,
-  `Efeitos.anel(self, apice, Forja.cor_do_lugar(l), 0.6, Vector3.BACK)`,
+  `Efeitos.anel(self, apice, Forja.cor_do_lugar(l), 0.6, Vector3.BACK)` (depois da G15, que dá ao `anel` o
+  parâmetro `dono`, passe `l` no fim),
   `Som.tocar("martelo", apice, 0.0)` e `Som.tocar("golpe", apice, -2.0)`;
 - `CenarioDoImpacto.exagero(self, _cenario, "estrondo", jogador(l))` (0,05 m por 2 batidas, hit-stop de 3 quadros);
 - `CenarioDoImpacto.so_o_dono(self, l)` (a luz das outras raias cai 30 % por 1 batida);
@@ -392,7 +395,7 @@ oca quando martelada. `_preparar(l)` (na pista seguinte) volta as duas cabeças 
 escondidas.
 
 **O martelo certo** ainda põe `Efeitos.anel(self, pos_do_buraco + Vector3(0, 0.05, 0), Forja.cor_do_lugar(l), 0.52, Vector3.UP)`
-(o anel deitado que abre e some em 0,45 s, na cor do lugar) e `Efeitos.faiscas(self, pos_da_cabeca, Forja.cor_do_lugar(l), 12, 0.6)`.
+(o anel deitado que abre e some em 0,45 s, na cor do lugar; depois da G15, com o dono `l` no fim) e `Efeitos.faiscas(self, pos_da_cabeca, Forja.cor_do_lugar(l), 12, 0.6)`.
 
 ### A pilha
 
@@ -403,9 +406,10 @@ cavaleiro (z 1,4) não a cobre. A chapa `k` (0, 1, 2…) assenta em `y = CHAPA_Y
 - **Uma quente martelada:** a chapa nasce na cabeça e cai na pilha em 1 batida (`TRANS_QUAD`, `EASE_IN`).
 - **A dupla** (`_voo_da_dupla(l)`): as duas chapas nascem nas duas cabeças, sobem juntas ao ápice
   `(RAIAS[l] * 0.4, VOO_M, Z_BURACO)` em meia batida (`TRANS_QUAD`, `EASE_OUT`), batem (as faíscas, o anel e os
-  sons de «A dupla») e caem na pilha em meia batida (`TRANS_BOUNCE`, `EASE_OUT`). As duas acendem:
-  `emission_enabled = true`, `emission = Tema.TUNGSTENIO`, `emission_energy_multiplier` de 1,2 a 0 em 8 batidas
-  (3,7 s, `TRANS_SINE`). O rastro: a pilha fica até o fim.
+  sons de «A dupla») e caem na pilha em meia batida (`TRANS_BOUNCE`, `EASE_OUT`). As duas acendem pelo tema
+  (o portão 6 reprova `emission` escrito fora do `tema.gd`): `Tema.emissivo(mat, 1.2, "forja")` e
+  `create_tween().tween_method(func(e): Tema.emissivo(mat, e, "forja"), 1.2, 0.0, 8 * 60.0 / Ritmo.bpm)`
+  com `TRANS_SINE` (3,7 s). O rastro: a pilha fica até o fim.
 
 ### O que brilha e de quem é
 
@@ -416,9 +420,9 @@ cavaleiro (z 1,4) não a cobre. A chapa `k` (0, 1, 2…) assenta em `y = CHAPA_Y
 | o anel e as faíscas do martelo certo | o lugar | `Efeitos.anel` e `Efeitos.faiscas` na `Forja.cor_do_lugar(l)` |
 | os olhinhos das toupeiras | o mundo | 1,2 (o teto do mundo), `Tema.VIOLETA` |
 | a cabeça revelada | a forja | 2,4, `Tema.TUNGSTENIO`, por 1 batida |
-| o vapor da quente | ninguém | `Efeitos.faiscas(self, pos, Tema.TUNGSTENIO, 14, 0.6)` |
-| as chapas da dupla | o mundo | de 1,2 a 0 em 8 batidas, `Tema.TUNGSTENIO` |
-| as faíscas da dupla | o mundo | `Efeitos.faiscas(self, apice, Tema.TUNGSTENIO, 48, 1.4)` |
+| o vapor da quente | a forja | `Efeitos.faiscas(self, pos, Tema.TUNGSTENIO, 14, 0.6)` |
+| as chapas da dupla | a forja | `Tema.emissivo(mat, e, "forja")`, `e` de 1,2 a 0 em 8 batidas |
+| as faíscas da dupla | a forja | `Efeitos.faiscas(self, apice, Tema.TUNGSTENIO, 48, 1.4)` |
 | a fornalha | a forja | luz de 0 a 2,4, `Tema.TUNGSTENIO` |
 
 Nenhum hex fora dos tokens: o `#141018`, o `#4a4e5e`, o `#b0502a`, o `#ffd27a`, o `#e9e7f2` e o `#ff7a2a` de antes

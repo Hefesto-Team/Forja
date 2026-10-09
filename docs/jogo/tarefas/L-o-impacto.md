@@ -39,16 +39,17 @@ outras quatro o usam e não o copiam:
 
 | função | o que monta |
 | --- | --- |
-| `CenarioDoImpacto.montar(sala, escuro := 1.0)` | `Kit.arena(sala, 5, 3)`; `sala.atmosfera(#6fa8ff, #3b6bff, false, 30, 22, -7,8, 0,1 × escuro)`; o enchimento frio `#6b6fb0` em (0, 8, 3), energia 0,45 × escuro; duas tochas `#ffb070` em (±10, 2,4, −5), energia 0,8 × escuro. `escuro` 0,35 é o terror d'A Prensa: a luz da casa escurece, não troca ([11](../11-arte-e-personagens.md#as-regras-de-coerência), regra 7) |
-| `CenarioDoImpacto.sentinela(pai, pos, alvo, escala := 1.35)` | a `column` do kit virada para `alvo`, com o olho: uma caixa emissiva `#ff4a2a` — o modelo de monstro do 11 |
-| `CenarioDoImpacto.lanterna(pai, pos, cor, n := 5)` e `acender_lanterna(mats, acesas)` | o poste de ferro com `n` brasas (caixas) na cor do lugar: a vida no mundo |
+| `CenarioDoImpacto.montar(sala, escuro := 1.0)` | `Kit.arena(sala, 5, 3)`; a luz da S4 pela G15 (`Tema.luz_da_secao(4)`: névoa `#170e00`, preenchimento `#493400`, chave `#f8d096` em (0, 8, 3), energia 0,9 × escuro); duas tochas `Tema.TUNGSTENIO` em (±10, 2,4, −5), energia 0,8 × escuro. `escuro` 0,35 é o terror d'A Prensa: a luz da casa escurece, não troca ([11](../11-arte-e-personagens.md#as-regras-de-coerência), regra 7) |
+| `CenarioDoImpacto.sentinela(pai, pos, alvo, escala := 1.35)` | a `column` do kit virada para `alvo`, com o olho: uma caixa em `Tema.neon(Tema.VIOLETA, 1.2, "mundo")` — o modelo de monstro do 11 |
+| `CenarioDoImpacto.lanterna(pai, pos, l, n := 5)` e `acender_lanterna(mats, acesas, l)` | o poste de ferro com `n` brasas (caixas) na cor do lugar: a vida no mundo |
 | `CenarioDoImpacto.luz_com_brilho(l, brilho)` | a barra de luz na cor do lugar, com o brilho pedido e o piso de 40% |
 
 Cada minigame põe por cima o que é só dele (o vagão, a bomba, as toupeiras,
 as prensas) e usa do kit a raia (`raia(l)`, `acender_raia(l, forca)`,
 `posicionar(l)`), com as raias em x = −6, −2, 2, 6 e o boneco em
-`Z_JOGADOR` (1,4). A câmera é `"fixa"` em (0, 6,4, 10,8) olhando para
-(0, 1,0, −0,4), a d'O Impacto de hoje, salvo onde a ficha diz outra.
+`Z_JOGADOR` (1,4). A câmera é a arena do cinema (35 mm, plongée de 50°, a 13,5 m),
+`CenarioDoImpacto.pose_da_camera()`, salvo onde a ficha diz outra. Onde este
+índice e uma ficha L divergem, vale a ficha.
 
 ## A ordem
 

@@ -11,12 +11,14 @@ passa a acender a luz no caminho dos outros, menos no do líder, que fica no esc
 ## Ler antes
 
 - [O molde de minigame](molde-de-minigame.md) (a FICHA, os ganchos, o que o kit dá pronto)
-- [`cenario_do_impacto.gd`](../../../godot/scripts/minigames/s04/cenario_do_impacto.gd) (o cenário comum que a L1 criou: o `escuro`, a lanterna da vida, o exagero)
-- [`o_cerco.gd`](../../../godot/scripts/minigames/s04/o_cerco.gd) (o modelo: o hoqueto, a pista de um lado, o robô, o `momento`, o `_piscar`)
+- [L1 — O Cerco](L1-o-cerco.md): o cenário comum inteiro (o `escuro`, a lanterna da vida, o exagero) está em
+  «A cena», no código de `cenario_do_impacto.gd`; o modelo (o hoqueto, a pista de um lado, o robô, o `momento`, o `_piscar`) está em «Como se joga»,
+  «O controle» e «O robô». Se a L1 já entrou, valem `cenario_do_impacto.gd` e `o_cerco.gd` em
+  `godot/scripts/minigames/s04/`.
 
 O resto (a bíblia de arte, o mapa do áudio, a régua da diversão, o RPG, os princípios) está copiado nesta ficha, com
-os números. Onde o índice da seção (`L-o-impacto.md`) dá uma cor em hex ou outra câmera, vale o
-`cenario_do_impacto.gd`.
+os números. Onde o índice da seção (`L-o-impacto.md`) dá uma cor em hex ou outra câmera, vale a L1
+(o `cenario_do_impacto.gd`).
 
 ## Arquivos que mudam
 
@@ -202,7 +204,7 @@ vazia (de 2,75 a 3) e bate no chão: `Som.tocar("pedra", Vector3(0, 0, Z_JOGADOR
 - `CenarioDoImpacto.so_o_dono(self, l)` (a luz das outras raias cai 30 % por 1 batida);
 - a marca no chão: `Kit.caixa(self, Vector3(1.1, 0.01, 1.1), Vector3(x_do_lugar, 0.02, Z_JOGADOR), Kit.material(Tema.JANELA, 0.0, 1.0))`,
   `queue_free` depois de `MARCA_BATIDAS` (8 batidas, 4 s);
-- **fora do treino:** `vida[l] -= 1`, `CenarioDoImpacto.acender_lanterna(_lanternas[l], vida[l])`, `_pisca[l] = CenarioDoImpacto.PISCA_MAX`
+- **fora do treino:** `vida[l] -= 1`, `CenarioDoImpacto.acender_lanterna(_lanternas[l], vida[l], l)`, `_pisca[l] = CenarioDoImpacto.PISCA_MAX`
   (depois do piscar do kit, a barra vai a `BRILHO[vida[l]]`), a brasa perdida voa (`_voo_da_brasa(l)`, em «A cena»)
   e `momento("esmagado", l, Vector3(RAIAS[l] * PUXA_PARA_O_MEIO, 0.0, Z_JOGADOR - 1.0), VOO_M, {"vida": vida[l], "fantasma": vida[l] == 0})`;
 - **no treino:** só achata; nada se perde e não há `momento`.
@@ -428,7 +430,7 @@ com 0,8 × 0,35. O terror escurece a luz da casa, não troca de cor. Aos 60 s, a
 **O voo da brasa** (`_voo_da_brasa(l)`): a brasa nasce na brasa da lanterna que apagou, sobe ao ápice
 `(RAIAS[l] * 0.4, VOO_M, Z_JOGADOR - 1.0)` em meia batida (`TRANS_QUAD`, `EASE_OUT`), solta
 `Efeitos.faiscas(self, apice, Forja.cor_do_lugar(l), FAISCAS_DO_ESMAGADO, 1.4)` no ápice, cai ao chão em
-`(RAIAS[l] * 0.4, 0.15, Z_JOGADOR - 1.0)` em meia batida (`TRANS_BOUNCE`, `EASE_OUT`), apaga (o emissivo a 0 e o
+`(RAIAS[l] * 0.4, 0.15, Z_JOGADOR - 1.0)` em meia batida (`TRANS_BOUNCE`, `EASE_OUT`), apaga (`Tema.emissivo(m, 0.0, l)` e o
 albedo `Tema.GRAFITE`) e some junto com a marca, depois de `MARCA_BATIDAS`.
 
 Quem foge usa `gesto("jump", 0.5)`; o resto do tempo, `idle`; o esmagado, `gesto("fall", 0.5)`; o fantasma,

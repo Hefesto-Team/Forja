@@ -11,11 +11,13 @@ não sabem e escolhe para quem passar. Quatro rodadas; vence quem estourou menos
 ## Ler antes
 
 - [O molde de minigame](molde-de-minigame.md) (a FICHA, os ganchos, o que o kit dá pronto)
-- [`cenario_do_impacto.gd`](../../../godot/scripts/minigames/s04/cenario_do_impacto.gd) (o cenário comum que a L1 criou)
-- [`o_cerco.gd`](../../../godot/scripts/minigames/s04/o_cerco.gd) (o modelo: a pista, o robô, o `momento`, o empurrão)
+- [L1 — O Cerco](L1-o-cerco.md): o cenário comum inteiro (o `escuro`, a lanterna da vida, o exagero) está em
+  «A cena», no código de `cenario_do_impacto.gd`; o modelo (a pista, o robô, o `momento`, o empurrão) está em «Como se joga»,
+  «O controle» e «O robô». Se a L1 já entrou, valem `cenario_do_impacto.gd` e `o_cerco.gd` em
+  `godot/scripts/minigames/s04/`.
 
 O resto (a bíblia de arte, o mapa do áudio, a régua da diversão, o RPG) está copiado nesta ficha, com os números.
-Onde o índice da seção (`L-o-impacto.md`) dá uma cor em hex ou outra câmera, vale o `cenario_do_impacto.gd`.
+Onde o índice da seção (`L-o-impacto.md`) dá uma cor em hex ou outra câmera, vale a L1 (o `cenario_do_impacto.gd`).
 
 ## Arquivos que mudam
 
@@ -341,7 +343,7 @@ A da seção (mostarda, lado A), posta pelo `CenarioDoImpacto.montar(self)`: a n
 | --- | --- | --- | --- |
 | `barrel` (escala 0,7), num `Node3D` `bomba` | `jogador(_com).global_position + Vector3(0, 2.1, 0)` | a bomba | a peça |
 | o pavio: `Kit.caixa(0.05 × 0.3 × 0.05)` | `(0, 0.75, 0)` na bomba | o pavio | `Kit.material(Tema.GRAFITE, 0.0, 0.6)` |
-| a faísca do pavio: `Kit.caixa(0.09 × 0.09 × 0.09)` | `(0, 0.95, 0)` na bomba; escala `1.0 + 0.3 * absf(sin(PI * Ritmo.batida()))` (igual para todos: não conta o pavio) | a faísca | `Tema.neon(Tema.TUNGSTENIO, 1.2, "mundo")` |
+| a faísca do pavio: `Kit.caixa(0.09 × 0.09 × 0.09)` | `(0, 0.95, 0)` na bomba; escala `1.0 + 0.3 * absf(sin(PI * Ritmo.batida()))` (igual para todos: não conta o pavio) | a faísca | `Tema.neon(Tema.TUNGSTENIO, 1.2, "forja")` |
 | seis fios: `Kit.caixa(0.06 × 0.06 × 3.0)` | `(-7.5 + 3.0 * k, 0.05, -2.5)` | o fosso de fios atrás das raias | `Kit.material(Tema.GRAFITE, 0.0, 0.6)` |
 | a marca do estouro: `Kit.caixa(1.4 × 0.01 × 1.4)` | `(RAIAS[l], 0.02, Z_JOGADOR - 0.3)`; a segunda na mesma raia 0,2 m para trás | o rastro (até o fim) | `Kit.material(Tema.JANELA, 0.0, 1.0)` |
 | a fumaça do caído | `Efeitos.poeira(self, jogador(l).global_position + Vector3(0, 0.6, 0), Vector3(0.8, 1.2, 0.8), Tema.GRAFITE, 16)` | o rastro (até a rodada seguinte) | — |
@@ -355,9 +357,9 @@ Quem segura usa `animar("holding-right")`; os outros, `idle`.
 | --- | --- | --- |
 | o contorno do cavaleiro | o lugar | 2,4 (G08) |
 | a borda da raia (`acender_raia`) | o lugar | o kit: 2,0, e 2,6 no acerto por 4 quadros |
-| a faísca do pavio | o mundo | 1,2 (o teto), `Tema.TUNGSTENIO` |
-| as faíscas dos fios | ninguém | `Efeitos.faiscas(self, fio_sorteado, Tema.TUNGSTENIO, 10, 0.5)` a cada compasso |
-| as faíscas do estouro | o mundo | `Efeitos.faiscas(self, pos, Tema.TUNGSTENIO, 60, 1.6)` |
+| a faísca do pavio | a forja | 1,2, `Tema.TUNGSTENIO` |
+| as faíscas dos fios | a forja | `Efeitos.faiscas(self, fio_sorteado, Tema.TUNGSTENIO, 10, 0.5)` a cada compasso |
+| as faíscas do estouro | a forja | `Efeitos.faiscas(self, pos, Tema.TUNGSTENIO, 60, 1.6)` |
 | as faíscas do passe certo | o lugar | `Efeitos.faiscas(self, pos_da_bomba, Forja.cor_do_lugar(l), 12, 0.6)`, 2,4 por 12 quadros |
 
 Nenhum hex fora dos tokens: o `LARANJA`, o `#ffb000`, o `#3a3a44` e o `#6fa8ff` de antes somem. Nada é metálico e

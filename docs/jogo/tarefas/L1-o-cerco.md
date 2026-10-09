@@ -15,7 +15,8 @@ faz a sala gritar, e é o primeiro minigame da seção: muda a sala para o kit e
 - [O índice da seção](L-o-impacto.md) (o que fica fora destas fichas)
 
 O resto (a bíblia de arte, o mapa do áudio, a régua da diversão, o RPG) já está copiado nesta ficha, com os
-números. Não abra outro documento.
+números. Não abra outro documento. Onde o índice da seção dá uma cor em hex, outra câmera ou outra assinatura (a
+`lanterna(pai, pos, cor, ...)` de lá), vale esta ficha.
 
 ## Arquivos que mudam
 
@@ -270,7 +271,7 @@ cura, e metade das notas são duplas.
 
 Só com `Forja.bancada`. O `_bancada(dt)` é o `PAUSA`/`PERGUNTA`/`RESPOSTA` de hoje reduzido à cor: no começo
 do compasso 16 e do 32 (`Ritmo.batida() >= 4 * c`), `_iniciar_pergunta()` (com o evento `pergunta` da F01,
-`qual` = `"cor"`); em `PERGUNTA`, o laço de hoje (`impacto.gd:430-444`); em `RESPOSTA`, depois de 1,6 s,
+`qual` = `"cor"`); em `PERGUNTA`, o laço de hoje (`impacto.gd:432-447`); em `RESPOSTA`, depois de 1,6 s,
 `_luz_da_vida(l)` de cada um e `estado_bancada = JOGO`. Com a pergunta aberta, o `_piscar` não mexe na barra de
 luz e `_gerar_compasso` não gera nada nesses compassos. Fora da bancada, nenhum `pergunta()` devolve nada e o
 `lightbar` sai «não medido» (é o esperado: `SO_COM_PERGUNTA` da F01).
@@ -308,17 +309,17 @@ O que muda do `impacto.gd` de hoje, na ordem do arquivo:
 | `class_name SalaImpacto`, `extends SalaJogo`, o cabeçalho | `extends Minigame`, sem `class_name`, o cabeçalho de «A ficha de dados» |
 | `const F`, `RAIAS`, `Z_JOGADOR`, `POR_LADO`, `ONDAS`, `JANELA`, `GOLPE_MS`, `DANO`, `VIDA_MIN` | saem |
 | `enum { PAUSA, GOLPE, VOANDO, PERGUNTA, RESPOSTA, ACABOU }` | `enum { JOGO, PERGUNTA, RESPOSTA }` em `estado_bancada` (só a bancada sai de `JOGO`) |
-| `plano`, `i_plano`, `fim_onda`, `onda`, `atual`, `resposta`, `respondido` | `_notas := [[], [], [], []]`, `_gerado := 1`, `_fora := [false, false, false, false]`, `_ultima := [{}, {}, {}, {}]`, `_ultima_b := [0, 0, 0, 0]`, `_meio := [-1.0, -1.0, -1.0, -1.0]`, `_cenario := {}` |
+| `plano`, `i_plano`, `fim_onda`, `onda`, `atual`, `resposta`, `respondido` | `_notas := [[], [], [], []]`, `_gerado := 1`, `_fora := [false, false, false, false]`, `_ultima := [{}, {}, {}, {}]`, `_ultima_b := [0, 0, 0, 0]`, `_meio := [-1.0, -1.0, -1.0, -1.0]`, `_lanternas := [[], [], [], []]`, `_cenario := {}` |
 | `_init()` | sai (a FICHA; a câmera vai para o `montar`) |
 | `montar()`, `_montar_raia()` | o de «A cena» |
 | `_novo_jogador()` | fica, sem `escudo_lado` de onda; `vida` vira `VIDA_MAX` (int); ganha `"perfeitos": 0`, `"pisca": 0.0`, `"volta": -1.0` (o t_musica em que o empurrão volta) |
 | `_cor_da_vida`, `_luz`, `_luz_da_vida` | `_luz_da_vida(l)` = `if CenarioDoImpacto.luz_com_brilho(l, BRILHO[j[l].vida]): j[l].luz_ok = true` |
 | `_conectado` | `conectado` (kit) |
 | `_iniciar_golpe`, `_resolver`, o `match estado` do `jogar` | `_avisar`, `_defender`, `toque`, `falha`, `_golpe_passou`, `_ariete` e o `jogar` de baixo |
-| `_mostrar_golpe` (276-300) | fica, com o projétil em caixa, as faíscas sem `Tema.AMARELO`/`Tema.VERMELHO` e sem `Som.tocar("falha")` (abaixo) |
+| `_mostrar_golpe` (277-300) | fica, com quatro trocas: o olho sai de 4,0 (linhas 284-285 e 296) para 1,2, o teto do mundo; o bloco das linhas 290-295 (`Som.tocar("bigorna")`, `falha`, `emote-no`) sai, porque o som e o gesto já moram em `toque`, `falha` e `_empurrar`; a bola `Kit.esfera` `#ff7a2a` vira a caixa 0,18 em `Tema.neon(Tema.VIOLETA, 1.2, "mundo")`; as faíscas viram `Forja.cor_do_lugar(l)` na defesa e `Tema.TUNGSTENIO` no golpe (sem `Tema.AMARELO`/`Tema.VERMELHO`) |
 | `_iniciar_pergunta`, `_alguem_pergunta`, `_fechar_pergunta`, `_precisa_mais_cor`, `pergunta()` | ficam iguais, **só na bancada** |
-| `dar_vereditos()` (456-469) | fica igual |
-| `_process` / `_mostrar` (474-516) | `_mostrar(l, dt)` chamado do fim do `jogar`: escudos, `?`, a lanterna (`acender_lanterna`); o `!` visível entre a pista e a resposta |
+| `dar_vereditos()` (459-472) | fica igual |
+| `_process` / `_mostrar` (477-522) | `_mostrar(l, dt)` chamado do fim do `jogar`: escudos, `?`, a lanterna (`CenarioDoImpacto.acender_lanterna(_lanternas[l], j[l].vida, l)`); o `!` visível entre a pista e a resposta |
 | `status()` | `""` quando `na_raia(l)` (o placar mora na lanterna); senão `super` |
 | `progresso()` | sai (a barra de tempo do kit) |
 | `dica()` | `{"partes": ["@l1", "@r1"], "pos": Vector3(RAIAS[l], 0.0, 4.6)}` quando `na_raia(l)` e `not aprendeu(l)`; senão `{}`. Sem palavra: durante o jogo, zero frase |
@@ -502,7 +503,7 @@ sai do quadro.
 
 ### A luz da seção
 
-S4 é a tinta mostarda (`Tema.SECAO[3]`, `#c79a2a`), lado A. `Tema.luz_da_secao(3, "A")` (G15) devolve a névoa
+S4 é a tinta mostarda (`Tema.tinta_da_secao(4)`, que é `Tema.SECAO[3]`, `#c79a2a`), lado A. `Tema.luz_da_secao(4)` (G15) devolve a névoa
 `#170e00`, o preenchimento `#493400` e a chave `#f8d096`. A névoa é do main (a G15 a põe pela seção do slot). O
 cenário comum põe o preenchimento (o `atmosfera` da sala) e a chave (uma `OmniLight3D` em `(0, 8, 3)`, energia
 0,9, alcance 26). As duas tochas do fundo, em `(±10, 2,4, −5)`, são `Tema.TUNGSTENIO`, energia 0,8, alcance 7.
@@ -547,7 +548,7 @@ momento.
 | a brasa acesa da lanterna | o lugar | 1,8 |
 | a luz da lanterna (`OmniLight3D` em cima dela) | o lugar | `0.6 + 0.06 * vida` (0,9 com 5 brasas), alcance 3,4 |
 | as faíscas da defesa | o lugar | `Efeitos.faiscas(self, ate, Forja.cor_do_lugar(l), 28, 1.0)` |
-| as faíscas do golpe que entra | o mundo | `Efeitos.faiscas(self, ate, Tema.TUNGSTENIO, 28, 1.0)` |
+| as faíscas do golpe que entra | a forja | `Efeitos.faiscas(self, ate, Tema.TUNGSTENIO, 28, 1.0)` |
 | o olho e o projétil da sentinela | o mundo | 1,2 (o teto do mundo), `Tema.VIOLETA` |
 | as tochas | a forja | `Tema.TUNGSTENIO`, luz 0,8 |
 
@@ -567,7 +568,7 @@ extends RefCounted
 ## arena, o exagero do impacto e os ganchos do cavaleiro. Os cinco minigames
 ## da seção montam com isto; o que é só de um fica no script dele.
 
-const SECAO := 3  ## Tema.SECAO[3], a mostarda
+const SECAO := 4  ## a S4: Tema.tinta_da_secao(4) é Tema.SECAO[3], a mostarda
 ## O brilho mínimo da barra de luz na seção (o piso do F04 é 30%).
 const BRILHO_MIN := 0.4
 ## O piscar de outra cor, no máximo (F04).
@@ -600,7 +601,7 @@ static func pose_da_camera(recuo := 1.0, olhar := CAMERA_OLHAR) -> Array:
 ## pico, tremor_ate, luz_ate}: o que `passar` e `exagero` mexem.
 static func montar(sala: SalaJogo, escuro := 1.0) -> Dictionary:
 	Kit.arena(sala, 5, 3)
-	var luz: Dictionary = Tema.luz_da_secao(SECAO, "A")
+	var luz: Dictionary = Tema.luz_da_secao(SECAO)
 	sala.atmosfera(luz.preenchimento, Tema.VIOLETA, false, 30, 22.0, -7.8, 0.35 * escuro)
 	var chave := OmniLight3D.new()
 	chave.position = Vector3(0, 8.0, 3.0)
@@ -729,9 +730,10 @@ static func lanterna(pai: Node3D, pos: Vector3, l: int, n := 5) -> Array:
 
 
 ## Acende as `acesas` primeiras brasas (1,8, as lâmpadas) e apaga as outras.
-static func acender_lanterna(mats: Array, acesas: int) -> void:
+## O brilho passa sempre pelo Tema.emissivo (o portão 6 reprova emission fora do tema.gd).
+static func acender_lanterna(mats: Array, acesas: int, l: int) -> void:
 	for k in mats.size():
-		(mats[k] as StandardMaterial3D).emission_energy_multiplier = 1.8 if k < acesas else 0.0
+		Tema.emissivo(mats[k], 1.8 if k < acesas else 0.0, l)
 
 
 ## A barra de luz do lugar na cor dele, com o brilho pedido (nunca abaixo de
@@ -751,7 +753,7 @@ hoje) é da G15, que passa os 17 materiais pelo `Tema.neon`: esta ficha não mex
   frente para as sentinelas) e `jogador(l).preso = true`.
 - As duas sentinelas de cada raia:
   `CenarioDoImpacto.sentinela(self, Vector3(RAIAS[l] + (-1.35 if lado == 0 else 1.35), 0.0, Z_JOGADOR - 1.45), Vector3(RAIAS[l], 0, Z_JOGADOR))`.
-- A lanterna da vida: `CenarioDoImpacto.lanterna(self, Vector3(RAIAS[l] + 1.25, 0, Z_JOGADOR + 0.45), l, VIDA_MAX)`
+- A lanterna da vida: `_lanternas[l] = CenarioDoImpacto.lanterna(self, Vector3(RAIAS[l] + 1.25, 0, Z_JOGADOR + 0.45), l, VIDA_MAX)`
   e a `OmniLight3D` da cor do lugar em cima dela.
 - O portão, o cavalete e o aríete: `_montar_cerco()`, com as peças e as caixas das tabelas acima.
 
@@ -834,7 +836,7 @@ func robo(l: int, _dt: float) -> void:
 		if _robo_lado[l] != 0:
 			Forja.robo_apertar(l, Forja.R1, 0.06)
 		_robo_alvo[l] = -1.0
-	# a bancada: a pergunta da cor, como hoje (impacto.gd:584-592), com _cor_mais_perto
+	# a bancada: a pergunta da cor, como hoje (impacto.gd:589-597), com _cor_mais_perto
 	if Forja.bancada and estado_bancada == PERGUNTA and j[l].cor_pedida >= 0 and j[l].cor_resposta < 0:
 		j[l].robo_cor = float(j[l].robo_cor) - _dt
 		if j[l].robo_cor <= 0.0:
@@ -843,7 +845,7 @@ func robo(l: int, _dt: float) -> void:
 ```
 
 O `robo_cor` vai para `0.7 + 0.8 * rng.randf()` quando a pergunta abre, e a `_cor_mais_perto` de hoje
-(`impacto.gd:595-604`) é copiada igual. Na defesa, o robô **não** lê a partitura: se a vibração não chegou ao
+(`impacto.gd:600-609`) é copiada igual. Na defesa, o robô **não** lê a partitura: se a vibração não chegou ao
 controle simulado, ele não defende. É a prova do caminho inteiro, e a do simulador: a mesma conta roda no
 controle simulado da prova do jogo e no da prova visual.
 

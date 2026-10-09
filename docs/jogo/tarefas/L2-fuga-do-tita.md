@@ -10,11 +10,13 @@ vez, e a vez de cada um **só a mão sabe** (o passo do titã chega no controle 
 ## Ler antes
 
 - [O molde de minigame](molde-de-minigame.md) (a FICHA, os ganchos, o que o kit dá pronto)
-- [`cenario_do_impacto.gd`](../../../godot/scripts/minigames/s04/cenario_do_impacto.gd) (o cenário comum que a L1 criou)
-- [`o_cerco.gd`](../../../godot/scripts/minigames/s04/o_cerco.gd) (o modelo: o hoqueto, a pista, o robô, o `momento`)
+- [L1 — O Cerco](L1-o-cerco.md): o cenário comum inteiro (o `escuro`, a lanterna da vida, o exagero) está em
+  «A cena», no código de `cenario_do_impacto.gd`; o modelo (o hoqueto, a pista, o robô, o `momento`) está em «Como se joga»,
+  «O controle» e «O robô». Se a L1 já entrou, valem `cenario_do_impacto.gd` e `o_cerco.gd` em
+  `godot/scripts/minigames/s04/`.
 
 O resto (a bíblia de arte, o mapa do áudio, a régua da diversão, o RPG) está copiado nesta ficha, com os números.
-Onde o índice da seção (`L-o-impacto.md`) dá uma cor em hex ou outra câmera, vale o `cenario_do_impacto.gd`.
+Onde o índice da seção (`L-o-impacto.md`) dá uma cor em hex ou outra câmera, vale a L1 (o `cenario_do_impacto.gd`).
 
 ## Arquivos que mudam
 
