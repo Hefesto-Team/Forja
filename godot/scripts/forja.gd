@@ -211,6 +211,7 @@ func _process(dt: float) -> void:
 	if assinatura != _assinatura_pads:
 		_assinatura_pads = assinatura
 		pads_mudaram.emit()
+	_voltar_a_cor()
 
 
 const _TECLAS := [
@@ -432,6 +433,8 @@ const SENSACOES := {
 	"aviso":     [0.6, 0.0,  200],
 	"golpe_esq": [1.0, 0.0,  250],
 	"golpe_dir": [0.0, 1.0,  250],
+	"toque_esq": [0.4, 0.0, 80],
+	"toque_dir": [0.0, 0.4, 80],
 	"fita":      [0.0, 0.3,  400],
 	"metal":     [0.0, 0.45,  40],
 }
@@ -470,12 +473,55 @@ func vibrar(l: int, forte: float, fraco: float, ms: int) -> bool:
 	return ctl.vibrar(l, forte * k, fraco * k, ms) if modulo else false
 
 
+const PISO_DA_LUZ := 0.3
+const PISCAR_MAX_S := 0.5
+var _piscar_ate := [0.0, 0.0, 0.0, 0.0]
+var _cor_pedida := [Color(0, 0, 0, 0), Color(0, 0, 0, 0), Color(0, 0, 0, 0), Color(0, 0, 0, 0)]
+
+
 func luz(l: int, cor: Color) -> bool:
-	return ctl.luz(l, cor) if modulo else false
+	if not modulo:
+		return false
+	_cor_pedida[l] = Color(cor.r, cor.g, cor.b, 1.0)
+	if _piscar_ate[l] > 0.0:
+		return true
+	return ctl.luz(l, luz_com_piso(cor, cor_do_lugar(l)))
 
 
 func luz_do_lugar(l: int) -> bool:
+	_cor_pedida[l] = Color(0, 0, 0, 0)
+	_piscar_ate[l] = 0.0
 	return ctl.luz_do_lugar(l) if modulo else false
+
+
+func piscar(l: int, cor: Color, s := 0.15) -> bool:
+	if not modulo:
+		return false
+	_piscar_ate[l] = _agora + clampf(s, 0.0, PISCAR_MAX_S)
+	return ctl.luz(l, luz_com_piso(cor, cor_do_lugar(l)))
+
+
+static func luz_com_piso(cor: Color, do_lugar: Color) -> Color:
+	var v := maxf(cor.r, maxf(cor.g, cor.b))
+	if v >= PISO_DA_LUZ:
+		return Color(cor.r, cor.g, cor.b, 1.0)
+	if v < 0.001:
+		cor = do_lugar
+		v = maxf(cor.r, maxf(cor.g, cor.b))
+	var k := PISO_DA_LUZ / maxf(v, 0.001)
+	return Color(cor.r * k, cor.g * k, cor.b * k, 1.0)
+
+
+func _voltar_a_cor() -> void:
+	for l in 4:
+		if _piscar_ate[l] <= 0.0 or _agora < _piscar_ate[l]:
+			continue
+		_piscar_ate[l] = 0.0
+		var c: Color = _cor_pedida[l]
+		if c.a <= 0.0:
+			ctl.luz_do_lugar(l)
+		else:
+			ctl.luz(l, luz_com_piso(c, cor_do_lugar(l)))
 
 
 func gatilho(l: int, lado: int, modo: int, a := 0, b := 0, c := 0) -> bool:
@@ -500,11 +546,16 @@ func leds_jogador(l: int, mascara: int) -> bool:
 
 
 func silencio(l: int) -> void:
+	_cor_pedida[l] = Color(0, 0, 0, 0)
+	_piscar_ate[l] = 0.0
 	if modulo:
 		ctl.silencio(l)
 
 
 func silencio_todos() -> void:
+	for l in 4:
+		_cor_pedida[l] = Color(0, 0, 0, 0)
+		_piscar_ate[l] = 0.0
 	if modulo:
 		ctl.silencio_todos()
 
@@ -740,8 +791,16 @@ func som_trocar(l: int, papel: int, direcao: int) -> void:
 		ctl.som_trocar(l, papel, direcao)
 
 
+var _ultimo_som := ["", "", "", ""]
+var _som_seq := [0, 0, 0, 0]
+
+
 func som_falante(l: int, som: String, ganho := 0.9) -> int:
-	return ctl.som_falante(l, som, ganho * Opcoes.volume_controle / 100.0) if modulo else -1
+	var r: int = ctl.som_falante(l, som, ganho * Opcoes.volume_controle / 100.0) if modulo else -1
+	if r >= 0:
+		_ultimo_som[clampi(l, 0, 3)] = som
+		_som_seq[clampi(l, 0, 3)] += 1
+	return r
 
 
 func som_haptica(l: int, esq: String, dir: String, ganho := 1.0) -> int:
@@ -773,7 +832,18 @@ func som_mic(l: int) -> Dictionary:
 
 
 func som_virtual(l: int) -> Dictionary:
-	return ctl.som_virtual(l) if modulo else {}
+	var d: Dictionary = ctl.som_virtual(l) if modulo else {}
+	if not d.is_empty():
+		d["som"] = _ultimo_som[clampi(l, 0, 3)]
+		d["som_seq"] = _som_seq[clampi(l, 0, 3)]
+	return d
+
+
+func textura(l: int, material: String, forca := 1.0) -> bool:
+	if not som_tem(l, PAPEL_HAPTICA):
+		return false
+	var nome := "material:" + material
+	return som_haptica(l, nome, "" if material == "gelo" else nome, forca) >= 0
 
 
 func mic_veredito(l: int, chave: String, dados: Dictionary) -> Dictionary:
