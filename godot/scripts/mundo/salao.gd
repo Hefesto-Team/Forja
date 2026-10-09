@@ -35,6 +35,9 @@ var bigorna: Node3D
 var _cenas := {}
 var _tochas: Array[OmniLight3D] = []
 var _t := 0.0
+var luz_da_forja: OmniLight3D  ## a luz de _bigorna(), fora de _tochas
+var pulso := -1.0  ## 0..1: o título e a introdução mandam; -1: tremula como as tochas
+var apagado := 0.0  ## 0..1: a Dissonância apaga tochas e forja
 
 
 func _ready() -> void:
@@ -52,7 +55,9 @@ func _process(dt: float) -> void:
 	# as tochas tremem, cada uma no seu passo
 	for i in _tochas.size():
 		var l := _tochas[i]
-		l.light_energy = 1.6 + 0.25 * sin(_t * 7.3 + i * 1.7) + 0.15 * sin(_t * 13.1 + i * 0.9)
+		l.light_energy = (1.6 + 0.25 * sin(_t * 7.3 + i * 1.7) + 0.15 * sin(_t * 13.1 + i * 0.9)) * (1.0 - apagado)
+	if luz_da_forja:
+		luz_da_forja.light_energy = ((0.5 + 3.0 * pulso) if pulso >= 0.0 else (1.6 + 0.25 * sin(_t * 7.3))) * (1.0 - apagado)
 
 
 func peca(nome: String, pos: Vector3, rot_y := 0.0, escala := K) -> Node3D:
@@ -310,7 +315,7 @@ func _bigorna() -> void:
 	forja.light_energy = 2.2
 	forja.omni_range = 7.0
 	bigorna.add_child(forja)
-	_tochas.append(forja)
+	luz_da_forja = forja
 	var acima := OmniLight3D.new()
 	acima.position = Vector3(0, 3.5, 0)
 	acima.light_color = Tema.ROSA

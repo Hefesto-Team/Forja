@@ -283,6 +283,11 @@ const EN := {
 	# o kit do minigame (H04)
 	"O Martelo de Hefesto": "Hephaestus's Hammer",
 	"Bata!": "Strike!",
+	# o título da fita (G01)
+	"Nenhum controle encontrado": "No controller found",
+	"Jogar no teclado": "Play on the keyboard",
+	"Gravar": "Record",
+	"Nove salas, quatro cavaleiros": "Nine rooms, four knights",
 }
 
 ## Os textos com número: [padrão, substituição] (a substituição usa $1, $2…).

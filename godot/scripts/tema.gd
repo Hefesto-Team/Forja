@@ -189,3 +189,62 @@ static func rotulo(texto: String, variante := "", tam := 0) -> Label:
 	if tam > 0:
 		l.add_theme_font_size_override("font_size", tam)
 	return l
+
+
+# --- a Fita Magnética (arte/02): os tokens e as quatro fontes que o título e a construção usam ---
+# Os mesmos nomes e hex de estudos/direcao/fita.gd. A G14 traz a paleta inteira e troca o Drácula de
+# cima; quando chegar, este bloco cede o lugar ao dela (os nomes não mudam).
+const FITA := Color("#0d0a16")        ## o fundo de tudo: a fita
+const CASCO := Color("#17121f")       ## o casco do cassete: o plástico
+const CASCO_ALTO := Color("#241c30")  ## o casco iluminado, a borda do plástico
+const GRAFITE := Color("#3a3346")     ## trilho, parafuso, linha estrutural
+const JANELA := Color("#07050c")      ## o vidro escuro da janela do cassete
+const SOMBRA := Color(0, 0, 0, 0.45)  ## a sombra deslocada de placa e etiqueta
+const ETIQUETA := Color("#efe4c8")    ## o papel da etiqueta, o texto claro
+const TINTA := Color("#1c1626")       ## a caneta sobre a etiqueta
+const TUNGSTENIO := Color("#ffd9a8")  ## a luz quente de lâmpada: luz, nunca traço
+const OXIDO := Color("#3b2a22")       ## a fita magnética em si
+const OXIDO_BRILHO := Color("#7a5640")  ## o óxido que pega luz
+const JOGADOR := [
+	Color("#29e6ff"),  ## P1 ciano
+	Color("#ff3ea5"),  ## P2 magenta
+	Color("#d4ff4a"),  ## P3 limão
+	Color("#ee9a1e"),  ## P4 âmbar
+]
+const SECAO := [
+	Color("#c8432f"),  ## 1 a forja: vermelhão
+	Color("#2f55c4"),  ## 2 cobalto
+	Color("#1f8a7e"),  ## 3 verde-petróleo
+	Color("#c79a2a"),  ## 4 mostarda
+	Color("#86409a"),  ## 5 ameixa
+]
+const _BUNGEE := "res://assets/fontes/Bungee-Regular.ttf"
+const _VT323 := "res://assets/fontes/VT323-Regular.ttf"
+const _ARCHIVO := "res://assets/fontes/ArchivoNarrow-wght.ttf"
+const _MARCADOR := "res://assets/fontes/PermanentMarker-Regular.ttf"
+
+
+static func _arquivo(caminho: String) -> Font:
+	if not _fontes.has(caminho):
+		_fontes[caminho] = load(caminho)
+	return _fontes[caminho]
+
+
+## Bungee: o nome da marca no cassete.
+static func bungee() -> Font:
+	return _arquivo(_BUNGEE)
+
+
+## VT323: o mostrador do videocassete e o contador.
+static func vt() -> Font:
+	return _arquivo(_VT323)
+
+
+## Archivo Narrow no peso pedido (500, 600 ou 700): o texto das dicas.
+static func archivo(peso := 500) -> Font:
+	return _variacao(_ARCHIVO, peso)
+
+
+## Permanent Marker: a caneta sobre a etiqueta.
+static func marcador() -> Font:
+	return _arquivo(_MARCADOR)

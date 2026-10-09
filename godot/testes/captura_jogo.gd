@@ -66,6 +66,9 @@ func _ready() -> void:
 func _roteiro_das_telas() -> Array:
 	return [
 		["espera", 70], ["foto", "titulo"],
+		["aperta", 0, Forja.CRUZ], ["espera", 60], ["foto", "play"],
+		["ate", func() -> bool: return jogo.estado == "intro" and jogo.intro.t >= 9.5], ["foto", "introducao"],
+		["ate", func() -> bool: return jogo.estado == "intro" and jogo.intro.t >= 18.0], ["foto", "introducao_armaduras"],
 		["aperta", 0, Forja.CRUZ], ["espera", 40],
 		["aperta", 0, Forja.CRUZ], ["aperta", 1, Forja.CRUZ], ["aperta", 2, Forja.CRUZ], ["espera", 40],
 		["aperta", 0, Forja.CRUZ], ["aperta", 1, Forja.DIREITA], ["aperta", 2, Forja.CIMA], ["espera", 50], ["foto", "lobby"],
@@ -183,10 +186,7 @@ func _roteiro_das_salas() -> Array:
 		],
 	}
 	var roteiro_salas: Array = [
-		["espera", 10], ["aperta", 0, Forja.CRUZ], ["espera", 40],
-		["aperta", 0, Forja.CRUZ], ["aperta", 1, Forja.CRUZ], ["aperta", 2, Forja.CRUZ], ["aperta", 3, Forja.CRUZ], ["espera", 10],
-		["aperta", 0, Forja.CRUZ], ["aperta", 1, Forja.CRUZ], ["aperta", 2, Forja.CRUZ], ["aperta", 3, Forja.CRUZ],
-		["ate", no_salao],
+		["ate", no_salao],  # o robô do fluxo (main.gd _robo) passa do título à construção
 	]
 	var pedidas := OS.get_environment("SALAS")
 	var salas: Array = Array(pedidas.split(",")) if pedidas != "" else ["centelha", "viga", "molde"]
@@ -217,10 +217,7 @@ func _roteiro_da_partida() -> Array:
 	var no_podio := func() -> bool:
 		return jogo.estado == "podio" and not jogo._trocando and jogo.placar._t > 2.0
 	var r: Array = [
-		["espera", 10], ["aperta", 0, Forja.CRUZ], ["espera", 40],
-		["aperta", 0, Forja.CRUZ], ["aperta", 1, Forja.CRUZ], ["aperta", 2, Forja.CRUZ], ["aperta", 3, Forja.CRUZ], ["espera", 10],
-		["aperta", 0, Forja.CRUZ], ["aperta", 1, Forja.CRUZ], ["aperta", 2, Forja.CRUZ], ["aperta", 3, Forja.CRUZ],
-		["ate", no_salao],
+		["ate", no_salao],  # o robô do fluxo (main.gd _robo) passa do título à construção
 		["posiciona", 0, Vector3(0.0, 0.05, 2.1), PI], ["espera", 40], ["foto", "partida_bigorna"],
 		["aperta", 0, Forja.QUADRADO], ["espera", 20], ["foto", "partida_escolha"],
 		["aperta", 0, Forja.DIREITA], ["espera", 10], ["aperta", 0, Forja.BAIXO], ["espera", 6], ["aperta", 0, Forja.DIREITA], ["espera", 6],
@@ -248,10 +245,10 @@ func _roteiro_da_partida() -> Array:
 func _roteiro_do_trailer() -> Array:
 	var r: Array = [
 		["espera", 200],
-		["aperta", 0, Forja.CRUZ], ["espera", 30],
-		["aperta", 0, Forja.CRUZ], ["aperta", 1, Forja.CRUZ], ["aperta", 2, Forja.CRUZ], ["aperta", 3, Forja.CRUZ],
+		["ate", func() -> bool: return jogo.estado == "intro"], ["espera", 240], ["aperta", 0, Forja.CRUZ],
+		["ate", func() -> bool: return jogo.estado == "lobby" and not jogo._trocando],
 		["espera", 60], ["aperta", 1, Forja.DIREITA], ["aperta", 2, Forja.BAIXO], ["espera", 50],
-		["aperta", 0, Forja.CRUZ], ["aperta", 1, Forja.CRUZ], ["aperta", 2, Forja.CRUZ], ["aperta", 3, Forja.CRUZ],
+		["ate", func() -> bool: return jogo.estado == "salao" and not jogo._trocando],
 		["espera", 150],
 	]
 	# cada sala: o aviso com o gesto, e o jogo andando (o robô joga)
@@ -267,7 +264,8 @@ func _roteiro_dos_extras() -> Array:
 		["espera", 70], ["foto", "titulo"],
 		["aperta", 0, Forja.TRIANGULO], ["espera", 70], ["foto", "creditos"],
 		["aperta", 0, Forja.CIRCULO], ["espera", 20],
-		["aperta", 0, Forja.CRUZ], ["espera", 40], ["aperta", 0, Forja.CRUZ], ["aperta", 1, Forja.CRUZ], ["espera", 30],
+		["aperta", 0, Forja.CRUZ], ["ate", func() -> bool: return jogo.estado == "intro" and jogo.intro.t > 1.0], ["aperta", 0, Forja.CRUZ], ["espera", 40],  # o PLAY, e o ✕ que pula a introdução
+		["aperta", 0, Forja.CRUZ], ["aperta", 1, Forja.CRUZ], ["espera", 30],
 		["foto", "lobby"],
 		["aperta", 1, Forja.TRIANGULO], ["espera", 10], ["aperta", 1, Forja.BAIXO], ["espera", 6],
 		["aperta", 1, Forja.ESQUERDA], ["espera", 20], ["foto", "opcoes"], ["fim"],

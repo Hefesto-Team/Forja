@@ -537,3 +537,37 @@ sugerido (sem trailer):
 ```
 feat: o título é a fita no deck, o PLAY na mão de quem apertou e a introdução sem texto
 ```
+
+## O que foi feito (leva 1, o-cavaleiro)
+
+- **O título** (`ui/tela_titulo.gd`, reescrito): o cassete em `_draw` (caixa, carretéis que giram, contador da noite), a forja desfocada
+  atrás (`CameraAttributesPractical` ligado só no título), a lente de 85 mm (`mundo/lente.gd`, `Lente.fov`), o push-in de 3 % em 8
+  compassos (parado com `Opcoes.tremor` desligado), a forja que pulsa na batida da faixa. Tudo por token do tema, sem `Label`.
+- **O PLAY e o pio:** ✕ ou Options dá o PLAY (`fx_play` na TV, a sensação `fita` na mão de quem apertou, o cassete desce) e o corte
+  espera o próximo tempo 1; qualquer dos cinco botões de um controle com lugar dá o pio dele (`Som.pio`, TV e alto-falante do dono,
+  `Forja.sentir(l, "toque")`). △ abre os créditos. O controle sem lugar que aperta ✕ ou Options se senta na hora
+  (`Forja.entrar`, registro «P%d entrou»), e o título acha de novo o alto-falante de cada controle a cada lugar que se ocupa
+  (`Forja.som_preparar`), porque o módulo só acha o som de quem já ocupa o lugar; `Forja.som_encerrar` ao sair.
+- **A introdução** (`ui/tela_intro.gd`, novo, estado `"intro"`): 24 s sem uma palavra, a Dissonância que apaga a forja, a estática,
+  as quatro armaduras que acendem aos 12,5, 14, 15,5 e 17 s, cada uma com a nota do lugar e uma martelada na mão do dono
+  (`Forja.sentir(l, "acerto")`); qualquer botão a pula depois de 0,5 s; só na primeira vez da sessão. Os bonecos ficam `preso` para
+  o `idle` não anular a pose da estática.
+- **O som:** `fx_play` e os 24 `pio_p?_*` entram em `godot/assets/sons/` (com `compress/mode=0` no `.import`) e `Som` toca por arquivo
+  do mapa (`Som.arquivo`, `tocar`, `no_controle`); as 25 linhas do `mapa.csv` passam a «no jogo»; `Musica.FAIXAS["titulo"]`.
+- **O robô** (`main.gd _robo`): no título aperta ✕ no primeiro lugar com controle após 3 s e repete a cada 3 s; no lobby, a cada
+  0,6 s, em cada lugar com controle que não está pronto; não pula a introdução. `Forja._robo_apertar_cru` acha o controle pela
+  reserva (o controle do lugar ainda não ocupado).
+- **Tokens:** o bloco da Fita no fim de `tema.gd` (só o que a G01 e a G02 usam) e `Desenho.caixa/carretel/contador`.
+- **As provas** (`prova_do_jogo.gd`, `captura_jogo.gd`, `prova_visual.gd`): o título deixa de ser um ✕ solto; o laço mede o PLAY na
+  mão do P1, o pio só no alto-falante do P1, o corte no tempo 1, as quatro armaduras, a martelada em cada mão e a duração de mais de
+  20 s. O laço do título espera pelo relógio de parede, porque a batida segue a placa de som e a prova, sem janela, anda mais
+  depressa que ela. Os roteiros de captura e a prova visual deixam o robô passar do título ao salão.
+- **Mordidas:** sem `Som.pio`, sem `Forja.sentir(l, "fita")` e sem o `sentir` da martelada, a prova reprova as três linhas; devolvidas
+  as três, verde nas duas rodadas.
+
+### O que fica para a mão
+
+Está em «Para o André (local)» acima. O que só a mão e a placa de vídeo provam: o título ao lado do `07_titulo.jpg`, o foco da forja
+atrás, a escuridão da introdução, o pio saindo só no controle que apertou e a martelada em cada mão. Atenção a um ponto novo: o
+primeiro ✕ de um controle que ainda não tinha lugar senta o controle e acha o alto-falante dele no mesmo quadro; com controle de
+verdade a procura de dispositivos de som (`pactl`) pode custar um instante antes do clunk. Conferir se o PLAY sai sem engasgo.

@@ -13,6 +13,8 @@ const CORRIDA := 6.8
 const ESCALA := 2.0
 const MODELOS := ["character-human", "character-orc"]
 const NOME_DO_MODELO := ["humano", "orc"]
+## O intervalo do pio de cada modelo (arte/03), alinhado com MODELOS.
+const INTERVALO_DO_MODELO := ["segunda", "quinta_baixo"]
 ## O que o boneco leva: o item da mão direita e o do braço esquerdo (peças do kit).
 const ITENS := [
 	{"nome": "mãos livres"},
@@ -53,6 +55,7 @@ var anim: AnimationPlayer
 var aro: MeshInstance3D
 var etiqueta: Label3D
 var _anim_atual := ""
+var _roupas: Array = []  ## [material do corpo, a cor que o _vestir deu], para o acender
 var _yaw := PI
 var _gesto := 0.0
 
@@ -114,6 +117,7 @@ func visual(m: int, item: int) -> void:
 		modelo = load("res://assets/kenney/%s.glb" % MODELOS[modelo_i]).instantiate()
 		modelo.scale = Vector3.ONE * ESCALA
 		add_child(modelo)
+		_roupas.clear()
 		anim = modelo.find_child("AnimationPlayer", true, false)
 		for nome in ["idle", "walk", "sprint"]:
 			if anim and anim.has_animation(nome):
@@ -163,7 +167,26 @@ func _vestir(n: Node) -> void:
 					var roupa: StandardMaterial3D = base.duplicate()
 					roupa.albedo_color = cor.lerp(Color.WHITE, 0.25)
 					mi.set_surface_override_material(s, roupa)
+					_roupas.append([roupa, roupa.albedo_color])
 		_vestir(filho)
+
+
+## A armadura apagada (0: o corpo em Tema.GRAFITE, sem o anel) ou acesa (1:
+## como o _vestir deixou). A G08 mantém este contrato no shader novo.
+func acender(k: float) -> void:
+	k = clampf(k, 0.0, 1.0)
+	for par in _roupas:
+		var m: StandardMaterial3D = par[0]
+		m.albedo_color = Tema.GRAFITE.lerp(par[1], k)
+	if aro:
+		aro.visible = k >= 0.5
+
+
+## Mostra ou esconde a cabeça (a malha "head-mesh" do boneco).
+func cabeca(visivel: bool) -> void:
+	var c := modelo.find_child("head-mesh", true, false) if modelo else null
+	if c is Node3D:
+		c.visible = visivel
 
 
 func _animar(nome: String, velocidade := 1.0) -> void:

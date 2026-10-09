@@ -508,6 +508,7 @@ const SENSACOES := {
 	"aviso":     [0.6, 0.0,  200],   # perigo um tempo antes
 	"golpe_esq": [1.0, 0.0,  250],   # o golpe que vem da esquerda: só o motor forte
 	"golpe_dir": [0.0, 1.0,  250],   # o da direita: só o motor fraco
+	"fita":      [0.0, 0.3,  400],   # o PLAY: o motor da fita girando na mão
 }
 var _agora := 0.0  ## o relógio do jogo (a soma dos quadros), para o motor e a háptica
 var _motor_ate := [0.0, 0.0, 0.0, 0.0]
@@ -1027,8 +1028,19 @@ func robo_apertar(l: int, botao: int, segundos := 0.09) -> void:
 
 func _robo_apertar_cru(l: int, botao: int, segundos: float) -> void:
 	var p := pad_do_lugar(l)
+	if p < 0:
+		p = _pad_da_reserva(l)
 	if modulo and p >= 0:
 		ctl.robo_apertar(p, botao, segundos)
+
+
+## O pad que reservou o lugar `l` (F04): um lugar só reservado ainda não tem pad,
+## e o ✕ do robô que o confirma tem de chegar ao controle que o reservou.
+func _pad_da_reserva(l: int) -> int:
+	for p in pads():
+		if int(p.get("reserva", -1)) == l:
+			return int(p.pad)
+	return -1
 
 
 ## O robô mexe num eixo. A mão de quem erra mais treme mais.
