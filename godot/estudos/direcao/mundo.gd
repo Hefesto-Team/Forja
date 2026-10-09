@@ -3,6 +3,8 @@ extends RefCounted
 ## cópia do colormap), o cavaleiro com o néon de dono, a luz e o pós da fita.
 
 const Fita := preload("res://estudos/direcao/fita.gd")
+const Corpo := preload("res://estudos/direcao/cavaleiro/corpo.gd")
+const Acento := preload("res://estudos/direcao/cavaleiro/acento.gd")
 const RAIZ := "res://estudos/direcao/kenney/%s.glb"
 const K := 2.0
 ## A escala de cada pacote sobre o K (a tabela do doc 14).
@@ -94,9 +96,11 @@ static func contornar(n: Node, cor: Color, largura := 0.012, energia := 2.4) -> 
 const MODELOS := ["character-male-b", "character-female-b", "character-male-e", "character-female-d"]
 
 
-## Um cavaleiro: o boneco do Mini Characters com o corpo na cor do lugar, o
-## aro de luz e o contorno na mesma cor; o anel de oito lados no chão, com as
-## lâmpadas do lugar (1 a 4) marcadas nele.
+## Um cavaleiro: o boneco do Mini Characters nas três peças (cabeça,
+## superior, inferior, cada uma na faixa de valor dela: 04, a peça se
+## distingue), o contorno e o aro na cor do lugar, o friso e a costura em
+## néon; o anel de oito lados no chão, com as lâmpadas do lugar (1 a 4)
+## marcadas nele.
 static func cavaleiro(pai: Node, lugar: int, pos: Vector3, yaw := 0.0, anim := "idle", t_anim := 0.3,
 		modelo := "", opcoes := {}) -> Node3D:
 	var cor: Color = Fita.JOGADOR[lugar]
@@ -108,7 +112,11 @@ static func cavaleiro(pai: Node, lugar: int, pos: Vector3, yaw := 0.0, anim := "
 	if modelo == "":
 		modelo = MODELOS[lugar]
 	var m := peca(raiz, "mini-characters/" + modelo, Vector3.ZERO)
+	var p := modelo.trim_prefix("character-")
+	var esq := Corpo.trocar(m, [p, p, p])
 	vestir(m, cor, opcoes)
+	if opcoes.get("acento", true):
+		Acento.vestir(esq, cor)
 	var ap: AnimationPlayer = m.find_child("AnimationPlayer", true, false)
 	if ap and ap.has_animation(anim):
 		ap.play(anim)
@@ -121,23 +129,56 @@ static func cavaleiro(pai: Node, lugar: int, pos: Vector3, yaw := 0.0, anim := "
 	return raiz
 
 
+## A cor de cada peça: a cabeça no colormap da cabeça (`personagem`), o
+## superior no de tecido, o inferior no de couro (o recolorir faz os três).
+const COLORMAP_DA_PARTE := {"body-sup": "tecido", "body-inf": "couro"}
+## A rugosidade de cada material (02, a escada de valor).
+const RUGOSIDADE := {"head": 0.90, "body-sup": 0.85, "body-inf": 0.70}
+static var _colormaps := {}
+
+
+static func colormap(parte: String) -> Texture2D:
+	if not _colormaps.has(parte):
+		var caminho := "res://estudos/direcao/kenney/mini-characters/Textures/colormap-%s.png" % parte
+		var img := Image.load_from_file(ProjectSettings.globalize_path(caminho))
+		_colormaps[parte] = ImageTexture.create_from_image(img)
+	return _colormaps[parte]
+
+
+## Veste as peças do cavaleiro: a textura da faixa de cada uma, o aro de luz a
+## 0,25, o contorno de 0,012 na cor do lugar (energia 1,6 na montagem, 2,4 no
+## jogo: 07, a tabela do brilho). O corpo nunca se tinge.
+##   opcoes: aro, contorno (bool), largura, energia, pele (Color, a pele da
+##   raça na mão e na perna de fora)
 static func vestir(m: Node, cor: Color, opcoes := {}) -> void:
 	for filho in m.find_children("*", "MeshInstance3D", true, false):
 		var mi: MeshInstance3D = filho
+		var nome := String(mi.name)
+		if not (nome in ["head", "body-sup", "body-inf", "head-mesh", "body-mesh"]):
+			continue
 		suavizar(mi)
-		var corpo := String(mi.name).begins_with("body")
+		var corpo := nome.begins_with("body")
 		for s in mi.mesh.get_surface_count():
 			var base: StandardMaterial3D = mi.mesh.surface_get_material(s)
 			var sm := ShaderMaterial.new()
 			sm.shader = Fita.SH_CAVALEIRO
-			sm.set_shader_parameter("textura", base.albedo_texture)
+			var tex: Texture2D = base.albedo_texture
+			if COLORMAP_DA_PARTE.has(nome):
+				tex = colormap(COLORMAP_DA_PARTE[nome])
+			sm.set_shader_parameter("textura", tex)
 			sm.set_shader_parameter("tinta", cor)
-			sm.set_shader_parameter("tingir", 1.0 if corpo and opcoes.get("tingir", true) else 0.0)
+			sm.set_shader_parameter("tingir", 0.0)
+			sm.set_shader_parameter("brilho_proprio", 0.0)
 			sm.set_shader_parameter("aro_cor", cor)
-			sm.set_shader_parameter("aro", float(opcoes.get("aro", 0.6)))
-			sm.set_shader_parameter("brilho_proprio", float(opcoes.get("brilho", 0.10)) if corpo else 0.0)
+			sm.set_shader_parameter("aro", float(opcoes.get("aro", 0.25)))
+			sm.set_shader_parameter("rugosidade", float(RUGOSIDADE.get(nome, 0.9)))
+			sm.set_shader_parameter("pele_uv", Vector4(Fita.PELE_UV.position.x, Fita.PELE_UV.position.y,
+				Fita.PELE_UV.end.x, Fita.PELE_UV.end.y))
+			if corpo and opcoes.has("pele"):
+				sm.set_shader_parameter("pele", opcoes.pele)
+				sm.set_shader_parameter("pele_ativa", 1.0)
 			if opcoes.get("contorno", true):
-				sm.next_pass = Fita.contorno(cor, float(opcoes.get("largura", 0.014)), float(opcoes.get("energia", 1.6)))
+				sm.next_pass = Fita.contorno(cor, float(opcoes.get("largura", 0.012)), float(opcoes.get("energia", 1.6)))
 			mi.set_surface_override_material(s, sm)
 
 

@@ -104,12 +104,31 @@ static func marcador() -> Font:
 ##   sat:  quanto do croma fica
 ##   tinge: quanto croma de violeta entra (em unidades de OKLab)
 ##   l0, l1: a luz nova vai de l0 (o preto da Kenney) a l0 + l1 (o branco)
+## O teto de croma das peças é 0,098: 0,10 menos a folga do sRGB de 8 bits
+## (a 0,100 exato, o arredondamento do PNG dava 0,101).
+const DE_JOGADOR := 0.085      ## a distância mínima da peça até um JOGADOR (0,08 e a folga do sRGB)
 const GRADE := {
 	"cenario": {"sat": 0.30, "tinge": 0.024, "l0": 0.16, "l1": 0.28},   ## chão e parede: escuros, frios, foscos
 	"maquina": {"sat": 0.42, "tinge": 0.024, "l0": 0.18, "l1": 0.42},   ## fliperamas e móveis do estúdio
 	"objeto": {"sat": 0.40, "tinge": 0.0, "l0": 0.22, "l1": 0.56},    ## o que se joga (bigorna, martelo): um degrau acima
-	"personagem": {"sat": 0.80, "tinge": 0.006, "l0": 0.06, "l1": 0.86},  ## pele e cabelo quase como vieram
+	"personagem": {"sat": 0.80, "tinge": 0.006, "l0": 0.06, "l1": 0.86, "teto": 0.098},  ## pele e cabelo quase como vieram
+	"tecido": {"sat": 0.55, "tinge": 0.0, "l0": 0.46, "l1": 0.12, "teto": 0.098},  ## o tronco superior (02, a escada de valor)
+	"couro": {"sat": 0.40, "tinge": 0.0, "l0": 0.22, "l1": 0.14, "teto": 0.098},   ## o tronco inferior: couro e lona
 }
+
+## A pele no colormap dos Mini Characters: as três rampas de pele ficam nas
+## colunas de x 336 a 511 e nas linhas de y 380 a 511 (medido nos 12, 09/10).
+## No tecido e no couro, esses pixels ficam com a graduação da cabeça (a mão
+## tem a cor do rosto); numa raça, o shader troca a pele pela pele dela.
+const PELE_UV := Rect2(330.0 / 512.0, 380.0 / 512.0, 182.0 / 512.0, 132.0 / 512.0)
+
+# --- as peles das raças (02, as peles das raças): na faixa do rosto ---
+const PELE_ORC := Color("#89aa77")
+const PELE_LATAO := Color("#bda978")
+const PELE_ESCORIA := Color("#a3958e")
+const PELE_RAPOSA := Color("#cd8d6d")
+## A cerâmica esmaltada do amuleto (L 0,77, croma 0,05).
+const CERAMICA := Color("#c9b08f")
 
 ## O papel de cada pacote copiado para o estudo.
 const PAPEL_DO_PACOTE := {
@@ -118,6 +137,8 @@ const PAPEL_DO_PACOTE := {
 	"mini-arcade": "maquina",
 	"survival-kit": "objeto",
 	"mini-characters": "personagem",
+	"mini-dungeon-personagens": "personagem",  ## o orc: a cabeça de uma raça
+	"cube-pets": "personagem",  ## a cauda da raposa
 }
 
 
@@ -157,19 +178,59 @@ static func graduar(c: Color, papel: String) -> Color:
 	var violeta := para_oklab(VIOLETA)
 	var dir := Vector2(violeta.y, violeta.z).normalized()
 	var ab := Vector2(v.y, v.z) * float(g.sat) + dir * float(g.tinge)
-	return de_oklab(Vector3(float(g.l0) + v.x * float(g.l1), ab.x, ab.y), c.a)
+	# o teto de croma da peça (02: a peça nunca é néon)
+	var teto := float(g.get("teto", 1.0))
+	if ab.length() > teto:
+		ab = ab.normalized() * teto
+	var l := float(g.l0) + v.x * float(g.l1)
+	# a peça nunca fica a menos de ΔE 0,08 de um JOGADOR (02): o croma
+	# desce 10 % por passo até sair de perto (o cabelo ruivo e o âmbar)
+	if g.has("teto"):
+		for passo in 20:
+			var perto := false
+			for j in JOGADOR:
+				if Vector3(l, ab.x, ab.y).distance_to(para_oklab(j)) < DE_JOGADOR:
+					perto = true
+			if not perto:
+				break
+			ab *= 0.9
+	return de_oklab(Vector3(l, ab.x, ab.y), c.a)
 
 
-static func recolorir(img: Image, papel: String) -> Image:
+## `papel_pele`: o papel dos pixels de PELE_UV (o tecido e o couro deixam a
+## pele na graduação da cabeça).
+static func recolorir(img: Image, papel: String, papel_pele := "") -> Image:
 	var out: Image = img.duplicate()
 	out.convert(Image.FORMAT_RGBA8)
+	var cache := {}
+	var w := float(out.get_width())
+	var h := float(out.get_height())
+	for y in out.get_height():
+		for x in out.get_width():
+			var c := out.get_pixel(x, y)
+			var p := papel
+			if papel_pele != "" and PELE_UV.has_point(Vector2((x + 0.5) / w, (y + 0.5) / h)):
+				p = papel_pele
+			var k := "%d@%s" % [c.to_rgba32(), p]
+			if not cache.has(k):
+				cache[k] = graduar(c, p)
+			out.set_pixel(x, y, cache[k])
+	return out
+
+
+## Os pixels verdes (a do OKLab abaixo de `limite`) ganham o matiz e o croma
+## de `pele`, com a luz de cada um.
+static func trocar_matiz(img: Image, pele: Color, limite: float) -> Image:
+	var out: Image = img.duplicate()
+	var alvo := para_oklab(pele)
 	var cache := {}
 	for y in out.get_height():
 		for x in out.get_width():
 			var c := out.get_pixel(x, y)
 			var k := c.to_rgba32()
 			if not cache.has(k):
-				cache[k] = graduar(c, papel)
+				var v := para_oklab(c)
+				cache[k] = de_oklab(Vector3(v.x, alvo.y, alvo.z), c.a) if v.y < limite else c
 			out.set_pixel(x, y, cache[k])
 	return out
 

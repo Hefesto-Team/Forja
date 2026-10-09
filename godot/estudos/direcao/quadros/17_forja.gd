@@ -130,10 +130,15 @@ func _acender(mi: MeshInstance3D, acesa: bool, agora: bool) -> void:
 		return
 	if not agora:
 		return
+	# o acento (friso, costura, runa) já é néon, com material próprio: fica
+	if mi.material_override != null:
+		return
 	for s in mi.mesh.get_surface_count():
 		var base: Material = mi.get_surface_override_material(s)
 		if base == null:
 			base = mi.mesh.surface_get_material(s)
+		if base == null:
+			continue
 		var m: Material = base.duplicate()
 		m.next_pass = Fita.contorno(Fita.TUNGSTENIO, 0.016, 3.0)
 		mi.set_surface_override_material(s, m)
