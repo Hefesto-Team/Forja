@@ -91,13 +91,15 @@ quase o mesmo valor.
    Kenney, recolorida pela faixa da parte.
 2. **Cada parte tem material e faixa de valor.** A tabela é a do
    [02](02-cor-e-letra.md#o-cavaleiro-a-cor-da-peça-e-o-néon-do-dono): cabeça
-   em pele (rosto com L de 0,68 a 0,80), superior em tecido (0,46 a 0,58),
-   inferior em couro e lona (0,22 a 0,36), arma em metal batido e amuleto em
-   cerâmica (0,68 a 0,80).
+   em pele (o rosto humano fica no tom da Kenney e se mede pelo contraste com
+   o superior, em [o critério do rosto](#o-critério-do-rosto); a pele de raça
+   é token, de 0,68 a 0,80), superior em tecido (0,46 a 0,58), inferior em
+   couro e lona (0,22 a 0,36), medidos só no pano, arma em metal batido e
+   amuleto em cerâmica (0,68 a 0,80).
 3. **Vizinhas nunca se igualam.** Duas peças que se tocam (cabeça e superior,
    superior e inferior, o item e o braço ou o peito) têm L com diferença de
    0,10 ou mais, medida na mediana de L dos pixels de cada parte. As faixas já
-   garantem isso; o matiz da Kenney (a blusa amarela, a camisa verde, a calça
+   garantem isso; o matiz da Kenney (a blusa caramelo, a camisa verde, a calça
    social cinza) fica, com a croma de até 0,10.
 4. **O néon é acento, com dono e nome.** Cada parte tem um acento só, na cor do
    lugar:
@@ -106,7 +108,7 @@ quase o mesmo valor.
 | --- | --- | --- | --- | --- |
 | cabeça humana | nenhum | o rosto fica limpo; o contorno lê a forma | 0 % | — |
 | cabeça de raça | o visor (autômato), a rachadura (golem) | um vão `JANELA` com a linha de acento dentro; o orc e a raposa não têm | 6 % | 1,6 |
-| tronco superior | o friso | a barra do tronco e a gola: faixa de 0,010 de altura no y mais baixo e no mais alto dos triângulos do osso `torso` | 8 % | 1,6 |
+| tronco superior | o friso | a barra do tronco e a gola: faixa de 0,010 de altura no y mais baixo dos triângulos do osso `torso` e no mais alto deles, limitado ao pescoço (y 0,343) | 8 % | 1,6 |
 | tronco inferior | a costura | uma linha de 0,008 de largura na lateral de fora de cada perna (o x de maior módulo dos triângulos de `leg-left` e `leg-right`) | 5 % | 1,6 |
 | item | a runa | o emblema em relevo do amuleto; nas armas, o fio: a face de bater do martelo, as unhas da âncora, o aro do escudo | 12 % do item | 1,6 |
 
@@ -131,8 +133,12 @@ quase o mesmo valor.
 O produtor renderiza cada cavaleiro de frente com 64 px de altura e o
 converte para L (OKLab). Passa quando:
 
-- a mediana de L da cabeça, do superior e do inferior cai cada uma na faixa
-  da parte, e vizinhas diferem em 0,10 ou mais;
+- a mediana de L do superior e do inferior, no pano, cai cada uma na faixa
+  da parte, e as duas diferem em 0,10 ou mais;
+- o rosto humano e o superior diferem em 0,10 ou mais, ou a gola acesa
+  aparece entre os dois; a pele de raça fica de 0,68 a 0,80;
+- a cabeça deixa à vista 60 % ou mais da frente do superior, em pé e sentado
+  ([a cabeça e o superior](#a-cabeça-e-o-superior));
 - na máscara (só a silhueta, sem cor), a cabeça, o tronco com os braços e as
   pernas se separam: o pescoço ou a gola marcam o corte de cima, o vão entre
   as pernas o de baixo;
@@ -144,33 +150,57 @@ converte para L (OKLab). Passa quando:
 
 O `medir_pecas.gd` mede as 36 peças nas faces de frente e grava
 [pecas_medidas.csv](dados/pecas_medidas.csv). Duas rodadas dão o mesmo
-arquivo, byte a byte.
+arquivo, byte a byte. Sai com 1 se um critério falha.
 
 | critério | o pior caso | passa |
 | --- | --- | --- |
 | croma de toda face | 0,099 (teto 0,10) | sim |
 | ΔE OKLab até um `JOGADOR` | 0,085 (piso 0,08) | sim |
-| acento sobre a área de frente | 5,37 % no superior do male-b (teto 8 %) | sim |
-| superior em L 0,46 a 0,58 | 11 de 12; o male-f dá 0,593 | não |
-| inferior em L 0,22 a 0,36 | 11 de 12; o male-f dá 0,694 (a bermuda: as pernas são pele) | não |
-| rosto em L 0,68 a 0,80 | 2 de 12 (female-e 0,720, male-b 0,694); os outros vão de 0,520 a 0,678 | não |
-| superior e inferior a 0,10 ou mais | 132 de 144 pares; os 12 que falham são todos com o inferior do male-f | não |
-| rosto e superior a 0,10 ou mais | 82 de 144 pares | não |
+| acento sobre a área de frente | 5,45 % no superior do male-e (teto 8 %) | sim |
+| superior em L 0,46 a 0,58, no pano | 12 de 12, de 0,501 a 0,562 | sim |
+| inferior em L 0,22 a 0,36, no pano | 12 de 12, de 0,269 a 0,332 | sim |
+| superior e inferior a 0,10 ou mais | 144 de 144 pares; o pior, 0,501 − 0,332 = 0,169 | sim |
+| rosto e superior | 144 de 144 pares: 93 pelo \|ΔL\| de 0,10 ou mais, 51 pela gola acesa (o menor \|ΔL\| é 0,006) | sim |
+| pele de raça em L 0,68 a 0,80 | 4 de 4 (a escória no piso, 0,680) | sim |
 
 **A decisão: a pele não se clareia.** Os 12 rostos da Kenney têm tons de
 pele de 0,52 a 0,72. Subir todos para 0,68 apaga essa diversidade. O
 `recolorir` deixa a pele como veio (papel `personagem`, `l0` 0,06 e `l1`
 0,86) e só corta o croma.
 
-**A proposta para o critério do rosto.** Medir a cabeça pelo contraste com o
-superior do mesmo cavaleiro, não por uma faixa absoluta: |ΔL| de 0,10 ou mais
-entre o rosto e o superior, e, quando o par não chega a isso, a gola com o
-friso aceso marca o corte (é o que a 10 mostra a 64 px). A faixa de 0,68 a
-0,80 fica só para as raças, cuja pele é token. Decisão do diretor de arte.
+### O critério do rosto
 
-**O male-f.** O inferior dele é a bermuda: a mediana cai na pele das pernas.
-Duas saídas: medir o inferior só nas faces de pano (a UV fora de
-`PELE_UV`), ou tirar o male-f do inferior. Decisão do diretor de arte.
+Decidido em 09/10. A faixa fixa de 0,68 a 0,80 passava 2 dos 12 rostos e
+cobrava da pele o que é trabalho do corte. O rosto humano se mede pelo
+contraste com o superior, qualquer que seja o par (o jogador monta a cabeça
+de um com o superior de outro, então são 144 pares):
+
+1. **|ΔL| de 0,10 ou mais** entre a mediana de L do rosto (só as faces de
+   pele da cabeça) e a do superior (só o pano). Passam 93 pares.
+2. **Senão, a gola acesa.** O par que não chega a 0,10 passa se o superior
+   tem a faixa da gola do friso de frente e a cabeça não desce sobre ela (o
+   y mais baixo da cabeça fica no topo da gola ou acima). Passam 51 pares.
+   A female-e (a cabeça desce a 0,293) e o male-b (a barba, a 0,263) cobrem a
+   gola, então só passam pelo ΔL: o rosto deles é 0,720 e 0,694, a 0,158 e
+   a 0,132 do superior mais claro (0,562).
+3. **A gola fica no pescoço.** A faixa da gola vai no menor entre o topo do
+   tronco e y 0,343 (o pescoço). A Jaqueta preta da female-f subia a 0,385, o
+   Macacão do male-e e a Regata verde do male-f a 0,357: a gola caía atrás da
+   cabeça e não se via. As outras 9 não mudam.
+
+A faixa de 0,68 a 0,80 fica só para as raças, cuja pele é token.
+
+**O male-f.** O inferior dele é a bermuda: a mediana caía na pele das pernas
+(0,694). O superior e o inferior agora se medem só no pano (a UV fora de
+`PELE_UV`): a bermuda dá 0,298 e a Regata verde 0,532 (antes 0,593, com o
+braço). O male-f fica no inferior; a perna de fora é pele, como a mão.
+
+**A Blusa caramelo.** A peça da female-b se chamava Blusa amarela. A cor da
+Kenney é #ffab42, laranja; no tecido (L 0,46 a 0,58, croma até 0,10) vira
+#93693a, L 0,55 e croma 0,08, e sob a luz quente da forja sai salmão. Amarelo
+não cabe na faixa do tecido, e o pixel do colormap é o mesmo do superior da
+female-f e do male-e. Muda o nome, não a cor:
+[pecas.csv](../sistemas/pecas.csv).
 
 ## As raças
 
@@ -228,7 +258,8 @@ coisa, a medida mudou e ficou registrada aqui:
 
 - **A cabeça de raça a 1,30.** As cabeças por código saíam 30 % menores que
   a humana (0,45 de altura com o cabelo). `Racas.ESCALA_CABECA` = 1,30, para
-  as quatro.
+  as quatro; a medida do superior que ela deixa à vista está em
+  [a cabeça e o superior](#a-cabeça-e-o-superior).
 - **O golem é um tronco de pirâmide.** O bloco de 0,34 × 0,24 × 0,30 se lia,
   a 64 px, como a cabeça humana. Agora: a base de 0,36 × 0,30, o topo de
   0,26 × 0,24, 0,27 de altura, faces chapadas. Na frente: a sobrancelha de
@@ -252,6 +283,47 @@ coisa, a medida mudou e ficou registrada aqui:
   8 bits passava do limite (o croma 0,101; o cabelo ruivo do male-c a 0,057
   do âmbar antes da folga). O `graduar` baixa o croma 10 % por passo até a
   peça ficar a 0,085 de todo `JOGADOR`.
+
+### A cabeça e o superior
+
+Decidido em 09/10. Na 10, a cabeça de raça a 1,30 parecia cobrir o peito (a
+raposa sentada; a sombra da cabeça do autômato no Terno do P4). O
+`medir_tronco.gd` mede: as 5 cabeças × os 12 superiores × 10 poses (em pé:
+`idle`, `holding-right`, `holding-left`, o aceno `emote-yes` em 0,2, 0,4, 0,6
+e 0,8, `interact-right`; sentada, na `wheelchair-deluxe`: `wheelchair-sit` e
+`wheelchair-look-left`), de frente, em cor chapada por parte, e grava
+[tronco_aparece.csv](dados/tronco_aparece.csv) (600 linhas). Sai com 1 se
+algum caso fica abaixo do piso.
+
+**O critério:** a cabeça deixa à vista 60 % ou mais da área de frente do
+superior que o resto do corpo deixa (o render inteiro ÷ o render sem a
+cabeça). O piso vale para a cabeça, porque é ela que a escala muda.
+
+| raça | em pé, o pior caso | sentada, o pior caso |
+| --- | --- | --- |
+| humana | 64,6 % (o aceno, a barba do male-b) | 85,8 % |
+| orc | 81,2 % | 85,6 % |
+| autômato | 80,6 % | 85,1 % |
+| golem | 63,2 % (o aceno, superior da female-f; o mais apertado) | 80,1 % |
+| raposa | 77,9 % | 85,6 % |
+
+**A decisão: `ESCALA_CABECA` fica 1,30 para as quatro.** Todas passam o piso,
+em pé e sentadas, e a 1,30 as cabeças de raça ficam dentro do envelope da
+humana: de largura, o autômato 0,44, o golem 0,53 (já com a compensação de
+0,87 do osso) e a raposa 0,36, contra 0,45 a 0,59 da humana; de fundura, de
+0,34 a 0,42, contra 0,34 a 0,53.
+
+**Sentado, o que tapa o peito é a cadeira.** Com tudo à frente, o superior
+sentado aparece de 36,6 % a 40,2 % em toda raça, a humana inclusive
+(38,0 %). As rodas e os braços da cadeira escondem os braços (cerca de 35
+pontos) e as coxas sobem à frente da barra (cerca de 15); a cabeça tira
+menos de 20 % do que sobra. Inclinar a câmera a 10° e a 20° piora (a cabeça
+cobre mais), girar a plataforma de 20° a 40° também, e as três cadeiras
+(`wheelchair`, a `deluxe` e a `power`) dão quase o mesmo. Fica como está.
+
+**A sombra no P4** vem da luz principal (a uns 38° de elevação) e é a mesma
+de uma cabeça humana da mesma fundura; o Terno é escuro (L 0,50, croma
+0,008), por isso ela se nota. Não é a escala.
 
 ### O que se pesquisou e ficou de fora
 

@@ -329,11 +329,14 @@ do corpo e o ΔE OKLab até cada `JOGADOR`.
 
 **Pronto quando:**
 
-- toda cabeça humana fica em L 0,68 a 0,80, todo superior em 0,46 a 0,58,
-  todo inferior em 0,22 a 0,36;
+- todo superior fica em L 0,46 a 0,58 e todo inferior em 0,22 a 0,36,
+  medidos só no pano (a UV fora de `PELE_UV`); a pele de raça em 0,68 a
+  0,80;
 - nenhuma peça passa de croma 0,10, e nenhuma fica a menos de ΔE 0,08 de um
   `JOGADOR`;
-- vizinhos (cabeça e superior, superior e inferior) distam L 0,10 ou mais;
+- superior e inferior distam L 0,10 ou mais nos 144 pares; rosto e superior
+  também, ou o superior tem a gola acesa de frente e a cabeça não desce
+  sobre ela ([o critério do rosto](04-o-cavaleiro.md#o-critério-do-rosto));
 - o acento soma até 8 % da área frontal, sem contar o contorno;
 - rodar duas vezes dá o mesmo CSV, byte a byte.
 
@@ -371,12 +374,17 @@ Do produtor de arte, 09/10. Os seis itens saíram; os desvios e os números
 estão no [04, o que a medida deu](04-o-cavaleiro.md#o-que-a-medida-deu-em-0910)
 e no [04, o que mudou no estudo](04-o-cavaleiro.md#o-que-mudou-no-estudo-em-0910).
 
-- **Item 17, as faixas não passam.** O croma (0,099), o ΔE (0,085) e o
-  acento (5,37 %) passam. A faixa do rosto passa em 2 de 12, a do superior e
-  a do inferior em 11 de 12 (o male-f), e os vizinhos rosto e superior em 82
-  de 144 pares. A pele não se clareou: é a diversidade de tons da Kenney. A
-  proposta é medir o rosto pelo contraste com o superior, com a gola acesa
-  onde o par não chega a 0,10. Decide o diretor de arte.
+- **Item 17, as faixas não passam.** Do diretor de arte, 09/10: resolvido.
+  O rosto humano se mede pelo contraste com o superior: 93 de 144 pares
+  passam pelo |ΔL| de 0,10 ou mais e 51 pela gola acesa, que agora fica no
+  pescoço (y 0,343). O superior e o inferior se medem só no pano: a bermuda
+  do male-f dá 0,298 (era 0,694), e os 144 pares de superior e inferior
+  passam (o pior a 0,169). O acento máximo é 5,45 % (male-e). O
+  `medir_pecas.gd` sai com 1 se algo falha. A Blusa amarela virou Blusa
+  caramelo: a cor sai caramelo na faixa do tecido, e amarelo não cabe nela.
+  A cabeça de raça a 1,30 fica: a cabeça deixa 63,2 % ou mais do superior à
+  vista em toda raça, em pé ou sentada (piso 60 %, `medir_tronco.gd`). Está
+  no [04, a cabeça e o superior](04-o-cavaleiro.md#a-cabeça-e-o-superior).
 - **Item 15, o que não se mediu.** A cauda pelo vão da cadeira não aparece
   em prancha nenhuma: a 10 é de frente e o encosto a esconde. As mãos de pinça e os punhos de pedra não foram conferidos nas 32
   animações, uma a uma; nas pranchas (idle e holding-both) seguem o osso.

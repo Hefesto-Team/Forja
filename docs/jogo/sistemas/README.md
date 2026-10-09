@@ -85,7 +85,7 @@ O principal dá o emblema da peça:
 | personagem | cabeça | superior | inferior | o original (Peso, Passo, Fôlego, Faro) |
 | --- | --- | --- | --- | --- |
 | female-a | Coque preto (Lume: Faro +2, Peso +1) | Blusa roxa (Lume: Faro +2, Peso +1) | Short claro (Mola: Passo +2, Fôlego +1) | 3, 3, 2, 5, Relâmpago |
-| female-b | Duas bolotas (Lume: Faro +2, Passo +1) | Blusa amarela (Mola: Passo +2, Peso +1) | Saia roxa (Lume: Faro +2, Peso +1) | 3, 4, 1, 5, Relâmpago |
+| female-b | Duas bolotas (Lume: Faro +2, Passo +1) | Blusa caramelo (Mola: Passo +2, Peso +1) | Saia roxa (Lume: Faro +2, Peso +1) | 3, 4, 1, 5, Relâmpago |
 | female-c | Touca listrada (Brasa: Fôlego +2, Peso +1) | Camisa azul (Bigorna: Peso +2, Passo +1) | Short laranja (Brasa: Fôlego +2, Faro +1) | 4, 2, 5, 2, Muralha |
 | female-d | Coque ruivo (Brasa: Fôlego +2, Faro +1) | Terninho (Brasa: Fôlego +2, Passo +1) | Calça social (Mola: Passo +2, Faro +1) | 1, 4, 5, 3, Corrente |
 | female-e | Franja preta (Bigorna: Peso +2, Fôlego +1) | Jaleco (Lume: Faro +2, Passo +1) | Calça branca (Bigorna: Peso +2, Passo +1) | 5, 3, 2, 3, Torre |

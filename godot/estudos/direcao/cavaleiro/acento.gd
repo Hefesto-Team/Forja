@@ -4,7 +4,8 @@ extends RefCounted
 ## peça (os triângulos do osso dela, cortados por planos), descolado 0,0012
 ## pela normal da face e preso à mesma pele, para seguir a animação.
 ##
-##   o friso do superior: faixa de 0,010 na barra e na gola do osso `torso`;
+##   o friso do superior: faixa de 0,010 na barra e na gola do osso `torso`
+##   (a gola logo abaixo do pescoço, y 0,343);
 ##   a costura do inferior: linha de 0,008 no lado de fora de cada perna.
 ##
 ## Medidas nas unidades do personagem (0,67 de altura no male-a).
@@ -15,6 +16,8 @@ const FRISO := 0.010
 const COSTURA := 0.008
 const DESCOLA := 0.0012
 const ENERGIA := 1.6
+## Onde a cabeça começa: o y do osso `head` em descanso (Racas.PESCOCO).
+const PESCOCO := 0.343
 
 
 ## Os triângulos de `malha` cujo primeiro vértice pesa nos `ossos`, que
@@ -101,8 +104,20 @@ static func friso(superior: Mesh) -> Array:
 	var cx := caixa(superior, [3])
 	var em_pe := func(fn: Vector3) -> bool: return absf(fn.y) < 0.5
 	var barra := recortar(superior, [3], em_pe, [[Vector3.DOWN, -(cx.position.y + FRISO)]])
-	var gola := recortar(superior, [3], em_pe, [[Vector3.UP, cx.end.y - FRISO]])
-	return _somar([barra, gola])
+	return _somar([barra, gola(superior)])
+
+
+## Só a gola do friso: a faixa de 0,010 logo abaixo do pescoço, que marca o
+## corte entre o rosto e o superior quando os dois têm L parecida (04, o
+## critério do rosto). No y mais alto do torso, ou no pescoço se a peça sobe
+## além dele: a gola em pé da Jaqueta preta (até y 0,385), as alças do
+## Macacão e da Regata verde (até 0,357) ficam atrás da cabeça, e a faixa lá
+## em cima não se via de frente.
+static func gola(superior: Mesh) -> Array:
+	var cx := caixa(superior, [3])
+	var topo := minf(cx.end.y, PESCOCO)
+	var em_pe := func(fn: Vector3) -> bool: return absf(fn.y) < 0.5
+	return recortar(superior, [3], em_pe, [[Vector3.UP, topo - FRISO], [Vector3.DOWN, -topo]])
 
 
 ## A costura: na frente de cada perna, a faixa de 0,008 junto ao lado de

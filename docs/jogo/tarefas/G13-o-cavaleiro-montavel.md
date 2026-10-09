@@ -208,8 +208,15 @@ pintura. O que tem que valer no cavaleiro montado:
   luminância (L, OKLab) e o inferior (couro) entre 0,22 e 0,36, com 0,10 ou
   mais entre os dois. As duas medianas se medem só no pano: no Mini
   Characters, os pixels de `PELE_UV` ficam com o papel `personagem` (o
-  `so_pano` da G08). A cabeça não tem faixa na prova: o critério do rosto
-  espera o diretor de arte (PRODUCAO, item 17).
+  `so_pano` da G08). O rosto humano não tem faixa: passa com |ΔL| de 0,10
+  ou mais até o superior, ou pela gola acesa, se a cabeça não desce sobre
+  ela (04, «O critério do rosto»: 93 de 144 pares pelo ΔL, 51 pela gola). A
+  gola do friso fica no menor entre o topo do torso e o pescoço, y 0,343. A
+  pele de raça fica entre 0,68 e 0,80.
+- **A cabeça deixa o peito à vista:** 60 % ou mais da frente do superior que
+  o resto do corpo deixa, em pé e sentado, em toda raça, a
+  `ESCALA_CABECA` 1,30 (04, «A cabeça e o superior»; o pior caso é o golem
+  no aceno, 63,2 %).
 - **Croma** de no máximo 0,10 em cada peça (no código, teto 0,098); a
   distância até as quatro cores `Tema.JOGADOR` de pelo menos 0,08 em ΔE (no
   código, 0,085).
