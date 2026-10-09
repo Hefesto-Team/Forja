@@ -75,6 +75,7 @@ func _ready() -> void:
 	_prova_do_registro_v2()
 	await _prova_da_cor_e_da_letra()
 	_prova_da_letra_e_da_margem()
+	await _prova_da_luz()
 	if falhas > 0:
 		printerr("%d falha(s)" % falhas)
 		get_tree().quit(1)
@@ -1361,7 +1362,9 @@ func _prova_da_cor_e_da_letra() -> void:
 			for s in mi.mesh.get_surface_count():
 				corpos += 1
 				var m = mi.get_surface_override_material(s)
-				_esperar(m == null, "boneco P%d: o corpo sem o tom do dono" % (p.lugar + 1))
+				var base = mi.mesh.surface_get_material(s)
+				_esperar(m == null or (m is StandardMaterial3D and base is StandardMaterial3D and m.albedo_color == base.albedo_color),
+					"boneco P%d: o corpo sem o tom do dono" % (p.lugar + 1))
 	_esperar(corpos > 0, "boneco: a prova achou o corpo (%d superfícies)" % corpos)
 
 
@@ -1415,3 +1418,127 @@ func _prova_da_letra_e_da_margem() -> void:
 			_esperar(rr.position.x + folga >= Tema.MARGEM_X - 0.5 and rr.end.x - folga <= 1920 - Tema.MARGEM_X + 0.5,
 				"painel: o texto do lugar %d fica na área segura (%.0f a %.0f)" % [it[0] + 1, rr.position.x + folga, rr.end.x - folga])
 	painel.free()
+
+
+## Cada canal de `a` a menos de 1/255 de `b` (a conta OKLab pode errar um passo num canal).
+func _cor_quase(a: Color, b_hex: String) -> bool:
+	var b := Color(b_hex)
+	return absf(a.r - b.r) <= 1.0 / 255.0 + 0.0001 and absf(a.g - b.g) <= 1.0 / 255.0 + 0.0001 and absf(a.b - b.b) <= 1.0 / 255.0 + 0.0001
+
+
+## G15: a luz de cada seção, o ambiente do jogo, o brilho com dono, o contorno e o anel dos bonecos, a luz de
+## dono e o pós da fita.
+func _prova_da_luz() -> void:
+	# a luz das cinco tintas bate com a tabela do 01
+	var tabela := [
+		[1, "210502", "602016", "ffc99c"], [2, "050d26", "1f346a", "e5d3c6"], [3, "011311", "11413b", "e5d7ad"],
+		[4, "170e00", "493400", "f8d096"], [5, "18081c", "4a2854", "f8ccba"]]
+	for linha in tabela:
+		var v := Tema.luz_da_secao(int(linha[0]))
+		_esperar(_cor_quase(v.nevoa, "#" + linha[1]) and _cor_quase(v.preenchimento, "#" + linha[2]) and _cor_quase(v.chave, "#" + linha[3]),
+			"luz: a seção %d como o 01 (névoa %s, preenchimento %s, chave %s)" % [linha[0], v.nevoa.to_html(false), v.preenchimento.to_html(false), v.chave.to_html(false)])
+	_esperar(Tema.luz_da_secao(6).chave == Tema.luz_da_secao(2).chave and Tema.luz_da_secao(9).nevoa == Tema.luz_da_secao(1).nevoa,
+		"luz: a seção 6 é cobalto e a 9 é vermelhão")
+	var a := Tema.luz_da_secao(1)
+	var b := Tema.luz_da_secao(1, true)
+	_esperar(is_equal_approx(a.densidade, 0.012) and is_equal_approx(b.densidade, 0.0156), "luz: o lado B adensa a névoa (0,012 para 0,0156)")
+	_esperar(is_equal_approx(a.energia_chave, 1.8) and is_equal_approx(b.energia_chave, 1.53), "luz: o lado B baixa a chave (1,8 para 1,53)")
+	var salao_luz := Tema.luz_da_secao(-1)
+	_esperar(salao_luz.nevoa == Tema.VIOLETA_FUNDO and salao_luz.preenchimento == Tema.AMBIENTE_SALAO and salao_luz.chave == Tema.TUNGSTENIO,
+		"luz: o salão é violeta, ambiente do salão e tungstênio")
+	# o ambiente do jogo
+	_esperar(jogo.env.ssao_enabled == false and is_equal_approx(jogo.env.glow_hdr_threshold, 0.82), "luz: sem SSAO, limiar do glow 0,82")
+	jogo._entrar_na_sala("viga", false)
+	await _quadros(3)
+	var luz_viga := Tema.luz_da_secao(jogo.sala.numero())
+	_esperar(jogo.sala.numero() == 2 and jogo.env.ambient_light_color == luz_viga.preenchimento and is_equal_approx(jogo.env.fog_density, 0.012),
+		"luz: a viga acende na seção 2 (cobalto)")
+	var tochas_na_chave := 0
+	for t in jogo.sala._chaves:
+		if t.light_color == luz_viga.chave:
+			tochas_na_chave += 1
+	_esperar(jogo.sala._chaves.size() > 0 and tochas_na_chave == jogo.sala._chaves.size(), "luz: as tochas da viga na chave da seção (%d)" % tochas_na_chave)
+	var sol := jogo.get_node("Sol") as DirectionalLight3D
+	_esperar(sol.light_color == luz_viga.preenchimento, "luz: o sol da cena no preenchimento da seção")
+	# o brilho com dono: o teto de cada um
+	var mm := Tema.emissivo(StandardMaterial3D.new(), 9.0, "mundo")
+	_esperar(is_equal_approx(mm.emission_energy_multiplier, 1.2) and mm.emission == Tema.VIOLETA, "brilho: o mundo para em 1,2 e brilha violeta")
+	var mf := Tema.emissivo(StandardMaterial3D.new(), 9.0, "forja")
+	_esperar(is_equal_approx(mf.emission_energy_multiplier, 2.4) and mf.emission == Tema.TUNGSTENIO, "brilho: a forja para em 2,4 e brilha tungstênio")
+	var ml := Tema.emissivo(StandardMaterial3D.new(), 9.0, 2)
+	_esperar(is_equal_approx(ml.emission_energy_multiplier, 3.0) and ml.emission == Tema.JOGADOR[2], "brilho: o lugar para em 3,0 e brilha na cor dele")
+	_esperar(Tema.emissivo(StandardMaterial3D.new(), 0.0, "mundo").emission_enabled == false, "brilho: a energia 0 desliga")
+	_esperar(is_equal_approx(Kit.material(Tema.VIOLETA, 3.0).emission_energy_multiplier, 1.2), "brilho: o Kit.material leva o dono (o mundo, 1,2)")
+	var nm := Tema.neon(Tema.TUNGSTENIO, 9.0, 1)
+	_esperar(nm.get_shader_parameter("cor") == Tema.JOGADOR[1] and is_equal_approx(nm.get_shader_parameter("energia"), 3.0), "brilho: o néon de um lugar tem a cor dele, no teto")
+	var cm := Tema.contorno(Tema.JOGADOR[0], 0.012, 2.4, 0)
+	_esperar(cm.get_shader_parameter("normal_suave") == true and is_equal_approx(cm.get_shader_parameter("largura"), 0.012), "brilho: o contorno com a normal suave")
+	# o boneco: o anel, o contorno e a luz de dono
+	for p in jogo.jogadores:
+		if not p.visible:
+			continue
+		var l: int = p.lugar
+		_esperar(p.aro.material_override is ShaderMaterial and p.aro.material_override.get_shader_parameter("cor") == Tema.JOGADOR[l]
+			and is_equal_approx(p.aro.material_override.get_shader_parameter("energia"), 1.5), "boneco P%d: o anel no chão é néon do lugar a 1,5" % (l + 1))
+		var com_contorno := 0
+		var sem_contorno := 0
+		for mi in p.modelo.find_children("*", "MeshInstance3D", true, false):
+			for s in mi.mesh.get_surface_count():
+				var m = mi.get_surface_override_material(s)
+				if m and m.next_pass is ShaderMaterial and m.next_pass.get_shader_parameter("cor") == Tema.JOGADOR[l] \
+						and is_equal_approx(m.next_pass.get_shader_parameter("energia"), 2.4):
+					com_contorno += 1
+				else:
+					sem_contorno += 1
+		_esperar(com_contorno > 0 and sem_contorno == 0, "boneco P%d: toda superfície leva o contorno do lugar a 2,4 (%d)" % [l + 1, com_contorno])
+		var ld: OmniLight3D = p.luz_de_dono
+		_esperar(ld.light_color == Tema.JOGADOR[l] and is_equal_approx(ld.light_energy, 0.9) and is_equal_approx(ld.omni_range, 3.4)
+			and not ld.shadow_enabled and is_equal_approx(ld.position.y, 0.6), "boneco P%d: a luz de dono (0,9, 3,4 m, sem sombra, a 0,6 m)" % (l + 1))
+		_esperar(ld.visible == p.controlavel, "boneco P%d: a luz de dono só com o controle livre" % (l + 1))
+	var p0 = jogo.jogadores[0]
+	p0.contornar(1.6)
+	var mi0: MeshInstance3D = p0.modelo.find_children("*", "MeshInstance3D", true, false)[0]
+	_esperar(is_equal_approx(mi0.get_surface_override_material(0).next_pass.get_shader_parameter("energia"), 1.6), "boneco: o contorno da montagem vai a 1,6")
+	p0.contornar(2.4)
+	p0.controlavel = true
+	_esperar(p0.luz_de_dono.visible, "boneco: a luz de dono acende com o controle livre")
+	p0.controlavel = false
+	_esperar(not p0.luz_de_dono.visible, "boneco: a luz de dono apaga sem o controle")
+	# o pós da fita
+	_esperar(PosFita.get_child(0).layer == 5 and PosFita.get_child(1).layer == 20, "pós: as duas passadas, na camada 5 e na 20")
+	PosFita.gastar(1)
+	_esperar(is_equal_approx(PosFita.valor("grao"), 0.018) and is_equal_approx(PosFita.valor("vinheta"), 0.38), "pós: a faixa 1 no começo do desgaste")
+	PosFita.gastar(12)
+	_esperar(is_equal_approx(PosFita.valor("grao"), 0.040), "pós: a faixa 12 no teto do grão")
+	_esperar(is_equal_approx(PosFita.valor("desbota"), 0.10) and is_equal_approx(PosFita.valor("varredura"), 0.09), "pós: o desbotar e a varredura no teto na faixa 12")
+	PosFita.gastar(40)
+	_esperar(is_equal_approx(PosFita.valor("grao"), 0.040) and is_equal_approx(PosFita.valor("vinheta"), 0.45), "pós: o desgaste para no teto")
+	PosFita.ajustar("grao", 0.1)
+	_esperar(is_equal_approx(PosFita.valor("grao"), 0.1), "pós: ajustar põe o valor")
+	PosFita.soltar("grao")
+	_esperar(is_equal_approx(PosFita.valor("grao"), 0.040), "pós: soltar volta ao desgaste da faixa")
+	Opcoes.flashes = false
+	PosFita.rasgo_curto()
+	_esperar(PosFita.valor("rasgo") == 0.0 and PosFita.valor("aberracao") == 0.0, "pós: sem Flashes, sem rasgo")
+	Opcoes.flashes = true
+	PosFita._rasgos.clear()
+	PosFita.rasgo_curto()
+	await _quadros(3)
+	_esperar(PosFita.valor("rasgo") > 0.0 and PosFita.valor("rasgo") <= 0.35 + 0.0001, "pós: com Flashes o rasgo corre (%.2f)" % PosFita.valor("rasgo"))
+	await _quadros(14)
+	_esperar(PosFita.valor("rasgo") == 0.0 and PosFita.valor("aberracao") == 0.0, "pós: o rasgo acaba em 10 quadros")
+	PosFita._rasgos.clear()
+	for i in 5:
+		PosFita.rasgo_curto()
+	_esperar(PosFita._rasgos.size() == 3, "pós: no máximo 3 rasgos por segundo (%d)" % PosFita._rasgos.size())
+	await _quadros(14)
+	# a sala gasta a fita pela posição na partida: faixa 1 fora dela, passo + 1 nela
+	jogo._entrar_na_sala("centelha", false)
+	await _quadros(3)
+	_esperar(is_equal_approx(PosFita.valor("grao"), 0.018), "pós: fora da partida, a sala entra na faixa 1")
+	jogo._comecar_a_partida(9, false, false)
+	await _quadros(3)
+	jogo.partida.passo = 8
+	jogo._entrar_na_sala(jogo.partida.sala_atual(), false)
+	await _quadros(3)
+	_esperar(is_equal_approx(PosFita.valor("grao"), 0.018 + 0.002 * 8.0), "pós: a nona sala da partida entra na faixa 9 (grão %.3f)" % PosFita.valor("grao"))
