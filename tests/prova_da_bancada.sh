@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# A prova da bancada, sem aparelho: os seis experimentos do experimental/,
+# A prova da bancada, sem aparelho: os sete experimentos do experimental/,
 # headless, com quatro DualSense simulados e o robô. O que precisa de aparelho
 # de verdade (o microfone, o report cru) tem de sair "não medido", com o
 # porquê; o que o simulador alcança (os quatro microfones, a háptica pelo nó)
@@ -74,6 +74,21 @@ rodar haptico haptico
 esperar haptico 36 "medido: "
 rodar haptico motores-trocados --defeitos=motores-trocados
 esperar motores-trocados 32 "falhou: "
+
+# a força (F10): o jogo obedece ao arquivo de comandos do roteiro do rumble seco
+printf '0 0.5 80\n1 1.0 80\n2 0.25 80\nparar 0\nfim\n' > "$TMP/forca.cmd"
+rodar forca forca --comando="$TMP/forca.cmd"
+esperar forca 3 "medido: força"
+if [ "$(wc -l < "$TMP/forca.cmd.ok")" -eq 5 ] && [ "$(grep -c '^ok ' "$TMP/forca.cmd.ok")" -eq 3 ]; then
+  echo "ok   forca: o jogo respondeu a cada comando (3 vibrações, parar, fim)"
+else
+  echo "FAIL forca: a resposta do jogo ao roteiro não bate"
+  sed 's/^/     /' "$TMP/forca.cmd.ok"
+  FALHAS=$((FALHAS + 1))
+fi
+printf '0 0.5 80\n1 1.0 80\n2 0.25 80\nfim\n' > "$TMP/forca-viz.cmd"
+rodar forca forca-vizinho --comando="$TMP/forca-viz.cmd" --defeitos=vibra-vizinho
+esperar forca-vizinho 3 "falhou: força"
 
 [ "$FALHAS" -eq 0 ] || { echo "prova da bancada: $FALHAS falha(s)"; exit 1; }
 echo "prova da bancada ok — o que precisa de aparelho diz que não mediu, e o que o simulador alcança mede"

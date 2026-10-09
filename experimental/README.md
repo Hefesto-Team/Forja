@@ -138,6 +138,31 @@ no [RESULTADOS.md](RESULTADOS.md) o firmware e quais sensações não foram
 sentidas: é com essas linhas, no cabo e no rádio, que se decide o resto das
 suspeitas do [05](../docs/jogo/05-haptica-e-controle.md#a-medição).
 
+### `forca` e o roteiro do rumble seco
+
+**A pergunta:** o rumble «seco» (o pacote antigo, byte 0 `0x01`) se sente mais
+forte que o «suave» que o SDL manda em firmware novo (byte 38 `0x04`)? É a
+suspeita **c** do [05](../docs/jogo/05-haptica-e-controle.md#a-medição), e a
+[F10](../docs/jogo/tarefas/F10-o-rumble-seco.md) decide o que fazer com a resposta.
+
+**Como:** `experimental/rumble_seco.sh`, com **um** DualSense **no cabo**. O
+roteiro sorteia pares na mesma força (25, 50, 75 e 100%) e duração (80, 250 e
+400 ms): uma vibração suave, pelo jogo, e uma seca, pelo `bin/forja-send`, em
+ordem sorteada. De olhos fechados, você diz qual sentiu mais forte (1, 2 ou
+igual) e, no fim, qual prefere para golpe, acerto e explosão. O experimento
+`forca` é só o lado do jogo: ele vibra os dois motores na força pedida e
+obedece a um arquivo de comandos (`--comando=ARQUIVO`, uma linha por comando:
+`LUGAR FORCA MS`, `parar LUGAR`, `fim`), respondendo no `ARQUIVO.ok` com o
+firmware do controle. `rumble_seco.sh --ensaio` mostra o roteiro sem tocar em
+nada. O `forja-send` recusa o rádio de propósito: esta medição é no cabo.
+
+**Como ler:** o roteiro imprime o veredito pela regra da F10 (o seco vence se,
+em dois terços dos pares de 75% e 100%, foi o mais forte **e** é o preferido
+para golpe e explosão) e a linha pronta para a seção `rumble-seco` do
+[RESULTADOS.md](RESULTADOS.md). Rode uma vez por controle (firmware antigo,
+novo e Edge, se houver). O jogo manda o parar do seco pelo SDL; se o motor
+continuar vibrando depois do par, anote: é um achado para a parte B da F10.
+
 ## As regras
 
 As mesmas do jogo: o `CONTRATO.md` (nada de socket do Hefesto, de MAC, de

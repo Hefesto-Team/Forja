@@ -70,7 +70,10 @@ O que se mediu das sete suspeitas e o que fica para o aparelho (F05):
   [`experimental/RESULTADOS.md`](../../experimental/RESULTADOS.md) com o firmware
   que aparece em cada uma; cruzar com o registro da ponte
   ([08](08-a-noite-de-6-horas.md)). Só então decidir se o modo seco merece
-  emenda ao CONTRATO. O roteiro da comparação às cegas é a [F10](tarefas/F10-o-rumble-seco.md).
+  emenda ao CONTRATO. O roteiro da comparação às cegas é a [F10](tarefas/F10-o-rumble-seco.md),
+  e já existe: `experimental/rumble_seco.sh` (um controle no cabo, de olhos
+  fechados, pares suave contra seco na mesma força, em ordem sorteada; o
+  resultado vai para a seção `rumble-seco` do [RESULTADOS.md](../../experimental/RESULTADOS.md)).
   **A decisão fica em aberto aqui:** nenhum código monta o bloco de rumble.
 
 ## A força máxima que é legítima

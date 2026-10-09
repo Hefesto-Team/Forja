@@ -24,6 +24,7 @@ extends Node
 ##   --sair-no-fim      no fim da Prova de Fogo (ou no pódio, com --robo), grava o relatório e fecha o jogo
 ##   --experimento=ID   a bancada do experimental/ no lugar do salão
 ##   --defeitos=LISTA   defeitos de mentira nos simulados (a prova que morde)
+##   --comando=ARQUIVO  o experimento `forca` obedece a este arquivo de comandos (experimental/rumble_seco.sh)
 ##   --sem-modulo       finge que o módulo não existe
 ##   --acelerado        o `t` da linha do tempo é o tempo do jogo, não o relógio de parede (só com --simular)
 
@@ -511,6 +512,20 @@ func sentir(l: int, nome: String, ms := -1) -> bool:
 	_motor_ate[clampi(l, 0, 3)] = _agora + dur / 1000.0
 	evento("sensacao", l + 1, {"nome": nome, "escala": Opcoes.escala_vibracao(l), "ms": dur})
 	return vibrar(l, float(s[0]), float(s[1]), dur)
+
+
+## A vibração de uma força só nos dois motores, para a bancada (a medição às
+## cegas do rumble seco, F10): `forca` 0..1, ou 0 para parar. Fora da tabela
+## de sensações de propósito, e só o experimento `forca` chama.
+func sentir_forca(l: int, forca: float, ms: int) -> bool:
+	_motor_ate[clampi(l, 0, 3)] = _agora + ms / 1000.0
+	evento("sensacao", l + 1, {"nome": "forca", "forca": forca, "escala": Opcoes.escala_vibracao(l), "ms": ms})
+	return vibrar(l, forca, forca, ms)
+
+
+## O valor de um argumento da linha de comando (`--nome=valor`), ou `padrao`.
+func argumento(nome: String, padrao := "") -> String:
+	return str(_args.get(nome, padrao))
 
 
 ## Os dois motores: forte (esquerda, o contrapeso grande) e fraco (direita).

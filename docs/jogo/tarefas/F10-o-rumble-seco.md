@@ -177,3 +177,42 @@ Marcar F10 como **feito** no [quadro](README.md), com o gasto e o resultado
 (seco ou suave). Commit sugerido: com Parte B,
 `feat: o rumble seco como opção do lugar, com a emenda ao contrato e a medição`;
 só com Parte A, `docs: a medição do rumble seco — o suave basta`.
+
+## O que foi feito (leva 1, o-controle)
+
+Só a **parte A**, o código e a régua; a rodada às cegas é do André, e a ficha **para aqui** (o que
+ela mesma manda: não segue para a parte B sem o resultado escrito).
+
+- **O roteiro** `experimental/rumble_seco.sh`: um controle no cabo; 12 pares (25, 50, 75 e 100% de
+  força × 80, 250 e 400 ms), cada um com a ordem suave/seco sorteada (`--semente` repete o sorteio,
+  `--rodadas` repete os pares); o suave vem do jogo, o seco do `bin/forja-send`; a pergunta é
+  «qual sentiu mais forte: 1, 2 ou igual», e no fim a preferência para golpe, acerto e explosão. Imprime
+  o veredito pela regra da ficha (o seco vence se foi o mais forte em dois terços dos pares de 75% e
+  100% **e** é o preferido para golpe e explosão) e a linha pronta para a seção `rumble-seco` do
+  `experimental/RESULTADOS.md`, com o firmware que o jogo leu do controle. `--ensaio` mostra o roteiro
+  sem abrir o jogo nem tocar no controle.
+- **O lado do jogo**: o experimento `forca` na bancada (`godot/scripts/salas/bancada.gd`) vibra os dois
+  motores numa força só, pelo caminho do SDL, e obedece a um arquivo de comandos (`--comando=ARQUIVO`:
+  `LUGAR FORCA MS`, `parar LUGAR`, `fim`), respondendo no `ARQUIVO.ok` com o firmware. Para isso o
+  `forja.gd` ganhou `Forja.sentir_forca` (uma exceção declarada à tabela de sensações, só da bancada)
+  e `Forja.argumento`. Fica de fora do `rodar.sh` padrão (precisa do `--comando`).
+- **A régua**: `tests/prova_da_bancada.sh` roda o `forca` com um arquivo de cinco comandos (3 medidos,
+  `parar`, `fim`; o jogo responde cinco linhas) e com `--defeitos=vibra-vizinho` (3 falham). Nenhum
+  aparelho é tocado.
+
+**Provas:** `bash tests/prova_da_bancada.sh` verde (`forca` 3 de 3 medidos; `vibra-vizinho` 3 de 3
+falham); `bash tests/prova_do_jogo.sh` verde, que ainda confere que só o `forja.gd` chama `Forja.vibrar`.
+
+**Para o André (local):** `make bin/forja-send`, um DualSense no cabo e `experimental/rumble_seco.sh`
+(uns 10 minutos por controle; um de firmware antigo, um novo e o Edge, se houver). Colar a linha que
+o roteiro imprime em `experimental/RESULTADOS.md` e avisar: se o seco vencer, vem a parte B.
+
+**Para a parte B (achados de leitura, não de execução):**
+- `forja_ds5_pack` (`src/forja_dualsense.c`) só liga `FORJA_FX_RUMBLE` quando um motor é diferente de
+  zero. Um pacote «de parar» sem esses bits não manda o motor parar no aparelho: a função nova
+  `forja_fx_rumble_seco` precisa mandar **um** pacote com o bit ligado e os dois motores em zero
+  antes de voltar ao pacote sem os bits (a ficha diz «sem os dois bits», o que deixaria o motor
+  ligado). O roteiro de hoje para o seco com `parar` pelo SDL; se o motor continuar vibrando depois de
+  um par, é este o sintoma.
+- O `forja-send` manda um pacote só e não para: o roteiro manda o parar pelo jogo (`SDL_RumbleGamepad`
+  em zero). Anotar no resultado se o motor parou sozinho.

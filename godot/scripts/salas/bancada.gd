@@ -27,6 +27,8 @@ const EXPERIMENTOS := {
 		"A háptica chega pelo nó «Háptica do Controle N» (o caminho do rádio), dos dois lados?"],
 	"haptico": ["O háptico forte",
 		"Cada sensação da tabela chega inteira ao motor de cada controle? Com o firmware e a escala de cada um."],
+	"forca": ["A força do rumble",
+		"Vibra na força pedida, pelo caminho do jogo (o SDL), para o roteiro às cegas do rumble seco. Obedece a --comando=ARQUIVO."],
 }
 const TENTATIVAS := 5
 const TAXA := 48000
@@ -173,6 +175,8 @@ func _process(dt: float) -> void:
 			fim = _haptica_nomeada(dt)
 		"haptico":
 			fim = _haptico(dt)
+		"forca":
+			fim = _forca(dt)
 		_:
 			fim = true
 	if fim:
@@ -576,3 +580,79 @@ func _haptico_proxima(n: int) -> void:
 	if _k >= n:
 		_proximo()
 
+
+# ------------------------------------------------------------ 7. a força do rumble --
+# O roteiro às cegas do rumble seco (experimental/rumble_seco.sh, F10): o jogo
+# vibra o lado «suave» (o do SDL) na força pedida, e o roteiro manda o «seco»
+# pelo forja-send. O jogo obedece a um arquivo de comandos (--comando=ARQUIVO),
+# uma linha por comando, e responde no ARQUIVO.ok, uma linha por comando:
+#   «LUGAR FORCA MS»  vibra os dois motores na força (0 a 1) por MS
+#   «parar LUGAR»     pára o motor do lugar
+#   «fim»             grava o relatório e fecha
+
+var _fila: Array = []
+var _forca_atual: Array = []  ## [lugar, força, ms]
+
+
+func _forca(dt: float) -> bool:
+	var arq := Forja.argumento("comando")
+	if arq == "":
+		_resultado(-1, "forca", 2, "sem --comando=ARQUIVO: nada a obedecer")
+		return true
+	if _etapa == 0:
+		agora = "esperando o próximo comando do roteiro"
+		if FileAccess.file_exists(arq):
+			for linha in FileAccess.get_file_as_string(arq).split("\n", false):
+				_fila.append(String(linha).strip_edges())
+			DirAccess.remove_absolute(arq)
+		if _fila.is_empty():
+			return false
+		var cmd: PackedStringArray = String(_fila.pop_front()).split(" ", false)
+		if cmd.is_empty():
+			return false
+		if cmd[0] == "fim":
+			_forca_resposta(arq, "fim")
+			Forja.gravar_relatorio()
+			get_tree().quit()
+			return true
+		if cmd[0] == "parar" and cmd.size() > 1:
+			Forja.sentir_forca(int(cmd[1]), 0.0, 0)
+			_forca_resposta(arq, "parou %d" % int(cmd[1]))
+			return false
+		if cmd.size() < 3:
+			_forca_resposta(arq, "comando que não entendi: %s" % " ".join(cmd))
+			return false
+		_forca_atual = [clampi(int(cmd[0]), 0, 3), clampf(float(cmd[1]), 0.0, 1.0), clampi(int(cmd[2]), 0, 5000)]
+		Forja.sentir_forca(_forca_atual[0], _forca_atual[1], _forca_atual[2])
+		agora = "P%d: uma vibração" % (int(_forca_atual[0]) + 1)
+		_etapa = 1
+		_quadros = 0
+		_te = 0.0
+		return false
+	_te += dt
+	_quadros += 1
+	var l: int = _forca_atual[0]
+	if _etapa == 1 and _quadros >= 2:
+		var fw := str(Forja.pad(Forja.pad_do_lugar(l)).get("firmware", "?"))
+		var pc := Forja.percepcao(l)
+		var chegou := "aparelho"
+		if not pc.is_empty():
+			var esperado := float(_forca_atual[1]) * Opcoes.escala_vibracao(l)
+			var certo := absf(float(pc.get("forte", 0.0)) - esperado) < 0.03 and absf(float(pc.get("fraco", 0.0)) - esperado) < 0.03
+			chegou = "chegou %.2f %.2f" % [float(pc.get("forte", 0.0)), float(pc.get("fraco", 0.0))]
+			_resultado(l, "forca", 0 if certo else 1, "força %.2f por %d ms (%s) · firmware %s" % [
+				float(_forca_atual[1]), int(_forca_atual[2]), chegou, fw])
+		_forca_resposta(arq, "ok %d %.2f %d %s %s" % [l, float(_forca_atual[1]), int(_forca_atual[2]), fw, chegou])
+		_etapa = 2
+	elif _etapa == 2 and _te >= float(_forca_atual[2]) / 1000.0 + 0.1:
+		_etapa = 0
+	return false
+
+
+func _forca_resposta(arq: String, texto: String) -> void:
+	var f := FileAccess.open(arq + ".ok", FileAccess.READ_WRITE if FileAccess.file_exists(arq + ".ok") else FileAccess.WRITE)
+	if f == null:
+		return
+	f.seek_end()
+	f.store_line(texto)
+	f.close()
