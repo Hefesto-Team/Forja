@@ -154,12 +154,8 @@ func _process(dt: float) -> void:
 			get_tree().quit()
 			return
 	if acabou:
-		# com o robô, a bancada fecha sozinha: é uma rodada de teste
 		if Forja.robo:
-			_te += dt
-			if _te > 2.0:
-				Forja.gravar_relatorio()
-				get_tree().quit()
+			_robo_do_fim(dt)
 		return
 	var fim := false
 	match chave:
@@ -186,6 +182,16 @@ func _process(dt: float) -> void:
 		agora = "pronto: %d resultado%s gravado%s na linha do tempo da sessão" % [linhas.size(),
 			"" if linhas.size() == 1 else "s", "" if linhas.size() == 1 else "s"]
 		Som.tocar("sucesso", null, -6.0)
+
+
+## O robô do fim: a bancada é uma rodada de teste, e o robô a fecha como uma
+## pessoa, apertando ○ no controle simulado depois de ler o resultado (o ○ grava
+## e fecha). Aperta de novo a cada 2 s, se o toque não chegou (F08).
+func _robo_do_fim(dt: float) -> void:
+	_te += dt
+	if _te > 2.0 and not ordem.is_empty():
+		_te = 0.0
+		Forja.robo_apertar(int(ordem[0]), F.CIRCULO, 0.09)
 
 
 # ------------------------------------------------------------ 1. o laço --

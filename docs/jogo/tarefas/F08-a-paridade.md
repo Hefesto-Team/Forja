@@ -124,6 +124,13 @@ sugerido: `fix: o robô só joga pelo controle, e a prova percorre o jogo que se
   sozinho na linha (o gancho), de funções `_robo*`/`robo*` e de
   `Opcoes.gravar(Forja.robo)`. Em `bancada.gd` três condições misturadas viraram
   gancho (`if Forja.robo:` com o resto dentro), sem mudar o comportamento.
+- Na conferência: a régua aceitava a linha `if Forja.robo:` sem olhar o corpo, e
+  a bancada escondia ali um atalho (com o robô, fechava sozinha em 2 s: somava o
+  relógio, gravava e saía). Agora o robô da bancada aperta ○ no controle simulado
+  (`_robo_do_fim`, o mesmo ○ que grava e fecha para a pessoa), e a régua lê o
+  corpo do gancho: ali só cabe percorrer os lugares, decidir, ler numa variável
+  local e chamar o robô; o resto reprova («dentro do gancho do robô»). A régua
+  morde a bancada antiga (três linhas) e o atalho plantado dentro do gancho.
 - A prova do aviso de 8 s usa `Forja.robo_confirma = false` em vez de desligar
   `Forja.robo`; e cada sala confere que o aviso passou pelo ✕ do controle
   (antes dos 8 s), não pelo relógio.

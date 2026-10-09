@@ -1238,6 +1238,14 @@ func _prova_da_paridade() -> void:
 	_esperar(atalhos_do_robo(plantado, "plantado.gd").size() == 1, "paridade: a régua reprova um atalho plantado")
 	var gancho := "func jogar(dt):\n\tif Forja.robo:\n\t\t_robo(dt)\nfunc _robo_do_aviso():\n\tif not Forja.robo:\n\t\treturn\n"
 	_esperar(atalhos_do_robo(gancho, "gancho.gd").is_empty(), "paridade: a régua aceita o gancho e as funções do robô")
+	# o atalho escondido DENTRO do gancho também reprova: o corpo do `if Forja.robo:`
+	# só chama o robô (o fechamento sozinho da bancada era assim)
+	var escondido := "func _process(dt):\n\tif Forja.robo:\n\t\t_te += dt\n\t\tif _te > 2.0:\n\t\t\tget_tree().quit()\n"
+	_esperar(atalhos_do_robo(escondido, "escondido.gd").size() == 2, "paridade: a régua reprova o atalho dentro do gancho (%s)" % [atalhos_do_robo(escondido, "escondido.gd")])
+	var gancho_com_laco := "func jogar(dt):\n\tif Forja.robo:\n\t\tfor p in jogadores:\n\t\t\tvar l: int = p.lugar\n\t\t\tif _conectado(l):\n\t\t\t\t_robo(l, dt)\n\t_jogar(dt)\n"
+	_esperar(atalhos_do_robo(gancho_com_laco, "laco.gd").is_empty(), "paridade: a régua aceita o gancho que percorre os lugares")
+	var depois := "func _robo_x():\n\tpass\nvar pronto = Forja.robo\n"
+	_esperar(atalhos_do_robo(depois, "depois.gd").size() == 1, "paridade: a linha de fora de função, depois de uma função do robô, não herda a licença")
 	var comentario := "# Forja.robo fica no gancho\nvar a := 1  # e Forja.robo aqui é só prosa\n"
 	_esperar(atalhos_do_robo(comentario, "prosa.gd").is_empty(), "paridade: a régua ignora comentário")
 
@@ -1259,15 +1267,28 @@ static func atalhos_do_robo(texto: String, arquivo: String) -> Array:
 	var atual := ""
 	var achados: Array = []
 	var n := 0
+	var gancho := -1  ## a indentação do `if Forja.robo:` aberto; -1: fora de um gancho
 	for linha in texto.split("\n"):
 		n += 1
 		var m := funcao.search(linha)
 		if m != null:
 			atual = m.get_string(1)
 		var codigo := _sem_comentario(linha).strip_edges()
+		if codigo == "":
+			continue
+		var recuo := _recuo(linha)
+		if recuo == 0 and m == null:
+			atual = ""  # uma linha da classe, fora de qualquer função
+		if gancho >= 0 and recuo <= gancho:
+			gancho = -1
+		if gancho >= 0 and not atual.begins_with("_robo") and not atual.begins_with("robo") \
+				and not _linha_do_gancho(codigo):
+			achados.append("%s:%d %s (dentro do gancho do robô)" % [arquivo, n, codigo])
+			continue
 		if r.search(codigo) == null:
 			continue
 		if codigo == "if Forja.robo:":
+			gancho = recuo
 			continue
 		if atual.begins_with("_robo") or atual.begins_with("robo"):
 			continue
@@ -1275,6 +1296,31 @@ static func atalhos_do_robo(texto: String, arquivo: String) -> Array:
 			continue
 		achados.append("%s:%d %s" % [arquivo, n, codigo])
 	return achados
+
+
+## O que cabe no corpo do gancho `if Forja.robo:`: percorrer os lugares e chamar
+## o robô (`_robo*`, `robo*`, `Forja.robo_*`), guardar o que o robô sentiu
+## (`_robo...`), ler numa variável local e decidir. Mudar o jogo ali (somar um
+## relógio, fechar a sala, emitir um sinal) é atalho.
+static func _linha_do_gancho(codigo: String) -> bool:
+	for inicio in ["for ", "if ", "elif ", "else:", "while ", "var ", "return", "continue", "break", "pass"]:
+		if codigo.begins_with(inicio):
+			return true
+	if codigo.begins_with("_robo"):
+		return true
+	return RegEx.create_from_string("^(?:Forja\\.)?_?robo\\w*\\(").search(codigo) != null
+
+
+static func _recuo(linha: String) -> int:
+	var n := 0
+	for c in linha:
+		if c == "\t":
+			n += 4
+		elif c == " ":
+			n += 1
+		else:
+			break
+	return n
 
 
 ## A linha sem o comentário `#` (que não esteja dentro de um texto entre aspas).
