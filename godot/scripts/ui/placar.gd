@@ -212,7 +212,7 @@ func _draw() -> void:
 			[["cruz", "Outra partida"], ["circulo", "Voltar ao salão"]], Tema.T_ROTULO)
 	else:
 		var seguinte := partida.sala_atual()
-		var texto := "A seguir: %s" % Partida.NOMES.get(seguinte, seguinte) if seguinte != "" else "O pódio"
+		var texto := "A seguir: %s" % Partida.nome(seguinte) if seguinte != "" else "O pódio"
 		Desenho.dicas_a_direita(self, Vector2(r.end.x - 48, r.end.y + 60), [["cruz", texto]], Tema.T_ROTULO)
 
 

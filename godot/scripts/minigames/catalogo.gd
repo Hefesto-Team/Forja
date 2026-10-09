@@ -68,3 +68,61 @@ static func apelido(id: String) -> String:
 		if id in s.minigames:
 			return s.apelido
 	return id
+
+
+## A seção do apelido, do id (S01) ou de um slot; {} se não é de seção.
+static func secao(id: String) -> Dictionary:
+	var chave: String = NOMES_VELHOS.get(id, id)
+	for s in SECOES:
+		if s.apelido == chave or s.id == chave or chave in s.minigames:
+			return s
+	return {}
+
+
+## A ordem da noite dos minigames de uma seção: uma permutação de `lista` pela
+## semente e pela seção (Fisher–Yates, a mesma em toda máquina). Pura.
+static func ordem(lista: Array, chave: String, semente: int) -> Array:
+	var r := lista.duplicate()
+	var rng := RandomNumberGenerator.new()
+	rng.seed = hash("%s:%d" % [chave, semente])
+	for i in range(r.size() - 1, 0, -1):
+		var k := rng.randi_range(0, i)
+		var tmp = r[i]
+		r[i] = r[k]
+		r[k] = tmp
+	return r
+
+
+## O minigame da seção na vez `vez` da noite (0, 1, 2...): nenhum repete até
+## os cinco saírem, e a volta seguinte segue a mesma ordem. Seção sem
+## minigame ainda: o próprio apelido (a sala de hoje).
+static func sortear(apelido: String, semente: int, vez: int) -> String:
+	var s := secao(apelido)
+	if s.is_empty():
+		return str(NOMES_VELHOS.get(apelido, apelido))
+	var lista: Array = s.minigames
+	if lista.is_empty():
+		return str(s.apelido)
+	var o := ordem(lista, str(s.apelido), semente)
+	return str(o[posmod(vez, o.size())])
+
+
+## O próximo minigame da seção que ainda não se jogou na noite (`jogados`:
+## slot -> true). Os cinco jogados: a ordem recomeça do primeiro.
+static func proximo(apelido: String, semente: int, jogados: Dictionary) -> String:
+	var s := secao(apelido)
+	if s.is_empty() or s.minigames.is_empty():
+		return sortear(apelido, semente, 0)
+	for vez in s.minigames.size():
+		var slot := sortear(apelido, semente, vez)
+		if not jogados.has(slot):
+			return slot
+	return sortear(apelido, semente, 0)
+
+
+## O título do minigame pela FICHA, sem abrir o minigame; "" se não é minigame.
+static func titulo(slot: String) -> String:
+	if not MINIGAMES.has(slot):
+		return ""
+	var f = (MINIGAMES[slot] as Script).get_script_constant_map().get("FICHA", {})
+	return str((f as Dictionary).get("titulo", slot))

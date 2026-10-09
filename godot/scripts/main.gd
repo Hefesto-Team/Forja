@@ -69,6 +69,7 @@ var _intervalo_ms := 0.0  ## o tempo do intervalo, em ms (o ✕ só vale depois 
 var _intervalo_gesto := 0.0  ## s até o próximo gesto de pedestal
 var _intervalo_vez := 0  ## de quem é o próximo gesto
 var _robo_intervalo_t := -1.0  ## o `_intervalo_ms` do último ✕ do robô
+var jogados_na_noite := {}  ## slot -> true: os minigames que a noite já abriu (o sorteio não repete)
 const INTERVALO_GUARDA_MS := 500.0
 
 
@@ -281,7 +282,7 @@ func _mostrar(qual: String) -> void:
 		Musica.calar()  # a fita para no eject
 	elif qual != "intro":
 		_toca_titulo = null
-		Musica.tocar(sala_id if qual == "sala" else ("salao" if qual == "intervalo" else qual))
+		Musica.tocar(Catalogo.apelido(sala_id) if qual == "sala" else ("salao" if qual == "intervalo" else qual))
 	titulo.visible = qual == "titulo"
 	intro.visible = qual == "intro"
 	lobby.visible = qual == "lobby"
@@ -404,7 +405,7 @@ func _ir_para_o_salao(com_cortina := true) -> void:
 		for p in jogadores:
 			if not p.visible:
 				continue
-			var volta := salao.saida_do_portao(sala_id, p.lugar) if sala_id != "" else Vector3(-3.0 + i * 2.0, 0.05, 3.2)
+			var volta := salao.saida_do_portao(Catalogo.apelido(sala_id), p.lugar) if sala_id != "" else Vector3(-3.0 + i * 2.0, 0.05, 3.2)
 			p.global_position = volta
 			p.rotation.y = PI
 			p.controlavel = true
@@ -432,6 +433,7 @@ func _entrar_na_sala(id: String, com_cortina := true, pronta: Sala = null) -> vo
 			remove_child(salao)
 		sala_id = id
 		sala = pronta if pronta != null else Catalogo.criar(id)
+		_marcar_jogado(sala.id)
 		sala.name = "Sala"
 		add_child(sala)
 		var js: Array = []
@@ -464,6 +466,21 @@ func _entrar_na_sala(id: String, com_cortina := true, pronta: Sala = null) -> vo
 		feito.call()
 		_cam_pos = _pose_da_camera()[0]
 		_cam_olhar = _pose_da_camera()[1]
+
+
+## O minigame entrou na noite. Os da seção todos jogados: a volta recomeça
+## (sem o que acabou de sair, para não repetir em seguida).
+func _marcar_jogado(slot: String) -> void:
+	var s := Catalogo.secao(slot)
+	if s.is_empty() or not slot in s.minigames:
+		return
+	jogados_na_noite[slot] = true
+	for m in s.minigames:
+		if not jogados_na_noite.has(m):
+			return
+	for m in s.minigames:
+		jogados_na_noite.erase(m)
+	jogados_na_noite[slot] = true
 
 
 ## A sala acabou e alguém apertou ✕ no veredito: de volta ao salão — ou, na
@@ -532,7 +549,7 @@ func _comecar_a_partida(n: int, sorteada: bool, com_cortina := true) -> void:
 	if overlay != "":
 		_fechar_overlay()
 	fogo = -1
-	partida = Partida.nova(n, sorteada, Forja.semente + _partidas, ORDEM_DO_FOGO)
+	partida = Partida.nova(n, sorteada, Forja.semente + _partidas, ORDEM_DO_FOGO, jogados_na_noite, Forja.semente)
 	_partidas += 1
 	var ids := ", ".join(partida.salas)
 	Forja.registrar("Partida: começou, %d salas%s, nível %s (%s)" % [partida.salas.size(), ", sorteadas" if sorteada else "",
@@ -1114,7 +1131,7 @@ func _quadro_salao() -> void:
 		for p in jogadores:
 			if p.visible and Forja.apertou(p.lugar, Forja.CRUZ):
 				_som_do_cruz(p.lugar, true)
-				_entrar_na_sala(perto)
+				_entrar_na_sala(Catalogo.proximo(perto, Forja.semente, jogados_na_noite))
 				return
 	elif quem >= 0 and Forja.apertou(quem, Forja.CRUZ):
 		_som_do_cruz(quem, false)

@@ -17,11 +17,12 @@ extends RefCounted
 const TAMANHOS := [3, 5, 9]
 ## Os pontos da noite pela colocação na sala (1º, 2º, 3º, 4º).
 const PELA_COLOCACAO := [4, 3, 2, 1]
-## As partidas na ordem: as salas que jogam em qualquer sala de estar (nenhuma
-## pede o som do controle), e A Prova sempre no fim. A de nove é o percurso.
+## As partidas na ordem, por seção (o apelido). A de cinco tem O Canto (o
+## alto-falante do controle é do jogo, docs/jogo/13 H08); A Prova sempre no
+## fim. A de nove é o percurso.
 const NA_ORDEM := {
 	3: ["centelha", "galeria", "prova"],
-	5: ["centelha", "viga", "impacto", "galeria", "prova"],
+	5: ["centelha", "impacto", "canto", "galeria", "prova"],
 }
 const NOMES := {
 	"centelha": "A Centelha", "viga": "A Viga", "molde": "O Molde", "impacto": "O Impacto",
@@ -29,7 +30,8 @@ const NOMES := {
 	"prova": "A Prova",
 }
 
-var salas: Array = []  ## os ids, na ordem em que se jogam
+var secoes: Array = []  ## os apelidos das seções, na ordem (o roteiro)
+var salas: Array = []  ## o que se abre, na ordem: o slot sorteado de cada seção (o apelido, se a seção ainda não tem minigame)
 var semente := 0  ## o sorteio do último desempate
 var sorteada := false
 var passo := 0  ## a sala em curso (índice em `salas`)
@@ -63,12 +65,25 @@ static func roteiro(n: int, sortear: bool, semente: int, percurso: Array) -> Arr
 	return r
 
 
-static func nova(n: int, sortear: bool, semente: int, percurso: Array) -> Partida:
+## A partida: o roteiro das seções e, de cada uma, o próximo minigame que a
+## noite ainda não jogou (Catalogo.proximo, pela semente da noite).
+static func nova(n: int, sortear: bool, semente: int, percurso: Array, jogados := {}, semente_da_noite := 0) -> Partida:
 	var p := Partida.new()
-	p.salas = roteiro(n, sortear, semente, percurso)
+	p.secoes = roteiro(n, sortear, semente, percurso)
+	var ja: Dictionary = jogados.duplicate()
+	for ap in p.secoes:
+		var slot := Catalogo.proximo(str(ap), semente_da_noite, ja)
+		ja[slot] = true
+		p.salas.append(slot)
 	p.sorteada = sortear
 	p.semente = semente
 	return p
+
+
+## O nome de um slot ou de um apelido: o título do minigame, ou o da seção.
+static func nome(id: String) -> String:
+	var t := Catalogo.titulo(id)
+	return t if t != "" else str(NOMES.get(Catalogo.apelido(id), id))
 
 
 ## A colocação de cada lugar presente pelos pontos da sala: 1 + quantos fizeram
@@ -116,7 +131,7 @@ func registrar(id: String, pontos: Array, presentes: Array) -> Dictionary:
 		total[l] += ganhos[l]
 		if col[l] == 1:
 			vitorias[l] += 1
-	var entrada := {"sala": id, "nome": NOMES.get(id, id), "pontos": pontos.duplicate(),
+	var entrada := {"sala": id, "nome": nome(id), "pontos": pontos.duplicate(),
 		"colocacao": col, "ganhos": ganhos}
 	historico.append(entrada)
 	passo += 1
