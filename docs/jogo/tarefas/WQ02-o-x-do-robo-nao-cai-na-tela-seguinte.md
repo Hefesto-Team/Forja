@@ -85,3 +85,24 @@ dele, sem pular sozinho.
 ## Ao terminar
 
 Pôr a linha da WQ02 no [quadro](README.md) como **feito**, com o commit.
+
+## O que foi feito (leva 1, a-caixa)
+
+- **`godot/scripts/forja.gd`, `robo_confirmar`:** guarda, antes do temporizador, se houve dono e o id dele, e não
+  captura o nó. Sem dono, aperta como antes (o `main.gd:574` segue apertando); com dono, aperta só se o id ainda vale
+  e o nó está na árvore. A assinatura não mudou, nem os atrasos e os temperamentos.
+- **`godot/testes/prova_de_poucos.gd`, `_prova_do_x_que_nao_cai`:** entra na centelha, espera o aviso pedir o ✕
+  (`_robo_confirmou`), volta ao salão 18 quadros depois (o `queue_free` da sala, bem antes de 1,4 s), confere que a
+  sala foi liberada e olha a cruz de cada lugar por 300 quadros (5 s).
+
+**Provas:**
+
+- A mordida (só o caso, centelha com 2 controles, pela caixa e pelo semáforo): com o `forja.gd` de antes,
+  `FAIL o ✕ da sala que saiu antes dele não caiu no salão (liberada: true; ✕ em ["P1", "P2"])`, rc 1, e 2 «Lambda
+  capture»; com a cura, `ok`, rc 0, e 0 «Lambda capture».
+- `bash tests/prova_de_poucos.sh` verde (as oito rodadas) e `bash tests/prova_do_jogo.sh` verde (as duas rodadas):
+  `grep -c 'Lambda capture'` em todos os registros dá 0 (antes, 14 na prova do jogo). Os registros foram lidos por um
+  Godot que copia a saída, porque a prova apaga a pasta dela (a WQ04).
+
+**Fica para a mão (o André):** `./run-local.sh -- --simular=4 --robo` e assistir a uma partida: depois de cada sala, o
+placar fica na tela o tempo dele, sem pular sozinho.

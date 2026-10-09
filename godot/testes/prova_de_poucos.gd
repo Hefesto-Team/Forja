@@ -50,6 +50,7 @@ func _ready() -> void:
 	jogo._ir_para_o_salao(false)
 	await _quadros(4)
 	_esperar(Forja.jogadores() == n, "%d lugar(es) ocupado(s)" % n)
+	await _prova_do_x_que_nao_cai(n)
 	var pedidas := OS.get_environment("SALAS")
 	var salas: Array = Array(pedidas.split(",")) if pedidas != "" else SALAS
 	for id in salas:
@@ -151,3 +152,31 @@ func _tira_e_poe_o_cabo(sala, id: String) -> void:
 	_esperar(Forja.lugar(1).get("conectado", false), "%s: o P2 voltou ao lugar" % id)
 	var p: Dictionary = Forja.ctl.percepcao(Forja.pad_do_lugar(1))
 	_esperar(int(p.get("player_index", -9)) == 1, "%s: com o mesmo player index (1)" % id)
+
+
+## A sala que pediu o ✕ e saiu antes dele não deixa o ✕ cair na tela seguinte
+## (a WQ02): o robô do aviso pede o ✕ com a sala de dono, a sala é liberada
+## antes de 1,4 s (a volta ao salão faz o queue_free), e nenhum lugar recebe ✕
+## nos 5 s seguintes.
+func _prova_do_x_que_nao_cai(n: int) -> void:
+	jogo._entrar_na_sala("centelha", false)
+	var q := 0
+	while q < 120 and not (jogo.sala is SalaJogo and jogo.sala._robo_confirmou):
+		await _quadros(1)
+		q += 1
+	if not (jogo.sala is SalaJogo and jogo.sala._robo_confirmou):
+		_esperar(false, "o ✕ da sala que saiu: o robô do aviso pediu o ✕")
+		return
+	var sala: Node = jogo.sala
+	await _quadros(18)
+	jogo._ir_para_o_salao(false)
+	await _quadros(1)
+	var liberada := not is_instance_valid(sala)
+	var viu := []
+	for i in 300:
+		await _quadros(1)
+		for l in n:
+			if Forja.segura(l, Forja.CRUZ) and not viu.has(l):
+				viu.append(l)
+	_esperar(liberada and viu.is_empty(), "o ✕ da sala que saiu antes dele não caiu no salão (liberada: %s; ✕ em %s)" % [
+		liberada, str(viu.map(func(l: int) -> String: return "P%d" % (l + 1)))])
