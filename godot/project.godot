@@ -27,6 +27,7 @@ Forja="*res://scripts/forja.gd"
 Som="*res://scripts/som.gd"
 Musica="*res://scripts/musica.gd"
 Ritmo="*res://scripts/ritmo.gd"
+PosFita="*res://scripts/pos_fita.gd"
 
 [display]
 

@@ -241,6 +241,7 @@ func _mostrar(qual: String) -> void:
 	salao.pedestais_no.visible = qual in ["lobby", "podio"]
 	if qual != "sala":
 		acender(0 if qual == "podio" else -1)
+		PosFita.gastar(1)
 	if qual == "lobby":
 		for l in 4:
 			var p := jogadores[l]
@@ -351,6 +352,8 @@ func _entrar_na_sala(id: String, com_cortina := true) -> void:
 			or (sala as SalaJogo).cega))
 		_mostrar("sala")
 		acender(sala.numero())
+		PosFita.gastar(partida.passo + 1 if partida else 1)
+		PosFita.rasgo_curto()
 		hud.sala = {"nome": sala.nome, "acao": sala.acao}
 		hud.placa = {}
 	if com_cortina:
@@ -863,6 +866,8 @@ func _fechar_overlay() -> void:
 	pausa.visible = false
 	escolha.visible = false
 	placar.visible = false
+	if overlay_antes_de_fechar == "pausa":
+		PosFita.rasgo_curto()
 	if overlay_antes_de_fechar == "opcoes":
 		Opcoes.gravar(Forja.robo)
 		Forja.registrar_opcoes()
