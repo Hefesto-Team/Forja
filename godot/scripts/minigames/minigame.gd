@@ -176,7 +176,7 @@ func raia(l: int) -> Node3D:
 	raiz.name = "Raia%d" % (l + 1)
 	raiz.position = Vector3(RAIAS[l], 0.0, Z_JOGADOR)
 	add_child(raiz)
-	Kit.cilindro(raiz, 1.45, 0.06, Vector3(0, 0.03, 0), Kit.material(Tema.PAINEL, 0.0, 0.9))
+	Kit.cilindro(raiz, 1.45, 0.06, Vector3(0, 0.03, 0), Kit.material(Tema.CASCO, 0.0, 0.9))
 	var borda := MeshInstance3D.new()
 	var tor := TorusMesh.new()
 	tor.inner_radius = 1.4

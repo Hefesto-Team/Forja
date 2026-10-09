@@ -2,9 +2,9 @@ class_name MapaDoControle
 extends Control
 ## O mapa do controle: o desenho do DualSense do app Hefesto, com o que o
 ## controle do lugar faz AGORA. A casca na cor de luz do jogador (a borda diz
-## QUAL); o botão apertado acende em rosa, o analógico anda, o gatilho enche,
-## o dedo no touchpad é um ponto ciano; a barra de luz mostra a cor que o jogo
-## mandou, as cinco lâmpadas o padrão do lugar, o motor que vibra fica laranja.
+## QUAL); o botão apertado acende na cor da etiqueta, o analógico anda, o gatilho enche,
+## o dedo no touchpad é um ponto claro; a barra de luz mostra a cor que o jogo
+## mandou, as cinco lâmpadas o padrão do lugar, o motor que vibra fica mostarda.
 ##
 ## As camadas saem do SVG por scripts/mapa_do_controle.js (assets/mapa/).
 
@@ -22,7 +22,7 @@ var lugar := 0
 ## false: o desenho parado (um lugar vazio, ou a figura da tela de título)
 var ao_vivo := true
 ## a cor da casca; sem ela, a do lugar
-var cor_casca := Color(0, 0, 0, 0)
+var cor_casca := Color.TRANSPARENT
 
 static var _texturas := {}
 static var _camadas := {}
@@ -81,7 +81,7 @@ func area() -> Rect2:
 	return Rect2((size.x - w) * 0.5, (size.y - h) * 0.5, w, h)
 
 
-func _camada(nome: String, cor := Color.WHITE, desloc := Vector2.ZERO) -> void:
+func _camada(nome: String, cor := Tema.ETIQUETA, desloc := Vector2.ZERO) -> void:
 	var t := _tex(nome)
 	if t == null or not _camadas.has(nome):
 		return
@@ -114,22 +114,22 @@ func _draw() -> void:
 	var saida: Dictionary = Forja.estado_saida(lugar) if vivo else {}
 
 	_camada("base")
-	_camada("corpo", cor if vivo or not ao_vivo else Color(Tema.SUTIL, 1.0))
+	_camada("corpo", cor if vivo or not ao_vivo else Color(Tema.GRAFITE, 1.0))
 
-	# o motor que vibra: a empunhadura fica laranja e treme (esquerda = forte)
+	# o motor que vibra: a empunhadura fica mostarda e treme (esquerda = forte)
 	if vivo:
 		var forte: float = saida.get("forte", 0.0)
 		var fraco: float = saida.get("fraco", 0.0)
 		var t := Time.get_ticks_msec() / 1000.0
 		if forte > 0.01:
 			var j := Vector2(sin(t * 91.0), cos(t * 77.0)) * 2.5 * forte
-			_camada("feat-rumble-esquerdo", Color(Tema.LARANJA, 0.35 + 0.5 * forte), j)
+			_camada("feat-rumble-esquerdo", Color(Tema.SECAO[3], 0.35 + 0.5 * forte), j)
 		if fraco > 0.01:
 			var j := Vector2(sin(t * 133.0), cos(t * 117.0)) * 1.5 * fraco
-			_camada("feat-rumble-direito", Color(Tema.LARANJA, 0.35 + 0.5 * fraco), j)
+			_camada("feat-rumble-direito", Color(Tema.SECAO[3], 0.35 + 0.5 * fraco), j)
 
 	# a barra de luz: a cor que o jogo mandou (luz, não plástico)
-	var luz: Color = saida.get("luz", Color(0, 0, 0, 0))
+	var luz: Color = saida.get("luz", Color.TRANSPARENT)
 	if vivo and luz.a > 0.0 and luz.get_luminance() > 0.01:
 		_camada("lightbar", Color(luz, 0.95))
 
@@ -137,13 +137,13 @@ func _draw() -> void:
 	var leds: int = saida.get("leds_jogador", 0) if vivo else 0
 	for i in 5:
 		if leds & (1 << i):
-			_camada("led-jogador-%d" % (i + 1), Tema.LED_ACESO)
+			_camada("led-jogador-%d" % (i + 1), Tema.ETIQUETA)
 
 	# o LED do mudo
 	if vivo and int(saida.get("led_mic", 0)) != 0:
 		var pisca := int(saida.get("led_mic", 0)) >= 2
 		if not pisca or fmod(Time.get_ticks_msec() / 1000.0, 1.0) < 0.5:
-			_camada("mic", Tema.LARANJA)
+			_camada("mic", Tema.SECAO[3])
 
 	if not vivo:
 		_camada("miolo_l")
@@ -154,39 +154,39 @@ func _draw() -> void:
 	for par in [[Forja.L2, "l2"], [Forja.R2, "r2"]]:
 		var v := Forja.eixo(lugar, par[0])
 		if v > 0.02:
-			_camada(par[1], Color(Tema.ROSA, 0.25 + 0.6 * v))
-			_camada("glifo-" + par[1], Tema.ROSA)
+			_camada(par[1], Color(Tema.ETIQUETA, 0.25 + 0.6 * v))
+			_camada("glifo-" + par[1], Tema.ETIQUETA)
 
 	# os botões
 	for botao in PECA_DO_BOTAO:
 		if Forja.segura(lugar, botao):
 			var peca: String = PECA_DO_BOTAO[botao]
-			_camada(peca, Color(Tema.ROSA, 0.30))
-			_camada("glifo-" + peca, Tema.ROSA)
+			_camada(peca, Color(Tema.ETIQUETA, 0.30))
+			_camada("glifo-" + peca, Tema.ETIQUETA)
 
 	# o touchpad: o clique acende a superfície; cada dedo é um ponto
 	if Forja.segura(lugar, Forja.TOUCHPAD):
-		_camada("touchpad", Color(Tema.CIANO, 0.35))
+		_camada("touchpad", Color(Tema.ETIQUETA, 0.35))
 	var tp := caixa_da_peca("touchpad")
 	for i in 2:
 		var d := Forja.dedo(lugar, i)
 		if d.z > 0.5:
 			var p := tp.position + Vector2(d.x * tp.size.x, d.y * tp.size.y)
 			var raio := maxf(4.0, tp.size.y * 0.07)
-			draw_circle(p, raio * 1.8, Color(Tema.CIANO, 0.25))
-			draw_circle(p, raio, Tema.CIANO)
+			draw_circle(p, raio * 1.8, Color(Tema.ETIQUETA, 0.25))
+			draw_circle(p, raio, Tema.ETIQUETA)
 
-	# os analógicos: o miolo anda com o eixo; o clique pinta de rosa
+	# os analógicos: o miolo anda com o eixo; o clique acende
 	var alcance := 30.0  # px do desenho (1160 de largura)
 	var l := Vector2(Forja.eixo(lugar, Forja.LX), Forja.eixo(lugar, Forja.LY))
 	var r := Vector2(Forja.eixo(lugar, Forja.RX), Forja.eixo(lugar, Forja.RY))
 	if Forja.segura(lugar, Forja.L3):
-		_camada("stick_l", Color(Tema.ROSA, 0.35))
+		_camada("stick_l", Color(Tema.ETIQUETA, 0.35))
 	if Forja.segura(lugar, Forja.R3):
-		_camada("stick_r", Color(Tema.ROSA, 0.35))
-	_camada("miolo_l", Color.WHITE, l * alcance)
-	_camada("miolo_r", Color.WHITE, r * alcance)
+		_camada("stick_r", Color(Tema.ETIQUETA, 0.35))
+	_camada("miolo_l", Tema.ETIQUETA, l * alcance)
+	_camada("miolo_r", Tema.ETIQUETA, r * alcance)
 	if l.length() > 0.2 or Forja.segura(lugar, Forja.L3):
-		_camada("glifo-stick_l", Tema.ROSA, l * alcance)
+		_camada("glifo-stick_l", Tema.ETIQUETA, l * alcance)
 	if r.length() > 0.2 or Forja.segura(lugar, Forja.R3):
-		_camada("glifo-stick_r", Tema.ROSA, r * alcance)
+		_camada("glifo-stick_r", Tema.ETIQUETA, r * alcance)

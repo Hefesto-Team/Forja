@@ -68,7 +68,7 @@ const EMBLEMA := {
 }
 
 var lugar := 0
-var cor := Color.WHITE
+var cor: Color  ## a cor do lugar (Forja.cor_do_lugar), posta em `montar`
 var hp := 100.0
 var cooldown := 0.0
 ## false: parado pelo jogo (lobby, transição); a entrada não mexe nele
@@ -117,14 +117,14 @@ func montar(l: int) -> void:
 
 	etiqueta = Label3D.new()
 	etiqueta.text = "P%d" % (l + 1)
-	etiqueta.font = Tema.fonte(700)
+	etiqueta.font = Tema.bungee()
 	etiqueta.font_size = 72
 	etiqueta.pixel_size = 0.0036
 	etiqueta.billboard = BaseMaterial3D.BILLBOARD_ENABLED
 	etiqueta.no_depth_test = true
 	etiqueta.modulate = Tema.tom_para_a_borda(cor)
 	etiqueta.outline_size = 16
-	etiqueta.outline_modulate = Color(Tema.CASA, 0.9)
+	etiqueta.outline_modulate = Color(Tema.FITA, 0.9)
 	etiqueta.position.y = 1.95
 	add_child(etiqueta)
 	_animar("idle")

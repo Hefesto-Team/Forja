@@ -13,8 +13,10 @@ var _t := 0.0
 
 const COLUNA := 408.0
 const CALHA := 32.0
-const TOPO := 170.0
-const ALTURA_MAPA := 190.0
+const TOPO := 150.0
+const ALTURA_MAPA := 150.0
+const LIN := 38.0  ## o passo de uma linha de número (letra de 30 px)
+const ROT := 132.0  ## onde começa o valor, depois do rótulo
 
 
 func _ready() -> void:
@@ -46,15 +48,15 @@ func _process(dt: float) -> void:
 
 
 func _draw() -> void:
-	draw_rect(Rect2(Vector2.ZERO, size), Color(Tema.CASA, 0.94))
-	Desenho.texto(self, Vector2(Tema.MARGEM_X, 108), "Diagnóstico", Tema.fonte(700), 56, Tema.FG)
+	draw_rect(Rect2(Vector2.ZERO, size), Color(Tema.FITA, 0.94))
+	Desenho.texto(self, Vector2(Tema.MARGEM_X, 108), "Diagnóstico", Tema.bungee(), Tema.T_TITULO, Tema.ETIQUETA)
 	var pulso := 0.6 + 0.4 * absf(sin(_t * PI))
-	Desenho.selo(self, Vector2(Tema.MARGEM_X + 370, 70), "AO VIVO", Color(Tema.LARANJA, pulso))
-	Desenho.texto(self, Vector2(Tema.MARGEM_X + 530, 102), "O que cada controle manda ao jogo, e o que o jogo manda a ele.",
-		Tema.fonte(400), Tema.T_ROTULO, Tema.SUAVE)
+	Desenho.selo(self, Vector2(Tema.MARGEM_X + 430, 70), "AO VIVO", Color(Tema.SECAO[3], pulso))
+	Desenho.texto(self, Vector2(Tema.MARGEM_X + 600, 102), "O que cada controle manda ao jogo, e o que o jogo manda a ele.",
+		Tema.archivo(500), Tema.T_ROTULO, Tema.ETIQUETA_SOMBRA, HORIZONTAL_ALIGNMENT_LEFT, size.x - Tema.MARGEM_X * 2 - 600 - 230)
 	for l in 4:
 		_coluna(l, Vector2(_x0() + l * (COLUNA + CALHA), TOPO))
-	Desenho.dicas_a_direita(self, Vector2(size.x - Tema.MARGEM_X, size.y - 40), [["circulo", "Fechar"]], Tema.T_SELO)
+	Desenho.dicas_a_direita(self, Vector2(size.x - Tema.MARGEM_X, 102), [["circulo", "Fechar"]], Tema.T_SELO)
 
 
 ## Um número sem o "-0" do zero negativo.
@@ -65,57 +67,57 @@ func _n(v: float, casas := 2) -> String:
 
 
 func _rotulo(pos: Vector2, texto: String) -> void:
-	Desenho.texto(self, pos, texto, Tema.fonte(600), 22, Tema.VERDE)
+	Desenho.texto(self, pos, texto, Tema.archivo(600), Tema.T_ROTULO, Tema.ETIQUETA)
 
 
-func _valor(pos: Vector2, texto: String, cor := Tema.CIANO, larg := 230.0) -> void:
-	Desenho.texto(self, pos, texto, Tema.mono(500), 22, cor, HORIZONTAL_ALIGNMENT_LEFT, larg)
+func _valor(pos: Vector2, texto: String, cor := Tema.ETIQUETA, larg := 230.0) -> void:
+	Desenho.texto(self, pos, texto, Tema.vt(), Tema.T_MONO, cor, HORIZONTAL_ALIGNMENT_LEFT, larg)
 
 
 func _barra(pos: Vector2, v: float, cor: Color, larg := 200.0) -> void:
-	draw_rect(Rect2(pos + Vector2(0, -12), Vector2(larg, 8)), Tema.TRILHO)
+	draw_rect(Rect2(pos + Vector2(0, -12), Vector2(larg, 8)), Tema.GRAFITE)
 	draw_rect(Rect2(pos + Vector2(0, -12), Vector2(larg * clampf(v, 0, 1), 8)), cor)
 
 
-## O analógico como no app: o anel, a cruz do centro e o ponto rosa onde ele está.
+## O analógico como no app: o anel, a cruz do centro e o ponto claro onde ele está.
 func _analogico(centro: Vector2, v: Vector2, apertado: bool) -> void:
 	var raio := 30.0
-	draw_arc(centro, raio, 0, TAU, 40, Tema.ROSA if apertado else Tema.LINHA, 2.0, true)
-	draw_line(centro - Vector2(raio, 0), centro + Vector2(raio, 0), Tema.SUTIL, 1.0)
-	draw_line(centro - Vector2(0, raio), centro + Vector2(0, raio), Tema.SUTIL, 1.0)
-	draw_circle(centro + v.limit_length(1.0) * (raio - 5), 6.0, Tema.ROSA)
+	draw_arc(centro, raio, 0, TAU, 40, Tema.ETIQUETA if apertado else Tema.GRAFITE, 2.0, true)
+	draw_line(centro - Vector2(raio, 0), centro + Vector2(raio, 0), Tema.GRAFITE, 1.0)
+	draw_line(centro - Vector2(0, raio), centro + Vector2(0, raio), Tema.GRAFITE, 1.0)
+	draw_circle(centro + v.limit_length(1.0) * (raio - 5), 6.0, Tema.ETIQUETA)
 
 
-## O gatilho analógico: o trilho em pé, cheio de rosa até o curso.
+## O gatilho analógico: o trilho em pé, cheio até o curso.
 func _gatilho(pos: Vector2, v: float, nome: String) -> void:
 	var h := 60.0
-	draw_rect(Rect2(pos, Vector2(12, h)), Tema.TRILHO)
-	draw_rect(Rect2(pos + Vector2(0, h * (1.0 - clampf(v, 0, 1))), Vector2(12, h * clampf(v, 0, 1))), Tema.ROSA)
-	Desenho.texto(self, pos + Vector2(-4, h + 26), nome, Tema.mono(500), 20, Tema.SUAVE)
+	draw_rect(Rect2(pos, Vector2(12, h)), Tema.GRAFITE)
+	draw_rect(Rect2(pos + Vector2(0, h * (1.0 - clampf(v, 0, 1))), Vector2(12, h * clampf(v, 0, 1))), Tema.ETIQUETA)
+	Desenho.texto(self, pos + Vector2(-6, h + 30), nome, Tema.vt(), Tema.T_MONO, Tema.ETIQUETA_SOMBRA)
 
 
 func _coluna(l: int, o: Vector2) -> void:
-	var r := Rect2(o, Vector2(COLUNA, size.y - o.y - 80))
+	var r := Rect2(o, Vector2(COLUNA, size.y - o.y - Tema.MARGEM_Y))
 	var info: Dictionary = Forja.lugar(l)
 	var cor_id := Tema.tom_para_a_borda(Forja.cor_do_lugar(l))
 	var ocupado: bool = info.get("ocupado", false)
 	var conectado: bool = info.get("conectado", false)
 	mapas[l].visible = ocupado
 	if not ocupado:
-		Desenho.moldura(self, r, Color(Tema.PAINEL, 0.6), Tema.SUTIL, 2, Tema.RAIO_QUADRO)
-		Desenho.texto(self, o + Vector2(24, 48), "P%d  ·  —" % (l + 1), Tema.fonte(600), Tema.T_ROTULO, Tema.MUDO)
+		Desenho.moldura(self, r, Color(Tema.CASCO, 0.6), Tema.GRAFITE, 2, Tema.RAIO_QUADRO)
+		Desenho.texto(self, o + Vector2(24, 48), "P%d  ·  —" % (l + 1), Tema.archivo(600), Tema.T_ROTULO, Tema.MUDO)
 		return
-	Desenho.moldura(self, r, Tema.PAINEL, cor_id if conectado else Tema.LARANJA, 3, Tema.RAIO_QUADRO)
+	Desenho.moldura(self, r, Tema.CASCO, cor_id if conectado else Tema.SECAO[3], 3, Tema.RAIO_QUADRO)
 	var p: Dictionary = Forja.pad(int(info.get("pad", -1))) if conectado else {}
-	Desenho.texto(self, o + Vector2(24, 46), "P%d" % (l + 1), Tema.fonte(700), Tema.T_CORPO, cor_id)
+	Desenho.texto(self, o + Vector2(24, 46), "P%d" % (l + 1), Tema.bungee(), Tema.T_PSHARP, cor_id)
 	var cabeca := "%s  ·  %s" % [p.get("conexao_curta", "Sem controle"), p.get("origem_curta", "")] if conectado else "Sem controle"
-	Desenho.texto(self, o + Vector2(76, 46), cabeca, Tema.fonte(600), 22, Tema.FG if conectado else Tema.LARANJA, HORIZONTAL_ALIGNMENT_LEFT, COLUNA - 100)
+	Desenho.texto(self, o + Vector2(92, 46), Desenho.caber(cabeca, Tema.archivo(600), Tema.T_ROTULO, COLUNA - 116, 1), Tema.archivo(600), Tema.T_ROTULO, Tema.ETIQUETA if conectado else Tema.SECAO[3], HORIZONTAL_ALIGNMENT_LEFT, COLUNA - 116)
 	if not conectado:
 		return
 
 	var x := o.x + 24.0
-	var y := o.y + 64.0 + ALTURA_MAPA + 34.0
-	Desenho.texto(self, Vector2(x, y), "Entrada", Tema.fonte(600), Tema.T_SELO, Tema.ROXO)
+	var y := o.y + 64.0 + ALTURA_MAPA + 36.0
+	Desenho.texto(self, Vector2(x, y), "Entrada", Tema.archivo(600), Tema.T_SELO, Tema.ETIQUETA)
 	# os dois analógicos e os dois gatilhos, desenhados
 	var lv := Vector2(Forja.eixo(l, Forja.LX), Forja.eixo(l, Forja.LY))
 	var rv := Vector2(Forja.eixo(l, Forja.RX), Forja.eixo(l, Forja.RY))
@@ -123,63 +125,67 @@ func _coluna(l: int, o: Vector2) -> void:
 	_analogico(Vector2(x + 118, y + 52), rv, Forja.segura(l, Forja.R3))
 	_gatilho(Vector2(x + 186, y + 22), Forja.eixo(l, Forja.L2), "L2")
 	_gatilho(Vector2(x + 232, y + 22), Forja.eixo(l, Forja.R2), "R2")
-	_valor(Vector2(x + 268, y + 44), _n(Forja.eixo(l, Forja.L2)).substr(1), Tema.CIANO, 90)
-	_valor(Vector2(x + 268, y + 76), _n(Forja.eixo(l, Forja.R2)).substr(1), Tema.CIANO, 90)
-	y += 132
+	_valor(Vector2(x + 268, y + 46), _n(Forja.eixo(l, Forja.L2)).substr(1), Tema.ETIQUETA, 90)
+	_valor(Vector2(x + 268, y + 80), _n(Forja.eixo(l, Forja.R2)).substr(1), Tema.ETIQUETA, 90)
+	y += 120
 	Desenho.texto(self, Vector2(x, y), "L %s %s  R %s %s" % [_n(lv.x), _n(lv.y), _n(rv.x), _n(rv.y)],
-		Tema.mono(500), 20, Tema.SUAVE, HORIZONTAL_ALIGNMENT_LEFT, COLUNA - 48)
-	y += 36
+		Tema.vt(), Tema.T_MONO, Tema.ETIQUETA_SOMBRA, HORIZONTAL_ALIGNMENT_LEFT, COLUNA - 48)
+	y += LIN
 	var g := Forja.giro(l) * (180.0 / PI)
 	_rotulo(Vector2(x, y), "Giro")
-	_valor(Vector2(x + 80, y), "%s %s %s °/s" % [_n(g.x, 0), _n(g.y, 0), _n(g.z, 0)], Tema.CIANO, 280)
-	y += 32
+	_valor(Vector2(x + ROT, y), "%s %s %s °/s" % [_n(g.x, 0), _n(g.y, 0), _n(g.z, 0)], Tema.ETIQUETA, COLUNA - 48 - ROT)
+	y += LIN
 	var a := Forja.acel(l) / 9.80665
 	_rotulo(Vector2(x, y), "Acel")
-	_valor(Vector2(x + 80, y), "%s %s %s g" % [_n(a.x), _n(a.y), _n(a.z)], Tema.CIANO, 280)
-	y += 32
+	_valor(Vector2(x + ROT, y), "%s %s %s g" % [_n(a.x), _n(a.y), _n(a.z)], Tema.ETIQUETA, COLUNA - 48 - ROT)
+	y += LIN
 	var hz := Forja.giro_hz(l)
 	_rotulo(Vector2(x, y), "Taxa")
-	_valor(Vector2(x + 80, y), ("%.0f Hz" % hz) if hz > 0.5 else "sem amostras", Tema.SUAVE, 280)
-	y += 32
+	_valor(Vector2(x + ROT, y), ("%.0f Hz" % hz) if hz > 0.5 else "sem amostras", Tema.ETIQUETA_SOMBRA, COLUNA - 48 - ROT)
+	y += LIN
 	var toque := "—"
 	for i in 2:
 		var d := Forja.dedo(l, i)
 		if d.z > 0.5:
 			toque = ("" if toque == "—" else toque + "  ") + "%.2f %.2f" % [d.x, d.y]
 	_rotulo(Vector2(x, y), "Toque")
-	_valor(Vector2(x + 80, y), toque, Tema.CIANO, 280)
+	_valor(Vector2(x + ROT, y), toque, Tema.ETIQUETA, COLUNA - 48 - ROT)
 
-	y += 50
-	Desenho.texto(self, Vector2(x, y), "Saída", Tema.fonte(600), Tema.T_SELO, Tema.ROXO)
-	y += 34
+	y += LIN + 12.0
+	Desenho.texto(self, Vector2(x, y), "Saída", Tema.archivo(600), Tema.T_SELO, Tema.ETIQUETA)
+	y += LIN
 	var s: Dictionary = Forja.estado_saida(l)
 	_rotulo(Vector2(x, y), "Motores")
-	_barra(Vector2(x + 110, y), float(s.get("forte", 0.0)), Tema.LARANJA, 100)
-	_barra(Vector2(x + 236, y), float(s.get("fraco", 0.0)), Tema.LARANJA, 100)
-	y += 32
-	var luz: Color = s.get("luz", Color.BLACK)
+	_barra(Vector2(x + ROT, y), float(s.get("forte", 0.0)), Tema.SECAO[3], 96)
+	_barra(Vector2(x + ROT + 114, y), float(s.get("fraco", 0.0)), Tema.SECAO[3], 96)
+	y += LIN
+	var luz: Color = s.get("luz", Color.TRANSPARENT)
 	_rotulo(Vector2(x, y), "Luz")
-	Desenho.moldura(self, Rect2(Vector2(x + 110, y - 20), Vector2(48, 24)), luz, Tema.LINHA, 2, 6)
-	_valor(Vector2(x + 170, y), "#" + luz.to_html(false), Tema.CIANO, 180)
-	y += 32
-	_rotulo(Vector2(x, y), "Gatilhos")
-	var modos := "L2 %s · R2 %s" % [MODOS[clampi(int(s.get("l2", 0)), 0, 3)], MODOS[clampi(int(s.get("r2", 0)), 0, 3)]]
-	Desenho.texto(self, Vector2(x + 110, y), modos, Tema.fonte(500), 22, Tema.CIANO, HORIZONTAL_ALIGNMENT_LEFT, COLUNA - 158)
-	y += 32
+	Desenho.moldura(self, Rect2(Vector2(x + ROT, y - 24), Vector2(48, 28)), luz, Tema.GRAFITE, 2, 6)
+	_valor(Vector2(x + ROT + 60, y), "#" + luz.to_html(false), Tema.ETIQUETA, 160)
+	y += LIN
+	_rotulo(Vector2(x, y), "Gatilho L2")
+	Desenho.texto(self, Vector2(x + ROT + 24, y), MODOS[clampi(int(s.get("l2", 0)), 0, 3)], Tema.archivo(500), Tema.T_ROTULO,
+		Tema.ETIQUETA, HORIZONTAL_ALIGNMENT_LEFT, COLUNA - 48 - ROT - 24)
+	y += LIN
+	_rotulo(Vector2(x, y), "Gatilho R2")
+	Desenho.texto(self, Vector2(x + ROT + 24, y), MODOS[clampi(int(s.get("r2", 0)), 0, 3)], Tema.archivo(500), Tema.T_ROTULO,
+		Tema.ETIQUETA, HORIZONTAL_ALIGNMENT_LEFT, COLUNA - 48 - ROT - 24)
+	y += LIN
 	_rotulo(Vector2(x, y), "LEDs")
-	Desenho.leds(self, Vector2(x + 110, y - 16), int(s.get("leds_jogador", 0)), 12.0)
-	y += 32
+	Desenho.leds(self, Vector2(x + ROT, y - 16), int(s.get("leds_jogador", 0)), 12.0)
+	y += LIN
 	var mic := int(s.get("led_mic", 0))
 	_rotulo(Vector2(x, y), "Mudo")
-	Desenho.texto(self, Vector2(x + 110, y), LED_MIC[clampi(mic, 0, 3)], Tema.fonte(500), 22,
-		Tema.LARANJA if mic else Tema.SUAVE, HORIZONTAL_ALIGNMENT_LEFT, COLUNA - 158)
+	Desenho.texto(self, Vector2(x + ROT, y), LED_MIC[clampi(mic, 0, 3)], Tema.archivo(500), Tema.T_ROTULO,
+		Tema.SECAO[3] if mic else Tema.ETIQUETA_SOMBRA, HORIZONTAL_ALIGNMENT_LEFT, COLUNA - 48 - ROT)
 	# a última saída, por extenso (sem o tempo: é a mais nova)
 	var ult: PackedStringArray = Forja.saidas(l)
 	if ult.size() > 0:
-		y += 30
-		draw_line(Vector2(x, y - 20), Vector2(x + COLUNA - 48, y - 20), Tema.SUTIL, 1.0)
+		y += LIN
+		draw_line(Vector2(x, y - 28), Vector2(x + COLUNA - 48, y - 28), Tema.GRAFITE, 1.0)
 		var linha := ult[0].strip_edges()
 		var corte := linha.find("  ")
 		if corte > 0:
 			linha = linha.substr(corte).strip_edges()
-		Desenho.texto(self, Vector2(x, y + 4), linha, Tema.mono(400), 20, Tema.SUAVE, HORIZONTAL_ALIGNMENT_LEFT, COLUNA - 48)
+		Desenho.texto(self, Vector2(x, y), Desenho.caber(linha, Tema.vt(), Tema.T_MONO, COLUNA - 48, 1), Tema.vt(), Tema.T_MONO, Tema.ETIQUETA_SOMBRA, HORIZONTAL_ALIGNMENT_LEFT, COLUNA - 48)

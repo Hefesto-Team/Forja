@@ -40,7 +40,7 @@ const NOME_CHAO := ["grama", "cascalho", "metal", "água"]
 const SENTE := ["um baque macio", "quatro estalos", "um golpe que ressoa", "duas ondas"]
 const BOTAO_CHAO := [F.CRUZ, F.CIRCULO, F.QUADRADO, F.TRIANGULO]
 const GLIFO_CHAO := ["cross", "circle", "square", "triangle"]
-const COR_CHAO := [Color("#4f9a45"), Color("#9a8a70"), Color("#8c98aa"), Color("#3a7fd0")]
+const COR_CHAO := [Tema.SECAO[2], Tema.OXIDO_BRILHO, Tema.MUDO, Tema.SECAO[1]]  ## grama, cascalho, metal, água
 
 enum { TREINO, ANDA, PERGUNTA, REVELA, FIM }
 
@@ -68,7 +68,7 @@ func _init() -> void:
 func montar() -> void:
 	Kit.arena(self, 5, 3)
 	# quase breu: poeira verde e o neon ciano, o preenchimento fraco
-	atmosfera(Color("#7ff0b0"), Tema.CIANO, false, 30, 22.0, -7.8, 0.08)
+	atmosfera(Color("#7ff0b0"), Tema.VIOLETA, false, 30, 22.0, -7.8, 0.08)
 	# quase breu: um enchimento frio e fraco; a luz de cada raia é a lanterna dele
 	var frio := OmniLight3D.new()
 	frio.position = Vector3(0, 9.0, 5.0)
@@ -187,13 +187,13 @@ func _montar_raia(l: int, p: ForjaPlayer) -> Dictionary:
 	add_child(lanterna)
 	# o nome do chão no treino, e o "!" do tropeço (sem lado)
 	var placa := Label3D.new()
-	placa.font = Tema.fonte(700)
+	placa.font = Tema.archivo(700)
 	placa.font_size = 60
 	placa.pixel_size = 0.005
 	placa.billboard = BaseMaterial3D.BILLBOARD_ENABLED
 	placa.no_depth_test = true
 	placa.outline_size = 14
-	placa.outline_modulate = Color(Tema.CASA, 0.9)
+	placa.outline_modulate = Color(Tema.FITA, 0.9)
 	# nas raias da ponta, puxada para dentro: o nome inteiro na tela
 	placa.position = Vector3(x * 0.84, 2.75, Z_JOGADOR - 0.4)
 	placa.visible = false
@@ -201,7 +201,7 @@ func _montar_raia(l: int, p: ForjaPlayer) -> Dictionary:
 	var aviso := placa.duplicate() as Label3D
 	aviso.text = "!"
 	aviso.font_size = 150
-	aviso.modulate = Tema.LARANJA
+	aviso.modulate = Tema.SECAO[3]
 	aviso.position = Vector3(x * 0.9, 2.7, Z_JOGADOR)
 	add_child(aviso)
 	p.position = Vector3(x, 0.1, Z_JOGADOR)

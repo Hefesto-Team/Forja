@@ -229,7 +229,7 @@ static func bigorna(pai: Node, pos: Vector3, escala := 0.55) -> Node3D:
 	var cintura := CSGBox3D.new()
 	cintura.size = Vector3(0.8, 0.45, 0.62)
 	cintura.position.y = 0.675
-	cintura.material = material(Tema.ROXO, 0.0, 0.5)
+	cintura.material = material(Tema.VIOLETA, 0.0, 0.5)
 	b.add_child(cintura)
 	var tampo := CSGBox3D.new()
 	tampo.size = Vector3(1.9, 0.38, 0.8)

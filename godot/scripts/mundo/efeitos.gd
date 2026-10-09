@@ -30,7 +30,7 @@ static func faiscas(pai: Node, pos: Vector3, cor: Color, n := 24, forca := 1.0) 
 	m.scale_min = 0.6
 	m.scale_max = 1.2
 	var grad := Gradient.new()
-	grad.set_color(0, Color(Color.WHITE.lerp(cor, 0.35), 1.0))
+	grad.set_color(0, Color(Tema.ETIQUETA.lerp(cor, 0.35), 1.0))
 	grad.set_color(1, Color(cor, 0.0))
 	var tg := GradientTexture1D.new()
 	tg.gradient = grad
@@ -64,7 +64,7 @@ static func brasas(pai: Node, centro: Vector3, tamanho: Vector3, cor: Color, n :
 	m.scale_min = 0.4
 	m.scale_max = 1.0
 	var grad := Gradient.new()
-	var clara := Color.WHITE.lerp(cor, 0.4)
+	var clara := Tema.ETIQUETA.lerp(cor, 0.4)
 	grad.offsets = PackedFloat32Array([0.0, 0.15, 1.0])
 	grad.colors = PackedColorArray([Color(clara, 0.0), Color(clara, 1.0), Color(cor, 0.0)])
 	var tg := GradientTexture1D.new()

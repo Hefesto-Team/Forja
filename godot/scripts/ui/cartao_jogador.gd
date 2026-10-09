@@ -35,42 +35,42 @@ func _draw() -> void:
 
 	if not ocupado:
 		var reservado: bool = info.get("reservado", false)
-		Desenho.moldura(self, placa, Color(Tema.APP, 0.92), Tema.SUTIL, 2, Tema.RAIO_CARTAO)
-		Desenho.texto(self, Vector2(X0 + 18, 104), rotulo, Tema.fonte(700), Tema.T_CORPO, cor_id if reservado else Tema.MUDO)
+		Desenho.moldura(self, placa, Color(Tema.CASCO, 0.92), Tema.GRAFITE, 2, Tema.RAIO_CARTAO)
+		Desenho.texto(self, Vector2(X0 + 18, 104), rotulo, Tema.archivo(700), Tema.T_CORPO, cor_id if reservado else Tema.MUDO)
 		# a dica fica numa placa escura: sobre a cena clara a letra não se lia (contraste de 1,8:1)
 		var placa_dica := Rect2(X0 + 60, 352, LARGURA - 120, 100 if reservado else 56)
-		Desenho.moldura(self, placa_dica, Color(Tema.APP, 0.82), Tema.SUTIL, 2, 8)
-		Glifo.dica(self, Vector2(X0 + 100, 392), "cruz", "Entrar", Tema.T_ROTULO, Tema.FG, Tema.FG)
+		Desenho.moldura(self, placa_dica, Color(Tema.CASCO, 0.82), Tema.GRAFITE, 2, 8)
+		Glifo.dica(self, Vector2(X0 + 100, 392), "cruz", "Entrar", Tema.T_ROTULO, Tema.ETIQUETA, Tema.ETIQUETA)
 		if reservado:
-			Glifo.dica(self, Vector2(X0 + 80, 436), "quadrado", "Segure para trocar", Tema.T_ROTULO, Tema.SUAVE, Tema.SUAVE, false)
+			Glifo.dica(self, Vector2(X0 + 80, 436), "quadrado", "Segure para trocar", Tema.T_ROTULO, Tema.ETIQUETA_SOMBRA, Tema.ETIQUETA_SOMBRA, false)
 		return
 
 	var etapa: int = t.etapa[lugar]
 	var jogador = t.jogadores[lugar] if lugar < t.jogadores.size() else null
 	# a placa
 	if conectado:
-		Desenho.moldura(self, placa, Tema.PAINEL, cor_id, 3, Tema.RAIO_CARTAO)
+		Desenho.moldura(self, placa, Tema.CASCO, cor_id, 3, Tema.RAIO_CARTAO)
 	else:
-		Desenho.moldura(self, placa, Tema.PAINEL, Tema.SUTIL, 2, Tema.RAIO_CARTAO)
-		Desenho.tracejado(self, placa, Tema.LARANJA, 3.0)
-	Desenho.texto(self, Vector2(X0 + 18, 104), rotulo, Tema.fonte(700), Tema.T_CORPO, cor_id)
+		Desenho.moldura(self, placa, Tema.CASCO, Tema.GRAFITE, 2, Tema.RAIO_CARTAO)
+		Desenho.tracejado(self, placa, Tema.SECAO[3], 3.0)
+	Desenho.texto(self, Vector2(X0 + 18, 104), rotulo, Tema.archivo(700), Tema.T_CORPO, cor_id)
 	var teclado: TecladoDoNome = t.teclados[lugar]
 	var nome_dele := str(jogador.nome) if jogador != null else ""
 	if teclado != null:
 		nome_dele = TecladoDoNome.formatar(teclado.texto)   # a placa mostra o campo enquanto se escreve (G09)
 	if not conectado:
-		Desenho.texto(self, Vector2(X0 + LARGURA - 18 - 260, 104), "Sem controle", Tema.fonte(600), Tema.T_CORPO, Tema.LARANJA,
+		Desenho.texto(self, Vector2(X0 + LARGURA - 18 - 260, 104), "Sem controle", Tema.archivo(600), Tema.T_CORPO, Tema.SECAO[3],
 			HORIZONTAL_ALIGNMENT_RIGHT, 260)
 	else:
-		var f := Tema.fonte(600)
+		var f := Tema.archivo(600)
 		Desenho.nome(self, Vector2(X0 + LARGURA - 18 - 260, 104), Desenho.nome_que_cabe(nome_dele, f, Tema.T_CORPO, 260),
-			f, Tema.T_CORPO, Tema.FG, HORIZONTAL_ALIGNMENT_RIGHT, 260)
+			f, Tema.T_CORPO, Tema.ETIQUETA, HORIZONTAL_ALIGNMENT_RIGHT, 260)
 	Desenho.leds(self, Vector2(X0 + 20, 120), Forja.LEDS_DO_LUGAR[lugar], 12.0)
 	if etapa == TelaLobby.FORJADO:
-		Desenho.texto(self, Vector2(X0 + LARGURA - 18 - 200, 142), "Forjado", Tema.mono(500), Tema.T_MONO, Tema.VERDE,
+		Desenho.texto(self, Vector2(X0 + LARGURA - 18 - 200, 142), "Forjado", Tema.vt(), Tema.T_MONO, cor_id,
 			HORIZONTAL_ALIGNMENT_RIGHT, 200)
 	elif etapa == TelaLobby.GUARDADO:
-		Desenho.texto(self, Vector2(X0 + LARGURA - 18 - 200, 142), "Guardado", Tema.mono(500), Tema.T_MONO, Tema.SUAVE,
+		Desenho.texto(self, Vector2(X0 + LARGURA - 18 - 200, 142), "Guardado", Tema.vt(), Tema.T_MONO, Tema.ETIQUETA_SOMBRA,
 			HORIZONTAL_ALIGNMENT_RIGHT, 200)
 
 	# o teclado do nome toma a faixa das três linhas e das marteladas (y 660 a 1000)
@@ -87,36 +87,36 @@ func _draw() -> void:
 	var feitas: int = t.golpes[lugar].size() if etapa == TelaLobby.FORJANDO \
 		else (TelaLobby.MARTELADAS if etapa >= TelaLobby.FORJADO else 0)
 	for k in TelaLobby.MARTELADAS:
-		draw_rect(Rect2(X0 + 75 + k * 34, 880, 24, 24), cor_luz if k < feitas else Tema.TRILHO)
+		draw_rect(Rect2(X0 + 75 + k * 34, 880, 24, 24), cor_luz if k < feitas else Tema.GRAFITE)
 
 
 func _linha(t: TelaLobby, jogador, k: int, r: Rect2, etapa: int, cor_luz: Color) -> void:
 	var escolhida: bool = etapa == TelaLobby.EDITANDO and t.linha[lugar] == k
 	if escolhida:
-		Desenho.moldura(self, r, Tema.SEL, cor_luz, 3, 6)
+		Desenho.moldura(self, r, Tema.CASCO_ALTO, cor_luz, 3, 6)
 	else:
-		Desenho.moldura(self, r, Color(Tema.APP, 0.78), Tema.SUTIL, 2, 6)
-	Desenho.texto(self, Vector2(X0 + 12, r.position.y + 30), TelaLobby.ROTULO_CURTO[k], Tema.fonte(600), Tema.T_ROTULO,
-		Tema.FG if escolhida else Tema.SUAVE)
+		Desenho.moldura(self, r, Color(Tema.CASCO, 0.78), Tema.GRAFITE, 2, 6)
+	Desenho.texto(self, Vector2(X0 + 12, r.position.y + 30), TelaLobby.ROTULO_CURTO[k], Tema.archivo(600), Tema.T_ROTULO,
+		Tema.ETIQUETA if escolhida else Tema.ETIQUETA_SOMBRA)
 	# o valor: ◀ à esquerda, ▶ à direita, o valor no meio
 	var area := Rect2(X0 + 136, r.position.y, LARGURA - 136 - 12, r.size.y)
 	Glifo.desenhar(self, "esquerda", Rect2(area.position.x, r.position.y + 4, 30, 30), Tema.MUDO)
 	Glifo.desenhar(self, "direita", Rect2(area.end.x - 30, r.position.y + 4, 30, 30), Tema.MUDO)
-	var f := Tema.fonte(500)
+	var f := Tema.archivo(500)
 	var base := r.position.y + 30
 	match k:
 		TelaLobby.BONECO:
 			var valor := ForjaPlayer.nome_do_boneco(jogador.modelo_i)
-			Desenho.texto(self, Vector2(area.position.x, base), Desenho.caber(valor, f, 30, 220, 1), f, 30, Tema.FG,
+			Desenho.texto(self, Vector2(area.position.x, base), Desenho.caber(valor, f, 30, 220, 1), f, 30, Tema.ETIQUETA,
 				HORIZONTAL_ALIGNMENT_CENTER, area.size.x)
 		TelaLobby.ITEM:
 			var item: Dictionary = ForjaPlayer.ITENS[jogador.item_i]
 			if str(item.icone) != "":
-				Glifo.desenhar(self, str(item.icone), Rect2(X0 + 160, r.position.y + 3, 32, 32), Tema.FG)
+				Glifo.desenhar(self, str(item.icone), Rect2(X0 + 160, r.position.y + 3, 32, 32), Tema.ETIQUETA)
 			var x_nome := X0 + 160 + 32 + 8.0
 			var largura := area.end.x - 30 - x_nome - 4.0
-			Desenho.texto(self, Vector2(x_nome, base), Desenho.caber(str(item.nome), f, 30, largura, 1), f, 30, Tema.FG,
+			Desenho.texto(self, Vector2(x_nome, base), Desenho.caber(str(item.nome), f, 30, largura, 1), f, 30, Tema.ETIQUETA,
 				HORIZONTAL_ALIGNMENT_CENTER, largura)
 		TelaLobby.NOME:
-			Desenho.nome(self, Vector2(area.position.x, base), Desenho.nome_que_cabe(str(jogador.nome), f, 30, 220), f, 30, Tema.FG,
+			Desenho.nome(self, Vector2(area.position.x, base), Desenho.nome_que_cabe(str(jogador.nome), f, 30, 220), f, 30, Tema.ETIQUETA,
 				HORIZONTAL_ALIGNMENT_CENTER, area.size.x)

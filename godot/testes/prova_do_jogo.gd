@@ -82,6 +82,7 @@ func _ready() -> void:
 	_prova_do_nome_na_linha_do_tempo()
 	_prova_do_registro_v2()
 	_prova_dos_sons_em_pcm()
+	await _prova_da_cor_e_da_letra()
 	if falhas > 0:
 		printerr("%d falha(s)" % falhas)
 		get_tree().quit(1)
@@ -2374,3 +2375,30 @@ func _prova_do_kit_da_kenney() -> void:
 		if f.ends_with(".glb"):
 			soltas += 1
 	_esperar(soltas == 0, "kit: nenhuma peça solta em assets/kenney (%d)" % soltas)
+
+
+## G14: a cor e a letra da Fita. A tabela dos jogadores é uma só (o jogo, a
+## lightbar), as tintas das seções vêm do tema, as duas fontes do app saíram e o
+## boneco não leva o tom do dono (o dono é o contorno e o aro, G15).
+func _prova_da_cor_e_da_letra() -> void:
+	_esperar(Forja.COR_DO_LUGAR == Tema.JOGADOR, "tema: a cor do lugar é a do 02")
+	for l in 4:
+		Forja.luz_do_lugar(l)
+		await _quadros(2)
+		var luz: Color = Forja.estado_saida(l).luz
+		var alvo: Color = Tema.JOGADOR[l]
+		_esperar(absf(luz.r - alvo.r) <= 1.0 / 255.0 and absf(luz.g - alvo.g) <= 1.0 / 255.0
+			and absf(luz.b - alvo.b) <= 1.0 / 255.0, "lightbar: P%d na cor do 02" % (l + 1))
+	_esperar(Tema.tinta_da_secao(6) == Tema.SECAO[1], "tema: S6 é cobalto")
+	_esperar(not FileAccess.file_exists("res://assets/fontes/SpaceGrotesk-wght.ttf"), "tema: Space Grotesk saiu")
+	_esperar(not FileAccess.file_exists("res://assets/fontes/JetBrainsMono-wght.ttf"), "tema: JetBrains Mono saiu")
+	var corpos := 0
+	for p in jogo.jogadores:
+		for mi in p.find_children("body*", "MeshInstance3D", true, false):
+			for s in mi.mesh.get_surface_count():
+				corpos += 1
+				var m = mi.get_surface_override_material(s)
+				# a roupa da G08 é um material de shader que não tinge (o dono só no acento, no contorno e no aro)
+				_esperar(m == null or (m is ShaderMaterial and not (m as ShaderMaterial).shader.code.contains("tingir")),
+					"boneco P%d: o corpo sem o tom do dono" % (p.lugar + 1))
+	_esperar(corpos > 0, "boneco: a prova achou o corpo (%d superfícies)" % corpos)

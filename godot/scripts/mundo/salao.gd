@@ -124,9 +124,9 @@ func _chao() -> void:
 		friso.size = Vector3(0.08, 0.035, 7.4)
 		friso.position = Vector3(lado * 1.3, 0.018, 5.3)
 		var rosa := StandardMaterial3D.new()
-		rosa.albedo_color = Tema.ROSA
+		rosa.albedo_color = Tema.VIOLETA
 		rosa.emission_enabled = true
-		rosa.emission = Tema.ROSA
+		rosa.emission = Tema.VIOLETA
 		rosa.emission_energy_multiplier = 0.9
 		friso.material = rosa
 		add_child(friso)
@@ -266,9 +266,9 @@ func _tocha(pos: Vector3, acesa: bool) -> OmniLight3D:
 	chama.mesh = esfera
 	var fogo := StandardMaterial3D.new()
 	fogo.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	fogo.albedo_color = Tema.LARANJA if acesa else Tema.TRILHO
+	fogo.albedo_color = Tema.TUNGSTENIO if acesa else Tema.GRAFITE
 	fogo.emission_enabled = acesa
-	fogo.emission = Tema.LARANJA
+	fogo.emission = Tema.TUNGSTENIO
 	fogo.emission_energy_multiplier = 3.0
 	chama.material_override = fogo
 	chama.position = pos + Vector3(0, 0.08, 0)
@@ -312,9 +312,9 @@ func _bigorna() -> void:
 	borda.ring_sides = 8
 	borda.position.y = 0.3
 	var brilho := StandardMaterial3D.new()
-	brilho.albedo_color = Tema.ROXO
+	brilho.albedo_color = Tema.VIOLETA
 	brilho.emission_enabled = true
-	brilho.emission = Tema.ROXO
+	brilho.emission = Tema.VIOLETA
 	brilho.emission_energy_multiplier = 1.6
 	borda.material = brilho
 	bigorna.add_child(borda)
@@ -327,7 +327,7 @@ func _bigorna() -> void:
 	var cintura := CSGBox3D.new()
 	cintura.size = Vector3(0.8, 0.45, 0.62)
 	cintura.position.y = 0.75 + 0.225
-	cintura.material = pedra.call(Tema.ROXO, 0.5)
+	cintura.material = pedra.call(Tema.VIOLETA, 0.5)
 	bigorna.add_child(cintura)
 	var tampo := CSGBox3D.new()
 	tampo.size = Vector3(1.9, 0.38, 0.8)
@@ -353,7 +353,7 @@ func _bigorna() -> void:
 	luz_da_forja = forja
 	var acima := OmniLight3D.new()
 	acima.position = Vector3(0, 3.5, 0)
-	acima.light_color = Tema.ROSA
+	acima.light_color = Tema.VIOLETA
 	acima.light_energy = 0.8
 	acima.omni_range = 6.0
 	bigorna.add_child(acima)
@@ -377,8 +377,8 @@ func _brasas(onde: Node3D) -> void:
 	m.scale_min = 0.5
 	m.scale_max = 1.0
 	var grad := Gradient.new()
-	grad.set_color(0, Color(Tema.LARANJA, 1.0))
-	grad.set_color(1, Color(Tema.ROSA, 0.0))
+	grad.set_color(0, Color(Tema.SECAO[3], 1.0))
+	grad.set_color(1, Color(Tema.ETIQUETA, 0.0))
 	var tg := GradientTexture1D.new()
 	tg.gradient = grad
 	m.color_ramp = tg
@@ -391,7 +391,7 @@ func _brasas(onde: Node3D) -> void:
 	mat.vertex_color_use_as_albedo = true
 	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	mat.emission_enabled = true
-	mat.emission = Tema.LARANJA
+	mat.emission = Tema.TUNGSTENIO
 	mat.emission_energy_multiplier = 2.0
 	q.material = mat
 	p.draw_pass_1 = q
@@ -435,7 +435,7 @@ func _pedestais() -> void:
 		bigorna_do_lugar.rotation.y = -0.5
 		var luz := OmniLight3D.new()
 		luz.position = pos + Vector3(0.62, 0.9, -0.5)
-		luz.light_color = Tema.LARANJA
+		luz.light_color = Tema.TUNGSTENIO
 		luz.omni_range = 1.6
 		luz.shadow_enabled = false
 		luz.light_energy = 0.0

@@ -52,15 +52,15 @@ func _process(_dt: float) -> void:
 
 
 func _draw() -> void:
-	draw_rect(Rect2(Vector2.ZERO, size), Color(Tema.APP, 0.84))
+	draw_rect(Rect2(Vector2.ZERO, size), Color(Tema.CASCO, 0.84))
 	var larg := 1280.0
 	var alt := 640.0
 	var r := Rect2(Vector2((size.x - larg) * 0.5, (size.y - alt) * 0.5), Vector2(larg, alt))
-	Desenho.moldura(self, r, Tema.PAINEL, Tema.LINHA, 2, Tema.RAIO_QUADRO)
-	Desenho.texto(self, r.position + Vector2(48, 84), "A partida", Tema.fonte(700), Tema.T_TITULO, Tema.FG)
+	Desenho.moldura(self, r, Tema.CASCO, Tema.GRAFITE, 2, Tema.RAIO_QUADRO)
+	Desenho.texto(self, r.position + Vector2(48, 84), "A partida", Tema.bungee(), Tema.T_TITULO, Tema.ETIQUETA)
 	var cor_id := Tema.tom_para_a_borda(Forja.cor_do_lugar(quem))
 	var q := "P%d escolhe" % (quem + 1)
-	var fq := Tema.fonte(600)
+	var fq := Tema.archivo(600)
 	Desenho.texto(self, Vector2(r.end.x - 48 - Desenho.largura(q, fq, Tema.T_SELO), r.position.y + 76), q, fq, Tema.T_SELO, cor_id)
 	var valores := [
 		[TAMANHOS[tamanho][1], TAMANHOS[tamanho][2]],
@@ -72,17 +72,17 @@ func _draw() -> void:
 	for i in 3:
 		var b := Rect2(r.position + Vector2(48, 136 + i * 124), Vector2(col, 104))
 		var sel := i == linha
-		Desenho.moldura(self, b, Tema.SEL if sel else Tema.APP, Tema.ROXO if sel else Tema.LINHA, 4 if sel else 2, Tema.RAIO_BOTAO)
-		Desenho.texto(self, b.position + Vector2(28, 38), rotulos[i], Tema.fonte(600), Tema.T_SELO, Tema.VERDE)
+		Desenho.moldura(self, b, Tema.CASCO_ALTO if sel else Tema.CASCO, cor_id if sel else Tema.GRAFITE, 4 if sel else 2, Tema.RAIO_BOTAO)
+		Desenho.texto(self, b.position + Vector2(28, 38), rotulos[i], Tema.archivo(600), Tema.T_SELO, Tema.ETIQUETA)
 		var v := str(valores[i][0])
-		Desenho.texto(self, b.position + Vector2(28, 82), v, Tema.fonte(600 if sel else 500), Tema.T_CORPO, Tema.FG if sel else Tema.SUAVE)
+		Desenho.texto(self, b.position + Vector2(28, 82), v, Tema.archivo(600 if sel else 500), Tema.T_CORPO, Tema.ETIQUETA if sel else Tema.ETIQUETA_SOMBRA)
 		if str(valores[i][1]) != "":
-			Desenho.texto(self, b.position + Vector2(44 + Desenho.largura(v, Tema.fonte(600), Tema.T_CORPO), 82),
-				str(valores[i][1]), Tema.fonte(400), Tema.T_SELO, Tema.MUDO)
+			Desenho.texto(self, b.position + Vector2(44 + Desenho.largura(v, Tema.archivo(600), Tema.T_CORPO), 82),
+				str(valores[i][1]), Tema.archivo(500), Tema.T_SELO, Tema.MUDO)
 		if sel:
 			# as setas dizem que ◀▶ troca esta linha
-			Glifo.desenhar(self, "esquerda", Rect2(Vector2(b.end.x - 100, b.position.y + 34), Vector2(36, 36)), Tema.ROSA)
-			Glifo.desenhar(self, "direita", Rect2(Vector2(b.end.x - 56, b.position.y + 34), Vector2(36, 36)), Tema.ROSA)
+			Glifo.desenhar(self, "esquerda", Rect2(Vector2(b.end.x - 100, b.position.y + 34), Vector2(36, 36)), Tema.ETIQUETA)
+			Glifo.desenhar(self, "direita", Rect2(Vector2(b.end.x - 56, b.position.y + 34), Vector2(36, 36)), Tema.ETIQUETA)
 	# as salas da escolha, à direita
 	var x2 := r.position.x + 48 + col + 56
 	var salas := Partida.roteiro(int(TAMANHOS[tamanho][0]), sorteada, semente, percurso)
@@ -90,7 +90,7 @@ func _draw() -> void:
 	var passo_y := 46.0 if salas.size() > 5 else 60.0
 	for i in salas.size():
 		var y := r.position.y + 170 + i * passo_y
-		Desenho.texto(self, Vector2(x2, y), "%d" % (i + 1), Tema.mono(500), tam, Tema.CIANO)
-		Desenho.texto(self, Vector2(x2 + 48, y), str(Partida.NOMES.get(salas[i], salas[i])), Tema.fonte(500), tam, Tema.FG)
+		Desenho.texto(self, Vector2(x2, y), "%d" % (i + 1), Tema.vt(), tam, Tema.ETIQUETA)
+		Desenho.texto(self, Vector2(x2 + 48, y), str(Partida.NOMES.get(salas[i], salas[i])), Tema.archivo(500), tam, Tema.ETIQUETA)
 	Desenho.dicas_a_direita(self, Vector2(r.end.x - 48, r.end.y + 60),
 		[["cima", "Linha"], ["esquerda", "Trocar"], ["cruz", "Começar"], ["circulo", "Voltar"]], Tema.T_SELO)

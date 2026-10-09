@@ -561,10 +561,10 @@ static func _tecla_da_letra(letra: String) -> Vector2i:
 func _draw() -> void:
 	# a tarja de baixo, atrás das marteladas e das dicas
 	for i in 30:
-		draw_rect(Rect2(0, 800 + i * 6, size.x, 6), Color(Tema.CASA, 0.82 * i / 30.0))
-	draw_rect(Rect2(0, 980, size.x, size.y - 980), Color(Tema.CASA, 0.82))
+		draw_rect(Rect2(0, 800 + i * 6, size.x, 6), Color(Tema.FITA, 0.82 * i / 30.0))
+	draw_rect(Rect2(0, 980, size.x, size.y - 980), Color(Tema.FITA, 0.82))
 	if contagem >= 0.0:
-		Desenho.texto(self, Vector2(0, 1000), "Todos prontos", Tema.fonte(600), Tema.T_CORPO, Tema.VERDE,
+		Desenho.texto(self, Vector2(0, 1000), "Todos prontos", Tema.archivo(600), Tema.T_CORPO, Tema.ETIQUETA,
 			HORIZONTAL_ALIGNMENT_CENTER, size.x)
 	else:
 		var escrevendo := false

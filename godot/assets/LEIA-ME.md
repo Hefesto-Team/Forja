@@ -6,7 +6,7 @@
 | `mapa/` | as camadas do mapa do controle (uma por peça) e `pecas.json` | geradas do `svg/` por `scripts/mapa_do_controle.js` | MIT, aviso abaixo |
 | `svg/glifos/`, `svg/hefesto-logo.svg` | os glifos dos botões e das features e o logo | app Hefesto (`assets/glyphs/`, `assets/hefesto-logo.svg`), sem mudança | MIT, aviso abaixo |
 | `glifos/`, `hefesto-logo.png` | as mesmas figuras em PNG (máscara branca, para tingir) | geradas do `svg/` por `scripts/mapa_do_controle.js` | MIT, aviso abaixo |
-| `oficina/` | Space Grotesk e JetBrains Mono, os arquivos variáveis que o app Hefesto usa | google/fonts, commit `7ff85c87f93ea6cca5f41c69f2e4edcb90240f26` (sha256 `acad6de1…f72` e `48715a42…eda`, os mesmos que o Hefesto fixa) | SIL OFL 1.1, textos ao lado |
+| `fontes/` | Bungee, VT323, Archivo Narrow e Permanent Marker, as quatro letras da bíblia de arte (`docs/jogo/arte/02-cor-e-letra.md`) | google/fonts | SIL OFL 1.1 (Permanent Marker: Apache 2.0), textos ao lado |
 | `ost/` | a trilha: as 45 faixas, as telas e os jingles, em OGG Vorbis 48 kHz estéreo, e os mapas de batidas (`.batidas.json`) | geradas na própria máquina com o ACE-Step 1.5 (modelo aberto, licença MIT), pelo `scripts/gerar_trilha.py` — ver `ost/LEIA-ME.md` | sem autor pela lei; seguem com a licença do repositório |
 | `sons/` | os efeitos gravados (martelo, golpe, escudo, tiro, sino, passos, interface, jingles), em WAV 48 kHz mono | Kenney: Impact Sounds, Interface Sounds, RPG Audio, Digital Audio e Music Jingles (www.kenney.nl), convertidos de OGG | CC0, `sons/KENNEY-LICENSE.txt` |
 | `kenney/mini-characters/` | Mini Characters (personagem), 12 modelos | Kenney (www.kenney.nl), Mini Characters 1.0 | CC0, `kenney/mini-characters/License.txt` |

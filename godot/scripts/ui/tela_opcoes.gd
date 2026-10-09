@@ -157,41 +157,42 @@ func _process(_dt: float) -> void:
 
 
 func _draw() -> void:
-	draw_rect(Rect2(Vector2.ZERO, size), Color(Tema.APP, 0.86))
+	draw_rect(Rect2(Vector2.ZERO, size), Color(Tema.CASCO, 0.86))
 	var larg := 980.0
 	var alto := 72.0  ## a linha com 66 px (CAIXA): focável de 64 ou mais (o estudo 02, item 6)
 	# as linhas, os dois títulos de seção, o lugar da régua do Tempo e a faixa das dicas
 	var alt := 124.0 + 80.0 + _linhas.size() * alto + REGUA_RESERVA + 70.0
 	var r := Rect2(Vector2((size.x - larg) * 0.5, (size.y - alt) * 0.5), Vector2(larg, alt))
-	Desenho.moldura(self, r, Tema.PAINEL, Tema.LINHA, 2, Tema.RAIO_QUADRO)
-	Desenho.texto(self, r.position + Vector2(48, 84), "Opções", Tema.fonte(700), Tema.T_TITULO, Tema.FG)
+	Desenho.moldura(self, r, Tema.CASCO, Tema.GRAFITE, 2, Tema.RAIO_QUADRO)
+	Desenho.texto(self, r.position + Vector2(48, 84), "Opções", Tema.bungee(), Tema.T_TITULO, Tema.ETIQUETA)
 	var y := r.position.y + 124.0
+	var cor_dono := Tema.tom_para_a_borda(Forja.cor_do_lugar(quem))  ## o foco tem dono: quem abriu as Opções
 	var secao := ""
 	for i in _linhas.size():
 		var item: Array = _linhas[i]
 		if item[2] != secao:
 			secao = item[2]
 			var titulo := "Sessão" if secao == "sessao" else secao
-			var cor_t := Tema.ROXO if secao == "sessao" else Tema.tom_para_a_borda(Forja.cor_do_lugar(quem))
-			Desenho.texto(self, Vector2(r.position.x + 48, y + 30), titulo, Tema.fonte(600), Tema.T_SELO, cor_t)
+			var cor_t := Tema.ETIQUETA if secao == "sessao" else Tema.tom_para_a_borda(Forja.cor_do_lugar(quem))
+			Desenho.texto(self, Vector2(r.position.x + 48, y + 30), titulo, Tema.archivo(600), Tema.T_SELO, cor_t)
 			y += 40.0
 		var b := Rect2(Vector2(r.position.x + 48, y), Vector2(larg - 96, CAIXA))
 		var sel := i == linha
-		Desenho.moldura(self, b, Tema.SEL if sel else Tema.APP, Tema.ROXO if sel else Tema.LINHA, 4 if sel else 2, Tema.RAIO_BOTAO)
-		Desenho.texto(self, b.position + Vector2(24, 42), str(item[1]), Tema.fonte(600 if sel else 500), Tema.T_ROTULO,
-			Tema.FG if sel else Tema.SUAVE)
+		Desenho.moldura(self, b, Tema.CASCO_ALTO if sel else Tema.CASCO, cor_dono if sel else Tema.GRAFITE, 4 if sel else 2, Tema.RAIO_BOTAO)
+		Desenho.texto(self, b.position + Vector2(24, 42), str(item[1]), Tema.archivo(600 if sel else 500), Tema.T_ROTULO,
+			Tema.ETIQUETA if sel else Tema.ETIQUETA_SOMBRA)
 		var v := valor(item[0])
-		var fv := Tema.fonte(600)
+		var fv := Tema.archivo(600)
 		var xv := b.end.x - 110 - Desenho.largura(v, fv, Tema.T_ROTULO)
-		Desenho.texto(self, Vector2(xv, b.position.y + 42), v, fv, Tema.T_ROTULO, Tema.CIANO)
+		Desenho.texto(self, Vector2(xv, b.position.y + 42), v, fv, Tema.T_ROTULO, Tema.ETIQUETA)
 		var fr := _fracao(item[0])
 		if fr >= 0.0:
 			var trilho := Rect2(Vector2(b.position.x + 380, b.position.y + b.size.y * 0.5 - 4), Vector2(220, 8))
-			draw_rect(trilho, Tema.TRILHO)
-			draw_rect(Rect2(trilho.position, Vector2(trilho.size.x * fr, 8)), Tema.ROXO)
+			draw_rect(trilho, Tema.GRAFITE)
+			draw_rect(Rect2(trilho.position, Vector2(trilho.size.x * fr, 8)), cor_dono)
 		if sel:
-			Glifo.desenhar(self, "esquerda", Rect2(Vector2(b.end.x - 92, b.position.y + 15), Vector2(32, 32)), Tema.ROSA)
-			Glifo.desenhar(self, "direita", Rect2(Vector2(b.end.x - 50, b.position.y + 15), Vector2(32, 32)), Tema.ROSA)
+			Glifo.desenhar(self, "esquerda", Rect2(Vector2(b.end.x - 92, b.position.y + 15), Vector2(32, 32)), cor_dono)
+			Glifo.desenhar(self, "direita", Rect2(Vector2(b.end.x - 50, b.position.y + 15), Vector2(32, 32)), cor_dono)
 		if item[0] == "tempo":
 			if sel:
 				_desenhar_regua(b)
@@ -208,9 +209,9 @@ func _draw() -> void:
 func _desenhar_regua(caixa: Rect2) -> void:
 	var cx := size.x * 0.5
 	var y := caixa.end.y + 22.0
-	draw_rect(Rect2(Vector2(cx - 220.0, y), Vector2(440, 8)), Tema.TRILHO)
+	draw_rect(Rect2(Vector2(cx - 220.0, y), Vector2(440, 8)), Tema.GRAFITE)
 	var na_batida := posmod(Time.get_ticks_usec() - _ouvido_us, _periodo_us())
-	var cor_traco := Tema.AMARELO if na_batida < 80000 else Tema.LINHA
+	var cor_traco := Tema.ETIQUETA if na_batida < 80000 else Tema.GRAFITE
 	draw_rect(Rect2(Vector2(cx - 2.0, y - 10.0), Vector2(4, 28)), cor_traco)
 	var cor := Forja.cor_do_lugar(quem)
 	for i in _toques.size():

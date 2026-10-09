@@ -414,7 +414,7 @@ func terminar() -> void:
 	# em seguida (no _celebrar, aos APITO_S da tela de resultado)
 	Musica.parar_seco()
 	Som.jingle("JIN_APITO")
-	pulso_de_luz(Tema.AMARELO, 1.6)
+	pulso_de_luz(Tema.TUNGSTENIO, 1.6)
 	ao_terminar()
 
 
@@ -526,7 +526,7 @@ func _quadro_treino() -> void:
 		treinando = false
 		valendo_t = 1.4
 		Som.tocar("especial")
-		pulso_de_luz(Tema.ROSA)
+		pulso_de_luz(Tema.VIOLETA)
 		Forja.evento("sala", 0, {"sala": id, "evento": "valendo", "treino_s": snappedf(t_fase, 0.1)})
 
 

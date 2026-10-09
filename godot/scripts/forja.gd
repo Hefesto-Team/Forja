@@ -71,10 +71,8 @@ const NIVEL_SAIU := 2
 const NIVEL_OBEDECEU := 3
 const NIVEL_REAGIU := 4
 
-## As cores de luz dos lugares (as mesmas que o módulo manda à lightbar).
-const COR_DO_LUGAR := [
-	Color8(0, 72, 255), Color8(255, 24, 8), Color8(0, 255, 64), Color8(255, 8, 168),
-]
+## As cores de luz dos lugares (as mesmas que o módulo manda à lightbar): a tabela do tema.
+const COR_DO_LUGAR := Tema.JOGADOR
 ## O padrão dos LEDs de jogador de cada lugar: 1 | vão | 3 | vão | 1.
 const LEDS_DO_LUGAR := [0x04, 0x0A, 0x15, 0x1B]
 

@@ -43,24 +43,24 @@ func _process(_dt: float) -> void:
 
 
 func _draw() -> void:
-	draw_rect(Rect2(Vector2.ZERO, size), Color(Tema.APP, 0.82))
+	draw_rect(Rect2(Vector2.ZERO, size), Color(Tema.CASCO, 0.82))
 	var larg := 620.0
 	var alt := 150.0 + opcoes.size() * 84.0
 	var r := Rect2(Vector2((size.x - larg) * 0.5, (size.y - alt) * 0.5), Vector2(larg, alt))
-	Desenho.moldura(self, r, Tema.PAINEL, Tema.LINHA, 2, Tema.RAIO_QUADRO)
-	Desenho.texto(self, r.position + Vector2(40, 72), "Pausa", Tema.fonte(700), 48, Tema.FG)
+	Desenho.moldura(self, r, Tema.CASCO, Tema.GRAFITE, 2, Tema.RAIO_QUADRO)
+	Desenho.texto(self, r.position + Vector2(40, 72), "Pausa", Tema.bungee(), Tema.T_TITULO, Tema.ETIQUETA)
 	var cor_id := Tema.tom_para_a_borda(Forja.cor_do_lugar(quem))
 	var q := "P%d pausou" % (quem + 1)
-	var fq := Tema.fonte(600)
+	var fq := Tema.archivo(600)
 	Desenho.texto(self, Vector2(r.end.x - 40 - Desenho.largura(q, fq, Tema.T_SELO), r.position.y + 68), q, fq, Tema.T_SELO, cor_id)
 	for i in opcoes.size():
 		var b := Rect2(r.position + Vector2(40, 110 + i * 84), Vector2(larg - 80, 68))
 		if i == escolhida:
-			Desenho.moldura(self, b, Tema.SEL, Tema.ROXO, 4, Tema.RAIO_BOTAO)
+			Desenho.moldura(self, b, Tema.CASCO_ALTO, cor_id, 4, Tema.RAIO_BOTAO)
 		else:
-			Desenho.moldura(self, b, Tema.APP, Tema.LINHA, 2, Tema.RAIO_BOTAO)
-		var cor := Tema.FG if i == escolhida else Tema.SUAVE
+			Desenho.moldura(self, b, Tema.CASCO, Tema.GRAFITE, 2, Tema.RAIO_BOTAO)
+		var cor := Tema.ETIQUETA if i == escolhida else Tema.ETIQUETA_SOMBRA
 		if opcoes[i][0] == "sair":
-			cor = Tema.VERMELHO
-		Desenho.texto(self, b.position + Vector2(28, 45), opcoes[i][1], Tema.fonte(600 if i == escolhida else 500), Tema.T_CORPO, cor)
+			cor = Tema.SECAO[0]
+		Desenho.texto(self, b.position + Vector2(28, 45), opcoes[i][1], Tema.archivo(600 if i == escolhida else 500), Tema.T_CORPO, cor)
 	Desenho.dicas_a_direita(self, Vector2(r.end.x - 40, r.end.y + 60), [["cruz", "Escolher"], ["circulo", "Voltar"]], Tema.T_SELO)

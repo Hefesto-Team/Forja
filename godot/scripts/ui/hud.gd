@@ -52,21 +52,21 @@ func _draw() -> void:
 	var h := size.y
 	# a tarja de cima, leve
 	for i in 20:
-		draw_rect(Rect2(0, i * 7, w, 7), Color(Tema.CASA, 0.55 * (1.0 - i / 20.0)))
+		draw_rect(Rect2(0, i * 7, w, 7), Color(Tema.FITA, 0.55 * (1.0 - i / 20.0)))
 
 	if sala.is_empty():
 		Desenho.cabecalho(self, Vector2(Tema.MARGEM_X, 40), 60.0)
 	else:
 		# o nome e a ação num quadro: a arena é clara e o texto não pode sumir nela
-		var fn := Tema.fonte(700)
-		var fa := Tema.fonte(500)
+		var fn := Tema.archivo(700)
+		var fa := Tema.archivo(500)
 		var nome := str(sala.get("nome", ""))
 		var acao := str(sala.get("acao", ""))
-		var larg := maxf(Desenho.largura(nome, fn, 44), Desenho.largura(acao, fa, Tema.T_ROTULO)) + 56
+		var larg := maxf(Desenho.largura(nome, fn, Tema.T_SUBTITULO), Desenho.largura(acao, fa, Tema.T_ROTULO)) + 56
 		var q := Rect2(Vector2(Tema.MARGEM_X - 28, 40), Vector2(larg, 118))
-		Desenho.moldura(self, q, Color(Tema.PAINEL, 0.94), Tema.LINHA, 2, Tema.RAIO_QUADRO)
-		Desenho.texto(self, q.position + Vector2(28, 56), nome, fn, 44, Tema.FG)
-		Desenho.texto(self, q.position + Vector2(28, 96), acao, fa, Tema.T_ROTULO, Tema.ROXO)
+		Desenho.moldura(self, q, Color(Tema.CASCO, 0.94), Tema.GRAFITE, 2, Tema.RAIO_QUADRO)
+		Desenho.texto(self, q.position + Vector2(28, 56), nome, fn, Tema.T_SUBTITULO, Tema.ETIQUETA)
+		Desenho.texto(self, q.position + Vector2(28, 96), acao, fa, Tema.T_ROTULO, Tema.ETIQUETA)
 
 	_lugares(Vector2(w - Tema.MARGEM_X, 40))
 
@@ -83,15 +83,15 @@ func _draw() -> void:
 	var y := 190.0
 	for a in _avisos:
 		var alfa := clampf(a[1] / 0.4, 0.0, 1.0)
-		var f := Tema.fonte(500)
+		var f := Tema.archivo(500)
 		var larg_max := 1100.0
 		var s := Desenho.caber(a[0], f, Tema.T_AVISO, larg_max, 2)
 		var tw := minf(Desenho.largura(s, f, Tema.T_AVISO), larg_max)
 		var th := Desenho.altura_paragrafo(s, f, Tema.T_AVISO, larg_max)
 		var r2 := Rect2(Vector2((w - tw) * 0.5 - 32, y), Vector2(tw + 64, th + 28))
-		Desenho.moldura(self, r2, Color(Tema.ELEVADO, 0.95 * alfa), Color(Tema.LINHA, alfa), 2, 12)
+		Desenho.moldura(self, r2, Color(Tema.CASCO_ALTO, 0.95 * alfa), Color(Tema.GRAFITE, alfa), 2, 12)
 		Desenho.paragrafo(self, Vector2(r2.position.x + 32, y + 14 + f.get_ascent(Tema.t(Tema.T_AVISO))), s, f,
-			Tema.T_AVISO, Color(Tema.FG, alfa), larg_max + 1.0, 2)
+			Tema.T_AVISO, Color(Tema.ETIQUETA, alfa), larg_max + 1.0, 2)
 		y += r2.size.y + 12.0
 
 
@@ -101,7 +101,7 @@ func _salao(w: float, h: float) -> void:
 	var topo := 40.0 + 92.0 + 16.0
 	var c := Desenho.contador(self, Vector2(w - Tema.MARGEM_X - 121.0, topo), "%d/9" % vencidas, 64)
 	_rets.append(c)
-	var f := Tema.fonte(500)
+	var f := Tema.archivo(500)
 	var rotulo := Desenho.t("Salas vencidas")
 	var lw := Desenho.largura(rotulo, f, 32)
 	Desenho.texto(self, Vector2(c.position.x - 20.0 - lw, c.position.y + 48.0), rotulo, f, 32, Tema.ETIQUETA)
@@ -165,7 +165,7 @@ func retangulos() -> Array[Rect2]:
 
 ## Os lugares, da direita para a esquerda a partir de `fim` (P4 mais à direita).
 func _lugares(fim: Vector2) -> void:
-	var larg := 250.0
+	var larg := 340.0
 	var alt := 92.0
 	var x := fim.x - (larg * 4 + 16 * 3)
 	for l in 4:
@@ -173,29 +173,28 @@ func _lugares(fim: Vector2) -> void:
 		var info: Dictionary = Forja.lugar(l)
 		var cor_id := Tema.tom_para_a_borda(Forja.cor_do_lugar(l))
 		if not info.get("ocupado", false):
-			Desenho.moldura(self, r, Color(Tema.APP, 0.7), Tema.SUTIL, 2, 12)
-			Desenho.texto(self, r.position + Vector2(20, 40), "P%d  ·  —" % (l + 1), Tema.fonte(600), Tema.T_SELO, Tema.MUDO)
+			Desenho.moldura(self, r, Color(Tema.CASCO, 0.7), Tema.GRAFITE, 2, 12)
+			Desenho.texto(self, r.position + Vector2(20, 40), "P%d  ·  —" % (l + 1), Tema.archivo(600), Tema.T_SELO, Tema.MUDO)
 			continue
 		var conectado: bool = info.get("conectado", false)
-		Desenho.moldura(self, r, Color(Tema.APP, 0.9), cor_id if conectado else Tema.LARANJA, 3, 12)
-		Desenho.texto(self, r.position + Vector2(20, 40), "P%d" % (l + 1), Tema.fonte(700), Tema.T_ROTULO, cor_id)
+		Desenho.moldura(self, r, Color(Tema.CASCO, 0.9), cor_id if conectado else Tema.SECAO[3], 3, 12)
+		Desenho.texto(self, r.position + Vector2(20, 44), "P%d" % (l + 1), Tema.bungee(), Tema.T_PSHARP, cor_id)
 		if not conectado:
-			Desenho.texto(self, r.position + Vector2(66, 40), "Sem controle", Tema.fonte(600), Tema.T_SELO, Tema.LARANJA)
+			Desenho.texto(self, r.position + Vector2(92, 40), "Sem controle", Tema.archivo(600), Tema.T_SELO, Tema.SECAO[3])
 			continue
 		var p: Dictionary = Forja.pad(int(info.get("pad", -1)))
-		Desenho.texto(self, r.position + Vector2(66, 40), str(p.get("conexao_curta", "")), Tema.fonte(600), Tema.T_SELO, Tema.FG)
+		Desenho.texto(self, r.position + Vector2(92, 40), str(p.get("conexao_curta", "")), Tema.archivo(600), Tema.T_SELO, Tema.ETIQUETA)
 		var pct: int = p.get("bateria", -1)
 		if pct >= 0:
 			var s := "%d%%" % pct
-			var fm := Tema.mono(500)
-			Desenho.texto(self, Vector2(r.end.x - 20 - Desenho.largura(s, fm, Tema.T_SELO), r.position.y + 40), s, fm, Tema.T_SELO, Tema.VERDE)
+			var fm := Tema.vt()
+			Desenho.texto(self, Vector2(r.end.x - 20 - Desenho.largura(s, fm, Tema.T_SELO), r.position.y + 40), s, fm, Tema.T_SELO, Tema.ETIQUETA)
 		var linha: String = status_da_sala[l]
 		if linha != "":
 			# a linha encolhe até caber (cortada, "4 bala" viraria "4 bal")
-			var fl := Tema.fonte(500)
-			var tam := Tema.T_SELO
-			while tam > 20 and Desenho.largura(linha, fl, tam) > larg - 40:
-				tam -= 1
-			Desenho.texto(self, r.position + Vector2(20, 76), linha, fl, tam, Tema.SUAVE, HORIZONTAL_ALIGNMENT_LEFT, larg - 40)
+			# a letra não encolhe (nada abaixo de 30 px): a linha que não cabe fecha com «…»
+			var fl := Tema.archivo(500)
+			var dita := Desenho.caber(linha, fl, Tema.T_SELO, larg - 40, 1)
+			Desenho.texto(self, r.position + Vector2(20, 76), dita, fl, Tema.T_SELO, Tema.ETIQUETA_SOMBRA, HORIZONTAL_ALIGNMENT_LEFT, larg - 40)
 		else:
 			Desenho.leds(self, r.position + Vector2(20, 60), int(info.get("leds", 0)), 10.0)

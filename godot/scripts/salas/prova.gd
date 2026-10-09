@@ -63,7 +63,7 @@ const NOME_EQUIPE := ["Brasa", "Maré"]
 const LUZ_EQUIPE := [Color(1.0, 0.27, 0.0), Color(0.0, 0.35, 1.0)]
 const BOTAO := [F.CRUZ, F.CIRCULO, F.QUADRADO, F.TRIANGULO]
 const GLIFO := ["cross", "circle", "square", "triangle"]
-const COR_CHAO := [Color("#3f7a3a"), Color("#8f8270"), Color("#7f8a9c"), Color("#2f6fb8")]
+const COR_CHAO := [Tema.SECAO[2], Tema.OXIDO_BRILHO, Tema.MUDO, Tema.SECAO[1]]  ## grama, cascalho, metal, água
 
 enum { CONTAGEM, PARTIDA, LEDS, COR, PLACAR, ACABOU }
 
@@ -96,8 +96,8 @@ func montar() -> void:
 	pilares = PILARES_CATAVENTO if variante == 1 else PILARES
 	Kit.arena(self, 6, 4)
 	# a arena: a Brasa de um lado, a Maré do outro
-	atmosfera(Color("#ffb86c"), Tema.LARANJA, true, 40, 24.0, -9.8)
-	Efeitos.poeira(self, Vector3(0, 1.8, 0), Vector3(24, 3.5, 9), Tema.CIANO, 30)
+	atmosfera(Color("#ffb86c"), Tema.TUNGSTENIO, true, 40, 24.0, -9.8)
+	Efeitos.poeira(self, Vector3(0, 1.8, 0), Vector3(24, 3.5, 9), Tema.VIOLETA, 30)
 	luzes([Vector3(-10, 3.0, -6), Vector3(10, 3.0, -6), Vector3(-10, 3.0, 6), Vector3(10, 3.0, 6)])
 	_montar_chao()
 	for c in pilares:
@@ -362,7 +362,7 @@ func _golpe(alvo: Dictionary, autor: int, vx: float) -> void:
 			var p: ForjaPlayer = alvo.no
 			p.gesto("die", VOLTA_S)
 	else:
-		Efeitos.faiscas(self, alvo.pos + Vector3(0, 1.1, 0), Tema.VERMELHO, 12, 0.7)
+		Efeitos.faiscas(self, alvo.pos + Vector3(0, 1.1, 0), Tema.SECAO[0], 12, 0.7)
 
 
 func _martelada(i: int) -> void:
@@ -370,8 +370,8 @@ func _martelada(i: int) -> void:
 	e.especial = 0.0
 	e.avisou = false
 	tremor = 0.7
-	Efeitos.faiscas(self, e.pos + Vector3(0, 0.4, 0), Tema.AMARELO, 50, 1.6)
-	Efeitos.anel(self, e.pos + Vector3(0, 0.15, 0), Tema.AMARELO, MARTELADA_RAIO, Vector3.UP)
+	Efeitos.faiscas(self, e.pos + Vector3(0, 0.4, 0), Tema.TUNGSTENIO, 50, 1.6)
+	Efeitos.anel(self, e.pos + Vector3(0, 0.15, 0), Tema.TUNGSTENIO, MARTELADA_RAIO, Vector3.UP)
 	Som.tocar("martelo", e.pos, 2.0)
 	_saida(e.lugar, Forja.sentir(e.lugar, "perfeito"))
 	for k in lut.size():
@@ -861,7 +861,7 @@ func _robo(i: int, dt: float) -> void:
 				acesas += (m >> b) & 1
 			k = clampi(acesas - 1, 0, 3)
 		else:
-			k = _cor_mais_perto(pc.get("luz", Color.BLACK))
+			k = _cor_mais_perto(pc.get("luz", Color.TRANSPARENT))
 		Forja.robo_apertar(l, BOTAO[k], 0.08)
 		f.robo_espera = 99.0
 		return
