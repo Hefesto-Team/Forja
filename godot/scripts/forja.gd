@@ -261,6 +261,7 @@ func _process(dt: float) -> void:
 	if assinatura != _assinatura_pads:
 		_assinatura_pads = assinatura
 		pads_mudaram.emit()
+	_voltar_a_cor()
 
 
 # ---------------------------------------------------------------- o teclado --
@@ -507,6 +508,9 @@ const SENSACOES := {
 	"aviso":     [0.6, 0.0,  200],   # perigo um tempo antes
 	"golpe_esq": [1.0, 0.0,  250],   # o golpe que vem da esquerda: só o motor forte
 	"golpe_dir": [0.0, 1.0,  250],   # o da direita: só o motor fraco
+	# o toque leve de um lado (H08): aponta o lado sem assustar
+	"toque_esq": [0.4, 0.0, 80],
+	"toque_dir": [0.0, 0.4, 80],
 	"fita":      [0.0, 0.3,  400],   # o PLAY e o virar da fita (G16): o motor girando na mão, o rumble fraco
 	"metal":     [0.0, 0.45,  40],   # a troca de peça na construção: o pulso curto
 }
@@ -558,12 +562,68 @@ func vibrar(l: int, forte: float, fraco: float, ms: int) -> bool:
 	return ctl.vibrar(l, forte * k, fraco * k, ms) if modulo else false
 
 
+# ---------------------------------------------------------------- a barra de luz (H08) --
+# A barra de luz nunca fica abaixo de PISO_DA_LUZ de brilho, e um piscar de
+# outra cor dura no máximo PISCAR_MAX_S: a cor que o jogo pediu sempre volta
+# (docs/jogo/13, a identidade e as decisões comuns).
+
+const PISO_DA_LUZ := 0.3
+const PISCAR_MAX_S := 0.5
+var _piscar_ate := [0.0, 0.0, 0.0, 0.0]  ## o _agora em que o piscar acaba (0: sem piscar)
+## A última cor que o jogo pediu a cada lugar; alfa 0 = a cor do lugar.
+var _cor_pedida := [Color(0, 0, 0, 0), Color(0, 0, 0, 0), Color(0, 0, 0, 0), Color(0, 0, 0, 0)]
+
+
+## A barra de luz do lugar numa cor (com o piso de brilho). Durante um
+## piscar, a cor fica guardada e sai quando o piscar acaba.
 func luz(l: int, cor: Color) -> bool:
-	return ctl.luz(l, cor) if modulo else false
+	if not modulo:
+		return false
+	_cor_pedida[l] = Color(cor.r, cor.g, cor.b, 1.0)
+	if _piscar_ate[l] > 0.0:
+		return true
+	return ctl.luz(l, luz_com_piso(cor, cor_do_lugar(l)))
 
 
 func luz_do_lugar(l: int) -> bool:
+	_cor_pedida[l] = Color(0, 0, 0, 0)
+	_piscar_ate[l] = 0.0
 	return ctl.luz_do_lugar(l) if modulo else false
+
+
+## Pisca a barra de luz do lugar em `cor` por `s` segundos (no máximo
+## PISCAR_MAX_S); depois, volta a cor que o jogo tinha pedido.
+func piscar(l: int, cor: Color, s := 0.15) -> bool:
+	if not modulo:
+		return false
+	_piscar_ate[l] = _agora + clampf(s, 0.0, PISCAR_MAX_S)
+	return ctl.luz(l, luz_com_piso(cor, cor_do_lugar(l)))
+
+
+## A mesma cor com o piso de brilho: abaixo de PISO_DA_LUZ, clareia até ele
+## sem mudar o tom; a preta vira a cor do lugar no piso. Pura.
+static func luz_com_piso(cor: Color, do_lugar: Color) -> Color:
+	var v := maxf(cor.r, maxf(cor.g, cor.b))
+	if v >= PISO_DA_LUZ:
+		return Color(cor.r, cor.g, cor.b, 1.0)
+	if v < 0.001:
+		cor = do_lugar
+		v = maxf(cor.r, maxf(cor.g, cor.b))
+	var k := PISO_DA_LUZ / maxf(v, 0.001)
+	return Color(cor.r * k, cor.g * k, cor.b * k, 1.0)
+
+
+## O piscar acabou: a cor pedida (ou a do lugar) volta. No fim do _process.
+func _voltar_a_cor() -> void:
+	for l in 4:
+		if _piscar_ate[l] <= 0.0 or _agora < _piscar_ate[l]:
+			continue
+		_piscar_ate[l] = 0.0
+		var c: Color = _cor_pedida[l]
+		if c.a <= 0.0:
+			ctl.luz_do_lugar(l)
+		else:
+			ctl.luz(l, luz_com_piso(c, cor_do_lugar(l)))
 
 
 ## Um gatilho (lado 0 = L2, 1 = R2) num dos quatro modos oficiais.
@@ -591,11 +651,16 @@ func leds_jogador(l: int, mascara: int) -> bool:
 
 ## O lugar volta ao repouso: motores parados, gatilhos soltos, a luz e os LEDs do lugar.
 func silencio(l: int) -> void:
+	_cor_pedida[l] = Color(0, 0, 0, 0)
+	_piscar_ate[l] = 0.0
 	if modulo:
 		ctl.silencio(l)
 
 
 func silencio_todos() -> void:
+	for l in 4:
+		_cor_pedida[l] = Color(0, 0, 0, 0)
+		_piscar_ate[l] = 0.0
 	if modulo:
 		ctl.silencio_todos()
 
@@ -882,10 +947,18 @@ func som_trocar(l: int, papel: int, direcao: int) -> void:
 		ctl.som_trocar(l, papel, direcao)
 
 
-## Um som da forja no alto-falante do controle ("sino", "nota", "grito"...).
+var _ultimo_som := ["", "", "", ""]  ## o último som que o alto-falante do lugar aceitou
+var _som_seq := [0, 0, 0, 0]  ## quantos sons o alto-falante do lugar já aceitou
+
+
+## Um som da forja no alto-falante do controle ("sino", "nota:2"...).
 func som_falante(l: int, som: String, ganho := 0.9) -> int:
 	# o volume do alto-falante do controle (as opções da sessão)
-	return ctl.som_falante(l, som, ganho * Opcoes.volume_controle / 100.0) if modulo else -1
+	var r: int = ctl.som_falante(l, som, ganho * Opcoes.volume_controle / 100.0) if modulo else -1
+	if r >= 0:
+		_ultimo_som[clampi(l, 0, 3)] = som
+		_som_seq[clampi(l, 0, 3)] += 1
+	return r
 
 
 ## Um som nos atuadores: `esq` no esquerdo, `dir` no direito ("" = nenhum).
@@ -927,9 +1000,25 @@ func som_mic(l: int) -> Dictionary:
 
 
 ## O que a placa virtual do controle simulado do lugar toca agora, 0..1:
-## {falante, esq, dir}. É o que o robô ouve e sente.
+## {falante, esq, dir}, e o último som que o alto-falante aceitou ({som,
+## som_seq}: o robô ouve a altura). É o que o robô ouve e sente.
 func som_virtual(l: int) -> Dictionary:
-	return ctl.som_virtual(l) if modulo else {}
+	var d: Dictionary = ctl.som_virtual(l) if modulo else {}
+	if not d.is_empty():
+		d["som"] = _ultimo_som[clampi(l, 0, 3)]
+		d["som_seq"] = _som_seq[clampi(l, 0, 3)]
+	return d
+
+
+## A textura do material só nos atuadores do lugar — o alto-falante fica
+## livre para a pista (docs/jogo/13, as decisões comuns). O gelo é de um
+## atuador só. Devolve false sem háptica (o rádio) ou com o motor vibrando
+## (F05): quem chama sente pelo rumble.
+func textura(l: int, material: String, forca := 1.0) -> bool:
+	if not som_tem(l, PAPEL_HAPTICA):
+		return false
+	var nome := "material:" + material
+	return som_haptica(l, nome, "" if material == "gelo" else nome, forca) >= 0
 
 
 ## O veredito do microfone ("microfone") ou do botão do mudo
