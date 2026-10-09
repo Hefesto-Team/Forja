@@ -40,7 +40,7 @@ func _ready() -> void:
 	# a medida do clarão d'A Voz (scripts/medir_clarao.gd) compara dois quadros
 	# parados: sem o tremor da câmera, o que muda é a luz
 	if OS.get_environment("SEM_TREMOR") == "1":
-		Opcoes.tremor = false
+		Opcoes.movimento = 1
 	if _rapido:
 		_janela(false)
 	match OS.get_environment("ROTEIRO"):

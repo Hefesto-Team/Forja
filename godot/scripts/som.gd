@@ -47,6 +47,7 @@ const GRAVADOS := {
 
 var _streams := {}
 var _gravados := {}  ## nome da gravação -> Array[AudioStreamWAV]
+var _avulsos := {}  ## nome -> o `assets/sons/<nome>.wav` inteiro (ou null)
 var _no_controle := {}  ## "nome_k" já registrado no módulo
 var _rng := RandomNumberGenerator.new()
 var _players: Array[AudioStreamPlayer3D] = []
@@ -106,10 +107,20 @@ func versoes(gravacao: String) -> Array:
 	return lista
 
 
+## O som avulso do mapa (`assets/sons/<nome>.wav`, uma gravação só): toca como está, sem o tom sorteado.
+func _avulso(nome: String) -> AudioStream:
+	if not _avulsos.has(nome):
+		var caminho := "res://assets/sons/%s.wav" % nome
+		_avulsos[nome] = load(caminho) if ResourceLoader.exists(caminho) else null
+	return _avulsos[nome]
+
+
 func tocar(nome: String, pos: Variant = null, volume_db := 0.0, tom := 1.0) -> void:
-	var s: AudioStream = null
-	var lista := versoes(GRAVADOS.get(nome, ""))
-	if not lista.is_empty():
+	var s: AudioStream = _avulso(nome)
+	var lista := versoes(GRAVADOS.get(nome, "")) if s == null else []
+	if s != null:
+		pass
+	elif not lista.is_empty():
 		s = lista[_rng.randi() % lista.size()]
 		tom *= _rng.randf_range(0.95, 1.05)
 	else:

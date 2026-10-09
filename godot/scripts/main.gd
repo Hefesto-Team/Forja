@@ -53,6 +53,7 @@ var pausa: Pausa
 var escolha: EscolhaPartida
 var placar: Placar
 var tela_opcoes: TelaOpcoes
+var tela_virar: TelaVirar  ## o virar da fita e o intervalo (G16)
 var creditos: TelaCreditos
 var cortina: ColorRect
 var overlay := ""  ## "", "diagnostico", "livro", "pausa", "partida" (a escolha), "placar", "opcoes", "creditos"
@@ -61,6 +62,14 @@ var _stick_antes := [Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO]
 var _portao_perto := ""
 var _robo_placar_rodada := -1  ## o placar em que o robô já apertou ✕ (partida × 100 + sala)
 var _robo_placar_t := 0.0  ## o `placar._t` do último ✕ do robô: se não chegou, ele aperta de novo
+var _virar_espera := -1.0  ## s até o próximo tempo 1 da música, depois do ✕ do placar da metade (-1: não espera)
+var _virar_clunk := false  ## o momento «fita_virada» já foi escrito
+var _virar_caneta := false  ## a caneta já soou
+var _intervalo_ms := 0.0  ## o tempo do intervalo, em ms (o ✕ só vale depois de 500)
+var _intervalo_gesto := 0.0  ## s até o próximo gesto de pedestal
+var _intervalo_vez := 0  ## de quem é o próximo gesto
+var _robo_intervalo_t := -1.0  ## o `_intervalo_ms` do último ✕ do robô
+const INTERVALO_GUARDA_MS := 500.0
 
 
 func _ready() -> void:
@@ -154,7 +163,8 @@ func _interface() -> void:
 	placar = Placar.new()
 	tela_opcoes = TelaOpcoes.new()
 	creditos = TelaCreditos.new()
-	for c in [titulo, lobby, hud, painel, resultado, diagnostico, livro, pausa, escolha, placar, tela_opcoes, creditos]:
+	tela_virar = TelaVirar.new()
+	for c in [titulo, lobby, hud, painel, resultado, diagnostico, livro, tela_virar, pausa, escolha, placar, tela_opcoes, creditos]:
 		ui.add_child(c)
 	cortina = ColorRect.new()
 	cortina.color = Color(Tema.FITA, 0.0)
@@ -167,6 +177,7 @@ func _interface() -> void:
 	pausa.visible = false
 	escolha.visible = false
 	placar.visible = false
+	tela_virar.visible = false
 	tela_opcoes.visible = false
 	creditos.visible = false
 	tela_opcoes.mudou.connect(func(_c: String) -> void: Forja.aplicar_opcoes())
@@ -234,15 +245,20 @@ func _todos_entram() -> void:
 
 func _mostrar(qual: String) -> void:
 	estado = qual
-	Musica.tocar(sala_id if qual == "sala" else qual)
+	if qual == "virar":
+		Musica.calar()  # a fita para no eject
+	else:
+		Musica.tocar(sala_id if qual == "sala" else ("salao" if qual == "intervalo" else qual))
 	titulo.visible = qual == "titulo"
 	lobby.visible = qual == "lobby"
+	tela_virar.visible = qual in ["virar", "intervalo"]
 	hud.visible = _hud_visivel()
-	salao.pedestais_no.visible = qual in ["lobby", "podio"]
+	salao.pedestais_no.visible = qual in ["lobby", "podio", "intervalo"]
 	if qual != "sala":
-		acender(0 if qual == "podio" else -1)
-		PosFita.gastar(1)
-	if qual == "lobby":
+		# o intervalo é do lado B; o pós continua gasto pela faixa em que a noite está (virar não zera)
+		acender(0 if qual == "podio" else -1, qual == "intervalo")
+		PosFita.gastar(partida.passo + 1 if partida and qual in ["virar", "intervalo"] else 1)
+	if qual == "lobby" or qual == "intervalo":
 		for l in 4:
 			var p := jogadores[l]
 			p.controlavel = false
@@ -351,7 +367,7 @@ func _entrar_na_sala(id: String, com_cortina := true) -> void:
 		hud.create_livre = not (sala is SalaJogo and (((sala as SalaJogo).botoes_pedidos >> Forja.CREATE) & 1
 			or (sala as SalaJogo).cega))
 		_mostrar("sala")
-		acender(sala.numero())
+		acender(sala.numero(), partida != null and partida.lado() == "B")
 		PosFita.gastar(partida.passo + 1 if partida else 1)
 		PosFita.rasgo_curto()
 		hud.sala = {"nome": sala.nome, "acao": sala.acao}
@@ -439,12 +455,129 @@ func _placar_da_sala(sj: SalaJogo) -> void:
 
 ## ✕ no placar: a sala seguinte, ou o pódio.
 func _seguir_a_partida() -> void:
+	if partida.acabou():
+		overlay = ""
+		placar.visible = false
+		_trocar(_ir_para_o_podio)
+	elif partida.passo == partida.metade() and not partida.virou:
+		# a fita vira no próximo tempo 1 da música; o placar fica até lá
+		_virar_espera = _ate_o_proximo_compasso()
+		if _virar_espera <= 0.0:
+			_virar_a_fita()
+	else:
+		overlay = ""
+		placar.visible = false
+		_entrar_na_sala(partida.sala_atual())
+
+
+## Quanto falta, em s, para o próximo tempo 1 da música que toca (o compasso de 4 batidas); 0 sem música.
+func _ate_o_proximo_compasso() -> float:
+	var tocador: AudioStreamPlayer = null
+	for c in Musica.get_children():
+		if c is AudioStreamPlayer and c.playing and c.volume_db > -30.0:
+			tocador = c
+	if tocador == null:
+		return 0.0
+	var mapa := Musica.mapa(Musica.atual)
+	var compasso := 4.0 * 60.0 / maxf(float(mapa.get("bpm", 120.0)), 30.0)
+	var fase := fposmod(tocador.get_playback_position() - float(mapa.get("primeiro_tempo", 0.0)), compasso)
+	return compasso - fase if fase > 0.02 else 0.0
+
+
+## A fita vira: o deck aberto, o cassete sai, gira e entra com o lado B para cima (4000 ms fixos desde `T0`),
+## e o corte seco para o intervalo. Sem botão: o Options abre a pausa, como em toda tela.
+func _virar_a_fita() -> void:
+	_virar_espera = -1.0
 	overlay = ""
 	placar.visible = false
-	if partida.acabou():
-		_trocar(_ir_para_o_podio)
-	else:
-		_entrar_na_sala(partida.sala_atual())
+	_sair_da_sala()
+	if salao.get_parent() == null:
+		add_child(salao)
+	_bonecos_nos_pedestais()
+	_mostrar("virar")
+	tela_virar.virar()
+	_virar_clunk = false
+	_virar_caneta = false
+	Som.tocar("fx_virar", null, -6.0)
+	for l in 4:
+		if Forja.ocupado(l):
+			Forja.sentir(l, "fita", 1600)
+			Forja.gatilhos_off(l)
+	Forja.evento("sala", 0, {"evento": "partida", "o": "virou", "passo": partida.passo})
+
+
+func _bonecos_nos_pedestais() -> void:
+	for p in jogadores:
+		p.controlavel = false
+		p.global_position = salao.pedestais[p.lugar]
+		p.rotation.y = 0.0
+
+
+func _quadro_virar(dt: float) -> void:
+	if _atalhos_de_overlay():
+		return
+	tela_virar.andar(dt)
+	if not _virar_clunk and tela_virar.ms >= TelaVirar.CLUNK_MS:
+		_virar_clunk = true
+		Forja.evento("momento", 0, {"slot": "virar", "nome": "fita_virada", "lugar": -1, "ms_desde_o_corte": int(round(tela_virar.ms))})
+	if not _virar_caneta and tela_virar.ms >= TelaVirar.CANETA_MS:
+		_virar_caneta = true
+		Som.tocar("fx_caneta", null, -6.0)
+	if tela_virar.ms >= TelaVirar.TOTAL_MS:
+		_ir_para_o_intervalo()
+
+
+## O corte seco: o salão na luz do lado B, os bonecos nos pedestais, sem tempo limite.
+func _ir_para_o_intervalo() -> void:
+	partida.virou = true
+	_intervalo_ms = 0.0
+	_intervalo_gesto = 0.0
+	_intervalo_vez = 0
+	_robo_intervalo_t = -1.0
+	_mostrar("intervalo")
+	tela_virar.intervalo(partida.rotulo())
+	_cam_pos = _pose_da_camera()[0]
+	_cam_olhar = _pose_da_camera()[1]
+	Forja.evento("sala", 0, {"evento": "partida", "o": "intervalo", "passo": partida.passo})
+
+
+## O intervalo: o ✕ de qualquer lugar ocupado (depois de 500 ms) segue a noite; ◯ não faz nada.
+func _quadro_intervalo(dt: float) -> void:
+	if _atalhos_de_overlay():
+		return
+	_intervalo_ms += dt * 1000.0
+	# um gesto de cada vez, a cada 4 compassos
+	_intervalo_gesto -= dt
+	if _intervalo_gesto <= 0.0:
+		var mapa := Musica.mapa(Musica.atual)
+		_intervalo_gesto = 16.0 * 60.0 / maxf(float(mapa.get("bpm", 120.0)), 30.0)
+		for k in 4:
+			var l := (_intervalo_vez + k) % 4
+			if Forja.ocupado(l):
+				jogadores[l].gesto("emote-yes", 1.0)
+				_intervalo_vez = l + 1
+				break
+	if Forja.robo:
+		_robo_do_intervalo()
+	if _intervalo_ms < INTERVALO_GUARDA_MS:
+		return
+	for l in 4:
+		if Forja.ocupado(l) and Forja.apertou(l, Forja.CRUZ):
+			Forja.sentir(l, "toque")
+			Som.tocar("confirma", null, -6.0)
+			_entrar_na_sala(partida.sala_atual())
+			return
+
+
+## O robô no intervalo: aperta o ✕ do primeiro lugar ocupado depois de 2 s, e de novo a cada 4 s se a primeira não chegou.
+func _robo_do_intervalo() -> void:
+	if _intervalo_ms <= 2000.0 or (_robo_intervalo_t >= 0.0 and _intervalo_ms - _robo_intervalo_t <= 4000.0):
+		return
+	_robo_intervalo_t = _intervalo_ms
+	for l in 4:
+		if Forja.ocupado(l):
+			Forja.robo_confirmar(l, 0.0)
+			return
 
 
 ## O pódio: de volta ao salão, cada boneco no pedestal do seu lugar, e o placar
@@ -518,7 +651,7 @@ func _quadro_podio() -> void:
 		for e in partida.podio(partida.presentes()):
 			if int(e.degrau) == 1:
 				var alto: Vector3 = jogadores[int(e.lugar)].global_position + Vector3(randf_range(-1.2, 1.2), 3.2, randf_range(-0.6, 0.6))
-				Efeitos.faiscas(salao, alto, Forja.cor_do_lugar(randi() % 4), 22, 0.9)
+				Efeitos.faiscas(salao, alto, Forja.cor_do_lugar(randi() % 4), Opcoes.confete(22), 0.9)
 	if Forja.robo:
 		if _robo_do_podio():
 			return
@@ -609,6 +742,8 @@ func _process(dt: float) -> void:
 				"salao": _quadro_salao()
 				"sala": _quadro_sala()
 				"podio": _quadro_podio()
+				"virar": _quadro_virar(dt)
+				"intervalo": _quadro_intervalo(dt)
 	if sala:
 		for l in 4:
 			hud.status_da_sala[l] = sala.status(l) if Forja.ocupado(l) else ""
@@ -948,6 +1083,12 @@ func _quadro_overlay() -> void:
 					_fechar_overlay()
 					return
 		"placar":
+			if _virar_espera > 0.0:
+				# o ✕ já foi: a fita vira no próximo tempo 1 da música
+				_virar_espera -= get_process_delta_time()
+				if _virar_espera <= 0.0:
+					_virar_a_fita()
+				return
 			if not placar.pronto():
 				# ✕ no meio da animação pula para o fim dela
 				for l in 4:
@@ -993,10 +1134,10 @@ func _pose_da_camera() -> Array:
 	match estado:
 		"titulo":
 			# o giro lento em volta da bigorna; parado com o movimento desligado
-			var a := _t * 0.08 if Opcoes.tremor else 0.0
+			var a := 0.0 if Opcoes.reduzido() else _t * 0.08
 			var centro := salao.bigorna.global_position + Vector3(0, 1.3, 0)
 			return [centro + Vector3(sin(a) * 7.5 + 3.0, 3.2, cos(a) * 7.5 + 2.0), centro]
-		"lobby":
+		"lobby", "intervalo":
 			return [Vector3(0, 2.9, 14.2), Vector3(0, 0.55, 4.4)]
 		"podio":
 			# os pedestais à direita: o placar final fica à esquerda
@@ -1050,7 +1191,7 @@ func _mover_camera(dt: float) -> void:
 	_cam_olhar = _cam_olhar.lerp(pose[1], k)
 	camera.global_position = _cam_pos
 	camera.look_at(_cam_olhar)
-	if estado == "sala" and sala and sala.tremor > 0.0 and Opcoes.tremor:
+	if estado == "sala" and sala and sala.tremor > 0.0 and not Opcoes.reduzido():
 		var k2: float = sala.tremor
 		camera.global_position += Vector3(sin(_t * 71.0), sin(_t * 53.0 + 1.3), 0.0) * 0.12 * k2
 		camera.rotate_object_local(Vector3.BACK, sin(_t * 47.0) * 0.012 * k2)

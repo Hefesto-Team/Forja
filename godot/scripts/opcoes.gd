@@ -2,8 +2,8 @@ class_name Opcoes
 extends RefCounted
 ## As opções de conforto (o estudo 04, regra 11; o GT7 e a XAG 110): por
 ## lugar, o gatilho (desligado, fraco, forte) e a vibração (0 a 100%); da
-## sessão, o volume da TV e o do alto-falante do controle, o movimento da câmera (o tremor e o giro do título),
-## os flashes, tela cheia ou janela e o tamanho do texto.
+## sessão, o volume da TV e o do alto-falante do controle, o movimento (Inteiro ou Reduzido: o tremor, o giro do
+## título, a parada, o esmagar e o confete), os flashes, as reações, tela cheia ou janela e o tamanho do texto.
 ##
 ## Guardadas em user://opcoes.cfg — por máquina, nunca por aparelho (o lugar
 ## P1..P4 é o índice, não o controle). Com o robô (as provas), nada se lê nem
@@ -16,6 +16,10 @@ const GATILHO_FORTE := 2
 const PASSO := 25  ## a vibração e os volumes andam de 25 em 25%
 const TEXTO := ["Normal", "Grande"]
 const ESCALA_DO_TEXTO := [1.0, 1.15]
+## O movimento: o Reduzido corta o tremor, o giro do título, a parada de quadros e o esmagar, e o confete cai a um quarto.
+const MOVIMENTO := ["Inteiro", "Reduzido"]
+## As reações: o adesivo de quem joga («Todas»), só o carimbo do jogo («Só do jogo») ou nenhum («Nenhuma»).
+const REACOES := ["Todas", "Só do jogo", "Nenhuma"]
 const ARQUIVO := "user://opcoes.cfg"
 ## As línguas das telas: o português é o padrão.
 const IDIOMAS := ["pt_BR", "en"]
@@ -38,8 +42,9 @@ static var vibracao := [100, 100, 100, 100]
 static var tempo_ms := [0, 0, 0, 0]
 static var volume_tv := 100
 static var volume_controle := 100
-static var tremor := true
+static var movimento := 0
 static var flashes := true
+static var reacoes := 0
 static var tela_cheia := false
 static var texto := 0
 static var idioma := 0
@@ -52,8 +57,9 @@ static func de_fabrica() -> void:
 	tempo_ms = [0, 0, 0, 0]
 	volume_tv = 100
 	volume_controle = 100
-	tremor = true
+	movimento = 0
 	flashes = true
+	reacoes = 0
 	tela_cheia = false
 	texto = 0
 	idioma = 0
@@ -80,8 +86,10 @@ static func ler(arquivo: String) -> void:
 		tempo_ms[l] = clampi(int(cfg.get_value("P%d" % (l + 1), "tempo_ms", 0)), TEMPO_MIN, TEMPO_MAX)
 	volume_tv = _passo(int(cfg.get_value("sessao", "volume_tv", 100)))
 	volume_controle = _passo(int(cfg.get_value("sessao", "volume_controle", 100)))
-	tremor = bool(cfg.get_value("sessao", "tremor", true))
+	# o arquivo antigo guardava só o tremor: desligado vira Reduzido
+	movimento = clampi(int(cfg.get_value("sessao", "movimento", 0 if bool(cfg.get_value("sessao", "tremor", true)) else 1)), 0, MOVIMENTO.size() - 1)
 	flashes = bool(cfg.get_value("sessao", "flashes", true))
+	reacoes = clampi(int(cfg.get_value("sessao", "reacoes", 0)), 0, REACOES.size() - 1)
 	tela_cheia = bool(cfg.get_value("sessao", "tela_cheia", false))
 	texto = clampi(int(cfg.get_value("sessao", "texto", 0)), 0, TEXTO.size() - 1)
 	idioma = clampi(int(cfg.get_value("sessao", "idioma", 0)), 0, IDIOMAS.size() - 1)
@@ -97,12 +105,44 @@ static func gravar(robo: bool, arquivo := ARQUIVO) -> void:
 		cfg.set_value("P%d" % (l + 1), "tempo_ms", tempo_ms[l])
 	cfg.set_value("sessao", "volume_tv", volume_tv)
 	cfg.set_value("sessao", "volume_controle", volume_controle)
-	cfg.set_value("sessao", "tremor", tremor)
+	cfg.set_value("sessao", "movimento", movimento)
 	cfg.set_value("sessao", "flashes", flashes)
+	cfg.set_value("sessao", "reacoes", reacoes)
 	cfg.set_value("sessao", "tela_cheia", tela_cheia)
 	cfg.set_value("sessao", "texto", texto)
 	cfg.set_value("sessao", "idioma", idioma)
 	cfg.save(arquivo)
+
+
+## O movimento reduzido está ligado.
+static func reduzido() -> bool:
+	return movimento == 1
+
+
+## Os quadros de parada (hit-stop) que valem: nenhum no Reduzido.
+static func parada(quadros: int) -> int:
+	return 0 if reduzido() else quadros
+
+
+## Limita o esmagar e esticar (squash e stretch) a um desvio de 1,0: ±20% no Inteiro, ±5% no Reduzido.
+static func esmagar(fator: float) -> float:
+	var teto := 0.05 if reduzido() else 0.20
+	return 1.0 + clampf(fator - 1.0, -teto, teto)
+
+
+## Quantas faíscas de confete saem: a um quarto (arredondado para cima) no Reduzido.
+static func confete(n: int) -> int:
+	return ceili(n / 4.0) if reduzido() else n
+
+
+## O adesivo de quem joga se desenha (só em «Todas»).
+static func reacao_do_jogador() -> bool:
+	return reacoes == 0
+
+
+## O carimbo do jogo se desenha (em «Todas» e em «Só do jogo»).
+static func reacao_do_jogo() -> bool:
+	return reacoes <= 1
 
 
 static func _passo(v: int) -> int:
