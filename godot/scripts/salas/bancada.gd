@@ -117,7 +117,7 @@ func sair() -> void:
 	for l in 4:
 		Forja.som_parar(l)
 		Forja.som_escuta_parar(l)
-	Forja.som_encerrar()
+	Forja.som_preparar(F.PAPEL_ALTO_FALANTE)
 	super()
 
 

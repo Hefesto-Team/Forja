@@ -40,9 +40,11 @@ var _tw: Tween = null  ## o fade em curso (um só: o novo mata o velho)
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
+	_criar_o_barramento()
 	for i in 2:
 		var p := AudioStreamPlayer.new()
 		p.volume_db = -80.0
+		p.bus = BUS
 		add_child(p)
 		_tocadores.append(p)
 
@@ -247,3 +249,55 @@ func parar_seco() -> void:
 	_tw.tween_property(p, "volume_db", -80.0, 0.02)
 	_tw.tween_callback(p.stop)
 	atual = ""
+
+
+# ---------------------------------------------------------------- a música que reage (H07) --
+
+const BUS := "Musica"
+const ABERTO_HZ := 20000.0
+var _bus := -1
+var _passa_baixa: AudioEffectLowPassFilter = null
+var _tw_reacao: Tween = null
+
+
+## O barramento da música, com o passa-baixa aberto (chamado no _ready, antes
+## dos tocadores). A música manda no Master, onde está o volume da TV.
+func _criar_o_barramento() -> void:
+	_bus = AudioServer.get_bus_index(BUS)
+	if _bus < 0:
+		_bus = AudioServer.bus_count
+		AudioServer.add_bus(_bus)
+		AudioServer.set_bus_name(_bus, BUS)
+		AudioServer.set_bus_send(_bus, "Master")
+		_passa_baixa = AudioEffectLowPassFilter.new()
+		_passa_baixa.cutoff_hz = ABERTO_HZ
+		AudioServer.add_bus_effect(_bus, _passa_baixa, 0)
+	else:
+		_passa_baixa = AudioServer.get_bus_effect(_bus, 0) as AudioEffectLowPassFilter
+
+
+## A música reage ao jogo (docs/jogo/04#a-música-que-reage): "erro" abafa por
+## 300 ms; "perfeito" abaixa 2 dB por 80 ms (o golpe aparece por cima);
+## "combo" (oito perfeitos seguidos) sobe 1,5 dB por 2 s.
+func reagir(evento: String) -> void:
+	if _tw_reacao:
+		_tw_reacao.kill()
+	_passa_baixa.cutoff_hz = ABERTO_HZ
+	_volume(0.0)
+	_tw_reacao = create_tween()
+	match evento:
+		"erro":
+			_passa_baixa.cutoff_hz = 600.0
+			_tw_reacao.tween_property(_passa_baixa, "cutoff_hz", ABERTO_HZ, 0.3).set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_IN)
+		"perfeito":
+			_volume(-2.0)
+			_tw_reacao.tween_interval(0.08)
+			_tw_reacao.tween_callback(_volume.bind(0.0))
+		"combo":
+			_volume(1.5)
+			_tw_reacao.tween_interval(2.0)
+			_tw_reacao.tween_method(_volume, 1.5, 0.0, 0.3)
+
+
+func _volume(db: float) -> void:
+	AudioServer.set_bus_volume_db(_bus, db)

@@ -40,6 +40,8 @@ const FALA_S := 20.0
 var ficha := {}  ## a FICHA do script do minigame (lida no _init)
 var _raias := {}  ## lugar -> {raiz, mat_borda, luz}
 var _ultima_fala := [-FALA_S, -FALA_S, -FALA_S, -FALA_S]
+const COMBO := 8  ## quantos perfeitos seguidos fazem a música brilhar (H07)
+var _perfeitos_seguidos := [0, 0, 0, 0]
 
 
 ## Lê a FICHA do script do minigame. O minigame não escreve _init(); se
@@ -263,11 +265,26 @@ func _reagir(l: int, j: int) -> void:
 	var p := jogador(l)
 	var pos := p.global_position + Vector3(0, 1.2, 0) if p else Vector3(RAIAS[l], 1.2, Z_JOGADOR)
 	if j == Ritmo.ERRO:
+		_perfeitos_seguidos[l] = 0
 		Forja.sentir(l, "erro")
+		Forja.som_falante(l, "nota_quebrada:%d" % l, 0.7)
 		Som.tocar("falha", pos, -6.0)
+		Musica.reagir("erro")
+		return
+	var perfeito := j == Ritmo.PERFEITO
+	# a textura do material na mão (no cabo) ou a sensação pelo rumble (no rádio)
+	Forja.tocar_material(l, str(ficha.material), "perfeito" if perfeito else "acerto", 1.0 if perfeito else 0.7)
+	Som.tocar("nota", pos, -4.0 if perfeito else -9.0, TOM_DO_LUGAR[l])
+	if perfeito:
+		Forja.som_falante(l, "nota:%d" % l, 0.8)
+		_perfeitos_seguidos[l] += 1
+		if _perfeitos_seguidos[l] >= COMBO:
+			_perfeitos_seguidos[l] = 0
+			Musica.reagir("combo")
+		else:
+			Musica.reagir("perfeito")
 	else:
-		Forja.sentir(l, "perfeito" if j == Ritmo.PERFEITO else "acerto")
-		Som.tocar("nota", pos, -4.0 if j == Ritmo.PERFEITO else -9.0, TOM_DO_LUGAR[l])
+		_perfeitos_seguidos[l] = 0
 
 
 # ---------------------------------------------------------------- a contagem de entrada (H06) --

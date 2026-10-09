@@ -48,6 +48,8 @@ var _stick_antes := [Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO]
 var _portao_perto := ""
 var _robo_placar_rodada := -1  ## o placar em que o robô já apertou ✕ (partida × 100 + sala)
 var _robo_placar_t := 0.0  ## o `placar._t` do último ✕ do robô: se não chegou, ele aperta de novo
+var _som_de_quem := ""  ## os lugares com a placa de áudio aberta ("013")
+var _caiu := {}  ## os lugares cujo controle caiu (e ainda não voltou)
 
 
 func _ready() -> void:
@@ -66,6 +68,8 @@ func _ready() -> void:
 		jogadores.append(p)
 	_interface()
 	pausa.escolheu.connect(_na_pausa)
+	# um controle que cai e volta pode voltar noutro nó de áudio: a placa se refaz
+	Forja.pads_mudaram.connect(_ao_mudar_os_controles)
 	escolha.escolheu.connect(_comecar_a_partida.bind(true))
 	_mostrar("titulo")
 	_abrir_pelos_args.call_deferred()
@@ -230,6 +234,45 @@ func _sincronizar_jogadores() -> void:
 		elif not ocupado and p.visible:
 			p.visible = false
 			lobby.prontos[l] = false
+	_abrir_o_som()
+
+
+## Um controle que caiu e voltou pode ter voltado noutro nó de áudio: a
+## placa se refaz (sem pio: quem está não mudou).
+func _ao_mudar_os_controles() -> void:
+	var voltou := false
+	for l in 4:
+		if not Forja.ocupado(l):
+			_caiu.erase(l)
+		elif not Forja.lugar(l).get("conectado", false):
+			_caiu[l] = true
+		elif _caiu.has(l):
+			_caiu.erase(l)
+			voltou = true
+	if voltou:
+		_abrir_o_som(true)
+
+
+## A placa de áudio de cada controle abre na entrada do lugar e fica aberta
+## (docs/jogo/05#a-agenda-do-alto-falante); só se refaz quando muda quem está
+## (ou quando um controle volta). Quem acabou de entrar ouve o pio do seu
+## cavaleiro, no próprio controle.
+func _abrir_o_som(refazer := false) -> void:
+	var quem := ""
+	for l in 4:
+		if Forja.ocupado(l):
+			quem += str(l)
+	if quem == _som_de_quem and not refazer:
+		return
+	var antes := _som_de_quem
+	_som_de_quem = quem
+	var papel := Forja.PAPEL_ALTO_FALANTE
+	if estado == "sala" and sala is SalaJogo and (sala as SalaJogo).papel_som >= 0:
+		papel = (sala as SalaJogo).papel_som
+	Forja.som_preparar(papel)
+	for l in 4:
+		if Forja.ocupado(l) and not str(l) in antes:
+			Forja.som_falante(l, "pio:%d" % jogadores[l].modelo_i, 0.8)
 
 
 func _trocar(acao: Callable) -> void:
@@ -427,7 +470,8 @@ func _ir_para_o_podio() -> void:
 	# ficou na frente, e leva o boneco junto
 	_blocos_do_podio = Node3D.new()
 	salao.add_child(_blocos_do_podio)
-	Forja.som_preparar(Forja.PAPEL_ALTO_FALANTE)
+	if not Forja.som_pronto():
+		Forja.som_preparar(Forja.PAPEL_ALTO_FALANTE)
 	for e in lista:
 		var l := int(e.lugar)
 		var altura: float = [1.1, 0.7, 0.45, 0.25][clampi(int(e.degrau) - 1, 0, 3)]
@@ -535,7 +579,6 @@ func _sair_do_podio() -> void:
 	placar.visible = false
 	for p in jogadores:
 		p.preso = false
-	Forja.som_encerrar()
 	if is_instance_valid(_blocos_do_podio):
 		_blocos_do_podio.queue_free()
 	_blocos_do_podio = null
@@ -849,11 +892,15 @@ func _passo(l: int, vertical: bool) -> int:
 	var antes: Vector2 = _stick_antes[l]
 	var a := agora.y if vertical else agora.x
 	var b := antes.y if vertical else antes.x
+	var passo := 0
 	if a > 0.6 and b <= 0.6:
-		return 1
-	if a < -0.6 and b >= -0.6:
-		return -1
-	return 0
+		passo = 1
+	elif a < -0.6 and b >= -0.6:
+		passo = -1
+	if passo != 0:
+		# a navegação clica baixinho, só no controle de quem navegou (H07)
+		Forja.som_falante(l, "clique", 0.5)
+	return passo
 
 
 func _quadro_overlay() -> void:
