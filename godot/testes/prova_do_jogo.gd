@@ -464,6 +464,10 @@ func _prova_do_kit() -> void:
 	while Time.get_ticks_usec() - fora < 800000:
 		await _quadros(1)
 	_esperar(is_instance_valid(mg) and mg.fase == "jogo", "kit: sem o P3, o minigame seguiu")
+	# com o cabo, o nó de áudio do controle some: a placa refeita agora fica sem
+	# o P3, e só a volta do controle (Main._ao_mudar_os_controles) o devolve
+	Forja.som_preparar(Forja.PAPEL_ALTO_FALANTE)
+	_esperar(not Forja.som_tem(2, Forja.PAPEL_ALTO_FALANTE), "kit: sem o cabo, a placa refeita fica sem o P3")
 	_esperar(Forja.ctl.simulador_cabo(2, true), "kit: o cabo do P3 voltou")
 	while is_instance_valid(mg) and mg.fase == "jogo" and Time.get_ticks_usec() - inicio < 40000000:
 		await _quadros(1)
