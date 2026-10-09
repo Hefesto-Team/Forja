@@ -60,6 +60,7 @@ var _trocando := false
 var _stick_antes := [Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO]
 var _portao_perto := ""
 var _robo_placar_rodada := -1  ## o placar em que o robô já apertou ✕ (partida × 100 + sala)
+var _robo_placar_t := 0.0  ## o `placar._t` do último ✕ do robô: se não chegou, ele aperta de novo
 
 
 func _ready() -> void:
@@ -526,12 +527,17 @@ func _robo_do_podio() -> bool:
 
 
 ## O robô do placar: depois da conta, aperta ✕ no controle simulado do primeiro
-## lugar (uma vez por placar), como quem leu e quer seguir (F08).
+## lugar, como quem leu e quer seguir (F08). Se o ✕ não chegou (o controle
+## estava fora do cabo, o robô ruim não apertou), aperta de novo em 4 s, como
+## a pessoa que vê que a tela não andou.
 func _robo_do_placar() -> void:
 	var rodada: int = _partidas * 100 + partida.historico.size() if partida else -1
-	if placar._t <= Placar.T_PRONTO + 0.6 or rodada == _robo_placar_rodada:
+	if placar._t <= Placar.T_PRONTO + 0.6:
+		return
+	if rodada == _robo_placar_rodada and placar._t - _robo_placar_t < 4.0:
 		return
 	_robo_placar_rodada = rodada
+	_robo_placar_t = placar._t
 	for l in 4:
 		if Forja.ocupado(l):
 			Forja.robo_confirmar(l, 0.0)
