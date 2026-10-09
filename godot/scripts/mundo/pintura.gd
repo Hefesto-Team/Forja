@@ -199,7 +199,8 @@ static func preparar(mi: MeshInstance3D, esq: Skeleton3D) -> Dictionary:
 						maior = pesos[i * por_vertice + j]
 						melhor = _nome_do_osso(mi, esq, ossos[i * por_vertice + j])
 			var baixo := melhor in INFERIOR
-			cores.append(Color(1.0 if baixo else 0.0, 0.0, 0.0, 1.0))
+			var marca := 1.0 if baixo else 0.0   # COLOR.r é a marca da parte, não uma cor de tela
+			cores.append(Color(marca, 0.0, 0.0, 1.0))
 			var braco := melhor == "arm-left" or melhor == "arm-right" or melhor == "head"
 			uv2.append(Vector2(vs[i].x, -1.0 if braco else vs[i].y))
 			if melhor != "":
