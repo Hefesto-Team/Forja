@@ -36,6 +36,9 @@ func _descida() -> float:
 func _draw() -> void:
 	# o mostrador do videocassete: o cassete desce, ele fica
 	var osd := Color(Tema.ETIQUETA, 0.9)
+	# o mostrador tem fundo escuro: sobre a forja clara a letra não se lia (contraste de 2:1)
+	Desenho.caixa(self, Rect2(80, 28, 360, 100), Color(Tema.CASCO, 0.82), 14)
+	Desenho.caixa(self, Rect2(1370, 28, 470, 100), Color(Tema.CASCO, 0.82), 14)
 	draw_colored_polygon(PackedVector2Array([Vector2(100, 70), Vector2(100, 116), Vector2(138, 93)]), osd)
 	_texto(Vector2(156, 62), "PLAY", Tema.vt(), 60, osd)
 	var s := int(contador_s)
@@ -89,4 +92,7 @@ func _draw() -> void:
 		_texto(Vector2(0, 860) + dy, "Nenhum controle encontrado", Tema.archivo(600), 34, Tema.ETIQUETA,
 			HORIZONTAL_ALIGNMENT_CENTER, size.x)
 	else:
-		Glifo.dica(self, Vector2(1200, 973) + dy, "triangulo", "Créditos", 34, Tema.MUDO, Tema.MUDO, false)
+		var larg_c := Glifo.largura_dica("triangulo", "Créditos", 34, false)
+		var pc := Rect2(Vector2(1180, 925) + dy, Vector2(larg_c + 40.0, 62))
+		Desenho.caixa(self, pc, Color(Tema.ETIQUETA, 0.9), 14)
+		Glifo.dica(self, Vector2(pc.position.x + 20.0, pc.position.y + 43), "triangulo", "Créditos", 34, Tema.TINTA, Tema.TINTA, false)

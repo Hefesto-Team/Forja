@@ -789,6 +789,15 @@ feat: a construção do cavaleiro, com a coluna de cada lugar e as oito martelad
   volta ao lobby pela pausa acha o cavaleiro guardado, ✕ confirma e ○ refaz; no relatório, quatro linhas `calibracao` de origem
   `construcao`. A banda do desvio do P1 e do P4 é larga (até 150 e 250 ms) porque, com a máquina carregada, um quadro leva dezenas de ms.
 
+- **A prova visual** (`PASSADAS=fixa`, partidas 1, 3 e 4): pegou três defeitos nossos, curados: o mostrador «PLAY» e «SP» do título e o
+  «(Créditos)» sumiam sobre a forja clara (agora ficam numa placa escura e o «Créditos» numa placa creme, como o «Gravar»); o «(Entrar)» do
+  lugar vazio tinha 1,8:1 de contraste sobre a cena (agora tem placa escura); e a construção com um jogador só ficava parada mais de 5 s
+  (o robô esperava 3 s e a martelada mexia pouco pixel): o robô espera 1,2 s e a bigorna fica mais acesa a cada martelada
+  (`acender_bigorna(l, energia, a_mais)`, o terceiro parâmetro é novo e opcional). Depois disso a partida 4 não reprova nada do
+  título nem da construção; o que sobra (letra de 20 a 29 px nas salas, `Botão` e `(Pausa)` com 2,4 e 2,6:1, `P1` com 2,4:1, área
+  segura da `Mira`, tela parada na `centelha` e na `galeria`) é a F09b, já no quadro. A prova da partida 1 (quatro colunas) rodou
+  antes da última cura da tela parada e só reprovou a tela parada do lobby e a F09b.
+
 ### O que fica para a mão
 
 Está em «Para o André (local)» acima. Em especial: o cavaleiro acendendo a cada martelada e a bigorna brilhando (só com placa de vídeo),
