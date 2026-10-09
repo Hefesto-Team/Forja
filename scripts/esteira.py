@@ -50,7 +50,8 @@ Saída (stdout, JSON):
 Uso: python3 scripts/esteira.py [--raiz DIR] [--bases F,H,V,X] [--limite 4]
      python3 scripts/esteira.py [--raiz DIR] --marcar <ficha> <estado>
        troca a última coluna da linha da ficha no quadro (é o que o `scripts/costura.sh --marcar` chama);
-       recusa o estado fora da lista e a ficha que o quadro não tem, sem mudar nada.
+       recusa o estado fora da lista, o nome antigo «fazendo» (que só vale na leitura) e a ficha que o
+       quadro não tem, sem mudar nada.
 rc: 0 leu (ou marcou); 2 não leu o quadro, achou um estado fora da lista, ou recusou o --marcar.
 """
 import argparse
@@ -184,6 +185,10 @@ def marcar(raiz: Path, ficha: str, estado: str) -> int:
     if estado_de(estado)[0] is None or not estado.strip() or "|" in estado or "\n" in estado:
         print(f"esteira: «{estado}» não é estado de ficha; os estados: {', '.join(ESTADOS)} "
               f"(docs/jogo/o-time/a-esteira.md#os-estados-de-uma-ficha)", file=sys.stderr)
+        return 2
+    velho = next((s for s in SINONIMOS if estado.strip().lower().startswith(s)), None)
+    if velho:   # o sinônimo vale só na leitura das linhas antigas; a linha nova leva o nome da lista
+        print(f"esteira: «{velho}» é o nome antigo; marque «{SINONIMOS[velho]}» com o nome", file=sys.stderr)
         return 2
     caminho = raiz / QUADRO
     linhas = caminho.read_text(encoding="utf-8").split("\n")

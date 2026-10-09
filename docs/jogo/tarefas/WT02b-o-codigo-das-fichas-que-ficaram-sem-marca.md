@@ -12,7 +12,7 @@ juntaria um arquivo que o Godot não analisa, ou um pedaço dele. Quem pega essa
 
 ## Ler antes
 
-- [WT02, «O que foi feito»](WT02-o-codigo-da-ficha-por-script.md#o-que-foi-feito-leva-1-as-regras) (o `parte=N`)
+- [O `scripts/ficha_codigo.py`](../../../scripts/ficha_codigo.py) (os três modos e o `parte=N`, no começo do arquivo)
 - [12 — Como trabalhar, «O ciclo de uma ficha»](../12-como-trabalhar.md#o-ciclo-de-uma-ficha)
 
 ## O estado de hoje (medido em 09/10/2026, no ramo da WT02)
