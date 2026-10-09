@@ -76,6 +76,9 @@ func _ready() -> void:
 	await _prova_da_cor_e_da_letra()
 	_prova_da_letra_e_da_margem()
 	await _prova_da_luz()
+	_prova_do_conforto()
+	_prova_do_virar_pura()
+	await _prova_da_noite_da_fita()
 	if falhas > 0:
 		printerr("%d falha(s)" % falhas)
 		get_tree().quit(1)
@@ -1552,3 +1555,268 @@ func _prova_da_luz() -> void:
 	jogo._entrar_na_sala(jogo.partida.sala_atual(), false)
 	await _quadros(3)
 	_esperar(is_equal_approx(PosFita.valor("grao"), 0.018 + 0.002 * 8.0), "pós: a nona sala da partida entra na faixa 9 (grão %.3f)" % PosFita.valor("grao"))
+
+
+# ------------------------------------------------------------------ G16: o virar da fita e o conforto --
+
+## As opções novas (G16): o arquivo antigo, as ajudas do Movimento, as Reações, a leitura dos scripts e a lista que desliza.
+func _prova_do_conforto() -> void:
+	var g_gatilho: Array = Opcoes.gatilho.duplicate()
+	var g_vibracao: Array = Opcoes.vibracao.duplicate()
+	var g_tempo: Array = Opcoes.tempo_ms.duplicate()
+	var g_volumes := [Opcoes.volume_tv, Opcoes.volume_controle]
+	var g_resto := [Opcoes.movimento, Opcoes.reacoes, Opcoes.flashes, Opcoes.tela_cheia, Opcoes.texto, Opcoes.idioma]
+	var antigo := "user://opcoes_antigo.cfg"
+	var cfg := ConfigFile.new()
+	cfg.set_value("sessao", "tremor", false)
+	cfg.save(antigo)
+	Opcoes.de_fabrica()
+	Opcoes.ler(antigo)
+	_esperar(Opcoes.movimento == 1, "opções: o tremor desligado antigo vira Reduzido")
+	cfg.set_value("sessao", "tremor", true)
+	cfg.save(antigo)
+	Opcoes.ler(antigo)
+	_esperar(Opcoes.movimento == 0, "opções: o tremor ligado antigo vira Inteiro")
+	cfg.set_value("sessao", "movimento", 9)
+	cfg.set_value("sessao", "reacoes", 9)
+	cfg.save(antigo)
+	Opcoes.ler(antigo)
+	_esperar(Opcoes.movimento == Opcoes.MOVIMENTO.size() - 1 and Opcoes.reacoes == Opcoes.REACOES.size() - 1,
+		"opções: um arquivo fora da lista volta para a borda (%d, %d)" % [Opcoes.movimento, Opcoes.reacoes])
+	Opcoes.movimento = 1
+	Opcoes.reacoes = 2
+	Opcoes.gravar(false, antigo)
+	Opcoes.de_fabrica()
+	_esperar(Opcoes.movimento == 0 and Opcoes.reacoes == 0, "opções: de fábrica, Inteiro e Todas")
+	Opcoes.ler(antigo)
+	_esperar(Opcoes.movimento == 1 and Opcoes.reacoes == 2, "opções: Movimento e Reações voltam do arquivo (%d, %d)" % [Opcoes.movimento, Opcoes.reacoes])
+	var gravado := ConfigFile.new()
+	gravado.load(antigo)
+	_esperar(not gravado.has_section_key("sessao", "tremor") and gravado.has_section_key("sessao", "movimento") and gravado.has_section_key("sessao", "reacoes"),
+		"opções: o arquivo novo guarda Movimento e Reações e não o tremor")
+	DirAccess.remove_absolute(ProjectSettings.globalize_path(antigo))
+	# o Movimento
+	Opcoes.movimento = 0
+	_esperar(Opcoes.parada(2) == 2 and is_equal_approx(Opcoes.esmagar(1.3), 1.2) and is_equal_approx(Opcoes.esmagar(0.7), 0.8) and Opcoes.confete(22) == 22,
+		"movimento: Inteiro, a parada de 2 quadros, squash até 20 %, o confete inteiro")
+	Opcoes.movimento = 1
+	_esperar(Opcoes.parada(2) == 0 and is_equal_approx(Opcoes.esmagar(1.3), 1.05) and is_equal_approx(Opcoes.esmagar(0.7), 0.95),
+		"movimento: sem parada, squash até 5 %")
+	_esperar(Opcoes.confete(22) == 6 and Opcoes.confete(1) == 1 and Opcoes.confete(0) == 0, "movimento: o confete a um quarto, arredondado para cima")
+	# as Reações
+	Opcoes.reacoes = 0
+	_esperar(Opcoes.reacao_do_jogador() and Opcoes.reacao_do_jogo(), "reações: todas")
+	Opcoes.reacoes = 1
+	_esperar(not Opcoes.reacao_do_jogador() and Opcoes.reacao_do_jogo(), "reações: só do jogo")
+	Opcoes.reacoes = 2
+	_esperar(not Opcoes.reacao_do_jogador() and not Opcoes.reacao_do_jogo(), "reações: nenhuma")
+	# a partida
+	var p := Partida.new()
+	p.salas = ["prova", "a", "b", "c", "d"]
+	p.passo = 3
+	_esperar(p.metade() == 3 and p.lado() == "B", "partida: a 4ª faixa de 5 é lado B")
+	p.passo = 2
+	_esperar(p.lado() == "A", "partida: a 3ª faixa de 5 é lado A")
+	p.salas = ["a", "b", "c"]
+	p.passo = 2
+	_esperar(p.metade() == 2 and p.lado() == "B", "partida: a 3ª faixa de 3 é lado B")
+	# a leitura dos scripts
+	var tremor_velho: Array = []
+	var parada_sem_ajuda: Array = []
+	var nome_velho := "Opcoes." + "tremor"
+	for raiz in ["res://scripts", "res://testes"]:
+		for arq in _scripts(raiz):
+			var texto := FileAccess.get_file_as_string(arq)
+			if arq.ends_with("/prova_do_jogo.gd"):
+				continue
+			if texto.contains(nome_velho):
+				tremor_velho.append(arq.get_file())
+			if texto.contains("speed_scale = 0.0") and not texto.contains("Opcoes.parada("):
+				parada_sem_ajuda.append(arq.get_file())
+	var fonte := FileAccess.get_file_as_string("res://scripts/main.gd")
+	_esperar(fonte.contains("Opcoes.confete(22)") and fonte.contains("0.0 if Opcoes.reduzido() else _t * 0.08")
+		and fonte.contains("sala.tremor > 0.0 and not Opcoes.reduzido()"), "movimento: o confete, o giro do título e o tremor da câmera leem o Reduzido")
+	_esperar(tremor_velho.is_empty(), "movimento: nenhum script lê o tremor antigo (%s)" % [tremor_velho])
+	_esperar(parada_sem_ajuda.is_empty(), "movimento: toda parada de quadros passa por Opcoes.parada (%s)" % [parada_sem_ajuda])
+	# a lista que desliza
+	var tela := TelaOpcoes.new()
+	var tela_cheia_pai := Control.new()
+	tela_cheia_pai.size = Vector2(1920, 1080)
+	add_child(tela_cheia_pai)
+	tela_cheia_pai.add_child(tela)
+	tela.abrir(0)
+	_esperar(tela._linhas.size() == 11 and tela._linhas[5][0] == "movimento" and tela._linhas[7][0] == "reacoes",
+		"opções: 11 linhas, com Movimento e Reações (%d)" % tela._linhas.size())
+	_esperar(tela._alto_do_quadro() <= 1000.0 and tela._quadro().end.y <= 1040.0 and tela._quadro().position.y >= 40.0,
+		"opções: o quadro cabe na tela com 40 px de margem (%.0f)" % tela._alto_do_quadro())
+	_esperar(tela._conteudo() > tela._alto_da_lista(), "opções: a lista é maior que o seu retângulo, então desliza (%.0f > %.0f)" % [tela._conteudo(), tela._alto_da_lista()])
+	_esperar(tela._rolar_alvo == 0.0, "opções: aberta, a lista está no alto")
+	var sempre_a_vista := true
+	var maior_rolagem := 0.0
+	for k in 11:
+		var b: Dictionary = tela._blocos()[tela.linha]
+		var vp := tela._alto_da_lista()
+		if not (tela._rolar_alvo <= float(b.topo) + 0.01 and tela._rolar_alvo + vp >= float(b.topo) + float(b.alto) - 0.01):
+			sempre_a_vista = false
+		maior_rolagem = maxf(maior_rolagem, tela._rolar_alvo)
+		tela.navegar(1)
+	_esperar(sempre_a_vista, "opções: a linha escolhida fica inteira à vista em todas as 11")
+	_esperar(maior_rolagem > 0.0, "opções: ao descer, a lista rola (%.0f)" % maior_rolagem)
+	tela.navegar(-1)
+	_esperar(tela._linhas[tela.linha][0] == "idioma" and tela._rolar_alvo == maxf(0.0, tela._conteudo() - tela._alto_da_lista()),
+		"opções: de cima para baixo pela borda, o Idioma fica no fim da lista (%.0f)" % tela._rolar_alvo)
+	# o Reduzido salta; o Inteiro anda
+	tela.linha = 0
+	tela._rolar = 0.0
+	tela._rolar_alvo = 0.0
+	Opcoes.movimento = 1
+	for k in 10:
+		tela.navegar(1)
+	_esperar(is_equal_approx(tela._rolar, tela._rolar_alvo) and tela._rolar_alvo > 0.0, "opções: no Reduzido a lista salta, sem deslizar")
+	Opcoes.movimento = 0
+	tela.linha = 0
+	tela._rolar = 0.0
+	tela._rolar_alvo = 0.0
+	for k in 10:
+		tela.navegar(1)
+	_esperar(tela._rolar < tela._rolar_alvo, "opções: no Inteiro a lista desliza até lá")
+	# as linhas novas trocam e voltam
+	tela.linha = 5
+	tela.trocar(1)
+	_esperar(Opcoes.movimento == 1 and tela.valor("movimento") == "Reduzido", "opções: ▶ em Movimento liga o Reduzido")
+	tela.trocar(1)
+	_esperar(Opcoes.movimento == 0, "opções: ▶ de novo volta ao Inteiro")
+	tela.linha = 7
+	Opcoes.reacoes = 0
+	tela.trocar(-1)
+	_esperar(Opcoes.reacoes == 2 and tela.valor("reacoes") == "Nenhuma", "opções: ◀ em Reações do começo vai para o fim")
+	tela_cheia_pai.free()
+	# devolve tudo como achou
+	Opcoes.gatilho = g_gatilho
+	Opcoes.vibracao = g_vibracao
+	Opcoes.tempo_ms = g_tempo
+	Opcoes.volume_tv = g_volumes[0]
+	Opcoes.volume_controle = g_volumes[1]
+	Opcoes.movimento = g_resto[0]
+	Opcoes.reacoes = g_resto[1]
+	Opcoes.flashes = g_resto[2]
+	Opcoes.tela_cheia = g_resto[3]
+	Opcoes.texto = g_resto[4]
+	Opcoes.idioma = g_resto[5]
+
+
+## O cassete (G16): a pose em cada tempo do virar, no Inteiro e no Reduzido. Pura.
+func _prova_do_virar_pura() -> void:
+	_esperar(TelaVirar.TOTAL_MS == 4000.0 and TelaVirar.CLUNK_MS == 1380.0, "virar: 4000 ms no total e o clunk em 1380")
+	var p0 := TelaVirar.pose(0.0, false)
+	_esperar(p0.face == "A" and is_equal_approx(p0.sx, 1.0) and is_equal_approx(p0.esc, 1.0) and is_zero_approx(p0.dy), "virar: em 0 ms o cassete está parado, de face A")
+	var p360 := TelaVirar.pose(360.0, false)
+	_esperar(is_equal_approx(p360.dy, -40.0) and is_equal_approx(p360.esc, 1.08), "virar: em 360 ms ele subiu 40 px e cresceu 8 %")
+	var p719 := TelaVirar.pose(719.0, false)
+	var p721 := TelaVirar.pose(721.0, false)
+	_esperar(p719.face == "A" and p721.face == "B", "virar: a face B aparece no meio do giro (720 ms)")
+	_esperar(TelaVirar.pose(720.0, false).sx < 0.001, "virar: no meio do giro o cassete está de lado")
+	_esperar(TelaVirar.pose(540.0, false).sx > 0.0 and TelaVirar.pose(540.0, false).sx < 1.0, "virar: o giro encolhe a largura")
+	_esperar(is_equal_approx(TelaVirar.pose(1080.0, false).sx, 1.0), "virar: o giro acaba em 1080 ms")
+	_esperar(TelaVirar.pose(1379.0, false).dy < 0.0, "virar: antes do clunk o cassete ainda desce")
+	_esperar(is_equal_approx(TelaVirar.pose(1390.0, false).dy, 6.0) and is_zero_approx(TelaVirar.pose(1420.0, false).dy) and TelaVirar.pose(1390.0, false).face == "B",
+		"virar: o clunk afunda 6 px por 34 ms, de face B")
+	var parado := true
+	for t in range(0, 4001, 25):
+		var pr := TelaVirar.pose(float(t), true)
+		parado = parado and is_equal_approx(pr.sx, 1.0) and is_equal_approx(pr.esc, 1.0) and is_zero_approx(pr.dy)
+	_esperar(parado, "virar: no Reduzido o cassete não gira, não sobe e não afunda")
+	_esperar(TelaVirar.pose(689.0, true).face == "A" and TelaVirar.pose(690.0, true).face == "B", "virar: no Reduzido a face troca num corte, em 690 ms")
+	_esperar(TelaVirar.carreteis("A") == Vector2(0.30, 0.95) and TelaVirar.carreteis("B") == Vector2(0.95, 0.30), "virar: os carretéis trocam de lado com a face")
+
+
+## Uma noite de 5 faixas (centelha, viga, impacto, galeria, prova): a fita vira depois da 3ª, 4000 ms, e para no
+## intervalo até um ✕; o momento, as sensações e a luz do lado B. O ✕ cedo demais não vale.
+func _prova_da_noite_da_fita() -> void:
+	var antes := _linha_do_tempo().size()
+	jogo._comecar_a_partida(5, false, false)
+	await _quadros(3)
+	var p: Partida = jogo.partida
+	_esperar(p.salas.size() == 5 and p.metade() == 3 and p.lado() == "A" and not p.virou, "noite: cinco faixas, a fita vira depois da 3ª (%s)" % [p.salas])
+	var vistos := {}
+	var pontos := [[10, 40, 30, 20], [0, 50, 10, 20], [5, 60, 0, 0]]
+	for i in 3:
+		var q := 0
+		while (not jogo.sala is SalaJogo or jogo.sala.id != p.salas[i] or jogo._trocando) and q < 900:
+			await _quadros(2)
+			q += 2
+		var sala = jogo.sala
+		if not sala is SalaJogo or sala.id != p.salas[i]:
+			_esperar(false, "noite: a faixa %d (%s) não abriu (estado %s, overlay %s, sala %s, trocando %s, t %s, pronto %s, robo %s, rodada %s)" % [i + 1, p.salas[i], jogo.estado, jogo.overlay, jogo.sala, jogo._trocando, jogo.placar._t, jogo.placar.pronto(), Forja.robo, jogo._robo_placar_rodada])
+			return
+		_esperar(is_equal_approx(jogo.env.fog_density, Tema.luz_da_secao(sala.numero(), false).densidade), "noite: a faixa %d acende no lado A" % (i + 1))
+		q = 0
+		while is_instance_valid(sala) and sala.fase == "aviso" and q < 600:
+			await _quadros(1)
+			q += 1
+		for l in 4:
+			sala.pontos[l] = pontos[i][l]
+		sala.terminar()
+		q = 0
+		while jogo.overlay != "placar" and q < 600:
+			await _quadros(2)
+			q += 2
+		_esperar(jogo.overlay == "placar" and p.historico.size() == i + 1, "noite: o placar da faixa %d" % (i + 1))
+	# o ✕ do robô no placar da 3ª: a fita vira no próximo compasso; o placar fica até lá
+	var q := 0
+	while jogo.estado != "virar" and q < 900:
+		await _quadros(1)
+		q += 1
+	_esperar(jogo.estado == "virar" and jogo.tela_virar.visible and jogo.tela_virar.modo == "virar", "noite: depois do placar da 3ª, a fita vira (%d quadros de espera)" % q)
+	for l in 4:
+		_esperar(not jogo.jogadores[l].controlavel, "noite: no virar, o P%d está no pedestal" % (l + 1))
+	# o virar corre sozinho: 4000 ms, sem botão
+	await _aperta(1, Forja.CRUZ)
+	_esperar(jogo.estado == "virar", "noite: o ✕ não pula o virar")
+	var quadros_do_virar := 0
+	q = 0
+	while jogo.estado == "virar" and q < 600:
+		await _quadros(1)
+		quadros_do_virar += 1
+		q += 1
+	_esperar(jogo.estado == "intervalo" and p.virou and p.lado() == "B", "noite: o virar acaba no intervalo, no lado B")
+	_esperar(absf(quadros_do_virar - 240.0) <= 12.0, "noite: o virar dura 4000 ms (%d quadros restantes depois do ✕)" % quadros_do_virar)
+	# o intervalo: o salão na luz do lado B
+	var luz_b := Tema.luz_da_secao(-1, true)
+	_esperar(is_equal_approx(jogo.env.fog_density, luz_b.densidade) and not is_equal_approx(luz_b.densidade, Tema.luz_da_secao(-1, false).densidade),
+		"noite: o intervalo é o salão na luz do lado B (névoa %.4f)" % jogo.env.fog_density)
+	_esperar(jogo.salao.pedestais_no.visible and jogo.tela_virar.modo == "intervalo" and jogo.tela_virar.rotulo == "Partida · sala 4 de 5",
+		"noite: o intervalo mostra os pedestais e «%s»" % jogo.tela_virar.rotulo)
+	# o ✕ cedo demais não vale; depois de 500 ms, sim
+	await _aperta(0, Forja.CRUZ)
+	_esperar(jogo.estado == "intervalo" and not jogo._trocando, "noite: o ✕ nos primeiros 500 ms do intervalo não vale")
+	await _quadros(40)
+	await _aperta(0, Forja.CRUZ)
+	q = 0
+	while (not jogo.sala is SalaJogo or jogo.sala.id != p.salas[3] or jogo._trocando) and q < 600:
+		await _quadros(2)
+		q += 2
+	_esperar(jogo.estado != "intervalo" and jogo.sala is SalaJogo and jogo.sala.id == p.salas[3], "noite: o ✕ depois dos 500 ms segue para a 4ª faixa (%s)" % jogo.sala.id)
+	await _quadros(3)
+	_esperar(is_equal_approx(jogo.env.fog_density, Tema.luz_da_secao(jogo.sala.numero(), true).densidade), "noite: a 4ª faixa acende no lado B")
+	_esperar(is_equal_approx(PosFita.valor("grao"), 0.018 + 0.002 * 3.0) or PosFita.valor("grao") > 0.018, "noite: a 4ª faixa gasta a fita (grão %.3f)" % PosFita.valor("grao"))
+	# a linha do tempo conta a história
+	var linhas := _linha_do_tempo().slice(antes)
+	var virou := linhas.filter(func(e): return e.get("tipo") == "sala" and e.get("o") == "virou")
+	var intervalos := linhas.filter(func(e): return e.get("tipo") == "sala" and e.get("o") == "intervalo")
+	_esperar(virou.size() == 1 and intervalos.size() == 1, "noite: o virar e o intervalo uma vez cada (%d, %d)" % [virou.size(), intervalos.size()])
+	var clunks := linhas.filter(func(e): return e.get("tipo") == "momento" and e.get("nome") == "fita_virada")
+	_esperar(clunks.size() == 1 and int(clunks[0].get("ms_desde_o_corte", 0)) >= 1380 and int(clunks[0].get("ms_desde_o_corte", 0)) <= 1400,
+		"noite: o momento fita_virada entre 1380 e 1400 ms do corte (%s)" % [clunks])
+	var fitas := linhas.filter(func(e): return e.get("tipo") == "sensacao" and e.get("nome") == "fita")
+	var lugares := fitas.map(func(e): return int(e.get("jogador", 0)))
+	lugares.sort()
+	_esperar(fitas.size() == 4 and lugares == [1, 2, 3, 4] and fitas.all(func(e): return int(e.get("ms", 0)) == 1600),
+		"noite: a sensação «fita» de 1600 ms em cada um dos quatro (%s)" % [fitas])
+	var depois := linhas.slice(linhas.find(intervalos[0]) + 1) if not intervalos.is_empty() else []
+	var toques := depois.filter(func(e): return e.get("tipo") == "sensacao" and e.get("nome") == "toque")
+	_esperar(toques.size() >= 1 and toques.all(func(e): return int(e.get("jogador", 0)) == 1),
+		"noite: o toque do ✕ do intervalo só no P1, quem apertou (%s)" % [toques])
+	# fecha a noite sem jogar as faixas que sobram
+	jogo._ir_para_o_salao(false)
+	await _quadros(5)
