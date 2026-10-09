@@ -985,3 +985,12 @@ verbo «Bata!».
 assim) mede pelo relógio de parede; com a máquina sob carga forte (outro jogo
 ou outro Godot com janela), o quadro engasga e as notas saem erradas. Rode com
 a máquina calma.
+
+**A prova visual da leva:** nas partidas com dois e com um jogador, a Centelha
+fecha com vencedor. A prancha mostrou o título novo encavalado com a dica
+«Continuar» na tela de resultado; o título passou a encolher até caber
+(`godot/scripts/ui/resultado.gd`). O resto das reprovações da prova visual
+(letra abaixo de 30 px, área segura, tela parada) é o que a
+[F09b](F09b-os-achados-da-prova-visual.md) já lista. A prova visual não foi
+repetida depois do ajuste do título (a máquina estava sob carga de outros
+Godots): conferir na prancha do André.
