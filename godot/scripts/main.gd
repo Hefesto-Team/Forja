@@ -848,6 +848,8 @@ func _process(dt: float) -> void:
 	if sala:
 		for l in 4:
 			hud.status_da_sala[l] = sala.status(l) if Forja.ocupado(l) else ""
+	if estado == "sala" and sala and sala.camera_modo == "corrida":
+		sala.puxar_os_de_tras()
 	_mover_camera(dt)
 	for l in 4:
 		_stick_antes[l] = Forja.mover(l)
@@ -1400,10 +1402,12 @@ func _pose_da_camera() -> Array:
 			return [Vector3(0, 2.9, 14.2), Vector3(0, 0.55, 4.4)]
 		"podio":
 			# os pedestais à direita: o placar final fica à esquerda
-			return [Vector3(-4.6, 4.0, 19.5), Vector3(-4.6, 0.9, 4.4)]
+			var olhar_do_podio := Vector3(-4.6, 0.9, 4.4)
+			var pos_do_podio := Vector3(-4.6, 4.0, 19.5)
+			return [olhar_do_podio + (pos_do_podio - olhar_do_podio) * Lente.recuo(_lente()), olhar_do_podio]
 		"sala":
 			if sala:
-				return [sala.camera_pos, sala.camera_olhar]
+				return _pose_da_sala()
 	# o salão: enquadra quem está jogando
 	var soma := Vector3.ZERO
 	var n := 0
@@ -1435,32 +1439,71 @@ func _deriva_do_salao() -> float:
 	return (1.0 - cos(PI * k)) * 0.5
 
 
-## As salas são desenhadas para 16:9. Numa tela mais estreita (o Steam Deck,
-## 16:10), a câmera guarda a largura em vez da altura: as quatro raias
-## continuam inteiras, e sobra chão em cima e embaixo.
-const FOV_16_9 := 40.0
-
-
-## A lente de cada momento, em mm (arte/01); o FOV vem de `Lente.fov`.
+## A lente de agora, em mm (arte/01); o FOV vem de `Lente.fov`. A G13 põe "lobby".
 func _lente() -> float:
 	match estado:
 		"titulo":
 			return 85.0
 		"intro":
 			return 35.0
+		"sala":
+			return sala.lente() if sala else 35.0
+		"salao", "podio":
+			return 35.0
 	return Lente.PADRAO
 
 
+## A tangente de meio campo de visão: (vertical, horizontal).
+func _tangentes() -> Vector2:
+	_enquadrar()
+	var tam := get_viewport().get_visible_rect().size
+	var aspecto := tam.x / maxf(tam.y, 1.0)
+	var t := tan(deg_to_rad(camera.fov) * 0.5)
+	if camera.keep_aspect == Camera3D.KEEP_HEIGHT:
+		return Vector2(t, t * aspecto)
+	return Vector2(t / aspecto, t)
+
+
+## A pose da sala pelo modo dela (G05). A direção é sempre a que a sala desenhou; só o centro e a distância mudam.
+## `tangentes` (vertical, horizontal) só a prova passa, para fixar uma tela de 16:9; sem ela, vale a da câmera.
+func _pose_da_sala(tangentes := Vector2.ZERO) -> Array:
+	var olhar: Vector3 = sala.camera_olhar
+	var dir: Vector3 = (sala.camera_pos - olhar).normalized()
+	var recuo := Lente.recuo(sala.lente())
+	var modo: String = sala.camera_modo
+	if modo == "grupo" or modo == "corrida":
+		var alvos: Array = sala.alvos_da_camera()
+		if not alvos.is_empty():
+			var tg := tangentes if tangentes != Vector2.ZERO else _tangentes()
+			if modo == "grupo":
+				return Enquadramento.grupo(alvos, dir, sala.camera_distancia, tg.x, tg.y)
+			return Enquadramento.corrida(alvos, sala.camera_frente, dir, sala.camera_distancia, tg.x, tg.y)
+		# sem ninguém: a pose fixa da sala, com a distância mínima
+		var parada: Vector3 = olhar + (sala.camera_pos - olhar) * recuo
+		return [parada, olhar]
+	var puxa := Vector3.ZERO
+	if modo == "dupla" and sala.camera_foco != Vector3.ZERO:
+		puxa = (sala.camera_foco - olhar) * 0.15
+		puxa.y = 0.0
+		puxa = puxa.limit_length(1.5)
+	return [olhar + (sala.camera_pos - olhar) * recuo + puxa, olhar + puxa]
+
+
+## As salas são desenhadas para 16:9. Numa tela mais estreita (o Steam Deck,
+## 16:10), a câmera guarda a largura em vez da altura: as quatro raias
+## continuam inteiras, e sobra chão em cima e embaixo. O FOV vem da lente do
+## momento (`_lente()`, em mm).
 func _enquadrar() -> void:
 	var tam := get_viewport().get_visible_rect().size
 	if tam.y <= 0.0:
 		return
+	var fov_v := Lente.fov(_lente())
 	if tam.x / tam.y < 16.0 / 9.0 - 0.01:
 		camera.keep_aspect = Camera3D.KEEP_WIDTH
-		camera.fov = rad_to_deg(2.0 * atan(tan(deg_to_rad(Lente.fov(_lente())) * 0.5) * 16.0 / 9.0))
+		camera.fov = rad_to_deg(2.0 * atan(tan(deg_to_rad(fov_v) * 0.5) * 16.0 / 9.0))
 	else:
 		camera.keep_aspect = Camera3D.KEEP_HEIGHT
-		camera.fov = Lente.fov(_lente())
+		camera.fov = fov_v
 
 
 func _mover_camera(dt: float) -> void:
@@ -1471,7 +1514,9 @@ func _mover_camera(dt: float) -> void:
 	_cam_olhar = _cam_olhar.lerp(pose[1], k)
 	camera.global_position = _cam_pos
 	camera.look_at(_cam_olhar)
-	if estado == "sala" and sala and sala.tremor > 0.0 and not Opcoes.reduzido():
-		var k2: float = sala.tremor
-		camera.global_position += Vector3(sin(_t * 71.0), sin(_t * 53.0 + 1.3), 0.0) * 0.12 * k2
-		camera.rotate_object_local(Vector3.BACK, sin(_t * 47.0) * 0.012 * k2)
+	if estado == "sala" and sala and not Opcoes.reduzido():
+		# o tremor anda no plano da câmera, sem roll (01, regra 4); nada passa de 0,08 m
+		var a: float = maxf(sala.abalo, minf(0.08, 0.12 * sala.tremor))
+		if a > 0.0:
+			var b := camera.global_basis
+			camera.global_position += (b.x * sin(_t * 71.0) + b.y * sin(_t * 53.0 + 1.3)) * a

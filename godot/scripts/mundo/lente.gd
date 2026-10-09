@@ -10,3 +10,8 @@ static func fov(mm: float) -> float:
 
 ## O FOV de hoje (40°) em mm, para quem ainda não tem lente decidida.
 const PADRAO := 32.97
+
+
+## Quanto a pose fixa recua para a lente `mm` ver o mesmo que os 40° viam.
+static func recuo(mm: float) -> float:
+	return mm / PADRAO
