@@ -145,3 +145,83 @@ prancha olhada.
 
 Marcar F09 como **feito** no [quadro](README.md), com o gasto. Commit
 sugerido: `feat: a prova visual — a partida inteira, o robô que erra, a prancha e as checagens de cada quadro`.
+
+## O que foi feito (leva 1, as-provas)
+
+- Os temperamentos do robô: `--robo=bom|medio|ruim` (`Forja.robo_temperamento`;
+  sem valor o robô é o de sempre, que não erra o toque, e as provas dos
+  vereditos seguem iguais). `Forja.robo_acerta()` sorteia pela semente (95%,
+  66%, 30%); quem erra, em `robo_apertar`, aperta atrasado ou não aperta, e nos
+  eixos a mão treme mais. A mudança mora no gancho do robô, em `forja.gd`: o
+  `_robo` de cada sala não mudou, e vale para todas. O ✕ do fluxo (o aviso, o
+  placar) só atrasa, nunca falta.
+- A coleta de retângulos de texto, em `godot/scripts/ui/desenho.gd` (a F02
+  guardava só a frase): com `Desenho.coletar_retangulos` ligado, cada
+  `texto`, `paragrafo`, `selo` e dica de botão guarda a frase, a caixa da
+  **tinta** (do alto das letras altas à ponta das descendentes, não a caixa da
+  linha, que traz o entrelinha), o tamanho da letra e a cor. Fora da prova, ninguém
+  liga e nada custa.
+- `sala_jogo.gd` mede os quadros por segundo da fase `jogo` e grava
+  `desempenho` (`slot`, `fps_min`, `fps_media`) ao terminar.
+- `godot/testes/prova_visual.gd` (+ `.tscn`): uma partida do título ao pódio,
+  sem `--sala=`, sem `--tela=`, sem `_todos_entram()`: o roteiro aperta ✕ no
+  controle simulado de cada lugar (a G01 ainda não existe) e só observa o resto.
+  A cada 2 s de jogo guarda um quadro de 480×270 com a hora, o estado, a sala e
+  os retângulos de texto, e no fim monta a prancha (seis colunas, a hora embaixo
+  de cada quadro em dígitos de pixel, a faixa vermelha no quadro que uma
+  checagem reprovou) em `prancha-<n>.png` (60 quadros por página, para o PNG
+  caber) e escreve `checagens-<n>.txt`. A partida de um jogador desliga o cabo
+  no meio do segundo minigame (`simulador_cabo`) e o religa no terceiro.
+- `godot/testes/checagens_visuais.gd` (`class_name ChecagensVisuais`): tela
+  parada (menos de 0,5% de diferença por mais de 5 s, fora da pausa e do pódio),
+  tela vazia (97% a menos de 8 níveis), texto (encavalado, fora da área segura
+  de 5% com 4 px de folga, abaixo de 30 px, contraste abaixo de 3:1 lido no pixel
+  do quadro, com o texto esmaecido misturado ao fundo), relógio que sobe, fim sem
+  vencedor, frase com minúscula, e o aviso de quadros por segundo abaixo de 55.
+  O mesmo defeito parado na tela conta uma vez («e mais N iguais»). Duas frases
+  iguais exceto pelo número, no mesmo lugar, são um contador, não colisão. Nenhuma
+  régua conhece uma cor do tema.
+- `tests/prova_visual.sh`: as quatro partidas (4 com o robô bom e partida de 5;
+  4 com o ruim e 5; 2 com o médio e 3; 1 com o médio e 3, com o cabo), as duas
+  passadas (`fixa` = `--fixed-fps 60`; `livre` = sem), a saída numa pasta
+  pedida ou temporária, `checagens.txt` com tudo. Roda no Xvfb com OpenGL por
+  software, dentro do `bwrap` (nenhum hidraw, nenhum input: o controle ligado na
+  máquina fica de fora), com o servidor de som de mentira, e sai com erro se uma
+  partida reprovou. `--autoteste` confere, sem janela, que cada checagem reprova
+  o defeito plantado e passa o quadro limpo. `PASSADAS=` e `PARTIDAS=` escolhem.
+- `tests/telas.sh visual <pasta>` chama a prova visual; `fotos` ficou para as
+  fotos de divulgação. Os comandos estão em `docs/DESENVOLVER.md` e em
+  `docs/COMO-CONTRIBUIR.md`.
+
+**A medida.** No Xvfb com o `llvmpipe` e a máquina dividida com outra sessão, a
+passada `fixa` roda uns 3 a 6 vezes mais devagar do que o relógio do jogo: a
+partida de 1 jogador e 3 salas leva uns 20 minutos de parede (3:42 de jogo), a
+de 4 e 5 salas uns 30 (5:21 de jogo com o robô bom, 7:01 com o ruim). O padrão
+da janela é 640×360 (a 1280×720 ficava duas vezes mais lento): as caixas de
+texto saem do desenho, em pixels do jogo (1920×1080), e o contraste lê o pixel
+do quadro com um anel maior que 2 pixels.
+
+**Fez morder.** A régua de cada checagem tem o autoteste (defeito plantado
+reprova, quadro limpo passa, e a coleta de retângulo confere a caixa da tinta). No
+jogo de verdade, com três defeitos plantados num código temporário (já tirado):
+um texto desenhado 10 px acima de outro, o relógio da sala subindo por uns
+quadros e o evento de fim do minigame sem `vencedor`, mais uma frase de tela com
+minúscula, a prova reprovou os quatro, com a hora e o lugar. Tirados, voltou ao
+que o jogo de hoje dá. Achou também, no caminho, três erros da própria régua,
+curados: a caixa do texto de uma linha saía com 0×0, o contador «80 s»/«81 s»
+contado como colisão, o primeiro quadro (antes do primeiro desenho) com dois
+estados do título.
+
+**O que ela acha no jogo de hoje.** Reprova: de 20 (a partida de um jogador) a
+46 defeitos distintos por partida, os mesmos nas quatro (letra abaixo de 30 px,
+texto fora da margem de 5%, contraste abaixo de 3:1, um texto sobre o outro no
+2 contra 2, tela parada por mais de 5 s). Não achou tela vazia, relógio que
+sobe, fim sem vencedor nem minúscula. A cura é do jogo, não da régua, e virou a
+[F09b](F09b-os-achados-da-prova-visual.md).
+
+**Fica para a mão dela ou do André.** A passada `livre` (sem `--fixed-fps`,
+com placa de vídeo) e as quatro pranchas olhadas; a aparência (luz, cor, arte)
+não se aprova pelo renderizador por software; as partidas 2 e 3 desta rodada
+rodaram uma versão da régua que ainda contava o título com dois estados (só o
+quadro do título muda; o resto é igual). Uma escolha a validar por ela: `tests/telas.sh
+fotos` ficou para a divulgação e a prova visual entrou como `tests/telas.sh visual`.

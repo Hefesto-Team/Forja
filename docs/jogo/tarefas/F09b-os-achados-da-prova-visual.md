@@ -7,7 +7,7 @@
 A primeira rodada da [prova visual](F09-a-prova-visual.md) no jogo de hoje
 reprova, e reprova por defeitos de verdade, não da régua: as quatro partidas
 (quatro jogadores com o robô bom e com o ruim, dois com o médio, um com o médio
-e o cabo que cai) acharam de 40 a 50 defeitos distintos cada uma, quase todos
+e o cabo que cai) acharam de 29 a 46 defeitos distintos cada uma, quase todos
 os mesmos. Esta ficha os agrupa para que a cura vá à origem (o tamanho da
 letra e a margem vêm do tema, não de cada sala) e a prova volte a passar.
 
@@ -28,10 +28,10 @@ em `checagens-<n>.txt` da pasta que a prova recebeu.
 | grupo | o que a régua acha | onde aparece (exemplos) |
 | --- | --- | --- |
 | letra abaixo de 30 px | o texto de apoio das salas é menor do que se lê do sofá | `Vida 100% · 0 ✓` (29), `Rodada 1 de 8 · 0 ✓` (22), `Brasa · vida 3 · 2 balas` (20), `✕ Quando pronto` (25), os nomes de classe e arma do lobby (24 a 26), `Terminou · 3494` (27) |
-| fora da área segura (5%) | o HUD e as dicas dos cantos passam da margem de 96 px na esquerda, de 54 em cima e de 1026 embaixo | `Incline contra o vento`, `Gire para mirar` e `Esquerda` a 30 e 74 px da borda, `Direita` e `Atira` a 1890 px, o placar do 2 contra 2 a 90 px, `FORJA f5d46c2` em y=1000 |
-| contraste abaixo de 3:1 | o texto pequeno do canto e o de efeito | `Botão` e `(Pausa)` (2,4 e 2,6), o chip `P1` (2,4), `Valendo!` (1,8), `Treino — não vale ponto` (1,9) |
-| texto em cima de texto | duas frases desenhadas no mesmo lugar | no título, `Nenhum controle encontrado.` junto de `4 controles · 4 simulados`, e `(Jogar no teclado · Enter)` em cima de `(Começar)` e de `(Créditos)`; na construção, `✕ Quando pronto` com `Pronto`; no 2 contra 2, `Brasa · vida 1 · 1 balas` com `Brasa · derrubado` |
-| tela parada por mais de 5 s | a sala espera sem mexer quase nada | A Centelha entre duas runas, O Impacto no começo |
+| fora da área segura (5%) | o HUD e as dicas dos cantos passam da margem de 96 px na esquerda, de 54 em cima e de 1026 embaixo | `Incline contra o vento`, `Gire para mirar` e `Esquerda` a 30 e 74 px da borda, `Direita` e `Atira` a 1890 px, a linha de placar do 2 contra 2 a 90 px, `FORJA f5d46c2` em y=1000 |
+| contraste abaixo de 3:1 | o texto pequeno do canto e o de efeito | `Botão` e `(Pausa)` (2,4 e 2,6), o chip `P1` (2,4), `Valendo!` (2,0) |
+| texto em cima de texto | duas frases desenhadas no mesmo lugar | no 2 contra 2, `Brasa · vida 1 · 1 balas` com `Brasa · derrubado` (a linha de vida e a de derrubado, no mesmo lugar, na hora em que o jogador cai) |
+| tela parada por mais de 5 s | a sala espera sem mexer quase nada | A Centelha entre duas runas, O Impacto e A Prova mais de 5 s sem mexer quase nada |
 
 O que a prova **não** achou nas quatro partidas: tela vazia, relógio que sobe,
 minigame sem vencedor e frase de tela com minúscula.
@@ -39,9 +39,9 @@ minigame sem vencedor e frase de tela com minúscula.
 ## O alvo
 
 Cada grupo some na origem: a escala mínima de letra e a margem segura moram no
-tema (`godot/scripts/ui/tema.gd`) e valem para todo `Desenho.texto`; as dicas
+tema (`godot/scripts/tema.gd`) e valem para todo `Desenho.texto`; as dicas
 dos cantos e o HUD de cada sala partem da margem do tema; o par de textos que
-se encavalam é uma tela com dois estados desenhados juntos, e a cura é desenhar
+se encavala é uma tela com dois estados desenhados juntos, e a cura é desenhar
 um só. A tela parada é decisão de jogo (o que a sala mostra enquanto espera),
 não da régua: ver cada caso na prancha antes de mexer.
 
@@ -52,9 +52,8 @@ não da régua: ver cada caso na prancha antes de mexer.
 2. A letra mínima e a margem segura no tema; as salas deixam de escolher o
    próprio tamanho e a própria margem. Conferir o texto de apoio contra a escala
    da opção de tamanho de letra.
-3. Os textos que se encavalam: achar quem desenha os dois estados juntos (a
-   linha de mensagem do título, a dica do teclado, o chip de pronto da
-   construção, a linha de vida do 2 contra 2).
+3. O texto que se encavala: achar quem desenha a linha de vida e a de derrubado
+   do 2 contra 2 no mesmo lugar, e desenhar só uma.
 4. O contraste dos textos esmaecidos: o piso do alfa e da cor do texto de canto.
 5. Rodar a prova visual e ver a lista esvaziar; cada grupo curado tira a sua
    linha da lista.
