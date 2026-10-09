@@ -52,3 +52,25 @@ esperada na prova).
 
 - `bash tests/prova_das_ferramentas.sh`
 - `bash scripts/ci-local.sh --rapido`
+
+## O que foi feito (leva 1, a-varredura)
+
+- Medido antes: `kenney.py --prova` com `FORJA_OFICINA` (é ela, não o `HOME`, que diz onde está o pacote)
+  apontando para uma pasta vazia já passa e diz «sem o pacote baixado, a prova conferiu só as partes puras»: não
+  depende do pacote, e ficou como está. O baixador dos modelos não abria `file://` («o servidor do pacote não aceita
+  pedidos por pedaço»): o `HEAD` do `file://` não responde `Accept-Ranges`.
+- `scripts/modelos_de_exportacao.py`: um caminho local (ou `file://`) abre o arquivo direto; a URL remota segue por
+  pedaços, como antes.
+- `tests/prova_das_ferramentas.sh` (nova): as cinco `--prova` (kenney, mapa_de_batidas, trilha_fichas,
+  gerar_trilha, descrever_trilha) e o baixador com um pacote feito na hora: a soma certa passa e os dois modelos
+  saem com o conteúdo do pacote; a soma trocada sai 1, diz as duas somas e não deixa arquivo. O
+  `bancada_tui.py` fica fora, com a razão escrita no começo da prova. Com nomes na linha de comando, roda só
+  aquelas (para triar).
+- O CI: o passo «A prova das ferramentas» no job `linux`, logo depois do `make all`.
+- A régua morde: trocar a soma esperada do caso certo dá «2 de 5 casos falharam» e sai 1; tirar a conferência da
+  soma do baixador reprova a recusa, a razão e o «não deixa arquivo»; uma `--prova` que falha (o mapa de batidas
+  forçado a falhar) sai 1.
+- Rodado nesta leva: `kenney`, `mapa_de_batidas` e `baixador` (7 casos verdes). As três da trilha
+  (`trilha_fichas`, `gerar_trilha`, `descrever_trilha`) não foram rodadas aqui: a leva deixou a geração de música
+  fora deste trabalho. Falta a primeira rodada inteira, `bash tests/prova_das_ferramentas.sh`, por quem pode
+  rodá-las.

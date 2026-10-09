@@ -53,3 +53,24 @@ fica como está).
 - `FORJA_GODOT_SHA512=0000 GODOT=/nao/existe bash scripts/baixar_engine.sh; echo $?` sai 1 sem binário novo.
 - `bash scripts/baixar_engine.sh` com a soma certa baixa e mostra `4.7.2.stable`.
 - `bash scripts/ci-local.sh --rapido` verde.
+
+## O que foi feito (leva 1, a-varredura)
+
+- Medido antes: um zip com um byte trocado, servido por `file://` a uma cópia dos scripts, fazia o `unzip` sair 1
+  com «bad CRC», mas o binário corrompido ficava executável em `tools/`; a segunda chamada via o `-x`, saía 0 e
+  ainda mostrava `4.7.2.stable.official`.
+- `scripts/engine.sh`: `FORJA_GODOT_SHA512` logo abaixo da versão (a soma do `SHA512-SUMS.txt` da 4.7.2-stable,
+  conferida contra o zip baixado), e `forja_baixar_engine` confere o `sha512sum` antes do `unzip`: se não bate,
+  apaga a pasta temporária, diz as duas somas e devolve 1, sem tocar em `tools/`.
+- O CI: os três «Baixar o Godot» viraram «O Godot (baixado pelo scripts/baixar_engine.sh…)», que roda sempre (com o
+  cache, não baixa e só mostra a versão); o cache de `tools/` e o passo «A versão do Godot é a do engine.sh» ficam.
+  `grep -c 'godotengine/godot/releases' .github/workflows/forja.yml` dá 0. Cada `uses:` está preso ao sha do commit
+  para onde a etiqueta `v4` apontava em 09/10/2026, com a versão exata no comentário (checkout v4.4.0, cache,
+  cache/restore e cache/save v4.3.0, upload-artifact v4.6.2, download-artifact v4.3.0).
+- A cura cobre os outros chamadores: o `garantir_godot` do `scripts/exportar.sh` e o `run-local.sh` baixavam por
+  conta própria, sem soma; os dois passam pelo `forja_baixar_engine`. O `run-local.sh` usava uma `GODOT_URL` que
+  não existia mais (com `set -u`, caía na primeira vez sem engine).
+- Provas: com o zip trocado, `baixar_engine.sh` sai 1 e `tools/` não existe; com o zip certo, sai 0 e mostra
+  `4.7.2.stable.official.ed1daf0bf`; `FORJA_GODOT_SHA512=0000 GODOT=/nao/existe bash scripts/baixar_engine.sh` sai
+  1 com `tools/` igual ao de antes. Os portões verdes.
+- Fica para a mão: nada de aparelho.
