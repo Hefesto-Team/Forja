@@ -26,7 +26,7 @@ números. Não abra outro documento.
 | `godot/scripts/minigames/s06/codigo_do_dragao.gd` | novo: o minigame | só desta |
 | `godot/scripts/minigames/catalogo.gd` | `S06_J29` em `MINIGAMES` e na lista da seção `S06` | **da seção** |
 | `godot/scripts/traducoes.gd` | `"Código do Dragão": "Dragon's Code"`, `"Decore!": "Memorize!"`, `"Grave": "Low"`, `"Média": "Middle"`, `"Aguda": "High"`, `"Senha %d": "Code %d"` | **de todos** |
-| `godot/testes/prova_do_jogo.gd` | `_prova_do_dragao()` e a chamada no percurso, depois da do Coral | **de todos** |
+| `godot/testes/prova_do_jogo.gd` | `_prova_do_dragao()` e a linha `"S06_J29": await _prova_do_dragao()` no `match` do `_prova_da_ficha(slot)` (H08) | **de todos** |
 | `scripts/importar_kenney.py` | as linhas `modular-dungeon-kit` e `hexagon-kit` em `APROVADOS` | **de todos** |
 
 Os dois kits Kenney entram por `python3 scripts/importar_kenney.py modular-dungeon-kit hexagon-kit` (ele escreve
@@ -396,7 +396,7 @@ A da N1, sem pórtico: `CenarioDoCanto.montar(self, 1.0, false)`: a névoa `#050
 | peça | onde | papel |
 | --- | --- | --- |
 | `floor`, `wall` | `Kit.arena(sala, 5, 3)` | o chão e as paredes |
-| `modular-dungeon-kit/template-wall` (escala 4: 4 × 4 m) | `(-4, 0, -7.0)`, `(0, 0, -7.0)`, `(4, 0, -7.0)` | a parede da toca, atrás do dragão |
+| `modular-dungeon-kit/template-wall` (escala 4: 4 × 4,15 m) | `(-4, 0, -7.0)`, `(0, 0, -7.0)`, `(4, 0, -7.0)` | a parede da toca, atrás do dragão |
 | `hexagon-kit/building-wizard-tower` (escala 3: 3,27 m) | `(±7.4, 0, -5.4)` | as duas torres dos lados |
 
 O dragão (caixas do `Kit`, `metallic` 0, na proporção chibi: a cabeça grande). O pivô do pescoço é um `Node3D` em
@@ -521,7 +521,7 @@ saber a posição `i` da nota na senha, nunca a altura: a altura ele só tem se 
 ## O cavaleiro
 
 O cavaleiro da montagem (G13), de frente, ao lado do sino. A cabeça, a parte de cima e a de baixo aparecem como estão;
-as mãos ficam livres. Ele pode ser de outra raça (G13): esta ficha usa o esqueleto comum de 7 ossos (a fuligem vai no
+as mãos ficam livres. Ele pode ser de outra raça (G08, parte B; a montagem é da G13): esta ficha usa o esqueleto comum de 7 ossos (a fuligem vai no
 `torso`) e as animações `idle` e `emote-no`.
 
 | stat | gancho | o que muda no Código | stat 1 | stat 3 | stat 5 |
@@ -576,8 +576,9 @@ bancada, pela F09):
 | 10. o placar no mundo | os recordes do `momento` `reta` batem com as linhas `senha` inteiras até ali | no quadro de 95 s, quem olha conta as pedrinhas acesas de cada um, e a conta bate com o registro |
 
 O `x_tela` da fumaça vai de 0,05 a 0,95: ela cai na raia de quem errou, e as raias de fora (x ±6) ficam em 0,20 e 0,80
-nesta câmera, na beira da faixa de 0,2 a 0,8 da régua. Até o robô por lugar existir, a mesa roda com `--robo=medio` (os itens 1, 5, 8, 9 e 10) e
-`--robo=bom --semente=7` (o item 4); os itens 6 e 7 esperam o robô por lugar.
+nesta câmera, na beira da faixa de 0,2 a 0,8 da régua. A `prova_do_jogo.sh` roda o `bom` nos quatro (`--robo --semente=7`, sem repassar argumentos): a prova
+confere os itens 1, 4, 5, 8, 9 e 10 com ele, e o item 4 com uma falha que a prova força numa senha de 7 ou mais (em
+«Provas»). A mesa padrão e os itens 6 e 7 esperam o robô por lugar (`--robo=bom,medio,medio,ruim`), que a F09 não faz.
 
 ## Pronto quando
 
@@ -588,10 +589,12 @@ olhada.
 
 ## Provas
 
-Na sessão: `bash tests/prova_do_jogo.sh` e `bash tests/prova_visual.sh`; e, para o item 4,
-`bash tests/prova_do_jogo.sh -- --robo=bom --semente=7`.
+Na sessão: `SALA=S06_J29 bash tests/prova_do_jogo.sh` (a prova do Dragão, sem e com `--bancada`),
+`bash tests/prova_do_jogo.sh` e `bash tests/prova_visual.sh`.
 
-Em `godot/testes/prova_do_jogo.gd`, depois da `_prova_do_coral()`:
+Em `godot/testes/prova_do_jogo.gd`, a função abaixo, chamada pela linha `"S06_J29": await _prova_do_dragao()`
+no `match` do `_prova_da_ficha(slot)` da H08. O robô da sh é o `bom`, que quase nunca erra: para a fumaça grande, a
+prova força uma falha, uma vez, na primeira resposta de uma senha de 7 ou mais, 50 ms antes do alvo (antes do robô).
 
 ```gdscript
 ## Código do Dragão (S06_J29): cada um tem a sua senha, entre 3 e 12 notas; a
@@ -601,6 +604,7 @@ func _prova_do_dragao() -> void:
 	var fora := [0]
 	var tocou := [false]
 	var resistencia := [false]
+	var forcou := [false]
 	var olhar := func(mg: Minigame) -> void:
 		for l in mg.presentes():
 			var n := (mg.senha[l] as Array).size()
@@ -610,6 +614,12 @@ func _prova_do_dragao() -> void:
 				tocou[0] = true
 			if int(Forja.percepcao(l).get("gatilho_dir", 0)) == 0x21:
 				resistencia[0] = true
+			var abertas: Array = mg.notas_em_aberto(l)
+			if not forcou[0] and (mg.senha[l] as Array).size() >= mg.GRANDE and not abertas.is_empty() \
+					and Ritmo.t_musica() >= float(mg.alvo_da(l, abertas[0])) - 0.05:
+				forcou[0] = true
+				mg._ultima[l] = mg._info[l].get(abertas[0], {})
+				mg.nota_perdida(l, abertas[0])
 	var mg = await _joga_o_minigame("S06_J29", 140.0, olhar)
 	if mg == null:
 		return
@@ -623,14 +633,14 @@ func _prova_do_dragao() -> void:
 	var fumacas := linhas.filter(func(e): return e.get("tipo") == "momento" and e.get("nome") == "fumaca_grande")
 	_esperar(canto.size() >= 3, "Dragão: %d notas de senha cantadas" % canto.size())
 	for l in mg.presentes():
-		_esperar(toques.any(func(e): return int(e.get("lugar", 0)) == l + 1 and float(e.get("t_musica", 99.0)) <= 10.0), "Dragão: o P%d respondeu até 10 s" % (l + 1))
+		_esperar(toques.any(func(e): return int(e.get("jogador", 0)) == l + 1 and float(e.get("t_musica", 99.0)) <= 10.0), "Dragão: o P%d respondeu até 10 s" % (l + 1))
 	for f in fumacas:
 		_esperar(int(f.get("L", 0)) >= mg.GRANDE, "Dragão: a fumaça grande vem de senha de 7 ou mais (%s)" % [f])
 		_esperar(float(f.get("x_tela", 0.0)) >= 0.05 and float(f.get("x_tela", 0.0)) <= 0.95 \
 			and float(f.get("altura_tela", 0.0)) >= 0.08, "Dragão: a fumaça grande na tela (%s)" % [f])
-	if Forja.robo_temperamento == "bom":
-		_esperar(fumacas.size() >= 1, "Dragão: %d fumaças grandes com a mesa boa (o mínimo é 1)" % fumacas.size())
-		_esperar(resistencia[0], "Dragão: a fumaça grande põe o R2 em Resistência (0x21)")
+	_esperar(forcou[0], "Dragão: o bom chegou a uma senha de 7 ou mais")
+	_esperar(fumacas.size() >= 1, "Dragão: %d fumaças grandes (o mínimo é 1)" % fumacas.size())
+	_esperar(resistencia[0], "Dragão: a fumaça grande põe o R2 em Resistência (0x21)")
 	if not Forja.bancada:
 		_esperar(_linha_do_tempo().filter(func(e): return e.get("o") == "pergunta" and e.get("slot", "") == "S06_J29").is_empty(), "Dragão: fora da bancada, nenhuma pergunta")
 ```

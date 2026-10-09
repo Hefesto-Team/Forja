@@ -1,6 +1,6 @@
 # N2 — Eco do Abismo
 
-**Sprint:** N · **Slot:** S06_J27 · **Tamanho:** M · **Depende de:** N1, H04, H06, H07, H08, F02, F04, F05, F09, G05, G08, G10, G14, G15
+**Sprint:** N · **Slot:** S06_J27 · **Tamanho:** M · **Depende de:** N1, G03, H04, H06, H07, H08, F02, F04, F05, F09, G05, G08, G10, G14, G15
 
 ## Por quê
 
@@ -25,7 +25,7 @@ números. Não abra outro documento.
 | `godot/scripts/minigames/s06/eco_do_abismo.gd` | novo: o minigame | só desta |
 | `godot/scripts/minigames/catalogo.gd` | `S06_J27` em `MINIGAMES` e na lista da seção `S06` | **da seção** |
 | `godot/scripts/traducoes.gd` | `"Eco do Abismo": "Echo of the Abyss"`, `"Ouça e pise!": "Listen and step!"`, `"Pise!": "Step!"` | **de todos** |
-| `godot/testes/prova_do_jogo.gd` | `_prova_do_eco()` e a chamada no percurso, depois da do Canto | **de todos** |
+| `godot/testes/prova_do_jogo.gd` | `_prova_do_eco()` e a linha `"S06_J27": await _prova_do_eco()` no `match` do `_prova_da_ficha(slot)` (H08) | **de todos** |
 | `scripts/importar_kenney.py` | a linha `modular-cave-kit` em `APROVADOS` (papel `cenario`, filtro tudo) | **de todos** |
 | `godot/assets/kenney/modular-cave-kit/`, `godot/assets/LEIA-ME.md`, `LICENCAS-DE-TERCEIROS.md` | o que o import escreve | **de todos** |
 
@@ -530,8 +530,10 @@ alto-falante simulado, ele não pisa (e tropeça). No médio (66 % de acerto), e
 ## O cavaleiro
 
 O cavaleiro da montagem (G13), de costas, subindo. A cabeça, a parte de cima e a de baixo aparecem como estão; as
-mãos ficam livres (`posicionar`), e o efeito do item vale. Ele pode ser de outra raça (G13): esta ficha não supõe
-corpo humano; usa o esqueleto comum de 7 ossos e as animações `walk`, `fall`, `sit` e `emote-no`.
+mãos ficam livres (`posicionar`), e o efeito do item vale. Ele pode ser de outra raça (G08, parte B; a montagem é da G13):
+esta ficha não supõe corpo humano; usa o esqueleto comum de 7 ossos e as animações `walk`, `fall`, `sit` e `emote-no`.
+O conferidor da G08 não exige o `sit`: num corpo sem ele, o `gesto("sit", ...)` não faz nada (`player.gd:185`) e o
+cavaleiro fica de pé o tempo do sentado. Isso é aceito; o passo segue tirado pelo `_sentado_ate`.
 
 | stat | gancho | o que muda no Eco | stat 1 | stat 3 | stat 5 |
 | --- | --- | --- | --- | --- | --- |
@@ -605,8 +607,9 @@ bancada, pela prova visual da F09):
 | 9. o impacto | para cada `despenca`, uma linha `sensacao` `golpe` a até 16,7 ms, a até 1 quadro de uma colcheia | o quadro seguinte mostra o buraco escuro |
 | 10. o placar no mundo | a ordem do `vencedor()` bate com a ordem dos degraus no `momento` `reta` e no fim | no quadro de 95 s, quem olha diz a ordem pela altura nas escadas, e ela bate com o registro |
 
-Até o robô por lugar existir, a prova roda com `--robo=medio` nos quatro e confere os itens 1, 4, 5, 8, 9 e 10; os
-itens 6 e 7 esperam o robô por lugar.
+A prova do jogo faz a mesa padrão com a mesa da prova da N1 (`_mesa`, `ERRO_DA_MESA`: o robô `bom` e, por cima, o pé
+do lado errado sorteado por lugar) e confere os itens 1, 4, 5, 8, 9 e 10. Os itens 6 e 7 esperam o robô por lugar
+(`--robo=bom,medio,medio,ruim`), que a F09 não faz.
 
 ## Pronto quando
 
@@ -616,9 +619,12 @@ com a mesa padrão; a prova do jogo passa; e `bash tests/prova_visual.sh` passa 
 
 ## Provas
 
-Na sessão: `bash tests/prova_do_jogo.sh` e `bash tests/prova_visual.sh`.
+Na sessão: `SALA=S06_J27 bash tests/prova_do_jogo.sh` (a prova do Eco, sem e com `--bancada`), `bash tests/prova_do_jogo.sh`
+e `bash tests/prova_visual.sh`.
 
-Em `godot/testes/prova_do_jogo.gd`, depois da `_prova_do_canto()`:
+Em `godot/testes/prova_do_jogo.gd`, a função abaixo, chamada pela linha `"S06_J27": await _prova_do_eco()` no
+`match` do `_prova_da_ficha(slot)` da H08. A mesa da prova (`_mesa_comeca`, `_mesa`, `ERRO_DA_MESA`) é da N1. O erro
+do Eco é o pé do lado errado, 50 ms antes do alvo: o robô pisa no alvo, mas o passo já caiu no tombo.
 
 ```gdscript
 ## Eco do Abismo (S06_J27): o eco sai do alto-falante simulado; o degrau fica
@@ -636,6 +642,10 @@ func _prova_do_eco() -> void:
 				tocou[0] = true
 			if int(Forja.percepcao(l).get("gatilho_dir", 0)) == 0x21:
 				resistencia[0] = true
+		_mesa(mg, ERRO_DA_MESA, func(l: int, nn: int) -> void:
+			var lado := int(mg._info[l].get(nn, {}).get("lado", 0))
+			Forja.robo_eixo(l, Forja.LX, 1.0 if lado == mg.ESQ else -1.0, 0.1))
+	_mesa_comeca()
 	var mg = await _joga_o_minigame("S06_J27", 140.0, olhar)
 	if mg == null:
 		return
@@ -650,7 +660,7 @@ func _prova_do_eco() -> void:
 	var tombos := linhas.filter(func(e): return e.get("tipo") == "momento" and e.get("nome") == "despenca")
 	_esperar(ecos.size() >= 1 and resp.size() >= 1, "Eco: %d ecos e %d pisadas no registro" % [ecos.size(), resp.size()])
 	for l in mg.presentes():
-		_esperar(toques.any(func(e): return int(e.get("lugar", 0)) == l + 1 and float(e.get("t_musica", 99.0)) <= 10.0), "Eco: o P%d pisou até 10 s" % (l + 1))
+		_esperar(toques.any(func(e): return int(e.get("jogador", 0)) == l + 1 and float(e.get("t_musica", 99.0)) <= 10.0), "Eco: o P%d pisou até 10 s" % (l + 1))
 	_esperar(tombos.size() >= 3, "Eco: %d tombos (o mínimo é 3)" % tombos.size())
 	_esperar(resistencia[0], "Eco: o tombo põe o R2 em Resistência (0x21)")
 	_esperar(tombos.any(func(e): return float(e.get("t_musica", 0.0)) >= 33.0 and float(e.get("t_musica", 0.0)) <= 67.0), "Eco: um tombo no pico")

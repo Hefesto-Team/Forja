@@ -26,7 +26,7 @@ números. Não abra outro documento.
 | `godot/scripts/minigames/s06/coral_dos_quatro.gd` | novo: o minigame | só desta |
 | `godot/scripts/minigames/catalogo.gd` | `S06_J28` em `MINIGAMES` e na lista da seção `S06` | **da seção** |
 | `godot/scripts/traducoes.gd` | `"Coral dos Quatro": "Choir of Four"`, `"Cante na sua vez!": "Sing on your turn!"`, `"Cante!": "Sing!"` | **de todos** |
-| `godot/testes/prova_do_jogo.gd` | `_prova_do_coral()` e a chamada no percurso, depois da do Eco | **de todos** |
+| `godot/testes/prova_do_jogo.gd` | `_prova_do_coral()` e a linha `"S06_J28": await _prova_do_coral()` no `match` do `_prova_da_ficha(slot)` (H08) | **de todos** |
 | `scripts/importar_kenney.py` | a linha `fantasy-town-kit` em `APROVADOS`, se a N1 ainda não a pôs | **de todos** |
 
 O `fantasy-town-kit` a N1 importa. Se a N3 vier antes, rode `python3 scripts/importar_kenney.py fantasy-town-kit`
@@ -491,7 +491,7 @@ As duas notas da vez no pico ficam a 0,22 s uma da outra: a janela de 0,12 s do 
 ## O cavaleiro
 
 O cavaleiro da montagem (G13), de frente, ao lado do sino. A cabeça, a parte de cima e a de baixo aparecem como estão;
-as mãos ficam livres. Ele pode ser de outra raça (G13): esta ficha usa o esqueleto comum de 7 ossos e as animações
+as mãos ficam livres. Ele pode ser de outra raça (G08, parte B; a montagem é da G13): esta ficha usa o esqueleto comum de 7 ossos e as animações
 `idle` e `emote-no`.
 
 | stat | gancho | o que muda no Coral | stat 1 | stat 3 | stat 5 |
@@ -554,8 +554,9 @@ o resto, a mesa padrão (P1 `bom`, P2 `medio`, P3 `medio`, P4 `ruim`, semente 7,
 | 9. o impacto | para cada `acorde`, uma linha `sensacao` `golpe` a até 16,7 ms, a até 1 quadro de uma colcheia | o quadro seguinte mostra a boca do coro aberta |
 | 10. o placar no mundo | o número de painéis do `momento` `reta` bate com o `acesos` do registro naquele tempo | no quadro de 85 s, quem olha conta os painéis, e a conta bate com o registro |
 
-Até o robô por lugar existir, a mesa boa roda com `--robo=bom --semente=7` (o item 4) e a outra com `--robo=medio`
-(os itens 1, 5, 8, 9 e 10); os itens 6 e 7 esperam o robô por lugar.
+A `prova_do_jogo.sh` roda com `--robo` sem valor, que é o `bom` da F09, nos quatro: é a mesa boa, e a prova confere os
+itens 1, 4, 8, 9 e 10 com ela. O item 5 e a mesa padrão esperam o robô por lugar (`--robo=bom,medio,medio,ruim`), que a
+F09 não faz; os itens 6 e 7 também.
 
 ## Pronto quando
 
@@ -566,10 +567,11 @@ prancha olhada.
 
 ## Provas
 
-Na sessão: `bash tests/prova_do_jogo.sh` e `bash tests/prova_visual.sh`; e, para o item 4,
-`bash tests/prova_do_jogo.sh -- --robo=bom --semente=7`.
+Na sessão: `SALA=S06_J28 bash tests/prova_do_jogo.sh` (a prova do Coral, sem e com `--bancada`), `bash tests/prova_do_jogo.sh`
+e `bash tests/prova_visual.sh`. A sh fixa `--robo --semente=7` (o `bom` nos quatro, a mesa boa) e não repassa argumentos.
 
-Em `godot/testes/prova_do_jogo.gd`, depois da `_prova_do_eco()`:
+Em `godot/testes/prova_do_jogo.gd`, a função abaixo, chamada pela linha `"S06_J28": await _prova_do_coral()`
+no `match` do `_prova_da_ficha(slot)` da H08:
 
 ```gdscript
 ## Coral dos Quatro (S06_J28): é coop; cada um canta a sua nota no alto-falante
@@ -602,8 +604,8 @@ func _prova_do_coral() -> void:
 		sons[str(e.get("o_que", ""))] = true
 	_esperar(sons.size() == mg.presentes().size(), "Coral: cada um cantou a sua nota (%s)" % [sons.keys()])
 	for l in mg.presentes():
-		_esperar(toques.any(func(e): return int(e.get("lugar", 0)) == l + 1 and float(e.get("t_musica", 99.0)) <= 10.0), "Coral: o P%d cantou até 10 s" % (l + 1))
-	if Forja.robo_temperamento == "bom" and mg.presentes().size() == 4:
+		_esperar(toques.any(func(e): return int(e.get("jogador", 0)) == l + 1 and float(e.get("t_musica", 99.0)) <= 10.0), "Coral: o P%d cantou até 10 s" % (l + 1))
+	if mg.presentes().size() == 4:  # o bom nos quatro: a mesa boa
 		var no_pico := acordes.filter(func(e): return float(e.get("t_musica", 0.0)) >= 30.0 and float(e.get("t_musica", 0.0)) <= 60.0)
 		_esperar(no_pico.size() >= 2, "Coral: %d acordes no pico com a mesa boa (o mínimo é 2)" % no_pico.size())
 		_esperar(resistencia[0], "Coral: o acorde põe o R2 em Resistência (0x21)")

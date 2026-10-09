@@ -1,6 +1,6 @@
 # N1 — O Canto
 
-**Sprint:** N · **Slot:** S06_J26 · **Tamanho:** G · **Depende de:** H04, H06, H07, H08, F01, F02, F04, F05, F09, G05, G08, G10, G14, G15
+**Sprint:** N · **Slot:** S06_J26 · **Tamanho:** G · **Depende de:** H04, H06, H07, H08, F01, F02, F04, F05, F09, G03, G05, G08, G10, G14, G15
 
 ## Por quê
 
@@ -27,7 +27,7 @@ números. Não abra outro documento.
 | `godot/scripts/minigames/minigame.gd` | `"momento"` em `TIPOS_DO_JOGO`, a função `momento()` e a chave `nota_na_tv` | **de todos**: o que outra ficha já pôs, não escreva de novo |
 | `godot/scripts/minigames/catalogo.gd` | `S06_J26` em `MINIGAMES` e em `SECOES`; sai `"canto"` de `SALAS_ANTIGAS` | **da seção**: N2 a N5 acrescentam uma linha cada |
 | `godot/scripts/traducoes.gd` | `"O Canto": "The Chant"`, `"Repita!": "Repeat!"` | **de todos** |
-| `godot/testes/prova_do_jogo.gd` | `_prova_do_canto()` e a chamada no percurso | **de todos** |
+| `godot/testes/prova_do_jogo.gd` | `_prova_do_canto()`, a linha `"S06_J26", "canto": await _prova_do_canto()` no `match` do `_prova_da_ficha` (H08) e a mesa da prova (`ERRO_DA_MESA`, `_mesa_comeca`, `_mesa`), que N2 a N5 usam | **de todos**: N2 a N5 acrescentam uma linha cada no `match` |
 | `docs/jogo/13-arquitetura.md` | a linha `momento` em «Os eventos do jogo»; a linha `nota_na_tv` em «As chaves opcionais novas da FICHA» | **de todos**: a linha que já existe, não escreva de novo |
 | `docs/jogo/tarefas/molde-de-minigame.md` | a linha `nota_na_tv` na tabela das chaves opcionais | **de todos** |
 | `scripts/importar_kenney.py` | a linha `fantasy-town-kit` em `APROVADOS` (papel `cenario`, filtro tudo) | **de todos**: N3 usa a mesma linha |
@@ -98,7 +98,7 @@ func momento(nome: String, l: int, pos: Vector3, altura_m: float, campos := {}) 
 ```
 
 No [13](../13-arquitetura.md), na tabela «Os eventos do jogo», depois da linha `estacao`:
-`| \`momento\` | o momento de grito do minigame: \`nome\`, \`t_musica\`, \`x_tela\` e \`altura_tela\` (0 a 1); \`lugar\` 0 quando é de todos (docs/jogo/diversao/README.md) |`.
+`| \`momento\` | o momento de grito do minigame: \`nome\`, \`t_musica\`, \`x_tela\` e \`altura_tela\` (0 a 1); \`jogador\` 0, sem \`lugar\`, quando é de todos (docs/jogo/diversao/README.md) |`.
 
 ### A chave `nota_na_tv` (em `minigame.gd`, de todos)
 
@@ -272,8 +272,9 @@ Os quatro em hoqueto formam, na TV, uma frase de quatro sinos; a sala ouve quem 
   (`Forja.gatilho(l, 1, Forja.GATILHO_RESISTENCIA, 2, 4)`) por 0,25 s, depois Off; `CenarioDoCanto.exagero(self, _cenario, "estrondo", jogador(l))`;
   `CenarioDoCanto.so_o_dono(self, l)`; 48 faíscas `Tema.TUNGSTENIO`; e
   `momento("sino_torto", l, Vector3(chao.x, 0.0, chao.z), SINO_ALTURA_M, {"trincas": 3})`.
-- **No chão**, o sino toca torto no tempo 1 de cada compasso: `Som.tocar("sino", chao, -18.0, TOM_DO_LUGAR[l] * DESAFINADO)`
-  (uma vez por compasso, não por batida: a cada batida, ele cobriria o coro).
+- **No chão**, o sino toca torto a cada batida (o diretor: «toca torto no chão a cada batida»):
+  `Som.tocar("sino", chao, -18.0, TOM_DO_LUGAR[l] * DESAFINADO)` na virada de cada batida inteira. A −18 dB, ele fica
+  14 dB abaixo da resposta do kit (−4) e não cobre o coro.
 - **O conserto** (na frase inteira): o pivô volta ao braço e `rotation.z` a 0 em `CenarioDoCanto.queda(l, 1.0)`
   batidas (o Fôlego), curva `BACK` `EASE_OUT`, com 24 faíscas `Tema.TUNGSTENIO`; `trincas[l] = 0`.
 
@@ -354,7 +355,7 @@ O que muda do `canto.gd` de hoje, na ordem do arquivo:
 | `estado`, `t_estado`, `relogio`, `plano`, `rodada`, `fonte`, `ritmo`, `notas_tocadas` | ficam, só para a bancada |
 | `j`, `n` | são do kit: não declare |
 | `sino_tv`, `brilho_tv`, `_mat_tv`, `_notas_no_ar` | saem (o sino grande é do cenário; o `♪` sai) |
-| `_init()` | sai: a FICHA (o `papel_som` vira a chave; a câmera vai para o `montar`) |
+| `_init()` | sai: a FICHA (o `papel_som` vira a chave; a câmera vai para o `montar`); o `cega = true` vai para o `montar` (a pergunta às cegas da bancada: o diagnóstico fica fechado em jogo, `sala_jogo.gd:470-471`) |
 | `montar()`, `sino()`, `_montar_torre()`, `_montar_raia()` | o de «A cena»; a partitura sai |
 | `_novo_jogador()` | fica igual (a bancada), em `j[l]` |
 | `iniciar_jogo()` | o plano das fontes só com `Forja.bancada` |
@@ -382,6 +383,7 @@ var _id_frase := 0
 var _ultima := [{}, {}, {}, {}]
 var _gerado := 1
 var _compasso := 0
+var _batida := 0  ## a última batida inteira: o sino caído toca nela
 var _b_fim := 0
 var _pico_tocou := false
 var _reta_anotada := false
@@ -402,6 +404,7 @@ func montar() -> void:
 	camera_olhar = pose[1]
 	_cenario = CenarioDoCanto.montar(self)
 	_b_fim = int(floor(duracao * Ritmo.bpm / 60.0))
+	cega = true  # como o canto.gd de hoje: na bancada, o diagnóstico não abre em jogo
 	for p in jogadores:
 		var l: int = p.lugar
 		j[l] = _novo_jogador()
@@ -427,7 +430,10 @@ func jogar(dt: float) -> void:
 		_compasso = c
 		CenarioDoCanto.tempo_forte()
 		_pico_no_tempo(c)  # o sino grande três vezes no primeiro compasso do pico
-		_chao_no_tempo()  # o sino caído toca torto no tempo 1
+	var b := int(floor(Ritmo.batida()))
+	if b > _batida:
+		_batida = b
+		_chao_no_tempo()  # o sino caído toca torto a cada batida
 	while _gerado <= c + 1:
 		_gerar_compasso(_gerado)
 		_gerado += 1
@@ -662,8 +668,6 @@ const DEGRAUS := {
 	"estrondo": {"tremor_m": 0.05, "batidas": 2.0, "hit_stop": 3, "luz": 0.0},
 	"catastrofe": {"tremor_m": 0.08, "batidas": 4.0, "hit_stop": 0, "luz": 0.4},
 }
-## O main treme a câmera 0,12 m por unidade de `tremor` (main.gd:986-988).
-const METROS_POR_TREMOR := 0.12
 ## Os ganchos dos stats no neutro (stat 3), enquanto a classe Cavaleiro (G13)
 ## não existe (docs/jogo/sistemas/stats.csv).
 const NEUTRO := {"empurrao": 1.0, "velocidade": 1.0, "levantar": 1.0, "pista": 0.0, "raio": 1.0}
@@ -696,7 +700,7 @@ static func pose_da_camera(recuo := 1.0, olhar := CAMERA_OLHAR) -> Array:
 ## A capela cobalto. `escuro` 1,0 é O Canto; 0,4 é o abismo do Eco (a luz da
 ## casa escurece, não troca). `com_portico` false tira os pilares, a viga e o
 ## sino grande (o Coral e o Código têm o fundo deles). Devolve {chave,
-## chave_energia, pico, tremor_ate, luz_ate, pose, sino}: o que `passar` e
+## chave_energia, pico, luz_ate, pose, sino}: o que `passar` e
 ## `exagero` mexem, e o sino grande ({} sem pórtico).
 static func montar(sala: SalaJogo, escuro := 1.0, com_portico := true) -> Dictionary:
 	Kit.arena(sala, 5, 3)
@@ -731,12 +735,12 @@ static func montar(sala: SalaJogo, escuro := 1.0, com_portico := true) -> Dictio
 		foco.light_energy = 2.2 * escuro
 		foco.spot_range = 9.0
 		foco.spot_angle = 26.0
-	return {"chave": chave, "chave_energia": chave.light_energy, "pico": false, "tremor_ate": -1.0,
+	return {"chave": chave, "chave_energia": chave.light_energy, "pico": false,
 		"luz_ate": -1.0, "pose": pose_da_camera(), "sino": s}
 
 
-## A cada quadro: o pico (a chave +20 % em 1 batida, a câmera recua 10 %), o
-## tremor que acaba e a luz da catástrofe que volta.
+## A cada quadro: o pico (a chave +20 % em 1 batida, a câmera recua 10 %) e a
+## luz da catástrofe que volta. O tremor acaba sozinho (o `tremer` da G05).
 static func passar(sala: SalaJogo, c: Dictionary, no_pico: bool) -> void:
 	var agora := Ritmo.t_musica()
 	var batida := 60.0 / Ritmo.bpm
@@ -750,21 +754,18 @@ static func passar(sala: SalaJogo, c: Dictionary, no_pico: bool) -> void:
 		var em := (1.0 if Opcoes.flashes else 2.0) if no_pico else 2.0
 		var tw := sala.create_tween().set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
 		tw.tween_property(c.chave, "light_energy", float(c.chave_energia) * (1.0 + sobe), em * batida)
-	if float(c.tremor_ate) >= 0.0 and agora >= float(c.tremor_ate):
-		sala.tremor = 0.0
-		c.tremor_ate = -1.0
 	if float(c.luz_ate) >= 0.0 and agora >= float(c.luz_ate):
 		(c.chave as OmniLight3D).light_energy = float(c.chave_energia) * (1.2 if c.pico and Opcoes.flashes else 1.0)
 		c.luz_ate = -1.0
 
 
-## O exagero do impacto, pelo degrau: o tremor (em m, por batidas), o hit-stop
+## O exagero do impacto, pelo degrau: o tremor (o `tremer` da G05: 0,02, 0,05
+## ou 0,08 m, que ele mesmo faz durar 1, 2 ou 4 batidas e decair), o hit-stop
 ## do boneco (em quadros) e a luz da catástrofe (por 1 compasso).
 static func exagero(sala: SalaJogo, c: Dictionary, degrau: String, boneco: Node3D = null) -> void:
 	var d: Dictionary = DEGRAUS[degrau]
 	var batida := 60.0 / Ritmo.bpm
-	sala.tremor = maxf(sala.tremor, float(d.tremor_m) / METROS_POR_TREMOR)
-	c.tremor_ate = Ritmo.t_musica() + float(d.batidas) * batida
+	sala.tremer(float(d.tremor_m))  # Sala.TREMOR_GOLPE, _ESTRONDO ou _CATASTROFE (G05)
 	if int(d.hit_stop) > 0 and boneco and Opcoes.tremor:
 		congelar(boneco, int(d.hit_stop))
 	if float(d.luz) > 0.0:
@@ -994,7 +995,7 @@ Os ids do [mapa do áudio](../audio/mapa.csv). Todos já existem; nenhum som nov
 | a resposta errada | `Som.tocar("nota", pos_do_sino, -12, tom × altura × 0,9659)` e a falha do kit (−6) | — | `sint_nota`, `falha_0..2` |
 | a frase inteira | `Som.tocar("sino", pos_do_sino, -12, tom)` | — | `sint_sino` |
 | o sino bate no chão | `Som.tocar("sino", chao, -6, tom × 0,9659)` | — | `sint_sino` |
-| o sino no chão, no tempo 1 | `Som.tocar("sino", chao, -18, tom × 0,9659)` | — | `sint_sino` |
+| o sino no chão, a cada batida | `Som.tocar("sino", chao, -18, tom × 0,9659)` | — | `sint_sino` |
 | o tempo forte | `Som.tocar("sino", SINO_TV, -16)`, em todo compasso | — | `sint_sino` |
 | o pico | `Som.tocar("sino", SINO_TV, -4)`, três vezes | — | `sint_sino` |
 | a bancada: o canto da TV e a revelação | `Som.tocar("nota"/"nota_alta", SINO_TV, -2)`; `Som.tocar("sino", SINO_TV, -8)` | o canto às cegas, 0,9 | `sint_nota`, `sint_nota_alta`, `sint_sino`; `mod_nota`, `mod_nota_alta` |
@@ -1053,7 +1054,7 @@ func robo(l: int, _dt: float) -> void:
 		if Forja.bancada and estado_bancada == CANTO:
 			_robo_bancada[l] = true
 	if Forja.bancada and estado_bancada != JOGO:
-		_robo_da_bancada(l)  # a pergunta de hoje: ✕ se ouviu o canto às cegas, ○ se não (canto.gd:589-596)
+		_robo_da_bancada(l)  # a pergunta de hoje: ✕ se ouviu o canto às cegas, ○ se não (canto.gd:592-598)
 		return
 	var batida := 60.0 / Ritmo.bpm
 	for nn in notas_em_aberto(l):
@@ -1073,7 +1074,7 @@ func robo(l: int, _dt: float) -> void:
 		return
 ```
 
-O `_robo_da_bancada(l)` é o trecho da pergunta do `_robo` de hoje (`canto.gd:589-596`), com `_robo_bancada[l]` no
+O `_robo_da_bancada(l)` é o trecho da pergunta do `_robo` de hoje (`canto.gd:592-598`), com `_robo_bancada[l]` no
 lugar de `e.robo_ouviu`; ele volta a `false` no `_comecar_canto`. O robô **não** lê a partitura: se a chamada não
 saiu do alto-falante simulado, ele não responde. É a prova do caminho inteiro, e a do simulador: a mesma conta roda no
 controle simulado da prova do jogo e no da prova visual.
@@ -1082,7 +1083,7 @@ controle simulado da prova do jogo e no da prova visual.
 
 O cavaleiro é o da montagem (G13): a cabeça, a parte de cima e a de baixo que a pessoa escolheu aparecem como estão,
 de frente para a câmera, ao lado do sino. `posicionar(l)` deixa as mãos livres: a arma ou o amuleto não aparece, mas
-o efeito do item vale. O cavaleiro pode ser de outra raça (G13, o ajuste dela de 09/10): esta ficha não supõe corpo
+o efeito do item vale. O cavaleiro pode ser de outra raça (G08, parte B; a montagem é da G13): esta ficha não supõe corpo
 humano; usa só o esqueleto comum de 7 ossos e as animações `idle` e `emote-no`.
 
 | stat | gancho | o que muda no Canto | stat 1 | stat 3 | stat 5 |
@@ -1125,8 +1126,8 @@ animação a 0,5×) é do kit e da G08; o Canto só soma a trinca, o tranco e o 
 
 **O momento: o sino torto** (`sino_torto`). A terceira trinca derruba o sino do cavaleiro: ele solta do braço, rola
 para o lado do vizinho e bate no chão na colcheia, desafinado; a luz das outras raias cai. Degrau estrondo (tremor de
-0,05 m por 2 batidas, hit-stop de 3 quadros, 48 faíscas). No chão, toca torto no tempo 1 de cada compasso até a
-próxima frase inteira.
+0,05 m por 2 batidas, hit-stop de 3 quadros, 48 faíscas). No chão, toca torto a cada batida até a próxima
+frase inteira.
 
 - **Rastro:** o sino no chão até o conserto; os aros no poste, um por frase inteira, até o fim.
 - **A curva:** de 0 a 30 s, frases de uma nota; de 30 a 60 s, o pico (duas notas em colcheia, o sino grande três
@@ -1154,8 +1155,9 @@ bancada, pela prova visual da F09):
 | 9. o impacto | para cada `sino_torto`, uma linha `sensacao` `golpe` a até 16,7 ms, a até 1 quadro de uma colcheia | o quadro seguinte ainda mostra o sino no chão |
 | 10. o placar no mundo | a ordem do `vencedor()` bate com a ordem das frases no `momento` `reta` e no fim | no quadro de 85 s, quem olha diz a ordem pelos aros, e ela bate com o registro |
 
-Até o robô por lugar (`--robo=bom,medio,medio,ruim`) existir, a prova roda com `--robo=medio` nos quatro e confere
-os itens 1, 4 (sem o «do P4»), 5, 8, 9 e 10; o «do P4» do item 4 e os itens 6 e 7 esperam o robô por lugar.
+A prova do jogo faz a mesa padrão com a mesa da prova (em «Provas»: o robô `bom` e o erro sorteado por cima dele,
+lugar a lugar) e confere os itens 1, 4 (com o «do P4»), 5, 8, 9 e 10. Os itens 6 e 7 esperam o robô por lugar
+(`--robo=bom,medio,medio,ruim`), que a F09 não faz.
 
 ## Pronto quando
 
@@ -1167,11 +1169,57 @@ e o veredito `alto_falante` sai como antes; a prova do jogo passa (sem e com `--
 
 ## Provas
 
-Na sessão: `bash tests/prova_do_jogo.sh` e `bash tests/prova_visual.sh`.
+Na sessão: `SALA=canto bash tests/prova_do_jogo.sh` (a prova rápida e o Canto inteiro, nas duas rodadas do sh: sem e
+com `--bancada`), `bash tests/prova_do_jogo.sh` (o jogo inteiro) e `bash tests/prova_visual.sh`.
 
 Em `godot/testes/prova_do_jogo.gd`, a checagem do Canto usa o `_joga_o_minigame(apelido, limite_s, a_cada_quadro)`
 da H08 (abre pelo catálogo, deixa o aviso passar em quadros e espera o fim pelo relógio de parede: 90 s de música e
-o treino cabem em 130 s). Chame-a no percurso logo depois da última sala de hoje (antes do relatório):
+o treino cabem em 130 s). Ela entra no `match` do `_prova_da_ficha(slot)` da H08, numa linha, como o molde pede (não
+no percurso): `"S06_J26", "canto": await _prova_do_canto()`.
+
+**A mesa da prova.** A `prova_do_jogo.sh` roda o jogo com `--robo` sem valor, que é o `bom` da F09 (95 % de acerto),
+e não repassa argumento nenhum. Com o `bom` nos quatro, o sino quase nunca cai. A prova então erra por cima do robô,
+lugar a lugar, com a chance de `ERRO_DA_MESA` (0, 30 %, 30 % e 68 %: o acerto fica perto de 95 %, 66 %, 66 % e 30 %,
+a mesa padrão), pela semente 7. O erro padrão é a nota que passa sem toque, o mesmo caminho do `_passaram`. As três
+peças abaixo são da N1 e ficam na prova; N2 a N5 as chamam (com o erro delas, quando é outro):
+
+```gdscript
+## A mesa padrão na prova (bom, medio, medio, ruim): o robô da
+## prova_do_jogo.sh é o `bom`, e a prova erra por cima dele, por lugar.
+const ERRO_DA_MESA := [0.0, 0.3, 0.3, 0.68]
+var _mesa_rng := RandomNumberGenerator.new()
+var _mesa_vistas := [{}, {}, {}, {}]
+
+
+## Antes de cada minigame: a mesma semente, nenhuma nota vista.
+func _mesa_comeca() -> void:
+	_mesa_rng.seed = 7
+	_mesa_vistas = [{}, {}, {}, {}]
+
+
+## A cada quadro: 50 ms antes do alvo de cada nota em aberto (antes do robô,
+## que aperta no alvo), sorteia uma vez; se cair, erra a nota. Sem `errar`, a
+## nota passa sem toque (o _passaram da N1); `errar.call(l, nn)` faz outro erro.
+## O `mg` vem sem tipo: `_ultima` e `_info` são do minigame, não do kit.
+func _mesa(mg, chances: Array, errar := Callable()) -> void:
+	var agora := Ritmo.t_musica()
+	for l in mg.presentes():
+		if not mg.conectado(l):
+			continue
+		for nn in mg.notas_em_aberto(l):
+			if _mesa_vistas[l].has(nn) or agora < mg.alvo_da(l, nn) - 0.05:
+				continue
+			_mesa_vistas[l][nn] = true
+			if _mesa_rng.randf() >= float(chances[l]):
+				continue
+			if errar.is_valid():
+				errar.call(l, nn)
+			else:
+				mg._ultima[l] = mg._info[l].get(nn, {})
+				mg.nota_perdida(l, nn)
+```
+
+A checagem do Canto:
 
 ```gdscript
 ## O Canto (S06_J26): o apelido abre o minigame; a chamada sai do alto-falante
@@ -1186,6 +1234,8 @@ func _prova_do_canto() -> void:
 				tocou[0] = true
 			if int(Forja.percepcao(l).get("gatilho_dir", 0)) == 0x21:
 				resistencia[0] = true
+		_mesa(mg, ERRO_DA_MESA)
+	_mesa_comeca()
 	var mg = await _joga_o_minigame("canto", 130.0, olhar)
 	if mg == null:
 		return
@@ -1200,8 +1250,9 @@ func _prova_do_canto() -> void:
 	var reta := linhas.filter(func(e): return e.get("tipo") == "momento" and e.get("nome") == "reta")
 	_esperar(pistas.any(func(e): return bool(e.get("no_controle", false))), "Canto: %d chamadas, alguma no controle" % pistas.size())
 	for l in mg.presentes():
-		_esperar(toques.any(func(e): return int(e.get("lugar", 0)) == l + 1 and float(e.get("t_musica", 99.0)) <= 10.0), "Canto: o P%d tocou até 10 s" % (l + 1))
+		_esperar(toques.any(func(e): return int(e.get("jogador", 0)) == l + 1 and float(e.get("t_musica", 99.0)) <= 10.0), "Canto: o P%d tocou até 10 s" % (l + 1))
 	_esperar(tortos.size() >= 2, "Canto: %d sinos tortos (o mínimo é 2)" % tortos.size())
+	_esperar(tortos.any(func(e): return int(e.get("jogador", 0)) == 4), "Canto: o sino do P4 caiu (o da mesa que mais erra)")
 	_esperar(tortos.is_empty() or resistencia[0], "Canto: o sino que cai põe o R2 em Resistência (0x21)")
 	_esperar(reta.size() == 1, "Canto: a linha momento reta aparece uma vez")
 	for a in tortos:
@@ -1211,7 +1262,8 @@ func _prova_do_canto() -> void:
 		_esperar(_linha_do_tempo().filter(func(e): return e.get("o") == "pergunta" and e.get("sala", e.get("slot", "")) == "S06_J26").is_empty(), "Canto: fora da bancada, nenhuma pergunta")
 ```
 
-(`_linha_do_tempo` é da F01 e já está na prova. As checagens que hoje olham `"canto"` pelo id, como as de
+(`_linha_do_tempo` é da F01 e já está na prova. No registro, `jogador` é o número do controle (1 a 4) e `lugar`, o
+índice (0 a 3): a checagem compara `jogador` com `l + 1`. As checagens que hoje olham `"canto"` pelo id, como as de
 `SO_COM_PERGUNTA`, passam a olhar pelo apelido com `_e_a_sala` da H04.)
 
 ### O que o registro mede

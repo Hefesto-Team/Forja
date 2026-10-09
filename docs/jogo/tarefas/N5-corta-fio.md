@@ -26,7 +26,7 @@ números. Não abra outro documento.
 | `godot/scripts/minigames/s06/corta_fio.gd` | novo: o minigame | só desta |
 | `godot/scripts/minigames/catalogo.gd` | `S06_J30` em `MINIGAMES` e na lista da seção `S06` | **da seção** |
 | `godot/scripts/traducoes.gd` | `"Corta-Fio": "Wire Cutter"`, `"Corte no bipe!": "Cut on the beep!"`, `"Corte!": "Cut!"`, `"Sem bipe falso": "No fake beeps"`, `"Corte": "Cut"`, `"Bipe falso": "Fake beep"`, `"%d bombas": "%d bombs"` | **de todos** |
-| `godot/testes/prova_do_jogo.gd` | `_prova_do_corta_fio()` e a chamada no percurso, depois da do Dragão | **de todos** |
+| `godot/testes/prova_do_jogo.gd` | `_prova_do_corta_fio()` e a linha `"S06_J30": await _prova_do_corta_fio()` no `match` do `_prova_da_ficha(slot)` (H08) | **de todos** |
 | `scripts/importar_kenney.py` | a linha `platformer-kit` em `APROVADOS` (o `factory-kit` já está) | **de todos** |
 
 O kit Kenney entra por `python3 scripts/importar_kenney.py platformer-kit` (ele escreve
@@ -416,8 +416,8 @@ chave `#e5d3c6` a 0,47, as tochas `Tema.TUNGSTENIO` a 0,9, o sino grande no foco
 | --- | --- | --- |
 | `floor`, `wall` | `Kit.arena(sala, 5, 3)` | o chão e as paredes |
 | o pórtico, o sino grande e as torres | `CenarioDoCanto.montar(self)` (N1) | a capela |
-| `factory-kit/pipe-large-long` (escala 2: 4 × 2 × 2 m) | `(-4.6, 0, -6.6)` e `(4.6, 0, -6.6)` | os canos do paiol, no fundo |
-| `platformer-kit/lever` (escala 2: 1,2 × 1,08 m) | `(-4.6, 0, -4.4)` | a alavanca do detonador |
+| `factory-kit/pipe-large-long` (escala 4: 4 × 2 × 2 m; o pacote já é 0,5) | `(-4.6, 0, -6.6)` e `(4.6, 0, -6.6)` | os canos do paiol, no fundo |
+| `platformer-kit/lever` (escala 2: 1,2 × 1,28 m) | `(-4.6, 0, -4.4)` | a alavanca do detonador |
 | `platformer-kit/bomb` (escala 0,6: 0,30 × 0,33 m) | no peito, num `BoneAttachment3D` do `torso`, em `(0, 0.1, 0.2)` | a bomba de cada um |
 | `platformer-kit/bomb` (escala 0,5: 0,25 m) | a fileira das desarmadas: `(RAIAS[l] - 0.75 + 0.3 * (i % 6), 0, Z_JOGADOR - 1.0 - 0.3 * (i / 6))`, até 12 | o placar no mundo |
 
@@ -528,8 +528,10 @@ bipe no minigame: só o que ouviu.
 
 O cavaleiro da montagem (G13), de frente, com a bomba no peito e o alicate na mão direita. A cabeça e a parte de baixo
 aparecem como estão; a parte de cima fica meio coberta pela bomba (0,30 m no peito). Ele pode ser de outra raça
-(G13): esta ficha usa o esqueleto comum de 7 ossos (a bomba e o confete vão no `torso`, o alicate no `arm-right`) e
-as animações `idle`, `emote-no`, `sit` e `interact-right`.
+(G08, parte B; a montagem é da G13): esta ficha usa o esqueleto comum de 7 ossos (a bomba e o confete vão no `torso`, o alicate no `arm-right`) e
+as animações `idle`, `emote-no`, `sit` e `interact-right`. O conferidor da G08 não exige o `sit`: num corpo sem ele, o
+`gesto("sit", ...)` não faz nada (`player.gd:185`) e o cavaleiro fica de pé no confete o tempo do sentado. Isso é
+aceito; o corte segue parado pelo `_sentado_ate`.
 
 | stat | gancho | o que muda no Corta-Fio | stat 1 | stat 3 | stat 5 |
 | --- | --- | --- | --- | --- | --- |
@@ -582,8 +584,10 @@ bancada, pela F09):
 | 10. o placar no mundo | as bombas do `momento` `reta` batem com o `bombas` do registro naquele tempo | no quadro de 85 s, quem olha conta as bombas na fileira de cada um, e a conta bate com o registro |
 
 O `x_tela` vai de 0,05 a 0,95: o momento cai na raia de quem caiu, e as raias de fora (x ±6) ficam em 0,20 e 0,80
-nesta câmera. Até o robô por lugar existir, a mesa roda com `--robo=medio` (os itens 1, 4, 5, 8, 9 e 10: com os quatro
-`medio`, o líder também cai); os itens 6 e 7 esperam o robô por lugar.
+nesta câmera. A `prova_do_jogo.sh` roda o `bom` nos quatro (`--robo --semente=7`, sem repassar argumentos), e o `bom`
+quase nunca corta o falso. A prova faz a mesa média por cima dele: 50 ms antes de cada falso, corta com 30 % de chance,
+pela semente 7 (em «Provas»). Com ela, a prova confere os itens 1, 4, 5, 8, 9 e 10 (o líder também cai). Os itens 6 e
+7 esperam o robô por lugar (`--robo=bom,medio,medio,ruim`), que a F09 não faz.
 
 ## Pronto quando
 
@@ -593,9 +597,12 @@ prova do jogo passa; e `bash tests/prova_visual.sh` passa com a prancha olhada.
 
 ## Provas
 
-Na sessão: `bash tests/prova_do_jogo.sh` e `bash tests/prova_visual.sh`.
+Na sessão: `SALA=S06_J30 bash tests/prova_do_jogo.sh` (a prova do Corta-Fio, sem e com `--bancada`),
+`bash tests/prova_do_jogo.sh` e `bash tests/prova_visual.sh`.
 
-Em `godot/testes/prova_do_jogo.gd`, depois da `_prova_do_dragao()`:
+Em `godot/testes/prova_do_jogo.gd`, a função abaixo, chamada pela linha
+`"S06_J30": await _prova_do_corta_fio()` no `match` do `_prova_da_ficha(slot)` da H08. Ela reaproveita
+o `_mesa_rng`, o `_mesa_vistas` e o `_mesa_comeca()` da mesa da prova da N1; a chave da armadilha vista é o `b` dela.
 
 ```gdscript
 ## Corta-Fio (S06_J30): os bipes chegam ao alto-falante simulado, os três
@@ -607,6 +614,15 @@ func _prova_do_corta_fio() -> void:
 		for l in mg.presentes():
 			if float(Forja.som_virtual(l).get("falante", 0.0)) > 0.3:
 				tocou[0] = true
+			if not mg.conectado(l):
+				continue
+			for a in mg._armadilhas[l]:
+				if int(a.tipo) != mg.FALSO or _mesa_vistas[l].has(float(a.b)) or Ritmo.t_musica() < float(a.t) - 0.05:
+					continue
+				_mesa_vistas[l][float(a.b)] = true
+				if _mesa_rng.randf() < 0.3:  # a mesa média: corta o falso
+					Forja.robo_apertar(l, Forja.CRUZ, 0.06)
+	_mesa_comeca()
 	var mg = await _joga_o_minigame("S06_J30", 130.0, olhar)
 	if mg == null:
 		return
@@ -619,16 +635,16 @@ func _prova_do_corta_fio() -> void:
 		tipos[str(e.get("tipo", ""))] = true
 	_esperar(tipos.has("certo") and tipos.has("errado"), "Corta-Fio: bipes certos e errados (%s)" % [tipos.keys()])
 	var sabotagens := linhas.filter(func(e): return e.get("tipo") == "entrada" and e.get("o") == "sabotagem")
-	_esperar(sabotagens.all(func(e): return int(e.get("para", 0)) != int(e.get("lugar", -1))), "Corta-Fio: o falso nunca volta para quem mandou")
+	_esperar(sabotagens.all(func(e): return int(e.get("para", 0)) != int(e.get("jogador", -1))), "Corta-Fio: o falso nunca volta para quem mandou")
 	var v := mg.vencedor()
 	_esperar(not v.is_empty() and int(mg.bombas[v[0]]) == v.map(func(l): return int(mg.bombas[l])).max(), "Corta-Fio: vence quem desarmou mais")
 	for l in mg.presentes():
-		_esperar(toques.any(func(e): return int(e.get("lugar", 0)) == l + 1 and float(e.get("t_musica", 99.0)) <= 10.0), "Corta-Fio: o P%d cortou até 10 s" % (l + 1))
+		_esperar(toques.any(func(e): return int(e.get("jogador", 0)) == l + 1 and float(e.get("t_musica", 99.0)) <= 10.0), "Corta-Fio: o P%d cortou até 10 s" % (l + 1))
 	var caidas := linhas.filter(func(e): return e.get("tipo") == "momento" and e.get("nome") == "caiu_no_falso")
 	for a in caidas:
 		_esperar(float(a.get("x_tela", 0.0)) >= 0.05 and float(a.get("x_tela", 0.0)) <= 0.95 \
 			and float(a.get("altura_tela", 0.0)) >= 0.08, "Corta-Fio: caiu no falso na tela (%s)" % [a])
-	if Forja.robo_temperamento == "medio" and mg.presentes().size() == 4:
+	if mg.presentes().size() == 4:  # a mesa média da prova
 		_esperar(caidas.size() >= 3, "Corta-Fio: %d caíram no falso (o mínimo é 3)" % caidas.size())
 		_esperar(caidas.filter(func(e): return bool(e.get("lider", false))).size() >= 2, "Corta-Fio: o líder caiu no falso pelo menos 2 vezes")
 	if not Forja.bancada:
