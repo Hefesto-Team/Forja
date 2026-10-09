@@ -81,6 +81,8 @@ const RAIO_SELO := 8
 const BORDA := 2
 const MARGEM_X := 96
 const MARGEM_Y := 60  ## a área segura da TV (o estudo 02, item 5: y de 60 a 1020)
+const AREA_SEGURA := 0.05  ## a margem de cada lado da tela: 5% (a régua da prova visual lê o mesmo número)
+const LETRA_MINIMA := 30  ## nada que se lê é desenhado abaixo disto, a escala do texto que for
 
 const BUNGEE := "res://assets/fontes/Bungee-Regular.ttf"
 const VT323 := "res://assets/fontes/VT323-Regular.ttf"
@@ -94,7 +96,7 @@ static var escala_texto := 1.0
 
 
 static func t(tam: int) -> int:
-	return int(round(tam * escala_texto))
+	return maxi(LETRA_MINIMA, int(round(tam * escala_texto)))
 static var _tema: Theme
 
 

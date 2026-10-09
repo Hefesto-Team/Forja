@@ -67,4 +67,4 @@ func _draw() -> void:
 
 	# o rodapé
 	var rodape := "FORJA %s" % Forja.versao()
-	Desenho.texto(self, Vector2(x, h - 56), rodape, Tema.vt(), Tema.T_SELO, Tema.MUDO)
+	Desenho.texto(self, Vector2(x, h - Tema.MARGEM_Y - 4), rodape, Tema.vt(), Tema.T_SELO, Tema.MUDO)

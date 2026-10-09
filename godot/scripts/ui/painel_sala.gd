@@ -139,7 +139,7 @@ func _dicas() -> void:
 			var q: Dictionary = sala.pergunta(l)
 			if not q.is_empty():
 				perguntas.append([l, q, _rect_pergunta(cam, q)])
-		_afastar(perguntas)
+		_afastar(perguntas, FOLGA_PERGUNTA)
 		for item in perguntas:
 			_pergunta(item[0], item[1], item[2])
 	# as dicas: onde cada uma cairia, afastadas como as perguntas, e desenhadas
@@ -163,10 +163,15 @@ func _dicas() -> void:
 		larg += 36.0 - 10.0
 		var centro := cam.unproject_position(d.pos)
 		var r := Rect2(Vector2(centro.x - larg * 0.5, centro.y - 26.0), Vector2(larg, 52.0))
-		r.position.x = clampf(r.position.x, 12.0, size.x - larg - 12.0)
+		# o texto da pílula (18 px de folga) fica dentro da área segura
+		r.position.x = clampf(r.position.x, Tema.MARGEM_X - FOLGA_PILULA, size.x - Tema.MARGEM_X + FOLGA_PILULA - larg)
 		r.position.y = clampf(r.position.y, 12.0, size.y - 140.0)
 		pilulas.append([l, partes, r])
-	_afastar(pilulas)
+	_afastar(pilulas, FOLGA_PILULA)
+	# a dica que cairia em cima do «Valendo!» espera ele sumir (1,4 s)
+	var valendo := _rect_valendo()
+	if valendo.size.x > 0.0:
+		pilulas = pilulas.filter(func(it): return not (it[2] as Rect2).intersects(valendo))
 	for item in pilulas:
 		var l: int = item[0]
 		var partes: Array = item[1]
@@ -186,6 +191,10 @@ func _dicas() -> void:
 				x += Desenho.largura(s, f, tam) + 10.0
 
 
+## O quanto a moldura passa do texto (a pílula e a pergunta): o texto, e não a
+## moldura, é o que fica dentro da área segura.
+const FOLGA_PILULA := 18.0
+const FOLGA_PERGUNTA := 20.0
 const LARG_PERGUNTA := 400.0
 ## As respostas numa coluna só, a 30 px (quatro painéis lado a lado não cabem
 ## duas respostas por linha nesse tamanho: "metralhadora" não caberia).
@@ -214,7 +223,7 @@ func _rect_pergunta(cam: Camera3D, q: Dictionary) -> Rect2:
 	var alt := 16.0 + float(h[0]) + 10.0 + LINHA_RESPOSTA * n + (float(h[1]) + 14.0 if float(h[1]) > 0.0 else 10.0)
 	var centro := cam.unproject_position(q.get("pos", Vector3.ZERO))
 	var r := Rect2(Vector2(centro.x - larg * 0.5, centro.y - alt * 0.5), Vector2(larg, alt))
-	r.position.x = clampf(r.position.x, 12.0, size.x - larg - 12.0)
+	r.position.x = clampf(r.position.x, Tema.MARGEM_X - FOLGA_PERGUNTA, size.x - Tema.MARGEM_X + FOLGA_PERGUNTA - larg)
 	r.position.y = clampf(r.position.y, 230.0, size.y - alt - 90.0)
 	return r
 
@@ -222,8 +231,10 @@ func _rect_pergunta(cam: Camera3D, q: Dictionary) -> Rect2:
 ## Lado a lado, na ordem das raias: da esquerda para a direita empurra para a
 ## direita o que encosta; da direita para a esquerda, devolve o que passou da
 ## tela.
-func _afastar(itens: Array) -> void:
+func _afastar(itens: Array, folga: float) -> void:
 	var vao := 10.0
+	var esq := Tema.MARGEM_X - folga
+	var dir := size.x - Tema.MARGEM_X + folga
 	itens.sort_custom(func(p, q): return (p[2] as Rect2).position.x < (q[2] as Rect2).position.x)
 	for i in range(1, itens.size()):
 		var a: Rect2 = itens[i - 1][2]
@@ -233,12 +244,14 @@ func _afastar(itens: Array) -> void:
 			itens[i][2] = b
 	for i in range(itens.size() - 1, -1, -1):
 		var b: Rect2 = itens[i][2]
-		var limite := size.x - 12.0
+		var limite := dir
 		if i < itens.size() - 1 and _mesma_faixa(b, itens[i + 1][2]):
 			limite = (itens[i + 1][2] as Rect2).position.x - vao
 		if b.end.x > limite:
 			b.position.x = limite - b.size.x
-			itens[i][2] = b
+		# o texto não passa da margem da esquerda nem quando a fila se aperta
+		b.position.x = maxf(b.position.x, esq)
+		itens[i][2] = b
 
 
 ## Duas caixas na mesma altura da tela (uma empurra a outra só se se cruzam na vertical).
@@ -301,6 +314,8 @@ func _pergunta(l: int, q: Dictionary, r: Rect2) -> void:
 func _tempo() -> void:
 	_dicas()
 	_treino_e_valendo()
+	# as faixas descem para baixo do quadro da HUD (que cresce com a ação em duas linhas)
+	var topo_das_faixas: float = (HudJogo.quadro_da_sala(str(sala.nome), str(sala.acao), size.x)["rect"] as Rect2).end.y + 8.0
 	var d: float = sala.duracao
 	if d <= 0.0:
 		# sem relógio: a linha de progresso da sala, no mesmo lugar
@@ -308,16 +323,16 @@ func _tempo() -> void:
 		if linha != "":
 			var fp := Tema.archivo(500)
 			var lw := Desenho.largura(linha, fp, Tema.T_SELO)
-			var q := Rect2(Vector2(Tema.MARGEM_X - 28, 162), Vector2(lw + 44, 52))
+			var q := Rect2(Vector2(Tema.MARGEM_X - 28, topo_das_faixas), Vector2(lw + 56, 52))
 			Desenho.moldura(self, q, Color(Tema.CASCO, 0.9), Tema.GRAFITE, 2, 12)
-			Desenho.texto(self, q.position + Vector2(22, 34), linha, fp, Tema.T_SELO, Tema.ETIQUETA_SOMBRA)
+			Desenho.texto(self, q.position + Vector2(28, 34), linha, fp, Tema.T_SELO, Tema.ETIQUETA_SOMBRA)
 		return
 	# o tempo que resta, logo abaixo do nome da sala (o quadro da HUD)
 	if sala.treinando:
 		return  # o treino não gasta o relógio: a barra só aparece valendo
 	var resta := maxf(0.0, d - float(sala.t_jogo))
 	var larg := 480.0
-	var p := Vector2(Tema.MARGEM_X - 28, 184)
+	var p := Vector2(Tema.MARGEM_X - 28, topo_das_faixas + 22.0)
 	var cor := Tema.SECAO[3] if resta < 15.0 else Tema.ETIQUETA
 	var r := Rect2(p - Vector2(0, 22), Vector2(larg + 110, 52))
 	Desenho.moldura(self, r, Color(Tema.CASCO, 0.9), Tema.GRAFITE, 2, 12)
@@ -346,5 +361,24 @@ func _treino_e_valendo() -> void:
 		var f2 := Tema.bungee()
 		var tam := int(Tema.T_DISPLAY * escala)
 		var w2 := Desenho.largura(s2, f2, tam)
+		# a placa atrás: a arena é clara e a palavra, sozinha, some nela; a placa
+		# esvazia antes do texto, para a palavra não ficar sem fundo ao sumir
+		var placa := _rect_valendo()
+		var alfa_placa := 0.92 * clampf(alfa * 2.5, 0.0, 1.0)
+		Desenho.moldura(self, placa, Color(Tema.CASCO, alfa_placa), Color(Tema.GRAFITE, alfa_placa), 2, Tema.RAIO_QUADRO)
 		Desenho.texto(self, Vector2((size.x - w2) * 0.5 + 4, size.y * 0.42 + 4), s2, f2, tam, Color(Tema.FITA, 0.6 * alfa))
 		Desenho.texto(self, Vector2((size.x - w2) * 0.5, size.y * 0.42), s2, f2, tam, Color(Tema.ETIQUETA, alfa))
+
+
+## A placa do «Valendo!» (no tamanho cheio dele, com o folguedo do pulo): vazia
+## quando a palavra não está na tela. As dicas que cairiam em cima dela esperam.
+func _rect_valendo() -> Rect2:
+	if sala == null or sala.treinando or float(sala.valendo_t) <= 0.0:
+		return Rect2()
+	var f2 := Tema.bungee()
+	var tam := int(Tema.T_DISPLAY * 1.35)
+	var w2 := Desenho.largura("Valendo!", f2, tam)
+	var asc := f2.get_ascent(Tema.t(tam))
+	var desc := f2.get_descent(Tema.t(tam))
+	var base := size.y * 0.42
+	return Rect2(Vector2((size.x - w2) * 0.5 - 48.0, base - asc - 20.0), Vector2(w2 + 96.0, asc + desc + 40.0))

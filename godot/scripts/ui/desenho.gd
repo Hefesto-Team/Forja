@@ -228,13 +228,21 @@ static func bateria(ci: CanvasItem, pos: Vector2, pct: int, carregando: bool, la
 ## O cabeçalho do app: logo e o nome em duas linhas — "Hefesto" em Bungee, "Tech Demo" na etiqueta sombra.
 static func cabecalho(ci: CanvasItem, pos: Vector2, lado := 88.0) -> void:
 	ci.draw_texture_rect(LOGO, Rect2(pos, Vector2(lado, lado)), false)
-	var tam := int(lado * 0.36)
-	ci.draw_string(Tema.bungee(), pos + Vector2(lado + 18, lado * 0.46), "Hefesto", HORIZONTAL_ALIGNMENT_LEFT, -1, tam, Tema.ETIQUETA)
-	ci.draw_string(Tema.archivo(700), pos + Vector2(lado + 18, lado * 0.46 + tam * 1.12), "Tech Demo", HORIZONTAL_ALIGNMENT_LEFT, -1, tam, Tema.ETIQUETA_SOMBRA)
+	var tam := maxi(int(lado * 0.36), Tema.LETRA_MINIMA)
+	texto(ci, pos + Vector2(lado + 18, lado * 0.46), "Hefesto", Tema.bungee(), tam, Tema.ETIQUETA)
+	texto(ci, pos + Vector2(lado + 18, lado * 0.46 + tam * 1.12), "Tech Demo", Tema.archivo(700), tam, Tema.ETIQUETA_SOMBRA)
 
 
 ## Uma fileira de dicas "[glifo] palavra", da direita para a esquerda a partir de `fim`.
-static func dicas_a_direita(ci: CanvasItem, fim: Vector2, pares: Array, tam := Tema.T_ROTULO) -> void:
+## Com `placa`, uma placa escura atrás de toda a fileira (as dicas sobre a arena clara).
+static func dicas_a_direita(ci: CanvasItem, fim: Vector2, pares: Array, tam := Tema.T_ROTULO, placa := false) -> void:
+	if placa and not pares.is_empty():
+		var total := 40.0 * (pares.size() - 1)
+		for i in pares.size():
+			total += Glifo.largura_dica(pares[i][0], pares[i][1], tam, i == 0)
+		var alto := Tema.t(tam) * 1.25
+		moldura(ci, Rect2(Vector2(fim.x - total - 24.0, fim.y - alto * 0.82 - 14.0), Vector2(total + 48.0, alto + 28.0)),
+			Color(Tema.CASCO, 0.92), Tema.GRAFITE, 2, 12)
 	var x := fim.x
 	for i in range(pares.size() - 1, -1, -1):
 		var par: Array = pares[i]
