@@ -14,7 +14,7 @@ shift
 mkdir -p "$pasta"
 QUADROS=("$@")
 if [ ${#QUADROS[@]} -eq 0 ]; then
-  QUADROS=(01_centelha 02_salao 03_entrada 04_cartao 05_dissonancia 06_podio 07_titulo 08_cavaleiros 09_paleta_kenney)
+  QUADROS=(01_centelha 02_salao 03_entrada 04_cartao 05_dissonancia 06_podio 07_titulo 08_cavaleiros 09_paleta_kenney 10_montagem 11_pecas 12_reacoes 13_luz 14_storyboard 15_fim_da_fita 16_bigorna 17_forja 18_cortina)
 fi
 timeout 300 "$GODOT" --headless --path "$RAIZ/godot" -s res://estudos/direcao/recolorir.gd > "$pasta/recolorir.log" 2>&1
 timeout 600 "$GODOT" --headless --path "$RAIZ/godot" --import > "$pasta/import.log" 2>&1
