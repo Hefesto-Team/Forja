@@ -194,7 +194,7 @@ vira. É o intervalo da noite: água, banheiro, conversa.
 Quem quer pode reagir enquanto a fita vira ([09 As reações](09-reacoes.md)).
 Qualquer jogador aperta ✕ para seguir; não há tempo limite.
 
-É uma proposta de design de jogo: a ficha G18 a leva ao jogo.
+É uma proposta de design de jogo: a ficha G16 a leva ao jogo.
 
 ## Os créditos são o encarte
 
@@ -258,4 +258,4 @@ seção. O 15 acontece uma vez, no meio da noite.
   o corte.
 - A G05 (a câmera dos quatro) segue valendo dentro do jogo. A regra 1 (não
   corta) é dela também.
-- A G17 leva a luz por seção, o pós e o desgaste ao jogo.
+- A G15 leva a luz por seção, o pós e o desgaste ao jogo.

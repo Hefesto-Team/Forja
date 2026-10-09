@@ -21,6 +21,8 @@ Do mais fundo ao mais claro. Nenhuma brilha.
 | `CASCO` | `#17121f` | o plástico do cassete: placa do HUD, cartão |
 | `CASCO_ALTO` | `#241c30` | a borda iluminada do plástico, o casco em foco |
 | `GRAFITE` | `#3a3346` | trilho, segmento apagado do VU, linha estrutural (nunca texto) |
+| `JANELA` | `#07050c` | novo: o vidro escuro da janela do cassete, o fundo da célula do leader |
+| `SOMBRA` | `Color(0, 0, 0, 0.45)` | novo: a sombra deslocada de placa, etiqueta e adesivo (nunca cor de traço) |
 
 ### A etiqueta: o papel e a caneta
 
@@ -39,6 +41,8 @@ Do mais fundo ao mais claro. Nenhuma brilha.
 | `VIOLETA` | `#4a3aa8` | o néon da arquitetura (tubo na parede, beira do palco); L ≤ 0,50 no OKLab, sempre |
 | `VIOLETA_FUNDO` | `#1d1638` | a névoa e o preenchimento do salão |
 | `TUNGSTENIO` | `#ffd9a8` | a luz de lâmpada (pódio, foco da bigorna); é luz, nunca traço nem texto |
+| `OXIDO` | `#3b2a22` | novo: a fita magnética em si, o rolo, a tira do confete no escuro |
+| `OXIDO_BRILHO` | `#7a5640` | novo: o óxido que pega luz, a face da tira que vira, o cabo do martelo |
 
 ### Os jogadores
 
@@ -190,7 +194,8 @@ os dois de `tema.gd:54-55`.
 ## A escala de tamanhos
 
 Na tela lógica de 1920×1080. Nada que se lê fica abaixo de 30 px. Com o
-texto grande nas Opções, tudo ×1,25 (o `Tema.t()` de hoje faz a conta).
+texto grande nas Opções, tudo ×1,15 (`ESCALA_DO_TEXTO` em `godot/scripts/opcoes.gd`;
+o `Tema.t()` de hoje faz a conta).
 
 | papel | fonte | px |
 | --- | --- | --- |
@@ -211,7 +216,7 @@ texto grande nas Opções, tudo ×1,25 (o `Tema.t()` de hoje faz a conta).
 - Área segura: x de 96 a 1824, y de 60 a 1020 (`tema.gd` MARGEM_X e
   MARGEM_Y). Nada que se lê sai dela.
 - Placas de casco com raio de 14 px e borda de 3 px em `CASCO_ALTO`; a sombra
-  é `Color(0, 0, 0, 0.45)` deslocada (4, 6).
+  é `SOMBRA` deslocada (4, 6).
 - A etiqueta tem raio de 8 px, a tarja da seção a 14 px do topo com 12 px de
   altura, e a sombra (5, 7).
 - O VU tem segmentos com 4 px de vão, apagados em `GRAFITE`, acesos na cor do
