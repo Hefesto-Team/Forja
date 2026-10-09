@@ -3270,6 +3270,8 @@ func _prova_das_decisoes() -> void:
 	mg.ficha["genero"] = "coop"
 	mg.coop = true
 	mg.coop_venceu = false
+	# com colocação: o -1 tem de vir do kit, não da sala sem ninguém
+	mg.colocacao = [2, 0, 1, 3]
 	_esperar(int(mg.campos_do_fim().get("vencedor", 0)) == -1 and mg.frase_do_resultado() == "A forja apagou.",
 		"coop: o vencedor é -1, e a tela diz que a forja apagou")
 
