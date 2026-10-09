@@ -99,7 +99,7 @@ pela semente do lugar: humana se `semente % 2 == 0`, senão a raça
 | elemento | onde | energia | área |
 | --- | --- | --- | --- |
 | o contorno | casco invertido, largura 0,012 | 1,6 na montagem (`_mostrar("lobby")`), 2,4 no resto | não conta |
-| o friso | faixa no y mais baixo e no mais alto do osso `torso` | 1,6; 2,6 no encaixe, volta em 250 ms (`SAI`: `TRANS_CUBIC`, `EASE_OUT`) | até 8 % da frente do superior |
+| o friso | faixa no y mais baixo do osso `torso` e na gola, no menor entre o y mais alto do `torso` e y 0,343 (`PESCOCO`, o pescoço) | 1,6; 2,6 no encaixe, volta em 250 ms (`SAI`: `TRANS_CUBIC`, `EASE_OUT`) | até 8 % da frente do superior |
 | a costura | linha no x de maior módulo de `leg-left` e `leg-right` | 1,6; 2,6 no encaixe | até 5 % da frente do inferior |
 | o aro (fresnel) | as faces de lado de todo o corpo | 0,25, abaixo do limiar do glow (0,82) | não conta |
 | o anel de 8 lados no chão | toro de 8 lados, raio 0,62 (unidade do jogo, depois da `ESCALA` 2,0 vale 1,24 m) | 1,5 | — |
@@ -404,7 +404,7 @@ uniform float pele_ativa = 0.0;       // 1 numa raça: a pele do colormap vira a
 uniform vec4 pele_uv = vec4(0.6445, 0.7422, 1.0, 1.0);  // Pintura.PELE_UV: x0, y0, x1, y1
 uniform float acento = 1.6;          // 2,6 no encaixe
 uniform float friso_y0 = 0.0;        // o y mais baixo do torso, em repouso
-uniform float friso_y1 = 0.0;        // o y mais alto do torso
+uniform float friso_y1 = 0.0;        // a gola: min(y mais alto do torso, 0.343)
 uniform float friso_alto = 0.010;
 uniform float costura_x = 0.0;       // o |x| mais de fora da perna
 uniform float costura_larg = 0.008;

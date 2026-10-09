@@ -118,8 +118,8 @@ Estados: **a fazer**, **fazendo** (com o nome de quem pegou), **feito**
 | ficha | título | tamanho | depende de | estado |
 | --- | --- | --- | --- | --- |
 | [N1](N1-o-canto.md) | O Canto | G | H04, H08, F09, F01, F02, F05, H06, H07, G08, G12 | pronta |
-| [N2](N2-eco-do-abismo.md) | Eco do Abismo | M | H04, H08, F09, N1 | enriquecida |
-| [N3](N3-coral-dos-quatro.md) | Coral dos Quatro | M | H04, H08, F09, N1, H07 | enriquecida |
+| [N2](N2-eco-do-abismo.md) | Eco do Abismo | M | H04, H08, F09, N1 | pronta |
+| [N3](N3-coral-dos-quatro.md) | Coral dos Quatro | M | H04, H08, F09, N1, H07 | pronta |
 | [N4](N4-codigo-do-dragao.md) | Código do Dragão | M | H04, H08, F09, N1, H07 | pronta |
 | [N5](N5-corta-fio.md) | Corta-Fio | M | H04, H08, F09, N1, H07 | pronta |
 
