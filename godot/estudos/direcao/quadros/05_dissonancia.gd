@@ -49,8 +49,8 @@ func _fita_enroscada(ci: CanvasItem) -> void:
 		var a := t * TAU * 6.5
 		pontos.append(base + Vector2(cos(a) * laco - laco, sin(a) * laco * 0.55))
 	ci.draw_polyline(pontos, Color(0, 0, 0, 0.45), 18.0, true)
-	ci.draw_polyline(pontos, Color("#3b2a22"), 12.0, true)
+	ci.draw_polyline(pontos, Fita.OXIDO, 12.0, true)
 	var brilho := PackedVector2Array()
 	for p in pontos:
 		brilho.append(p + Vector2(-1.5, -2.5))
-	ci.draw_polyline(brilho, Color("#7a5640"), 2.5, true)
+	ci.draw_polyline(brilho, Fita.OXIDO_BRILHO, 2.5, true)

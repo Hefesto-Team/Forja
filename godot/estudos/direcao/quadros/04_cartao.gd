@@ -39,7 +39,7 @@ func _hud(ci: CanvasItem) -> void:
 	var tinta: Color = Fita.SECAO[0]
 	ci.draw_set_transform(r.get_center(), 0.008, Vector2.ONE)
 	var rr := Rect2(-r.size * 0.5, r.size)
-	Hud.caixa(ci, Rect2(rr.position + Vector2(8, 12), rr.size), Color(0, 0, 0, 0.5), 8)
+	Hud.caixa(ci, Rect2(rr.position + Vector2(8, 12), rr.size), Fita.SOMBRA, 8)
 	Hud.caixa(ci, rr, Fita.ETIQUETA, 8)
 	# a lombada: a dobra do J-card, com o nome deitado
 	var lombada := 104.0
@@ -56,8 +56,8 @@ func _hud(ci: CanvasItem) -> void:
 	Hud.texto(ci, Fita.marcador(), 74, Vector2(x0 - 6, rr.position.y + 108), "O Martelo de Hefesto", Fita.TINTA)
 	# o gênero, carimbado
 	var g := Rect2(Vector2(x0, rr.position.y + 228), Vector2(330, 54))
-	Hud.caixa(ci, g, Color(0, 0, 0, 0), 6, tinta, 3)
-	Hud.texto(ci, Fita.archivo(700), 34, g.position + Vector2(0, 7), "Todos contra todos", tinta, HORIZONTAL_ALIGNMENT_CENTER, g.size.x)
+	Hud.caixa(ci, g, Color(Fita.FITA, 0.0), 6, tinta, 3)
+	Hud.texto(ci, Fita.archivo(700), 34, g.position + Vector2(0, 7), "Todos contra todos", Fita.TINTA, HORIZONTAL_ALIGNMENT_CENTER, g.size.x)
 	# o contador da fita: a faixa no lado
 	Hud.texto(ci, Fita.vt(), 40, Vector2(rr.end.x - 330, rr.position.y + 236), "LADO A", Fita.TINTA_SUAVE)
 	ci.draw_set_transform(r.get_center(), 0.008, Vector2.ONE)

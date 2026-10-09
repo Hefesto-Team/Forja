@@ -40,5 +40,5 @@ static func desenhar_hud(ci: CanvasItem, cabecas: Array, pontos: Array, combo: A
 	for l in 4:
 		Hud.cartao(ci, l, NOMES[l], pontos[l], combo[l], 13 if l == 3 else -1)
 	if julgar:
-		Hud.julgamento(ci, cabecas[3] + Vector2(10, -20), "Perfeito!", Fita.JOGADOR[3])
-		Hud.julgamento(ci, cabecas[1] + Vector2(0, -20), "Ótimo", Fita.JOGADOR[1], 38, 0.05)
+		Hud.julgamento(ci, cabecas[3] + Vector2(10, -20), "Ressonância!", Fita.JOGADOR[3])
+		Hud.julgamento(ci, cabecas[1] + Vector2(0, -20), "Afinado", Fita.JOGADOR[1], 38, 0.05)

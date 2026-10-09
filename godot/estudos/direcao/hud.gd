@@ -29,7 +29,7 @@ static func camada(pai: Node, f: Callable, n := 10) -> Tela:
 
 
 # ------------------------------------------------------------- primitivas --
-static func caixa(ci: CanvasItem, r: Rect2, fundo: Color, raio := 10, borda := Color(0, 0, 0, 0), largura := 0) -> void:
+static func caixa(ci: CanvasItem, r: Rect2, fundo: Color, raio := 10, borda := Color(Fita.FITA, 0.0), largura := 0) -> void:
 	var s := StyleBoxFlat.new()
 	s.bg_color = fundo
 	s.draw_center = fundo.a > 0.0
@@ -73,8 +73,8 @@ static func glifo(ci: CanvasItem, nome: String, r: Rect2, cor := Color.WHITE) ->
 ## Um carretel: o cubo com seis dentes e a fita enrolada (0 a 1).
 static func carretel(ci: CanvasItem, c: Vector2, raio: float, fita: float, cor_cubo := Fita.ETIQUETA) -> void:
 	var r_fita := lerpf(raio * 0.42, raio, fita)
-	ci.draw_circle(c, r_fita, Color("#3b2a22"))  # a fita magnética: marrom de óxido
-	ci.draw_arc(c, r_fita - 1.5, PI * 1.05, PI * 1.45, 18, Color("#6b4a38"), 2.0, true)
+	ci.draw_circle(c, r_fita, Fita.OXIDO)  # a fita magnética
+	ci.draw_arc(c, r_fita - 1.5, PI * 1.05, PI * 1.45, 18, Fita.OXIDO_BRILHO, 2.0, true)
 	ci.draw_circle(c, raio * 0.42, cor_cubo)
 	ci.draw_circle(c, raio * 0.2, Fita.CASCO)
 	for i in 6:
@@ -89,7 +89,7 @@ static func etiqueta(ci: CanvasItem, r: Rect2, titulo: String, impresso: String,
 		tam_titulo := 56, inclina := 0.0) -> void:
 	ci.draw_set_transform(r.position + r.size * 0.5, inclina, Vector2.ONE)
 	var rr := Rect2(-r.size * 0.5, r.size)
-	caixa(ci, Rect2(rr.position + Vector2(5, 7), rr.size), Color(0, 0, 0, 0.45), 8)
+	caixa(ci, Rect2(rr.position + Vector2(5, 7), rr.size), Fita.SOMBRA, 8)
 	caixa(ci, rr, Fita.ETIQUETA, 8)
 	# a tarja da seção e as linhas pautadas do papel
 	ci.draw_rect(Rect2(rr.position + Vector2(0, 14), Vector2(rr.size.x, 12)), tinta_secao)
@@ -106,27 +106,27 @@ static func contador(ci: CanvasItem, pos: Vector2, digitos: String, tam := 60) -
 	var f := Fita.vt()
 	var w_d := largura_do(f, tam, "0") + 10
 	var r := Rect2(pos, Vector2(w_d * digitos.length() + 14, tam * 0.95 + 12))
-	caixa(ci, r, Color("#07050c"), 6, Fita.GRAFITE, 2)
+	caixa(ci, r, Fita.JANELA, 6, Fita.GRAFITE, 2)
 	for i in digitos.length():
 		var cel := Rect2(pos + Vector2(7 + i * w_d, 6), Vector2(w_d - 4, tam * 0.95))
-		caixa(ci, cel, Color("#141019"), 3)
+		caixa(ci, cel, Fita.CASCO, 3)
 		texto(ci, f, tam, cel.position + Vector2(0, -tam * 0.1), digitos[i], Fita.ETIQUETA, HORIZONTAL_ALIGNMENT_CENTER, cel.size.x)
 		# a dobra da roda: a linha do meio
-		ci.draw_line(Vector2(cel.position.x, cel.get_center().y), Vector2(cel.end.x, cel.get_center().y), Color(0, 0, 0, 0.55), 2.0)
+		ci.draw_line(Vector2(cel.position.x, cel.get_center().y), Vector2(cel.end.x, cel.get_center().y), Color(Fita.JANELA, 0.55), 2.0)
 	return r
 
 
 ## O deck: a janela do cassete (dois carretéis, a fita entre eles) e o
 ## contador de fita ao lado, numa placa só.
 static func deck(ci: CanvasItem, r: Rect2, esquerda: float, direita: float, digitos: String) -> void:
-	caixa(ci, Rect2(r.position + Vector2(4, 6), r.size), Color(0, 0, 0, 0.45), 14)
+	caixa(ci, Rect2(r.position + Vector2(4, 6), r.size), Fita.SOMBRA, 14)
 	caixa(ci, r, Fita.CASCO, 14, Fita.CASCO_ALTO, 3)
 	var jan := Rect2(r.position + Vector2(16, 14), Vector2(228, r.size.y - 28))
-	caixa(ci, jan, Color("#07050c"), 10)
+	caixa(ci, jan, Fita.JANELA, 10)
 	var c1 := jan.position + Vector2(56, jan.size.y * 0.5)
 	var c2 := jan.position + Vector2(jan.size.x - 56, jan.size.y * 0.5)
 	var raio := jan.size.y * 0.5 - 6
-	ci.draw_line(c1 + Vector2(0, lerpf(raio * 0.42, raio, esquerda)), c2 + Vector2(0, lerpf(raio * 0.42, raio, direita)), Color("#3b2a22"), 3.0, true)
+	ci.draw_line(c1 + Vector2(0, lerpf(raio * 0.42, raio, esquerda)), c2 + Vector2(0, lerpf(raio * 0.42, raio, direita)), Fita.OXIDO, 3.0, true)
 	carretel(ci, c1, raio, esquerda)
 	carretel(ci, c2, raio, direita)
 	var tam := 64
@@ -165,14 +165,14 @@ const CARTAO := Vector2(420, 132)
 
 static func canto(lugar: int) -> Vector2:
 	var x := 96.0 if lugar % 2 == 0 else 1920.0 - 96.0 - CARTAO.x
-	var y := 54.0 if lugar < 2 else 1080.0 - 54.0 - CARTAO.y
+	var y := 60.0 if lugar < 2 else 1080.0 - 60.0 - CARTAO.y
 	return Vector2(x, y)
 
 
 static func cartao(ci: CanvasItem, lugar: int, nome: String, pontos: String, combo: int, pico := -1) -> void:
 	var cor: Color = Fita.JOGADOR[lugar]
 	var r := Rect2(canto(lugar), CARTAO)
-	caixa(ci, Rect2(r.position + Vector2(0, 6), r.size), Color(0, 0, 0, 0.5), 10)
+	caixa(ci, Rect2(r.position + Vector2(0, 6), r.size), Fita.SOMBRA, 10)
 	caixa(ci, r, Color(Fita.CASCO, 0.94), 10)
 	ci.draw_rect(Rect2(r.position + Vector2(10, 0), Vector2(r.size.x - 20, 5)), cor)
 	texto(ci, Fita.bungee(), 40, r.position + Vector2(18, 16), "P%d" % (lugar + 1), cor)
