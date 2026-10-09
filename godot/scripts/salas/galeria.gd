@@ -93,9 +93,9 @@ func _montar_raia(l: int, p: ForjaPlayer) -> Dictionary:
 	var cor: Color = Forja.cor_do_lugar(l)
 	# a raia: a faixa no chão na cor do lugar, do jogador até o muro dos alvos
 	Kit.caixa(self, Vector3(1.5, 0.02, Z_JOGADOR - Z_ALVOS + 0.6), Vector3(x, 0.02, (Z_JOGADOR + Z_ALVOS) * 0.5),
-		Kit.material(cor.darkened(0.6), 0.25))
+		Kit.material(cor.darkened(0.6), 0.25, 0.8, l))
 	# o baú do armeiro, numa mesa baixa na frente do jogador
-	Kit.caixa(self, Vector3(1.3, 0.5, 0.9), Vector3(x, 0.25, Z_BAU), Kit.material(Color("#4b4558"), 0.0, 0.9))
+	Kit.caixa(self, Vector3(1.3, 0.5, 0.9), Vector3(x, 0.25, Z_BAU), Kit.material(Tema.GRAFITE, 0.0, 0.9))
 	var bau := Kit.peca(self, "chest", Vector3(x, 0.5, Z_BAU - 0.1), 0.0, 1.9)
 	var interroga := Label3D.new()
 	interroga.text = "?"
@@ -154,9 +154,9 @@ func _alvo_no() -> Node3D:
 static func _arma(pai: Node, qual: int) -> Node3D:
 	var a := Node3D.new()
 	pai.add_child(a)
-	var ferro := Kit.material(Color("#4a4e5e"), 0.0, 0.4)
-	var claro := Kit.material(Color("#c9cbd6"), 0.0, 0.35)
-	var madeira := Kit.material(Color("#8a5a33"), 0.0, 0.8)
+	var ferro := Kit.material(Tema.GRAFITE, 0.0, 0.4)
+	var claro := Kit.material(Tema.OXIDO_BRILHO, 0.0, 0.35)
+	var madeira := Kit.material(Tema.OXIDO_BRILHO, 0.0, 0.8)
 	match qual:
 		PISTOLA:
 			Kit.caixa(a, Vector3(0.36, 0.11, 0.08), Vector3(0.1, 0.07, 0), ferro)
