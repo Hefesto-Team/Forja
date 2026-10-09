@@ -15,18 +15,27 @@ const MODELOS := ["character-human", "character-orc"]
 const NOME_DO_MODELO := ["humano", "orc"]
 ## O intervalo do pio de cada modelo (arte/03), alinhado com MODELOS.
 const INTERVALO_DO_MODELO := ["segunda", "quinta_baixo"]
-## O que o boneco leva: o item da mão direita e o do braço esquerdo (peças do kit).
+## O item: o índice é o de Itens (G03). "id" é o de docs/jogo/sistemas/itens.csv.
+## A peça 3D de cada um é da G03: até lá o _segurar() deixa as mãos livres.
 const ITENS := [
-	{"nome": "mãos livres"},
-	{"nome": "espada", "direita": "weapon-sword"},
-	{"nome": "lança", "direita": "weapon-spear"},
-	{"nome": "espada e escudo", "direita": "weapon-sword", "esquerda": "shield-round"},
-	{"nome": "lança e escudo", "direita": "weapon-spear", "esquerda": "shield-round"},
-	{"nome": "poção", "direita": "potion"},
-	{"nome": "chave", "direita": "key"},
+	{"id": "", "nome": "Mãos livres", "icone": ""},
+	{"id": "martelo", "nome": "Martelo", "icone": "item_martelo"},
+	{"id": "escudo", "nome": "Escudo", "icone": "item_escudo"},
+	{"id": "fole", "nome": "Fole", "icone": "item_fole"},
+	{"id": "lanterna", "nome": "Lanterna", "icone": "item_lanterna"},
+	{"id": "diapasao", "nome": "Diapasão", "icone": "item_diapasao"},
+	{"id": "ancora", "nome": "Âncora", "icone": "item_ancora"},
 ]
-## Cada lugar nasce com um visual diferente dos outros.
-const VISUAL_DO_LUGAR := [[0, 3], [1, 2], [0, 5], [1, 4]]
+## Cada lugar nasce com um visual diferente dos outros: [boneco, item].
+const VISUAL_DO_LUGAR := [[0, 1], [1, 2], [0, 3], [1, 4]]
+## O acabamento muda como a luz bate, nunca a cor: o corpo não se tinge
+## (arte/04). "livre": false até a coleção (G06). metallic nunca passa de 0,2.
+const ACABAMENTOS := [
+	{"nome": "Fosco", "rugoso": 0.95, "metal": 0.0},
+	{"nome": "Polido", "rugoso": 0.45, "metal": 0.2},
+	{"nome": "Riscado", "rugoso": 0.75, "metal": 0.1},
+	{"nome": "Dourado", "rugoso": 0.5, "metal": 0.2, "livre": false},
+]
 ## Onde cada item senta no osso do braço (espaço do osso, unidades do kit; o
 ## braço solto aponta para baixo, a frente do boneco é +z): deslocamento,
 ## rotação em graus e escala. De frente, a espada fica em pé ao lado do corpo,
@@ -51,6 +60,8 @@ var preso := false
 var modelo: Node3D
 var modelo_i := 0
 var item_i := 0
+var acabamento_i := 0
+var nome := ""
 var anim: AnimationPlayer
 var aro: MeshInstance3D
 var etiqueta: Label3D
@@ -126,6 +137,44 @@ func visual(m: int, item: int) -> void:
 		_anim_atual = ""
 		_animar("idle")
 	_segurar()
+	_aplicar_acabamento()
+
+
+## Os índices de ACABAMENTOS que já são do jogador ("livre" ausente ou true; a
+## G06 soma a coleção).
+static func acabamentos_disponiveis() -> Array:
+	var v: Array = []
+	for i in ACABAMENTOS.size():
+		if bool(ACABAMENTOS[i].get("livre", true)):
+			v.append(i)
+	return v
+
+
+## O que se guarda do cavaleiro (Opcoes.cavaleiro e o registro): o boneco, o
+## item (pelo id), o nome e o acabamento.
+func cavaleiro() -> Dictionary:
+	return {"boneco": modelo_i, "item": ITENS[item_i].id, "nome": nome, "acabamento": acabamento_i}
+
+
+## O inverso de cavaleiro(): acha o item pelo id e veste o corpo.
+func vestir(c: Dictionary) -> void:
+	var item := 0
+	for i in ITENS.size():
+		if ITENS[i].id == str(c.get("item", "")):
+			item = i
+	nome = str(c.get("nome", ""))
+	acabamento_i = clampi(int(c.get("acabamento", 0)), 0, ACABAMENTOS.size() - 1)
+	visual(int(c.get("boneco", 0)), item)
+
+
+## O acabamento nos materiais do corpo: só a rugosidade e o metal, nunca o
+## albedo. A G08 escreve o mesmo nos ShaderMaterial de _mats_corpo.
+func _aplicar_acabamento() -> void:
+	var a: Dictionary = ACABAMENTOS[clampi(acabamento_i, 0, ACABAMENTOS.size() - 1)]
+	for par in _roupas:
+		var m: StandardMaterial3D = par[0]
+		m.roughness = float(a.rugoso)
+		m.metallic = float(a.metal)
 
 
 func descricao_do_visual() -> String:

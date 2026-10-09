@@ -756,3 +756,40 @@ No [quadro](README.md), G02 **feito** com o commit e o gasto. Commit sugerido
 ```
 feat: a construção do cavaleiro, com a coluna de cada lugar e as oito marteladas que calibram
 ```
+
+## O que foi feito (leva 1, o-cavaleiro)
+
+- **A coluna de cada lugar** (`ui/cartao_jogador.gd`, reescrito; `ui/tela_lobby.gd`, reescrito): 432 px por lugar, a placa em cima (P#, o
+  nome do cavaleiro, as lâmpadas, «Forjado» ou «Guardado»), o cavaleiro em 3D no meio e embaixo as três linhas (Boneco, Arma, Nome) e os
+  oito quadrados. A linha escolhida leva a moldura `SEL` na cor do lugar; as outras, fundo `APP` a 0,78 com borda `SUTIL`, para ler sobre a
+  cena. Lugar vazio mostra «Entrar» (e «Segure para trocar» se está reservado, para não perder o quadrado da F04); lugar sem controle,
+  tracejado laranja e «Sem controle». Cabeçalho «Quem joga», logo e «N controles» do lobby antigo saíram: colidiriam com as placas.
+- **Como se joga:** ▲▼ troca a linha, ◀▶ troca o valor só do próprio lugar, △ sorteia boneco, item e um nome livre, ✕ começa a forja,
+  oito marteladas na batida (✕), ○ cancela a forja ou, numa linha de baixo, volta à primeira. Os quatro sentados e prontos dão a contagem
+  de 1,6 s para o salão. O ✕ que confirmou o lugar não conta como primeira martelada (`_entrou_agora`).
+- **A calibração:** a mediana dos oito desvios vai para `Ritmo.definir_desvio(l, d, "construcao", 8)` (que grava `Opcoes.tempo_ms` e a
+  linha `calibracao` da linha do tempo) e o cavaleiro é guardado em `Opcoes.cavaleiro[l]` com `Opcoes.noite_dos_cavaleiros`. A construção
+  roda na faixa `MUS_TELA_CONSTRUCAO` (120 BPM); fora do lobby o `Ritmo` para e os gatilhos se soltam.
+- **O cavaleiro como dado** (`player.gd`, `opcoes.gd`): `ITENS` de sete (o 0 de mãos livres), `VISUAL_DO_LUGAR`, `ACABAMENTOS` (só
+  rugosidade e metal, nunca a cor; o metal não passa de 0,2), `nome`, `cavaleiro()` e `vestir()` inversos, `Opcoes.noite()` (a data de seis
+  horas atrás). Os seis ícones de item no `glifo.gd`. A bigorna de cada lugar no salão (`acender_bigorna`, cai a 0,8 em 0,3 s).
+- **O som e a mão:** `ui_peca` (com −5 semitons na arma), `ui_confirma`, `ui_volta` e `fx_caneta` entram em `godot/assets/sons/` e no mapa
+  como «no jogo»; a sensação nova «metal» (0/0,45/40) em `Forja.SENSACOES`. Na oitava martelada: o `perfeito` na mão e o pio no
+  alto-falante do dono. O lobby agora acha o alto-falante de cada controle a cada lugar que se ocupa (`_achar_os_alto_falantes`) e o solta
+  ao sair (antes só o título fazia isso, e o pio da oitava não saía).
+- **O robô** (`main.gd _robo`, `TelaLobby.robo`): ✕ no lugar reservado, ✕ para forjar e as oito marteladas na batida, o lugar `l`
+  atrasado `l × 33 ms` e de vez em quando 120 ms fora (a mediana absorve). Só aperta botões.
+- **Desvios da ficha, todos pequenos:** o rótulo da linha 3 escreve «Arma» (`ROTULO_CURTO`; «Arma ou amuleto» mede 243 px e o espaço é de 124);
+  o tique da batida só soa com algum lugar forjando, mas o contador da batida atualiza sempre; o atalho de teclado que dava «pronto»
+  direto no lobby sem módulo foi retirado (pularia a forja, que anda igual com o relógio do sistema); `Opcoes.guardadas` (contador) existe
+  para a prova morder o `Opcoes.guardar()`.
+- **As provas** (`prova_do_jogo.gd`, `captura_jogo.gd`): visuais e nomes diferentes nos quatro; faixa e BPM; ◀▶ só no próprio lugar; ▼ para
+  na última linha; item entre os seis; Nome livre; △; ○; o cavaleiro de ida e volta pelo arquivo; o robô forja os quatro (laço por relógio
+  de parede, porque a batida segue a placa de som); `perfeito` e pio na oitava; as oito marteladas; o desvio nas Opções; a mediana; quem
+  volta ao lobby pela pausa acha o cavaleiro guardado, ✕ confirma e ○ refaz; no relatório, quatro linhas `calibracao` de origem
+  `construcao`. A banda do desvio do P1 e do P4 é larga (até 150 e 250 ms) porque, com a máquina carregada, um quadro leva dezenas de ms.
+
+### O que fica para a mão
+
+Está em «Para o André (local)» acima. Em especial: o cavaleiro acendendo a cada martelada e a bigorna brilhando (só com placa de vídeo),
+a coluna de 432 px nas pranchas, o pio e o tique saindo só no controle do dono e os quatro desvios no rádio contra o cabo.

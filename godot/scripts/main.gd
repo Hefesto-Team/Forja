@@ -130,6 +130,8 @@ func _interface() -> void:
 	$Interface.add_child(ui)
 	titulo = TelaTitulo.new()
 	lobby = TelaLobby.new()
+	lobby.jogadores = jogadores
+	lobby.salao = salao
 	hud = HudJogo.new()
 	painel = PainelSala.new()
 	resultado = TelaResultado.new()
@@ -223,14 +225,25 @@ func _todos_entram() -> void:
 
 func _mostrar(qual: String) -> void:
 	var antes := estado
+	var era_lobby := antes == "lobby"
 	estado = qual
 	if antes == "titulo" and qual != "titulo":
 		Forja.som_encerrar()  # o alto-falante dos controles era só do pio
+	if era_lobby and qual != "lobby":
+		Ritmo.parar()  # o salão não segue o relógio da construção
+		Forja.som_encerrar()  # o alto-falante dos controles era só do pio e do tique
+		for l in 4:
+			Forja.gatilhos_off(l)
 	if qual == "titulo":
 		_t_titulo = 0.0
 		_conectados_no_titulo = -1
 		titulo.play_desde = -1.0
 		_tocar_o_titulo()
+	elif qual == "lobby":
+		_toca_titulo = null
+		var m := Musica.mapa("MUS_TELA_CONSTRUCAO")
+		Ritmo.tocar("MUS_TELA_CONSTRUCAO", m.bpm, m.primeiro_tempo)
+		_conectados_no_titulo = -1  # o alto-falante de quem se senta é achado a cada quadro da construção
 	elif qual != "intro":
 		_toca_titulo = null
 		Musica.tocar(sala_id if qual == "sala" else qual)
@@ -247,6 +260,7 @@ func _mostrar(qual: String) -> void:
 			p.global_position = salao.pedestais[l]
 			p.rotation.y = 0.0
 		_sincronizar_jogadores()
+		lobby.abrir()
 
 
 func _sincronizar_jogadores() -> void:
@@ -631,9 +645,6 @@ func _process(dt: float) -> void:
 	_t += dt
 	if estado == "lobby":
 		_sincronizar_jogadores()
-		for l in 4:
-			lobby.pes[l] = camera.unproject_position(salao.pedestais[l])
-			lobby.visual[l] = [Desenho.maiusc(ForjaPlayer.NOME_DO_MODELO[jogadores[l].modelo_i]), Desenho.maiusc(ForjaPlayer.ITENS[jogadores[l].item_i].nome)]
 	if not _trocando:
 		if overlay != "":
 			_quadro_overlay()
@@ -797,14 +808,19 @@ func _focar_o_titulo(ligado: bool) -> void:
 
 ## O robô do fluxo (--robo): só aperta botões no controle simulado, como uma
 ## pessoa. Título: espera 3,0 s e aperta ✕ no primeiro lugar com controle.
-## Construção: a cada 0,6 s, ✕ em cada lugar com controle que ainda não está pronto.
-## A introdução ele não pula.
+## Construção: o robô do lobby (TelaLobby.robo) confirma o lugar, forja e martela
+## na batida, lugar a lugar, a cada quadro. A introdução ele não pula.
 func _robo(dt: float) -> void:
 	if _trocando or overlay != "" or not Forja.robo_confirma:
 		return
 	if estado != _robo_estado:
 		_robo_estado = estado
 		_robo_espera = 3.0 if estado == "titulo" else 0.6
+	if estado == "lobby":
+		# a construção: ✕ para forjar e as oito marteladas na batida, a cada quadro
+		for l in 4:
+			lobby.robo(l, dt)
+		return
 	_robo_espera -= dt
 	if _robo_espera > 0.0:
 		return
@@ -818,18 +834,15 @@ func _robo(dt: float) -> void:
 					Forja.robo_apertar(l, Forja.CRUZ)
 					_robo_espera = 3.0  # se o aperto se perder (temperamento), tenta de novo
 					return
-		"lobby":
-			_robo_espera = 0.6
-			for l in 4:
-				var lg := Forja.lugar(l)
-				if (bool(lg.get("conectado", false)) or bool(lg.get("reservado", false))) and not lobby.prontos[l]:
-					Forja.robo_apertar(l, Forja.CRUZ)
 
 
 var _quadrado_t := {}  ## pad → quanto tempo o ◻ está segurado (antes de confirmar o lugar)
 
 
 func _quadro_lobby(dt: float) -> void:
+	_achar_os_alto_falantes()
+	if _atalhos_de_overlay():
+		return
 	# ◻ segurado um segundo, antes de confirmar: a reserva passa ao próximo lugar livre
 	for p in Forja.pads():
 		var i := int(p.pad)
@@ -840,50 +853,26 @@ func _quadro_lobby(dt: float) -> void:
 		if float(_quadrado_t[i]) >= 1.0:
 			Forja.trocar_lugar(i)
 			_quadrado_t[i] = -INF  # só de novo depois de soltar
-	# quem ainda não tem lugar entra com ✕ (e esse ✕ não conta como pronto)
-	var chegou := [false, false, false, false]
+	# quem ainda não tem lugar entra com ✕ (e esse ✕ não é o da forja)
 	for p in Forja.pads():
 		if int(p.lugar) < 0 and Forja.pad_apertou(int(p.pad), Forja.CRUZ):
 			var l := Forja.entrar(int(p.pad))
 			if l >= 0:
-				chegou[l] = true
 				Forja.registrar("P%d entrou no lobby" % (l + 1))
-	# sem módulo, o teclado é o P1
-	if not Forja.modulo:
-		lobby.prontos[0] = lobby.prontos[0] or Forja.apertou(0, Forja.CRUZ)
+				_sincronizar_jogadores()
+				lobby.entrou(l)
+	var dx := [0, 0, 0, 0]
+	var dy := [0, 0, 0, 0]
 	for l in 4:
-		if not Forja.ocupado(l) or chegou[l]:
-			continue
-		# antes de ficar pronto, △ abre as opções do lugar
-		if not lobby.prontos[l] and Forja.apertou(l, Forja.TRIANGULO):
-			_abrir_overlay("opcoes", l)
-			return
-		# antes de ficar pronto, cada um escolhe o visual: ◀▶ o boneco, ▲▼ o que leva
-		if not lobby.prontos[l]:
-			var dx := _passo(l, false)
-			var dy := _passo(l, true)
-			if dx != 0 or dy != 0:
-				var p := jogadores[l]
-				p.visual(p.modelo_i + dx, p.item_i + dy)
-				p.gesto("interact-right", 0.5)
-				Forja.sentir(l, "toque")
-		if Forja.apertou(l, Forja.CRUZ) and not lobby.prontos[l]:
-			lobby.prontos[l] = true
-			jogadores[l].gesto("emote-yes", 1.2)
-			Forja.sentir(l, "acerto")
-			Forja.evento("visual", l + 1, {"boneco": ForjaPlayer.NOME_DO_MODELO[jogadores[l].modelo_i],
-				"leva": ForjaPlayer.ITENS[jogadores[l].item_i].nome})
-		elif Forja.apertou(l, Forja.CIRCULO):
-			if lobby.prontos[l]:
-				lobby.prontos[l] = false
-			else:
-				Forja.sair(l)
-				Forja.registrar("P%d saiu do lobby" % (l + 1))
+		dx[l] = _passo(l, false)
+		dy[l] = _passo(l, true)
+	lobby.quadro(dt, dx, dy)
 	_sincronizar_jogadores()
+	# a partida começa 1,6 s depois de todo lugar ocupado e com controle estar forjado
 	var ocupados := 0
 	var prontos := 0
 	for l in 4:
-		if Forja.ocupado(l):
+		if Forja.ocupado(l) and bool(Forja.lugar(l).get("conectado", false)):
 			ocupados += 1
 			if lobby.prontos[l]:
 				prontos += 1

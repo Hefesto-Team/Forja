@@ -69,10 +69,15 @@ func _roteiro_das_telas() -> Array:
 		["aperta", 0, Forja.CRUZ], ["espera", 60], ["foto", "play"],
 		["ate", func() -> bool: return jogo.estado == "intro" and jogo.intro.t >= 9.5], ["foto", "introducao"],
 		["ate", func() -> bool: return jogo.estado == "intro" and jogo.intro.t >= 18.0], ["foto", "introducao_armaduras"],
-		["aperta", 0, Forja.CRUZ], ["espera", 40],
-		["aperta", 0, Forja.CRUZ], ["aperta", 1, Forja.CRUZ], ["aperta", 2, Forja.CRUZ], ["espera", 40],
-		["aperta", 0, Forja.CRUZ], ["aperta", 1, Forja.DIREITA], ["aperta", 2, Forja.CIMA], ["espera", 50], ["foto", "lobby"],
-		["aperta", 1, Forja.CRUZ], ["aperta", 2, Forja.CRUZ], ["espera", 150], ["foto", "salao"],
+		["aperta", 0, Forja.CRUZ], ["espera", 40],   # o ✕ que pula a introdução
+		# a construção: o P1 já se sentou no título; ✕ do P2 e do P3 dão o lugar a eles
+		["aperta", 1, Forja.CRUZ], ["aperta", 2, Forja.CRUZ], ["espera", 40],
+		["aperta", 1, Forja.DIREITA], ["aperta", 2, Forja.BAIXO],
+		["espera", 30], ["foto", "construcao"],
+		["aperta", 0, Forja.CRUZ], ["espera", 30], ["aperta", 0, Forja.CRUZ], ["espera", 30], ["aperta", 0, Forja.CRUZ], ["espera", 30],
+		["foto", "construcao_forjar"],
+		["ate_pronto", 0], ["ate_pronto", 1], ["ate_pronto", 2],
+		["espera", 150], ["foto", "salao"],
 		["posiciona", 0, Vector3(2.0, 0.05, -6.0), PI], ["posiciona", 1, Vector3(-2.6, 0.05, 2.4), PI * 0.8],
 		["posiciona", 2, Vector3(4.8, 0.05, 1.0), PI * 1.2],
 		["anda", 0, Vector2(0.0, -0.5), 12], ["espera", 40], ["foto", "salao_portao"],
@@ -265,9 +270,11 @@ func _roteiro_dos_extras() -> Array:
 		["aperta", 0, Forja.TRIANGULO], ["espera", 70], ["foto", "creditos"],
 		["aperta", 0, Forja.CIRCULO], ["espera", 20],
 		["aperta", 0, Forja.CRUZ], ["ate", func() -> bool: return jogo.estado == "intro" and jogo.intro.t > 1.0], ["aperta", 0, Forja.CRUZ], ["espera", 40],  # o PLAY, e o ✕ que pula a introdução
-		["aperta", 0, Forja.CRUZ], ["aperta", 1, Forja.CRUZ], ["espera", 30],
+		["aperta", 1, Forja.CRUZ], ["espera", 30],
 		["foto", "lobby"],
-		["aperta", 1, Forja.TRIANGULO], ["espera", 10], ["aperta", 1, Forja.BAIXO], ["espera", 6],
+		# a pausa do lobby é Continuar, Opções, Voltar ao lobby, Sair: ▼ e ✕ abrem as opções
+		["aperta", 1, Forja.OPTIONS], ["espera", 10], ["aperta", 1, Forja.BAIXO], ["espera", 6], ["aperta", 1, Forja.CRUZ], ["espera", 10],
+		["aperta", 1, Forja.BAIXO], ["espera", 6],
 		["aperta", 1, Forja.ESQUERDA], ["espera", 20], ["foto", "opcoes"], ["fim"],
 	]
 
@@ -322,6 +329,17 @@ func _rodar() -> void:
 				print("foto: ", p[1], " (quadro ", q, ")")
 				if _rapido:
 					_janela(false)
+			"ate_pronto":
+				# sem robô: ✕ no simulado até o lugar forjar (fora do tempo também conta)
+				var n := 0
+				while not jogo.lobby.prontos[p[1]] and n < 40:
+					Forja.ctl.simulador_botao(p[1], Forja.CRUZ, true)
+					for i in 3:
+						await get_tree().process_frame
+					Forja.ctl.simulador_botao(p[1], Forja.CRUZ, false)
+					for i in 17:
+						await get_tree().process_frame
+					n += 1
 			"ate":
 				var cond: Callable = p[1]
 				var n := 0
