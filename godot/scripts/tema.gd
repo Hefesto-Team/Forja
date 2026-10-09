@@ -52,6 +52,25 @@ const PELE_LATAO := Color("#bda978")
 const PELE_ESCORIA := Color("#a3958e")
 const PELE_RAPOSA := Color("#cd8d6d")
 
+const PERGUNTA := [Color("#00c853"), Color("#1f3dff"), Color("#ab45ff"), Color("#ffffff")]
+const LANTERNA_NEUTRA := Color("#8c8c99")
+const ALARME := Color("#ff0000")
+const EQUIPE := [Color("#ff4500"), Color("#0059ff")]
+const AR := {
+	"centelha": Color("#ff9a52"), "caminhos": Color("#7ff0b0"), "canto": Color("#b88cff"),
+	"galeria": Color("#c28bff"), "impacto": Color("#6fa8ff"), "molde": Color("#f1c86a"),
+	"prova": Color("#ffb86c"), "viga": Color("#ff6a3d"), "voz": Color("#7fe8ff"),
+}
+const BRONZE := Color("#b07838")
+const BRONZE_CLARO := Color("#c08a42")
+const METAL_FRIO := Color("#5a1a08")
+const METAL_QUENTE := Color("#ff7a2a")
+const METAL_NO_PONTO := Color("#ff9a3a")
+const OURO := Color("#ffd479")
+const FAISCA := Color("#ff9a50")
+const RACHA := Color("#ffb040")
+const BONECO_DE_TREINO := Color("#b9a98a")
+
 const T_VERBO := 160
 const T_DISPLAY := 112
 const T_TITULO := 64

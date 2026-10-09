@@ -51,7 +51,7 @@ func _init() -> void:
 func montar() -> void:
 	n_alvos = N_ALVOS + variante
 	Kit.arena(self, 5, 3)
-	atmosfera(Color("#c28bff"), Tema.VIOLETA, false, 50)
+	atmosfera(Tema.AR["galeria"], Tema.VIOLETA, false, 50)
 	luzes([Vector3(-9, 2.6, -5), Vector3(9, 2.6, -5), Vector3(0, 3.0, 5)])
 	for p in jogadores:
 		var l: int = p.lugar

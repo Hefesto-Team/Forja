@@ -42,7 +42,7 @@ func montar() -> void:
 	camera_pos = Vector3(0, 7.2, 12.4)
 	camera_olhar = Vector3(0, 1.2, -0.2)
 	Kit.arena(self, 5, 3)
-	atmosfera(Color("#ff9a52"), Tema.VIOLETA, true, 60)
+	atmosfera(Tema.AR["centelha"], Tema.VIOLETA, true, 60)
 	luzes([Vector3(-9, 2.5, -4), Vector3(9, 2.5, -4), Vector3(0, 3.0, 4)])
 	for p in jogadores:
 		var l: int = p.lugar

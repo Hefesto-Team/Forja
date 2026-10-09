@@ -28,14 +28,14 @@ const METAL_X := 3.0
 const AGUA_Z := 0.9
 const CASCALHO := 1.7
 const CORES := [
-	{"nome": "âmbar", "cor": Color(1.0, 0.59, 0.0)},
-	{"nome": "ciano", "cor": Color(0.0, 0.82, 1.0)},
-	{"nome": "violeta", "cor": Color(0.67, 0.27, 1.0)},
-	{"nome": "branco", "cor": Color(1.0, 1.0, 1.0)},
+	{"nome": "verde", "cor": Tema.PERGUNTA[0]},
+	{"nome": "azul", "cor": Tema.PERGUNTA[1]},
+	{"nome": "violeta", "cor": Tema.PERGUNTA[2]},
+	{"nome": "branco", "cor": Tema.PERGUNTA[3]},
 ]
-const COR_PARECIDA := [0, 1]
+const COR_PARECIDA := [-1, 1]
 const NOME_EQUIPE := ["Brasa", "Maré"]
-const LUZ_EQUIPE := [Color(1.0, 0.27, 0.0), Color(0.0, 0.35, 1.0)]
+const LUZ_EQUIPE := Tema.EQUIPE
 const BOTAO := [F.CRUZ, F.CIRCULO, F.QUADRADO, F.TRIANGULO]
 const GLIFO := ["cross", "circle", "square", "triangle"]
 const COR_CHAO := [Tema.SECAO[2], Tema.OXIDO_BRILHO, Tema.MUDO, Tema.SECAO[1]]
@@ -80,7 +80,7 @@ func alvos_da_camera() -> Array:
 func montar() -> void:
 	pilares = PILARES_CATAVENTO if variante == 1 else PILARES
 	Kit.arena(self, 6, 4)
-	atmosfera(Color("#ffb86c"), Tema.TUNGSTENIO, true, 40, 24.0, -9.8)
+	atmosfera(Tema.AR["prova"], Tema.TUNGSTENIO, true, 40, 24.0, -9.8)
 	Efeitos.poeira(self, Vector3(0, 1.8, 0), Vector3(24, 3.5, 9), Tema.VIOLETA, 30)
 	luzes([Vector3(-10, 3.0, -6), Vector3(10, 3.0, -6), Vector3(-10, 3.0, 6), Vector3(10, 3.0, 6)])
 	_montar_chao()
@@ -152,7 +152,7 @@ func _montar_lutadores() -> void:
 		var modelo: Node3D = load(Kit.caminho("mini-dungeon-personagens/character-orc")).instantiate()
 		modelo.scale = Vector3.ONE * ForjaPlayer.ESCALA
 		add_child(modelo)
-		_tingir(modelo, Color("#b9a98a"))
+		_tingir(modelo, Tema.BONECO_DE_TREINO)
 		e.no = modelo
 		e.anim = modelo.find_child("AnimationPlayer", true, false)
 		lut.append(e)
@@ -224,7 +224,7 @@ func _atualizar_luz(e: Dictionary, dt: float) -> void:
 		k = 0.3
 	elif float(e.luz_pisca) > 0.0:
 		estado = 11
-		c = Color(1, 0, 0)
+		c = Tema.ALARME
 	elif int(e.vida) <= 1:
 		var fase_p := int(float(e.pulso_t) * 4.0) % 2
 		estado = 20 + fase_p
@@ -484,7 +484,7 @@ func _mover_tiros(dt: float) -> void:
 			for c in pilares:
 				if Vector2(t.pos.x - c.x, t.pos.z - c.z).length() < RAIO_PILAR:
 					vivo = false
-					Efeitos.faiscas(self, t.pos, Color("#ff9a50"), 6, 0.5)
+					Efeitos.faiscas(self, t.pos, Tema.FAISCA, 6, 0.5)
 					break
 		if vivo:
 			for o in lut:

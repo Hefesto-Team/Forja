@@ -48,7 +48,7 @@ func _init() -> void:
 
 func montar() -> void:
 	Kit.arena(self, 5, 3)
-	atmosfera(Color("#7ff0b0"), Tema.VIOLETA, false, 30, 22.0, -7.8, 0.08)
+	atmosfera(Tema.AR["caminhos"], Tema.VIOLETA, false, 30, 22.0, -7.8, 0.08)
 	var frio := OmniLight3D.new()
 	frio.position = Vector3(0, 9.0, 5.0)
 	frio.light_energy = 0.3
