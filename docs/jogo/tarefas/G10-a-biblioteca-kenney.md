@@ -273,3 +273,10 @@ Marcar G10 como **feito** no [quadro](README.md), com o gasto. Commit sugerido:
 
 - Abrir `docs/imagens/kenney/corpos.jpg` e `corpos_silhueta.jpg`: o orc se separa dos 12 pela cabeça, e os monstros se leem como monstros.
 - Anotar no diário qualquer malha que pareça de outro jogo.
+
+### A conferência (leva 1, o-cavaleiro)
+
+- **Corrigido:** o pacote de um modelo só (o Cube Pets) dizia «1 modelos» no `LEIA-ME.md`; o script escreve o singular.
+- **Visto:** numa árvore já aberta antes da mudança, o Godot avisa «invalid UID» do `colormap.png` ao ler as peças (a importação velha guardou outro
+  id). Num checkout limpo, importado do zero, as peças do Mini Dungeon, o orc, a porta do Castle Kit e a raposa carregam sem aviso.
+- Ficam como estão: `MALHA_DO_ITEM` não passa por `Kit.caminho` (é `const`), e o fator do Castle Kit em 1,4 é para ela ver na prancha.

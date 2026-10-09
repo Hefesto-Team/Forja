@@ -603,3 +603,13 @@ feat: o salão conta a noite, com o portão que acende, o contador, a vitrine e 
 - A prancha do salão ao lado de `02_salao.jpg` com placa de vídeo e sem `--fixed-fps` (o tungstênio contra o violeta, a vitrine, os chips).
 - Parar perto de um portão: a dica acompanha a cabeça e o ✕ soa na mão; fechar e abrir na mesma noite (a vitrine continua); apagar o
   `colecao.cfg` (a coleção volta vazia).
+
+### A conferência (leva 1, o-cavaleiro)
+
+- **Corrigido:** o troféu de coop e o som da cruz traziam avisos novos nos portões de arte e de som (cor literal, `JOGADOR[0]` por índice fixo,
+  id de som lido de variável); saíram, e os avisos voltaram aos da base. A ponta da dica presa vai de 40 a 72 px do topo, como a ficha manda
+  (ia de 56 a 88).
+- **A prova do som da cruz** chamava a função direto; agora aperta a cruz pelo controle simulado no portão aberto, confere que o alto-falante do
+  P1 estava calado antes e soa depois, que a sala abre, e volta ao salão. A dica precisa dizer «Tocar a faixa».
+- **O «Pronto quando» não fecha inteiro:** a prova visual não passa pelo salão depois da partida, e a prancha do salão ao lado de
+  `02_salao.jpg` não existe. A lente de 35 mm é da G05.

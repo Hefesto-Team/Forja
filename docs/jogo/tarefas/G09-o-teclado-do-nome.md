@@ -287,3 +287,15 @@ Marcar G09 como **feito** no [quadro](README.md), com o gasto. Commit sugerido:
 - Quatro pessoas escrevendo ao mesmo tempo, com os controles de verdade: acento, tempo de cada um, se 0,12 s entre apertos do robô reflete uma pessoa.
 - A prancha de quatro teclados em 1,0x e 1,15x, em português e inglês, não foi automatizada na prova visual; a prova visual mostra o robô
   escrevendo na montagem e as larguras são medidas no `prova_do_jogo`.
+
+### A conferência (leva 1, o-cavaleiro)
+
+- **Corrigido:** o robô travava a montagem se dois lugares sorteassem o mesmo nome (o Pronto apagava e ele ficava esperando); agora sorteia
+  de novo. A prova confere os quatro nomes do evento «cavaleiro», todos diferentes, e não só os dois primeiros.
+- **A medida de agora:** o robô espera 0,12 s entre apertos e a montagem fecha entre 52 e 56 s de jogo (a medida de 84 s acima era com 0,16 s).
+- **A prova falhava com a máquina carregada:** a repetição do direcional anda em ms de parede, e um aperto de dois quadros passou de 0,40 s;
+  a seta repetiu, o «Ed» virou «Ec» e o resto do teclado caiu em cascata. A `tela_lobby.gd` ganhou `relogio_do_teclado` (o de parede, como a
+  ficha manda), e a prova do teclado o troca pelo relógio do jogo. Com quem joga nada muda.
+- **O «Pronto quando» não fecha inteiro:** o triângulo não sorteia do arquétipo (a G13), o nome não aparece na etiqueta, no HUD nem no resultado
+  (a G04 e a G13), e a prancha dos quatro teclados em 1,0x e 1,15x, em português e inglês, não existe. A prova visual não mostra o teclado.
+- **A validar por ela:** o Pronto apagado sob o cursor usa `CASCO_ALTO`, e a ficha diz `CASCO`.
