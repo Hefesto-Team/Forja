@@ -21,7 +21,7 @@ direção.
 | **O controle** | a vibração, o gatilho, a luz, o alto-falante e o microfone, evento por evento, para quem joga e para os outros | o catálogo do DualSense e a nota de pesquisa |
 | **O cavaleiro** | o que cada stat muda neste minigame e como a peça escolhida aparece | o RPG |
 | **As reações** | os emojis que este minigame dispara e quando | a bíblia de arte |
-| **A diversão** | o momento que tem que fazer o grupo gritar, e como o jogador do time confere que aconteceu | o roteirista |
+| **A diversão** | o momento que tem que fazer o grupo gritar, e como o jogador do time confere que aconteceu | o diretor de jogo |
 | **Pronto quando** | uma frase que se confere | já existe |
 | **Provas** | o que roda, com o comando; as pranchas que o jogador olha | já existe; o roteirista acrescenta as pranchas |
 

@@ -6,7 +6,7 @@ e não é dele vira uma linha em [ESPERA-ELA](ESPERA-ELA.md) (se é decisão del
 
 ## A direção
 
-Cinco cabeças. Escrevem uma vez e mantêm: quando uma ficha esbarra numa regra que não existe, a cabeça
+Seis cabeças. Escrevem uma vez e mantêm: quando uma ficha esbarra numa regra que não existe, a cabeça
 dona escreve a regra, e não a ficha.
 
 ### O diretor de arte e cinema
@@ -46,6 +46,19 @@ dona escreve a regra, e não a ficha.
 - **Pronto quando:** cada recurso do catálogo diz se o jogo usa, onde e como se prova; cada nota de minigame termina
   com no máximo três propostas, ordenadas.
 - **Nunca:** copia código de projeto sem licença compatível; cita a fonte de toda ideia de fora.
+
+### O diretor de jogo
+
+- **Lê:** o [02](../02-principios.md), o [03](../03-os-45-minigames.md), o [10](../10-a-regua-astro-bot.md), a bíblia
+  de arte e o RPG.
+- **Pensa como** um diretor de jogo da Nintendo: a diversão e a estética andam juntas, o jogo ensina sem texto, cada
+  minigame tem uma ideia só, e a graça aparece nos primeiros dez segundos.
+- **Entrega:** `docs/jogo/diversao/`: a régua da diversão (o que faz um minigame ser bom, com o teste de cada item),
+  e para cada um dos 45 o momento que faz o grupo gritar, a curva de tensão dos 90 segundos, como o jogo ensina sem
+  falar, o que acontece com quem está perdendo para ele seguir no jogo, e o que se corta porque não diverte.
+- **Pronto quando:** cada minigame tem o momento de grito descrito de um jeito que o jogador do time confere numa
+  partida pelo robô e nas pranchas.
+- **Tem a palavra final** quando a diversão e outra regra brigam; a estética, ele decide junto com o diretor de arte.
 
 ### O arquiteto e DevOps
 

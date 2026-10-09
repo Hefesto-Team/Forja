@@ -10,7 +10,7 @@ Vale para quem chega: a Vitória, o André e a Amanda usam o mesmo time e as mes
 
 | etapa | o que acontece | quem |
 | --- | --- | --- |
-| **1. A direção** | a bíblia de arte, cinema e som; o RPG; o catálogo do DualSense; os módulos e os portões | as cinco cabeças ([papéis](papeis.md#a-direção)) |
+| **1. A direção** | a bíblia de arte, cinema e som; a régua da diversão; o RPG; o catálogo do DualSense; os módulos e os portões | as seis cabeças ([papéis](papeis.md#a-direção)) |
 | **2. O enriquecimento** | cada ficha aberta ganha arte, som, háptica, a mágica do controle e o critério de diversão, até uma sessão nova fazer sem perguntar | o roteirista e o revisor de prontidão ([papéis](papeis.md#o-enriquecimento)) |
 | **3. A execução** | a ficha pronta vira código, conferido e jogado | o implementador, o conferente, o jogador e a costura ([papéis](papeis.md#a-execução)) |
 
@@ -25,7 +25,8 @@ A régua que separa a etapa 2 da 3 está em [A ficha pronta](ficha-pronta.md). O
    - o DevOps: a varredura, os módulos importáveis, os portões (os de arte inclusive) e a esteira;
    - a direção de arte, cinema e som (o conjunto a-alma, retomado);
    - a pesquisa: o catálogo do DualSense e uma nota de pesquisa para cada um dos 45 minigames;
-   - o designer de sistemas: o RPG.
+   - o designer de sistemas: o RPG;
+   - o diretor de jogo: a régua da diversão e o momento de grito de cada um dos 45.
 2. **A Vitória aprova a direção.** É a única parada obrigatória antes do enriquecimento.
 3. **O enriquecimento, seção por seção:** G (as telas) primeiro, depois I, J, K, L, M, N, O, P, Q e R.
 4. **A execução começa sozinha** em cada seção assim que o revisor aprova todas as fichas dela.
