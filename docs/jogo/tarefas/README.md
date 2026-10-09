@@ -173,12 +173,12 @@ que está escrito em dois lugares. São base: vão de **a fazer** direto para **
 
 | ficha | título | tamanho | depende de | estado |
 | --- | --- | --- | --- | --- |
-| [V01](V01-a-engine-conferida.md) | A engine conferida, num passo só | P | — | a fazer |
+| [V01](V01-a-engine-conferida.md) | A engine conferida, num passo só | P | — | feito |
 | [V02](V02-a-prova-do-jogo-em-partes.md) | A prova do jogo em partes | G | F08, F09 | a fazer |
 | [V03](V03-o-texto-de-tela-inteiro.md) | O texto de tela inteiro, e a tabela em partes | G | F07, F08 | a fazer |
 | [V04](V04-as-secoes-num-lugar-so.md) | As seções num lugar só | M | H04, H08, F09 | a fazer |
 | [V05](V05-o-som-pelo-mapa.md) | O Som pelo mapa do áudio | M | H06, H07, o mapa do áudio publicado | a fazer |
-| [V06](V06-as-provas-que-ninguem-roda.md) | As provas que ninguém roda | P | — | a fazer |
+| [V06](V06-as-provas-que-ninguem-roda.md) | As provas que ninguém roda | P | — | feito |
 | [V07](V07-o-codigo-sem-uso.md) | O código sem uso | P | F05, F10 | a fazer |
 | [V08](V08-os-portoes-de-arte-e-som-reprovam.md) | Os portões de arte e som reprovam | M | a bíblia aprovada (o ESPERA-ELA), a G14, V05, o mapa do áudio com os arquivos | a fazer |
 
@@ -233,7 +233,7 @@ São base: vão de **a fazer** direto para **em voo**, um trilho por grupo, na o
 | [WU03](WU03-a-regra-do-udev-que-cobre-e-avisa.md) | A regra do udev que cobre todo DualSense, e a falta dita | M | — | a fazer |
 | [WU08](WU08-o-pacote-ensina-o-que-falta.md) | O pacote ensina o que falta | P | WU03 | a fazer |
 | [WE04](WE04-o-ci-local-com-casa-propria.md) | O CI local com casa própria | M | — | a fazer |
-| [WE05](WE05-o-godot-baixado-num-lugar-so.md) | O Godot baixado num lugar só, também em casa | P | V01 | a fazer |
+| [WE05](WE05-o-godot-baixado-num-lugar-so.md) | O Godot baixado num lugar só, também em casa | P | V01 (feita) | a fazer |
 | [WE03](WE03-o-gauntlet-no-ci.md) | O gauntlet no CI | M | WE01 | a fazer |
 
 **o-som-do-controle**: o som, a háptica e o microfone no controle certo, também no Windows (todas mexem em som_controle.c e achar_som.c: em sequência).
