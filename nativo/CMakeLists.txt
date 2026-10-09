@@ -64,6 +64,7 @@ add_library(forja_nucleo STATIC
   nucleo/taxa.c
   nucleo/texto_buf.c
   nucleo/utf8.c
+  som/rampa.c
   som/sintese.c
 )
 target_include_directories(forja_nucleo PUBLIC nucleo som)

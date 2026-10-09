@@ -5,6 +5,7 @@
 #include "cegas.h"
 #include "chao.h"
 #include "medidas.h"
+#include "rampa.h"
 #include "sintese.h"
 
 #include <math.h>
@@ -195,4 +196,31 @@ void provas_som(void) {
   v = cega_led_mic_veredito(&led, true);
   espera(v.resultado == RES_FALHOU && strstr(v.obs, "luz do microfone") != NULL, "duas erradas: falhou");
   espera(cega_led_mic_decidida(&led), "e está decidido");
+
+  /* ---- o pio de cada boneco (H07) ---- */
+  for (int k = 0; k < 12; k++) {
+    Onda p = {0};
+    espera(sint_pio(&p, 523.25f * powf(2.0f, k / 12.0f), k % 2, 40u + (uint32_t)k) == 0 && p.n > 0, "o pio sintetiza");
+    espera(onda_pico(&p) > 0.5f && onda_pico(&p) <= 0.81f, "o pio soa, sem estourar");
+    onda_liberar(&p);
+  }
+  /* ---- a háptica por material (H07) ---- */
+  for (int m = 0; m < MATERIAL_TOTAL; m++) {
+    Onda h = {0};
+    espera(sint_material(&h, (MaterialHaptico)m, 5) == 0 && h.n > 0, "o material sintetiza");
+    espera(onda_pico(&h) > 0.3f && onda_pico(&h) <= 0.951f, "o material se sente, sem estourar");
+    espera(material_por_nome(material_nome((MaterialHaptico)m)) == m, "o nome do material volta");
+    onda_liberar(&h);
+  }
+  espera(material_por_nome("plasma") == MATERIAL_LAMA && material_por_nome("vidro") == -1, "plasma é lama; vidro não existe");
+  /* ---- as rampas (H07) ---- */
+  float passo = rampa_passo(48000, RAMPA_SAIDA_MS);
+  float ganho = 1.0f;
+  int amostras = 0;
+  while (ganho > 0.0f && amostras < 100000) {
+    ganho = rampa_andar(ganho, 0.0f, passo);
+    amostras++;
+  }
+  espera(amostras >= 950 && amostras <= 970, "a rampa de saída leva 20 ms (960 amostras)");
+  espera(rampa_andar(0.5f, 1.0f, 0.7f) == 1.0f && rampa_andar(0.5f, 0.0f, 0.7f) == 0.0f, "a rampa não passa do alvo");
 }
