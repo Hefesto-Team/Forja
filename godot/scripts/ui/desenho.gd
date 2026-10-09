@@ -230,7 +230,7 @@ static func cabecalho(ci: CanvasItem, pos: Vector2, lado := 88.0) -> void:
 	ci.draw_texture_rect(LOGO, Rect2(pos, Vector2(lado, lado)), false)
 	var tam := maxi(int(lado * 0.36), Tema.LETRA_MINIMA)
 	texto(ci, pos + Vector2(lado + 18, lado * 0.46), "Hefesto", Tema.bungee(), tam, Tema.ETIQUETA)
-	texto(ci, pos + Vector2(lado + 18, lado * 0.46 + tam * 1.12), "Tech Demo", Tema.archivo(700), tam, Tema.ETIQUETA_SOMBRA)
+	texto(ci, pos + Vector2(lado + 18, lado * 0.46 + tam * 1.12), "Tech Demo", Tema.archivo(700), tam, Tema.ETIQUETA)
 
 
 ## Uma fileira de dicas "[glifo] palavra", da direita para a esquerda a partir de `fim`.

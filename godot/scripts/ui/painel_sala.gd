@@ -366,7 +366,6 @@ func _treino_e_valendo() -> void:
 		var placa := _rect_valendo()
 		var alfa_placa := 0.92 * clampf(alfa * 2.5, 0.0, 1.0)
 		Desenho.moldura(self, placa, Color(Tema.CASCO, alfa_placa), Color(Tema.GRAFITE, alfa_placa), 2, Tema.RAIO_QUADRO)
-		Desenho.texto(self, Vector2((size.x - w2) * 0.5 + 4, size.y * 0.42 + 4), s2, f2, tam, Color(Tema.FITA, 0.6 * alfa))
 		Desenho.texto(self, Vector2((size.x - w2) * 0.5, size.y * 0.42), s2, f2, tam, Color(Tema.ETIQUETA, alfa))
 
 

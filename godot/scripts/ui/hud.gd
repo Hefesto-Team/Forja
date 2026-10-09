@@ -57,7 +57,13 @@ func _draw() -> void:
 		draw_rect(Rect2(0, i * 7, w, 7), Color(Tema.FITA, 0.55 * (1.0 - i / 20.0)))
 
 	if sala.is_empty():
-		Desenho.cabecalho(self, Vector2(Tema.MARGEM_X, Tema.MARGEM_Y), 60.0)
+		# o cabeçalho na placa: o céu do salão é claro e «Tech Demo» sozinho passa raso do contraste
+		var lado := 60.0
+		var tam_c := maxi(int(lado * 0.36), Tema.LETRA_MINIMA)
+		var larg_c := lado + 18.0 + maxf(Desenho.largura("Hefesto", Tema.bungee(), tam_c), Desenho.largura("Tech Demo", Tema.archivo(700), tam_c))
+		Desenho.moldura(self, Rect2(Vector2(Tema.MARGEM_X - 20.0, Tema.MARGEM_Y - 16.0), Vector2(larg_c + 40.0, lado + 32.0)),
+			Color(Tema.CASCO, 0.9), Tema.GRAFITE, 2, 12)
+		Desenho.cabecalho(self, Vector2(Tema.MARGEM_X, Tema.MARGEM_Y), lado)
 	else:
 		# o nome e a ação num quadro: a arena é clara e o texto não pode sumir nela
 		var qd := quadro_da_sala(str(sala.get("nome", "")), str(sala.get("acao", "")), w)
