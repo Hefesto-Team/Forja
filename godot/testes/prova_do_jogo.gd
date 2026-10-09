@@ -3,6 +3,7 @@ extends Node
 var falhas := 0
 var jogo: Node
 var pasta := ""
+var slot_da_ficha := ""
 
 const SO_COM_PERGUNTA := {
 	"galeria": ["gatilho_resistencia", "gatilho_arma", "gatilho_vibracao", "leds_jogador"],
@@ -37,6 +38,8 @@ func _ready() -> void:
 	for a in OS.get_cmdline_user_args():
 		if a.begins_with("--relatorios="):
 			pasta = a.substr(13)
+		if a.begins_with("--ficha="):
+			slot_da_ficha = a.substr(8)
 	_prova_a_lista()
 	_prova_o_alto_falante_do_sistema()
 	await _prova_do_relogio()
@@ -50,6 +53,7 @@ func _ready() -> void:
 	jogo = load("res://scenes/main.tscn").instantiate()
 	add_child(jogo)
 	_prova_do_catalogo()
+	_prova_das_decisoes()
 	await _prova_do_percurso()
 	await _prova_do_motor_que_vence()
 	await _prova_do_aviso_sozinho()
@@ -76,7 +80,8 @@ func _ready() -> void:
 	_prova_do_conforto()
 	_prova_do_virar_pura()
 	await _prova_da_noite_da_fita()
-	await _calar_o_som_antes_de_sair()
+	if slot_da_ficha != "":
+		await _prova_da_ficha(slot_da_ficha)
 	if falhas > 0:
 		printerr("%d falha(s)" % falhas)
 		get_tree().quit(1)
@@ -489,6 +494,7 @@ func _prova_do_percurso() -> void:
 		for l in 2:
 			Itens.escolhido[l] = jogo.jogadores[l].item_i
 	await _prova_do_kit()
+	await _prova_do_tempo_de_musica()
 	Itens.escolhido[3] = Itens.NENHUM
 	await _joga_a_sala("viga", ["giroscopio", "acelerometro"])
 	Itens.escolhido[3] = jogo.jogadores[3].item_i
@@ -952,6 +958,8 @@ func _prova_do_relatorio() -> void:
 	var julgamentos := {}
 	var sem_vencedor: Array = []
 	var terminados := 0
+	var tipos_do_jogo := {}
+	var coop_fim := {}
 	for f in arquivos:
 		if not (f.begins_with("linha-do-tempo-") and f.ends_with(".jsonl")):
 			continue
@@ -962,16 +970,24 @@ func _prova_do_relatorio() -> void:
 				continue
 			if ev.get("tipo", "") == "toque" and ev.get("slot", "") == "T00_J00":
 				julgamentos[ev.get("julgamento", "?")] = true
+			if ev.get("slot", "") == "T00_J01" and ev.get("tipo", "") in Minigame.TIPOS_DO_JOGO:
+				tipos_do_jogo[ev.tipo] = true
+			if ev.get("tipo", "") == "minigame" and ev.get("evento", "") == "terminou" and ev.get("slot", "") == "T00_J01":
+				coop_fim = ev
 			if ev.get("tipo", "") == "minigame" and ev.get("evento", "") == "comecou":
 				comecou[str(ev.get("slot", ""))] = true
 			if ev.get("tipo", "") == "minigame" and ev.get("evento", "") == "terminou" and comecou.get(str(ev.get("slot", "")), false):
 				comecou.erase(str(ev.get("slot", "")))
 				terminados += 1
-				if int(ev.get("vencedor", -1)) < 0:
+				if int(ev.get("vencedor", -1)) < 0 and ev.get("genero", "") != "coop":
 					sem_vencedor.append(ev)
 	_esperar(julgamentos.has("perfeito") and julgamentos.has("otimo") and julgamentos.has("bom") and julgamentos.has("erro"),
 		"registro: os quatro julgamentos do minigame de prova (%s)" % [julgamentos.keys()])
 	_esperar(terminados >= 2 and sem_vencedor.is_empty(), "registro: %d minigames terminaram, todos com vencedor (%s)" % [terminados, sem_vencedor])
+	_esperar(tipos_do_jogo.size() == Minigame.TIPOS_DO_JOGO.size(),
+		"registro: os seis eventos do jogo, com o slot (%s)" % [tipos_do_jogo.keys()])
+	_esperar(int(coop_fim.get("vencedor", 0)) == -1 and coop_fim.get("genero", "") == "coop" and int(coop_fim.get("destaque", -1)) >= 0,
+		"registro: o coop terminou com vencedor -1 e destaque (%s)" % [coop_fim])
 	var julgado := {}
 	var perdido := {}
 	var ruins: Array = []
@@ -1168,8 +1184,9 @@ func _prova_da_partida() -> void:
 			await _quadros(2)
 			q += 2
 		_esperar(jogo.overlay == "placar" and jogo.partida.historico.size() == i + 1, "partida: o placar depois d%s" % Placar._contracao(sala.nome))
-		_esperar(not jogo.partida.historico.is_empty() and str(jogo.partida.historico[-1].sala) == ids[i],
-			"partida: o placar guarda a sala pelo apelido (%s)" % [jogo.partida.historico[-1].sala if not jogo.partida.historico.is_empty() else "-"])
+		_esperar(not jogo.partida.historico.is_empty() and str(jogo.partida.historico[-1].sala) == str(jogo.partida.salas[i])
+				and Catalogo.apelido(str(jogo.partida.historico[-1].sala)) == ids[i],
+			"partida: o placar guarda o slot da seção (%s)" % [jogo.partida.historico[-1].sala if not jogo.partida.historico.is_empty() else "-"])
 	var q := 0
 	while (jogo.estado != "podio" or jogo._trocando) and q < 900:
 		await _quadros(2)
@@ -1245,7 +1262,8 @@ func _prova_da_colecao_no_salao() -> void:
 	while jogo.estado != "sala" and q < 300:
 		await _quadros(1)
 		q += 1
-	_esperar(jogo.estado == "sala" and jogo.sala_id == "centelha", "o ✕ no portão aberto entra na sala (%s)" % jogo.estado)
+	_esperar(jogo.estado == "sala" and jogo.sala_id in Catalogo.secao("centelha").minigames,
+		"o ✕ no portão aberto entra no minigame da seção (%s, %s)" % [jogo.estado, jogo.sala_id])
 	q = 0
 	while jogo._trocando and q < 120:
 		await _quadros(1)
@@ -2585,11 +2603,11 @@ func _prova_da_noite_da_fita() -> void:
 	var pontos := [[10, 40, 30, 20], [0, 50, 10, 20], [5, 60, 0, 0]]
 	for i in 3:
 		var q := 0
-		while (not jogo.sala is SalaJogo or Catalogo.apelido(jogo.sala.id) != p.salas[i] or jogo._trocando) and q < 900:
+		while (not jogo.sala is SalaJogo or not _e_a_sala(jogo.sala, p.salas[i]) or jogo._trocando) and q < 900:
 			await _quadros(2)
 			q += 2
 		var sala = jogo.sala
-		if not sala is SalaJogo or Catalogo.apelido(sala.id) != p.salas[i]:
+		if not sala is SalaJogo or not _e_a_sala(sala, p.salas[i]):
 			_esperar(false, "noite: a faixa %d (%s) não abriu (estado %s, overlay %s, sala %s, trocando %s, t %s, pronto %s, robo %s, rodada %s)" % [i + 1, p.salas[i], jogo.estado, jogo.overlay, jogo.sala, jogo._trocando, jogo.placar._t, jogo.placar.pronto(), Forja.robo, jogo._robo_placar_rodada])
 			return
 		_esperar(is_equal_approx(jogo.env.fog_density, Tema.luz_da_secao(sala.numero(), false).densidade), "noite: a faixa %d acende no lado A" % (i + 1))
@@ -2899,26 +2917,237 @@ func _prova_da_camera_na_prova() -> void:
 	await _quadros(5)
 
 
-func _calar_o_som_antes_de_sair() -> void:
-	var pilha: Array[Node] = [get_tree().root]
-	while not pilha.is_empty():
-		var no: Node = pilha.pop_back()
-		if no is AudioStreamPlayer or no is AudioStreamPlayer2D or no is AudioStreamPlayer3D:
-			no.stop()
-		pilha.append_array(no.get_children())
-	for i in 20:
-		OS.delay_msec(10)
-		await get_tree().process_frame
+func _prova_das_decisoes() -> void:
+	var cinco := ["A", "B", "C", "D", "E"]
+	var o := Catalogo.ordem(cinco, "viga", 7)
+	var unicos := {}
+	for s in o:
+		unicos[s] = true
+	_esperar(unicos.size() == 5 and o == Catalogo.ordem(cinco, "viga", 7),
+		"sorteio: os cinco saem sem repetir, e a mesma semente dá a mesma ordem (%s)" % [o])
+	var outra := false
+	for semente in range(1, 20):
+		outra = outra or Catalogo.ordem(cinco, "viga", semente) != o
+	_esperar(outra, "sorteio: outra semente, outra ordem")
+	for s in Catalogo.SECOES:
+		var ms: Array = s.minigames
+		if ms.is_empty():
+			_esperar(Catalogo.sortear(s.apelido, 7, 3) == s.apelido, "sorteio: %s sem minigame abre a sala de hoje" % s.apelido)
+			continue
+		var saidos := {}
+		for vez in ms.size():
+			saidos[Catalogo.sortear(s.apelido, 7, vez)] = true
+		_esperar(saidos.size() == ms.size(), "sorteio: %s dá os %d sem repetir" % [s.apelido, ms.size()])
+		_esperar(Catalogo.sortear(s.apelido, 7, ms.size()) == Catalogo.sortear(s.apelido, 7, 0), "sorteio: %s, a volta segue a mesma ordem" % s.apelido)
+		var jogados := {}
+		for k in ms.size():
+			var p := Catalogo.proximo(s.apelido, 7, jogados)
+			_esperar(not jogados.has(p) and p in ms, "portão de %s: o %dº é um que ainda não saiu (%s)" % [s.apelido, k + 1, p])
+			jogados[p] = true
+	var ordem: Array = jogo.ORDEM_DO_FOGO
+	var p5 := Partida.nova(5, false, 7, ordem)
+	_esperar(p5.secoes == ["centelha", "impacto", "canto", "galeria", "prova"], "partida de 5: com O Canto (%s)" % [p5.secoes])
+	var casam := p5.salas.size() == 5
+	for i in p5.salas.size():
+		casam = casam and Catalogo.apelido(p5.salas[i]) == p5.secoes[i] and Catalogo.existe(p5.salas[i])
+	_esperar(casam, "partida: um slot por seção, e todos abrem (%s)" % [p5.salas])
+	_esperar(Partida.nome("centelha") == "A Centelha" and Partida.nome(Catalogo.resolver("centelha")) == Catalogo.titulo(Catalogo.resolver("centelha")),
+		"partida: o nome é o título do minigame, ou o da seção")
+	for parte in Minigame.ICONE_DA_PARTE:
+		_esperar(ResourceLoader.exists("res://assets/glifos/%s.png" % Minigame.ICONE_DA_PARTE[parte]), "ícone: «%s» vira um glifo que existe" % parte)
+	for slot in Catalogo.MINIGAMES:
+		var m: Minigame = Catalogo.MINIGAMES[slot].new()
+		_esperar(Desenho.glifo(m.icone) != null, "ícone: %s mostra «%s» no aviso" % [slot, m.icone])
+		m.free()
+	for torto in [["duracao", 200.0], ["duracao", 0.0], ["icone", "nenhum_glifo"], ["papel_som", 9]]:
+		var t: Minigame = load("res://testes/minigame_de_tempo.gd").new()
+		t.ficha = t.ficha.duplicate()
+		t.ficha[torto[0]] = torto[1]
+		if torto[0] == "icone":
+			t.icone = str(torto[1])
+		_esperar(not t.conferir_a_ficha(), "ficha: %s = %s é reprovada" % torto)
+		t.free()
+	var direita: Minigame = load("res://testes/minigame_de_tempo.gd").new()
+	_esperar(direita.conferir_a_ficha(), "ficha: a do minigame de tempo passa")
+	direita.free()
+	var escura := Forja.luz_com_piso(Color(0.1, 0.05, 0.0), Color.RED)
+	_esperar(is_equal_approx(maxf(escura.r, maxf(escura.g, escura.b)), Forja.PISO_DA_LUZ) and is_equal_approx(escura.g / escura.r, 0.5),
+		"luz: a cor escura clareia até o piso sem mudar o tom (%s)" % escura)
+	_esperar(Forja.luz_com_piso(Color.BLACK, Color(0.0, 0.5, 1.0)).is_equal_approx(Color(0.0, 0.15, 0.3)), "luz: a preta vira a cor do lugar no piso")
+	_esperar(Forja.luz_com_piso(Color(0.8, 0.2, 0.1), Color.RED).is_equal_approx(Color(0.8, 0.2, 0.1)), "luz: acima do piso, nada muda")
+	_esperar(Forja.SENSACOES.get("toque_esq", []) == [0.4, 0.0, 80] and Forja.SENSACOES.get("toque_dir", []) == [0.0, 0.4, 80],
+		"sensações: o toque leve de cada lado")
+	var mg: Minigame = load("res://testes/minigame_de_prova.gd").new()
+	var guardado: Array = Ritmo.simples.duplicate()
+	Ritmo.simples = [false, false, false, false]
+	_esperar(mg.proxima_batida(1, 4.0, 2.0, 0.5) == 4.5 and mg.proxima_batida(1, 4.5, 2.0, 0.5) == 6.5,
+		"hoqueto: a próxima vez do P2 vem depois, meio tempo deslocada")
+	_esperar(mg.proxima_batida(0, 0.0, 2.0) == float(Minigame.BATIDA_DA_PRIMEIRA_NOTA), "hoqueto: nunca antes da contagem de entrada")
+	Ritmo.simples[2] = true
+	_esperar(mg.proxima_batida(2, 4.0, 2.0, 1.0) == 5.0 and mg.proxima_batida(2, 5.0, 2.0, 1.0) == 9.0, "hoqueto: na partitura simples, o passo dobra")
+	Ritmo.simples = guardado
+	mg.montar_equipes([0, 1, 2, 3])
+	_esperar(mg.equipe == [0, 0, 1, 1] and mg.aprendizes == [0, 0], "equipes com quatro: P1 e P2 A Brasa, P3 e P4 A Maré")
+	mg.montar_equipes([0, 2, 3])
+	_esperar(mg.equipe == [0, -1, 0, 1] and mg.aprendizes == [0, 1], "equipes com três: o Aprendiz completa A Maré")
+	mg.montar_equipes([1])
+	_esperar(mg.equipe == [-1, 0, -1, -1] and mg.aprendizes == [1, 2], "equipes com um: um Aprendiz com ele, dois na Maré")
+	mg.montar_equipes([0, 1, 2, 3])
+	mg.ficha["genero"] = "2v2"
+	mg.marcar_equipe(Minigame.MARE, 5)
+	_esperar(mg.pontos == [0, 0, 5, 5] and mg.equipe_vencedora() == Minigame.MARE and mg.frase_do_resultado() == "A Maré venceu!",
+		"dupla: os pontos vão para os dois, e a tela diz a equipe (%s)" % [mg.pontos])
+	_esperar(int(mg.campos_do_fim().get("equipe", -9)) == Minigame.MARE, "dupla: o registro leva a equipe")
+	mg.ficha["genero"] = "coop"
+	mg.coop = true
+	mg.coop_venceu = false
+	_esperar(int(mg.campos_do_fim().get("vencedor", 0)) == -1 and mg.frase_do_resultado() == "A forja apagou.",
+		"coop: o vencedor é -1, e a tela diz que a forja apagou")
 
 
-static func _julgamento_basta(contagem: Array, esperado: int) -> bool:
-	var total := 0
-	for n in contagem:
-		total += int(n)
-	var certos := int(contagem[esperado])
-	if total == 0 or certos * 10 < total * 7:
-		return false
-	for i in contagem.size():
-		if i != esperado and int(contagem[i]) >= certos:
-			return false
-	return true
+func _joga_o_minigame(id: String, limite_s := 60.0, a_cada_quadro := Callable()) -> Minigame:
+	jogo._entrar_na_sala(id, false)
+	await _quadros(2)
+	var mg = jogo.sala
+	_esperar(mg is Minigame and mg.fase == "aviso", "%s: abriu pelo catálogo" % id)
+	if not mg is Minigame:
+		return null
+	var q := 0
+	while is_instance_valid(mg) and mg.fase == "aviso" and q < 900:
+		await _quadros(1)
+		q += 1
+	var limite := maxf(limite_s, float(mg.duracao) + 45.0) if mg.duracao > 0.0 else limite_s
+	var inicio := Time.get_ticks_usec()
+	var valendo := -1
+	while is_instance_valid(mg) and mg.fase == "jogo" and Time.get_ticks_usec() - inicio < int(limite * 1e6):
+		if valendo < 0 and not mg.treinando:
+			valendo = Time.get_ticks_usec()
+		if a_cada_quadro.is_valid():
+			a_cada_quadro.call(mg)
+		await _quadros(1)
+	var nome: String = mg.id if is_instance_valid(mg) else id
+	_esperar(is_instance_valid(mg) and mg.fase == "fim", "%s: acabou (%.1f s)" % [nome, (Time.get_ticks_usec() - inicio) / 1e6])
+	if not is_instance_valid(mg):
+		return null
+	var v := int(mg.campos_do_fim().get("vencedor", -1))
+	_esperar(v >= 0 or (mg.coop and v == -1), "%s: fechou com vencedor (%d%s)" % [nome, v, ", coop" if mg.coop else ""])
+	if str(mg.ficha.get("fim", "")) == "tempo" and mg.duracao > 0.0 and valendo > 0:
+		var parede := (Time.get_ticks_usec() - valendo) / 1e6
+		_esperar(absf(parede - mg.duracao) <= mg.duracao * 0.1 + 1.0,
+			"%s: %.0f s de música em %.1f s de parede (o fim conta em tempo de música)" % [nome, mg.duracao, parede])
+	return mg
+
+
+func _prova_da_ficha(slot: String) -> void:
+	_esperar(Catalogo.existe(slot), "SALA=%s: está no catálogo" % slot)
+	if not Catalogo.existe(slot):
+		return
+	match slot:
+		"S01_J01", "centelha":
+			var mg := await _joga_o_minigame("centelha")
+			if mg:
+				_confere_os_vereditos(mg, ["botoes", "analogicos", "gatilhos_analogicos"])
+		_:
+			await _joga_o_minigame(slot)
+	await _volta_ao_salao(slot)
+
+
+func _confere_os_vereditos(mg: Minigame, features: Array) -> void:
+	for l in mg.presentes():
+		for f in features:
+			var v := {}
+			for item in mg.vereditos.get(l, []):
+				if item.get("feature", "") == f:
+					v = item
+			_esperar(int(v.get("resultado", -1)) == Forja.PASSOU,
+				"%s P%d: %s → %s" % [mg.id, l + 1, f, str(v.get("rotulo", "sem veredito"))])
+
+
+func _prova_do_tempo_de_musica() -> void:
+	var mg: Minigame = load("res://testes/minigame_de_tempo.gd").new()
+	jogo._entrar_na_sala(mg.id, false, mg)
+	await _quadros(2)
+	_esperar(jogo.sala == mg and mg.fase == "aviso" and mg.icone == "cross" and mg.coop, "tempo de música: abriu, coop, com o glifo da parte (%s)" % mg.icone)
+	var q := 0
+	while is_instance_valid(mg) and mg.fase == "aviso" and q < 900:
+		await _quadros(1)
+		q += 1
+	var inicio := Time.get_ticks_usec()
+	var quadros := 0
+	var abaixo_do_piso := 0
+	var viu_branco := false
+	var viu_escuro := false
+	var branco_seguido := 0
+	var branco_max := 0
+	var viu_pico := false
+	var andamento_antes := 0.0
+	var voltou := false
+	var calou_em := -1.0
+	var calada_ok := true
+	var calada_s := 0.0
+	var som_testado := false
+	while is_instance_valid(mg) and mg.fase == "jogo" and Time.get_ticks_usec() - inicio < 150000000:
+		quadros += 1
+		for l in mg.presentes():
+			var c: Color = _perc(l).get("luz", Color.BLACK)
+			if maxf(c.r, maxf(c.g, c.b)) < Forja.PISO_DA_LUZ - 0.02:
+				abaixo_do_piso += 1
+			if l == 0:
+				var branco := c.is_equal_approx(Color.WHITE)
+				viu_branco = viu_branco or branco
+				branco_seguido = branco_seguido + 1 if branco else 0
+				branco_max = maxi(branco_max, branco_seguido)
+			if l == 1 and _mesmo_tom(c, Forja.cor_do_lugar(1)) and maxf(c.r, maxf(c.g, c.b)) < 0.45:
+				viu_escuro = true
+		viu_pico = viu_pico or mg.no_pico()
+		voltou = voltou or mg.andamento() < andamento_antes - 0.0001
+		andamento_antes = mg.andamento()
+		if Ritmo.calada():
+			if calou_em < 0.0:
+				calou_em = Ritmo.t_musica()
+			elif Ritmo.t_musica() - calou_em > 0.1 and is_instance_valid(Ritmo._tocador):
+				calada_ok = calada_ok and Ritmo._tocador.volume_db < -60.0
+		elif calou_em >= 0.0 and calada_s == 0.0:
+			calada_s = Ritmo.t_musica() - calou_em
+		if not som_testado and Time.get_ticks_usec() - inicio > 5000000 and Forja.som_tem(0, Forja.PAPEL_ALTO_FALANTE):
+			som_testado = true
+			var antes := int(Forja.som_virtual(0).get("som_seq", 0))
+			Forja.som_falante(0, "sino", 0.3)
+			var d := Forja.som_virtual(0)
+			_esperar(str(d.get("som", "")) == "sino" and int(d.get("som_seq", 0)) == antes + 1,
+				"som virtual: o robô ouve qual som saiu (%s)" % [d])
+			Forja.textura(0, "metal")
+			_esperar(int(Forja.som_virtual(0).get("som_seq", 0)) == antes + 1, "textura: não passa pelo alto-falante")
+		await _quadros(1)
+	var parede := (Time.get_ticks_usec() - inicio) / 1e6
+	print("tempo de música: %d quadros (%.0f s de jogo) em %.1f s de parede" % [quadros, quadros / 60.0, parede])
+	_esperar(is_instance_valid(mg) and mg.fase == "fim", "tempo de música: acabou pelo relógio da faixa")
+	if not is_instance_valid(mg):
+		return
+	_esperar(absf(parede - 90.0) <= 9.0, "tempo de música: 90 s de minigame em %.1f s de parede, com --fixed-fps 60" % parede)
+	_esperar(viu_pico and not voltou and is_equal_approx(mg.andamento(), 1.0), "tempo de música: o andamento sobe até 1, e o pico passou no meio")
+	var esperado := [Ritmo.PERFEITO, -1, Ritmo.BOM, Ritmo.OTIMO]
+	for l in [0, 2, 3]:
+		var c: Array = mg.contagem[l]
+		var julgadas := int(c[0]) + int(c[1]) + int(c[2]) + int(c[3])
+		_esperar(julgadas >= 30 and int(c[esperado[l]]) * 10 >= julgadas * 7,
+			"fila P%d: %s em %d de %d notas casadas %s" % [l + 1, Ritmo.NOMES_DO_JULGAMENTO[esperado[l]], int(c[esperado[l]]), julgadas, c])
+	var c2: Array = mg.contagem[1]
+	_esperar(int(c2[0]) + int(c2[1]) + int(c2[2]) + int(c2[3]) == 0 and int(mg.perdidas[1]) >= 20,
+		"fila P2: sem toque, %d notas passaram e viraram erro" % int(mg.perdidas[1]))
+	var sem_dono := int(mg.sem_nota[1]) > 0
+	for l in [0, 2, 3]:
+		sem_dono = sem_dono or int(mg.sem_nota[l]) > int(mg.perdidas[l])
+	_esperar(not sem_dono, "fila: todo toque achou a sua nota, ou a nota dele tinha passado (sem nota %s, perdidas %s)" % [mg.sem_nota, mg.perdidas])
+	_esperar(abaixo_do_piso == 0, "luz: nunca abaixo de 30%% (%d amostras abaixo)" % abaixo_do_piso)
+	_esperar(viu_branco and branco_max <= int(Forja.PISCAR_MAX_S * 60.0) + 2, "luz: o perfeito pisca branco e volta (%d quadros no máximo)" % branco_max)
+	_esperar(viu_escuro, "luz: o erro escurece a cor do P2, no mesmo tom")
+	if Forja.modulo:
+		var quatro := 4.0 * 60.0 / Ritmo.bpm
+		_esperar(mg.calou and calada_ok and absf(calada_s - quatro) < 0.3,
+			"calar: a música calou %.2f s (quatro tempos são %.2f s) e o relógio seguiu" % [calada_s, quatro])
+	var fim := mg.campos_do_fim()
+	_esperar(int(fim.get("vencedor", 0)) == -1 and int(fim.get("destaque", -1)) >= 0 and fim.get("genero", "") == "coop",
+		"coop: vencedor -1, destaque P%d (%s)" % [int(fim.get("destaque", -1)) + 1, fim])
+	_esperar(mg.frase_do_resultado() == ("Todos venceram!" if mg.coop_venceu else "A forja apagou."), "coop: a frase do resultado")
+	await _volta_ao_salao("tempo de música")

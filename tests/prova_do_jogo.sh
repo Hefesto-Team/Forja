@@ -30,6 +30,9 @@ python3 "$RAIZ/scripts/conferir_bonecos.py" > "$TMP/bonecos.log" && python3 "$RA
 caixa "$GODOT" --headless --path "$RAIZ/godot" --import --quit > "$TMP/import.log" 2>&1
 
 FALHAS=0
+SALA="${SALA:-}"
+FICHA_ARG=()
+[ -n "$SALA" ] && FICHA_ARG=("--ficha=$SALA")
 [ "$OST" -eq 0 ] || { echo "FAIL a trilha não confere (python3 scripts/conferir_ost.py)"; FALHAS=$((FALHAS + 1)); }
 if git -C "$RAIZ" rev-parse --git-dir > /dev/null 2>&1; then
   bash "$RAIZ/tests/prova_sem_rastro.sh" > "$TMP/sem-rastro.log" 2>&1
@@ -45,8 +48,8 @@ rodar() {
   local rel="$TMP/relatorios-$nome"
   mkdir -p "$rel"
   SERVIDOR_DE_MENTIRA="$TMP/$nome" ESPERADO="$esperado" \
-    timeout 1200 caixa "$GODOT" --headless --fixed-fps 60 --path "$RAIZ/godot" res://testes/prova_do_jogo.tscn \
-    -- --simular=4 --robo --semente=7 --relatorios="$rel" "$@" > "$TMP/$nome.log" 2>&1
+    timeout 1200 "${CAIXA[@]}" "$GODOT" --headless --fixed-fps 60 --path "$RAIZ/godot" res://testes/prova_do_jogo.tscn \
+    -- --simular=4 --robo --semente=7 --relatorios="$rel" ${FICHA_ARG[@]+"${FICHA_ARG[@]}"} "$@" > "$TMP/$nome.log" 2>&1
   local rc=$?
   grep -E "alto-falante do sistema|FAIL|SCRIPT ERROR|prova do jogo ok" "$TMP/$nome.log"
   [ "$rc" -eq 0 ] || { echo "FAIL a prova com o servidor «$nome» (rc=$rc)"; FALHAS=$((FALHAS + 1)); }
@@ -55,4 +58,4 @@ rodar() {
 rodar forma-a "alto-falante: Alto-falante do Controle 1 (DualSense Wireless Controller)" --acelerado
 rodar antes "nenhum alto-falante de controle na lista (2 dispositivos)" --bancada --acelerado
 [ "$FALHAS" -eq 0 ] || exit 1
-echo "prova do jogo ok — os quatro lugares, as salas e o relatório; com o nome da Sony o jogo acha o alto-falante, sem ele diz que não achou"
+echo "prova do jogo ok — os quatro lugares, as salas${SALA:+ e o minigame $SALA} e o relatório; com o nome da Sony o jogo acha o alto-falante, sem ele diz que não achou"
