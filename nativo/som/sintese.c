@@ -509,3 +509,107 @@ int sint_trilha(Onda *o, float tonica_midi, float bpm, int energia, uint32_t sem
   normalizar(o, 0.8f);
   return 0;
 }
+
+/* ---------- o pio do cavaleiro ---------- */
+
+int sint_pio(Onda *o, float freq, int forma, uint32_t semente) {
+  const float nota = 0.09f, espaco = 0.07f;
+  if (alocar(o, espaco + nota + 0.02f))
+    return -1;
+  g_lcg = semente * 2654435761u + 7u;
+  for (int k = 0; k < 2; k++) {
+    float f = k == 0 ? freq : freq * 1.4983f; /* a quinta */
+    int ini = (int)(k * espaco * SINT_TAXA);
+    int n = (int)(nota * SINT_TAXA);
+    float desvio = 1.0f + 0.004f * ruido(); /* cada pio um nada diferente */
+    for (int i = 0; i < n && ini + i < o->n; i++) {
+      float t = (float)i / SINT_TAXA;
+      float fase = PI2 * f * desvio * t * (1.0f + 0.06f * t / nota); /* sobe um pouco: é um pio */
+      float x = sinf(fase);
+      if (forma == 1)
+        x = tanhf(3.0f * x) * 0.8f;
+      float env = t < 0.004f ? t / 0.004f : expf(-(t - 0.004f) / (nota * 0.35f));
+      o->a[ini + i] += x * env;
+    }
+  }
+  rampas(o, 0.002f, 0.01f);
+  normalizar(o, 0.8f);
+  return 0;
+}
+
+/* ---------- a háptica por material ---------- */
+
+static const char *NOMES_MATERIAL[MATERIAL_TOTAL] = {"metal", "pedra", "areia", "gelo", "grama", "lama", "madeira"};
+
+const char *material_nome(MaterialHaptico m) { return m >= 0 && m < MATERIAL_TOTAL ? NOMES_MATERIAL[m] : ""; }
+
+int material_por_nome(const char *nome) {
+  if (!nome)
+    return -1;
+  if (!strcmp(nome, "plasma"))
+    return MATERIAL_LAMA;
+  for (int m = 0; m < MATERIAL_TOTAL; m++)
+    if (!strcmp(nome, NOMES_MATERIAL[m]))
+      return m;
+  return -1;
+}
+
+/* Um pulso de seno com ataque e queda exponencial, somado em `ini`. */
+static void pulso_grave(Onda *o, float ini_s, float freq, float dur, float queda, float vol) {
+  int ini = (int)(ini_s * SINT_TAXA), n = (int)(dur * SINT_TAXA);
+  for (int i = 0; i < n && ini + i < o->n; i++) {
+    float t = (float)i / SINT_TAXA;
+    float env = (t < 0.002f ? t / 0.002f : 1.0f) * expf(-t / queda);
+    o->a[ini + i] += vol * env * sinf(PI2 * freq * t);
+  }
+}
+
+/* Ruído grave (um passa-baixa de um polo em `corte`), com envelope em sino. */
+static void ruido_grave(Onda *o, float corte, float vol) {
+  float k = 1.0f - expf(-PI2 * corte / SINT_TAXA), y = 0;
+  for (int i = 0; i < o->n; i++) {
+    y += k * (ruido() - y);
+    float env = sinf(3.14159f * (float)i / o->n);
+    o->a[i] += vol * env * y;
+  }
+}
+
+int sint_material(Onda *o, MaterialHaptico m, uint32_t semente) {
+  static const float DUR[MATERIAL_TOTAL] = {0.06f, 0.08f, 0.14f, 0.03f, 0.22f, 0.28f, 0.12f};
+  if (m < 0 || m >= MATERIAL_TOTAL || alocar(o, DUR[m]))
+    return -1;
+  g_lcg = semente * 2654435761u + 11u;
+  switch (m) {
+  case MATERIAL_METAL: /* clique seco, duro: pulso curto de 150 Hz, ataque instantâneo */
+    pulso_grave(o, 0, 150.0f, 0.06f, 0.015f, 1.0f);
+    break;
+  case MATERIAL_PEDRA: /* batida surda: 80 Hz, 60 ms, decaimento rápido */
+    pulso_grave(o, 0, 80.0f, 0.06f, 0.02f, 1.0f);
+    break;
+  case MATERIAL_AREIA: /* granulado espalhado: ruído abaixo de 200 Hz, baixo */
+    ruido_grave(o, 200.0f, 1.0f);
+    break;
+  case MATERIAL_GELO: /* fino e localizado: 180 Hz, 20 ms (um atuador só: quem toca decide) */
+    pulso_grave(o, 0, 180.0f, 0.02f, 0.008f, 1.0f);
+    break;
+  case MATERIAL_GRAMA: /* macio: ruído grave, envelope longo */
+    ruido_grave(o, 120.0f, 1.0f);
+    break;
+  case MATERIAL_LAMA: /* pesado e lento: 60 Hz com vibrato lento */
+    for (int i = 0; i < o->n; i++) {
+      float t = (float)i / SINT_TAXA;
+      float env = sinf(3.14159f * t / DUR[m]);
+      o->a[i] = env * sinf(PI2 * 60.0f * t + 2.5f * sinf(PI2 * 4.0f * t));
+    }
+    break;
+  case MATERIAL_MADEIRA: /* oco: 110 Hz, duas batidas curtas */
+    pulso_grave(o, 0, 110.0f, 0.03f, 0.012f, 1.0f);
+    pulso_grave(o, 0.06f, 110.0f, 0.03f, 0.012f, 0.8f);
+    break;
+  default:
+    break;
+  }
+  rampas(o, 0.001f, 0.004f);
+  normalizar(o, m == MATERIAL_AREIA || m == MATERIAL_GRAMA ? 0.5f : 0.95f);
+  return 0;
+}

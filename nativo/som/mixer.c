@@ -3,6 +3,8 @@
 
 #include <math.h>
 
+#include "rampa.h"
+
 void mixer_iniciar(Mixer *m, int canais) {
   SDL_memset(m, 0, sizeof(*m));
   m->trava = SDL_CreateMutex();
@@ -71,10 +73,11 @@ void mixer_parar(Mixer *m, int id, bool suave) {
   SDL_UnlockMutex(m->trava);
 }
 
+/* Todas as vozes vão a zero pela rampa de saída (nunca de uma vez). */
 void mixer_parar_tudo(Mixer *m) {
   SDL_LockMutex(m->trava);
   for (int i = 0; i < MIX_MAX_VOZES; i++)
-    m->voz[i].ativa = false;
+    m->voz[i].fade_alvo = 0;
   SDL_UnlockMutex(m->trava);
 }
 
@@ -92,7 +95,7 @@ void mixer_misturar(Mixer *m, float *saida, int quadros) {
   int nc = m->canais;
   SDL_memset(saida, 0, sizeof(float) * (size_t)quadros * (size_t)nc);
   SDL_LockMutex(m->trava);
-  const float passo_fade = 1.0f / (MIX_TAXA * 0.04f); /* 40 ms */
+  const float passo_fade = rampa_passo(MIX_TAXA, RAMPA_SAIDA_MS);
   for (int i = 0; i < MIX_MAX_VOZES; i++) {
     Voz *v = &m->voz[i];
     if (!v->ativa)
@@ -109,9 +112,7 @@ void mixer_misturar(Mixer *m, float *saida, int quadros) {
         }
       }
       if (v->fade != v->fade_alvo) {
-        v->fade += v->fade_alvo > v->fade ? passo_fade : -passo_fade;
-        if (fabsf(v->fade - v->fade_alvo) < passo_fade)
-          v->fade = v->fade_alvo;
+        v->fade = rampa_andar(v->fade, v->fade_alvo, passo_fade);
         if (v->fade <= 0 && v->fade_alvo <= 0) {
           v->ativa = false;
           break;

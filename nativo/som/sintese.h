@@ -44,6 +44,26 @@ int sint_grito(Onda *o, float dur, uint32_t semente);
  * (MIDI) e no andamento pedidos; energia 0 (o salão), 1 (com bateria) ou 2
  * (o bumbo em todo tempo). */
 int sint_trilha(Onda *o, float tonica_midi, float bpm, int energia, uint32_t semente);
+/* O pio do cavaleiro (docs/jogo/05-haptica-e-controle.md#a-agenda-do-alto-falante):
+ * duas notas curtas, a segunda uma quinta acima; cada boneco tem a sua
+ * `freq`. forma 0: seno; 1: quadrada suave (o boneco mais "metálico"). */
+int sint_pio(Onda *o, float freq, int forma, uint32_t semente);
+
+/* A háptica por material (docs/jogo/05-haptica-e-controle.md#a-háptica-por-material):
+ * a mesma onda vai para os atuadores e, mais baixa, para o alto-falante. */
+typedef enum MaterialHaptico {
+  MATERIAL_METAL,
+  MATERIAL_PEDRA,
+  MATERIAL_AREIA,
+  MATERIAL_GELO,
+  MATERIAL_GRAMA,
+  MATERIAL_LAMA,
+  MATERIAL_MADEIRA,
+  MATERIAL_TOTAL
+} MaterialHaptico;
+int sint_material(Onda *o, MaterialHaptico m, uint32_t semente);
+const char *material_nome(MaterialHaptico m); /* "metal", "pedra"... */
+int material_por_nome(const char *nome); /* -1 se não existe; "plasma" é a lama */
 void onda_liberar(Onda *o);
 
 /* Utilidades provadas */
