@@ -698,9 +698,38 @@ func _prova_do_percurso() -> void:
 ## Entra na sala, espera o aviso (o robô fica pronto sozinho), o jogo e o
 ## veredito; confere o veredito de cada lugar e espera a volta ao salão.
 func _joga_a_sala(id: String, features: Array) -> void:
+	if Catalogo.MINIGAMES.has(Catalogo.resolver(id)):
+		await _passa_pelo_minigame(id)
+		return
 	var sala = await _comeca_a_sala(id)
 	if sala:
 		await _termina_a_sala(sala, features)
+
+
+## Um minigame no percurso: abre pelo apelido, o aviso passa e o jogo começa
+## no relógio da faixa; a prova força o fim (jogar 90 s de verdade é da prova
+## da ficha, SALA=<slot>, e do gauntlet). Confere o fechamento e a volta.
+func _passa_pelo_minigame(id: String) -> void:
+	var sala = await _comeca_a_sala(id)
+	if sala == null:
+		return
+	_esperar(sala is Minigame and Ritmo.dono == sala.id, "%s: o minigame %s joga no relógio da faixa" % [id, sala.id])
+	var inicio := Time.get_ticks_usec()
+	while is_instance_valid(sala) and sala.fase == "jogo" and Time.get_ticks_usec() - inicio < 1500000:
+		await _quadros(1)
+	if is_instance_valid(sala) and sala.fase == "jogo":
+		sala.terminar()
+	await _quadros(2)
+	_esperar(is_instance_valid(sala) and sala.fase == "fim", "%s: fechou" % id)
+	await _volta_ao_salao(id)
+
+
+func _volta_ao_salao(rotulo: String) -> void:
+	var q := 0
+	while (jogo.estado != "salao" or jogo._trocando) and q < 900:
+		await _quadros(5)
+		q += 5
+	_esperar(jogo.estado == "salao", "%s: de volta ao salão" % rotulo)
 
 
 ## A sala aberta é a do id pedido (o apelido da seção abre o primeiro minigame dela)?
