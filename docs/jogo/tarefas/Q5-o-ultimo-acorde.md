@@ -12,12 +12,16 @@ veja o dragão se levantar pelo menos 1 vez e depois cair, e para que a mesa boa
 ## Ler antes
 
 - [O molde de minigame](molde-de-minigame.md) (onde mora, a FICHA, o robô, o registro, a prova)
-- [O kit, no 13](../13-arquitetura.md#o-kit-do-minigame--h04) e [as decisões comuns da H08](../13-arquitetura.md#as-decisões-comuns-dos-minigames--h08) (a linha `estacao`, a `troca`)
+- [O kit, no 13](../13-arquitetura.md#o-kit-do-minigame--h04) e, no mesmo arquivo, a seção «As decisões comuns dos
+  minigames — H08» (a linha `estacao`, a `troca`)
 - [A Q4](Q4-ruge-o-reator.md) (o dragão de peças, o hoqueto, o `_queda_s`, o `_gancho`: esta ficha tem a mesma forma)
 
 Tudo o mais que esta ficha usa (as cores, o brilho, a câmera, o movimento, o som, os stats, o ouvido da P1, a pedra da
 O2, o tiro da M1, o canto da N1, a régua da diversão) está escrito aqui dentro, com o número. O medley não abre o
 minigame de origem.
+
+As duas curvas do movimento (do 05): `ENTRA_SAI` é um `Tween` com `TRANS_SINE` e `EASE_IN_OUT`; `MOLA` é
+`TRANS_BACK` com `EASE_OUT` (passa 4 % do alvo e volta).
 
 ## Arquivos que mudam
 
@@ -166,12 +170,13 @@ No quadro em que a conta manda levantar:
    _faltas, "volta": _voltas + 1}})`;
 2. `Forja.sentir(l, "explosao")` em todos os presentes, no mesmo quadro (ninguém tem nota no descanso);
 3. o degrau **catástrofe**: o corpo sobe 0,6 m e a cabeça vai a `CABECA_EM_PE + 0.6` em 1 batida, com
-   `ENTRA_SAI`; os olhos a 1,2; `Som.tocar("martelo", pos_da_cabeca, 0.0)`; `tremor = 0.67` por 4 batidas
-   (0,08 m); a chave da luz +20 % e a névoa ×0,8 em 1 batida, voltando em 2; sem parada;
+   `ENTRA_SAI`; os olhos a 1,2; `Som.tocar("martelo", pos_da_cabeca, 0.0)`; `tremer(TREMOR_CATASTROFE)`
+   (0,08 m, 4 batidas, decai sozinho na câmera da G05); a `light_energy` das `_tochas` +20 % e a `fog_density` ×0,8
+   em 1 batida, voltando em 2 (ver «A cena»); sem parada;
 4. na última batida do descanso, o dragão se ajoelha de novo (a cabeça a `CABECA_AJOELHADO`, o corpo a 0) em 1 batida,
    e os olhos voltam a 1,0: a volta começa do zero.
 
-Com `Opcoes.movimento == 1`: sem tremor.
+Com `Opcoes.movimento == 1`: a câmera da G05 já não treme; a ficha chama `tremer` igual.
 
 ### A falha
 
@@ -407,7 +412,7 @@ var _robo_mira := [0.0, 0.0, 0.0, 0.0]
 
 func montar() -> void:
 	usa_gatilho = true
-	camera_pos = Vector3(0, 12.0, 16.0)
+	camera_pos = Vector3(0, 11.48, 14.90)   # a G05 recua ×1,0616 a 35 mm: a câmera fica em (0, 12, 16)
 	camera_olhar = Vector3(0, 3.0, -3.0)
 	_montar_cena()                       # «A cena»
 	for l in presentes():
@@ -546,17 +551,25 @@ As outras funções, uma frase cada:
 
 ## A cena
 
-- **A câmera:** a arena (35 mm, plongée de 25,3°, nunca corta). `camera_pos = Vector3(0, 12.0, 16.0)`,
-  `camera_olhar = Vector3(0, 3.0, -3.0)`. Medido por projeção com 37,8° vertical e 16:9: a cabeça do dragão em pé
+- **A câmera:** a arena (35 mm, plongée de 25,3°, nunca corta). `camera_pos = Vector3(0, 11.48, 14.90)`,
+  `camera_olhar = Vector3(0, 3.0, -3.0)`. No modo `"fixa"`, a G05 recua a câmera por `Lente.recuo(35)` = 1,0616 a
+  partir do olhar: `olhar + (camera_pos − olhar) × 1,0616` = (0, 12,0, 16,0), que é onde se mediu. Medido por projeção com 37,8° vertical e 16:9: a cabeça do dragão em pé
   (0, 5,52 a 7,44, −6) cai em x 0,50 e y de 0,27 a 0,15; ajoelhado (4,52 a 6,44) em y de 0,33 a 0,21; levantado
   (6,12 a 8,04) em y de 0,23 a 0,11 (`altura_tela` 0,127); o pé do dragão (0, 0, −6) em y 0,58; os pés dos cavaleiros
   (±6, 0, `Z_JOGADOR`) em x 0,23 e 0,77, y 0,87; a frente das raias (±6, 0, 3,4) em y 0,98; os alvos (±6, 2,5, −1,5)
   em x 0,25 e 0,75, y 0,58. Sem `camera_foco` (o dragão é de todos).
-- **A luz:** a da seção pela G15, `Tema.luz_da_secao(9, "B")`; as tochas `luzes([Vector3(-9, 3, 3), Vector3(9, 3,
-  3)])`.
-  - No eclipse, a chave a ×0,3 em 1 batida, de volta em 2 batidas depois da 107.
-  - No sentir, a chave a ×0,5, e a luz de dono de cada raia com alcance `3.4 × _gancho(l, "raio")` m.
-  - No momento, +20 % e a névoa ×0,8 (ver «O dragão se levanta»).
+- **A luz** (S9): a ficha não chama `Tema.luz_da_secao`. A entrada da sala chama `acender(9, partida.lado() == "B")` (G15 e
+  G16): no lado A, densidade 0,012 e energia da chave 1,8; no lado B, 0,0156 e 1,53. A chave são as tochas de `luzes()`:
+  o `Sala.acender(luz)` as pinta. Logo depois do `luzes(...)`, a ficha guarda em `_tochas` os `OmniLight3D` filhos da
+  sala, menos o enchimento de cima, em (0, 9, 2). Quando a ficha mexe na chave, multiplica a `light_energy` das `_tochas`
+  sobre a `energia_chave` que a G15 pôs. O preenchimento é `environment.ambient_light_energy` (0,42 pela G15) e a névoa
+  é `environment.fog_density`, com `var environment := get_viewport().find_world_3d().environment`; os dois voltam ao
+  valor de antes. As tochas: `luzes([Vector3(-9, 3, 3), Vector3(9, 3, 3)])`.
+  - No eclipse, a `light_energy` das `_tochas` a ×0,3 em 1 batida, de volta em 2 batidas depois da 107.
+  - No sentir, as `_tochas` a ×0,5 em 1 batida (de volta em 2 batidas depois da 155), e a luz de dono de cada raia: um
+    `OmniLight3D` da ficha, cor `Tema.JOGADOR[l]`, energia 0,9, sem sombra, em `(RAIAS[l], 0.6, Z_JOGADOR - 1.4)`
+    (sobre a laje), alcance `3.4 × _gancho(l, "raio")` m (2,7 a 4,1 m), aceso só na estação 3.
+  - No momento, as `_tochas` +20 % e a `fog_density` ×0,8 (ver «O dragão se levanta»).
 - **O dragão:** o da Q4, as mesmas peças e números, dentro de um `Node3D` `_dragao` em (0, 0, 0) com `scale` 1,2 (a
   cabeça fica em (0, 6,48, −6)). Os olhos `Tema.neon(Tema.VIOLETA, 1.0, "mundo")`. Ele respira 0,1 m por compasso. No
   acorde final, ele se ajoelha (a cabeça a `CABECA_AJOELHADO` em 1 compasso a partir da 204).
@@ -588,7 +601,8 @@ As outras funções, uma frase cada:
   | o acento da peça (friso, costura, runa do item) | o lugar | 1,6 (o da G13) |
   | a borda do alvo, o aro do sino, a brasa | o lugar | 2,0 na nota dele; 0 fora |
   | os olhos do dragão | `"mundo"` | 1,0; até 1,2 com as faltas e no momento |
-  | a chuva de luz | a forja (`TUNGSTENIO`) | 2,0 nas faíscas; 1,0 nas brasas |
+  | a chuva de luz | `"forja"` (`TUNGSTENIO`) | 2,0 nas faíscas; 1,0 nas brasas |
+  | a luz de dono do sentir | o lugar | 0,9 (luz, não brilho) |
   | o alvo, o sino, a laje, o braseiro, o dragão | ninguém | 0 (impressos) |
 
 - **O que sai:** o `Kit.arena`, a `atmosfera` com `Tema.ROXO` e as cores escritas à mão da ficha antiga (a névoa, a

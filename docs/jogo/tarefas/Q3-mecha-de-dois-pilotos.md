@@ -1,6 +1,6 @@
 # Q3 — Mecha de Dois Pilotos
 
-**Sprint:** Q · **Slot:** S09_J43 · **Tamanho:** M · **Depende de:** Q1 (a seção no catálogo, o tipo `momento`, o `_peca`, o `_tingir`, o Aprendiz), H04, H08, H07, F05 (`Forja.sentir`), F09 (`Forja.robo_acerta`), G03, G05, G13, G14, G15 · **Usa se existir:** G10 (o Factory Kit; sem ele, a peça de reserva)
+**Sprint:** Q · **Slot:** S09_J43 · **Tamanho:** M · **Depende de:** Q1 (a seção no catálogo, o tipo `momento`, o `_peca`, o `_tingir`, o Aprendiz), H04, H08, H07, F05 (`Forja.sentir`), F09 (`Forja.robo_acerta`), G03, G05, G13, G14, G15 · **Vem pela G13:** G10 (o Factory Kit e `Kit.caminho`; a reserva fica para o `.glb` que faltar)
 
 ## Por quê
 
@@ -12,12 +12,16 @@ com o clang nos dois controles da dupla no mesmo quadro, e a sala ria.
 ## Ler antes
 
 - [O molde de minigame](molde-de-minigame.md) (onde mora, a FICHA, o robô, o registro, a prova)
-- [O kit, no 13](../13-arquitetura.md#o-kit-do-minigame--h04) e [as decisões comuns da H08](../13-arquitetura.md#as-decisões-comuns-dos-minigames--h08)
+- [O kit, no 13](../13-arquitetura.md#o-kit-do-minigame--h04) e, no mesmo arquivo, a seção «As decisões comuns dos
+  minigames — H08»
 - [A Q1](Q1-a-prova.md), «Os ganchos» e «Com menos de quatro» (o `_gancho`, o `_saida`, o `_peca`, o `_tingir`, o
   Aprendiz, a forma do `vencedor()` de equipe)
 
 Tudo o mais que esta ficha usa (as cores, o brilho, a câmera, o movimento, o som, os stats, a régua da diversão)
 está escrito aqui dentro, com o número.
+
+As duas curvas do movimento (do 05): `ENTRA_SAI` é um `Tween` com `TRANS_SINE` e `EASE_IN_OUT`; `MOLA` é
+`TRANS_BACK` com `EASE_OUT` (passa 4 % do alvo e volta).
 
 ## Arquivos que mudam
 
@@ -46,7 +50,7 @@ const FICHA := {
 	"genero": "2v2",
 	"icone": "gatilho_adaptativo",
 	"entradas": [Forja.CRUZ],
-	"camera": "fixa",
+	"camera": "dupla",
 	"faixa": "MUS_S09_J43",
 	"duracao": 100.0,
 	"fim": "tempo",
@@ -59,7 +63,8 @@ const FICHA := {
 }
 ```
 
-As entradas são duas: o ✕ (o passo) e o R2 (eixo, fora da lista, o soco). O `fim` é `tempo`: a melhor de três acaba
+A câmera é `"dupla"`: a lente de 50 mm sai do modo (G05), e só nesse modo o `camera_foco` empurra. As entradas são
+duas: o ✕ (o passo) e o R2 (eixo, fora da lista, o soco). O `fim` é `tempo`: a melhor de três acaba
 antes pondo `acabou` em todos (ver «O fim e o vencedor»). `textura_no_acerto` fica `true`: a perna na mão vem meia
 batida antes do acerto e não encosta nele.
 
@@ -167,22 +172,23 @@ A falha da dupla: o soco fora de sincronia. No impacto (a colcheia `g0 + 0,5`):
 
 1. `c` = o culpado: o piloto sem acerto, ou, com os dois sem erro, o de aperto mais longe de `t(g0)`. Se o culpado é
    o Aprendiz, `c` é o parceiro humano dele.
-2. `anotar("momento", c, {"nome": "autossoco", "lugar": c, "t_musica": Ritmo.t_musica()})`;
+2. `anotar("momento", c, {"nome": "autossoco", "lugar": c, "t_musica": Ritmo.t_musica()})` e `_autossocos += 1`;
 3. o clang nos dois alto-falantes da dupla, no mesmo quadro: `Forja.som_falante(l, "sino", 0.7)` em cada piloto com
    alto-falante; `Forja.sentir(l, "golpe")` nos dois pilotos (o Aprendiz não tem controle);
 4. `_abalo[e] += AUTOSSOCO`; o braço da frente dá a volta em 1 colcheia e bate na cabeça; a cabeça fica torta
    `TORTA` (`rotation.z`) e amassada (`scale.y = 0.85`) até a próxima queda de qualquer mecha; uma segunda cabeçada não
    entorta mais;
-5. o degrau **estrondo**: `tremor = 0.42` por 2 batidas (0,05 m); parada de 3 quadros (`p.anim.speed_scale = 0` nos
-   quatro); 48 faíscas `Efeitos.faiscas(self, pos_da_cabeca, Tema.TUNGSTENIO, 48, 1.0)`; a luz de preenchimento a
-   ×0,7 por 1 batida, volta em 1 batida; o contorno dos dois pilotos da dupla vai de 2,4 a 3,0 no mesmo tempo;
+5. o degrau **estrondo**: `tremer(TREMOR_ESTRONDO)` (0,05 m, 2 batidas, decai sozinho na câmera da G05); parada de 3 quadros (`p.anim.speed_scale = 0` nos
+   quatro); 48 faíscas `Efeitos.faiscas(self, pos_da_cabeca, Tema.TUNGSTENIO, 48, 1.0)`; o preenchimento
+   (`environment.ambient_light_energy`, ver «A cena») a ×0,7 por 1 batida, volta em 1 batida; o contorno dos dois pilotos da dupla vai de 2,4 a 3,0 no mesmo tempo;
    `camera_foco = pos_da_cabeca` por 2 batidas;
 6. **a queda dos pilotos:** a nota de passo de cada um dos dois que cairia antes de
    `t_impacto + _queda_s(e)` não abre, com
    `_queda_s(e) = maxf(0.1034, snappedf(2 * 0.4138 * média(levantar), 0.1034))` (2 tempos × `levantar` médio da
    dupla, arredondado à semicolcheia). Os dois fazem `emote-no` em 0,3 s.
 
-Com `Opcoes.movimento == 1`: sem tremor, sem parada e sem `camera_foco`.
+Com `Opcoes.movimento == 1`: a câmera da G05 já não treme (a ficha chama `tremer` igual), e a ficha tira a parada e o
+`camera_foco`.
 
 O passo errado (ou que passou) não é cabeçada: a perna tropeça (gira 15° para trás e volta em meia batida), o mecha
 recua `RECUO`, e o piloto faz `emote-no` em 0,3 s.
@@ -280,6 +286,7 @@ var _x := [-4.0, 4.0]
 var _abalo := [0.0, 0.0]
 var _quedas := [0, 0]
 var _torta := [false, false]
+var _autossocos := 0                   ## as cabeçadas da partida (a prova confere a cabeça torta)
 var _pausa_ate := -1.0
 var _fim_batida := -1.0
 var _nota := [-1, -1, -1, -1]
@@ -304,7 +311,7 @@ var _robo_ouviu := [-1, -1, -1, -1]
 
 func montar() -> void:
 	usa_gatilho = true
-	camera_pos = Vector3(0, 5.0, 17.0)
+	camera_pos = Vector3(0, 4.25, 11.21)   # a G05 recua ×1,5165 a 50 mm: a câmera fica em (0, 5, 17)
 	camera_olhar = Vector3(0, 2.8, 0)
 	_montar_cena()                   # «A cena»
 	_formar_pilotos()                # as equipes, as pernas, os Aprendizes nos ombros
@@ -453,20 +460,28 @@ As outras funções, uma frase cada:
 ## A cena
 
 - **A câmera:** a dupla de lado (50 mm, 27° vertical, plongée de 7,4°, à altura do peito, nunca corta).
-  `camera_pos = Vector3(0, 5.0, 17.0)`, `camera_olhar = Vector3(0, 2.8, 0)`. Medido por projeção com 27° vertical e
+  `camera_pos = Vector3(0, 4.25, 11.21)`, `camera_olhar = Vector3(0, 2.8, 0)`, no modo `"dupla"`. A G05 recua a câmera
+  por `Lente.recuo(50)` = 1,5165 a partir do olhar: `olhar + (camera_pos − olhar) × 1,5165` = (0, 5,0, 17,0), que é onde
+  se mediu. Medido por projeção com 27° vertical e
   16:9: com os mechas a 8 m (x = ±4), o pé cai em y 0,83, a cabeça (±4, 4,6) em x 0,22 e 0,78 e y 0,28; a borda de
   fora do mecha (\|x\| = 5,65) em x 0,11 e 0,89; o alto dos pilotos (6,0 m) em y 0,11. O ponto de impacto no meio
   cai em (0,50; 0,43). `camera_foco` é o empurrão leve da G05 (15 % na direção da ação, no máximo 1,5 m): no ponto de
   impacto por 1 batida no soco que entra, na cabeça por 2 batidas na cabeçada; `Vector3.ZERO` no resto.
-- **A luz:** a da seção pela G15, `Tema.luz_da_secao(9, "B")`; as tochas
-  `luzes([Vector3(-10, 3, -6), Vector3(10, 3, -6), Vector3(0, 4, 6)])`. Na batida 84 e na 164, a chave sobe 20 % em
-  1 batida e a névoa vai a ×0,8; voltam em 2 batidas.
+- **A luz** (S9): a ficha não chama `Tema.luz_da_secao`. A entrada da sala chama `acender(9, partida.lado() == "B")` (G15 e
+  G16): no lado A, densidade 0,012 e energia da chave 1,8; no lado B, 0,0156 e 1,53. A chave são as tochas de `luzes()`:
+  o `Sala.acender(luz)` as pinta. Logo depois do `luzes(...)`, a ficha guarda em `_tochas` os `OmniLight3D` filhos da
+  sala, menos o enchimento de cima, em (0, 9, 2). Quando a ficha mexe na chave, multiplica a `light_energy` das `_tochas`
+  sobre a `energia_chave` que a G15 pôs. O preenchimento é `environment.ambient_light_energy` (0,42 pela G15) e a névoa
+  é `environment.fog_density`, com `var environment := get_viewport().find_world_3d().environment`; os dois voltam ao
+  valor de antes. As tochas: `luzes([Vector3(-10, 3, -6), Vector3(10, 3, -6), Vector3(0, 4, 6)])`. Na
+  batida 84 e na 164, a `light_energy` das `_tochas` sobe 20 % em 1 batida e a `fog_density` vai a ×0,8; voltam em 2
+  batidas.
 - **O chão:** de cada lado, na cor da equipe:
   `Kit.caixa(self, Vector3(8.0, 0.03, 6.0), Vector3(∓4.0, 0.015, 0), Kit.material(CORES_DAS_EQUIPES[e], 0.0, 0.9))`.
 - **O ringue:** dois guindastes ao fundo, `_peca("factory-kit/crane", "column", Vector3(±7.5, 0, -3.5))`. Da batida 84
   em diante, duas linhas no chão em x = ±1,9:
-  `Kit.caixa(self, Vector3(0.12, 0.06, 6.0), Vector3(±1.9, 0.05, 0), mat)` com `Tema.neon(Tema.TUNGSTENIO, 1.0, "mundo")`,
-  que entram subindo de y −0,1 em 2 batidas.
+  `Kit.caixa(self, Vector3(0.12, 0.06, 6.0), Vector3(±1.9, 0.05, 0), mat)` com `Tema.neon(Tema.TUNGSTENIO, 1.0, "forja")`
+  (o tungstênio é do dono `"forja"`, teto 2,4; o `"mundo"` é o violeta), que entram subindo de y −0,1 em 2 batidas.
 - **O mecha** (peças do kit mais um brilho), um `Node3D` por equipe em `(_x[e], 0, 0)`, com
   `rotation.y = deg_to_rad(-125.0)` na Brasa e `deg_to_rad(125.0)` na Maré (os dois se olham e viram 35° para a câmera,
   para as duas pernas e os dois pilotos aparecerem separados):
@@ -483,10 +498,9 @@ As outras funções, uma frase cada:
   - os braços: `Kit.caixa(mecha, Vector3(0.5, 1.4, 0.5), Vector3(±1.4, 3.2, 0), Kit.material(Tema.GRAFITE, 0.0, 0.9))`.
     O soco: o braço do lado do outro mecha aponta para o peito dele e estica 1,2 m em meia batida, com antecipação de
     1 colcheia (recua 0,2 m) e volta com `MOLA`. A cabeçada: o mesmo braço sobe e dá a volta até a cabeça em 1 colcheia.
-  - `_peca(nome, reserva, pos)` é o da Q1: usa `nome` se `FileAccess.file_exists("res://assets/kenney/%s.glb" % nome)`,
-    senão a reserva.
+  - `_peca(nome, reserva, pos)` é o da Q1: usa `nome` se `ResourceLoader.exists(Kit.caminho(nome))`, senão a reserva.
 - **O impacto:** o soco que entra solta 24 faíscas `Efeitos.faiscas(self, ponto, Tema.TUNGSTENIO, 24, 0.8)`, o
-  `tremor = 0.17` por 1 batida (0,02 m) e uma parada de 2 quadros; o mecha atingido inclina 12° para trás e volta com
+  `tremer(TREMOR_GOLPE)` (0,02 m, 1 batida) e uma parada de 2 quadros; o mecha atingido inclina 12° para trás e volta com
   `MOLA` em 1 batida. A cabeçada está em «A cabeçada».
 - **Os pilotos:** em pé nos ombros, E em `(-0.85, 4.2, 0)` e D em `(0.85, 4.2, 0)`, locais ao mecha, `p.preso = true`,
   `p.controlavel = false`; `attack-melee-right` no soco, `idle` no resto. O Aprendiz no ombro dele.
@@ -500,8 +514,8 @@ As outras funções, uma frase cada:
   | o acento da peça (friso, costura, runa do item) | o lugar | 1,6 (o da G13) |
   | a runa da perna | o lugar | 2,0; 2,6 por 4 quadros a cada passo certo |
   | o visor | `"mundo"` | 1,0; 0 por 3 quadros na cabeçada |
-  | as linhas do ringue | `"mundo"` | 1,0 |
-  | as faíscas do impacto e da queda | `"mundo"` | 1,0 por 12 quadros |
+  | as linhas do ringue | `"forja"` | 1,0 |
+  | as faíscas do impacto e da queda | `"forja"` | 1,0 por 12 quadros |
   | o chão, o peito, o tronco, os guindastes | ninguém | 0 (impressos) |
 
 - **O que sai:** o `aco` e o visor de cor escrita à mão da ficha antiga (nenhum `Color("#...")` no script), a
@@ -561,7 +575,7 @@ O alto-falante toca um som por vez: vitória > julgamento > segredo > pio > cole
   2,4; a runa da perna do mecha acende na cor dele a 2,0. A raça não muda a posição no ombro, a velocidade nem a janela.
 - **O item:** fica onde a G13 o pôs (a arma na mão direita, o Escudo no braço esquerdo, o amuleto no peito);
   `attack-melee-right` usa a arma da mão.
-- **O Aprendiz:** `character-human.glb` com `_tingir(modelo, Tema.ETIQUETA_SOMBRA)`, sem contorno e sem acento, como na
+- **O Aprendiz:** `Kit.caminho("mini-dungeon-personagens/character-human")` com `_tingir(modelo, Tema.ETIQUETA_SOMBRA)`, sem contorno e sem acento, como na
   Q1.
 
 ## As reações
@@ -592,7 +606,8 @@ cabeça, com o clang nos dois controles da dupla. É a piada da seção. Degrau 
      `momento` `autossoco` em 100 s, pelo menos 1 com `lugar` 0 ou 1 (a dupla com o P2 `ruim`);
   2. cada `momento` `autossoco` tem uma `sensacao` do mesmo lugar a até 16,7 ms, e o `t_musica` cai a até 1 quadro de
      uma colcheia;
-  3. na prancha da mesa das duplas, um mecha com a cabeça torta em pelo menos 1 quadro de cada 4.
+  3. toda partida com cabeçada (`_autossocos > 0`) tem a cabeça torta em pelo menos 1 quadro olhado pela prova, e a
+     prancha da mesa das duplas mostra um mecha com a cabeça torta em pelo menos 1 quadro.
 
 ## Pronto quando
 
@@ -634,6 +649,7 @@ func _prova_mecha() -> void:
 	_esperar(conta.perna, "S09_J43: a perna treme só o atuador do lado dela")
 	_esperar(conta.parceiro, "S09_J43: o R2 tremeu com o parceiro pronto (0x26)")
 	_esperar(mg.sincronizados(0.0, 0.08) and not mg.sincronizados(0.0, 0.10), "S09_J43: a sincronia corta entre 80 e 100 ms")
+	_esperar(mg._autossocos == 0 or conta.torta > 0, "S09_J43: a cabeçada deixa a cabeça torta (%d de %d quadros)" % [conta.torta, conta.amostras])
 ```
 
 No `_prova_do_relatorio()`, com as linhas do `S09_J43`:
@@ -654,7 +670,8 @@ bash tests/prova_sem_rastro.sh
 
 A mesa das duplas pede o robô por lugar (`--robo=bom,ruim,medio,medio --semente=7`), que a F09 ainda não tem: até
 existir, a checagem da diversão roda com `--robo=medio --semente=7`, e o mínimo de 2 `autossoco`, com pelo menos 1 de
-lugar 0 ou 1, vale igual. O `conta.torta * 4 >= conta.amostras` da prova é a mesma conta da prancha.
+lugar 0 ou 1, vale igual. A cabeça torta a prova confere em toda partida com cabeçada; com o `bom`, pode não haver
+cabeçada, e a checagem passa sem ela.
 
 **As pranchas que se olham** (`SAIDA/prancha-<n>.png`):
 

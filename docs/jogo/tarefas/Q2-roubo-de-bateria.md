@@ -1,6 +1,6 @@
 # Q2 — Roubo de Bateria
 
-**Sprint:** Q · **Slot:** S09_J42 · **Tamanho:** M · **Depende de:** Q1 (a seção no catálogo, o tipo `momento`), H04, H08, H07, F05 (`Forja.sentir`), F09 (`Forja.robo_acerta`), G03, G05, G13, G14, G15 · **Usa se existir:** G10 (o Castle Kit; sem ele, a peça de reserva)
+**Sprint:** Q · **Slot:** S09_J42 · **Tamanho:** M · **Depende de:** Q1 (a seção no catálogo, o tipo `momento`), H04, H08, H07, F05 (`Forja.sentir`), F09 (`Forja.robo_acerta`), G03, G05, G13, G14, G15 · **Vem pela G13:** G10 (o Castle Kit, o Factory Kit e `Kit.caminho`; a reserva fica para o `.glb` que faltar)
 
 ## Por quê
 
@@ -11,11 +11,15 @@ vai para o adversário faça a sala gritar pelo menos 1 vez em 100 s.
 ## Ler antes
 
 - [O molde de minigame](molde-de-minigame.md) (onde mora, a FICHA, o robô, o registro, a prova)
-- [O kit, no 13](../13-arquitetura.md#o-kit-do-minigame--h04) e [as decisões comuns da H08](../13-arquitetura.md#as-decisões-comuns-dos-minigames--h08)
+- [O kit, no 13](../13-arquitetura.md#o-kit-do-minigame--h04) e, no mesmo arquivo, a seção «As decisões comuns dos
+  minigames — H08»
 - [A Q1](Q1-a-prova.md), «Os ganchos» (o `_gancho`, o `_respondeu`, a forma do `vencedor()` de equipe)
 
 Tudo o mais que esta ficha usa (as cores, o brilho, a câmera, o movimento, o som, os stats, a régua da diversão)
 está escrito aqui dentro, com o número.
+
+As duas curvas do movimento (do 05): `ENTRA_SAI` é um `Tween` com `TRANS_SINE` e `EASE_IN_OUT`; `MOLA` é
+`TRANS_BACK` com `EASE_OUT` (passa 4 % do alvo e volta).
 
 ## Arquivos que mudam
 
@@ -90,7 +94,9 @@ A faixa `MUS_S09_J42` tem 138 BPM: uma batida dura 0,4348 s. 100 s são 230 bati
 - **As equipes:** `presentes()` na ordem; os dois primeiros são a Brasa, os dois seguintes a Maré, sem Aprendiz (ver
   «Com menos de quatro»).
 - **Andar:** o analógico esquerdo (`Forja.eixo(l, Forja.LX)`, `Forja.LY`), a `VEL × velocidade` m/s; quem carrega anda a
-  `LENTO` disso. Os cavaleiros se separam (raio 0,45 cada, a separação de hoje em `prova.gd:387-397`, sem os pilares).
+  `LENTO` disso. Os cavaleiros se separam: a cada quadro, dois a menos de 0,9 m (raio
+  0,45 cada) se afastam, cada um, metade da sobreposição, na linha entre os dois centros (o `prova.gd` de hoje não tem
+  essa conta: as linhas 387 a 397 são o empurrão dos pilares e o limite da arena, que saem).
   O campo vai de x −8,0 a 8,0 e de z −3,5 a 3,5.
 - **Pegar:** a bateria livre a menos de `PEGA_R` de um cavaleiro é dele (o primeiro a chegar; quem está na queda do
   `levantar` não pega). No mesmo quadro, os dois gatilhos ganham peso:
@@ -150,12 +156,12 @@ dele) e o primeiro a pegá-la é da outra equipe, no primeiro quadro da batida s
 1. `anotar("momento", l, {"nome": "caiu_na_porta", "lugar": l, "t_musica": Ritmo.t_musica()})`, com `l` = quem deixou
    cair;
 2. `Forja.sentir(l, "golpe")` em quem deixou cair (ele não carrega, então não tem pista na mão);
-3. o degrau **estrondo**: `tremor = 0.42` por 2 batidas (0,05 m); parada de 3 quadros (`p.anim.speed_scale = 0` nos
-   quatro); 48 faíscas `Efeitos.faiscas(self, pos_da_bateria, Tema.TUNGSTENIO, 48, 1.0)`; a luz de preenchimento a ×0,7
-   por 1 batida, volta em 1 batida; o contorno de quem pegou vai de 2,4 a 3,0 no mesmo tempo;
+3. o degrau **estrondo**: `tremer(TREMOR_ESTRONDO)` (0,05 m, 2 batidas, decai sozinho na câmera da G05); parada de 3 quadros (`p.anim.speed_scale = 0` nos
+   quatro); 48 faíscas `Efeitos.faiscas(self, pos_da_bateria, Tema.TUNGSTENIO, 48, 1.0)`; o preenchimento
+   (`environment.ambient_light_energy`, ver «A cena») a ×0,7 por 1 batida, volta em 1 batida; o contorno de quem pegou vai de 2,4 a 3,0 no mesmo tempo;
 4. o rastro: a mancha já está no chão (4 s); quem deixou cair continua parado olhando até a queda passar.
 
-Com `Opcoes.movimento == 1`: sem tremor e sem parada.
+Com `Opcoes.movimento == 1`: a câmera da G05 já não treme (a ficha chama `tremer` igual), e a ficha tira a parada.
 
 ### O fim e o vencedor
 
@@ -276,7 +282,7 @@ var _robo_empurra := [true, true, true, true]
 
 func montar() -> void:
 	usa_gatilho = true
-	camera_pos = Vector3(0, 15.5, 13.5)
+	camera_pos = Vector3(0, 14.60, 12.72)   # a G05 recua ×1,0616 a 35 mm: a câmera fica em (0, 15,5, 13,5)
 	camera_olhar = Vector3(0, 0, 0)
 	_montar_cena()                  # «A cena»
 	# as equipes (sem Aprendiz), as baterias da contagem, os cavaleiros nas bases, a sentinela (com um)
@@ -386,20 +392,31 @@ As outras funções, uma frase cada:
 
 ## A cena
 
-- **A câmera:** a arena (35 mm, plongée de 48,9°, nunca corta). `camera_pos = Vector3(0, 15.5, 13.5)`,
-  `camera_olhar = Vector3(0, 0, 0)`. Medido por projeção com 37,8° vertical e 16:9: as bandeiras em (±8, 2,2, −2) caem
+- **A câmera:** a arena (35 mm, plongée de 48,9°, nunca corta). `camera_pos = Vector3(0, 14.60, 12.72)`,
+  `camera_olhar = Vector3(0, 0, 0)`. No modo `"fixa"`, a G05 recua a câmera por `Lente.recuo(35)` = 1,0616 a partir do
+  olhar: `olhar + (camera_pos − olhar) × 1,0616` = (0, 15,5, 13,5), que é onde se mediu. Medido por projeção com 37,8° vertical e 16:9: as bandeiras em (±8, 2,2, −2) caem
   em x 0,18 e 0,83; a `PORTA` (\|x\| de 3,0 a 5,0, z de −3,0 a 3,0) cai entre x 0,28 e 0,72, dentro dos 60 % do meio;
   o meio (0, 0, ±3,5) cai em y 0,33 e 0,71. Sem `camera_foco`.
-- **A luz:** a da seção pela G15, `Tema.luz_da_secao(9, "B")`; as tochas de hoje em (±10, 3, ±6). Na entrada da
-  sobrecarga (batida 76), a chave sobe 20 % em 1 batida e a névoa vai a ×0,8; voltam em 2 batidas.
+- **A luz** (S9): a ficha não chama `Tema.luz_da_secao`. A entrada da sala chama `acender(9, partida.lado() == "B")` (G15 e
+  G16): no lado A, densidade 0,012 e energia da chave 1,8; no lado B, 0,0156 e 1,53. A chave são as tochas de `luzes()`:
+  o `Sala.acender(luz)` as pinta. Logo depois do `luzes(...)`, a ficha guarda em `_tochas` os `OmniLight3D` filhos da
+  sala, menos o enchimento de cima, em (0, 9, 2). Quando a ficha mexe na chave, multiplica a `light_energy` das `_tochas`
+  sobre a `energia_chave` que a G15 pôs. O preenchimento é `environment.ambient_light_energy` (0,42 pela G15) e a névoa
+  é `environment.fog_density`, com `var environment := get_viewport().find_world_3d().environment`; os dois voltam ao
+  valor de antes. As tochas de hoje: `luzes([Vector3(-10, 3, -6), Vector3(10, 3, -6), Vector3(-10, 3, 6),
+  Vector3(10, 3, 6)])`. Na entrada da sobrecarga (batida 76), a `light_energy` das `_tochas` sobe 20 % em 1 batida e a
+  `fog_density` vai a ×0,8; voltam em 2 batidas.
 - **As bases:** `Kit.caixa(self, Vector3(3.0, 0.03, 3.0), Vector3(BASE_X[e], 0.02, 0), Kit.material(CORES_DAS_EQUIPES[e], 0.0, 0.9))`
   e a bandeira `Kit.peca(self, "banner", Vector3(±8.0, 0, -2.0), 0.0, 1.0)` em cada.
 - **A porta:** nada desenhado; é a faixa de chão entre a base e o meio.
-- **A bateria:** `_peca("platformer-kit/jewel", "barrel", pos)` (o `jewel` do Platformer Kit, da G10; a reserva é o
-  `barrel` do Mini Dungeon a escala 1,2) com a runa `Kit.caixa(no, Vector3(0.3, 0.06, 0.3), Vector3(0, 1.3, 0), mat)`.
-  `_peca(nome, reserva, pos)` é o da Q1: usa `nome` se `FileAccess.file_exists("res://assets/kenney/%s.glb" % nome)`,
-  senão a reserva.
-  - Livre: `Tema.neon(Tema.TUNGSTENIO, 1.0, "mundo")`, sem pulsar.
+- **A bateria:** um `Node3D` `bateria` sem escala, com a peça `_peca("factory-kit/box-small", "barrel", Vector3.ZERO)`
+  passada para dentro dele (`reparent(bateria)`). A caixa pequena do Factory Kit, que a G10 importa, sai do `Kit.peca`
+  com a escala 0,5 do pacote: 0,30 × 0,28 × 0,25 m. A reserva é o `barrel` do Mini Dungeon com `scale` ×1,2: 0,62 ×
+  0,58 × 0,62 m. O Platformer Kit (o `jewel`) não entra: a G10 não o importa. A runa fica em cima da peça,
+  `Kit.caixa(bateria, Vector3(0.3, 0.06, 0.3), Vector3(0, h + 0.05, 0), mat)`, com `h` 0,28 na caixa e 0,58 no barril.
+  `_peca(nome, reserva, pos)` é o da Q1: usa `nome` se `ResourceLoader.exists(Kit.caminho(nome))`, senão a reserva.
+  - Livre: `Tema.neon(Tema.TUNGSTENIO, 1.0, "forja")`, sem pulsar (o tungstênio é do dono `"forja"`, teto 2,4; o
+    `"mundo"` é o violeta).
   - Na mão: `Tema.neon(Tema.JOGADOR[l], 2.0, l)`, 2,6 por 4 quadros a cada pulso acertado; fica acima da cabeça
     (`pos + Vector3(0, 2.4, 0)`), e o cavaleiro faz `holding-both`.
   - Caída: no chão onde caiu, de novo `TUNGSTENIO` a 1,0.
@@ -417,9 +434,9 @@ As outras funções, uma frase cada:
   | o contorno de cada cavaleiro | o lugar | 2,4; 3,0 por 1 batida em quem pegou na porta |
   | o acento da peça (friso, costura, runa do item) | o lugar | 1,6 (o da G13) |
   | a runa da bateria na mão | o lugar | 2,0; 2,6 por 4 quadros no acerto |
-  | a runa da bateria livre ou caída | `"mundo"` | 1,0 |
+  | a runa da bateria livre ou caída | `"forja"` | 1,0 |
   | o olho da sentinela | `"mundo"` | 1,0; 1,2 por 1 batida quando empurra |
-  | as faíscas da queda | `"mundo"` | 1,0 por 12 quadros |
+  | as faíscas da queda | `"forja"` | 1,0 por 12 quadros |
   | as bases, os discos, as bandeiras, a mancha | ninguém | 0 (impressos) |
 
 - **O que sai:** a `atmosfera` com `Tema.CIANO`, a runa em `Tema.AMARELO` que pulsava até 3,0 e o olho vermelho de hoje.

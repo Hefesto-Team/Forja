@@ -1,6 +1,6 @@
 # Q1 — A Prova
 
-**Sprint:** Q · **Slot:** S09_J41 · **Tamanho:** G · **Depende de:** H04, H08, H07, F01, F04, F05 (`Forja.sentir`), F09 (`Forja.robo_acerta`), G03, G05, G13, G14, G15 · **Usa se existir:** G10 (o Castle Kit; sem ele, a peça de reserva)
+**Sprint:** Q · **Slot:** S09_J41 · **Tamanho:** G · **Depende de:** H04, H08, H07, F01, F04, F05 (`Forja.sentir`), F09 (`Forja.robo_acerta`), G03, G05, G13, G14, G15 · **Vem pela G13:** G10 (o Castle Kit e `Kit.caminho`; a reserva fica para o `.glb` que faltar)
 
 ## Por quê
 
@@ -17,15 +17,21 @@ no kit ela vira um cabo de guerra no ritmo, Brasa contra Maré, em que a frente 
 Tudo o mais que esta ficha usa (as cores, o brilho, a câmera, o movimento, o som, os stats, a régua da diversão)
 está escrito aqui dentro, com o número.
 
+As duas curvas do movimento (do 05): `ENTRA_SAI` é um `Tween` com `TRANS_SINE` e `EASE_IN_OUT`; `MOLA` é
+`TRANS_BACK` com `EASE_OUT` (passa 4 % do alvo e volta).
+
 ## Arquivos que mudam
 
 - `godot/scripts/minigames/s09/a_prova.gd` (novo, `extends Minigame`, sem `class_name`) e o `.uid` que o Godot gera.
 - `godot/scripts/minigames/catalogo.gd`: o slot em `MINIGAMES`, a seção `S09`, `"prova"` fora de `SALAS_ANTIGAS`.
   **De todos:** Q2, Q3, Q4 e Q5 também mudam este arquivo.
 - `godot/scripts/traducoes.gd`: as frases da tabela «As frases». **De todos:** Q2 a Q5.
-- `godot/scripts/minigames/minigame.gd`: `"momento"` em `TIPOS_DO_JOGO`. Só a Q1 muda: a Q2 a Q5 dependem dela e
-  conferem que está lá.
-- `docs/jogo/13-arquitetura.md`: a linha `momento` na tabela do registro v2, no mesmo commit da linha acima. Só a Q1.
+- `godot/scripts/minigames/minigame.gd`: `"momento"` em `TIPOS_DO_JOGO`, se ainda não estiver (a J1 e a O1 também
+  põem). A Q2 a Q5 dependem da Q1 e conferem que está lá.
+- `godot/testes/minigame_de_tempo.gd` e `godot/testes/prova_do_jogo.gd`, só se esta ficha pôs o `"momento"`: o passo 4
+  de «A casa nova e o catálogo».
+- `docs/jogo/13-arquitetura.md`: a linha `momento` na tabela do registro v2, no mesmo commit da linha acima, se ainda
+  não estiver.
 - `godot/testes/prova_do_jogo.gd`: `_prova_a_prova()` no lugar do bloco «A Prova» de hoje, a linha no `match` de
   `_prova_da_ficha` e a checagem do relatório. **De todos:** Q2 a Q5.
 - `git rm godot/scripts/salas/prova.gd godot/scripts/salas/prova.gd.uid`.
@@ -138,16 +144,17 @@ Na virada, no mesmo quadro:
    quando a Brasa cedeu; com `lugar` −1, `Forja.sentir(l, "golpe")` em todos os presentes.
 3. O degrau: **golpe** fora do pico, **estrondo** no pico (tabela abaixo).
 4. As lajes do meio (as de índice 5 e 6) trocam de cor para a da equipe que virou (é o rastro que a prancha confere).
-5. A luz: a energia da luz de preenchimento da seção vai a ×0,7 por 1 batida e volta em 1 batida; o contorno dos
+5. A luz: o preenchimento (`environment.ambient_light_energy`, ver «A cena») vai a ×0,7 por 1 batida e volta em 1 batida; o contorno dos
    dois da equipe que virou vai de 2,4 a 3,0 no mesmo tempo.
 
 | degrau | o tremor | a parada | o que se vê | a consequência |
 | --- | --- | --- | --- | --- |
-| golpe (fora do pico) | `tremor = 0.17` por 1 batida (0,02 m) | 2 quadros: `p.anim.speed_scale = 0` nos quatro cavaleiros | a runa da frente a 130 % de escala em x por 1 batida | o chão do meio troca de cor; 2 marcas de pé por cavaleiro que cedeu |
-| estrondo (no pico) | `tremor = 0.42` por 2 batidas (0,05 m) | 3 quadros | 48 faíscas `Efeitos.faiscas(self, Vector3(x_frente, 0.1, 0), CORES_DAS_EQUIPES[e_virou], 48, 1.0)` | 4 batidas com a luz a ×0,7 nas lajes de quem cedeu; as marcas ficam até o fim |
+| golpe (fora do pico) | `tremer(TREMOR_GOLPE)`: 0,02 m, 1 batida | 2 quadros: `p.anim.speed_scale = 0` nos quatro cavaleiros | a runa da frente a 130 % de escala em x por 1 batida | o chão do meio troca de cor; 2 marcas de pé por cavaleiro que cedeu |
+| estrondo (no pico) | `tremer(TREMOR_ESTRONDO)`: 0,05 m, 2 batidas | 3 quadros | 48 faíscas `Efeitos.faiscas(self, Vector3(x_frente, 0.1, 0), CORES_DAS_EQUIPES[e_virou], 48, 1.0)` | 4 batidas com a luz a ×0,7 nas lajes de quem cedeu; as marcas ficam até o fim |
 
-`tremor` volta a 0 na batida em que o tempo acaba. Com `Opcoes.movimento == 1`: sem tremor, sem parada, e a runa vai
-a 105 % em vez de 130 %.
+O `tremer` é da câmera (G05): o abalo decai sozinho no tempo do degrau, e com `Opcoes.movimento == 1` a câmera não
+treme. A ficha chama `tremer` igual; com `Opcoes.movimento == 1`, ela tira a parada, e a runa vai a 105 % em vez de
+130 %.
 
 ### A falha
 
@@ -213,7 +220,7 @@ func robo(l: int, dt: float) -> void:
 		return
 	if _acabou_a_partida:
 		if Forja.bancada:
-			_robo_prova_final(l, dt)       # o ramo LEDS/COR do _robo de hoje (prova.gd:840-905)
+			_robo_prova_final(l, dt)       # o ramo LEDS/COR do _robo de hoje (prova.gd:843-865)
 		return
 	if float(Forja.som_virtual(l).get("falante", 0.0)) > 0.05:
 		_robo_ouviu_sino[l] = _m
@@ -290,7 +297,7 @@ var _robo_ouviu_sino := [-9, -9, -9, -9]
 
 func montar() -> void:
 	usa_gatilho = true
-	camera_pos = Vector3(0, 16, 14.5)
+	camera_pos = Vector3(0, 15.07, 13.66)   # a G05 recua ×1,0616 a 35 mm: a câmera fica em (0, 16, 14,5)
 	camera_olhar = Vector3(0, 0, 0)
 	_montar_cena()                # «A cena»
 	_formar_aprendizes()          # os bonecos no lugar de quem falta
@@ -416,7 +423,7 @@ As outras funções, uma frase cada:
 | o L2 em resistência | o L2 é do item (G03) |
 | `Forja.vibrar(...)` direto | `Forja.sentir(l, ...)` |
 | o `_process` | o `_mostrar(b)` no fim do `jogar` |
-| **fica:** `_saida` (216-220), a prova final (545-684), `dar_vereditos` (691-701), `pergunta` (787-827), `_cor_mais_perto` (828), o ramo LEDS/COR do `_robo` (840-905) | a bancada |
+| **fica:** `_saida` (216-220), a prova final (545-684), `dar_vereditos` (691-701), `pergunta` (787-827), `_cor_mais_perto` (828), o ramo LEDS/COR do `_robo` (843-865) | a bancada |
 | **fica, com outra cor:** `_tingir` (200-213), só no Aprendiz, com `Tema.ETIQUETA_SOMBRA` | o boneco do jogo |
 
 ### A casa nova e o catálogo
@@ -428,9 +435,13 @@ As outras funções, uma frase cada:
    apelido `--sala=prova` abre o `S09_J41`.
 3. `git rm godot/scripts/salas/prova.gd godot/scripts/salas/prova.gd.uid`; `grep -rn "SalaProva" godot/` vazio (a
    prova do jogo usa `SalaProva.PARTIDA`, `LUZ_EQUIPE` e `NOME_EQUIPE`: saem com as checagens novas).
-4. `minigame.gd`: `"momento"` em `TIPOS_DO_JOGO`; `13-arquitetura.md`: a linha
+4. Se `grep -n '"momento"' godot/scripts/minigames/minigame.gd` não achar nada (a J1 e a O1 ainda não entraram):
+   `minigame.gd`: `"momento"` no fim de `TIPOS_DO_JOGO`; `13-arquitetura.md`: a linha
    `| momento | o pico de diversão (a régua 9) | nome, lugar (0..3, ou −1 quando é de todos), t_musica e, na reta, objeto |`
-   na tabela do registro v2.
+   na tabela do registro v2; `godot/testes/minigame_de_tempo.gd`, no `iniciar_jogo()`, depois da linha
+   `anotar("entrada", ...)`: `anotar("momento", -1, {"nome": "prova", "lugar": -1, "t_musica": 0.0})`; e em
+   `prova_do_jogo.gd` a mensagem `"registro: os seis eventos do jogo"` vira `"registro: os sete eventos do jogo"`. Sem
+   a linha do `minigame_de_tempo.gd`, a prova da H08 (o T00_J01 grava todos os tipos de `TIPOS_DO_JOGO`) cai.
 
 ### As frases
 
@@ -467,23 +478,30 @@ Tire as frases do tiroteio que ninguém mais usa (`"recarregue"`, `"martelada!"`
 
 ## A cena
 
-- **A câmera:** a arena (35 mm, plongée de 47,8°, nunca corta). `camera_pos = Vector3(0, 16, 14.5)`,
-  `camera_olhar = Vector3(0, 0, 0)`. Medido por projeção com o campo vertical de 37,8° (o de 35 mm) e 16:9: as quinas
+- **A câmera:** a arena (35 mm, plongée de 47,8°, nunca corta). `camera_pos = Vector3(0, 15.07, 13.66)`,
+  `camera_olhar = Vector3(0, 0, 0)`. No modo `"fixa"`, a G05 recua a câmera por `Lente.recuo(35)` = 1,0616 a partir do
+  olhar: `olhar + (camera_pos − olhar) × 1,0616` = (0, 16, 14,5), que é onde se mediu. Medido por projeção com o campo vertical de 37,8° (o de 35 mm) e 16:9: as quinas
   da faixa (±11, 0, ±3,1) caem em x de 0,04 a 0,96 da tela; a frente no meio cai em (0,50; 0,50). Hoje o `fov` é 40°:
   a 40° a margem só cresce. Sem `camera_foco` (a arena não empurra).
-- **A luz:** a da seção pela G15, `Tema.luz_da_secao(9, "B")` (S9, o lado B, vermelhão: névoa ×1,3, chave ×0,85).
-  As tochas de hoje: `luzes([Vector3(-10, 3, -6), Vector3(10, 3, -6), Vector3(-10, 3, 6), Vector3(10, 3, 6)])`. No pico
-  (compasso 26), a energia da chave sobe 20 % em 1 batida e a densidade da névoa vai a ×0,8; voltam em 2 batidas, num
-  `Tween` sobre a `DirectionalLight3D` da chave e o `Environment` que a G15 montou.
+- **A luz** (S9): a ficha não chama `Tema.luz_da_secao`. A entrada da sala chama `acender(9, partida.lado() == "B")` (G15 e
+  G16): no lado A, densidade 0,012 e energia da chave 1,8; no lado B, 0,0156 e 1,53. A chave são as tochas de `luzes()`:
+  o `Sala.acender(luz)` as pinta. Logo depois do `luzes(...)`, a ficha guarda em `_tochas` os `OmniLight3D` filhos da
+  sala, menos o enchimento de cima, em (0, 9, 2). Quando a ficha mexe na chave, multiplica a `light_energy` das `_tochas`
+  sobre a `energia_chave` que a G15 pôs. O preenchimento é `environment.ambient_light_energy` (0,42 pela G15) e a névoa
+  é `environment.fog_density`, com `var environment := get_viewport().find_world_3d().environment`; os dois voltam ao
+  valor de antes. As tochas de hoje: `luzes([Vector3(-10, 3, -6), Vector3(10, 3, -6), Vector3(-10, 3, 6),
+  Vector3(10, 3, 6)])`. No pico (compasso 26), a `light_energy` das `_tochas` sobe 20 % em 1 batida e a `fog_density`
+  vai a ×0,8; voltam em 2 batidas, num `Tween` sobre as `_tochas` e o `environment`.
 - **A faixa de chão:** 12 lajes `Kit.caixa(self, Vector3(1.8, 0.04, 6.0), Vector3(-11.0 + 0.917 + 1.833 * i, 0.02, 0), mat)`.
   À esquerda da frente, `Kit.material(CORES_DAS_EQUIPES[BRASA], 0.0, 0.9)`; à direita, `CORES_DAS_EQUIPES[MARE]`
   (as do kit, impressas, energia 0, sem glow); a laje da frente, meio a meio.
 - **A runa da frente:** `Kit.caixa(self, Vector3(0.12, 0.06, 6.2), Vector3(_frente * LAJE, 0.05, 0), mat)` com
-  `Tema.neon(Tema.TUNGSTENIO, 1.0, "mundo")`.
-- **As bases:** a bandeira `Kit.peca(self, "banner", Vector3(±10.2, 0, -2.6), 0.0, 1.0)` (Mini Dungeon, já está em
-  `godot/assets/kenney/`) e, atrás dela, a torre `_peca("castle-kit/tower-base", "column", Vector3(±10.2, 0, -4.4))`
+  `Tema.neon(Tema.TUNGSTENIO, 1.0, "forja")` (o tungstênio é do dono `"forja"`, teto 2,4; o `"mundo"` é o violeta).
+- **As bases:** a bandeira `Kit.peca(self, "banner", Vector3(±10.2, 0, -2.6), 0.0, 1.0)` (Mini Dungeon, em
+  `godot/assets/kenney/mini-dungeon/` depois da G10) e, atrás dela, a torre `_peca("castle-kit/tower-base", "column", Vector3(±10.2, 0, -4.4))`
   (Castle Kit, da G10). `_peca(nome, reserva, pos)` usa `nome` se
-  `FileAccess.file_exists("res://assets/kenney/%s.glb" % nome)`, senão a reserva.
+  `ResourceLoader.exists(Kit.caminho(nome))`, senão a reserva (o `Kit.caminho` é da G10: sem barra, o Mini Dungeon;
+  com barra, a pasta do pacote).
 - **Os cavaleiros:** `p.preso = true`, `p.controlavel = false`; a Brasa em `x = fx - 1.6`, a Maré em `x = fx + 1.6`
   (`fx` = o x da frente; o x fica em ±10,4), A em `z = -1.2`, B em `z = 1.2`, de frente para a frente (`olhar_para`).
   Sob cada um, o disco `Kit.cilindro(self, 0.7, 0.02, pos, Kit.material(CORES_DAS_EQUIPES[e], 0.0, 0.9))`.
@@ -502,7 +520,7 @@ Tire as frases do tiroteio que ninguém mais usa (`"recarregue"`, `"martelada!"`
   | o acento da peça (friso, costura, runa do item) | o lugar | 1,6 (o da G13) |
   | o virote | o lugar | 2,0; 2,6 por 4 quadros no acerto |
   | as faíscas do acerto | o lugar | 2,4 por 12 quadros |
-  | a runa da frente | `"mundo"` | 1,0 |
+  | a runa da frente | `"forja"` | 1,0 |
   | as lajes, os discos, as bandeiras, as marcas | ninguém | 0 (impressos) |
 
 - **O que sai:** os pilares e a bala esférica de hoje, a `atmosfera` com `Tema.LARANJA`, a `poeira` com `Tema.CIANO` e o
@@ -560,7 +578,8 @@ continua só dele. O clique da besta fica no dedo (o gatilho).
 - **O item:** quem tem o Martelo bate com o dele; quem tem a Âncora bate com a Âncora (mesma animação); os outros
   recebem `martelo_na_mao(p)` só durante os blocos de martelo. O Escudo fica no braço esquerdo, e os amuletos no peito,
   à vista.
-- **O Aprendiz** não é cavaleiro de ninguém: `character-human.glb` (Mini Dungeon) com
+- **O Aprendiz** não é cavaleiro de ninguém: `Kit.caminho("mini-dungeon-personagens/character-human")` (Mini Dungeon,
+  a pasta à parte da G10) com
   `_tingir(modelo, Tema.ETIQUETA_SOMBRA)`, sem contorno e sem acento. Não usa o `character-orc`, que agora é raça de
   jogador.
 

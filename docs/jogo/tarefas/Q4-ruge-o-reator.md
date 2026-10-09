@@ -12,12 +12,16 @@ fim com a plataforma em pé.
 ## Ler antes
 
 - [O molde de minigame](molde-de-minigame.md) (onde mora, a FICHA, o robô, o registro, a prova)
-- [O kit, no 13](../13-arquitetura.md#o-kit-do-minigame--h04) e [as decisões comuns da H08](../13-arquitetura.md#as-decisões-comuns-dos-minigames--h08) (a linha `estacao`, a `troca`)
+- [O kit, no 13](../13-arquitetura.md#o-kit-do-minigame--h04) e, no mesmo arquivo, a seção «As decisões comuns dos
+  minigames — H08» (a linha `estacao`, a `troca`)
 - [A Q1](Q1-a-prova.md), «Os ganchos» (o `_gancho`, o `_respondeu`)
 
 Tudo o mais que esta ficha usa (as cores, o brilho, a câmera, o movimento, o som, os stats, a régua da diversão)
 está escrito aqui dentro, com o número. As mecânicas das estações estão escritas aqui no menor tamanho; o medley não
 abre o minigame de origem.
+
+As duas curvas do movimento (do 05): `ENTRA_SAI` é um `Tween` com `TRANS_SINE` e `EASE_IN_OUT`; `MOLA` é
+`TRANS_BACK` com `EASE_OUT` (passa 4 % do alvo e volta).
 
 ## Arquivos que mudam
 
@@ -121,8 +125,8 @@ A faixa `MUS_S09_J44` tem 120 BPM: uma batida dura 0,5 s, a colcheia 0,25 s, a s
   `_custo_erro = 100.0 / (CUSTO_DE * _notas_previstas)`, com `_notas_previstas` contadas do roteiro no
   `iniciar_jogo()` com os presentes de então (com quatro, 255). A laje `i` cai quando
   `_integridade < 100 - 100 * (i + 1) / 13`; em 0, a plataforma cai (ver «A falha»).
-- **A luz da plataforma:** a energia da chave da seção vai a `base × (0.4 + 0.6 × _integridade / 100)` em 1 batida a
-  cada mudança: a sala vê a plataforma morrendo.
+- **A luz da plataforma:** a `light_energy` das `_tochas` (a chave, ver «A cena») vai a `energia_chave × (0.4 + 0.6 ×
+  _integridade / 100)` em 1 batida a cada mudança: a sala vê a plataforma morrendo.
 - **Pontos:** `PONTOS[j]` por nota com `marcar(l, ...)`; a batida 235 vale o dobro.
 - **A curva:** as estações são a curva (24 s cada, o pico no meio, o final que gira os quatro). No primeiro quadro da
   batida 220 sai `anotar("momento", -1, {"nome": "reta", "lugar": -1, "t_musica": Ritmo.t_musica(), "objeto":
@@ -139,19 +143,21 @@ No primeiro quadro da batida 100:
 1. `anotar("momento", -1, {"nome": "rugido_do_meio", "lugar": -1, "t_musica": Ritmo.t_musica()})`;
 2. `Forja.sentir(l, "explosao")` em todos os presentes, no mesmo quadro (ninguém tem nota na 100);
 3. o degrau **catástrofe**: o dragão abre a mandíbula 30° em 1 batida e ergue a cabeça 0,6 m; os olhos vão de 1,0 a
-   1,2; `tremor = 0.67` por 4 batidas (0,08 m); a luz da seção sobe 40 % por 1 batida; sem parada; a plataforma
+   1,2; `tremer(TREMOR_CATASTROFE)` (0,08 m, 4 batidas, decai sozinho na câmera da G05); a `light_energy` das `_tochas`
+   sobe 40 % por 1 batida; sem parada; a plataforma
    treme ±2° em `rotation.z` nas 4 batidas;
 4. o rastro: as lajes que caírem de 100 a 107 ficam como buracos até o fim (toda laje caída fica, aliás).
 
 Na batida 96 (um compasso antes), o prenúncio: `Som.tocar("grito", pos_da_cabeca, -12.0)` e os olhos a 1,1 por
 1 batida.
 
-Com `Opcoes.movimento == 1`: sem tremor e sem o balanço de ±2°.
+Com `Opcoes.movimento == 1`: a câmera da G05 já não treme (a ficha chama `tremer` igual), e a ficha tira o balanço de
+±2°.
 
 ### A falha
 
-- **Um erro:** o cavaleiro faz `emote-no` em 0,3 s; a integridade desce; a plataforma treme (`tremor = 0.17` por
-  1 batida, 0,02 m).
+- **Um erro:** o cavaleiro faz `emote-no` em 0,3 s; a integridade desce; a plataforma treme (`tremer(TREMOR_GOLPE)`:
+  0,02 m, 1 batida).
 - **A laje cai** (quando a integridade passa do limite dela), na colcheia seguinte ao erro: anda `y` para −6 em 1
   batida com `ENTRA_SAI` e some; `Som.tocar("pedra", pos_da_laje, -4.0)`; `Forja.sentir(l, "golpe", 200)` em todos;
   `anotar("jogo", -1, {"o": "laje", "i": i, "batida": floor(b)})`. A ordem: a fileira da frente (z = 3) e a de trás
@@ -310,7 +316,7 @@ var _robo_x := [0.5, 0.5, 0.5, 0.5]
 
 
 func montar() -> void:
-	camera_pos = Vector3(0, 18.0, 14.0)
+	camera_pos = Vector3(0, 17.10, 13.07)   # a G05 recua ×1,0616 a 35 mm: a câmera fica em (0, 18, 14)
 	camera_olhar = Vector3(0, 2.5, -2.0)
 	_montar_cena()                     # «A cena»
 	for l in presentes():
@@ -440,13 +446,20 @@ As outras funções, uma frase cada:
 
 ## A cena
 
-- **A câmera:** a arena (35 mm, plongée de 44,1°, nunca corta). `camera_pos = Vector3(0, 18.0, 14.0)`,
-  `camera_olhar = Vector3(0, 2.5, -2.0)`. Medido por projeção com 37,8° vertical e 16:9: a cabeça do dragão
+- **A câmera:** a arena (35 mm, plongée de 44,1°, nunca corta). `camera_pos = Vector3(0, 17.10, 13.07)`,
+  `camera_olhar = Vector3(0, 2.5, -2.0)`. No modo `"fixa"`, a G05 recua a câmera por `Lente.recuo(35)` = 1,0616 a
+  partir do olhar: `olhar + (camera_pos − olhar) × 1,0616` = (0, 18,0, 14,0), que é onde se mediu. Medido por projeção com 37,8° vertical e 16:9: a cabeça do dragão
   (0, 4,6 a 6,2, −5) cai em x 0,50 e y de 0,27 a 0,18 (`altura_tela` 0,088); o pé do dragão em y 0,45; as quinas da
   frente da plataforma (±7,8, 0,3, 4) em x 0,17 e 0,83, y 0,93; as de trás (±7,8, 0,3, −2) em x 0,23 e 0,77, y 0,60.
   Sem `camera_foco` (a plataforma é de todos).
-- **A luz:** a da seção pela G15, `Tema.luz_da_secao(9, "B")`; as tochas `luzes([Vector3(-9, 3, 3), Vector3(9, 3, 3)])`.
-  A chave segue a integridade (ver «As regras»); no rugido, +40 % por 1 batida.
+- **A luz** (S9): a ficha não chama `Tema.luz_da_secao`. A entrada da sala chama `acender(9, partida.lado() == "B")` (G15 e
+  G16): no lado A, densidade 0,012 e energia da chave 1,8; no lado B, 0,0156 e 1,53. A chave são as tochas de `luzes()`:
+  o `Sala.acender(luz)` as pinta. Logo depois do `luzes(...)`, a ficha guarda em `_tochas` os `OmniLight3D` filhos da
+  sala, menos o enchimento de cima, em (0, 9, 2). Quando a ficha mexe na chave, multiplica a `light_energy` das `_tochas`
+  sobre a `energia_chave` que a G15 pôs. O preenchimento é `environment.ambient_light_energy` (0,42 pela G15) e a névoa
+  é `environment.fog_density`, com `var environment := get_viewport().find_world_3d().environment`; os dois voltam ao
+  valor de antes. As tochas: `luzes([Vector3(-9, 3, 3), Vector3(9, 3, 3)])`. A chave segue a integridade
+  (ver «As regras»); no rugido, +40 % por 1 batida.
 - **O dragão do reator** (peças do kit mais um brilho), no fundo, em `(0, 0, -6.0)`:
   - o corpo: três `Kit.peca(self, "wall", Vector3(0, 1.6 * k, -7.0), 0.0, 1.6)` empilhadas (k de 0 a 2);
   - o pescoço: duas `Kit.peca(self, "column", Vector3(±0.6, 3.2, -5.6), 0.0, 1.2)`;
@@ -484,7 +497,7 @@ As outras funções, uma frase cada:
   | o acento da peça (friso, costura, runa do item) | o lugar | 1,6 (o da G13) |
   | a runa da bigorna, a seta do molde | o lugar | 2,0 na nota dele; 0 fora |
   | os olhos do dragão | `"mundo"` | 1,0; 1,1 no prenúncio; 1,2 no rugido |
-  | as faíscas do fim | `"mundo"` | 1,0 por 12 quadros |
+  | as faíscas do fim | `"forja"` | 1,0 por 12 quadros |
   | as lajes, a viga, o molde, as sentinelas, o dragão | ninguém | 0 (impressos) |
 
 - **O que sai:** o `Kit.arena`, a `atmosfera` com `Tema.VERMELHO`, e as cores escritas à mão da ficha antiga (a pedra
