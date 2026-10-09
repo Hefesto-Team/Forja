@@ -213,7 +213,7 @@ São base: vão de **a fazer** direto para **em voo**, um trilho por grupo, na o
 | [WT01](WT01-o-ler-antes-pela-ancora.md) | O «Ler antes» pela âncora | M | — | feito |
 | [WT02](WT02-o-codigo-da-ficha-por-script.md) | O código da ficha sai por script | M | — | feito |
 | [WT05](WT05-um-lugar-so-para-os-estados.md) | Um lugar só para os estados da ficha | M | WT04 | feito |
-| [WT02b](WT02b-o-codigo-das-fichas-que-ficaram-sem-marca.md) | O código das fichas que ficaram sem marca | M | WT02 | a fazer |
+| [WT02b](WT02b-o-codigo-das-fichas-que-ficaram-sem-marca.md) | O código das fichas que ficaram sem marca | M | WT02 | feito |
 
 **a-caixa**: as provas que mentem: a caixa única, os erros do motor reprovam, a prova do kit no relógio do quadro (depois da a-varredura, que mexe nos mesmos scripts).
 
