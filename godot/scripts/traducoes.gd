@@ -280,6 +280,9 @@ const EN := {
 	"Quatro estalos": "Four clicks",
 	"Um golpe que ressoa": "A ringing blow",
 	"Duas ondas": "Two waves",
+	# o kit do minigame (H04)
+	"O Martelo de Hefesto": "Hephaestus's Hammer",
+	"Bata!": "Strike!",
 }
 
 ## Os textos com número: [padrão, substituição] (a substituição usa $1, $2…).
