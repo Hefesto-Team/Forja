@@ -668,7 +668,7 @@ func _quadro_intervalo(dt: float) -> void:
 	for l in 4:
 		if Forja.ocupado(l) and Forja.apertou(l, Forja.CRUZ):
 			Forja.sentir(l, "toque")
-			Som.tocar("confirma", null, -6.0)
+			Som.tocar("ui_confirma", null, -6.0)
 			_entrar_na_sala(partida.sala_atual())
 			return
 
