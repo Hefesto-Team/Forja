@@ -9,24 +9,28 @@ A tabela mora em `docs/jogo/audio/mapa.csv`, para os portões lerem. Esta págin
 
 | coluna | o que é | exemplo |
 | --- | --- | --- |
-| `id` | o nome único, em minúsculas | `vitoria_p2`, `julgamento_perfeito`, `mus_s01_j02` |
+| `id` | o nome único, em minúsculas; o prefixo diz a família de arquivo (o [03](../arte/03-som.md#o-formato)) | `fx_vitoria_p2`, `jul_ressonancia_p1`, `mus_s01_j02` |
 | `tipo` | `sfx`, `stinger`, `assinatura`, `ambiente`, `ui`, `musica` | `stinger` |
-| `familia` | a família da bíblia de som | `fita`, `metal`, `voz_do_controle` |
-| `onde_toca` | `tv`, `controle` (o alto-falante do controle) ou os dois | `controle` |
+| `familia` | a família da [bíblia de som](../arte/03-som.md#as-famílias) | `fita`, `metal`, `voz` |
+| `onde_toca` | `tv`, `controle` (o alto-falante do controle), `atuadores` (a háptica por áudio), juntos por `+` | `tv+controle` |
 | `evento` | o que dispara | `o vencedor aparece no pódio` |
 | `fichas` | as fichas que usam, separadas por espaço | `G04 F03` |
-| `receita` | o script e os parâmetros que geram o arquivo | `scripts/sons/gerar.py stinger vitoria --lugar 2` |
-| `duracao_ms` | a duração alvo | `1800` |
+| `receita` | o script e os parâmetros que geram o arquivo; nos sons do módulo, a receita de síntese | `godot/estudos/direcao/som/gerar_sons.py --so fx_vitoria_p2 --lugar 2 --fita cheia` |
+| `duracao_ms` | a duração alvo | `1000` |
 | `pico_dbfs` | o pico máximo | `-1` |
 | `haptica` | a vibração ou o gatilho que acompanha, se há | `pulso duplo, motor direito, 120 ms` |
-| `arquivo` | o caminho no jogo | `godot/assets/sons/vitoria_p2.wav` |
+| `arquivo` | o caminho no jogo, ou `(módulo)` para o som sintetizado em tempo real | `godot/assets/sons/fx_vitoria_p2.wav` |
 | `estado` | `a fazer`, `gerado`, `conferido`, `no jogo` | `gerado` |
 
 ## Os sons
 
-Gerados por síntese e tratamento por script, com o tratamento de fita da bíblia. Nenhum é gerado por modelo de IA.
-Um portão confere, para cada linha, que o arquivo existe, que a duração e o pico batem e que não há clique no começo
-nem no fim.
+Gerados por síntese e tratamento por script, com o tratamento de fita da bíblia, ou gravações CC0 da Kenney convertidas
+por script (a receita diz o arquivo de origem). Nenhum é gerado por modelo de IA. Os sons sintetizados em tempo real
+(`sint_*` na TV, `mod_*` no controle) não têm arquivo: a receita aponta o nome e os parâmetros no código.
+
+Um portão confere, para cada linha com arquivo e estado `gerado`, `conferido` ou `no jogo`, que o arquivo existe, que
+a duração e o pico batem e que não há clique no começo nem no fim (`gerar_sons.py --conferir`). As linhas
+`(módulo)` conferem pelo nome no código.
 
 ## A música
 
