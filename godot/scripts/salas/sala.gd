@@ -20,6 +20,25 @@ var camera_pos := Vector3(0, 13, 13)
 var camera_olhar := Vector3.ZERO
 ## O tremor da câmera agora (0: parada), para o susto e os golpes grandes.
 var tremor := 0.0
+## Como a câmera filma (G05): "fixa", "dupla", "grupo" ou "corrida"; a lente em mm (0: a do modo); a distância
+## mínima e a máxima, em m (grupo e corrida); para onde se corre e o quanto quem fica para trás pode se afastar do
+## líder (corrida); onde está a ação agora (dupla; ZERO: nenhuma).
+var camera_modo := "fixa"
+var camera_lente := 0.0
+var camera_distancia := Vector2(9.0, 18.0)
+var camera_frente := Vector3(0, 0, -1)
+var camera_alcance := 14.0
+var camera_foco := Vector3.ZERO
+## A amplitude do tremor do evento agora, em m (cai em linha reta até 0).
+var abalo := 0.0
+var _abalo_ini := 0.0
+var _abalo_dura := 0.0  ## s
+
+const LENTE_DO_MODO := {"fixa": 35.0, "dupla": 50.0, "grupo": 35.0, "corrida": 28.0}
+const TREMOR_GOLPE := 0.02  ## 1 batida
+const TREMOR_ESTRONDO := 0.05  ## 2 batidas
+const TREMOR_EXPLOSAO := 0.05  ## o nome que as fichas de minigame já usam: o estrondo
+const TREMOR_CATASTROFE := 0.08  ## 4 batidas
 ## false: a sala desenha o próprio painel no lugar do HUD do jogo (a bancada).
 var com_hud := true
 var t := 0.0
@@ -53,6 +72,50 @@ func status(_lugar: int) -> String:
 
 func _process(dt: float) -> void:
 	t += dt
+	if abalo > 0.0:
+		abalo = maxf(0.0, abalo - _abalo_ini * dt / maxf(_abalo_dura, 0.001))
+
+
+## A lente desta sala agora, em mm (24 a 100).
+func lente() -> float:
+	return clampf(camera_lente if camera_lente > 0.0 else float(LENTE_DO_MODO.get(camera_modo, 35.0)), 24.0, 100.0)
+
+
+## As posições que a câmera enquadra: os bonecos visíveis (a sala troca por «só os que estão na partida»).
+func alvos_da_camera() -> Array:
+	var alvos: Array = []
+	for p in jogadores:
+		if p.visible:
+			alvos.append(p.global_position)
+	return alvos
+
+
+## O tremor do evento: amplitude em m; o degrau sai dela (até 0,02 golpe, até 0,05 estrondo, senão catástrofe).
+## Um tremor novo só substitui o vivo se a amplitude dele é maior ou igual ao `abalo` de agora.
+func tremer(amplitude: float) -> void:
+	var a := clampf(amplitude, 0.0, TREMOR_CATASTROFE)
+	if a <= 0.0 or a < abalo:
+		return
+	var batidas := 1.0 if a <= TREMOR_GOLPE else (2.0 if a <= TREMOR_ESTRONDO else 4.0)
+	_abalo_ini = a
+	_abalo_dura = batidas * 60.0 / maxf(1.0, Ritmo.bpm if Ritmo.bpm > 0.0 else 120.0)
+	abalo = a
+
+
+## Corrida: a borda empurra, não mata. Quem ficou mais de `camera_alcance` atrás do líder volta para a borda.
+func puxar_os_de_tras() -> void:
+	var visiveis: Array = []
+	var posicoes: Array = []
+	for p in jogadores:
+		if p.visible:
+			visiveis.append(p)
+			posicoes.append(p.global_position)
+	if visiveis.size() < 2:
+		return
+	var novas := Enquadramento.puxar(posicoes, camera_frente, camera_alcance)
+	for i in visiveis.size():
+		if novas[i] != posicoes[i]:
+			visiveis[i].global_position = novas[i]
 
 
 func jogador(lugar: int) -> ForjaPlayer:

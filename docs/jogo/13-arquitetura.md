@@ -299,7 +299,7 @@ const FICHA := {
     "genero": "tct",            # tct, 2v2, coop, corrida, sobrevivencia, terror, sabotagem
     "icone": "botoes",           # a parte do controle, para o aviso
     "entradas": [Forja.CRUZ, Forja.CIRCULO, Forja.QUADRADO, Forja.TRIANGULO],
-    "camera": "fixa",            # fixa, grupo, corrida
+    "camera": "fixa",            # fixa, dupla, grupo, corrida
     "faixa": "MUS_S01_J01",
     "duracao": 90.0,             # 0: acaba pelo fim do próprio jogo
     "fim": "tempo",              # tempo, ultimo_em_pe, primeiro_a_chegar, meta_coletiva
@@ -332,7 +332,7 @@ FICHA; redeclarar `RAIAS` na filha é erro de análise; o minigame **não tem**
 | as falas | `falar(l, evento)` com o limite de uma a cada 20 s por lugar (G07) |
 | o fechamento | na fase `fim`: apito, resultado com `vencedor()`, jingle, volta em 6 s (F03) |
 | o registro | `minigame`, `nota`, `toque` |
-| a câmera | pelo modo da ficha (G05) |
+| a câmera | pelo modo da ficha (G05): o kit põe `camera_modo` pela chave `"camera"` (`fixa`, `dupla`, `grupo`, `corrida`); a ficha pode trazer `"camera_lente"` (mm), `"camera_distancia": Vector2(min, max)` e, na corrida, `"camera_frente"`; os eventos tremem com `tremer(Sala.TREMOR_GOLPE)`, `TREMOR_ESTRONDO` ou `TREMOR_CATASTROFE` (`TREMOR_EXPLOSAO` é o estrondo) |
 
 **Os ganchos** que o minigame implementa:
 
@@ -386,7 +386,7 @@ decidido:
 | `Som` | `Som.pio(l)`: o pio do cavaleiro no alto-falante do controle | G01 |
 | `player.gd` | `BONECOS`, `PECAS`, `tingir`, `cabeca`, `vestir`, `cavaleiro` | G02, G08 |
 | `SalaJogo` | o sinal `no_visor`, `combo(l)` | G04 |
-| `SalaJogo` | `camera_modo`, `camera_distancia`, `camera_frente`, `camera_alcance`, `camera_foco`, `tremer()`, `abalo`, `TREMOR_GOLPE`, `TREMOR_EXPLOSAO`; `godot/scripts/enquadramento.gd` (`class_name Enquadramento`) | G05 |
+| `SalaJogo` | `camera_modo`, `camera_distancia`, `camera_frente`, `camera_alcance`, `camera_foco`, `camera_lente`, `lente()`, `tremer()`, `abalo`, `TREMOR_GOLPE`, `TREMOR_ESTRONDO`, `TREMOR_EXPLOSAO`, `TREMOR_CATASTROFE`; `godot/scripts/enquadramento.gd` (`class_name Enquadramento`); `godot/scripts/mundo/lente.gd` (`class_name Lente`: `fov`, `recuo`, `PADRAO`) | G05 |
 | `SalaJogo` | `usa_gatilho`, `errou(l)` | G03 |
 | `SalaJogo` | `falar(l, evento)`, `mostrar_julgamento(l, j)` — em `SalaJogo`, para as salas de hoje usarem antes do kit; `godot/scripts/falas.gd` | G07 |
 | `Salao` | `pulso`, `apagado`, `acender_bigorna`, `mostrar_colecao`; `godot/scripts/colecao.gd` | G06 |

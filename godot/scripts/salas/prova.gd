@@ -89,6 +89,18 @@ func _init() -> void:
 	duracao = 0.0
 	camera_pos = Vector3(0, 17.5, 13.2)
 	camera_olhar = Vector3(0, 0, 0.9)
+	# a arena de 22,6 × 13,8 m cabia a 24 m com 40°; a 35 mm são 24 × 1,0616 = 25,5 m
+	camera_modo = "grupo"
+	camera_distancia = Vector2(17.0, 25.5)
+
+
+## A câmera enquadra quem está na partida; no aviso, todos os visíveis.
+func alvos_da_camera() -> Array:
+	var alvos: Array = []
+	for p in jogadores:
+		if p.visible and jogando[p.lugar]:
+			alvos.append(p.global_position)
+	return alvos if not alvos.is_empty() else super()
 
 
 func sair() -> void:
