@@ -254,6 +254,46 @@ cp "$RAIZ/docs/jogo/o-time/regras.md" "$G/docs/jogo/o-time/"
 sed -i 's|](o-time/regras.md|](o-time/outro.md|' "$G/docs/jogo/12-como-trabalhar.md"
 espera 1 "regras: o 12 sem o link, reprova" regras "$G"
 
+# --- os estados de uma ficha (WT05) -------------------------------------------------------------------------------
+## estados_iguais <raiz>: a lista da a-esteira («Os estados de uma ficha», os itens em negrito) é a ESTADOS do script.
+estados_iguais() {
+  python3 - "$1/docs/jogo/o-time/a-esteira.md" "$RAIZ/scripts" <<'PY'
+import re, sys
+sys.path.insert(0, sys.argv[2])
+from esteira import ESTADOS
+texto = open(sys.argv[1], encoding="utf-8").read()
+secao = texto.split("## Os estados de uma ficha", 1)[1].split("\n## ", 1)[0]
+doc = re.findall(r"^- \*\*([^*:]+):\*\*", secao, re.M)
+print("a-esteira:", doc); print("esteira.py:", ESTADOS)
+sys.exit(0 if doc == ESTADOS else 1)
+PY
+}
+espera 0 "estados: a lista da a-esteira e a do scripts/esteira.py são a mesma" estados_iguais "$RAIZ"
+E="$TMP/estados"; mkdir -p "$E/docs/jogo/o-time"
+grep -v '^- \*\*espera o André:\*\*' "$RAIZ/docs/jogo/o-time/a-esteira.md" > "$E/docs/jogo/o-time/a-esteira.md"
+espera 1 "estados: a a-esteira sem um estado do script reprova" estados_iguais "$E"
+E="$TMP/quase"; cp -r "$Q" "$E"
+sed -i 's/^\(| \[F01\].*| \)a fazer |$/\1quase pronta |/' "$E/docs/jogo/tarefas/README.md"
+espera 2 "esteira: o estado fora da lista («quase pronta») sai 2" python3 "$RAIZ/scripts/esteira.py" --raiz "$E"
+espera 0 "esteira: e diz a ficha e o texto" \
+  bash -c "python3 '$RAIZ/scripts/esteira.py' --raiz '$E' 2>&1 >/dev/null | grep -q 'F01: «quase pronta»'"
+E="$TMP/texto"; cp -r "$Q" "$E"
+sed -i -e 's/^\(| \[F00\].*| \)feito |$/\1feito, sem a parte B |/' \
+  -e 's/^\(| \[H01\].*| \)a fazer |$/\1espera o André (a parte A feita) |/' \
+  -e 's/^\(| \[G02\].*| \)pronta |$/\1fazendo (Ana) |/' "$E/docs/jogo/tarefas/README.md"
+espera 0 "esteira: o estado com texto depois se lê pelo começo" \
+  bash -c "python3 '$RAIZ/scripts/esteira.py' --raiz '$E' > '$TMP/esteira.json'"
+confere "esteira: «feito, sem…» é feito, «espera o André (…)» é ele, «fazendo (Ana)» é em voo de Ana" \
+  "'F' in [p['secao'] for p in d['prontas_para_despachar']] and d['em_voo']['Ana']['fichas'] == ['G02'] and any(b['secao'] == 'H' and any('H01 (espera o André)' in m for m in b['motivos']) for b in d['bloqueadas'])"
+E="$TMP/marcar"; cp -r "$Q" "$E"; cp "$E/docs/jogo/tarefas/README.md" "$TMP/quadro-antes.md"
+espera 2 "costura --marcar: recusa «quase pronta»" bash "$RAIZ/scripts/costura.sh" --marcar F01 "quase pronta" --integracao "$E"
+espera 0 "costura --marcar: recusado, o quadro não muda" cmp "$TMP/quadro-antes.md" "$E/docs/jogo/tarefas/README.md"
+espera 2 "costura --marcar: a ficha que o quadro não tem sai 2" bash "$RAIZ/scripts/costura.sh" --marcar Z9 feito --integracao "$E"
+espera 0 "costura --marcar: troca só a última coluna da linha da ficha" \
+  bash -c "bash '$RAIZ/scripts/costura.sh' --marcar F01 'espera o André (a parte A)' --integracao '$E' \
+    && [ \"\$(diff '$TMP/quadro-antes.md' '$E/docs/jogo/tarefas/README.md' | grep -c '^[<>]')\" = 2 ] \
+    && grep -qx '| \[F01\](F01.md) | .* | espera o André (a parte A) |' '$E/docs/jogo/tarefas/README.md'"
+
 echo
 if [ "$FALHAS" -eq 0 ]; then
   echo "prova da esteira ok — $CASOS casos: a esteira lê o quadro e segura o que deve, a costura para no conflito e no vermelho"

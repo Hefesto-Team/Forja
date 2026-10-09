@@ -5,8 +5,9 @@ atualiza a cada entrega: o estado da ficha. O
 método está em [Como trabalhar](../12-como-trabalhar.md); a base comum, na
 [arquitetura](../13-arquitetura.md).
 
-Estados: **a fazer**, **fazendo** (com o nome de quem pegou), **feito**
-(com o commit). A coluna
+Os estados, e o que cada um quer dizer, estão em
+[a esteira](../o-time/a-esteira.md#os-estados-de-uma-ficha); a linha muda por
+`bash scripts/costura.sh --marcar <ficha> <estado>`. A coluna
 "depende de" diz o que precisa estar **feito** antes.
 
 
@@ -296,7 +297,8 @@ São base: vão de **a fazer** direto para **em voo**, um trilho por grupo, na o
 
 ## A soma
 
-Com o retrabalho, a faixa está em [Como trabalhar](../12-como-trabalhar.md#o-orçamento).
+O gasto se mede por leva, não por ficha: a esteira o registra no ANDAMENTO de quem coordena a cada seção fechada
+([a esteira, «Quando a esteira para»](../o-time/a-esteira.md#quando-a-esteira-para)).
 
 ## A ordem
 

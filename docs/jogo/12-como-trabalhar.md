@@ -21,7 +21,8 @@ tem o mesmo molde:
 
 ## O ciclo de uma ficha
 
-1. Pegar a primeira ficha **a fazer** do quadro e marcar **fazendo**.
+1. Pegar a primeira ficha **a fazer** do quadro e marcar **em voo** com o seu nome
+   ([os estados](o-time/a-esteira.md#os-estados-de-uma-ficha)).
 2. Abrir uma sessão **nova**. Uma ficha, uma sessão.
 3. Pedir: "Faça a ficha `docs/jogo/tarefas/<ficha>.md`". A sessão lê a ficha,
    os arquivos que ela cita e as [regras de execução](o-time/regras.md) — nada mais.
@@ -30,7 +31,9 @@ tem o mesmo molde:
    (`feat:`/`fix:`/`docs:`, sem trailer). O código de arquivo inteiro (o bloco com `arquivo=` na cerca) sai por
    `python3 scripts/ficha_codigo.py <ficha> --escrever`; depois, leia o diff e conserte só o que diverge da API
    de hoje (`--conferir` mostra a diferença entre a ficha e o arquivo).
-5. No mesmo commit: marcar a ficha **feito** no quadro.
+5. No mesmo commit: marcar a ficha **feito** no quadro, com
+   `bash scripts/costura.sh --marcar <ficha> feito`; o que espera a mão do André fica em **espera o André**
+   (os outros estados, [na esteira](o-time/a-esteira.md#os-estados-de-uma-ficha)).
 6. A sessão termina dizendo ao André, em uma lista curta, o que ele precisa
    rodar e jogar na máquina dele.
 7. O André roda, joga, e cola só o resumo (ou o trecho que falhou) na próxima
