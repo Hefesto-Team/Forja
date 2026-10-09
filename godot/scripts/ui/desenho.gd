@@ -118,7 +118,7 @@ static func anotar(ci: CanvasItem, pos: Vector2, traduzido: String, f: Font, px:
 			x += largura - tam.x
 	var local := Rect2(Vector2(x, pos.y - 0.78 * px), tam)
 	var m := ci.get_global_transform_with_canvas()
-	retangulos.append({"frase": traduzido, "rect": m * local, "tam": px, "cor": cor, "no": ci.get_instance_id()})
+	retangulos.append({"frase": traduzido, "rect": m * local, "tam": px, "cor": cor, "no": ci.get_instance_id(), "quadro": Engine.get_frames_drawn()})
 
 
 static func texto(ci: CanvasItem, pos: Vector2, s: String, f: Font, tam: int, cor: Color,

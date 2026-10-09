@@ -247,8 +247,16 @@ func _fotografar() -> void:
 	var estado := str(jogo.estado)
 	var topo := _topo()
 	var frases: Array = []
+	# um nó que desenhou em mais de um quadro durante a coleta vale pelo último: o
+	# que está na tela é o último desenho, e dois estados do mesmo texto («Nenhum
+	# controle» e «4 controles») não se encavalam, um só foi apagado pelo outro
+	var ultimo := {}
+	for r in Desenho.retangulos:
+		ultimo[r.no] = maxi(int(ultimo.get(r.no, -1)), int(r.quadro))
 	if not jogo._trocando:
 		for r in Desenho.retangulos:
+			if int(r.quadro) != int(ultimo[r.no]):
+				continue
 			var no = instance_from_id(int(r.no))
 			if topo != null and not (no == topo or (no is Node and topo.is_ancestor_of(no))):
 				continue
