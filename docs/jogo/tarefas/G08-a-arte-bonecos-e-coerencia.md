@@ -938,6 +938,14 @@ cube-pets, nem `importar_kenney.py`, nem `_prova_das_racas`, nem as traduções 
 - `metallic` 0,2 em float de 32 bits é 0,2000000030; a régua compara com 0,2001.
 - A parte B pede a G10 (`Kit.caminho`, os 12 Mini Characters) e a G13 (peças e stats): fica para depois delas.
 
+### A conferência (leva 1, o-cavaleiro)
+
+- A régua «o aro a 0,25» lia só o padrão escrito no código do shader: um material que gravasse outro valor passava. Agora lê o valor do
+  material e só cai no padrão do código quando o material não escreve nenhum.
+- `pintura.gd`: a cor de marca do vértice (superior ou inferior) virou uma variável, e o portão da arte deixou de ler ali uma cor de tela
+  (era aviso falso; 190 avisos para 189).
+- A parte B continua fora: a ficha só fecha com ela.
+
 ### O que fica para a mão
 
 Está em «Para o André (local)» acima: a prova visual sem `--fixed-fps` com placa de vídeo (a prancha cinza, a camisa e a calça de cada um, o

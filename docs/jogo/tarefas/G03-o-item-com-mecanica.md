@@ -579,13 +579,16 @@ feat: os seis itens têm mecânica, liga, lugar no corpo e registro; o Escudo j�
   sala pode tirar da mão). `pontos_do_acerto`, `absorve_erro`/`escudo_inteiro`/`combo_inicial`, `acertos_para_voltar_o_combo`/`combo_maximo`,
   `antecipacao_s`/`janela_perfeito`, `ganho_da_nota`/`puxa_o_combo_da_equipe`, `resiste_a_empurrao`/`velocidade`, `sentir`, `novo_minigame`,
   `registrar`. O «em liga» é um vetor `Itens.em_liga` que a G13 escreve ao forjar; até lá, tudo `false`.
-- **O corpo** (`player.gd`): cada item na mão/costas/peito com a malha do Kenney (`MALHA_DO_ITEM`), o osso e o tamanho da ficha; o emblema
-  do Diapasão e do amuleto; a runa do item (anel que acende com o `acender`). `_segurar` novo.
+- **O corpo** (`player.gd`): o Martelo e a Âncora na mão direita, o Escudo no braço esquerdo, os três amuletos (Fole, Lanterna, Diapasão)
+  no medalhão do peito, cada um com o emblema dele em relevo; o martelo e o escudo com a malha do Kenney (`MALHA_DO_ITEM`), no osso e no
+  tamanho da ficha. A runa do item é o traço no néon do dono (o fio do martelo, o aro do escudo, as unhas da âncora, o quadro do medalhão)
+  e acende com o `acender`. `_segurar` novo.
 - **A construção e o salão** (`tela_lobby.gd`, `main.gd`): trocar de item sente no L2 (`Itens.sentir`) e o escolhido vai para `Itens.escolhido`
   ao entrar no salão. Toda sala que usa o gatilho (`usa_gatilho`: Galeria e Prova) deixa o L2 por conta dela.
 - **O Escudo n'A Centelha** (`sala_jogo.gd errou`, `centelha.gd`): o primeiro erro de cada minigame é absorvido (som `escudo`, metal no
   controle, golpe, L2 afrouxa, linhas `item` com `absorveu` e `quebrou` no registro). O combo fica; o segundo erro zera.
-- **O survival-kit** entrou em `godot/assets/kenney/survival-kit/` (só o martelo e o escudo do estudo): paliativo até a G10 trazer o kit.
+- **O survival-kit** entrou em `godot/assets/kenney/survival-kit/` (só o martelo do estudo; o escudo é o `shield-round.glb` que já estava
+  em `assets/kenney/`): paliativo até a G10 trazer o kit.
 - **As provas** (`prova_do_jogo.gd`): os seis itens no corpo, cada um no osso certo e no tamanho certo (maior lado do item contra o corpo de
   1,51 m); as contas de cada item (`_prova_das_contas_dos_itens`); o L2 firme/pesado/solto; a Centelha com Escudo; o registro.
 
@@ -600,7 +603,19 @@ feat: os seis itens têm mecânica, liga, lugar no corpo e registro; o Escudo j�
 - O quadro do medalhão (0,030) corta o cabo do Diapasão (emblema em y -0,022): literal, como está na ficha.
 - O aro do Escudo: caixas em octógono regular, vértice a 0,975 r.
 - `Itens.ajustar_julgamento` saiu da arquitetura (a ficha H04, de outro conjunto, ainda o cita).
-- Ao entrar no minigame grava-se a linha `item` com `leva` para cada lugar com item; quem está de mãos livres (NENHUM) não grava nada.
+- Ao entrar no minigame grava-se a linha `item` com `leva` para cada um dos quatro, como a ficha manda; quem está de mãos livres grava
+  «Mãos livres» (a primeira versão pulava esse lugar; a conferência devolveu à ficha).
+
+### A conferência (leva 1, o-cavaleiro)
+
+- O registro: o `leva` vale para os quatro lugares, mãos livres também (`sala_jogo.gd entrar`).
+- A runa medida no espaço do item: `_area_runa` somava na escala da malha do Kenney (2,3 no martelo, 0,9 no escudo) e `_area_item` na do
+  item, e a régua dos 12 % media outra coisa (o martelo saía 5,3 vezes menor). Agora as duas contas usam a mesma escala.
+- O Escudo quebrado na última sala voltava quebrado à construção, com o L2 solto: `tela_lobby.gd abrir` chama `Itens.novo_minigame()`
+  (decisão pequena, a validar por ela: na construção o Escudo está sempre inteiro).
+- Provas novas, cada uma conferida com a mordida (o defeito de volta reprova a régua): a Centelha pergunta `errou()` na runa perdida (antes
+  a prova só chamava `errou()` direto, sem passar pela sala); o L2 de cada um na volta à construção depois de um Escudo quebrado; o registro
+  com o `leva` dos quatro, com o P4 de mãos livres na Viga. A régua «o aro a 0,25» lê o valor do material, não só o código do shader.
 
 ### O que fica para a mão
 
