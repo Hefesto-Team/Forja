@@ -1,0 +1,33 @@
+animacao,duracao_s,contato_s,osso,metodo
+attack-kick-left,0.533,0.208,leg-left,maior velocidade angular (2938 graus/s)
+attack-kick-right,0.533,0.208,leg-right,maior velocidade angular (2938 graus/s)
+attack-melee-left,0.417,0.208,arm-left,maior velocidade angular (2066 graus/s)
+attack-melee-right,0.417,0.208,arm-right,maior velocidade angular (2090 graus/s)
+crouch,0.167,,,sem contato
+die,0.333,,,sem contato
+drive,0.167,,,sem contato
+emote-no,0.667,,,sem contato
+emote-yes,0.667,,,sem contato
+fall,0.333,,,sem contato
+holding-both,0.167,,,sem contato
+holding-both-shoot,0.200,0.008,arm-right,maior velocidade angular (537 graus/s)
+holding-left,0.167,,,sem contato
+holding-left-shoot,0.200,0.008,arm-left,maior velocidade angular (537 graus/s)
+holding-right,0.167,,,sem contato
+holding-right-shoot,0.200,0.008,arm-right,maior velocidade angular (537 graus/s)
+idle,1.333,,,sem contato
+interact-left,0.667,0.075,arm-left,maior velocidade angular (768 graus/s)
+interact-right,0.667,0.075,arm-right,maior velocidade angular (768 graus/s)
+jump,0.500,0.233,leg-left,pé mais baixo depois do ponto mais alto
+pick-up,0.333,0.042,arm-right,maior velocidade angular (774 graus/s)
+sit,0.167,,,sem contato
+sprint,0.500,0.233,leg-right,pé mais baixo
+static,0.100,,,sem contato
+walk,0.667,0.367,leg-left,pé mais baixo
+wheelchair-look-left,0.333,,,sem contato
+wheelchair-look-right,0.333,,,sem contato
+wheelchair-move-back,0.500,,,sem contato
+wheelchair-move-forward,0.500,,,sem contato
+wheelchair-move-left,0.500,,,sem contato
+wheelchair-move-right,0.500,,,sem contato
+wheelchair-sit,0.167,,,sem contato
