@@ -26,7 +26,9 @@ Os estados, e o que cada um quer dizer, estão em
 | [F07](F07-a-voz-do-texto.md) | A voz nova do texto | M | F00, F02, F03 | feito |
 | [F08](F08-a-paridade.md) | A paridade entre a prova e o jogo | M | F00, F01, F03 | feito |
 | [F09](F09-a-prova-visual.md) | A prova visual | G | F00, F02 (a coleta de texto), F03 (o fim), F08 (o robô só pelo controle) | feito |
-| [F09b](F09b-os-achados-da-prova-visual.md) | Os achados da primeira prova visual | M | F09 | em voo (a-fita) |
+| [F09b](F09b-os-achados-da-prova-visual.md) | Os achados da primeira prova visual | M | F09 | feito |
+| [F09c](F09c-o-controle-que-cai-sozinho.md) | O controle que cai quando se joga sozinho | P | F09b | a fazer |
+| [F09d](F09d-a-espera-que-vive.md) | A espera que vive | M | F09b, F09c | a fazer |
 | [F10](F10-o-rumble-seco.md) | O rumble seco | G | F05 (a medição do háptico), F06 (o registro) | espera o André (a parte A feita: o roteiro às cegas) |
 
 ## G — As telas
@@ -37,7 +39,8 @@ Os estados, e o que cada um quer dizer, estão em
 | [G02](G02-a-construcao-do-cavaleiro.md) | A construção do cavaleiro | G | F00, F04, F05, F06, F07, F08, G01, F09 | feito |
 | [G03](G03-o-item-com-mecanica.md) | O item com mecânica | M | F00, F05, F06, G02, F09 | feito |
 | [G04](G04-o-hud-de-cada-jogador.md) | O HUD de cada jogador | G | F00, F02, F07, F09, G02, G03 | pronta |
-| [G05](G05-a-camera-dos-quatro.md) | A câmera dos quatro | M | F00, F09 | em voo (a-fita) |
+| [G05](G05-a-camera-dos-quatro.md) | A câmera dos quatro | M | F00, F09 | feito |
+| [G05b](G05b-o-que-a-g05-deixou-por-dependencia.md) | O que a G05 deixou por dependência | P | G01, G06, G13, F09 | a fazer |
 | [G06](G06-o-salao-e-a-colecao.md) | O salão e a coleção | M | F00, G02, F09 | feito |
 | [G07](G07-a-narrativa-leve.md) | A narrativa leve | P | F00, F07, G03, G04, G06, F09 | pronta |
 | [G08](G08-a-arte-bonecos-e-coerencia.md) | A arte: bonecos e coerência | G | F00, G01, G02, F09 | feito |
@@ -46,9 +49,10 @@ Os estados, e o que cada um quer dizer, estão em
 | [G11](G11-a-interface-com-o-ui-pack.md) | A interface com o UI Pack e os prompts | M | F00, F07, F09, G04, G10 | pronta |
 | [G12](G12-a-apresentacao-do-minigame.md) | A apresentação do minigame | M | H04, H06, G08, G11, F07, F09 | pronta |
 | [G13](G13-o-cavaleiro-montavel.md) | O cavaleiro montável | G | F00, F07, F09, G02, G10, G14 | pronta |
-| [G14](G14-a-cor-e-a-letra-da-fita.md) | A cor e a letra da Fita | M | F00, F09 | em voo (a-fita) |
-| [G15](G15-a-luz-o-pos-e-o-brilho-com-dono.md) | A luz, o pós e o brilho com dono | G | F00, F09, G14 | em voo (a-fita) |
-| [G16](G16-o-virar-da-fita-e-o-conforto.md) | O virar da fita, o movimento e as reações nas Opções | M | F00, F07, F09, G14 | em voo (a-fita) |
+| [G14](G14-a-cor-e-a-letra-da-fita.md) | A cor e a letra da Fita | M | F00, F09 | feito |
+| [G15](G15-a-luz-o-pos-e-o-brilho-com-dono.md) | A luz, o pós e o brilho com dono | G | F00, F09, G14 | feito |
+| [G16](G16-o-virar-da-fita-e-o-conforto.md) | O virar da fita, o movimento e as reações nas Opções | M | F00, F07, F09, G14 | feito |
+| [G14b](G14b-as-cores-de-luz-que-sobraram.md) | As cores de luz que sobraram | P | G14, G15 | a fazer |
 
 ## H — O ritmo, o som e o kit
 
