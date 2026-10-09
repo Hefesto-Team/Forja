@@ -47,7 +47,7 @@ Commit (sem trailer): `feat(carimbo): o selo mais perto do tempo fica, o roubo c
 
 ### `godot/scripts/minigames/s03/o_carimbo.gd` (novo, o arquivo inteiro)
 
-```gdscript
+```gdscript arquivo=godot/scripts/minigames/s03/o_carimbo.gd
 extends Minigame
 ## O Carimbo (S03_J15). Na mesa do centro, o lingote troca na síncope (o "e" do
 ## 2 e do 4). Cada síncope é da vez de um (o rodízio): o clique do touchpad do
@@ -510,7 +510,7 @@ linha já estiver lá (a I5 a põe), não a duplique.
 
 ### O robô
 
-```gdscript
+```gdscript arquivo=godot/scripts/minigames/s03/o_carimbo.gd parte=2
 # O kit chama robo(l, dt) antes de jogar(dt), a cada quadro, de quem ainda joga.
 func robo(l: int, _dt: float) -> void:
 	if not Forja.robo:

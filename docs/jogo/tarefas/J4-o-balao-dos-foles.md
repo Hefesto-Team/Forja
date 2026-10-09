@@ -108,7 +108,7 @@ faixa de vento segura quem abriu vantagem no pico.
 
 ### A ficha de dados
 
-```gdscript
+```gdscript arquivo=godot/scripts/minigames/s02/balao_dos_foles.gd parte=2
 const FICHA := {
 	"slot": "S02_J09",
 	"titulo": "O Balão dos Foles",
@@ -157,7 +157,7 @@ parceiro segue, o sopro duplo não conta naquele compasso; ao voltar, a nota
 
 `godot/scripts/minigames/s02/balao_dos_foles.gd`:
 
-```gdscript
+```gdscript arquivo=godot/scripts/minigames/s02/balao_dos_foles.gd
 extends Minigame
 ## O Balão dos Foles (S02_J09). Duas duplas, dois balões: a Brasa e a Maré.
 ## Chacoalhar o controle é o fole: um da dupla no tempo, o outro no
@@ -622,7 +622,7 @@ contratempo); com dois Aprendizes, o primeiro em −0,45 e o segundo em
 
 ### O robô
 
-```gdscript
+```gdscript arquivo=godot/scripts/minigames/s02/balao_dos_foles.gd parte=3
 # O kit chama robo(l, dt) antes de jogar(dt), a cada quadro, de quem ainda joga.
 func robo(l: int, _dt: float) -> void:
 	if not Forja.robo:

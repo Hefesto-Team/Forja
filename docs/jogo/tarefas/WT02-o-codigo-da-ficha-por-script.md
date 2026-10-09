@@ -84,3 +84,27 @@ conferir que a tabulação e os acentos chegaram iguais.
 ## Ao terminar
 
 Pôr a linha da WT02 no [quadro](README.md) como **feito**, com o commit e a lista dos blocos que ficaram sem marca.
+
+## O que foi feito (leva 1, as-regras)
+
+- **Entrou:** `scripts/ficha_codigo.py`, com `--marcar [--sim]`, `--escrever` e `--conferir` (e `--raiz` para a
+  árvore). A escrita é byte a byte; caminho fora de `godot/`, `scripts/` e `tests/`, ou com «..», é recusado e nada
+  é gravado. **O arquivo não vem num bloco só** (o corpo, a FICHA de «A ficha de dados» e o robô de «O robô» são
+  blocos à parte), então a cerca ganhou `parte=N`: os blocos com o mesmo `arquivo=` se juntam pela parte (o sem
+  parte é a 1), com uma linha em branco entre eles. A validar por ela: a FICHA cai no fim do arquivo, longe do
+  comentário `# (a FICHA vem aqui)` do corpo (o GDScript aceita; quem lê estranha).
+- **A medida:** cercas com `arquivo=` nas fichas I a Q, de 0 para 45, que gravam 22 arquivos em 19 fichas: os
+  minigames I2 a I5, J1 a J5 e K1 a K5 (o corpo, a FICHA na parte 2 e o robô na 3; na K, a FICHA já está no corpo e
+  o robô é a parte 2), os `secao.gd` da I1, da J1 e da K1, os cenários da L1, da M1 e da N1, e o `ouvido.gd` e o
+  `cenario_da_voz.gd` da P1. O `--escrever` da I2 numa árvore limpa grava `marcha_dos_escudeiros.gd` com 478 linhas,
+  com a tabulação, e o `--conferir` logo depois sai 0. O passo novo está no 12, «O ciclo de uma ficha», passo 4.
+- **Ficaram sem marca** (29 blocos de mais de 80 linhas, na [WT02b](WT02b-o-codigo-das-fichas-que-ficaram-sem-marca.md)):
+  O1 a O5 e Q1 a Q5 (o corpo traz `const FICHA := { ... }`, que gravado não é GDScript); o minigame da I1 (os
+  blocos de `_montar_runa` e `_mostrar_runa` à parte); e L1 a L5, M1 a M5, N1 a N5, P1, P2 e P4 (o arquivo vem em
+  pedaços que pedem julgamento).
+- **Provas:** `bash tests/prova_dos_portoes.sh`, 55 casos; os seis novos (a escrita byte a byte com a parte 2, o
+  `--conferir` igual e com uma linha trocada, `arquivo=../fora.gd`, `arquivo=godot/../../fora.gd` e a pasta de fora)
+  reprovam com o script estragado de cinco jeitos (a tabulação trocada, a parte 2 esquecida, o `--conferir` que não
+  sai 1, a recusa que grava, o «..» aceito).
+- **Para o André:** numa árvore à parte, `python3 scripts/ficha_codigo.py docs/jogo/tarefas/J3-*.md --escrever
+  --raiz <uma pasta vazia>` e abrir o arquivo no editor.

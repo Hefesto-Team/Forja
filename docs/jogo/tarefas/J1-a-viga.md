@@ -121,7 +121,7 @@ Os terços de 80 s: 27 s e 53 s (`andamento()` 1/3 e 2/3).
 
 ### A ficha de dados
 
-```gdscript
+```gdscript arquivo=godot/scripts/minigames/s02/a_viga.gd parte=2
 const FICHA := {
 	"slot": "S02_J06",
 	"titulo": "A Viga",
@@ -161,7 +161,7 @@ qual (`SECAO.anotar_troca`).
 
 `godot/scripts/minigames/s02/a_viga.gd`:
 
-```gdscript
+```gdscript arquivo=godot/scripts/minigames/s02/a_viga.gd
 extends Minigame
 ## A Viga (S02_J06), o primeiro d'A Viga. Cada um de pé numa plataforma de
 ## vigas sobre a lava. Na nota do lugar (o hoqueto em colcheias) a plataforma
@@ -677,7 +677,7 @@ func status(lugar: int) -> String:
 
 ### O robô
 
-```gdscript
+```gdscript arquivo=godot/scripts/minigames/s02/a_viga.gd parte=3
 # O kit chama robo(l, dt) antes de jogar(dt), a cada quadro, de quem ainda joga.
 func robo(l: int, _dt: float) -> void:
 	if not Forja.robo:
@@ -751,7 +751,7 @@ sai. Ele não tenta o pulo de propósito; o `ruim` erra 1 em 3 e cai na lava.
 
 ### O secao.gd
 
-```gdscript
+```gdscript arquivo=godot/scripts/minigames/s02/secao.gd
 extends RefCounted
 ## A seção A Viga (S02): o que os cinco minigames têm em comum. A caverna da
 ## lava na luz cobalto, a leitura do corpo com as saídas silenciosas (sem

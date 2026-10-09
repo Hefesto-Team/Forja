@@ -44,7 +44,7 @@ Commit (sem trailer): `feat(quebra-gelo): o risco no contratempo, o gelo que vai
 
 ### `godot/scripts/minigames/s03/quebra_gelo.gd` (novo, o arquivo inteiro)
 
-```gdscript
+```gdscript arquivo=godot/scripts/minigames/s03/quebra_gelo.gd
 extends Minigame
 ## Quebra-Gelo (S03_J12). Um bloco de gelo em cima da placa de cada um (a placa
 ## é o touchpad). O risco: o dedo encosta e anda 0,35 da largura para o lado
@@ -529,7 +529,7 @@ Em `MINIGAMES`: `"S03_J12": preload("res://scripts/minigames/s03/quebra_gelo.gd"
 
 ### O robô
 
-```gdscript
+```gdscript arquivo=godot/scripts/minigames/s03/quebra_gelo.gd parte=2
 # O kit chama robo(l, dt) antes de jogar(dt), a cada quadro, de quem ainda joga.
 func robo(l: int, _dt: float) -> void:
 	if not Forja.robo:

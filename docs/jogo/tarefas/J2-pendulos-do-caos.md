@@ -101,7 +101,7 @@ instantes.
 
 ### A ficha de dados
 
-```gdscript
+```gdscript arquivo=godot/scripts/minigames/s02/pendulos_do_caos.gd parte=2
 const FICHA := {
 	"slot": "S02_J07",
 	"titulo": "Pêndulos do Caos",
@@ -138,7 +138,7 @@ analógico esquerdo (`SECAO.rolagem`); a linha `troca` diz qual.
 
 `godot/scripts/minigames/s02/pendulos_do_caos.gd`:
 
-```gdscript
+```gdscript arquivo=godot/scripts/minigames/s02/pendulos_do_caos.gd
 extends Minigame
 ## Pêndulos do Caos (S02_J07). Cada um no disco do seu pêndulo, que balança
 ## pela batida (os quatro em onda, o hoqueto em colcheias). No alto do arco,
@@ -564,7 +564,7 @@ func status(lugar: int) -> String:
 
 ### O robô
 
-```gdscript
+```gdscript arquivo=godot/scripts/minigames/s02/pendulos_do_caos.gd parte=3
 # O kit chama robo(l, dt) antes de jogar(dt), a cada quadro, de quem ainda joga.
 func robo(l: int, _dt: float) -> void:
 	if not Forja.robo:

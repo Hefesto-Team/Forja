@@ -604,7 +604,7 @@ O cabeçalho é um comentário `#`: «O cenário comum d'A Galeria (S5): o estan
 raia, o alvo, as armas, o muro, o curso do R2, o momento, a reta, o aviso, os ganchos do cavaleiro e o impacto.
 As cinco fichas M usam isto.»
 
-```gdscript
+```gdscript arquivo=godot/scripts/minigames/s05/cenario_da_galeria.gd
 class_name CenarioDaGaleria
 extends RefCounted
 

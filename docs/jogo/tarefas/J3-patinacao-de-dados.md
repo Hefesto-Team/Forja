@@ -111,7 +111,7 @@ Os terços de 90 s: 30 s e 60 s (`andamento()` 1/3 e 2/3).
 
 ### A ficha de dados
 
-```gdscript
+```gdscript arquivo=godot/scripts/minigames/s02/patinacao_de_dados.gd parte=2
 const FICHA := {
 	"slot": "S02_J08",
 	"titulo": "Patinação de Dados",
@@ -147,7 +147,7 @@ giroscópio:** a rolagem pela gravidade; sem nada, o analógico esquerdo
 
 `godot/scripts/minigames/s02/patinacao_de_dados.gd`:
 
-```gdscript
+```gdscript arquivo=godot/scripts/minigames/s02/patinacao_de_dados.gd
 extends Minigame
 ## Patinação de Dados (S02_J08). Os quatro patinam numa laje de gelo só, com
 ## cinco trilhas; a inclinação do controle dirige a velocidade. Os dados de
@@ -646,7 +646,7 @@ func status(lugar: int) -> String:
 
 ### O robô
 
-```gdscript
+```gdscript arquivo=godot/scripts/minigames/s02/patinacao_de_dados.gd parte=3
 # O kit chama robo(l, dt) antes de jogar(dt), a cada quadro, de quem ainda joga.
 func robo(l: int, _dt: float) -> void:
 	if not Forja.robo:

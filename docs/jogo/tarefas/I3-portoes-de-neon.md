@@ -77,7 +77,7 @@ põe; ela grava `x_tela` e `altura_tela`). Até a I1 entrar, esta ficha espera.
 
 ### A ficha de dados
 
-```gdscript
+```gdscript arquivo=godot/scripts/minigames/s01/portoes_de_neon.gd parte=2
 const FICHA := {
 	"slot": "S01_J03",
 	"titulo": "Portões de Néon",
@@ -155,7 +155,7 @@ tempo dele que ainda não passou.
 
 ### O robô
 
-```gdscript
+```gdscript arquivo=godot/scripts/minigames/s01/portoes_de_neon.gd parte=3
 # O kit chama robo(l, dt) antes de jogar(dt), a cada quadro, de quem ainda joga.
 func robo(l: int, _dt: float) -> void:
 	if not Forja.robo:
@@ -176,7 +176,7 @@ func robo(l: int, _dt: float) -> void:
 
 `godot/scripts/minigames/s01/portoes_de_neon.gd`:
 
-```gdscript
+```gdscript arquivo=godot/scripts/minigames/s01/portoes_de_neon.gd
 extends Minigame
 ## Portões de Néon (S01_J03). Cada cavaleiro corre num túnel; os portões vêm
 ## na direção dele e batem no tempo dele (o hoqueto: um portão por compasso,

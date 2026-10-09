@@ -27,7 +27,9 @@ tem o mesmo molde:
    os arquivos que ela cita e as [regras de execução](o-time/regras.md) — nada mais.
    O «Ler antes» se lê por `python3 scripts/ler_antes.py <ficha>`, que imprime só a seção de cada link.
 4. Fazer, rodar a prova rápida (`bash tests/prova_do_jogo.sh`) e commitar
-   (`feat:`/`fix:`/`docs:`, sem trailer).
+   (`feat:`/`fix:`/`docs:`, sem trailer). O código de arquivo inteiro (o bloco com `arquivo=` na cerca) sai por
+   `python3 scripts/ficha_codigo.py <ficha> --escrever`; depois, leia o diff e conserte só o que diverge da API
+   de hoje (`--conferir` mostra a diferença entre a ficha e o arquivo).
 5. No mesmo commit: marcar a ficha **feito** no quadro.
 6. A sessão termina dizendo ao André, em uma lista curta, o que ele precisa
    rodar e jogar na máquina dele.

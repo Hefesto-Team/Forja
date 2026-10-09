@@ -47,7 +47,7 @@ Commit (sem trailer): `feat(terminal): a senha em chamada e resposta, o erro sem
 
 ### `godot/scripts/minigames/s03/hackeando_o_terminal.gd` (novo, o arquivo inteiro)
 
-```gdscript
+```gdscript arquivo=godot/scripts/minigames/s03/hackeando_o_terminal.gd
 extends Minigame
 ## Hackeando o Terminal (S03_J13). O terminal toca uma senha de quatro notas:
 ## cada uma de um dono e de um quadrante do touchpad. Na resposta, cada dono
@@ -521,7 +521,7 @@ acrescente `"S03_J13"` à lista `minigames`, depois do `"S03_J12"`.
 
 ### O robô
 
-```gdscript
+```gdscript arquivo=godot/scripts/minigames/s03/hackeando_o_terminal.gd parte=2
 # O kit chama robo(l, dt) antes de jogar(dt), a cada quadro, de quem ainda joga.
 func robo(l: int, _dt: float) -> void:
 	if not Forja.robo:

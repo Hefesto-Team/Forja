@@ -1084,7 +1084,7 @@ Nenhuma cor fora dos tokens: os `#ffb070`, `#ff9a52` e `#ff7a2a`, o
 
 O arquivo inteiro:
 
-```gdscript
+```gdscript arquivo=godot/scripts/minigames/s01/secao.gd
 extends RefCounted
 ## A seção A Centelha (S01, docs/jogo/tarefas/I-a-centelha.md): a forja do
 ## vermelhão, a câmera, o exagero do impacto, a luz só do dono, a reta e os

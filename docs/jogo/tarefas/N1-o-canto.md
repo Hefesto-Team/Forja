@@ -646,7 +646,7 @@ facetado (8 lados, `metallic` 0,15; hoje é liso, 28 lados, 0,75).
 
 O arquivo inteiro:
 
-```gdscript
+```gdscript arquivo=godot/scripts/minigames/s06/cenario_do_canto.gd
 class_name CenarioDoCanto
 extends RefCounted
 ## O cenário comum d'O Canto (S06, docs/jogo/tarefas/N-o-canto.md): a capela

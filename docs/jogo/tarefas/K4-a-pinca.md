@@ -47,7 +47,7 @@ Commit (sem trailer): `feat(pinca): o puxa-ferro, o estalo escondido e o ferreir
 
 ### `godot/scripts/minigames/s03/a_pinca.gd` (novo, o arquivo inteiro)
 
-```gdscript
+```gdscript arquivo=godot/scripts/minigames/s03/a_pinca.gd
 extends Minigame
 ## A Pinça (S03_J14). O ferro quente aparece na placa (o touchpad). Dois dedos
 ## pegam na nota do lugar (o hoqueto), esticam enquanto a nota longa dura e
@@ -522,7 +522,7 @@ Em `MINIGAMES`: `"S03_J14": preload("res://scripts/minigames/s03/a_pinca.gd"),`.
 
 ### O robô
 
-```gdscript
+```gdscript arquivo=godot/scripts/minigames/s03/a_pinca.gd parte=2
 # O kit chama robo(l, dt) antes de jogar(dt), a cada quadro, de quem ainda joga.
 func robo(l: int, _dt: float) -> void:
 	if not Forja.robo:

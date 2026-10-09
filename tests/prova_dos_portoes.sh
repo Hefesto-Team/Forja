@@ -234,6 +234,31 @@ xvfb-run -a "$GODOT" --write-movie f.avi --path godot
 # xvfb-run "$GODOT" num comentário'
 espera 0 "teste mudo: deixa passar o driver mudo, o filme, o headless e o comentário" python3 "$P/teste_mudo.py" --raiz "$A"
 
+# --- o código da ficha (WT02) -----------------------------------------------------------------------------------
+# a ficha de mentira traz o corpo com tabulação e linha em branco no fim, a parte 2 noutro bloco, e um trecho sem
+# a marca, que o script não toca
+codigo_ficha() { # <arquivo> <caminho do arquivo=>
+  printf '# Z9\n\nO `%s` inteiro:\n\n```gdscript arquivo=%s\nextends Node\n\nfunc _ready() -> void:\n\tprint("ação")\n\n```\n\nUm trecho:\n\n```gdscript\nfunc trecho() -> void:\n\tpass\n```\n\nO robô:\n\n```gdscript arquivo=%s parte=2\nfunc robo(l: int, dt: float) -> void:\n\tpass\n```\n' "$2" "$2" "$2" > "$1"
+}
+A="$(arvore codigo)"; codigo_ficha "$A/Z9.md" "godot/scripts/z9.gd"
+printf 'extends Node\n\nfunc _ready() -> void:\n\tprint("ação")\n\n\nfunc robo(l: int, dt: float) -> void:\n\tpass\n' > "$A/esperado.gd"
+espera 0 "ficha código: --escrever grava o corpo e a parte 2, byte a byte, com a tabulação" \
+  bash -c "python3 '$RAIZ/scripts/ficha_codigo.py' '$A/Z9.md' --escrever --raiz '$A/arv' && cmp '$A/arv/godot/scripts/z9.gd' '$A/esperado.gd'"
+espera 0 "ficha código: --conferir sai 0 quando o arquivo é o da ficha" \
+  python3 "$RAIZ/scripts/ficha_codigo.py" "$A/Z9.md" --conferir --raiz "$A/arv"
+sed -i 's/\tprint("ação")/\tprint("outra")/' "$A/arv/godot/scripts/z9.gd"
+espera 1 "ficha código: --conferir sai 1 com uma linha trocada no arquivo" \
+  python3 "$RAIZ/scripts/ficha_codigo.py" "$A/Z9.md" --conferir --raiz "$A/arv"
+for fora in ../fora.gd godot/../../fora.gd; do
+  A="$(arvore codigo-fora)"; codigo_ficha "$A/Z9.md" "$fora"
+  espera 1 "ficha código: recusa arquivo=$fora e não grava nada" \
+    bash -c "python3 '$RAIZ/scripts/ficha_codigo.py' '$A/Z9.md' --escrever --raiz '$A/arv'; rc=\$?
+      [ -e '$A/fora.gd' ] || [ -e '$A/arv' ] && exit 9; exit \$rc"
+done
+A="$(arvore codigo-pasta)"; codigo_ficha "$A/Z9.md" "docs/z9.gd"
+espera 1 "ficha código: recusa arquivo= fora de godot/, scripts/ e tests/" \
+  python3 "$RAIZ/scripts/ficha_codigo.py" "$A/Z9.md" --escrever --raiz "$A/arv"
+
 # --- o rodar.sh -------------------------------------------------------------------------------------------------
 espera 0 "rodar.sh: os portões do repositório passam (a arte e o som em aviso)" bash "$P/rodar.sh"
 
