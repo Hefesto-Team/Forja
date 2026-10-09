@@ -67,9 +67,9 @@ func _init() -> void:
 
 func montar() -> void:
 	n_sinos = N_SINOS + variante
-	_mat_ouro = Kit.material(Color("#e2b04a"), 0.25, 0.3)
+	_mat_ouro = Kit.material(Tema.OXIDO_BRILHO, 0.25, 0.3, "forja")
 	_mat_ouro.metallic = 0.8
-	_mat_ferro = Kit.material(Color("#4a4e5e"), 0.0, 0.5)
+	_mat_ferro = Kit.material(Tema.GRAFITE, 0.0, 0.5)
 	_cenario()
 	for p in jogadores:
 		var l: int = p.lugar
@@ -130,7 +130,7 @@ func _cenario() -> void:
 		Kit.peca(self, "wall", Vector3(-12.0, 0, z))
 		Kit.peca(self, "wall", Vector3(12.0, 0, z))
 	# os blocos de pedra que seguram as plataformas e as paredes do poço
-	var pedra := Kit.material(Color("#5a5270"), 0.0, 0.95)
+	var pedra := Kit.material(Tema.OXIDO_BRILHO, 0.0, 0.95)
 	Kit.caixa(self, Vector3(24, 3.0, 2.0), Vector3(0, -1.5, 4.0), pedra)
 	Kit.caixa(self, Vector3(24, 3.0, 4.0), Vector3(0, -1.5, -4.0), pedra)
 	for lado in [-1.0, 1.0]:
@@ -148,7 +148,7 @@ func _cenario() -> void:
 	for x in [-8.0, 0.0, 8.0]:
 		var brilho := OmniLight3D.new()
 		brilho.position = Vector3(x, -0.7, 0.5)
-		brilho.light_color = Color("#ff7a2a")
+		brilho.light_color = Tema.TUNGSTENIO
 		brilho.light_energy = 1.7
 		brilho.omni_range = 7.5
 		add_child(brilho)
@@ -186,7 +186,7 @@ func _montar_raia(l: int, p: ForjaPlayer) -> Dictionary:
 	var cor: Color = Forja.cor_do_lugar(l)
 	var e: Dictionary = j[l]
 	# a viga: a tábua, as cintas de ferro, as bandeirolas dos pontos de volta
-	var madeira := Kit.material(Color("#8a5a33"), 0.0, 0.85)
+	var madeira := Kit.material(Tema.OXIDO_BRILHO, 0.0, 0.85)
 	Kit.caixa(self, Vector3(0.46, 0.22, Z_VIGA_INI - Z_VIGA_FIM), Vector3(x, -0.11, (Z_VIGA_INI + Z_VIGA_FIM) * 0.5), madeira)
 	for k in range(1, 7):
 		Kit.caixa(self, Vector3(0.5, 0.25, 0.08), Vector3(x, -0.11, lerpf(Z_VIGA_INI, Z_VIGA_FIM, k / 7.0)), _mat_ferro)
@@ -194,7 +194,7 @@ func _montar_raia(l: int, p: ForjaPlayer) -> Dictionary:
 	for k in [1, 2]:
 		var z := lerpf(Z_LARGADA, Z_CHEGADA, k / 3.0)
 		Kit.cilindro(self, 0.025, 0.9, Vector3(x + 0.3, 0.45, z), _mat_ferro)
-		var b := Kit.caixa(self, Vector3(0.36, 0.22, 0.03), Vector3(x + 0.48, 0.78, z), Kit.material(Color("#6b4a2e")))
+		var b := Kit.caixa(self, Vector3(0.36, 0.22, 0.03), Vector3(x + 0.48, 0.78, z), Kit.material(Tema.OXIDO))
 		bandeiras.append(b)
 	# os sinos: cada um pendurado por uma corrente, balançando
 	var sinos: Array = []
@@ -243,7 +243,7 @@ func _montar_raia(l: int, p: ForjaPlayer) -> Dictionary:
 	racha.visible = false
 	var fogo_pedra := OmniLight3D.new()
 	fogo_pedra.position = Vector3(x, 0.6, Z_PEDRA + 1.1)
-	fogo_pedra.light_color = Color("#ff8a3a")
+	fogo_pedra.light_color = Tema.TUNGSTENIO
 	fogo_pedra.light_energy = 0.0
 	fogo_pedra.omni_range = 3.0
 	add_child(fogo_pedra)
@@ -258,7 +258,7 @@ func _montar_raia(l: int, p: ForjaPlayer) -> Dictionary:
 	# os riscos do vento
 	var riscos: Array = []
 	for k in 10:
-		var r := Kit.caixa(self, Vector3(0.55, 0.018, 0.018), Vector3.ZERO, Kit.chapado(Color(1, 1, 1, 0.0)))
+		var r := Kit.caixa(self, Vector3(0.55, 0.018, 0.018), Vector3.ZERO, Kit.chapado(Color(Tema.ETIQUETA, 0.0)))
 		riscos.append(r)
 	# o boneco: mãos livres, a vara de equilíbrio na altura das mãos
 	maos_livres(p)
@@ -326,7 +326,7 @@ func _travessia(l: int, p: ForjaPlayer, e: Dictionary, dt: float) -> void:
 			e.progresso = e.checkpoint
 			e.inclinacao = 0.0
 			e.bambo = 0.0
-			Efeitos.anel(self, _pos_do_boneco(l, e) + Vector3(0, 0.9, 0), Forja.cor_do_lugar(l), 0.6)
+			Efeitos.anel(self, _pos_do_boneco(l, e) + Vector3(0, 0.9, 0), Forja.cor_do_lugar(l), 0.6, Vector3.BACK, l)
 		return
 	# as rajadas: um empurrão curto, para um lado sorteado
 	e.rajada_t -= dt
@@ -344,7 +344,7 @@ func _travessia(l: int, p: ForjaPlayer, e: Dictionary, dt: float) -> void:
 		if e.progresso >= k / 3.0 and e.checkpoint < k / 3.0:
 			e.checkpoint = k / 3.0
 			var b: MeshInstance3D = n[l].bandeiras[k - 1]
-			b.material_override = Kit.material(Tema.TUNGSTENIO, 1.2)
+			b.material_override = Kit.material(Tema.TUNGSTENIO, 1.2, 0.8, "forja")
 			Som.tocar("tique", b.global_position, -6.0, 1.3)
 	# em cima da viga (não nas plataformas), quem passa do limite cai
 	var na_viga: bool = e.progresso > 0.08 and e.progresso < 0.93
@@ -418,7 +418,7 @@ func _arremessar(l: int, p: ForjaPlayer, alvo: Vector3, sino: int) -> void:
 			Som.tocar("sino_viga", alvo, 0.0, [1.0, 0.84, 1.19, 0.92][sino % 4])
 			Som.no_controle(l, "sino_viga", 0.6)
 			Efeitos.faiscas(self, alvo, Tema.TUNGSTENIO, 30, 1.0)
-			Efeitos.anel(self, alvo, Tema.TUNGSTENIO, 0.5)
+			Efeitos.anel(self, alvo, Tema.TUNGSTENIO, 0.5, Vector3.BACK, "forja")
 			Forja.sentir(l, "acerto")
 			var cai := pivo.create_tween()
 			cai.tween_property(pivo, "rotation:z", 0.9 * (1.0 if sino % 2 else -1.0), 0.18)
@@ -491,7 +491,7 @@ func _quebrar(l: int) -> void:
 		anim.play("open")
 	var ouro := OmniLight3D.new()
 	ouro.position = Vector3(x, 1.0, Z_BAU + 0.4)
-	ouro.light_color = Color("#ffd479")
+	ouro.light_color = Tema.TUNGSTENIO
 	ouro.light_energy = 2.2
 	ouro.omni_range = 3.5
 	add_child(ouro)
@@ -580,7 +580,7 @@ func _mostrar(l: int, p: ForjaPlayer, dt: float) -> void:
 		var dx := (ciclo - 0.5) * 3.4 * signf(v)
 		r.position = Vector3(x + dx, 0.35 + fmod(k * 0.53, 1.7), pos.z + (k % 3 - 1) * 0.7)
 		var mr: StandardMaterial3D = r.material_override
-		mr.albedo_color = Color(1, 1, 1, 0.55 * (1.0 - absf(ciclo - 0.5) * 2.0))
+		mr.albedo_color = Color(Tema.ETIQUETA, 0.55 * (1.0 - absf(ciclo - 0.5) * 2.0))
 	# os sinos balançam
 	for i in n_sinos:
 		var pivo: Node3D = nos.sinos[i]
