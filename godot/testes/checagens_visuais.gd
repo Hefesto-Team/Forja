@@ -196,7 +196,7 @@ static func comeca_com_maiuscula(s: String) -> bool:
 static func desempenho(eventos: Array) -> Array:
 	var avisos: Array = []
 	for e in eventos:
-		if str(e.get("evento", "")) == "desempenho" and float(e.get("fps_min", 999.0)) < FPS_AVISO:
+		if str(e.get("tipo", "")) == "desempenho" and float(e.get("fps_min", 999.0)) < FPS_AVISO:
 			avisos.append("%s: mínimo de %.0f quadros por segundo, média de %.0f" % [e.get("slot", "?"), float(e.fps_min), float(e.get("fps_media", 0.0))])
 	return avisos
 

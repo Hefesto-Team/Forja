@@ -469,6 +469,9 @@ func _autoteste() -> int:
 	for i in riscado.size() / 2:
 		riscado[i] = 250 if i % 2 == 0 else 10
 	ok.call(not ChecagensVisuais.tela_vazia({"pq": riscado}), "vazia: um quadro com conteúdo passa")
+	var lento := [{"tipo": "desempenho", "slot": "viga", "fps_min": 31.0, "fps_media": 44.0},
+		{"tipo": "desempenho", "slot": "prova", "fps_min": 59.0, "fps_media": 60.0}]
+	ok.call(ChecagensVisuais.desempenho(lento).size() == 1, "desempenho: só o minigame abaixo de 55 quadros por segundo avisa")
 	var iguais := ["00:12: «Runa 3 de 17 · 0» com letra de 28 px (o mínimo é 30)",
 		"00:14: «Runa 4 de 17 · 9» com letra de 28 px (o mínimo é 30)", "00:14: «Pontos» com letra de 24 px (o mínimo é 30)"]
 	var res := ChecagensVisuais.resumir(iguais)
