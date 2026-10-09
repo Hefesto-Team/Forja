@@ -1106,13 +1106,40 @@ func _prova_da_colecao_no_salao() -> void:
 	_esperar(jogo.hud.dica_presa.get("lugar", -1) == 0, "perto do portão, a dica presa ao P1")
 	var tela := Rect2(Vector2.ZERO, jogo.hud.size)
 	_esperar(jogo.hud.retangulos().all(func(r): return tela.encloses(r)), "o contador, os chips e a dica presa cabem na tela")
-	jogo._som_do_cruz(0, true)
-	var falante := 0.0
+	var linhas_da_dica: Array = jogo.hud.dica_presa.get("linhas", [])
+	_esperar(not linhas_da_dica.is_empty() and str(linhas_da_dica[0][1]) == "Tocar a faixa", "a dica presa diz «Tocar a faixa» (%s)" % [linhas_da_dica])
+	# o ✕ pelo controle simulado, no portão: o alto-falante do P1 cala antes, soa depois, e a sala abre
 	var t_parede := Time.get_ticks_msec()   # o som de 90 ms anda em tempo de parede; o jogo, sem janela, anda mais depressa
+	while Time.get_ticks_msec() - t_parede < 600 and float(Forja.som_virtual(0).get("falante", 0.0)) > 0.0:
+		await _quadros(1)
+	var calado := float(Forja.som_virtual(0).get("falante", 0.0)) == 0.0
+	var onde_estavam: Array = jogo.jogadores.map(func(p): return p.global_position)
+	Forja.ctl.simulador_botao(0, Forja.CRUZ, true)
+	var falante := 0.0
+	t_parede = Time.get_ticks_msec()
+	var q := 0
 	while Time.get_ticks_msec() - t_parede < 400:
 		await _quadros(1)
+		q += 1
+		if q == 2:
+			Forja.ctl.simulador_botao(0, Forja.CRUZ, false)
 		falante = maxf(falante, float(Forja.som_virtual(0).get("falante", 0.0)))
-	_esperar(falante > 0.0 or not Forja.modulo, "o ✕ soa no alto-falante de quem apertou (%.2f)" % falante)
+	Forja.ctl.simulador_botao(0, Forja.CRUZ, false)
+	_esperar((calado and falante > 0.0) or not Forja.modulo, "o ✕ no portão soa no alto-falante de quem apertou (%.2f)" % falante)
+	q = 0
+	while jogo.estado != "sala" and q < 300:
+		await _quadros(1)
+		q += 1
+	_esperar(jogo.estado == "sala" and jogo.sala_id == "centelha", "o ✕ no portão aberto entra na sala (%s)" % jogo.estado)
+	q = 0
+	while jogo._trocando and q < 120:   # a cortina termina de abrir
+		await _quadros(1)
+		q += 1
+	jogo._ir_para_o_salao(false)
+	await _quadros(3)
+	_esperar(jogo.estado == "salao", "de volta ao salão sem jogar a sala")
+	for l in range(1, jogo.jogadores.size()):   # a volta põe todos na boca do portão: os outros voltam para onde estavam
+		jogo.jogadores[l].global_position = onde_estavam[l]
 	jogo.jogadores[0].global_position = Vector3(-3.0, 0.05, 3.2)
 	await _quadros(3)
 	_esperar(jogo.hud.dica_presa.is_empty(), "longe do portão, nenhuma dica")
@@ -2003,6 +2030,8 @@ var _janela_do_teclado := Vector2i.ZERO   ## [de, até) nas linhas da linha do t
 
 func _prova_do_teclado_na_mesa() -> void:
 	var l0: TelaLobby = jogo.lobby
+	# a repetição do direcional anda no relógio do jogo aqui: com a máquina carregada, dois quadros podiam passar de 0,40 s
+	l0.relogio_do_teclado = func() -> int: return int(Engine.get_process_frames() * 1000 / 60)
 	var original: String = jogo.jogadores[0].nome
 	await _aperta(0, Forja.BAIXO)
 	await _aperta(0, Forja.BAIXO)
@@ -2084,8 +2113,12 @@ func _prova_do_nome_na_linha_do_tempo() -> void:
 		if e.get("tipo") == "cavaleiro" and not escritos.has(int(e.get("lugar", -1))):   # o primeiro de cada lugar: a montagem da noite
 			nomes[int(e.get("lugar", -1))] = str(e.get("nome", ""))
 			escritos[int(e.get("lugar", -1))] = e
-	_esperar(nomes.get(0, "") == "Dona Brasa" and nomes.get(1, "") in TelaLobby.NOMES,
-		"teclado: o evento «cavaleiro» traz os nomes (%s)" % [nomes])
+	var distintos := {}
+	for l in 4:
+		distintos[nomes.get(l, "")] = true
+	_esperar(nomes.get(0, "") == "Dona Brasa" and nomes.get(1, "") in TelaLobby.NOMES and nomes.get(2, "") in TelaLobby.NOMES
+		and nomes.get(3, "") in TelaLobby.NOMES and distintos.size() == 4,
+		"teclado: o evento «cavaleiro» traz os quatro nomes, nenhum repetido (%s)" % [nomes])
 	_esperar(escritos.has(0) and escritos[0].get("nome_escrito") == true and int(escritos[0].get("t_nome_ms", 0)) > 0
 		and escritos.has(1) and escritos[1].get("nome_escrito") == false,
 		"teclado: o evento «cavaleiro» diz quem escreveu e quanto tempo levou")
