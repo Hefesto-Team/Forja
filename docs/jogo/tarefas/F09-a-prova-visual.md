@@ -219,6 +219,30 @@ texto fora da margem de 5%, contraste abaixo de 3:1, um texto sobre o outro no
 sobe, fim sem vencedor nem minúscula. A cura é do jogo, não da régua, e virou a
 [F09b](F09b-os-achados-da-prova-visual.md).
 
+**Na conferência.** Corrigido na régua e no roteiro:
+- A colisão era frouxa: perdoava duas frases iguais exceto pelo número em
+  qualquer lugar. Agora só perdoa a mesma frase, ou o contador, no mesmo lugar
+  (0,4 do corpo da letra na horizontal, 0,15 na vertical).
+- O relógio lia só a conta da sala. Agora lê também o relógio que a tela mostra
+  («80 s», «… 1:29»), com a chave pela sala e pela posição.
+- O fim reprova também o vencedor -1 (ninguém).
+- O padrão da janela dizia 640×360 e era 1280×720; agora é 640×360.
+- A passada `livre` no Xvfb rodava por software, sem placa de vídeo. `NA_TELA=1`
+  roda sem Xvfb, com a placa dentro da caixa (abre a janela na tela de quem roda).
+- As duas passadas agora comparam a semente: o vencedor de cada minigame e o
+  pódio têm de bater, senão reprova. Na partida 4 bateu.
+- Na passada `livre` da partida 4, a cruz única do robô no placar se perdia com o
+  cabo fora, e o placar ficava parado para sempre: o robô do placar aperta de
+  novo a cada 4 s (`main.gd`, `_robo_do_placar`).
+- A tela vazia contava o preto de propósito da troca de tela (a cortina de
+  `main.gd`, 150 ms fechando): a passada `livre` caiu nele aos 02:01. O quadro
+  guarda agora se a troca está em curso, e só o preto de fora dela reprova; a
+  troca que fica no preto aparece como tela parada.
+- Na mesma passada, o cartão d'A Galeria que desliza saiu «encavalado com ele
+  mesmo» a 31 px: sem `--fixed-fps`, um quadro que não se desenha junta dois
+  desenhos do nó com o mesmo número de quadro, e a prancha mostra um cartão só.
+  A coleta (`desenho.gd`) marca agora cada desenho do nó, e só o último vale.
+
 **Fica para a mão dela ou do André.** A passada `livre` (sem `--fixed-fps`,
 com placa de vídeo) e as quatro pranchas olhadas; a aparência (luz, cor, arte)
 não se aprova pelo renderizador por software; as partidas 2 e 3 desta rodada

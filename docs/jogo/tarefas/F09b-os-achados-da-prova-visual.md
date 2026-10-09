@@ -75,6 +75,9 @@ não da régua: ver cada caso na prancha antes de mexer.
   reprova por pouco (2,8 a 3,0) vale conferir na máquina do André.
 - `--fixed-fps 60` e o renderizador por software escondem as travadas: a
   passada `livre` é a que mostra os quadros por segundo.
+- A régua do contraste pula o texto com alfa abaixo de 0,3 (o que está
+  aparecendo ou sumindo). Um texto que fica quase invisível de propósito, e
+  parado, escapa dela: conferir de olho na prancha.
 
 ## Não fazer
 
