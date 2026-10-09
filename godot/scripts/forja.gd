@@ -1078,9 +1078,18 @@ func robo_confirmar(l: int, depois_s: float, dono: Node = null) -> void:
 	if depois_s <= 0.0:
 		_robo_apertar_cru(l, CRUZ, 0.09)
 		return
+	# o id, e não o nó: o nó liberado antes do temporizador chega à função como
+	# null, e o null é o de quem não passou dono (a WQ02)
+	var tem_dono := dono != null
+	var id_dono := dono.get_instance_id() if tem_dono else 0
 	get_tree().create_timer(depois_s).timeout.connect(func() -> void:
-		if dono == null or (is_instance_valid(dono) and dono.is_inside_tree()):
-			_robo_apertar_cru(l, CRUZ, 0.09))
+		if tem_dono:
+			if not is_instance_id_valid(id_dono):
+				return
+			var o_dono := instance_from_id(id_dono) as Node
+			if o_dono == null or not o_dono.is_inside_tree():
+				return
+		_robo_apertar_cru(l, CRUZ, 0.09))
 
 
 ## As capacidades do controle do lugar (giro, acel, toque, efeitos...).
