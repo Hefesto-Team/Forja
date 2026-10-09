@@ -1,169 +1,113 @@
 <p align="center">
-  <img src="docs/imagens/forja.gif" alt="O Forja rodando: A Galeria, A Viga e A Prova, com quatro jogadores" width="100%">
+  <img src="docs/imagens/direcao/07_titulo.jpg" alt="O título da Forja: uma fita cassete com a etiqueta escrita à mão" width="100%">
 </p>
 
-<h1 align="center">Forja</h1>
+<h1 align="center">A Forja</h1>
 
 <p align="center">
   <b>Uma noite de jogo para quatro amigos, quatro DualSense e um sofá.</b><br>
-  Nove salas, uma gincana, um pódio — e o controle fazendo tudo o que sabe fazer.
+  45 minigames em nove seções, uma fita gravada a quatro mãos, e o controle fazendo tudo o que sabe fazer.
 </p>
 
 <p align="center">
-  <a href="https://github.com/Hefesto-Team/Forja/actions/workflows/forja.yml"><img src="https://github.com/Hefesto-Team/Forja/actions/workflows/forja.yml/badge.svg" alt="o CI do Forja"></a>
-</p>
-
-<p align="center">
-  Português · <a href="README.en.md">English</a>
+  <a href="https://github.com/Hefesto-Team/Forja/actions/workflows/forja.yml"><img src="https://github.com/Hefesto-Team/Forja/actions/workflows/forja.yml/badge.svg" alt="o CI da Forja"></a>
 </p>
 
 ---
 
-## Como é uma noite de Forja
+## A noite é uma fita
 
-Cada um pega um DualSense e aperta ✕. O controle acende na cor do seu lugar,
-as luzinhas embaixo do touchpad mostram quem é quem, e o seu boneco sobe no
-pedestal. Você escolhe o visual, fica pronto, e todo mundo entra no salão da
-forja.
+Quatro amigos gravam uma fita. Cada minigame é uma faixa, a noite tem lado A
+(o corpo: a mão, o equilíbrio, o toque, o golpe, a mira) e lado B (o espírito:
+o ouvido, o chão que se sente, a voz, e tudo junto no fim). O contador do deck
+anda de verdade, a etiqueta é escrita à mão, e quando a fita enrosca a imagem
+desregistra e o som desafina: é a Dissonância, o vilão.
 
-Na bigorna do meio, alguém aperta □ e escolhe a partida: três salas, cinco ou
-as nove, na ordem ou sorteadas, no ritmo de quem joga pela primeira vez ou no
-rápido. E começa.
+Os jogadores são os Cavaleiros de Néon. Cada armadura soa uma nota só, e as
+quatro juntas fazem o acorde da Forja. Ninguém toca a música inteira sozinho.
 
-Em cada sala, o boneco mostra o que fazer, e a primeira rodada é **treino** —
-não vale ponto, é para pegar o jeito. Depois de três acertos, a tela grita
-**"Valendo!"**. Aí é martelar a runa antes do anel fechar, equilibrar na viga
-com o controle inclinado, descobrir de olhos fechados que arma está no seu
-gatilho, levantar o escudo do lado em que o golpe tremeu, chamar o guardião da
-cripta pelo microfone do controle.
+<p align="center">
+  <img src="docs/imagens/direcao/01_centelha_depois.jpg" alt="A Centelha: quatro cavaleiros martelando no ritmo, cada um com o seu botão" width="100%">
+</p>
 
-Entre uma sala e outra, o placar: os pontos sobem contando, as posições
-trocam, alguém passa a liderar — e às vezes a virada. No fim, o pódio sobe em
-blocos, o confete cai, e a fanfarra toca na TV e no alto-falante do controle
-de quem venceu. Sempre alguém vence.
+## A direção de arte
 
-<table>
-  <tr>
-    <td width="33%"><img src="docs/imagens/lobby.jpg" alt="O lobby: cada controle ganha um lugar, uma cor e um boneco"></td>
-    <td width="33%"><img src="docs/imagens/placar.jpg" alt="O placar entre as salas, com quem lidera"></td>
-    <td width="33%"><img src="docs/imagens/podio.jpg" alt="O pódio, com o vencedor no bloco mais alto"></td>
-  </tr>
-  <tr>
-    <td><b>Quem joga</b> — um controle, um lugar, uma cor. Até quatro, e a partir de um.</td>
-    <td><b>O placar</b> — a colocação em cada sala vira pontos da noite.</td>
-    <td><b>O pódio</b> — mais pontos; no empate, mais salas vencidas; e alguém sempre ganha.</td>
-  </tr>
-</table>
-
-## As nove salas
-
-Cada sala é um jogo curto que usa um pedaço do DualSense do jeito que os jogos
-comerciais usam — e que você sente na mão antes de ver na tela.
+A bíblia inteira está em [docs/jogo/arte/](docs/jogo/arte/README.md), e a
+[página da direção](docs/jogo/direcao-de-arte.html) mostra os quadros. Todos
+são renderizados pelo próprio Godot, com modelos da Kenney, a partir do estudo
+em `godot/estudos/direcao/`.
 
 <table>
   <tr>
-    <td width="33%"><img src="docs/imagens/centelha.jpg" alt="A Centelha"></td>
-    <td width="33%"><img src="docs/imagens/viga.jpg" alt="A Viga"></td>
-    <td width="33%"><img src="docs/imagens/molde.jpg" alt="O Molde"></td>
+    <td width="50%"><img src="docs/imagens/direcao/10_montagem.jpg" alt="A montagem do cavaleiro, peça por peça"></td>
+    <td width="50%"><img src="docs/imagens/direcao/19_racas.jpg" alt="As cinco raças: humana, orc, autômato, golem e raposa"></td>
   </tr>
   <tr>
-    <td><b>A Centelha</b> — a runa acende em cima da sua bigorna: aperte o botão dela antes do anel fechar, e martele.</td>
-    <td><b>A Viga</b> — atravesse a lava inclinando o controle contra o vento, mire nos sinos girando, quebre a pedra com uma sacudida.</td>
-    <td><b>O Molde</b> — o touchpad é o molde: trace a letra, abra e feche com dois dedos, carimbe com o clique.</td>
+    <td><b>A montagem</b>: cabeça, tronco, pernas e item, cada um com o seu material. O néon do jogador é só o acento.</td>
+    <td><b>As raças</b>: humana, orc, autômato de latão, golem de escória e raposa ferreira. Só aparência, sem status.</td>
   </tr>
   <tr>
-    <td><img src="docs/imagens/impacto.jpg" alt="O Impacto"></td>
-    <td><img src="docs/imagens/galeria.jpg" alt="A Galeria"></td>
-    <td><img src="docs/imagens/canto.jpg" alt="O Canto"></td>
+    <td><img src="docs/imagens/direcao/12_reacoes.jpg" alt="As reações dos cavaleiros"></td>
+    <td><img src="docs/imagens/direcao/06_podio.jpg" alt="O pódio no fim da noite"></td>
   </tr>
   <tr>
-    <td><b>O Impacto</b> — no escuro, o golpe treme só um lado do controle: levante o escudo daquele lado.</td>
-    <td><b>A Galeria</b> — a arma chega num baú fechado. Aperte R2: é pistola, metralhadora ou arco? O gatilho responde.</td>
-    <td><b>O Canto</b> — a bigorna canta num controle só, ou na TV. Saiu da sua mão? Então repita o ritmo.</td>
-  </tr>
-  <tr>
-    <td><img src="docs/imagens/caminhos.jpg" alt="Os Caminhos"></td>
-    <td><img src="docs/imagens/voz.jpg" alt="A Voz"></td>
-    <td><img src="docs/imagens/prova.jpg" alt="A Prova"></td>
-  </tr>
-  <tr>
-    <td><b>Os Caminhos</b> — o chão só existe na palma da mão: grama, cascalho, metal ou água? E de que lado foi a pedra?</td>
-    <td><b>A Voz</b> — o guardião da cripta escuta pelo microfone do <i>seu</i> controle. Silêncio. Chame. Fique mudo.</td>
-    <td><b>A Prova</b> — Brasa contra Maré, noventa segundos com tudo ligado ao mesmo tempo.</td>
+    <td><b>As reações</b>: cada cavaleiro diz o que sente, sem uma palavra.</td>
+    <td><b>O pódio</b>: no fim da fita, alguém sempre vence.</td>
   </tr>
 </table>
 
-## Jogar
+O [storyboard da noite](docs/imagens/direcao/14_storyboard.jpg) vai do título
+ao fim da fita em 18 planos.
 
-1. Baixe o pacote da [última versão](https://github.com/Hefesto-Team/Forja/releases)
-   (ou, até sair a primeira, dos artefatos da última execução do
-   [CI](https://github.com/Hefesto-Team/Forja/actions/workflows/forja.yml)):
-   o **AppImage** ou o `.tar.gz` no Linux, o `.zip` no Windows — que também
-   roda pelo Proton, na Steam, com o Steam Input desligado para o jogo.
-2. Ligue os DualSense — no cabo, de preferência — e abra o jogo.
-3. ✕ para entrar, ✕ para ficar pronto. Options pausa, e no lobby △ abre as
-   opções do seu lugar.
+| a bíblia | o que decide |
+| --- | --- |
+| [cinema](docs/jogo/arte/01-cinema.md), [cor e letra](docs/jogo/arte/02-cor-e-letra.md), [movimento](docs/jogo/arte/05-movimento.md) | a câmera, a luz, a paleta, as fontes, o tempo de cada gesto |
+| [som](docs/jogo/arte/03-som.md) e [o mapa do áudio](docs/jogo/audio/mapa.csv) | a voz de cada cavaleiro e os 258 sons do jogo, cada um com a sua receita |
+| [o cavaleiro](docs/jogo/arte/04-o-cavaleiro.md) e [o RPG](docs/jogo/sistemas/README.md) | as peças, as raças e o que cada escolha muda no jogo |
+| [a diversão](docs/jogo/diversao/README.md) | o momento de grito de cada minigame, e como se confere |
+| [o DualSense](docs/jogo/pesquisa/dualsense.md) | o que o controle sabe fazer, e qual minigame usa o quê |
+| [acessibilidade](docs/jogo/arte/10-acessibilidade.md) e [o que nunca](docs/jogo/arte/11-o-que-nunca.md) | daltonismo, flashes, conforto, e o que não entra |
 
-Sem controle nenhum, o título oferece jogar no teclado. No Linux, para o jogo
-ler o controle no cabo sem pedir root, a regra do udev que vem no pacote:
+## Onde o projeto está
 
-```sh
-sudo cp 99-forja-dualsense.rules /etc/udev/rules.d/
-sudo udevadm control --reload-rules && sudo udevadm trigger
-```
+As nove salas de hoje funcionam e cada uma prova um recurso do DualSense. O
+caminho até os 45 minigames e a direção nova está no
+[quadro](docs/jogo/tarefas/README.md), ficha por ficha, e o porquê de cada
+decisão em [docs/jogo/](docs/jogo/README.md).
 
-**Para todo mundo jogar bem:** nas opções, o gatilho pode ficar fraco ou
-desligado e a vibração vai de 0 a 100%, por jogador; o movimento da câmera e
-os flashes se desligam; o texto pode crescer; e as telas falam português ou
-inglês. A cor de cada jogador sempre vem com o nome dele (P1, P2…), e as
-cores foram conferidas para quem enxerga diferente.
+A Forja também valida o [Hefesto](https://github.com/Hefesto-Team/hefesto-dualsense4unix),
+que leva o DualSense inteiro para o Linux: enquanto você joga, o registro
+anota o que cada sala pediu ao controle e o que chegou. O jogo fala com o
+DualSense como a Sony e a Steam documentam, nunca com o Hefesto
+([CONTRATO.md](CONTRATO.md)).
 
-## Por que o Forja existe
-
-O Forja nasceu para validar o [Hefesto](https://github.com/Hefesto-Team/hefesto-dualsense4unix),
-que leva o DualSense inteiro para o Linux. O jeito mais honesto de saber se
-um controle funciona é jogando: enquanto você joga, cada sala anota o que
-pediu a cada controle e o que chegou, e no fim da sala dá o veredito por
-recurso — **passou**, **falhou** (com o que foi medido) ou **não medido**
-(com o porquê). O livro da sessão mostra tudo, e o relatório vai para o disco.
-
-O jogo fala com o DualSense como a Sony e a Steam documentam, e nunca com o
-Hefesto: quem estiver entre o jogo e o controle é invisível, e quatro
-controles nas mãos de quatro pessoas são o juiz. A regra está no
-[CONTRATO.md](CONTRATO.md); o roteiro de uma rodada de validação, em
-[docs/VALIDAR.md](docs/VALIDAR.md).
-
-## Para quem quer mexer
+## Jogar e mexer
 
 ```sh
 ./run-local.sh                       # compila, baixa o Godot na primeira vez e abre o jogo
 ./run-local.sh -- --simular=4 --robo # quatro controles de mentira, e o robô joga
 ```
 
-O jogo é Godot 4.4 com um módulo nativo em C (SDL3) que fala com os
-controles. Tudo se prova sem aparelho: a cada push, o CI compila, joga as nove
-salas com quatro controles simulados, tira o cabo de um deles no meio de cada
-sala, liga vinte defeitos de mentira (e cada um tem de ser pego), exporta o
-jogo e joga de novo no binário Linux, no AppImage e no `.exe` pelo Wine.
+Godot 4.7.2 com um módulo nativo em C (SDL3) que fala com os controles. Tudo
+se prova sem aparelho: o CI compila, joga as salas com quatro controles
+simulados, tira o cabo de um deles no meio, liga defeitos de mentira (e cada
+um tem de ser pego) e joga de novo no binário exportado. Os pacotes saem nos
+artefatos do [CI](https://github.com/Hefesto-Team/Forja/actions/workflows/forja.yml).
 
 | se você quer… | leia |
 | --- | --- |
-| contribuir: as regras da casa e os comandos | [docs/COMO-CONTRIBUIR.md](docs/COMO-CONTRIBUIR.md) |
+| contribuir | [docs/COMO-CONTRIBUIR.md](docs/COMO-CONTRIBUIR.md) |
 | compilar, exportar, rodar as provas | [docs/DESENVOLVER.md](docs/DESENVOLVER.md) |
-| entender cada sala por dentro | [docs/SALAS.md](docs/SALAS.md) |
-| saber onde o projeto está e o que falta | [SPRINTS.md](SPRINTS.md) |
 | achar qualquer outro documento | [docs/README.md](docs/README.md) |
 
 ## Créditos
 
-Feito pela **Hefesto Team**.
-
-O código é MIT ([LICENSE](LICENSE)). O jogo usa obras de terceiros, cada uma
-com o seu aviso em [LICENCAS-DE-TERCEIROS.md](LICENCAS-DE-TERCEIROS.md): os
-modelos 3D e os efeitos sonoros da [Kenney](https://www.kenney.nl) (CC0), as
-fontes Space Grotesk e JetBrains Mono (OFL), o [SDL](https://libsdl.org)
-(zlib), o [Godot](https://godotengine.org) e o godot-cpp (MIT). A música é
-sintetizada pelo próprio jogo. Nada vem do SDK da Sony.
+Feito pela **Hefesto Team**. O código é MIT ([LICENSE](LICENSE)). As obras de
+terceiros, cada uma com o seu aviso, estão em
+[LICENCAS-DE-TERCEIROS.md](LICENCAS-DE-TERCEIROS.md): os modelos 3D e os
+efeitos da [Kenney](https://www.kenney.nl) (CC0), as fontes (OFL e Apache), o
+[SDL](https://libsdl.org) (zlib), o [Godot](https://godotengine.org) e o
+godot-cpp (MIT). Nada vem do SDK da Sony.
 
 DualSense e PlayStation são marcas da Sony Interactive Entertainment. Este
 projeto não tem relação com a Sony.
