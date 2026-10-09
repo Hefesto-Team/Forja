@@ -10,7 +10,7 @@ vez, e a vez de cada um **só a mão sabe** (o passo do titã chega no controle 
 ## Ler antes
 
 - [O molde de minigame](molde-de-minigame.md) (a FICHA, os ganchos, o que o kit dá pronto)
-- [L1 — O Cerco](L1-o-cerco.md): o cenário comum inteiro (o `escuro`, a lanterna da vida, o exagero) está em
+- [L1 — O Cerco, «A cena»](L1-o-cerco.md#a-cena): o cenário comum inteiro (o `escuro`, a lanterna da vida, o exagero) está em
   «A cena», no código de `cenario_do_impacto.gd`; o modelo (o hoqueto, a pista, o robô, o `momento`) está em «Como se joga»,
   «O controle» e «O robô». Se a L1 já entrou, valem `cenario_do_impacto.gd` e `o_cerco.gd` em
   `godot/scripts/minigames/s04/`.

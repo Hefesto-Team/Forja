@@ -12,7 +12,7 @@ primeiro grito da seção.
 ## Ler antes
 
 - [O molde de minigame](molde-de-minigame.md)
-- [H08 — Os acréscimos do kit](H08-os-acrescimos-do-kit.md) (a fila de notas, `anotar`, `andamento`, `tempo_que_resta`)
+- [As decisões comuns dos minigames, no 13](../13-arquitetura.md#as-decisões-comuns-dos-minigames--h08) (a fila de notas, `anotar`, `andamento`, `tempo_que_resta`)
 - [A diversão d'A Viga](../diversao/J-a-viga.md#j1--a-viga) (o grito, o rastro e a régua)
 
 ## Arquivos que mudam

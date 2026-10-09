@@ -14,7 +14,7 @@ com o clang nos dois controles da dupla no mesmo quadro, e a sala ria.
 - [O molde de minigame](molde-de-minigame.md) (onde mora, a FICHA, o robô, o registro, a prova)
 - [O kit, no 13](../13-arquitetura.md#o-kit-do-minigame--h04) e, no mesmo arquivo, a seção «As decisões comuns dos
   minigames — H08»
-- [A Q1](Q1-a-prova.md), «Os ganchos» e «Com menos de quatro» (o `_gancho`, o `_saida`, o `_peca`, o `_tingir`, o
+- [A Q1, «Os ganchos»](Q1-a-prova.md#os-ganchos) e «Com menos de quatro» (o `_gancho`, o `_saida`, o `_peca`, o `_tingir`, o
   Aprendiz, a forma do `vencedor()` de equipe)
 
 Tudo o mais que esta ficha usa (as cores, o brilho, a câmera, o movimento, o som, os stats, a régua da diversão)

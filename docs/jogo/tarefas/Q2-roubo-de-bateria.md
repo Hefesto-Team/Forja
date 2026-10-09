@@ -13,7 +13,7 @@ vai para o adversário faça a sala gritar pelo menos 1 vez em 100 s.
 - [O molde de minigame](molde-de-minigame.md) (onde mora, a FICHA, o robô, o registro, a prova)
 - [O kit, no 13](../13-arquitetura.md#o-kit-do-minigame--h04) e, no mesmo arquivo, a seção «As decisões comuns dos
   minigames — H08»
-- [A Q1](Q1-a-prova.md), «Os ganchos» (o `_gancho`, o `_respondeu`, a forma do `vencedor()` de equipe)
+- [A Q1, «Os ganchos»](Q1-a-prova.md#os-ganchos) (o `_gancho`, o `_respondeu`, a forma do `vencedor()` de equipe)
 
 Tudo o mais que esta ficha usa (as cores, o brilho, a câmera, o movimento, o som, os stats, a régua da diversão)
 está escrito aqui dentro, com o número.

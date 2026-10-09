@@ -12,7 +12,7 @@ a lado, e a ultrapassagem é o grito.
 ## Ler antes
 
 - [O molde de minigame](molde-de-minigame.md) (o 2v2 com menos de quatro)
-- [H08 — Os acréscimos do kit](H08-os-acrescimos-do-kit.md) (as equipes: `montar_equipes`, `da_equipe`, `marcar_equipe`, `aprendizes`, `CORES_DAS_EQUIPES`)
+- [H08, o `minigame.gd`](H08-os-acrescimos-do-kit.md#godotscriptsminigamesminigamegd) (as equipes: `montar_equipes`, `da_equipe`, `marcar_equipe`, `aprendizes`, `CORES_DAS_EQUIPES`)
 - [J1 — O secao.gd](J1-a-viga.md#o-secaogd) (a caverna, `agendar`, `vento`, `momento`, `gancho`, `levantar`, `pista_s`, `forca_g`)
 
 ## Arquivos que mudam

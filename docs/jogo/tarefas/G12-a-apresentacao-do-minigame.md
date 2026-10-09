@@ -15,7 +15,7 @@ dela em 08/10/2026. Na Forja, a entrada é a cortina diagonal da fita e o cartã
 
 - [06, a cortina diagonal](../arte/06-interface-e-texto.md#a-cortina-diagonal) (a forma, o tempo, o rasgo)
 - [06, o J-card](../arte/06-interface-e-texto.md#o-j-card) (as partes e as medidas)
-- [H04 — o kit](H04-o-kit-do-minigame.md) (a `FICHA`, `CHAVES`, o aviso no kit)
+- [O kit do minigame, no 13](../13-arquitetura.md#o-kit-do-minigame--h04) (a `FICHA`, `CHAVES`, o aviso no kit)
 
 ## O estado de hoje
 

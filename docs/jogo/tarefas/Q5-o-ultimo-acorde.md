@@ -14,7 +14,7 @@ veja o dragão se levantar pelo menos 1 vez e depois cair, e para que a mesa boa
 - [O molde de minigame](molde-de-minigame.md) (onde mora, a FICHA, o robô, o registro, a prova)
 - [O kit, no 13](../13-arquitetura.md#o-kit-do-minigame--h04) e, no mesmo arquivo, a seção «As decisões comuns dos
   minigames — H08» (a linha `estacao`, a `troca`)
-- [A Q4](Q4-ruge-o-reator.md) (o dragão de peças, o hoqueto, o `_queda_s`, o `_gancho`: esta ficha tem a mesma forma)
+- [A Q4, «Como se joga»](Q4-ruge-o-reator.md#como-se-joga) (o dragão de peças, o hoqueto, o `_queda_s`, o `_gancho`: esta ficha tem a mesma forma)
 
 Tudo o mais que esta ficha usa (as cores, o brilho, a câmera, o movimento, o som, os stats, o ouvido da P1, a pedra da
 O2, o tiro da M1, o canto da N1, a régua da diversão) está escrito aqui dentro, com o número. O medley não abre o

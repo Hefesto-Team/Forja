@@ -33,3 +33,4 @@ direção.
 4. Uma decisão deixada para quem implementa («escolher a melhor câmera»).
 5. Uma diversão que não se confere («ficar divertido»).
 6. Um recurso do controle sem a prova de que funciona sem o controle na mão (o robô e o simulador).
+7. Um link do **Ler antes** sem âncora para arquivo de mais de 20 KB (fora o molde de minigame e o arquivo que a própria ficha muda), com âncora que não casa ou para ficha **feito**: aponta-se para a seção, que `python3 scripts/ler_antes.py <ficha>` imprime (o portão `scripts/portoes/ficha_pronta.py` confere).

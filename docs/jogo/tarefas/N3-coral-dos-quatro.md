@@ -12,7 +12,7 @@ placar de todos.
 
 ## Ler antes
 
-- [A N1](N1-o-canto.md) (o `CenarioDoCanto` inteiro: a capela, o `falante`, o `ouvir`, os ganchos, a `momento`)
+- [A N1, «A cena»](N1-o-canto.md#a-cena) (o `CenarioDoCanto` inteiro: a capela, o `falante`, o `ouvir`, os ganchos, a `momento`)
 - [O molde de minigame](molde-de-minigame.md) (o `coop`, o `coop_venceu` e o `destaque`)
 - [O kit do minigame](../13-arquitetura.md#o-kit-do-minigame--h04)
 

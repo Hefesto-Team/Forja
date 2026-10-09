@@ -94,3 +94,27 @@ ficha, e nada da H08 que não importa.
 
 Pôr a linha da WT01 no [quadro](README.md) como **feito**, com o commit e a mediana nova, e dizer no
 [12](../12-como-trabalhar.md) que o «Ler antes» se lê pelo `scripts/ler_antes.py`.
+
+## O que foi feito (leva 1, as-regras)
+
+- **Entrou:** `scripts/ler_antes.py` (a âncora do GitHub, fora dos blocos de código; `--medir` dá o total por ficha e
+  a mediana); o portão da ficha pronta usa as mesmas funções e reprova o link sem âncora para arquivo de mais de
+  20 KB (20.480 bytes), a âncora que não casa e o link para ficha **feito**. Duas exceções, a validar por ela: o
+  molde de minigame (21,5 KB, a régua das fichas, lido inteiro) e o arquivo que a própria ficha muda (a L1, a M1, a N1
+  e a P1 desmontam a sala velha, que passa de 20 KB). A regra ganhou a linha 7 em «A ficha pronta», e o 12 diz que o
+  «Ler antes» se lê pelo script.
+- **Os links:** I1 a I5 e a G12 (pronta, fora de voo, que também apontava a H04) vão para o kit no 13; J1, J2, J3 e J5
+  para as decisões da H08 no 13; a **J4** vai para a seção `minigame.gd` da H08 (a validar por ela: o 13 não traz a API
+  das equipes, `montar_equipes`, `aprendizes`, `CORES_DAS_EQUIPES`; quando a H08 virar **feito**, essa API tem de
+  entrar no 13 e o link da J4 muda, senão o portão reprova); K2 a K5 para o `secao.gd` da K1; L2 a L5, M2 a M5 e N2
+  a N5 para «A cena» da n.º 1; P2 a P5 para as duas partes da P1 que a prosa já nomeava; Q2 a Q4 para «Os ganchos» da
+  Q1; a Q5 para «Como se joga» da Q4; a M5 para «Como se joga» da M4; a M1 e a N1 para o Modo bancada no 13 no lugar
+  da F01 feita.
+- **A medida:** a mediana do «Ler antes» das 45 fichas I a Q caiu de 71.994 para 36.674 caracteres
+  (`python3 scripts/ler_antes.py --medir docs/jogo/tarefas/[I-Q][1-5]-*.md`); a I2, de 62.535 para 25.769.
+- **Provas:** `bash tests/prova_dos_portoes.sh` (49 casos; os sete novos reprovam com o portão de antes: o link sem
+  âncora para 30 KB, a âncora errada, o título dentro do bloco de código e a ficha feita); o portão de hoje sobre as
+  fichas de antes acha 44 links; depois, 0.
+- **O que sai do «Ler antes» com a âncora** (a prosa segue nomeando, e quem precisar abre a seção): na K2 a K5, a
+  `momento` e o kit da K1; na Q3, «Com menos de quatro» da Q1; na L2 a L5, «Como se joga», «O controle» e «O robô» da L1.
+- **Para o André:** `python3 scripts/ler_antes.py docs/jogo/tarefas/J3-*.md`.

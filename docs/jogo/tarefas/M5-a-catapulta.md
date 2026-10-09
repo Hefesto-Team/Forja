@@ -15,9 +15,9 @@ fim, com a bandeira da outra dupla espetada nele.
 ## Ler antes
 
 - [O molde de minigame](molde-de-minigame.md) (o kit, a ficha de dados, o catálogo, a régua, o `2v2`)
-- [A M1, A Galeria](M1-a-galeria.md) (o cenário comum `CenarioDaGaleria`, a luz, o impacto e o
+- [A M1, «A cena»](M1-a-galeria.md#a-cena) (o cenário comum `CenarioDaGaleria`, a luz, o impacto e o
   `_joga_o_minigame` da prova)
-- [A M4, Espada de Fita](M4-espada-de-fita.md) (as duplas do kit, o Aprendiz, a `equipe_vencedora()` trocada e o
+- [A M4, «Como se joga»](M4-espada-de-fita.md#como-se-joga) (as duplas do kit, o Aprendiz, a `equipe_vencedora()` trocada e o
   `_r2`)
 
 Tudo o que esta ficha tira da bíblia de arte, do mapa do áudio, da régua da diversão e do RPG está escrito aqui ou
