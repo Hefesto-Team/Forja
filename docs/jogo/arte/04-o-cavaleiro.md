@@ -140,6 +140,69 @@ converte para L (OKLab). Passa quando:
   64 px, sem cor;
 - a área de acento fica nos tetos da tabela.
 
+## As raças
+
+A fala dela: «só temos assets de personagens humanos. Acho que podemos
+explorar outras raças também.» Além da humana, quatro raças: o orc, o
+autômato de latão, o golem de escória e a raposa ferreira.
+
+### Como a raça entra na montagem
+
+- **A raça é aparência.** Nenhuma muda stat, caixa de colisão, velocidade
+  ou janela de julgamento. A caixa de colisão é a mesma cápsula para as cinco.
+  O [sistemas](../sistemas/README.md#o-que-não-tem-stat) diz isso numa linha.
+- **A raça dá a forma; as peças dão a roupa e o perfil.** A raça troca a
+  cabeça inteira, a pele (o rosto e as mãos), e pode pôr cauda e mudar a
+  proporção. O superior e o inferior continuam as 24 peças humanas, vestidas
+  pela raça: um orc de Farda azul e Calça social.
+- **O perfil da cabeça continua.** Na linha da cabeça, ◀ ▶ escolhe entre os
+  12 perfis (os stats e o pio de [pecas.csv](../sistemas/pecas.csv)), em
+  qualquer raça. A cor do cabelo daquele perfil vai para a marca do perfil da
+  raça (a tabela abaixo). A cabeça única na mesa continua pelo perfil: dois
+  orcs podem, com perfis e marcas de cores diferentes.
+- **R1 na linha da cabeça** alterna Humana, Orc, Autômato, Golem e Raposa,
+  com `ui_peca` a +7 semitons, como a troca de cabeça. Fora da humana, o
+  rótulo «Cabeça» dá lugar ao nome da raça, na mesma letra (Archivo Narrow 600
+  de 30 px; «Autômato» tem 8 letras, como «Superior»).
+- **O pré-montado sorteia a raça:** metade das vezes humana, a outra metade
+  uma das quatro, pela mesma semente do lugar. Quem chega já pode ter um
+  golem.
+- **Livres desde a primeira noite**, como as cadeiras: nenhuma raça é prêmio
+  da coleção.
+- **Com a cadeira de rodas:** toda raça senta; a cauda da raposa sai pelo vão
+  do encosto, 0,05 mais alta.
+
+### As quatro
+
+Medidas nas unidades do personagem (o `male-a` tem 0,67 de altura; a cabeça
+dele vai de y 0,34 a 0,67).
+
+| raça | a cabeça | as mãos | a cauda | a proporção | a pele | a marca do perfil | de onde vem a malha |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| **Orc** | a `head-mesh` do orc: presas e orelhas de ponta; vai de y 0,34 a 0,78 (a cabeça 33 % mais alta que a humana) | as do superior, na pele da raça | nenhuma | só a cabeça muda | `PELE_ORC` | o tufo no alto da cabeça (por código, caixa de 0,06, se a malha não tiver cabelo) | Kenney Mini Dungeon, `character-orc.glb`: o mesmo esqueleto de 7 ossos e as mesmas 32 animações; corte limpo (0 triângulo misto): cabeça 176, superior 144, inferior 54 |
+| **Autômato de latão** | caixa chanfrada de 0,30 × 0,28 × 0,28; o visor é um vão `JANELA` de 0,24 × 0,06 a 0,10 do topo, com a linha de acento de 0,22 × 0,02 dentro; antena de 0,08 com a bola de 0,025 | uma pinça de dois dedos (duas caixas de 0,02 × 0,05) presa ao punho de cada braço | nenhuma | a mesma do humano | `PELE_LATAO`, `metallic` 0,2 | a bola da antena | por código (`ArrayMesh`, como a bigorna), até 300 triângulos, presa ao osso `head` por `BoneAttachment3D` |
+| **Golem de escória** | bloco facetado de 0,34 × 0,24 × 0,30, sem pescoço (desce 0,03); a rachadura: três traços de 0,005 num vão `JANELA` na testa, com o acento dentro | um punho de pedra (cubo chanfrado de 0,075) em cada punho | nenhuma | o osso `torso` a 1,15 em x e z (ombro e braço mais largos); a cabeça compensa a 0,87 | `PELE_ESCORIA` | dois tufos de líquen de 0,05 no alto | por código, até 400 triângulos, no osso `head`; os punhos no punho que `Montar.mao` acha |
+| **Raposa ferreira** | caixa de 0,28 × 0,24 × 0,26; focinho em prisma de 0,12 × 0,08 × 0,10 com a ponta em `TINTA`; duas orelhas em prisma de 0,08 × 0,10; olhos de 0,03 em `TINTA` | as do superior, em pelo (`PELE_RAPOSA`) | o `tail` do `animal-fox` (Kenney Cube Pets) a ×0,33 (0,30 de comprimento), no osso `root` em (0; 0,20; −0,10), balança ±8° a cada batida, `ENTRA_SAI` | a mesma do humano | `PELE_RAPOSA` | a ponta das orelhas e a ponta da cauda | a cabeça por código, até 300 triângulos; a cauda da Kenney, com o colormap do Cube Pets na pasta dele |
+
+A cabeça de cada raça, como a humana, passa no teste de 64 px e cinza: o rosto
+na faixa de 0,68 a 0,80, e a silhueta própria (as presas e a cabeça alta do
+orc, a antena do autômato, o bloco sem pescoço do golem, as orelhas e o
+focinho da raposa).
+
+### O que se pesquisou e ficou de fora
+
+Medido nos `.glb` do All-in-1 3.7.0 (`python3 scripts/kenney.py buscar
+character`, `animal`) e conferido em kenney.nl, categoria 3D, em 09/10/2026:
+nenhum pacote de personagem além destes.
+
+| pacote | o que tem | por que não é raça |
+| --- | --- | --- |
+| Graveyard Kit: `character-skeleton`, `-zombie`, `-vampire`, `-ghost`, `-keeper` | peças rígidas, uma por osso, com as mesmas 32 animações | são os monstros do terror (o `character-skeleton` é o guardião de Zero Absoluto, o `character-ghost` anda na Neblina de Dados): um jogador com a cara do monstro quebra a leitura de quem é inimigo. A medida das peças deles serve de régua para as raças por código (a perna em y 0,223, o braço em x ±0,125) |
+| Cube Pets: 24 animais | quadrúpedes rígidos, 8 animações, sem `holding` nem `attack` | não seguram item nem martelam; entram só como peça solta (a cauda da raposa) |
+| Platformer Kit: `character-oobi`, `-oodi`, `-ooli`, `-oopi`, `-oozi` | 6 ossos, sem o osso `head`, 25 animações | não há cabeça para cortar nem para trocar |
+| Blocky Characters, Animated Characters | outro esqueleto | já fora pela curadoria do [14](../14-os-assets-kenney.md#a-curadoria) |
+| Mini Arena `character-soldier`, Mini Forest `character-archer`, Mini Skate, Mini Arcade, Mini Market, Mini Dungeon `character-human` | o mesmo esqueleto, cortes limpos | são humanos: ampliam as cabeças humanas, não as raças (para a próxima leva) |
+
 ## Os stats e as regras
 
 Os quatro stats, a regra que impede, o que cada item pede, a liga, o
@@ -207,7 +270,7 @@ ela mudaria piscam em `ETIQUETA` na batida, antes de confirmar.
 | --- | --- |
 | ▲ ▼ | escolhe a linha |
 | ◀ ▶ | troca a peça (ou o nome) |
-| R1 | no tronco inferior: Pernas ou cadeira |
+| R1 | na cabeça: a raça ([as raças](#as-raças)); no tronco inferior: Pernas ou cadeira |
 | △ | sorteia tudo o que não está travado |
 | □ (toque) | trava ou destrava a linha |
 | □ (segurar 1 s) | troca de lugar (doc 05) |

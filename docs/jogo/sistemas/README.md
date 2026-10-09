@@ -110,6 +110,7 @@ confere olhando a malha.
   Passo, como as pernas.
 - **Os auxílios** (`aid-glasses`, `aid-sunglasses`, `aid_hearing`, `aid-cane`): acabamento, sem stat.
 - **Os dois ficam livres desde a primeira noite.** Nenhum auxílio e nenhuma cadeira é prêmio da coleção.
+- **As raças** (orc, autômato, golem, raposa, em [arte/04](../arte/04-o-cavaleiro.md#as-raças)) são só aparência: nenhuma muda stat, colisão ou janela; o perfil da cabeça continua o das 12.
 
 ## Os stats
 
