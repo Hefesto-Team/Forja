@@ -27,13 +27,11 @@ LINUX="$DIST/forja-linux-x86_64/forja.x86_64"
 WINDOWS="$DIST/forja-windows-x86_64/forja.exe"
 WINE="${WINE:-wine}"
 WINESERVER="${WINESERVER:-wineserver}"
-TMP="$(mktemp -d /tmp/forja-prova-da-exportacao-XXXXXX)"
-trap 'rm -rf "$TMP"' EXIT
-
 [ -x "$LINUX" ] || { echo "sem $LINUX: rode scripts/exportar.sh linux"; exit 2; }
 
 # Numa prova o jogo não tem de achar controle de verdade: a caixa (tests/caixa.sh).
 source "$RAIZ/tests/caixa.sh"
+caixa_pasta prova-da-exportacao; TMP="$CAIXA_PASTA"   # no vermelho, a pasta fica em .cache/provas/ (WQ04)
 caixa_montar "$TMP"
 ARGS=(--headless --fixed-fps 60 -- --simular=4 --robo --semente=7 --prova-de-fogo --sair-no-fim)
 

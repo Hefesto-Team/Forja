@@ -7,8 +7,9 @@
 # roda — o PipeWire de quem estiver na máquina não é lugar de prova.
 set -u
 RAIZ="$(cd "$(dirname "$0")/.." && pwd)"
-TMP="$(mktemp -d /tmp/forja-prova-do-som-XXXXXX)"
-trap 'rm -rf "$TMP"' EXIT
+# a pasta temporária da caixa (tests/caixa.sh): esta prova não abre o Godot, e o pactl e o pw-cat são os daqui
+source "$RAIZ/tests/caixa.sh"
+caixa_pasta prova-do-som; TMP="$CAIXA_PASTA"   # no vermelho, a pasta fica em .cache/provas/ (WQ04)
 mkdir -p "$TMP/bin"
 FALHAS=0
 falha() { echo "FAIL $*" >&2; FALHAS=$((FALHAS + 1)); }

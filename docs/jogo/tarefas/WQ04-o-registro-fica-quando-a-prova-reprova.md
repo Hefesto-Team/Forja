@@ -85,3 +85,40 @@ caminho impresso e achar o registro; desfazer.
 
 Pôr a linha da WQ04 no [quadro](README.md) como **feito**, com o commit, e dizer no documento das provas onde o
 registro de uma prova vermelha fica.
+
+## O que foi feito (leva 1, a-caixa)
+
+- **`tests/caixa.sh`, `caixa_pasta <nome>`:** cria a pasta temporária (`/tmp/forja-<nome>-XXXXXX`, em `CAIXA_PASTA`)
+  e põe o `trap` da saída, que pega o `$?` antes de qualquer comando. Saída 0: apaga a pasta, como antes. Outra
+  saída: copia a pasta para `.cache/provas/<nome>-<AAAAMMDD-HHMMSS>/`, apaga as mais velhas da mesma prova até
+  sobrarem cinco, mostra as últimas 20 linhas do maior registro (`*.log`) não vazio e termina com
+  «o registro: <caminho>». O código de saída da prova não muda.
+- **As provas:** `tests/prova_do_jogo.sh`, `tests/prova_de_poucos.sh`, `tests/prova_da_bancada.sh`,
+  `tests/prova_do_som.sh`, `tests/prova_da_exportacao.sh` e `scripts/gauntlet.sh` trocaram o `mktemp` e o `trap`
+  próprios pelo `caixa_pasta`. Na exportação, a pasta nasce depois da conferência do binário (o «sem forja.x86_64» sai
+  2 sem deixar pasta). A prova visual não mudou. O que cada prova confere e o filtro do verde também não.
+- **`tests/prova_dos_portoes.sh`:** a mordida do passo 4, com a `tests/prova_do_jogo.sh` de verdade numa árvore de
+  mentira e um `GODOT` de mentira (seis casos): com rc 124 a prova sai 1, a pasta fica com o `forma-a.log` e o
+  `antes.log`, a última linha é «o registro: <caminho>» e o caminho existe, e das seis pastas velhas e a nova ficam
+  só as cinco mais novas; com rc 0 a prova sai 0 e a pasta não fica.
+- **`docs/jogo/revisao/WE-mapa.md`:** onde fica o registro de uma prova vermelha.
+
+**Provas:**
+
+- A mordida: com o `trap` apagando sempre (o de antes), 3 dos 60 casos da prova dos portões reprovam (a pasta, a
+  última linha e as cinco); com o `trap` guardando sempre, reprova o caso do verde. De volta, «60 casos» ok.
+- A saída vermelha, na árvore de mentira:
+  ```text
+  FAIL a prova com o servidor «forma-a» (rc=124)
+  FAIL a prova com o servidor «antes» (rc=124)
+  o registro: /tmp/acx/wq04-arvore/.cache/provas/prova-do-jogo-20261009-190245
+  ```
+- Uma prova vermelha de verdade, sem querer: a `tests/prova_do_som.sh` (na caixa) sem o `bin/forja-send` compilado
+  saiu 1 com «GUARDA: a mesa de mentira não montou», e a última linha foi
+  «o registro: …/.cache/provas/prova-do-som-20261009-190313», com a pasta lá. Com o binário, «prova do som ok» e
+  nenhuma pasta nova.
+- `bash tests/prova_de_poucos.sh` verde (pela caixa e pelo semáforo, carga 5 a 3): nenhuma pasta nova em
+  `.cache/provas/`.
+
+**Fica para a mão (o André):** forçar uma falha (por exemplo, trocar o `ESPERADO` da rodada «antes» de
+`tests/prova_do_jogo.sh`), rodar, abrir o caminho impresso e achar o registro; desfazer.

@@ -25,10 +25,9 @@ DEFEITOS=(troca-cruz-circulo analogico-curto gatilho-digital giro-invertido acel
           vibra-vizinho motores-trocados luz-parada gatilho-mudo leds-errados led-mic-parado mudo-nao-chega
           sem-alto-falante som-vizinho haptica-trocada haptica-muda mic-surdo engasga)
 
-SAIDA="$(mktemp -d)"
-trap 'rm -rf "$SAIDA"' EXIT
 # a caixa (tests/caixa.sh): o jogo não acha o controle ligado na máquina
 source "$RAIZ/tests/caixa.sh"
+caixa_pasta gauntlet; SAIDA="$CAIXA_PASTA"   # no vermelho, a pasta fica em .cache/provas/ (WQ04)
 caixa_montar "$SAIDA/caixa"
 falhas=0
 

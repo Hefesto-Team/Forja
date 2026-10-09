@@ -12,11 +12,10 @@ RAIZ="$(cd "$(dirname "$0")/.." && pwd)"
 source "$RAIZ/scripts/engine.sh"   # a versão da engine mora lá (ADR-009)
 GODOT="$FORJA_GODOT"
 [ -x "$GODOT" ] || { echo "sem Godot: rode ./run-local.sh uma vez, ou GODOT=<binário>"; exit 2; }
-TMP="$(mktemp -d /tmp/forja-prova-da-bancada-XXXXXX)"
-trap 'rm -rf "$TMP"' EXIT
 # A caixa (tests/caixa.sh): sem ela, o P1 vira o DualSense ligado na máquina
 # e os experimentos tocam o alto-falante, a háptica e os gatilhos dele.
 source "$RAIZ/tests/caixa.sh"
+caixa_pasta prova-da-bancada; TMP="$CAIXA_PASTA"   # no vermelho, a pasta fica em .cache/provas/ (WQ04)
 caixa_montar "$TMP"
 caixa "$GODOT" --headless --path "$RAIZ/godot" --import > "$TMP/import.log" 2>&1
 
