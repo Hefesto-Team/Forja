@@ -72,21 +72,21 @@ func _init() -> void:
 func montar() -> void:
 	Kit.arena(self, 5, 3)
 	# no escuro: só uma poeira fria e o neon azul, o preenchimento fraco
-	atmosfera(Color("#6fa8ff"), Color("#3b6bff"), false, 30, 22.0, -7.8, 0.1)
+	atmosfera(Color("#6fa8ff"), Tema.VIOLETA, false, 30, 22.0, -7.8, 0.1)
 	# no escuro: um enchimento frio e fraco; a luz de cada raia é a lanterna dele
 	var frio := OmniLight3D.new()
 	frio.position = Vector3(0, 8.0, 3.0)
-	frio.light_color = Color("#6b6fb0")
 	frio.light_energy = 0.45
 	frio.omni_range = 26.0
 	add_child(frio)
+	enchimento(frio)
 	for x in [-10.0, 10.0]:
 		var tocha := OmniLight3D.new()
 		tocha.position = Vector3(x, 2.4, -5.0)
-		tocha.light_color = Color("#ff9a50")
 		tocha.light_energy = 0.8
 		tocha.omni_range = 7.0
 		add_child(tocha)
+		na_chave(tocha)
 	for p in jogadores:
 		var l: int = p.lugar
 		j[l] = _novo_jogador()
@@ -110,7 +110,7 @@ func _montar_raia(l: int, p: ForjaPlayer) -> Dictionary:
 	var x: float = RAIAS[l]
 	var alvo := Vector3(x, 0, Z_JOGADOR)
 	# o chão da raia: um círculo de pedra escura com a borda que pulsa no golpe
-	Kit.cilindro(self, 1.55, 0.04, Vector3(x, 0.02, Z_JOGADOR - 0.3), Kit.material(Color("#231c30"), 0.0, 0.95))
+	Kit.cilindro(self, 1.55, 0.04, Vector3(x, 0.02, Z_JOGADOR - 0.3), Kit.material(Tema.CASCO, 0.0, 0.95))
 	var borda := MeshInstance3D.new()
 	var tor := TorusMesh.new()
 	tor.rings = 8
@@ -120,7 +120,7 @@ func _montar_raia(l: int, p: ForjaPlayer) -> Dictionary:
 	borda.mesh = tor
 	borda.position = Vector3(x, 0.05, Z_JOGADOR - 0.3)
 	borda.scale = Vector3(1, 0.4, 1)
-	var mat_borda := Kit.material(Color("#3a3150"), 0.0, 0.8)
+	var mat_borda := Kit.material(Tema.GRAFITE, 0.0, 0.8)
 	borda.material_override = mat_borda
 	add_child(borda)
 	# as sentinelas de pedra, à frente e dos dois lados, com o olho que acende
@@ -131,7 +131,7 @@ func _montar_raia(l: int, p: ForjaPlayer) -> Dictionary:
 		var s := Kit.peca(self, "column", pos, 0.0, 1.35)
 		var d := alvo - pos
 		s.rotation.y = atan2(d.x, d.z)
-		var olho := Kit.esfera(self, 0.09, pos + Vector3(0, 1.28, 0) + d.normalized() * 0.3, Kit.material(Color("#ff4a2a"), 1.2))
+		var olho := Kit.esfera(self, 0.09, pos + Vector3(0, 1.28, 0) + d.normalized() * 0.3, Kit.material(Tema.TUNGSTENIO, 1.2, 0.8, "forja"))
 		sentinelas.append(s)
 		olhos.append(olho)
 	# os dois escudos, um de cada lado do boneco (aparecem quando levantados)
@@ -163,8 +163,8 @@ func _montar_raia(l: int, p: ForjaPlayer) -> Dictionary:
 	add_child(duvida)
 	# a lanterna da raia: a luz do controle, apagando com a vida (neutra na pergunta)
 	var poste := Vector3(x + 1.25, 0, Z_JOGADOR + 0.45)
-	Kit.cilindro(self, 0.04, 1.3, poste + Vector3(0, 0.65, 0), Kit.material(Color("#4a4e5e"), 0.0, 0.5))
-	var chama := Kit.esfera(self, 0.13, poste + Vector3(0, 1.42, 0), Kit.material(Forja.cor_do_lugar(l), 2.5))
+	Kit.cilindro(self, 0.04, 1.3, poste + Vector3(0, 0.65, 0), Kit.material(Tema.GRAFITE, 0.0, 0.5))
+	var chama := Kit.esfera(self, 0.13, poste + Vector3(0, 1.42, 0), Kit.material(Forja.cor_do_lugar(l), 2.5, 0.8, l))
 	var luz := OmniLight3D.new()
 	luz.position = poste + Vector3(0, 1.45, 0)
 	luz.light_energy = 1.4
@@ -280,10 +280,10 @@ func _mostrar_golpe(l: int, lado: int, bloqueou: bool) -> void:
 	var p := jogador(l)
 	var de: Vector3 = nos.olhos[lado].global_position
 	var ate := Vector3(RAIAS[l] + (-0.62 if lado == 0 else 0.62), 0.95, Z_JOGADOR - 0.2) if bloqueou else Vector3(RAIAS[l], 1.0, Z_JOGADOR)
-	var bola := Kit.esfera(self, 0.12, de, Kit.material(Color("#ff7a2a"), 3.0))
+	var bola := Kit.esfera(self, 0.12, de, Kit.material(Tema.TUNGSTENIO, 2.4, 0.8, "forja"))
 	var olho: MeshInstance3D = nos.olhos[lado]
 	var mo: StandardMaterial3D = olho.material_override
-	mo.emission_energy_multiplier = 4.0
+	Tema.emissivo(mo, 2.4, "forja")
 	var tw := bola.create_tween()
 	tw.tween_property(bola, "global_position", ate, MOSTRA * 0.6)
 	var bateu := func() -> void:
@@ -294,7 +294,7 @@ func _mostrar_golpe(l: int, lado: int, bloqueou: bool) -> void:
 			Som.tocar("falha", ate, -4.0)
 			if p:
 				p.gesto("emote-no", 0.5)
-		mo.emission_energy_multiplier = 1.2
+		Tema.emissivo(mo, 1.2 * 2.4 / 4.0, "forja")
 	tw.tween_callback(bateu)
 	tw.tween_callback(bola.queue_free)
 	if bloqueou and p:
@@ -494,11 +494,9 @@ func _mostrar(l: int, dt: float) -> void:
 	# a borda pulsa sem lado: o aviso é do golpe, não de onde ele vem
 	var mb: StandardMaterial3D = nos.mat_borda
 	if alvo:
-		mb.emission_enabled = true
-		mb.emission = Tema.SECAO[0]
-		mb.emission_energy_multiplier = 1.0 + 1.2 * (0.5 + 0.5 * sin(t * 18.0))
+		Tema.emissivo(mb, 1.0 + 1.2 * (0.5 + 0.5 * sin(t * 18.0)), "forja")
 	else:
-		mb.emission_enabled = false
+		Tema.emissivo(mb, 0.0, "forja")
 	var duvida: Label3D = nos.duvida
 	duvida.visible = e.interroga > 0.02
 	duvida.modulate.a = float(e.interroga)
@@ -514,7 +512,6 @@ func _mostrar(l: int, dt: float) -> void:
 	var chama: MeshInstance3D = nos.chama
 	var mc: StandardMaterial3D = chama.material_override
 	mc.albedo_color = cor
-	mc.emission = cor
 	var luz: OmniLight3D = nos.luz
 	luz.light_color = cor
 	luz.light_energy = 0.6 + 1.2 * (1.0 if perguntando else float(e.vida))

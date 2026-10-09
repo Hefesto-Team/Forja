@@ -76,17 +76,17 @@ func montar() -> void:
 	atmosfera(Color("#b88cff"), Tema.VIOLETA, false, 36, 22.0, -7.8, 0.2)
 	var frio := OmniLight3D.new()
 	frio.position = Vector3(0, 8.0, 4.0)
-	frio.light_color = Color("#8a80c8")
 	frio.light_energy = 0.55
 	frio.omni_range = 26.0
 	add_child(frio)
+	enchimento(frio)
 	for x in [-9.5, 9.5]:
 		var tocha := OmniLight3D.new()
 		tocha.position = Vector3(x, 2.6, -4.5)
-		tocha.light_color = Color("#ffa060")
 		tocha.light_energy = 1.1
 		tocha.omni_range = 8.0
 		add_child(tocha)
+		na_chave(tocha)
 	_montar_torre()
 	for p in jogadores:
 		var l: int = p.lugar
@@ -127,9 +127,7 @@ static func sino(pai: Node3D, pos: Vector3, escala: float, cor: Color) -> Dictio
 	malha.mesh = st.commit()
 	var mat := Kit.material(cor, 0.0, 0.5)
 	mat.metallic = 0.2
-	mat.emission_enabled = true
-	mat.emission = Tema.TUNGSTENIO
-	mat.emission_energy_multiplier = 0.0
+	Tema.emissivo(mat, 0.0, "forja")
 	mat.cull_mode = BaseMaterial3D.CULL_DISABLED
 	malha.material_override = mat
 	malha.position = Vector3(0, -1.0, 0) * escala
@@ -150,18 +148,18 @@ static func sino(pai: Node3D, pos: Vector3, escala: float, cor: Color) -> Dictio
 	var badalo_pivo := Node3D.new()
 	badalo_pivo.position = Vector3(0, -0.4, 0) * escala
 	pivo.add_child(badalo_pivo)
-	var badalo := Kit.esfera(badalo_pivo, 0.13 * escala, Vector3(0, -1.35, 0) * escala, Kit.material(Color("#5a3c1c"), 0.0, 0.6))
+	var badalo := Kit.esfera(badalo_pivo, 0.13 * escala, Vector3(0, -1.35, 0) * escala, Kit.material(Tema.OXIDO, 0.0, 0.6))
 	badalo.name = "badalo"
 	return {"pivo": pivo, "mat": mat, "badalo": badalo_pivo}
 
 
 func _montar_torre() -> void:
 	# o sino grande da TV, num pórtico de madeira no fundo
-	var madeira := Kit.material(Color("#6b4526"), 0.0, 0.85)
+	var madeira := Kit.material(Tema.OXIDO_BRILHO, 0.0, 0.85)
 	for x in [-2.1, 2.1]:
 		Kit.caixa(self, Vector3(0.36, 5.2, 0.36), Vector3(x, 2.6, SINO_TV.z), madeira)
 	Kit.caixa(self, Vector3(4.9, 0.4, 0.46), Vector3(0, 5.2, SINO_TV.z), madeira)
-	Kit.cilindro(self, 0.035, 0.9, SINO_TV + Vector3(0, 0.75, 0), Kit.material(Color("#3c3c44"), 0.0, 0.5))
+	Kit.cilindro(self, 0.035, 0.9, SINO_TV + Vector3(0, 0.75, 0), Kit.material(Tema.GRAFITE, 0.0, 0.5))
 	var s := sino(self, SINO_TV, 1.35, Color("#b07838"))
 	sino_tv = s.pivo
 	_mat_tv = s.mat
@@ -174,7 +172,7 @@ func _montar_torre() -> void:
 	var foco := SpotLight3D.new()
 	foco.position = SINO_TV + Vector3(0, 2.5, 3.5)
 	foco.look_at_from_position(foco.position, SINO_TV + Vector3(0, -0.8, 0))
-	foco.light_color = Color("#ffd9a0")
+	foco.light_color = Tema.TUNGSTENIO
 	foco.light_energy = 2.2
 	foco.spot_range = 9.0
 	foco.spot_angle = 26.0
@@ -185,7 +183,7 @@ func _montar_raia(l: int, p: ForjaPlayer) -> Dictionary:
 	var x: float = RAIAS[l]
 	var cor_l := Forja.cor_do_lugar(l)
 	# o chão da raia: um tablado de madeira com a borda na cor do lugar
-	Kit.cilindro(self, 1.45, 0.08, Vector3(x, 0.04, Z_JOGADOR), Kit.material(Color("#3a2a24"), 0.0, 0.9))
+	Kit.cilindro(self, 1.45, 0.08, Vector3(x, 0.04, Z_JOGADOR), Kit.material(Tema.OXIDO, 0.0, 0.9))
 	var borda := MeshInstance3D.new()
 	var tor := TorusMesh.new()
 	tor.rings = 8
@@ -196,14 +194,12 @@ func _montar_raia(l: int, p: ForjaPlayer) -> Dictionary:
 	borda.position = Vector3(x, 0.09, Z_JOGADOR)
 	borda.scale = Vector3(1, 0.35, 1)
 	var mat_borda := Kit.material(cor_l.darkened(0.45), 0.0, 0.7)
-	mat_borda.emission_enabled = true
-	mat_borda.emission = cor_l
-	mat_borda.emission_energy_multiplier = 0.0
+	Tema.emissivo(mat_borda, 0.0, l)
 	borda.material_override = mat_borda
 	add_child(borda)
 	# o sino pequeno do jogador, num suporte ao lado: o alto-falante na mão
 	var base := Vector3(x + 1.05, 0.0, Z_JOGADOR - 0.35)
-	var madeira := Kit.material(Color("#7a5230"), 0.0, 0.85)
+	var madeira := Kit.material(Tema.OXIDO_BRILHO, 0.0, 0.85)
 	Kit.caixa(self, Vector3(0.12, 1.9, 0.12), base + Vector3(0, 0.95, 0), madeira)
 	Kit.caixa(self, Vector3(0.62, 0.1, 0.12), base + Vector3(-0.25, 1.88, 0), madeira)
 	var s := sino(self, base + Vector3(-0.45, 1.8, 0), 0.34, Color("#c08a42"))
@@ -218,10 +214,10 @@ func _montar_raia(l: int, p: ForjaPlayer) -> Dictionary:
 	partitura.position = Vector3(x, 2.75, Z_JOGADOR)
 	partitura.visible = false
 	add_child(partitura)
-	Kit.caixa(partitura, Vector3(2.3, 0.03, 0.03), Vector3.ZERO, Kit.material(Color("#8a6a3a"), 0.4, 0.6))
+	Kit.caixa(partitura, Vector3(2.3, 0.03, 0.03), Vector3.ZERO, Kit.material(Tema.OXIDO_BRILHO, 0.4, 0.6))
 	var pontos: Array = []
 	for k in NOTAS:
-		pontos.append(Kit.esfera(partitura, 0.09, Vector3.ZERO, Kit.material(Tema.TUNGSTENIO, 1.2)))
+		pontos.append(Kit.esfera(partitura, 0.09, Vector3.ZERO, Kit.material(Tema.TUNGSTENIO, 1.2, 0.8, "forja")))
 	var toques: Array = []
 	for k in NOTAS:
 		var anel := MeshInstance3D.new()
@@ -232,7 +228,7 @@ func _montar_raia(l: int, p: ForjaPlayer) -> Dictionary:
 		ta.outer_radius = 0.15
 		anel.mesh = ta
 		anel.rotation.x = PI * 0.5
-		anel.material_override = Kit.material(cor_l, 1.6)
+		anel.material_override = Kit.material(cor_l, 1.6, 0.8, l)
 		anel.visible = false
 		partitura.add_child(anel)
 		toques.append(anel)
@@ -475,7 +471,7 @@ func _process(dt: float) -> void:
 	var revela_tv := fase == "jogo" and estado == REVELA and fonte == TV
 	var amp := 0.22 if revela_tv else (0.12 if canta else 0.0)
 	sino_tv.rotation.x = lerpf(sino_tv.rotation.x, sin(t * 6.0) * amp, minf(1.0, dt * 8.0))
-	_mat_tv.emission_energy_multiplier = lerpf(_mat_tv.emission_energy_multiplier, 1.1 if revela_tv else 0.0, minf(1.0, dt * 6.0))
+	Tema.emissivo(_mat_tv, lerpf(Tema.brilho_de(_mat_tv), 1.1 if revela_tv else 0.0, minf(1.0, dt * 6.0)), "forja")
 	brilho_tv.light_energy = lerpf(brilho_tv.light_energy, 3.0 if revela_tv else 0.0, minf(1.0, dt * 6.0))
 	for k in range(_notas_no_ar.size() - 1, -1, -1):
 		var item: Array = _notas_no_ar[k]
@@ -501,11 +497,11 @@ func _mostrar(l: int, dt: float) -> void:
 	sino_p.rotation.z = lerpf(sino_p.rotation.z, sin(t * 10.0) * amp, minf(1.0, dt * 8.0))
 	badalo.rotation.z = lerpf(badalo.rotation.z, sin(t * 10.0 - 0.6) * amp * 1.4, minf(1.0, dt * 8.0))
 	var ms: StandardMaterial3D = nos.mat_sino
-	ms.emission_energy_multiplier = lerpf(ms.emission_energy_multiplier, 1.4 if dono else 0.0, minf(1.0, dt * 6.0))
+	Tema.emissivo(ms, lerpf(Tema.brilho_de(ms), 1.4 if dono else 0.0, minf(1.0, dt * 6.0)), "forja")
 	var luz: OmniLight3D = nos.luz
 	luz.light_energy = lerpf(luz.light_energy, 2.2 if dono else 0.0, minf(1.0, dt * 6.0))
 	var mb: StandardMaterial3D = nos.mat_borda
-	mb.emission_energy_multiplier = lerpf(mb.emission_energy_multiplier, 1.6 if dono else 0.15, minf(1.0, dt * 6.0))
+	Tema.emissivo(mb, lerpf(Tema.brilho_de(mb), 1.6 if dono else 0.15, minf(1.0, dt * 6.0)), l)
 	# a partitura: só na vez do dono repetir
 	var part: Node3D = nos.partitura
 	part.visible = fase == "jogo" and estado == REPETE and fonte == l

@@ -72,11 +72,11 @@ func montar() -> void:
 	# quase breu: um enchimento frio e fraco; a luz de cada raia é a lanterna dele
 	var frio := OmniLight3D.new()
 	frio.position = Vector3(0, 9.0, 5.0)
-	frio.light_color = Color("#50548a")
 	frio.light_energy = 0.3
 	frio.omni_range = 28.0
 	add_child(frio)
-	_escuro = Kit.material(Color("#17141f"), 0.0, 0.95)
+	enchimento(frio)
+	_escuro = Kit.material(Tema.CASCO, 0.0, 0.95)
 	for p in jogadores:
 		var l: int = p.lugar
 		j[l] = _novo_jogador()
@@ -118,7 +118,7 @@ func _novo_ladrilho(pai: Node3D, z: float) -> Dictionary:
 		if k == 3:
 			mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 			mat.albedo_color.a = 0.85
-			mat.emission_energy_multiplier = 0.5
+			Tema.emissivo(mat, 0.5, "mundo")
 		mats.append(mat)
 	# o que dá para ver de cada chão quando ele aparece
 	var enfeites: Array = []
@@ -126,20 +126,20 @@ func _novo_ladrilho(pai: Node3D, z: float) -> Dictionary:
 	pai.add_child(grama)
 	for k in 9:
 		var tufo := Kit.cilindro(grama, 0.035, 0.22, Vector3(-0.8 + 0.2 * k, 0.18, z + (0.25 if k % 2 == 0 else -0.3)),
-			Kit.material(Color("#6fcf5a"), 0.2), 0.0)
+			Kit.material(COR_CHAO[0], 0.2), 0.0)
 		tufo.rotation.z = (k % 3 - 1) * 0.25
 	enfeites.append(grama)
 	var cascalho := Node3D.new()
 	pai.add_child(cascalho)
 	for k in 12:
 		Kit.esfera(cascalho, 0.07 + 0.03 * (k % 3), Vector3(-0.9 + 0.16 * k, 0.1, z + 0.35 * sin(k * 2.3)),
-			Kit.material(Color("#b8ab94").darkened(0.12 * (k % 3)), 0.0, 0.9))
+			Kit.material(COR_CHAO[1].darkened(0.12 * (k % 3)), 0.0, 0.9))
 	enfeites.append(cascalho)
 	var metal := Node3D.new()
 	pai.add_child(metal)
 	for cx in [-0.9, 0.9]:
 		for cz in [-0.5, 0.5]:
-			Kit.esfera(metal, 0.06, Vector3(cx, 0.1, z + cz), Kit.material(Color("#d0d6e0"), 0.3, 0.3))
+			Kit.esfera(metal, 0.06, Vector3(cx, 0.1, z + cz), Kit.material(COR_CHAO[2], 0.3, 0.3))
 	enfeites.append(metal)
 	var agua := Node3D.new()
 	pai.add_child(agua)
@@ -153,7 +153,7 @@ func _novo_ladrilho(pai: Node3D, z: float) -> Dictionary:
 		onda.mesh = tor
 		onda.position = Vector3(0, 0.1, z)
 		onda.scale = Vector3(1, 0.2, 1)
-		onda.material_override = Kit.material(Color("#9fd4ff"), 1.0)
+		onda.material_override = Kit.material(COR_CHAO[3], 1.0)
 		agua.add_child(onda)
 	enfeites.append(agua)
 	for e in enfeites:
@@ -181,7 +181,7 @@ func _montar_raia(l: int, p: ForjaPlayer) -> Dictionary:
 	# a lanterna do boneco: só ele à vista
 	var lanterna := OmniLight3D.new()
 	lanterna.position = Vector3(x, 2.6, Z_JOGADOR + 0.6)
-	lanterna.light_color = Forja.cor_do_lugar(l).lerp(Color.WHITE, 0.55)
+	lanterna.light_color = Forja.cor_do_lugar(l).lerp(Tema.ETIQUETA, 0.55)
 	lanterna.light_energy = 1.3
 	lanterna.omni_range = 2.8
 	add_child(lanterna)
