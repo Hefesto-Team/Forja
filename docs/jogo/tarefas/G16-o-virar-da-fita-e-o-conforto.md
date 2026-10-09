@@ -303,3 +303,63 @@ Reduzido.
 
 Marcar G16 como **feito** no [quadro](README.md), com o gasto. Commit sugerido:
 `feat(noite): a fita vira na metade, e as Opções ganham Movimento e Reações`.
+
+## O que foi feito (leva 1, a-fita)
+
+- **O virar da fita** (`ui/tela_virar.gd`, `main.gd`): depois da faixa `ceil(n / 2)` o ✕ do placar espera o próximo
+  compasso da música (4 batidas; sem música, nada) e abre o virar de 4000 ms, sem botão: o deck, o cassete que sai,
+  gira (face B em 720 ms), entra e afunda no clunk (1380 ms), a caneta escreve «LADO B» (2000 a 2400 ms) e o corte seco
+  leva ao intervalo. `fx_virar` e `fx_caneta` tocam a −6 dB; a música cala; cada lugar ocupado sente `fita` por 1600 ms
+  e tem os gatilhos desligados; o momento `fita_virada` sai com o `ms_desde_o_corte` medido.
+- **O intervalo:** o salão na luz do lado B (`acender(-1, true)`), os bonecos nos pedestais, a etiqueta «Lado B» com
+  `partida.rotulo()` e a dica da cruz, sem tempo limite. O ✕ de um lugar ocupado só vale depois de 500 ms; vibra
+  `toque` só em quem apertou. Um gesto `emote-yes` por vez, a cada 4 compassos. As faixas seguintes entram no lado B
+  (`acender(numero, partida.lado() == "B")`).
+- **Movimento e Reações** (`opcoes.gd`): `movimento` (Inteiro, Reduzido) no lugar de `tremor`, com a migração do
+  `opcoes.cfg` antigo (`tremor = false` abre como Reduzido); `reacoes` (Todas, Só do jogo, Nenhuma); as funções
+  `reduzido`, `parada`, `esmagar`, `confete`, `reacao_do_jogador` e `reacao_do_jogo`. O tremor da câmera, o giro do
+  título e o confete (22 vira 6) leem o Reduzido.
+- **As Opções** (`tela_opcoes.gd`): 11 linhas, na ordem da ficha; o quadro nunca passa de 1000 px e a lista desliza
+  (2400 px por segundo, salta no Reduzido), sempre parando com a linha escolhida inteira à vista; um glifo `cima` ou
+  `baixo` marca o lado cortado.
+- **O som e o controle:** a sensação `fita` (0,0 / 0,3 / 400 ms) em `forja.gd`; `som.gd` toca `res://assets/sons/<id>.wav`
+  quando existe (sem o tom sorteado); os dois wav entraram em `godot/assets/sons/` e o mapa os põe `no jogo`.
+- **Medida:** as Opções foram de 10 para 11 linhas, e o quadro de 1042 px para no máximo 1000 (a conta da ficha, 1114
+  sem a lista que desliza); o portão de arte ficou em 35 achados, os mesmos da G15.
+- **Provas** (`prova_do_jogo.gd`: `_prova_do_conforto`, `_prova_do_virar_pura`, `_prova_da_noite_da_fita`): a
+  migração, as ajudas do Movimento, as Reações, a partida (`metade`, `lado`), a leitura dos scripts (nenhum
+  `Opcoes.tremor`; todo `speed_scale = 0.0` com `Opcoes.parada`; o confete, o giro e o tremor leem o Reduzido), a lista
+  que desliza, a pose do cassete em cada tempo nos dois modos e uma noite de 5 faixas do robô (o virar uma vez, 4000
+  ms, o intervalo no lado B, o ✕ cedo demais que não vale, o momento entre 1380 e 1400 ms, a sensação `fita` nos quatro,
+  o `toque` só no P1, a 4ª faixa no lado B). Mordeu, uma a uma: a migração; `parada`; o teto do `esmagar`; o confete
+  a um quarto; as duas funções das Reações; `lado()` com `>`; `metade()` sem arredondar para cima; `QUADRO_MAX` 1200; a
+  lista sem alvo de rolagem; o salto do Reduzido; a face B em 0,6; o clunk sem 6 px; o Reduzido com escala; o corte em
+  900 ms; a guarda de 500 ms; a sensação `fita` de 1000 ms; sem `partida.virou`; a faixa 4 no lado A; o
+  `ms_desde_o_corte` fixo; o `toque` trocado; o ✕ sem o virar; o confete, o giro e o tremor sem o Reduzido; um
+  `Opcoes.tremor` e um `speed_scale = 0.0` plantados.
+- **Fica para a G16b** ([G16b](G16b-o-que-a-g16-deixou-por-dependencia.md)): o desenho do `Desenho` (G01, G11), o
+  `Som.ui`, a tarja dupla nas chamadas da noite, os itens da tabela do 10 sem dona pronta e a prova visual das telas.
+
+### Escolhas minhas, para ela validar
+
+- `T0` do virar é o próximo compasso (4 batidas) lido do tocador da música; o placar fica na tela até lá.
+- `partida.virou` vira true na entrada do intervalo, não no ✕.
+- O `ms_desde_o_corte` do momento é o medido (1380 ou pouco mais), não o fixo.
+- O pódio não recebe a luz do lado B (só as salas e o intervalo).
+- O gesto do intervalo repete a cada 16 batidas do `bpm` da faixa do salão.
+- O ✕ do intervalo toca `confirma` (não há `Som.ui`); as linhas novas das Opções trocam sem som e sem `toque`.
+- `partida.lado()`, `metade()` e `virou` são os mínimos; podem encontrar a versão da G12 no merge.
+- O cassete e a etiqueta são desenhados à mão em `tela_virar.gd`; a coleta de retângulos da prova de tela fica desligada
+  só enquanto o cassete está torcido.
+- A lista das Opções só mostra linhas inteiras quando parada, e o Reduzido salta em vez de deslizar.
+- O Reduzido também não gira o cassete: corta a face em 690 ms.
+
+### Para o André (local)
+
+- Jogar uma noite de 5 faixas com os controles: depois da 3ª, ver o cassete sair, girar, afundar e a caneta escrever
+  «LADO B»; sentir o rumble fraco de 1,6 s; conferir que o ✕ rápido demais no intervalo não pula.
+- Ver as faixas 4 e 5 na luz do lado B (chave mais fraca, névoa mais densa).
+- Abrir as Opções (11 linhas): ▼ até Idioma e ▲ de volta, em 1,0× e 1,15× de texto, em português e em inglês; ver o
+  deslize e o glifo; ligar o Reduzido e conferir o salto.
+- No Reduzido: título sem giro, câmera sem tremor, confete a um quarto, virar em corte.
+- Passar um `opcoes.cfg` antigo com `tremor = false` e ver o Reduzido ligado.
