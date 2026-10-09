@@ -37,6 +37,12 @@ scripts/compilar.sh tudo       # os três
 
 Rodando do código, os relatórios vão para `relatorios/`, na raiz.
 
+Ao lado de cada módulo, o `compilar.sh` grava `godot/bin/<módulo>.fonte`: a soma da fonte de que ele saiu (o
+`nativo/`, o `src/`, o `include/`, o `cmake/` e o próprio `scripts/compilar.sh`, com os arquivos novos que o
+`.gitignore` não ignora). `scripts/compilar.sh soma` imprime a soma da fonte de agora. Toda prova que abre o Godot
+confere as duas na caixa (`tests/caixa.sh`): quem mexeu no nativo e não compilou vê a prova sair 2 com «o módulo é de
+outra fonte: scripts/compilar.sh linux». O `.fonte` não entra no jogo exportado.
+
 ### Na nuvem
 
 Uma sessão nova na nuvem começa sem os pacotes, sem o módulo e sem o Godot. O

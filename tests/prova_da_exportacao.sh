@@ -33,6 +33,8 @@ WINESERVER="${WINESERVER:-wineserver}"
 source "$RAIZ/tests/caixa.sh"
 caixa_pasta prova-da-exportacao; TMP="$CAIXA_PASTA"   # no vermelho, a pasta fica em .cache/provas/ (WQ04)
 caixa_montar "$TMP"
+# o .exe leva o módulo do Windows: com o .exe exportado, a fonte dele também confere (tests/caixa.sh, a WQ03)
+if [ -f "$WINDOWS" ]; then caixa_fonte libforja.windows.x86_64.dll; fi
 ARGS=(--headless --fixed-fps 60 -- --simular=4 --robo --semente=7 --prova-de-fogo --sair-no-fim)
 
 FALHAS=0

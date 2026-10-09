@@ -17,6 +17,7 @@
 # Uso, numa prova (com RAIZ definido):
 #   source "$RAIZ/tests/caixa.sh"
 #   caixa_montar "$TMP"                  sai 2 sem o bwrap (fora do CI); monta a pasta da caixa em $TMP
+#                                        sai 2 também com o módulo de outra fonte (caixa_fonte, a WQ03)
 #   caixa "$GODOT" ...                   o comando dentro do bwrap
 #   timeout 600 caixa "$GODOT" ...       o `caixa` é um executável no PATH: vale depois do timeout e do xvfb-run
 #   CAIXA_LIGAR="/dev/dri ..."           aparelhos que entram na caixa (a placa de vídeo, na prova visual NA_TELA)
@@ -36,6 +37,7 @@ caixa_montar() {
     echo "sem bwrap: a prova não roda fora da caixa (o controle ligado na máquina ficaria à vista do jogo)" >&2
     exit 2
   fi
+  caixa_fonte libforja.linux.x86_64.so   # o módulo que o jogo carrega saiu da fonte de agora (a WQ03)
   mkdir -p "$pasta/bin" "$pasta/sys-vazio"
   cat > "$pasta/bin/pactl" <<'PACTL'
 #!/usr/bin/env bash
@@ -133,4 +135,27 @@ _caixa_fim() {
     tail -n 20 "$maior"
   fi
   echo "o registro: $destino"
+}
+
+## caixa_fonte <módulo>: o módulo de godot/bin saiu da fonte de agora? (a WQ03)
+## O scripts/compilar.sh grava ao lado de cada módulo o <módulo>.fonte, com a
+## soma da fonte de que ele saiu; aqui ela é comparada com a soma da fonte de
+## agora (`scripts/compilar.sh soma`, a mesma função). Sem o módulo, sem o
+## .fonte ou com a soma diferente, sai 2 e diz o que rodar. Não compila nada,
+## e não há variável de escape.
+caixa_fonte() {
+  local modulo="$1" alvo=linux
+  case "$modulo" in *.dll) alvo=windows ;; esac
+  local bin="$_CAIXA_RAIZ/godot/bin/$modulo"
+  if [ ! -f "$bin" ]; then
+    echo "sem o módulo godot/bin/$modulo: scripts/compilar.sh $alvo" >&2
+    exit 2
+  fi
+  local agora gravada=""
+  agora="$(bash "$_CAIXA_RAIZ/scripts/compilar.sh" soma)"
+  [ -f "$bin.fonte" ] && gravada="$(cat "$bin.fonte")"
+  if [ -z "$agora" ] || [ "$gravada" != "$agora" ]; then
+    echo "o módulo é de outra fonte: scripts/compilar.sh $alvo" >&2
+    exit 2
+  fi
 }

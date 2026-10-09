@@ -84,3 +84,39 @@ Mexer num comentário do `nativo/`, rodar uma prova e ler a mensagem; compilar e
 
 Pôr a linha da WQ03 no [quadro](README.md) como **feito**, com o commit, e citar o `.fonte` no
 `docs/DESENVOLVER.md` (onde se ensina a compilar).
+
+## O que foi feito (leva 1, a-caixa)
+
+- **`scripts/compilar.sh`:** a função `soma_da_fonte` (o conteúdo dos arquivos de `nativo/`, `src/`, `include/`,
+  `cmake/` e do próprio `scripts/compilar.sh`, os versionados e os novos que o `.gitignore` não ignora, lidos da
+  árvore de trabalho; fora do git, os arquivos das mesmas pastas) e o alvo `scripts/compilar.sh soma`, que só a
+  imprime. Depois de compilar o `linux` ou o `windows`, grava `godot/bin/<módulo>.fonte` com a soma.
+- **`tests/caixa.sh`, `caixa_fonte <módulo>`:** compara o `.fonte` com a soma de agora (pelo mesmo
+  `compilar.sh soma`). Sem o módulo, sem o `.fonte` ou com a soma diferente, sai 2 com «o módulo é de outra fonte:
+  scripts/compilar.sh linux» (ou «sem o módulo …»). O `caixa_montar` a chama para o módulo Linux, depois da conferência
+  do bwrap: toda prova que abre o Godot passa por ela. A `tests/prova_da_exportacao.sh` confere também a do módulo do
+  Windows quando o `.exe` exportado existe. Não compila nada e não tem variável de escape.
+- **`.github/workflows/forja.yml`:** o `.fonte` sobe no mesmo artefato do módulo, no job do Linux e no do Windows (a
+  exportação e as telas baixam o artefato inteiro, com o `.fonte` ao lado do módulo).
+- **O `.fonte` não vai para o jogo exportado:** o `godot/bin/` segue fora do git pelo mesmo `bin/` do `.gitignore`, e
+  o `export_presets.cfg` só inclui recursos e `*.batidas.json`.
+- **`tests/prova_dos_portoes.sh`:** oito casos numa árvore de mentira com o `caixa.sh` e o `compilar.sh` de verdade (o
+  módulo da fonte passa; um comentário novo num `.c` sai 2 e diz a frase; a soma regravada passa; sem o `.fonte` sai
+  2; sem o módulo sai 2; num repositório, o `.c` novo sem `git add` também conta). A árvore de mentira da WQ04 ganhou
+  o módulo de mentira com a soma dela.
+- **`docs/DESENVOLVER.md`:** o `.fonte`, o `compilar.sh soma` e a frase da prova.
+
+**Provas:**
+
+- A mordida: com a comparação do `caixa_fonte` trocada por «nunca diverge», 4 dos 68 casos da prova dos portões
+  reprovam (o comentário novo, a frase, o sem `.fonte` e o `.c` novo); de volta, «68 casos» ok.
+- O «Pronto quando», pela caixa e pelo semáforo: antes de compilar (o `.so` sem `.fonte`), `bash
+  tests/prova_de_poucos.sh` saiu 2 com «o módulo é de outra fonte: scripts/compilar.sh linux», sem abrir o Godot.
+  `scripts/compilar.sh linux` gravou o `.fonte`, igual ao `compilar.sh soma`. Com um comentário novo em
+  `nativo/nucleo/achar_som.c`, a prova de poucos saiu 2 com a mesma frase; sem ele, `bash tests/prova_de_poucos.sh` e
+  `bash tests/prova_do_jogo.sh` verdes (carga 4 a 3).
+- A prova vermelha por módulo de outra fonte deixa a pasta em `.cache/provas/`, como toda saída diferente de 0 (a
+  WQ04).
+
+**Fica para a mão (o André):** mexer num comentário do `nativo/`, rodar uma prova e ler a mensagem; compilar e rodar de
+novo.
