@@ -26,7 +26,7 @@ fotos() {
     local r="$1"
     shift
     env SAIDA="$pasta" ROTEIRO="$r" RAPIDO=1 "$@" timeout 900 xvfb-run -a -s "-screen 0 1920x1080x24" \
-      "$GODOT" --rendering-driver opengl3 --fixed-fps 60 --path "$RAIZ/godot" --resolution 1920x1080 \
+      "$GODOT" --rendering-driver opengl3 --audio-driver Dummy --fixed-fps 60 --path "$RAIZ/godot" --resolution 1920x1080 \
       res://testes/captura_jogo.tscn -- --simular=4 --semente=7 --relatorios="$rel" ${ROBO:-}
   }
   roteiro extras > "$pasta/extras.log" 2>&1

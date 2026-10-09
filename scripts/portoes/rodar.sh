@@ -53,6 +53,7 @@ roda base "texto de tela" python3 "$RAIZ/scripts/check_texto_de_tela.py"
 roda base "sem rastro" bash "$RAIZ/tests/prova_sem_rastro.sh" --so-varrer
 roda base "mensagens de commit" python3 "$AQUI/mensagens_de_commit.py" --raiz "$RAIZ"
 roda base "ficha pronta" python3 "$AQUI/ficha_pronta.py" --raiz "$RAIZ"
+roda base "teste mudo" python3 "$AQUI/teste_mudo.py" --raiz "$RAIZ"
 roda arte "arte" python3 "$AQUI/arte.py" --raiz "$RAIZ"
 roda som "som" python3 "$AQUI/som.py" --raiz "$RAIZ"
 

@@ -20,6 +20,7 @@ conseguiu conferir (um arquivo que não se leu, um intervalo do git que não exi
 | **texto de tela** | reprova | a frase da tabela de traduções que começa com minúscula | `scripts/check_texto_de_tela.py` |
 | **sem rastro** | reprova | termo interno, campo de modelo em ficha, trailer de coautoria, `AGENTS.md` no repositório | `tests/prova_sem_rastro.sh --so-varrer` |
 | **mensagens de commit** | reprova | seta, símbolo de botão, marca de conferido, emoji ou trailer na mensagem dos commits novos | `mensagens_de_commit.py` |
+| **teste mudo** | reprova | o Godot aberto pelo `xvfb-run` (foto, prova visual, estudo) sem `--audio-driver Dummy` nem `--write-movie`: o som do teste sairia na TV | `teste_mudo.py` |
 | **ficha pronta** | reprova | ficha «pronta» no quadro sem uma das partes de `docs/jogo/o-time/ficha-pronta.md`, com parte vazia, ou com o «Ler antes» fora de um a três links que existem | `ficha_pronta.py` |
 | **arte** | aviso | cor escrita fora de `tema.gd` (`Color("#…")`, `Color8`, `Color(0.x, …)`, `Color.WHITE`), cor do tema que a bíblia não tem, fonte fora das quatro da bíblia (no código e na pasta), texto abaixo de 30 px, cor de jogador fora do jogador ou pedida por índice fixo | `arte.py` + `arte.json` |
 | **som** | aviso | id tocado que o mapa do áudio não tem (ou tem com outra caixa), id numa variável que não se lê, arquivo do mapa que não existe, WAV com duração fora da do mapa, pico acima do mapa ou do teto, clique no começo ou no fim | `som.py` + `som.json` |

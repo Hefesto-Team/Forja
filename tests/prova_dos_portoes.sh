@@ -194,6 +194,19 @@ A="$(arvore som-bom)"; som_tree "$A" 'Som.tocar("martelo") # Som.tocar("trombeta
 espera 0 "som: deixa passar o id do mapa e o arquivo que bate" som "$A"
 espera 0 "som: no modo aviso, o defeito não reprova" python3 "$P/som.py" --raiz "$TMP/som-fora" --modo aviso
 
+# --- o teste mudo -----------------------------------------------------------------------------------------------
+mudo_tree() { # <pasta> <linhas do script>
+  mkdir -p "$1/tests"; printf '%s\n' "$2" > "$1/tests/foto.sh"
+}
+A="$(arvore mudo-toca)"; mudo_tree "$A" 'xvfb-run -a \
+  "$GODOT" --rendering-driver opengl3 --path godot'
+espera 1 "teste mudo: reprova o Godot no xvfb-run sem o driver mudo, com a linha continuada" python3 "$P/teste_mudo.py" --raiz "$A"
+A="$(arvore mudo-ok)"; mudo_tree "$A" 'xvfb-run -a "$GODOT" --audio-driver Dummy --path godot
+xvfb-run -a "$GODOT" --write-movie f.avi --path godot
+"$GODOT" --headless --path godot
+# xvfb-run "$GODOT" num comentário'
+espera 0 "teste mudo: deixa passar o driver mudo, o filme, o headless e o comentário" python3 "$P/teste_mudo.py" --raiz "$A"
+
 # --- o rodar.sh -------------------------------------------------------------------------------------------------
 espera 0 "rodar.sh: os portões do repositório passam (a arte e o som em aviso)" bash "$P/rodar.sh"
 
