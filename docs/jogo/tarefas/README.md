@@ -23,8 +23,9 @@ Estados: **a fazer**, **fazendo** (com o nome de quem pegou), **feito**
 | [F05](F05-o-haptico-forte.md) | O háptico forte | G | F00, F01 | feito |
 | [F06](F06-o-registro-v2.md) | O registro v2 | G | F00, F01, F03, F04, F05 | feito |
 | [F07](F07-a-voz-do-texto.md) | A voz nova do texto | M | F00, F02, F03 | feito |
-| [F08](F08-a-paridade.md) | A paridade entre a prova e o jogo | M | F00, F01, F03 | em voo (as-provas) |
-| [F09](F09-a-prova-visual.md) | A prova visual | G | F00, F02 (a coleta de texto), F03 (o fim), F08 (o robô só pelo controle) | em voo (as-provas) |
+| [F08](F08-a-paridade.md) | A paridade entre a prova e o jogo | M | F00, F01, F03 | feito |
+| [F09](F09-a-prova-visual.md) | A prova visual | G | F00, F02 (a coleta de texto), F03 (o fim), F08 (o robô só pelo controle) | feito |
+| [F09b](F09b-os-achados-da-prova-visual.md) | Os achados da primeira prova visual | M | F09 | a fazer |
 | [F10](F10-o-rumble-seco.md) | O rumble seco | G | F05 (a medição do háptico), F06 (o registro) | espera o André (a parte A feita: o roteiro às cegas) |
 
 ## G — As telas
