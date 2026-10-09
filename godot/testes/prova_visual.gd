@@ -498,6 +498,9 @@ func _autoteste() -> int:
 	ok.call(ChecagensVisuais.fim_sem_vencedor(sem).size() == 1, "fim: um minigame sem vencedor reprova")
 	sem[0]["vencedor"] = -1
 	ok.call(ChecagensVisuais.fim_sem_vencedor(sem).size() == 1, "fim: o vencedor -1 (ninguém) reprova")
+	sem[0]["genero"] = "coop"
+	ok.call(ChecagensVisuais.fim_sem_vencedor(sem).is_empty(), "fim: o -1 do coop (todos venceram ou todos perderam) passa")
+	sem[0].erase("genero")
 	sem[0]["vencedor"] = 1
 	ok.call(ChecagensVisuais.fim_sem_vencedor(sem).is_empty(), "fim: com vencedor passa")
 	ok.call(ChecagensVisuais.minuscula(["Pontos", "tempo"]).size() == 1, "minúscula: «tempo» reprova")

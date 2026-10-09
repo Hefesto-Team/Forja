@@ -325,6 +325,13 @@ const EN := {
 	# o teclado do nome (G09): o nome da pessoa não passa pela tabela
 	"Escrever": "Write",
 	"Apagar": "Erase",
+	# o fim do coop e da dupla, e o minigame de tempo (H08); "Empate!" já está acima
+	"Todos venceram!": "Everyone won!",
+	"A forja apagou.": "The forge went out.",
+	"A Brasa venceu!": "The Ember won!",
+	"A Maré venceu!": "The Tide won!",
+	"A Forja de Todos": "Everyone's Forge",
+	"Juntos!": "Together!",
 }
 
 ## Os textos com número: [padrão, substituição] (a substituição usa $1, $2…).

@@ -197,12 +197,13 @@ static func relogio_sobe(observacoes: Array) -> Array:
 	return achados
 
 
-## Todo `minigame` `terminou` da linha do tempo tem `vencedor`.
+## Todo `minigame` `terminou` da linha do tempo tem `vencedor` (o coop fecha
+## com -1: todos venceram ou todos perderam, H08).
 static func fim_sem_vencedor(eventos: Array) -> Array:
 	var achados: Array = []
 	for e in eventos:
 		if str(e.get("evento", "")) == "terminou" and str(e.get("tipo", "minigame")) == "minigame" and e.has("slot") \
-				and (not e.has("vencedor") or int(e.vencedor) < 0):
+				and (not e.has("vencedor") or (int(e.vencedor) < 0 and not (int(e.vencedor) == -1 and str(e.get("genero", "")) == "coop"))):
 			achados.append("o minigame %s terminou sem vencedor" % e.slot)
 	return achados
 
