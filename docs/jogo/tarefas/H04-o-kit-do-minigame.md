@@ -986,11 +986,27 @@ assim) mede pelo relógio de parede; com a máquina sob carga forte (outro jogo
 ou outro Godot com janela), o quadro engasga e as notas saem erradas. Rode com
 a máquina calma.
 
-**A prova visual da leva:** nas partidas com dois e com um jogador, a Centelha
-fecha com vencedor. A prancha mostrou o título novo encavalado com a dica
-«Continuar» na tela de resultado; o título passou a encolher até caber
-(`godot/scripts/ui/resultado.gd`). O resto das reprovações da prova visual
-(letra abaixo de 30 px, área segura, tela parada) é o que a
-[F09b](F09b-os-achados-da-prova-visual.md) já lista. A prova visual não foi
-repetida depois do ajuste do título (a máquina estava sob carga de outros
-Godots): conferir na prancha do André.
+**A prova visual da leva:** nas partidas com dois e com um jogador (passada
+fixa), a Centelha fecha com vencedor: título «O Martelo de Hefesto», verbo
+«Bata!», runas, «P1 venceu» e o placar «Depois d'A Centelha» (a partida fala
+pela seção). A prancha mostrou o título novo encavalado com a dica
+«Continuar» na tela de resultado (`godot/scripts/ui/resultado.gd`). **Isso
+fica aberto:** a linha do título é a mesma que a F09b e a G14 trocam no
+conjunto da fita (a fonte e o tamanho da bíblia), e o arquivo não é desta
+ficha; o encolhimento medido com a fonte de hoje foi tirado para não brigar
+na costura. A cura vai depois da fita, medida com a letra nova. O resto das
+reprovações da prova visual (letra abaixo de 30 px, área segura, contraste,
+tela parada) é o que a [F09b](F09b-os-achados-da-prova-visual.md) já lista;
+as quatro partidas nas duas passadas não rodaram (cada partida levou dezenas
+de minutos com a máquina carregada).
+
+**A conferência:** a prova do relatório conta o minigame que **começou** e
+terminou (antes contava pela duração maior que zero, o que deixava de fora a
+Centelha da Prova de Fogo, que começa e fecha no treino); a prova da partida
+confere que o placar guarda a sala pelo apelido, não pelo slot (mordida:
+`partida.registrar(sj.id, ...)` no `main.gd` reprova, e antes passava). A
+prova de poucos rodou na caixa: verde com um, dois e três controles, os
+ritmos, as opções e o cabo que cai. Sob carga (load 25 a 30 em 16 núcleos),
+a prova do kit reprova às vezes no P1 ou no P2: o atraso medido entre o
+aperto do robô e o julgamento chegou a 70 ms (calma: 1 a 19 ms), e a janela
+do ótimo tem 25 ms de folga de cada lado da mira.
