@@ -238,10 +238,12 @@ sobe, fim sem vencedor nem minúscula. A cura é do jogo, não da régua, e viro
   `main.gd`, 150 ms fechando): a passada `livre` caiu nele aos 02:01. O quadro
   guarda agora se a troca está em curso, e só o preto de fora dela reprova; a
   troca que fica no preto aparece como tela parada.
-- Na mesma passada, o cartão d'A Galeria que desliza saiu «encavalado com ele
-  mesmo» a 31 px: sem `--fixed-fps`, um quadro que não se desenha junta dois
-  desenhos do nó com o mesmo número de quadro, e a prancha mostra um cartão só.
-  A coleta (`desenho.gd`) marca agora cada desenho do nó, e só o último vale.
+- Na mesma passada, o cartão d'A Galeria e o placar, deslizando, saíram
+  «encavalados com eles mesmos» (31 px ao lado, 5 px acima), e a prancha mostra
+  um cartão só: sem `--fixed-fps`, o mesmo nó se desenha mais de uma vez num
+  quadro (um a cada passo de física), e a coleta marcava o desenho pelo número do
+  quadro. A coleta (`desenho.gd`) conta agora cada desenho pelo sinal `draw` do
+  nó, e só o último vale.
 
 **Fica para a mão dela ou do André.** A passada `livre` (sem `--fixed-fps`,
 com placa de vídeo) e as quatro pranchas olhadas; a aparência (luz, cor, arte)

@@ -250,7 +250,7 @@ func _fotografar() -> void:
 	# um nó que desenhou em mais de um quadro durante a coleta vale pelo último: o
 	# que está na tela é o último desenho, e dois estados do mesmo texto («Nenhum
 	# controle» e «4 controles») não se encavalam, um só foi apagado pelo outro; nem o
-	# cartão que desliza, desenhado duas vezes 31 px adiante
+	# cartão que desliza, desenhado duas vezes no mesmo quadro
 	var ultimo := {}
 	for r in Desenho.retangulos:
 		ultimo[r.no] = maxi(int(ultimo.get(r.no, -1)), int(r.quadro))
@@ -529,19 +529,16 @@ func _autoteste() -> int:
 	var r: Rect2 = Desenho.retangulos[0].rect
 	ok.call(absf(r.size.y - 100.0) < 0.5 and absf(r.position.y - 222.0) < 0.5 and r.size.x > 100.0 and absf(r.position.x - 100.0) < 0.5,
 		"coleta: o retângulo de uma linha é a caixa da tinta (%s)" % [r])
-	# um desenho do nó (o texto e a sombra) é um só; o desenho seguinte, depois de
-	# outro nó, é outro, e só o último vale na tela
-	var outro := Node2D.new()
-	add_child(outro)
+	# um desenho do nó (o texto e a sombra) é um só; o desenho seguinte do mesmo nó,
+	# no mesmo quadro (o sinal `draw`), é outro, e só o último vale na tela
 	Desenho.retangulos.clear()
 	Desenho.anotar(no, Vector2(100, 300), "Hefesto", ThemeDB.fallback_font, 40, Color.WHITE)
 	Desenho.anotar(no, Vector2(102, 302), "Hefesto", ThemeDB.fallback_font, 40, Color.BLACK)
-	Desenho.anotar(outro, Vector2(100, 600), "Forja", ThemeDB.fallback_font, 40, Color.WHITE)
+	no.draw.emit()
 	Desenho.anotar(no, Vector2(131, 300), "Hefesto", ThemeDB.fallback_font, 40, Color.WHITE)
 	var d: Array = Desenho.retangulos.map(func(x): return int(x.quadro))
-	ok.call(d[0] == d[1] and d[2] != d[1] and d[3] != d[0] and d[3] != d[2],
+	ok.call(d[0] == d[1] and d[2] != d[1],
 		"coleta: o mesmo nó desenhado de novo é outro desenho (%s)" % [d])
-	outro.queue_free()
 	Desenho.retangulos.clear()
 	no.queue_free()
 	print("autoteste da prova visual: %s" % ("ok" if erros[0] == 0 else "%d falha(s)" % erros[0]))
