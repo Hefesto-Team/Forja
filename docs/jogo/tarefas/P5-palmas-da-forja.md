@@ -266,6 +266,8 @@ func destaque() -> int:
 | `progresso()` | `"Espada %d de %d" % [_espada, _meta]` |
 | `dica(l)` | `["@mic"]` sob a raia na base, enquanto `not aprendeu(l)`; senão `{}` |
 
+**O arquivo se monta à mão:** os blocos daqui são pedaços dele, e o resto sai da prosa; por isso nenhum leva `arquivo=`.
+
 O esqueleto:
 
 ```gdscript

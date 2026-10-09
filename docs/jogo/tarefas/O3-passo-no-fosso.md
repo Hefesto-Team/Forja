@@ -341,6 +341,8 @@ placa para quem foi no tempo) ou não pisam.
 
 `godot/scripts/minigames/s07/passo_no_fosso.gd`, `extends Minigame`, sem `class_name`.
 
+**O arquivo se monta à mão:** os blocos daqui são pedaços dele, e o resto sai da prosa; por isso nenhum leva `arquivo=`.
+
 ```gdscript
 extends Minigame
 ## Passo no Fosso (S07_J33), a dança das placas. Um fosso de plasma, menos

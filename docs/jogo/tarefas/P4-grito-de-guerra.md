@@ -255,6 +255,8 @@ func vencedor() -> Array:
 | `status(l)` | `"No ringue"` ou `"Fantasma"` |
 | `dica(l)` | `["@mic"]` sob o cavaleiro na nota, enquanto `not aprendeu(l)`; senão `{}` |
 
+**O arquivo se monta à mão:** os blocos daqui são pedaços dele, e o resto sai da prosa; por isso nenhum leva `arquivo=`.
+
 O esqueleto:
 
 ```gdscript

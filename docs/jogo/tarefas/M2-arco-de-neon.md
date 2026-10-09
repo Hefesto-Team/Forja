@@ -279,6 +279,8 @@ func robo(l: int, _dt: float) -> void:
 
 ### Os ganchos
 
+**O arquivo se monta à mão:** os blocos daqui são pedaços dele, e o resto sai da prosa; por isso nenhum leva `arquivo=`.
+
 ```gdscript
 var _info := [{}, {}, {}, {}]  # lugar -> n -> {b, tipo, L, de, fundo}
 var _nota_em_curso := [-1, -1, -1, -1]

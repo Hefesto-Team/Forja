@@ -244,6 +244,8 @@ func vencedor() -> Array:
 
 ### Os ganchos
 
+**O arquivo se monta à mão:** os blocos daqui são pedaços dele, e o resto sai da prosa; por isso nenhum leva `arquivo=`.
+
 ```gdscript
 var _notas := [[], [], [], []]
 var _ultima := [{}, {}, {}, {}]

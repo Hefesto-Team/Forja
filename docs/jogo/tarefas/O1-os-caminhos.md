@@ -306,6 +306,8 @@ No máximo 1 carimbo vivo por jogador e 2 na tela. Adesivos `rea_*`: só de quem
 | o treino próprio (`TREINO`, `com_treino = false`) | o treino do kit (10 s) ensina |
 | o `_process` e o `e.t += dt` | o kit não deixa sobrescrever `_process`; tudo pela batida |
 
+**O arquivo se monta à mão:** os blocos daqui são pedaços dele, e o resto sai da prosa; por isso nenhum leva `arquivo=`.
+
 ```gdscript
 extends Minigame
 ## Os Caminhos (S07_J31). A senha do seu portão chega só na sua mão, o passo

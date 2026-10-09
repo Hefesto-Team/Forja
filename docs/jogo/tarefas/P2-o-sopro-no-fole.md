@@ -273,6 +273,8 @@ func vencedor() -> Array:
 | `status(l)` | `"%d inteiras" % _inteiras[l]` (a tradução de `"%d inteiras"`) |
 | `dica(l)` | `{"partes": ["@mic"], "pos": Vector3(RAIAS[l], 2.6, Z_JOGADOR)}` durante a nota dele enquanto `not aprendeu(l)`; senão `{}` |
 
+**O arquivo se monta à mão:** os blocos daqui são pedaços dele, e o resto sai da prosa; por isso nenhum leva `arquivo=`.
+
 O esqueleto:
 
 ```gdscript

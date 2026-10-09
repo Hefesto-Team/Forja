@@ -244,6 +244,8 @@ func robo(l: int, dt: float) -> void:
 
 ### Os ganchos
 
+**O arquivo se monta à mão:** os blocos daqui são pedaços dele, e o resto sai da prosa; por isso nenhum leva `arquivo=`.
+
 `godot/scripts/minigames/s09/a_prova.gd`:
 
 ```gdscript

@@ -348,6 +348,8 @@ O canto e a chamada gravam a `pista` com `canal` `alto_falante` (ou `tv` sem a p
 
 ### Os ganchos
 
+**O arquivo se monta à mão:** os blocos daqui são pedaços dele, e o resto sai da prosa; por isso nenhum leva `arquivo=`.
+
 `godot/scripts/minigames/s09/o_ultimo_acorde.gd`:
 
 ```gdscript

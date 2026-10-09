@@ -268,6 +268,8 @@ func _na_frente(fora: int) -> int:
 
 ### Os ganchos
 
+**O arquivo se monta à mão:** os blocos daqui são pedaços dele, e o resto sai da prosa; por isso nenhum leva `arquivo=`.
+
 ```gdscript
 var _info := [{}, {}, {}, {}]  ## lugar -> {n: {b, tipo}}
 var _armadilhas := [[], [], [], []]  ## {b, t, tipo, de}

@@ -275,6 +275,8 @@ func vencedor() -> Array:
 | `status(l)` | `"%d escudos" % _cargas[l]` |
 | `dica(l)` | `["@cross"]` na marcha e `["@mic"]` de `M − 2` a `M`, enquanto `not aprendeu(l)`; senão `{}` |
 
+**O arquivo se monta à mão:** os blocos daqui são pedaços dele, e o resto sai da prosa; por isso nenhum leva `arquivo=`.
+
 O esqueleto:
 
 ```gdscript
