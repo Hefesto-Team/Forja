@@ -258,6 +258,20 @@ done
 A="$(arvore codigo-pasta)"; codigo_ficha "$A/Z9.md" "docs/z9.gd"
 espera 1 "ficha código: recusa arquivo= fora de godot/, scripts/ e tests/" \
   python3 "$RAIZ/scripts/ficha_codigo.py" "$A/Z9.md" --escrever --raiz "$A/arv"
+# a ficha que diz «O arquivo se monta à mão» acima do corpo (WT02b): o --marcar --sim não lhe põe a marca; sem a
+# linha, o mesmo corpo leva a marca (a prova de que o caso morde)
+mao_ficha() { # <arquivo> <com a linha: 1 ou 0>
+  { printf '# Z8\n\nO `godot/scripts/z8.gd`:\n\n'
+    [ "$2" = 1 ] && printf '**O arquivo se monta à mão:** os blocos daqui são pedaços dele.\n\n'
+    printf '```gdscript\nextends Node\n'; for i in $(seq 1 85); do printf 'var v%d := %d\n' "$i" "$i"; done
+    printf '```\n'; } > "$1"
+}
+A="$(arvore codigo-mao)"; mao_ficha "$A/Z8.md" 1; cp "$A/Z8.md" "$A/antes.md"
+espera 0 "ficha código: --marcar --sim não marca o corpo que a ficha diz que se monta à mão" \
+  bash -c "python3 '$RAIZ/scripts/ficha_codigo.py' '$A/Z8.md' --marcar --sim | grep -q 'se monta à mão' && cmp '$A/Z8.md' '$A/antes.md'"
+A="$(arvore codigo-sem-mao)"; mao_ficha "$A/Z8.md" 0
+espera 0 "ficha código: --marcar --sim marca o mesmo corpo sem a linha" \
+  bash -c "python3 '$RAIZ/scripts/ficha_codigo.py' '$A/Z8.md' --marcar --sim >/dev/null && grep -q '^\`\`\`gdscript arquivo=godot/scripts/z8.gd\$' '$A/Z8.md'"
 
 # --- o rodar.sh -------------------------------------------------------------------------------------------------
 espera 0 "rodar.sh: os portões do repositório passam (a arte e o som em aviso)" bash "$P/rodar.sh"

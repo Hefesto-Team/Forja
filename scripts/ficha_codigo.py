@@ -20,7 +20,9 @@ branco entre eles. Três modos:
   --marcar     para cada bloco gdscript de mais de 80 linhas, sem a marca, que
                começa como arquivo (`extends`, `class_name` ou `@tool`), procura o
                caminho em crase na prosa logo acima e propõe o `arquivo=`. Só
-               escreve na ficha com --sim. O bloco sem caminho claro é listado.
+               escreve na ficha com --sim. O bloco sem caminho claro é listado,
+               e o bloco com «O arquivo se monta à mão» na prosa logo acima
+               também, sem proposta: a ficha disse que ele não leva a marca.
 
 Saída: 0 ok; 1 diferença (--conferir) ou caminho recusado (--escrever); 2 uso ruim
 ou ficha que não se lê.
@@ -41,6 +43,7 @@ MARCA = re.compile(r"(?:^|\s)arquivo=(\S+)")
 PARTE = re.compile(r"(?:^|\s)parte=(\d+)")
 CAMINHO = re.compile(r"`((?:godot|scripts|tests)/[^`\s]+\.(?:gd|py|sh|gdshader|tscn|cfg|json|csv))`")
 COMECO_DE_ARQUIVO = re.compile(r"^(extends|class_name|@tool)\b")
+A_MAO = "O arquivo se monta à mão"
 MINIMO = 80
 
 
@@ -107,8 +110,8 @@ def recusa(caminho: str):
     return None
 
 
-def proposta(linhas, bloco: Bloco):
-    """O caminho em crase mais perto acima do bloco (até o bloco anterior ou 8 linhas com texto), ou None."""
+def acima(linhas, bloco: Bloco):
+    """As linhas com texto logo acima do bloco, da mais perto para longe (até o bloco anterior ou 8 delas)."""
     vistas, i = 0, bloco.abre - 1
     while i >= 0 and vistas < 8:
         linha = linhas[i]
@@ -116,12 +119,18 @@ def proposta(linhas, bloco: Bloco):
             break
         if linha.strip():
             vistas += 1
-            achados = list(dict.fromkeys(CAMINHO.findall(linha)))
-            if len(achados) == 1:
-                return achados[0]
-            if len(achados) > 1:
-                return None      # dois caminhos na mesma linha: não é claro
+            yield linha
         i -= 1
+
+
+def proposta(linhas, bloco: Bloco):
+    """O caminho em crase mais perto acima do bloco, ou None."""
+    for linha in acima(linhas, bloco):
+        achados = list(dict.fromkeys(CAMINHO.findall(linha)))
+        if len(achados) == 1:
+            return achados[0]
+        if len(achados) > 1:
+            return None      # dois caminhos na mesma linha: não é claro
     return None
 
 
@@ -194,6 +203,9 @@ def marcar(fichas, sim: bool) -> int:
         mudou = False
         for b in bs:
             if b.arquivo or b.lingua != "gdscript" or len(b.linhas) <= MINIMO:
+                continue
+            if any(A_MAO in linha for linha in acima(linhas, b)):
+                sem.append(f"{f.name}:{b.abre + 1} ({len(b.linhas)} linhas): a ficha diz que se monta à mão")
                 continue
             primeira = next((l for l in b.linhas if l.strip() and not l.lstrip().startswith("#")), "")
             if not COMECO_DE_ARQUIVO.match(primeira):
