@@ -152,6 +152,7 @@ func visual(m: int, item: int) -> void:
 	item_i = wrapi(item, 0, ITENS.size())
 	if trocou_modelo:
 		if modelo:
+			_soltar_contorno(modelo)
 			modelo.queue_free()
 		_arquivo = Kit.caminho("mini-dungeon-personagens/" + str(BONECOS[modelo_i].arquivo))
 		modelo = load(_arquivo).instantiate()
@@ -242,6 +243,8 @@ func contornar(energia: float) -> void:
 
 
 func _contornar_em(n: Node) -> void:
+	if n.is_queued_for_deletion():
+		return
 	if n is MeshInstance3D:
 		var mi := n as MeshInstance3D
 		if mi.mesh:
@@ -277,6 +280,20 @@ func _novo_contorno() -> ShaderMaterial:
 	var c := Tema.contorno(cor, CONTORNO_LARGURA, _brilho_do_contorno * _acesa, lugar)
 	_contornos.append(c)
 	return c
+
+
+## Devolve as superfícies ao material do kit antes de o nó sair: um material
+## duplicado com `next_pass` que morre na fila de deleção deixa o servidor de
+## desenho pedindo um material nulo ("Parameter material is null") no quadro em
+## que outro boneco nasce. Chamar antes de todo `queue_free` de quem tem contorno.
+func _soltar_contorno(n: Node) -> void:
+	if n is MeshInstance3D:
+		var mi := n as MeshInstance3D
+		if mi.mesh:
+			for s in mi.mesh.get_surface_count():
+				mi.set_surface_override_material(s, null)
+	for filho in n.get_children():
+		_soltar_contorno(filho)
 
 
 ## A normal suavizada (a soma das normais dos vértices no mesmo ponto) gravada no
@@ -330,6 +347,7 @@ func _segurar() -> void:
 	var velho := esqueleto.find_child("Item", false, false)
 	if velho:
 		esqueleto.remove_child(velho)
+		_soltar_contorno(velho)
 		velho.queue_free()
 	_mats_runa.clear()
 	_area_runa = 0.0
@@ -607,6 +625,8 @@ func _notification(what: int) -> void:
 	if what == NOTIFICATION_VISIBILITY_CHANGED:
 		collision_layer = 1 if visible else 0
 		collision_mask = 1 if visible else 0
+	elif what == NOTIFICATION_PREDELETE and is_instance_valid(modelo):
+		_soltar_contorno(modelo)
 
 
 func olhar_para(alvo: Vector3) -> void:
