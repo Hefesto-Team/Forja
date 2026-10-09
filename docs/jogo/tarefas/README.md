@@ -66,6 +66,7 @@ Os estados, e o que cada um quer dizer, estão em
 | [H05](H05-o-pipeline-das-faixas.md) | O pipeline das faixas | M | F00, H01 | feito |
 | [H06](H06-os-jingles.md) | Os jingles | P | F00, F03, H01, H04, H05 | feito |
 | [H07](H07-o-som-em-todo-evento.md) | O som em todo evento | G | F00, F05, F06, H04 | feito |
+| [H07b](H07b-um-pio-so-e-o-som-aberto.md) | Um pio só, e o alto-falante do controle aberto | P | H07, G01, G02 | a fazer |
 | [H08](H08-os-acrescimos-do-kit.md) | Os acréscimos do kit | G | H04, H01, H02, F03, F05, G03 | a fazer |
 | [H09](H09-o-gerador-da-trilha.md) | O gerador da trilha | M | F00, H05 | feito |
 | [H10](H10-a-bancada-da-trilha.md) | A bancada da trilha | M | H05, H09 | feito |
