@@ -72,7 +72,7 @@ extends Minigame
 ##
 ## A falha: o lado errado — a pedra oca afunda e ele despenca 4 degraus (o
 ## Peso e a Âncora mudam); fora do tempo, ou sem pisar — tropeça e fica.
-## O vencedor: o primeiro no topo (24 degraus); senão, o mais alto aos 100 s.
+## O vencedor: o primeiro no topo (60 degraus); senão, o mais alto aos 100 s.
 ## O alto-falante do dono: o eco (a pista) e o tombo.
 ## O registro mede: cada eco (o som, se foi ao controle), o lado pisado e o
 ## momento `despenca`.
@@ -102,7 +102,7 @@ const FICHA := {
 }
 
 const PONTOS := [0, 40, 70, 100]  ## ERRO, BOM, OTIMO, PERFEITO
-const DEGRAUS := 24
+const DEGRAUS := 60  ## o número do diretor de jogo (09/10): o topo só na reta; veja «A diversão»
 const ANDAR := 4  ## quanto despenca no lado errado, no neutro
 const ANDAR_MIN := 2
 const ESQ := 0
@@ -115,8 +115,9 @@ const BRILHO := 0.5  ## a barra de luz no escuro (F04: nunca abaixo de 0,3)
 const PULSO_S := 0.12
 ## A chance de passo na vez do dono, por terço; no pico, dois passos por vez.
 const CHANCE := [0.5, 0.75, 0.75]
-const DEGRAU_ALTURA := 0.22
-const DEGRAU_FUNDO := 0.28
+## A escada tem o mesmo tamanho da de 24 degraus (5,28 m de alto, 6,72 m de fundo): a pedra é que afina.
+const DEGRAU_ALTURA := 0.088
+const DEGRAU_FUNDO := 0.112
 const PEDRA_X := 0.45  ## as duas pedras em ESCADA_X[l] ± isto
 ## As escadas puxadas 0,6 m para o centro: o P4 cabe em x_tela ≤ 0,8.
 const ESCADA_X := [-5.4, -1.4, 1.4, 5.4]
@@ -223,7 +224,7 @@ a câmera 10 %.
 ### A reta
 
 Na batida `_b_fim - RETA_BATIDAS` (209), uma vez: as velas do topo acendem (A cena) e
-`momento("reta", -1, Vector3(0, 0, Z_JOGADOR), 1.8, {"objeto": "escadas", "valores": "9,14,6,3"})`, com o degrau de
+`momento("reta", -1, Vector3(0, 0, Z_JOGADOR), 1.8, {"objeto": "escadas", "valores": "51,15,14,1"})`, com o degrau de
 P1 a P4 (`-` para quem não está). Daí até o fim, cada passo certo sobe 2 degraus.
 
 ### O ensina
@@ -267,7 +268,7 @@ var _armado := [true, true, true, true]
 var subida := [0.0, 0.0, 0.0, 0.0]
 var degrau := [0, 0, 0, 0]
 var _lado := [ESQ, ESQ, ESQ, ESQ]  ## a pedra em que ele está
-var _pedras := {}  ## lugar -> [[{no, mat}, {no, mat}] por degrau, do 1 ao 24]
+var _pedras := {}  ## lugar -> [[{no, mat}, {no, mat}] por degrau, do 1 ao 60]
 var _cai_em := [-1.0, -1.0, -1.0, -1.0]
 var _ultimo_tombo := [0, 0, 0, 0]
 var _sentado_ate := [-1.0, -1.0, -1.0, -1.0]
@@ -416,9 +417,9 @@ O que não é peça Kenney (caixas do `Kit`; `metallic` 0):
 
 | objeto | forma | material |
 | --- | --- | --- |
-| a pedra (duas por degrau, 24 degraus, 4 escadas) | caixa 0,8 × 0,12 × 0,26 em `(ESCADA_X[l] ± 0.45, 0.22k − 0.06, Z_JOGADOR − 0.28k)` | `Kit.material(Tema.GRAFITE, 0.0, 0.95)`, uma por pedra |
+| a pedra (duas por degrau, 60 degraus, 4 escadas) | caixa 0,8 × 0,05 × 0,10 em `(ESCADA_X[l] ± 0.45, 0.088k − 0.025, Z_JOGADOR − 0.112k)` | `Kit.material(Tema.GRAFITE, 0.0, 0.95)`, uma por pedra |
 | a pedra acesa (o caminho) | a mesma | `Tema.emissivo(mat, 0.8, l)` |
-| o buraco da pedra oca | caixa 0,8 × 0,02 × 0,26 no topo da pedra que caiu | `Kit.material(Tema.JANELA, 0.0, 1.0)` |
+| o buraco da pedra oca | caixa 0,8 × 0,02 × 0,10 no topo da pedra que caiu | `Kit.material(Tema.JANELA, 0.0, 1.0)` |
 | a plataforma do topo | caixa 12,4 × 0,3 × 0,5 em `(0, 5.35, −5.75)` | `Kit.material(Tema.GRAFITE, 0.0, 0.95)` |
 
 As duas pedras de um degrau são **iguais**: o mesmo tamanho, a mesma cor, nenhum brilho antes de pisada. A firme é a
@@ -440,7 +441,7 @@ Nenhuma cor fora dos tokens: o `#2a2233`, o `#ffb070` e o `#b9b0ff` da ficha ant
 ### A montagem
 
 - Por lugar: `raia(l)` (o chão de partida), `posicionar(l)`, depois `position = (ESCADA_X[l], 0, Z_JOGADOR)`,
-  `rotation.y = PI`, `preso = true`; as 48 pedras; a luz do cavaleiro.
+  `rotation.y = PI`, `preso = true`; as 120 pedras; a luz do cavaleiro.
 - A posição do cavaleiro no degrau `d`, sobre o lado `s` (ESQ −1, DIR +1):
   `Vector3(ESCADA_X[l] + s * PEDRA_X, DEGRAU_ALTURA * d, Z_JOGADOR - DEGRAU_FUNDO * d)`; no degrau 0, `x = ESCADA_X[l]`.
 
@@ -592,6 +593,35 @@ pedras acesas acima dele apagam, e na escada do lado o vizinho passa por ele sub
 - **Quem está perdendo:** o caminho aceso até onde ele está continua; cair custa 4 degraus, não a corrida; a reta
   dobra o passo, e quem está embaixo ainda alcança.
 - **A nota de hoje:** 3.
+
+**O número: 60 degraus** (o diretor de jogo, 09/10/2026). Com 24, o fim `primeiro_a_chegar` acabava a corrida no
+pico: o robô `bom` chegava ao topo aos 47,8 s em média (p10 44,4 s), a reta (batida 209, 92,9 s) não acontecia em
+nenhuma partida, e o item 5 caía com a mesa padrão. Das três saídas, fica a escada mais alta: o topo continua sendo a
+linha de chegada, e chegar nele vira o grito da reta. Subir menos por passo foi descartado (o passo certo que não
+muda o degrau não se vê); o mais alto aos 100 s, sem topo, também (a reta perde a chegada).
+
+- **A escada não cresce na tela.** Os 60 degraus ocupam os mesmos 5,28 m de alto e 6,72 m de fundo dos 24: o degrau
+  passa de 0,22 × 0,28 m a 0,088 × 0,112 m, e a pedra de 0,12 × 0,26 a 0,05 × 0,10. A câmera, a plataforma do topo e
+  as velas ficam onde estão.
+- **O tombo fica em 4 degraus** (`ANDAR`), como a reta e o Peso: o tombo é contado em passos, não em metros. Ele
+  desloca o cavaleiro 0,57 m (0,35 m para baixo e 0,45 m para trás), acima dos 0,5 m da régua (item 6).
+- **A conta pelo robô** (as regras desta ficha, 4 000 partidas, semente 7; o `bom` acerta 95 %, o `medio` 66 %, o
+  `ruim` 30 %; quando não acerta, o segundo sorteio decide entre o tropeço e o lado errado):
+
+| medida | 24 degraus (antes) | 60 degraus (agora) |
+| --- | --- | --- |
+| mesa padrão: a reta acontece (ninguém no topo antes da batida 209) | 0 % | 99,3 % |
+| mesa padrão: alguém chega ao topo | 100 %, aos 47,8 s (p10 44,4 s) | 29,0 %, todas na reta, aos 97,8 s em média |
+| mesa padrão: o degrau do P1 `bom` na batida 209 | (já no topo) | 51,1 em média, p99 59 |
+| mesa padrão: o `medio` chega ao topo | 29 % | 0 % (fecha em 17,4 em média, p90 30) |
+| os quatro `bom` (a prova do jogo sem o erro da mesa): a reta acontece | 0 % | 98,4 % |
+| a mesa da prova (o `bom` com `ERRO_DA_MESA`): a reta acontece | 0 % | 99,3 % |
+| P1 que nunca erra (o jogador perfeito): a reta acontece | 0 % | 94,6 % (chega ao topo em 64 %) |
+| mesa padrão: tombos em 100 s; ao menos 1 entre 33 e 67 s | 16,1; 100 % | 36,7; 100 % |
+| a curva (passos por segundo por lugar): 2.º terço ÷ 1.º; 3.º ÷ 1.º | 2,4 ×; 1,18 × | 2,4 ×; 1,18 × (a escada não muda o passo) |
+
+A curva sai 2,4 × e 1,18 ×, não os 3,0 × e 1,5 × das contas de cima, porque a regra «nunca duas vezes seguidas sem
+passo» sobe a chance do 1.º terço de 0,5 a 0,67; os dois passam a régua (≥ 1,5 × e ≥ 1,0 ×).
 
 **Como o jogador do time confere** (a mesa padrão: P1 `bom`, P2 `medio`, P3 `medio`, P4 `ruim`, semente 7, sem a
 bancada, pela prova visual da F09):

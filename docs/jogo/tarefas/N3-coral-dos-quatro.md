@@ -73,9 +73,10 @@ extends Minigame
 ## vez se embaralha, cada um canta duas vezes em colcheia, e a cada duas
 ## chamadas os quatro cantam juntos: o acorde.
 ##
-## A falha: a nota falta ou sai fora da vez; com duas faltas no compasso, o
-## vitral trinca e perde um painel (no máximo um por compasso).
-## O vencedor: coop — o vitral inteiro aceso (12 painéis), ou não; o destaque
+## A falha: a voz falta quando uma nota dela falta ou sai fora da vez; com
+## menos da metade do coro, o vitral trinca e perde um painel (no máximo um por
+## compasso); com metade ou mais, acende.
+## O vencedor: coop — o vitral inteiro aceso (28 painéis), ou não; o destaque
 ## é quem cantou mais no tempo.
 ## O alto-falante do dono: o respiro e a nota dele na chamada.
 ## O registro mede: cada chamada (a nota do lugar, se foi ao controle), o
@@ -105,16 +106,17 @@ const FICHA := {
 }
 
 const PONTOS := [0, 40, 70, 100]  ## ERRO, BOM, OTIMO, PERFEITO
-const PAINEIS := 12  ## o vitral: 4 colunas × 3 fileiras
+const PAINEIS := 28  ## o vitral: 4 colunas × 7 fileiras (o número do diretor de jogo, 09/10)
 ## A tinta de cada coluna: vermelhão, petróleo, mostarda, ameixa (o cobalto é a capela).
 const COR_DA_COLUNA := [0, 2, 3, 4]  ## índices de Tema.SECAO
-const PAINEL := Vector3(1.1, 0.95, 0.06)
+const PAINEL := Vector3(1.1, 0.42, 0.06)
 const VITRAL_Z := -6.0
 const VITRAL_BASE := 0.6
 const RESPIRO_GANHO := 0.4  ## o clique da vez, meia batida antes da nota
 const PULSO_S := 0.12
 const RETA_BATIDAS := 16  ## nelas, toda chamada é o acorde
-const FALTAS_DO_ACORDE := 1  ## o acorde fecha com até uma voz faltando
+## O compasso acende (+1; o acorde, +2) quando canta pelo menos a metade das vozes dele
+## (2 de 4, 2 de 3, 1 de 2, 1 de 1); com menos, trinca. A falta conta por voz, não por nota.
 ```
 
 ### O tempo
@@ -161,21 +163,23 @@ A TV fica calada na chamada: nenhum sino balança, nenhuma luz muda. O sino da c
 `nota_perdida` pelo `_passaram(l)` (o da N1). No acerto, o kit toca a nota do lugar na TV e o sino pequeno do lugar
 balança 1 batida (`CenarioDoCanto.balancar`), com a barra de luz a 60 % por `PULSO_S`.
 
-**O compasso de resposta fecha** quando todas as notas dele estão resolvidas (`_respostas[c]`, sem nenhuma em aberto):
+**O compasso de resposta fecha** quando todas as notas dele estão resolvidas (`_respostas[c]`, sem nenhuma em aberto).
+A falta conta **por voz**: as vozes do compasso são os lugares com nota nele, e a voz falta quando pelo menos uma nota
+dela sai ERRO ou passa (no pico, qualquer das duas). `cantaram = vozes − faltam`; a metade é `(vozes + 1) / 2`
+(divisão inteira: 2 de 4, 2 de 3, 1 de 2, 1 de 1).
 
-| o compasso | faltas (ERRO ou perdida) | o vitral |
+| o compasso | quem cantou | o vitral |
 | --- | --- | --- |
-| comum | 0 | +1 painel; `Som.tocar("sucesso", Vector3(0, 2, VITRAL_Z), -10.0)` |
-| comum | 1 | fica |
-| comum | 2 ou mais | −1 painel (trinca) |
-| **o acorde** | até 1 | **+2 painéis** e o momento `acorde` (abaixo) |
-| o acorde | 2 ou mais | −1 painel (trinca), o acorde range |
+| comum | a metade das vozes ou mais | +1 painel; `Som.tocar("sucesso", Vector3(0, 2, VITRAL_Z), -10.0)` |
+| comum | menos da metade | −1 painel (trinca) |
+| **o acorde** | a metade das vozes ou mais | **+2 painéis** e o momento `acorde` (abaixo) |
+| o acorde | menos da metade | −1 painel (trinca), o acorde range |
 
 O vitral perde no máximo 1 painel por compasso. `acesos >= PAINEIS` → `coop_venceu = true` e todos `acabou`.
 
 ### O acorde fecha (o momento)
 
-Quando o compasso do acorde fecha com até uma falta: `_acorde_em = CenarioDoCanto.proxima_colcheia(0.15)`. Na colcheia:
+Quando o compasso do acorde fecha com a metade das vozes ou mais: `_acorde_em = CenarioDoCanto.proxima_colcheia(0.15)`. Na colcheia:
 
 - `Som.tocar("sucesso", Vector3(0, 2, VITRAL_Z), -4.0)`;
 - os dois painéis seguintes acendem;
@@ -183,12 +187,14 @@ Quando o compasso do acorde fecha com até uma falta: `_acorde_em = CenarioDoCan
 - todos os presentes com controle: `Forja.sentir(l, "golpe")` e o R2 em Resistência (2, 4) por 0,25 s, depois Off;
 - `CenarioDoCanto.exagero(self, _cenario, "estrondo")` (sem boneco: o acorde é de todos);
 - 48 faíscas `Tema.TUNGSTENIO` no vitral (`Efeitos.faiscas(self, Vector3(0, 2.2, VITRAL_Z + 0.3), Tema.TUNGSTENIO, 48, 1.2)`);
-- `momento("acorde", -1, Vector3(0, VITRAL_BASE, VITRAL_Z), 3.15, {"acesos": acesos, "faltas": f})`.
+- `momento("acorde", -1, Vector3(0, VITRAL_BASE, VITRAL_Z), 3.15, {"acesos": acesos, "faltas": f})` (`f`: as vozes que faltaram).
 
-**O acorde que range** (2 faltas ou mais): `Som.tocar("falha", Vector3(0, 2, VITRAL_Z), -8.0)`, e a trinca.
+**O acorde que range** (menos da metade cantou): `Som.tocar("falha", Vector3(0, 2, VITRAL_Z), -8.0)`, e a trinca.
 
 **A trinca:** o último painel aceso apaga (volta ao material apagado) e ganha uma caixa `Tema.JANELA` de
-0,04 × 1,2 × 0,02 a 40°, em diagonal na frente dele, até acender de novo; 10 faíscas `Tema.GRAFITE`.
+0,04 × 1,1 × 0,02 na diagonal da frente dele (21° da horizontal); 10 faíscas `Tema.GRAFITE`. **A risca fica até o
+fim**, também depois que o painel reacende: o vitral guarda as rachaduras da noite (o rastro da régua, item 6). Se o
+mesmo painel trinca de novo, a segunda risca cruza a primeira (−21°); da terceira em diante, nada se soma.
 
 ### O pico
 
@@ -222,17 +228,17 @@ func destaque() -> int:
 ### Com menos de quatro
 
 - **Três:** três vezes por chamada; a quarta batida fica vazia.
-- **Dois:** as vezes 0 e 2; o vitral pede os mesmos 12.
+- **Dois:** as vezes 0 e 2; o vitral pede os mesmos 28, e a metade do coro é 1 de 2.
 - **Um:** a vez 0 na roda; no pico e na reta, a batida dele sorteada entre as quatro. `com_poucos()` devolve `""`.
 - **O controle que cai:** as notas dele saem caladas (`notas_perdidas(l)`) e não contam como falta: o compasso fecha
-  com quem está. Ele volta na próxima chamada.
+  com quem está, e a voz dele sai das vozes do compasso (a metade se conta sem ela). Ele volta na próxima chamada.
 
 ### Os ganchos
 
 ```gdscript
 var _info := [{}, {}, {}, {}]  ## lugar -> {n: {b, c, acorde}}
 var _chamadas: Array = []  ## {l, b, n, primeira, respirou, tocou}
-var _respostas := {}  ## c -> {"abertas": int, "faltas": int, "acorde": bool}
+var _respostas := {}  ## c -> {"abertas": int, "vozes": {lugar: true}, "faltam": {lugar: true}, "acorde": bool}
 var _ultima := [{}, {}, {}, {}]
 var _gerado := 1
 var _compasso := 0
@@ -313,7 +319,7 @@ func jogar(dt: float) -> void:
 func toque(l: int, julgamento: int) -> void:
 	var nt: Dictionary = _ultima[l]
 	marcar(l, PONTOS[julgamento])
-	_resolver(int(nt.get("c", -1)), false)
+	_resolver(int(nt.get("c", -1)), l, false)
 	_balanca_ate[l] = Ritmo.batida() + 1.0
 	CenarioDoCanto.luz_da_nota(l, 0.6)
 	_pulso[l] = PULSO_S
@@ -324,7 +330,7 @@ func falha(l: int) -> void:
 	_ultima[l] = {}
 	if nt.is_empty():
 		return
-	_resolver(int(nt.c), true)
+	_resolver(int(nt.c), l, true)
 	jogador(l).gesto("emote-no", 0.4)
 	_torto(l)  # o sino pequeno dá um tranco e volta em queda(l, 1) batidas
 
@@ -345,8 +351,11 @@ func _exit_tree() -> void:
 	CenarioDoCanto.soltar_a_musica(self)
 ```
 
-`_resolver(c, falta)` desconta uma nota aberta do compasso `c` (e soma a falta). `_fechar_os_compassos()` olha os
-compassos com `abertas == 0`, aplica a tabela de «A resposta» e os apaga de `_respostas`. `_gerar_compasso(c)`,
+`_resolver(c, l, falta)` desconta uma nota aberta do compasso `c` e, com falta, marca a voz `l` em `faltam`.
+`_tirar_da_resposta(l, n)` desconta a nota sem falta e, se a voz `l` não tem outra nota no compasso, a tira de
+`vozes` e de `faltam`. `_fechar_os_compassos()` olha os compassos com `abertas == 0`, aplica a tabela de «A resposta»
+(`vozes.size() − faltam.size()` contra `(vozes.size() + 1) / 2`; sem voz nenhuma, o compasso só se apaga) e os
+apaga de `_respostas`. `_gerar_compasso(c)`,
 `_tocar_as_chamadas()`, `_pico_no_tempo()`, `_reta_no_tempo()`, `_acorde_no_tempo()`, `_tirar_da_resposta(l, n)`,
 `_torto(l)`, `_apagar_o_pulso(l, dt)`, `_mostrar(l)` e `_montar_a_praca()` fazem o que as partes desta ficha dizem.
 `_passaram(l)` é o da N1.
@@ -384,13 +393,13 @@ O que não é peça Kenney (caixas do `Kit`; `metallic` 0):
 | objeto | forma | material |
 | --- | --- | --- |
 | a moldura do vitral | caixa 4,9 × 3,35 × 0,16 em `(0, 2.175, VITRAL_Z - 0.08)` | `Kit.material(Tema.OXIDO, 0.0, 0.85)` |
-| o painel `i` (coluna `i % 4`, fileira `i / 4`) | caixa 1,1 × 0,95 × 0,06 em `(-1.8 + 1.2 * col, 1.075 + 1.05 * fil, VITRAL_Z + 0.04)` | apagado: `Kit.material(Tema.SECAO[COR_DA_COLUNA[col]].darkened(0.7), 0.0, 0.8)`; aceso: `Tema.neon(Tema.SECAO[COR_DA_COLUNA[col]], 1.0, "mundo")` |
-| a trinca | caixa 0,04 × 1,2 × 0,02 a 40°, na frente do painel | `Kit.material(Tema.JANELA, 0.0, 1.0)` |
+| o painel `i` (coluna `i % 4`, fileira `i / 4`, de 0 a 6) | caixa 1,1 × 0,42 × 0,06 em `(-1.8 + 1.2 * col, 0.81 + 0.45 * fil, VITRAL_Z + 0.04)` | apagado: `Kit.material(Tema.SECAO[COR_DA_COLUNA[col]].darkened(0.7), 0.0, 0.8)`; aceso: `Tema.neon(Tema.SECAO[COR_DA_COLUNA[col]], 1.0, "mundo")` |
+| a trinca | caixa 0,04 × 1,1 × 0,02 na diagonal da frente do painel (21°; a segunda, −21°), até o fim | `Kit.material(Tema.JANELA, 0.0, 1.0)` |
 | a boca do coro | caixa 0,2 × 0,08 × 0,04 em cada figura, a 2,0 m, na face da frente | `Kit.material(Tema.JANELA, 0.0, 1.0)` |
 | o sino pequeno e o suporte | `CenarioDoCanto.suporte(self, l)` (N1) | o da N1 |
 | o glifo do ensina | `Sprite3D` de 0,35 m | `modulate` `Tema.ETIQUETA` |
 
-Os painéis acendem em ordem (`i` de 0 a 11: a fileira de baixo primeiro) e apagam do último aceso para trás.
+Os painéis acendem em ordem (`i` de 0 a 27: a fileira de baixo primeiro) e apagam do último aceso para trás.
 
 ### O que brilha e de quem é
 
@@ -408,7 +417,7 @@ somem. As tintas das seções ficam longe das cores dos lugares (o cobalto, a da
 ### A montagem
 
 - Por lugar: `raia(l)`, `posicionar(l)`, `rotation.y = 0.0` (de frente), `preso = true`, o sino com o suporte.
-- `_montar_a_praca()`: a fonte, as quatro figuras com a boca, a moldura e os 12 painéis apagados; `_boca` é um
+- `_montar_a_praca()`: a fonte, as quatro figuras com a boca, a moldura e os 28 painéis apagados; `_boca` é um
   `Node3D` pai das quatro bocas (a escala `y` delas muda junto).
 
 ## O som
@@ -537,8 +546,39 @@ trinca.
 - **A curva:** de 0 a 30 s, a roda (cada um aprende a própria nota); de 30 a 60 s, a vez embaralha, duas notas por vez,
   e o acorde a cada duas chamadas; de 60 s ao fim, a vez embaralhada, e nas duas últimas chamadas o acorde.
 - **Ensina sem falar:** a roda da entrada anda P1, P2, P3, P4; o glifo ✕ na primeira resposta.
-- **Quem está perdendo:** é coop. O vitral perde no máximo um painel por compasso, e o acorde perdoa uma voz.
+- **Quem está perdendo:** é coop. O vitral perde no máximo um painel por compasso, e a metade do coro basta para
+  acender: duas vozes seguram as outras duas.
 - **A nota de hoje:** 3. O acorde a cada duas chamadas do pico responde ao «o acorde precisa vir mais vezes».
+
+**O número: 28 painéis, e a metade do coro acende** (o diretor de jogo, 09/10/2026). Com 12 painéis e a falta contada
+por nota, a mesa boa fechava o vitral no pico (aos 43,5 s pela medida do revisor; 45,7 s nesta conta, que fecha o
+compasso na última nota), a reta nunca chegava, e a mesa fraca só chegava à metade em 2 % das partidas. Nenhum número
+de painéis resolve sozinho: o `bom` erra 5 % das notas e o `medio` 34 %, e a regra por nota pune o `medio` quase toda
+vez no pico, onde cada um canta duas. As duas mudanças:
+
+- **28 painéis, 4 colunas × 7 fileiras**, no mesmo quadro de 4,9 × 3,35 m (o painel passa de 1,1 × 0,95 a
+  1,1 × 0,42 m). Somando tudo o que as 23 chamadas antes da reta podem dar (9 da roda, 4 comuns e 4 acordes do pico,
+  6 do 3.º terço), o vitral chega a 27 no máximo: **com 28, ele não fecha antes da reta, por construção, em qualquer
+  mesa**. A mesa boa fecha no primeiro acorde da reta (83,8 s), e o grito do fim é o vitral que se completa.
+- **A falta conta por voz, e a metade do coro acende**: o compasso (e o acorde) acende com pelo menos 2 das 4 vozes
+  e trinca com menos. Uma regra só, para o comum e o acorde, que cabe numa frase: «metade do coro segura a noite».
+- **A risca da trinca fica até o fim** (o rastro), também no painel que reacende: com a regra nova a trinca fica mais
+  rara na mesa padrão, e a risca que some ao reacender ficava à vista em só 18 % do tempo, abaixo de 1 quadro em 5.
+
+A conta pelo robô (as regras desta ficha, 4 000 partidas, semente 7; o `bom` acerta 95 %, o `medio` 66 %; o fecho de
+cada compasso na última nota dele, mais 140 ms):
+
+| medida | 12 painéis, falta por nota (antes) | 28 painéis, metade do coro (agora) |
+| --- | --- | --- |
+| mesa boa: fecha o vitral | 100 %, aos 45,7 s (p10 42,1 s) | 99,9 %, aos 84,0 s (p10 83,8 s) |
+| mesa boa: a reta acontece (a batida 191, 83,0 s) | 0 % | 100 % |
+| mesa boa: pelo menos 2 acordes fechados entre 30 e 60 s | 90,1 % | 100 % |
+| mesa boa: painéis aos 30 s e aos 60 s | 6,4 e 12,0 | 8,0 e 19,9 |
+| mesa fraca: chega à metade dos painéis | 1,7 % (6 de 12) | 81,2 % (14 de 28; o máximo fica em 17,6 em média) |
+| mesa fraca: fecha o vitral | 0 % | 0,7 % |
+| mesa fraca: trincas por partida | 4,4 | 5,7 |
+| mesa padrão: chega à metade; fecha | 0,4 %; 0 % | 92,1 %; 2,6 % |
+| mesa padrão: tempo com uma risca à vista | 51,5 % (o vitral quase sempre vazio) | 67,0 % (a risca fica) |
 
 **Como o jogador do time confere.** O momento pede a **mesa boa** (os quatro `bom`, semente 7: `--robo=bom --semente=7`);
 o resto, a mesa padrão (P1 `bom`, P2 `medio`, P3 `medio`, P4 `ruim`, semente 7, sem a bancada, pela F09):
@@ -575,7 +615,7 @@ no `match` do `_prova_da_ficha(slot)` da H08:
 
 ```gdscript
 ## Coral dos Quatro (S06_J28): é coop; cada um canta a sua nota no alto-falante
-## simulado; o vitral fica entre 0 e 12; o acorde é o momento e põe o R2 em
+## simulado; o vitral fica entre 0 e 28; o acorde é o momento e põe o R2 em
 ## Resistência.
 func _prova_do_coral() -> void:
 	var fora := [0]
@@ -593,7 +633,7 @@ func _prova_do_coral() -> void:
 	if mg == null:
 		return
 	_esperar(mg.coop and mg.destaque() >= 0, "Coral: é coop, com o destaque")
-	_esperar(fora[0] == 0, "Coral: o vitral entre 0 e 12")
+	_esperar(fora[0] == 0, "Coral: o vitral entre 0 e %d" % mg.PAINEIS)
 	_esperar(tocou[0], "Coral: a chamada saiu de um alto-falante simulado")
 	var linhas := _linha_do_tempo().filter(func(e): return e.get("slot") == "S06_J28")
 	var chamadas := linhas.filter(func(e): return e.get("tipo") == "pista" and e.get("evento") == "mandou")
