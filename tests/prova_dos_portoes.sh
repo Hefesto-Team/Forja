@@ -300,6 +300,23 @@ godot --export-release "Linux" dist/forja.x86_64
 # "$GODOT" --path godot -- --simular=4 num comentário'
 espera 0 "caixa: deixa passar a chamada pela caixa, o --import, o -s, o --export e o comentário" python3 "$P/caixa.py" --raiz "$A"
 
+# --- o erro do motor (tests/caixa.sh, caixa_julgar, com a lista de verdade) -----------------------------------
+julga() { bash -c 'source "$1"; caixa_julgar "$2"' _ "$RAIZ/tests/caixa.sh" "$1" | tee "$1.juizo"; return "${PIPESTATUS[0]}"; }
+A="$(arvore julgar)"
+printf '%s\n' 'ok   a sala acabou' 'ERROR: Lambda capture at index 0 was freed. Passed "null" instead.' \
+  '   at: call (modules/gdscript/gdscript_lambda_callable.cpp:242)' 'prova do jogo ok' > "$A/desconhecido.log"
+espera 1 "erro do motor: o ERROR que não está na lista reprova" julga "$A/desconhecido.log"
+espera 0 "erro do motor: a linha diz «FAIL erro do motor:» e o que o motor disse" grep -q '^FAIL erro do motor: Lambda capture' "$A/desconhecido.log.juizo"
+printf '%s\n' 'SCRIPT ERROR: Invalid call. Nonexistent function "x" in base "Nil".' '   at: _ready (res://a.gd:3)' \
+  > "$A/script.log"
+espera 1 "erro do motor: o SCRIPT ERROR que não está na lista reprova" julga "$A/script.log"
+printf '%s\n' 'ERROR: minigame res://scripts/minigames/s01/martelo_de_hefesto.gd: a FICHA não tem «faixa»' \
+  '   at: push_error (core/variant/variant_utility.cpp:1024)' \
+  'ERROR: minigame S01_J01: «genero_que_nao_existe» não vale em genero' \
+  'WARNING: 7 ObjectDB instances were leaked at exit' 'o registro diz um erro em português: ERROR: no meio' \
+  'prova do jogo ok' > "$A/esperado.log"
+espera 0 "erro do motor: os de propósito da lista, o WARNING e o «erro» do meio da linha passam" julga "$A/esperado.log"
+
 # --- o rodar.sh -------------------------------------------------------------------------------------------------
 espera 0 "rodar.sh: os portões do repositório passam (a arte e o som em aviso)" bash "$P/rodar.sh"
 

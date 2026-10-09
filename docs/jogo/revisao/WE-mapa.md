@@ -42,6 +42,11 @@ máquina. Todas chamam o Godot (e o jogo exportado) pelo `caixa` de `tests/caixa
 de mentira e o sysfs vazio. Sem o `bwrap`, a prova sai 2 antes de abrir o Godot; só o CI (a variável `CI`) roda direto.
 No módulo, a sessão aberta com `--simular` só aceita os controles simulados, e o registro diz quem foi recusado.
 
+A prova do jogo, a de poucos, a da bancada e o gauntlet também reprovam pelo erro do motor
+(a [WQ01](../tarefas/WQ01-os-erros-do-motor-reprovam.md)): o `caixa_julgar` de `tests/caixa.sh` lê o registro de cada
+rodada, e toda linha que começa por `ERROR:` ou `SCRIPT ERROR:` reprova, menos as de `tests/erros_esperados.txt`, cada
+uma com o motivo escrito.
+
 - A régua do jogo mora em `godot/testes/prova_do_jogo.gd` (a [V02](../tarefas/V02-a-prova-do-jogo-em-partes.md) a divide).
 - O robô e os 20 defeitos de mentira moram em `nativo/nucleo/simulador.c`.
 - O relógio do ritmo corre no tempo de parede, e a prova do kit sente a máquina carregada

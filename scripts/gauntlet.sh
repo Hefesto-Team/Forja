@@ -42,6 +42,13 @@ rodar() {
 
 caixa "$GODOT" --headless --path "$RAIZ/godot" --import >/dev/null 2>&1 || true
 
+# o erro do motor que não está em tests/erros_esperados.txt conta como problema,
+# no limpo e em cada defeito (WQ01): o defeito tem de ser pego pela prova, não
+# por um erro do motor
+julgar() {
+  caixa_julgar "$SAIDA/$1.log" || { echo "ERRO: erro do motor na rodada «$1»"; falhas=$((falhas + 1)); }
+}
+
 echo "==> limpo, quatro controles simulados"
 if rodar limpo; then
   echo "    passou ($(grep -c '^ok' "$SAIDA/limpo.log") conferências)"
@@ -50,6 +57,7 @@ else
   grep -E "FAIL|SCRIPT ERROR" "$SAIDA/limpo.log" | head -20
   falhas=$((falhas + 1))
 fi
+julgar limpo
 
 for d in "${DEFEITOS[@]}"; do
   if rodar "$d" --defeitos="$d"; then
@@ -58,6 +66,7 @@ for d in "${DEFEITOS[@]}"; do
   else
     echo "    «$d» pego: $(grep -m1 '^FAIL' "$SAIDA/$d.log" | sed 's/^FAIL *//')"
   fi
+  julgar "$d"
 done
 
 if [[ "$falhas" -gt 0 ]]; then

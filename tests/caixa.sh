@@ -66,3 +66,35 @@ CAIXA
   [ "$(command -v pactl)" = "$pasta/bin/pactl" ] || { echo "GUARDA: pactl não é o de mentira"; exit 1; }
   [ "$(command -v caixa)" = "$pasta/bin/caixa" ] || { echo "GUARDA: caixa não é a desta prova"; exit 1; }
 }
+
+## caixa_julgar <registro>: o erro do motor reprova (a WQ01). Conta as linhas
+## que começam por «ERROR:» ou «SCRIPT ERROR:» e não casam com nenhuma
+## expressão de tests/erros_esperados.txt, imprime cada uma como «FAIL erro do
+## motor: …» com as duas linhas seguintes (o «at:»), e devolve 1 se houver
+## alguma. O «WARNING:» não reprova, nem a palavra «erro» que o registro do
+## jogo escreve em português.
+caixa_julgar() {
+  local registro="$1"
+  local esperados="${CAIXA_ESPERADOS:-$(dirname "${BASH_SOURCE[0]}")/erros_esperados.txt}"
+  [ -f "$registro" ] || return 0
+  awk -v lista="$esperados" '
+    BEGIN {
+      while ((getline l < lista) > 0) {
+        if (l ~ /^[[:space:]]*(#|$)/) continue
+        p[++n] = l
+      }
+    }
+    /^(SCRIPT )?ERROR: / {
+      resto = 0
+      for (i = 1; i <= n; i++) if ($0 ~ p[i]) next
+      linha = $0
+      if (linha ~ /^ERROR: /) linha = substr(linha, 8)
+      print "FAIL erro do motor: " linha
+      ruins++
+      resto = 2
+      next
+    }
+    resto > 0 { print "     " $0; resto-- }
+    END { exit ruins > 0 }
+  ' "$registro"
+}

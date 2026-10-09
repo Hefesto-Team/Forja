@@ -1,0 +1,23 @@
+# Os erros do motor que a prova espera (tests/caixa.sh, caixa_julgar). Uma
+# expressão regular estendida (awk) por linha, casada com a linha inteira do
+# registro; o motivo vai no comentário logo acima. Um erro que não está aqui
+# reprova a prova. Não entra erro novo sem o porquê escrito.
+
+# De propósito: a prova do catálogo (godot/testes/prova_do_jogo.gd,
+# _prova_do_catalogo) apaga a «faixa» da FICHA de cada minigame para ver a
+# conferência reprovar, e a conferência acusa com push_error.
+^ERROR: minigame [^ ]+: a FICHA não tem «faixa»$
+# De propósito: a mesma prova troca o gênero da FICHA por um que não existe.
+^ERROR: minigame [^ ]+: «genero_que_nao_existe» não vale em genero$
+
+# Na saída, só na prova do jogo (e no gauntlet, que roda a mesma prova): o
+# motor acusa o que ficou vivo no fim do processo. Não é som tocando (o
+# _calar_o_som_antes_de_sair cala os tocadores antes do quit, e a prova de
+# poucos saiu limpa): com --verbose, são 775 objetos sem nenhum nó órfão
+# (print_orphan_nodes vazio), 333 TextLine, 210 Image, 92 ImageTexture, e os
+# scripts com cache estático (tema.gd, desenho.gd, kit.gd, traducoes.gd)
+# ainda em uso. A cura mora na WQ05 (docs/jogo/tarefas/WQ05-a-prova-do-jogo-sai-limpa.md);
+# quando ela entrar, estas três linhas saem.
+^ERROR: [0-9]+ RID allocations of type '[^']+' were leaked at exit\.$
+^ERROR: [0-9]+ resources still in use at exit( \(run with --verbose for details\))?\.$
+^ERROR: Pages in use exist at exit in PagedAllocator: [A-Za-z0-9_]+$

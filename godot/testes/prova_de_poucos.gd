@@ -55,6 +55,7 @@ func _ready() -> void:
 	var salas: Array = Array(pedidas.split(",")) if pedidas != "" else SALAS
 	for id in salas:
 		await _joga(id, n)
+	await _calar_o_som_antes_de_sair()
 	if falhas > 0:
 		printerr("%d falha(s) com %d controle(s)" % [falhas, n])
 		get_tree().quit(1)
@@ -180,3 +181,19 @@ func _prova_do_x_que_nao_cai(n: int) -> void:
 				viu.append(l)
 	_esperar(liberada and viu.is_empty(), "o ✕ da sala que saiu antes dele não caiu no salão (liberada: %s; ✕ em %s)" % [
 		liberada, str(viu.map(func(l: int) -> String: return "P%d" % (l + 1)))])
+
+
+## Cala todo tocador antes do quit (a WQ01): o som que ainda toca na saída fica
+## preso no servidor de áudio, e o motor acusa «resources still in use at exit».
+## O stop só marca o fim; quem solta o som é o mixer (no tempo de parede) e o
+## quadro seguinte, então espera os dois.
+func _calar_o_som_antes_de_sair() -> void:
+	var pilha: Array[Node] = [get_tree().root]
+	while not pilha.is_empty():
+		var no: Node = pilha.pop_back()
+		if no is AudioStreamPlayer or no is AudioStreamPlayer2D or no is AudioStreamPlayer3D:
+			no.stop()
+		pilha.append_array(no.get_children())
+	for i in 20:
+		OS.delay_msec(10)
+		await get_tree().process_frame
