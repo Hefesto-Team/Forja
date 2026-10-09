@@ -15,7 +15,7 @@ uma linha em "Para a próxima leva", no fim.
   pelo semáforo:
   `bash /mnt/Apate/Desenvolvimento/hefesto-dualsense4unix/docs/process/ferramentas-da-leva/vez-do-pytest.sh <cmd>`.
 - **O quadro novo** é um script em `godot/estudos/direcao/quadros/` com o
-  número seguinte (o último hoje é o 09) e entra na lista `QUADROS` do
+  número seguinte (o último hoje é o 18) e entra na lista `QUADROS` do
   `render.sh`. A imagem sai em `docs/imagens/direcao/`, JPG de 1920×1080
   (ou o tamanho que o item pede), qualidade 90.
 - **Os portões de arte** ([12](12-portoes.md)) valem para o estudo também,
@@ -242,6 +242,124 @@ com a etiqueta no estilo das que existem, a imagem por caminho relativo e uma
 linha que aponta para o arquivo da bíblia que ela prova; a página continua
 abrindo em `file://`; nenhuma imagem passa de 1 MB.
 
+## O ajuste do cavaleiro
+
+Pedido dela em 09/10: as peças se diferenciam na montagem, o néon deixa de
+ser uma cor só, e o cavaleiro ganha raças. As regras estão no
+[04](04-o-cavaleiro.md#a-peça-se-distingue), no
+[02](02-cor-e-letra.md#o-cavaleiro-a-cor-da-peça-e-o-néon-do-dono) e no
+[04, as raças](04-o-cavaleiro.md#as-raças). Seis itens, um commit cada, nesta
+ordem: o 14 vem antes de qualquer prancha.
+
+### 14 O estudo veste a peça na cor dela
+
+**Saída:**
+
+- `godot/estudos/direcao/fita.gd`: as GRADEs `tecido` (l0 0,46, l1 0,12, sat
+  0,55) e `couro` (l0 0,22, l1 0,14, sat 0,40), o teto de croma 0,10 no
+  `recolorir` de toda peça, e os tokens `PELE_ORC`, `PELE_LATAO`,
+  `PELE_ESCORIA` e `PELE_RAPOSA`;
+- `godot/estudos/direcao/mundo.gd`, no `vestir`, e
+  `shaders/cavaleiro.gdshader`: `tingir` 0, `brilho_proprio` 0, `aro` 0,25; o
+  acento (friso, costura, runa, visor, rachadura) é uma malha à parte em
+  `neon` na cor do dono, energia 1,6, e nunca um tom no corpo;
+- `cavaleiro/montar.gd`: o friso no superior (faixa de 0,010 m na barra e na
+  gola), a costura no inferior (0,008 m no lado de fora das pernas), a runa do
+  item, o medalhão em cerâmica e latão; e a opção `raca`.
+
+**Pronto quando:**
+
+- um `grep` por `tingir` no estudo só acha o valor 0;
+- o contorno fica em 1,6 na montagem e 2,4 no jogo, como no [07](07-vfx.md#a-tabela-do-brilho);
+- a medida do item 17 passa em todas as linhas.
+
+### 15 As raças entram no estudo
+
+**Saída:**
+
+- `godot/estudos/direcao/kenney/mini-dungeon-personagens/character-orc.glb`,
+  copiado de `oficina/kenney/3.7.0/3D assets/Mini Dungeon/Models/GLB format/`,
+  com a `Textures/` e a `License.txt`. Fica numa pasta à parte porque o
+  `recolorir.gd` dá um papel por pacote: o do orc é `personagem`, o do resto do
+  Mini Dungeon é cenário;
+- `godot/estudos/direcao/kenney/cube-pets/animal-fox.glb`, com a `Textures/` e
+  a `License.txt`; só o nó `tail` é usado;
+- `cavaleiro/racas.gd`: o Autômato, o Golem e a cabeça da Raposa por
+  `ArrayMesh`, com as medidas da tabela do [04](04-o-cavaleiro.md#as-raças);
+- `cavaleiro/cortar.gd` corta o orc também.
+
+**Pronto quando:**
+
+- o `cortar.gd` imprime o orc com 176, 144 e 54 triângulos e 0 misturados;
+- o Autômato e a Raposa ficam em até 300 triângulos, o Golem em até 400;
+- a cauda da Raposa (escala 0,33, no osso da raiz em (0; 0,20; −0,10)) passa
+  pela abertura da cadeira de rodas sem cruzar o encosto;
+- as mãos de pinça e os punhos de pedra seguem o osso da mão nas 32 animações.
+
+### 16 As pranchas refeitas e a das raças
+
+**Saída:**
+
+- `docs/imagens/direcao/10_montagem.jpg` refeita: as quatro colunas com
+  quatro raças diferentes (uma humana), as cores das peças sem tom;
+- `docs/imagens/direcao/11_pecas.jpg` refeita: cada peça no material dela,
+  com o acento aceso na cor de P1;
+- `docs/imagens/direcao/08_cavaleiros.jpg` refeita, sem o corpo tingido;
+- `godot/estudos/direcao/quadros/19_racas.gd` e
+  `docs/imagens/direcao/19_racas.jpg` (1920×1440), com `19_racas` na lista
+  `QUADROS` do `render.sh`.
+
+**Pronto quando:**
+
+- a 19 tem cinco linhas (Humana, Orc, Autômato, Golem, Raposa) por quatro
+  colunas (P1 a P4), cada cavaleiro de frente e a 3/4; embaixo, uma linha das
+  cinco cabeças a 64 px em cinza e uma da silhueta em preto chapado;
+- nas duas linhas de baixo, as cinco cabeças se distinguem pela forma, sem a
+  cor;
+- na 10, a 64 px e em cinza, as três peças de cada coluna se separam a olho;
+- a 10 e a 11 não têm nenhum pixel de peça com o néon do dono fora do acento;
+- a mesma rodada gera as três imagens duas vezes, e elas saem iguais.
+
+### 17 A medida da peça
+
+**Saída:** `godot/estudos/direcao/medir_pecas.gd`, que roda sem tela
+(`--headless -s`) e escreve `docs/jogo/arte/dados/pecas_medidas.csv`: por
+peça, a mediana de L em OKLab, o croma, a área de acento sobre a área frontal
+do corpo e o ΔE OKLab até cada `JOGADOR`.
+
+**Pronto quando:**
+
+- toda cabeça humana fica em L 0,68 a 0,80, todo superior em 0,46 a 0,58,
+  todo inferior em 0,22 a 0,36;
+- nenhuma peça passa de croma 0,10, e nenhuma fica a menos de ΔE 0,08 de um
+  `JOGADOR`;
+- vizinhos (cabeça e superior, superior e inferior) distam L 0,10 ou mais;
+- o acento soma até 8 % da área frontal, sem contar o contorno;
+- rodar duas vezes dá o mesmo CSV, byte a byte.
+
+### 18 O primeiro minuto em imagem
+
+**Saída:** `godot/estudos/direcao/quadros/20_encaixe.gd` e
+`docs/imagens/direcao/20_encaixe.jpg` (1920×1080: seis miniaturas de
+640×540), com `20_encaixe` no `QUADROS`.
+
+**Pronto quando:** os instantes 0, 60, 125, 250, 500 e 750 ms da troca de
+uma peça, pela linha do tempo do
+[04](04-o-cavaleiro.md#o-primeiro-minuto): a seta, a peça caindo 0,06 m, o
+encaixe com as 8 faíscas e o acento a 2,6, a pose da linha, o giro da
+plataforma a 25° e a volta ao `idle`; o instante e o que acontece escritos
+embaixo de cada miniatura, em VT323 30.
+
+### 19 A página
+
+**Saída:** `docs/jogo/direcao-de-arte.html`.
+
+**Pronto quando:** a legenda do 08 deixa de dizer "o corpo tingido pela cor
+do lugar" e diz que a cor do lugar está no contorno e no acento; a 10 e a 11
+trocam de imagem; a 19 e a 20 ganham seção, com a etiqueta no estilo das
+outras e a linha para o 04; a página abre em `file://`; nenhuma imagem passa
+de 1 MB.
+
 ## Os sons
 
 Os sons não estão nesta lista. Todo som e toda música da Forja estão no mapa
@@ -267,3 +385,5 @@ Do produtor de arte e som, 08/10. Os 13 itens estão feitos; o que segue não co
 - **A tarja do car_acorde.** Ficou com 80 × 40 px por jogador. Conferir na TV a 3 m.
 - **O README da arte.** Resolvido pelo conferente em 08/10: diz Dó, Ré, Fá e Sol, o acorde suspenso do 03.
 - **A trilha.** O LEIA-ME de `ost/` e o pedido do JIN_COOP_VITORIA ficam para o produtor de música ou a H09.
+- **As cabeças humanas dos outros Mini.** Do diretor de arte, 09/10: o Mini Arena, o Forest, o Skate, o Arcade, o Market e os humanos do Mini Dungeon têm o mesmo esqueleto de 7 ossos. Viram perfis novos de cabeça na próxima leva, depois das raças.
+- **O acorde da build boa.** O id do som ainda não existe no mapa do áudio. Pedir ao diretor de som.
