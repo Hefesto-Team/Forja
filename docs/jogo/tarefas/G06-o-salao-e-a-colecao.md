@@ -558,3 +558,48 @@ sugerido (sem trailer):
 ```
 feat: o salão conta a noite, com o portão que acende, o contador, a vitrine e os acabamentos que se ganham jogando
 ```
+
+## O que foi feito (leva 1, o-cavaleiro)
+
+**Feita no que as fichas anteriores deixam.** O HUD do salão ficou no núcleo, porque a G04, a G11 e a G14 ainda não chegaram.
+
+- **A coleção** (`godot/scripts/colecao.gd`, `class_name Colecao`, e o `.uid`): a API da ficha (`carregar`, `ler`, `guardar`, `gravar`, `zerar`,
+  `registrar`, `minigames_da_secao`, `secao_acesa`, `secoes_acesas`, `marcas`, `desbloqueado`); `user://colecao.cfg` com uma seção por noite
+  (as 14 mais novas ficam); o evento `colecao` (`id`, `trofeus`, `desbloqueou`) no registro; `Colecao.carregar(robo)` no `forja.gd`, depois de
+  `Opcoes.carregar`. Com o robô nada se lê nem se grava.
+- **O salão** (`salao.gd`): `PORTOES` sem `sobre` e `icone`; a etiqueta do cassete em 3D (papel, tarja na tinta da seção, nome em Permanent
+  Marker, linha em VT323, uma marca por minigame); o `SpotLight3D` a 3,2 (aceso) e 0,55 (apagado) e o tubo de tungstênio só no aceso; a
+  vitrine na parede leste (as pedras saem), com a taça, a moeda e os quatro cubos, os 18 troféus mais novos; `mostrar_colecao(lado_b)`,
+  `portao_aceso`, `trofeus_na_vitrine`, `cor_do_trofeu`, `pausar_ambiente`; o laço `amb_salao`.
+- **O som:** `amb_salao.wav` entra no jogo (`edit/loop_mode=2`, `compress/mode=0`; no mapa passa a `no jogo`); `Som.laco` toca o arquivo do mapa
+  em laço (uma cópia, para o `tocar` do mesmo id não herdar o laço); `Musica.jingle(slot)` toca o `JIN_*` se o OGG existe (hoje nenhum
+  existe: a H05 os traz); `ui_confirma` e `ui_volta` (já no jogo) soam no ✕ do salão, na TV e na mão de quem apertou, com o toque.
+- **O cavaleiro** (`player.gd`): o Cromado e o Néon (`acento` 2,4, teto 3,0) em `ACABAMENTOS`, `acabamentos_disponiveis()` com a coleção, e o
+  acento de repouso do acabamento escrito no shader (o encaixe sobe 1,0 acima dele).
+- **O HUD** (`hud.gd`, `desenho.gd`): o contador `n/9`, «Salas vencidas», os chips com o nome do cavaleiro na cor do lugar (`Desenho.chip`
+  novo, com `palavra`), a dica presa à cabeça de quem chegou num portão ou na bigorna (a placa de baixo sai) e `retangulos()`.
+- **O main:** `Colecao.registrar` no fim de toda sala (`SalaJogo.erros_do_grupo()` novo, devolve 0), o aviso «X na forja» e «Recorde da noite»,
+  `mostrar_colecao` e `vencidas` na volta ao salão, a deriva da câmera de 2 % e `Forja.som_preparar` ao entrar no salão (sem isso o
+  alto-falante do controle fica calado ali).
+- **`Tema`:** `ETIQUETA_SOMBRA`, `TINTA_SUAVE` e `tinta_da_secao(n)` (os tokens do arte/02 que faltavam).
+- **As provas** (`prova_do_jogo.gd`): `_prova_das_contas_da_colecao` (as contas, o arquivo, a noite que muda, as 14 noites, o robô que não grava, os
+  acabamentos) e `_prova_da_colecao_no_salao` ao fim da partida (o portão aceso, o foco, o tubo, o contador, a vitrine, a cor da taça, o
+  Dourado, a dica presa, o ✕ no alto-falante). Mordida: contar zero ponto como vitória, tirar a coleção de `acabamentos_disponiveis` e apagar o
+  `mostrar_colecao` reprovaram 11 checagens; as curas voltaram.
+
+### Desvios e decisões (a validar por ela)
+
+- A G04, a G11 e a G14 não chegaram: o contador fica logo abaixo dos lugares (y 148, e não em y 60), os chips sobem 70 px (y 886) para não
+  cair em cima das dicas de baixo, e o `Desenho.chip` e a dica presa são os mínimos desta ficha. O resto (a etiqueta «O Salão», o contador de
+  rodas na posição final, a `Desenho.etiqueta` da G11) é delas.
+- Sem `Tema.neon` (G15), o tubo usa `Kit.neon(TUNGSTENIO, 1,3)`; a etiqueta da lente de 35 mm é da G05 e não entrou, só a deriva.
+- «Salas vencidas» já existia na tabela como «Rooms won»; ficou, e não «Rooms cleared» como na ficha.
+- A deriva usa `Opcoes.tremor` até a G16 trazer `Opcoes.movimento`.
+- O recorde dá `Forja.sentir(lugar, "acerto")` (0,3/0,6/80 na tabela), e o ✕ do salão dá `"toque"` (0/0,45/60), no lugar do `"erro"` de hoje.
+- A prova tira «voz» da noite por um instante para ter um portão apagado: o robô vence todos nos percursos anteriores.
+
+### O que fica para a mão dela e do André
+
+- A prancha do salão ao lado de `02_salao.jpg` com placa de vídeo e sem `--fixed-fps` (o tungstênio contra o violeta, a vitrine, os chips).
+- Parar perto de um portão: a dica acompanha a cabeça e o ✕ soa na mão; fechar e abrir na mesma noite (a vitrine continua); apagar o
+  `colecao.cfg` (a coleção volta vazia).

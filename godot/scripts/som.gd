@@ -149,7 +149,9 @@ func tocar(nome: String, pos: Variant = null, volume_db := 0.0, tom := 1.0) -> v
 
 ## Um som em laço preso num lugar do mundo (o fogo da forja).
 func laco(nome: String, pai: Node3D, pos: Vector3, volume_db := -8.0) -> AudioStreamPlayer3D:
-	var s := stream(nome, true)
+	var s: AudioStream = _arquivo_em_laco(nome)
+	if s == null:
+		s = stream(nome, true)
 	var p := AudioStreamPlayer3D.new()
 	p.stream = s
 	p.volume_db = volume_db
@@ -158,6 +160,20 @@ func laco(nome: String, pai: Node3D, pos: Vector3, volume_db := -8.0) -> AudioSt
 	p.position = pos
 	pai.add_child(p)
 	return p
+
+
+## O arquivo do id do mapa (assets/sons/<id>.wav) em laço, do primeiro ao último quadro;
+## uma cópia, para o `tocar` do mesmo id não herdar o laço. null: não há arquivo.
+func _arquivo_em_laco(nome: String) -> AudioStreamWAV:
+	var base := arquivo(nome)
+	if base == null:
+		return null
+	var w := base.duplicate() as AudioStreamWAV
+	var por_quadro := 2 * (2 if w.stereo else 1)
+	w.loop_mode = AudioStreamWAV.LOOP_FORWARD
+	w.loop_begin = 0
+	w.loop_end = w.data.size() / por_quadro
+	return w
 
 
 ## O mesmo efeito no alto-falante do controle do lugar (o módulo recebe a

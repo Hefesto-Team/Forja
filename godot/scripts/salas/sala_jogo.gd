@@ -547,3 +547,9 @@ func dica(_lugar: int) -> Dictionary:
 ## aviso (vazio quando nada muda). Só as salas que mudam dizem o delas.
 func com_poucos() -> String:
 	return ""
+
+
+## Os erros do grupo numa sala cooperativa (a coleção só dá os quatro cubos a um coop sem erro).
+## O padrão é 0; o kit de minigames (H04) soma os `julgar` e a sala que erra sobrescreve.
+func erros_do_grupo() -> int:
+	return 0

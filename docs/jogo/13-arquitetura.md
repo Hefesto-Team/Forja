@@ -198,7 +198,7 @@ Os tipos, e quem os escreve:
 | `item` | `item`, `efeito` | G03 |
 | `sessao` | amplia o de hoje com `escala_vibracao` e `gatilho` de cada lugar | F05 |
 | `cavaleiro` | `boneco`, `item`, `nome`, `acabamento` (a G13 troca `boneco` por `cabeca`, `superior`, `inferior`); `nome_escrito` (digitado, não sorteado) e `t_nome_ms` (o tempo com o teclado aberto, em ms de parede) | G02, G09 |
-| `colecao` | `desbloqueou` (o que), `por` (a conquista) | G06 |
+| `colecao` | `id` (o minigame que acabou), `trofeus` (o que ganhou: `vitoria`, `recorde`, `coop`), `desbloqueou` (os acabamentos que a coleção abriu) | G06 |
 | `momento` | `slot`, `nome`, `t_musica`; hoje só `montagem` / `nome_escrito` (o lugar gravou um nome que ele mesmo digitou) | G09 |
 | `fala` | `evento`, `texto` | G07 |
 | `desempenho` | `slot`, `fps_min`, `fps_media` | F09 |
@@ -394,7 +394,7 @@ decidido:
 | `SalaJogo` | `usa_gatilho`, `errou(l)` | G03 |
 | `player.gd` | `BONECOS` com o `intervalo` do pio (saem `MODELOS`, `NOME_DO_MODELO`, `INTERVALO_DO_MODELO`), `nome_do_boneco`, `brilho_do_contorno`, `acender_acento`; `Kit.anel_do_dono` | G08 |
 | `SalaJogo` | `falar(l, evento)`, `mostrar_julgamento(l, j)` — em `SalaJogo`, para as salas de hoje usarem antes do kit; `godot/scripts/falas.gd` | G07 |
-| `Salao` | `pulso`, `apagado`, `acender_bigorna`, `mostrar_colecao`; `godot/scripts/colecao.gd` | G06 |
+| `Salao` | `pulso`, `apagado`, `acender_bigorna`, `mostrar_colecao`, `portao_aceso`, `trofeus_na_vitrine`, `cor_do_trofeu`, `pausar_ambiente`; `godot/scripts/colecao.gd` | G06 |
 | `ui/teclado_do_nome.gd` | `class_name TecladoDoNome`: o estado e o desenho do teclado de um lugar (`abrir`, `quadro`, `mover`, `escolher`, `apagar`, `sortear`, `desenhar`; `formatar` e `nome_final` estáticos); `TelaLobby.teclados[4]`, `nome_escrito[4]`, `t_nome_ms[4]`; `Desenho.nome`, `nome_que_cabe` e `largura_do_nome` desenham o nome sem passar pela tabela de traduções | G09 |
 | `scripts/` | `conferir_bonecos.py`: confere os sete ossos e as animações de um `.glb` | G08 |
 
@@ -405,6 +405,27 @@ caminho de toda peça sai de `Kit.caminho(nome)`: `"castle-kit/tower-base"`
 vai para `res://assets/kenney/castle-kit/tower-base.glb`; sem pacote no nome,
 vale o `mini-dungeon`. A curadoria (o que entra e o que não) é o
 [14](14-os-assets-kenney.md); a importação, a [G10](tarefas/G10-a-biblioteca-kenney.md).
+
+### A coleção — G06
+
+`godot/scripts/colecao.gd` (`class_name Colecao`, estática) guarda o que o grupo
+conquistou na noite (`Opcoes.noite()`); outra noite começa vazia. Vive em
+`user://colecao.cfg`, uma seção por noite (as 14 mais novas ficam). Com o robô,
+nada se lê nem se grava. Só aparência: nenhum desbloqueio muda stat.
+
+```gdscript
+static func carregar(robo: bool) -> void          # forja.gd, logo depois de Opcoes.carregar
+static func registrar(id: String, pontos: Array, presentes: Array, coop := false, sem_erro := false) -> Dictionary
+                                                  # {"desbloqueou": [nomes], "recorde": lugar ou -1}
+static func secao_acesa(id_do_portao: String) -> bool
+static func secoes_acesas() -> int                # de 0 a 9: os 8 portões e A Prova
+static func marcas(id_do_portao: String) -> Array # um bool por minigame da seção
+static func desbloqueado(nome: String) -> bool    # Dourado, Cromado, Néon
+```
+
+O Dourado vem do primeiro troféu da noite, o Cromado de três seções acesas e o
+Néon de um coop sem erro. `SalaJogo.erros_do_grupo()` devolve 0 até o kit (H04)
+somar os erros. `Musica.jingle(slot)` toca um `JIN_*` uma vez, se o OGG existe.
 
 ### O item — G03
 

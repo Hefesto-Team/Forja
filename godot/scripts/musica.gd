@@ -229,6 +229,24 @@ func mapa_gerado(slot: String) -> Dictionary:
 	return m
 
 
+## Um jingle (JIN_*) tocado uma vez, por cima da música, no mesmo bus das faixas.
+## Sem o OGG gerado (a H05 o traz), nada: o jogo não inventa uma nota no lugar.
+func jingle(slot: String) -> void:
+	if not ResourceLoader.exists(caminho(slot)):
+		return
+	var s: AudioStreamOggVorbis = load(caminho(slot))
+	if s == null:
+		return
+	s.loop = false
+	var p := AudioStreamPlayer.new()
+	p.stream = s
+	p.volume_db = VOLUME_DB
+	p.bus = _tocadores[0].bus
+	add_child(p)
+	p.finished.connect(p.queue_free)
+	p.play()
+
+
 ## A faixa gerada, com o laço do tipo dela: a tela (e o Relâmpago) volta ao
 ## zero (o Ritmo conta as voltas a partir do 0); a de minigame não volta.
 func _ogg(slot: String) -> AudioStreamOggVorbis:

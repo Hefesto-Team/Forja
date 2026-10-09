@@ -301,6 +301,12 @@ const EN := {
 	"Polido": "Polished",
 	"Riscado": "Scratched",
 	"Dourado": "Golden",
+	"Cromado": "Chrome",
+	"Néon": "Neon",
+	"Tocar a faixa": "Play the track",
+	"Tocar A Prova": "Play The Trial",
+	"Partida": "Match",
+	"Prova de Fogo": "Trial by Fire",
 	"Forjar": "Forge",
 	"Sortear": "Shuffle",
 	"Forjado": "Forged",
@@ -312,6 +318,11 @@ const EN := {
 
 ## Os textos com número: [padrão, substituição] (a substituição usa $1, $2…).
 const EN_PADROES := [
+	["^(.+) na forja$", "$1 in the forge"],
+	["^Recorde da noite: P(\\d)$", "Record of the night: P$1"],
+	["^S(\\d) · 1 FAIXA$", "S$1 · 1 TRACK"],
+	["^S(\\d) · (\\d+) FAIXAS$", "S$1 · $2 TRACKS"],
+	["^S(\\d) · EM BREVE$", "S$1 · COMING SOON"],
 	["^(\\d+) pontos$", "$1 points"],
 	["^Terminou · (\\d+)$", "Done · $1"],
 	["^Runa (\\d+) de (\\d+) · (\\d+)$", "Rune $1 of $2 · $3"],

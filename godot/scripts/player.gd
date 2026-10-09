@@ -48,7 +48,12 @@ const ACABAMENTOS := [
 	{"nome": "Polido", "rugoso": 0.45, "metal": 0.2},
 	{"nome": "Riscado", "rugoso": 0.75, "metal": 0.1},
 	{"nome": "Dourado", "rugoso": 0.5, "metal": 0.2, "livre": false},
+	{"nome": "Cromado", "rugoso": 0.25, "metal": 0.2, "claro": 0.0, "livre": false},
+	{"nome": "Néon", "rugoso": 0.6, "metal": 0.0, "claro": 0.0, "acento": 2.4, "livre": false},
 ]
+## A energia de repouso do acento do corpo (G08: 1,6); o Néon sobe a 2,4. Teto 3,0.
+const ACENTO_REPOUSO := 1.6
+const ACENTO_TETO := 3.0
 ## As malhas da Kenney dos itens que as têm (a G10 troca o caminho por Kit.caminho).
 const MALHA_DO_ITEM := {
 	"martelo": "res://assets/kenney/survival-kit/tool-hammer.glb",
@@ -152,12 +157,12 @@ func visual(m: int, item: int) -> void:
 	_aplicar_acabamento()
 
 
-## Os índices de ACABAMENTOS que já são do jogador ("livre" ausente ou true; a
-## G06 soma a coleção).
+## Os índices de ACABAMENTOS que já são do jogador: os livres e os que a coleção da
+## noite desbloqueou (Dourado, Cromado, Néon).
 static func acabamentos_disponiveis() -> Array:
 	var v: Array = []
 	for i in ACABAMENTOS.size():
-		if bool(ACABAMENTOS[i].get("livre", true)):
+		if bool(ACABAMENTOS[i].get("livre", true)) or Colecao.desbloqueado(str(ACABAMENTOS[i].nome)):
 			v.append(i)
 	return v
 
@@ -190,6 +195,13 @@ func _aplicar_acabamento() -> void:
 		m.set_shader_parameter("rugoso_cima", RUGOSO_CIMA if padrao else float(a.rugoso))
 		m.set_shader_parameter("rugoso_baixo", RUGOSO_BAIXO if padrao else float(a.rugoso))
 		m.set_shader_parameter("metal", 0.0 if padrao else float(a.metal))
+		m.set_shader_parameter("acento", _acento_de_repouso())
+
+
+## A energia de repouso do acento do acabamento de agora (o Néon sobe; o resto, 1,6).
+func _acento_de_repouso() -> float:
+	var a: Dictionary = ACABAMENTOS[clampi(acabamento_i, 0, ACABAMENTOS.size() - 1)]
+	return minf(float(a.get("acento", ACENTO_REPOUSO)), ACENTO_TETO)
 
 
 ## O nome de um boneco, na língua do jogo.
@@ -432,7 +444,8 @@ func acender_acento() -> void:
 	if not is_inside_tree():
 		return
 	var t := create_tween().set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
-	t.tween_method(_acento_em, 2.6, 1.6, 0.25)
+	var repouso := _acento_de_repouso()
+	t.tween_method(_acento_em, minf(repouso + 1.0, ACENTO_TETO), repouso, 0.25)
 
 
 func _acento_em(v: float) -> void:

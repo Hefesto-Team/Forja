@@ -142,6 +142,7 @@ func _interface() -> void:
 	lobby.jogadores = jogadores
 	lobby.salao = salao
 	hud = HudJogo.new()
+	hud.camera = camera
 	painel = PainelSala.new()
 	resultado = TelaResultado.new()
 	diagnostico = Diagnostico.new()
@@ -263,6 +264,12 @@ func _mostrar(qual: String) -> void:
 	intro.visible = qual == "intro"
 	lobby.visible = qual == "lobby"
 	hud.visible = _hud_visivel()
+	if qual != "salao":
+		hud.vencidas = -1
+		hud.dica_presa = {}
+	salao.pausar_ambiente(qual != "salao")
+	if qual == "salao":
+		Forja.som_preparar(Forja.PAPEL_ALTO_FALANTE)  # o ✕ do salão soa na mão de quem apertou
 	salao.pedestais_no.visible = qual in ["lobby", "podio", "intro"]
 	_focar_o_titulo(qual == "titulo")
 	# o contorno de néon do dono: 1,6 na montagem, 2,4 no resto (G08)
@@ -338,6 +345,8 @@ func _ir_para_o_salao(com_cortina := true) -> void:
 			p.visible = Forja.ocupado(p.lugar)
 			i += 1
 		_mostrar("salao")
+		salao.mostrar_colecao(partida != null and partida.lado() == "B")
+		hud.vencidas = Colecao.secoes_acesas()
 		hud.sala = {}
 		hud.status_da_sala = ["", "", "", ""]
 	if com_cortina:
@@ -379,7 +388,7 @@ func _entrar_na_sala(id: String, com_cortina := true) -> void:
 			or (sala as SalaJogo).cega))
 		_mostrar("sala")
 		hud.sala = {"nome": sala.nome, "acao": sala.acao}
-		hud.placa = {}
+		hud.dica_presa = {}
 	if com_cortina:
 		_trocar(feito)
 	else:
@@ -396,6 +405,8 @@ func _ao_terminar_a_sala() -> void:
 		return
 	if sala_id == "bancada":
 		return  # a bancada fica no painel dela: ✕ repete, ○ fecha
+	if sala is SalaJogo:
+		_registrar_na_colecao(sala as SalaJogo)
 	if partida and sala is SalaJogo:
 		_placar_da_sala(sala as SalaJogo)
 		return
@@ -418,6 +429,21 @@ func _ao_terminar_a_sala() -> void:
 				_abrir_overlay("livro", 0))
 		return
 	_ir_para_o_salao()
+
+
+## O fim de uma sala vai para a coleção da noite: o troféu, o recorde, o que se desbloqueou.
+func _registrar_na_colecao(sj: SalaJogo) -> void:
+	var presentes: Array = []
+	for l in 4:
+		if sj.jogando[l]:
+			presentes.append(l)
+	var r := Colecao.registrar(sj.id, sj.pontos, presentes, sj.coop, sj.coop and sj.coop_venceu and sj.erros_do_grupo() == 0)
+	for nome in r.desbloqueou:
+		Forja.aviso.emit("%s na forja" % nome)
+	if r.recorde >= 0:
+		Forja.aviso.emit("Recorde da noite: P%d" % (r.recorde + 1))
+		Musica.jingle("JIN_RECORDE")
+		Forja.sentir(r.recorde, "acerto")
 
 
 ## Todas as salas que medem, na ordem do percurso, sem voltar ao salão.
@@ -520,7 +546,7 @@ func _ir_para_o_podio() -> void:
 	_mostrar("podio")
 	Musica.tocar("podio")
 	hud.sala = {}
-	hud.placa = {}
+	hud.dica_presa = {}
 	placar.abrir(partida, true)
 	placar.visible = true
 	var frase := Placar.frase_do_vencedor(lista)
@@ -866,6 +892,8 @@ func _quadro_lobby(dt: float) -> void:
 func _quadro_salao() -> void:
 	if _atalhos_de_overlay():
 		return
+	for q in jogadores:
+		hud.nomes[q.lugar] = q.nome
 	# o portão mais perto de algum jogador
 	var perto := ""
 	var quem := -1
@@ -888,14 +916,29 @@ func _quadro_salao() -> void:
 		_perto_da_bigorna()
 		return
 	var dados: Dictionary = salao.portoes[perto].dados
-	hud.placa = {"nome": dados.nome, "sobre": dados.sobre, "aberta": dados.aberta}
+	var cabeca := Vector3.ZERO
+	for p in jogadores:
+		if p.lugar == quem:
+			cabeca = p.global_position + Vector3(0, 1.9, 0)
+	hud.dica_presa = {"lugar": quem, "cabeca": cabeca, "fechado": not dados.aberta,
+		"linhas": [["cruz", "Tocar a faixa" if dados.aberta else "Em breve"]]}
 	if dados.aberta:
 		for p in jogadores:
 			if p.visible and Forja.apertou(p.lugar, Forja.CRUZ):
+				_som_do_cruz(p.lugar, true)
 				_entrar_na_sala(perto)
 				return
 	elif quem >= 0 and Forja.apertou(quem, Forja.CRUZ):
-		Forja.sentir(quem, "erro")
+		_som_do_cruz(quem, false)
+
+
+## O ✕ no salão: `ui_confirma` num portão aberto ou na bigorna, `ui_volta` no fechado, na TV e no
+## alto-falante de quem apertou, com o toque na mão.
+func _som_do_cruz(lugar: int, confirma: bool) -> void:
+	var id := "ui_confirma" if confirma else "ui_volta"
+	Som.tocar(id, null, -12.0)
+	Som.no_controle(lugar, id, 0.85)
+	Forja.sentir(lugar, "toque")
 
 
 ## A bigorna no meio do salão: ✕ entra n'A Prova, □ escolhe uma partida, △
@@ -907,22 +950,26 @@ func _perto_da_bigorna() -> void:
 			continue
 		if Vector2(p.global_position.x - centro.x, p.global_position.z - centro.z).length() > 3.1:
 			continue
-		hud.placa = {"nome": "A Prova", "sobre": "Seção 9 · □ a partida · △ a Prova de Fogo", "aberta": true}
+		hud.dica_presa = {"lugar": p.lugar, "cabeca": p.global_position + Vector3(0, 1.9, 0), "fechado": false,
+			"linhas": [["cruz", "Tocar A Prova"], ["quadrado", "Partida"], ["triangulo", "Prova de Fogo"]]}
 		for q in jogadores:
 			if not q.visible:
 				continue
 			if Forja.apertou(q.lugar, Forja.CRUZ):
+				_som_do_cruz(q.lugar, true)
 				_entrar_na_sala("prova")
 				return
 			if Forja.apertou(q.lugar, Forja.QUADRADO):
+				_som_do_cruz(q.lugar, true)
 				_abrir_overlay("partida", q.lugar)
 				return
 			if Forja.apertou(q.lugar, Forja.TRIANGULO):
+				_som_do_cruz(q.lugar, true)
 				Som.tocar("martelo", centro + Vector3(0, 1, 0))
 				_comecar_a_prova_de_fogo()
 				return
 		return
-	hud.placa = {}
+	hud.dica_presa = {}
 
 
 func _quadro_sala() -> void:
@@ -1173,7 +1220,18 @@ func _pose_da_camera() -> Array:
 	var dist := clampf(11.5 + abertura * 0.5, 11.5, 18.0)
 	c.x = clampf(c.x, -6.0, 6.0)
 	c.z = clampf(c.z, -4.0, 5.0)
+	# a deriva (arte/01): um pan lateral de 2 % da distância, ida e volta em 32 compassos
+	if Opcoes.tremor:
+		c.x += dist * 0.02 * (_deriva_do_salao() - 0.5)
 	return [c + Vector3(0, dist * 0.92, dist * 0.7), c + Vector3(0, 0.6, -3.2)]
+
+
+## A deriva do salão: 0..1..0 em 32 compassos, curva seno (ENTRA_SAI).
+func _deriva_do_salao() -> float:
+	var bpm := Ritmo.bpm if Ritmo.bpm > 0.0 else 110.0
+	var f := fmod(_t * bpm / 60.0 / 64.0, 2.0)
+	var k := f if f < 1.0 else 2.0 - f
+	return (1.0 - cos(PI * k)) * 0.5
 
 
 ## As salas são desenhadas para 16:9. Numa tela mais estreita (o Steam Deck,

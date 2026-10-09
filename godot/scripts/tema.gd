@@ -202,6 +202,8 @@ const JANELA := Color("#07050c")      ## o vidro escuro da janela do cassete
 const SOMBRA := Color(0, 0, 0, 0.45)  ## a sombra deslocada de placa e etiqueta
 const ETIQUETA := Color("#efe4c8")    ## o papel da etiqueta, o texto claro
 const TINTA := Color("#1c1626")       ## a caneta sobre a etiqueta
+const ETIQUETA_SOMBRA := Color("#cfc2a0")  ## a dobra do papel, a linha pautada
+const TINTA_SUAVE := Color("#5a4f66")  ## o rótulo impresso na etiqueta
 const TUNGSTENIO := Color("#ffd9a8")  ## a luz quente de lâmpada: luz, nunca traço
 const OXIDO := Color("#3b2a22")       ## a fita magnética em si
 const OXIDO_BRILHO := Color("#7a5640")  ## o óxido que pega luz
@@ -218,6 +220,13 @@ const SECAO := [
 	Color("#c79a2a"),  ## 4 mostarda
 	Color("#86409a"),  ## 5 ameixa
 ]
+## A tinta da seção n (1 a 9, a ordem do arte/02): S1 e S9 vermelhão, S2 e S6 cobalto, S3 e S7
+## petróleo, S4 mostarda, S5 e S8 ameixa.
+static func tinta_da_secao(n: int) -> Color:
+	var indice := [0, 1, 2, 3, 4, 1, 2, 4, 0]
+	return SECAO[indice[clampi(n, 1, 9) - 1]]
+
+
 const _BUNGEE := "res://assets/fontes/Bungee-Regular.ttf"
 const _VT323 := "res://assets/fontes/VT323-Regular.ttf"
 const _ARCHIVO := "res://assets/fontes/ArchivoNarrow-wght.ttf"
