@@ -6,6 +6,11 @@
 #   scripts/compilar.sh testes     só a lógica, sem SDL e sem Godot, e as provas
 #   scripts/compilar.sh tudo       os três
 #   scripts/compilar.sh deps       só baixa e confere o SDL3 e o godot-cpp
+#   scripts/compilar.sh soma       só imprime a soma da fonte do módulo (a que vai no .fonte)
+#
+# Ao lado de cada módulo fica godot/bin/<módulo>.fonte, com a soma da fonte de
+# que ele saiu: a caixa das provas (tests/caixa.sh) confere essa soma e recusa
+# o módulo de outra fonte.
 #
 # Reproduzível quer dizer: o SDL3 entra por versão E por sha256, o godot-cpp
 # por tag E por commit (nunca "o que a distro tiver"), e os caminhos desta
@@ -41,6 +46,29 @@ TIPO="${FORJA_BUILD_TIPO:-Release}"
 MAPA="-ffile-prefix-map=$RAIZ=. -ffile-prefix-map=$CACHE=.cache"
 
 diga() { printf '==> %s\n' "$*"; }
+
+# A soma da fonte do módulo: o conteúdo dos arquivos de nativo/, src/, include/
+# e cmake/ (os versionados e os novos que o .gitignore não ignora), mais este
+# script, que fixa o SDL e o godot-cpp. Lidos da árvore de trabalho. Fora do
+# git, todos os arquivos das mesmas pastas. Imprime só a soma.
+soma_da_fonte() {
+  (
+    cd "$RAIZ"
+    if git rev-parse --is-inside-work-tree > /dev/null 2>&1; then
+      git ls-files -z --cached --others --exclude-standard -- nativo src include cmake scripts/compilar.sh
+    else
+      find nativo src include cmake scripts/compilar.sh -type f -print0 2> /dev/null || true
+    fi | LC_ALL=C sort -zu | while IFS= read -r -d '' f; do
+      if [ -f "$f" ]; then printf '%s\0' "$f"; fi
+    done | xargs -0 -r sha256sum | sha256sum | cut -d' ' -f1
+  )
+}
+
+# $1 = o módulo em godot/bin: grava ao lado dele o .fonte com a soma
+gravar_a_fonte() {
+  soma_da_fonte > "$RAIZ/godot/bin/$1.fonte"
+  diga "a fonte do módulo: godot/bin/$1.fonte"
+}
 
 baixar_sdl() {
   local tar="$CACHE/SDL3-${SDL_VERSAO}.tar.gz"
@@ -139,6 +167,10 @@ compilar() {
   cmake -S "$RAIZ/nativo" -B "$build" -G Ninja -DCMAKE_BUILD_TYPE="$TIPO" \
     -DCMAKE_C_FLAGS="$MAPA" -DCMAKE_CXX_FLAGS="$MAPA" "${extra[@]}" >/dev/null
   cmake --build "$build" -j "$JOBS"
+  case "$alvo" in
+    linux) gravar_a_fonte libforja.linux.x86_64.so ;;
+    windows) gravar_a_fonte libforja.windows.x86_64.dll ;;
+  esac
   if [[ "$alvo" == testes ]]; then
     diga "provas da lógica"
     ctest --test-dir "$build" --output-on-failure
@@ -159,8 +191,9 @@ case "${1:-linux}" in
     compilar_sdl windows
     preparar_godot_cpp >/dev/null
     ;;
+  soma) soma_da_fonte ;;
   *)
-    echo "uso: scripts/compilar.sh [linux|windows|testes|tudo|deps]" >&2
+    echo "uso: scripts/compilar.sh [linux|windows|testes|tudo|deps|soma]" >&2
     exit 64
     ;;
 esac

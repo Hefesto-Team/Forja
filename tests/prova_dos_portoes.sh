@@ -326,6 +326,10 @@ pasta_tree() { # <pasta> <rc do Godot de mentira>
   cp "$1/scripts/check_texto_de_tela.py" "$1/scripts/conferir_ost.py"
   printf '#!/usr/bin/env bash\nexit %s\n' "$2" > "$1/godot-de-mentira"
   chmod +x "$1/godot-de-mentira"
+  # o módulo de mentira com a soma da fonte desta árvore: sem ele a caixa sai 2 (a WQ03)
+  cp "$RAIZ/scripts/compilar.sh" "$1/scripts/"
+  mkdir -p "$1/godot/bin" && : > "$1/godot/bin/libforja.linux.x86_64.so"
+  bash "$1/scripts/compilar.sh" soma > "$1/godot/bin/libforja.linux.x86_64.so.fonte"
 }
 A="$(arvore pasta-vermelha)"; pasta_tree "$A" 124
 for i in 1 2 3 4 5 6; do mkdir -p "$A/.cache/provas/prova-do-jogo-20000101-00000$i"; done
@@ -342,6 +346,38 @@ A="$(arvore pasta-verde)"; pasta_tree "$A" 0
 espera 0 "caixa_pasta: com o Godot de mentira que sai 0, a prova sai 0" \
   env GODOT="$A/godot-de-mentira" bash "$A/tests/prova_do_jogo.sh"
 espera 0 "caixa_pasta: na prova verde, a pasta não fica" bash -c '[ -z "$(ls -A "$1/.cache/provas" 2> /dev/null)" ]' _ "$A"
+
+# --- o módulo de outra fonte (tests/caixa.sh, caixa_fonte: WQ03), numa árvore de mentira ------------------------
+fonte_tree() { # <pasta>: o caixa.sh e o compilar.sh de verdade, um .c e o módulo com a soma da fonte
+  mkdir -p "$1/tests" "$1/scripts" "$1/nativo/src" "$1/godot/bin"
+  cp "$RAIZ/tests/caixa.sh" "$1/tests/"
+  cp "$RAIZ/scripts/compilar.sh" "$1/scripts/"
+  printf '/* o módulo */\nint forja(void) { return 0; }\n' > "$1/nativo/src/forja.c"
+  : > "$1/godot/bin/libforja.linux.x86_64.so"
+  bash "$1/scripts/compilar.sh" soma > "$1/godot/bin/libforja.linux.x86_64.so.fonte"
+}
+monta() { bash -c 'source "$1/tests/caixa.sh"; caixa_montar "$1/caixa"' _ "$1" 2>&1 | tee "$1/msg.txt"; return "${PIPESTATUS[0]}"; }
+A="$(arvore fonte)"; fonte_tree "$A"
+espera 0 "caixa_fonte: o módulo com a soma da fonte de agora passa" monta "$A"
+printf '/* um comentário novo */\n' >> "$A/nativo/src/forja.c"
+espera 2 "caixa_fonte: um comentário novo num .c do nativo/ faz a caixa sair 2" monta "$A"
+espera 0 "caixa_fonte: e diz «o módulo é de outra fonte: scripts/compilar.sh linux»" \
+  grep -qx "o módulo é de outra fonte: scripts/compilar.sh linux" "$A/msg.txt"
+bash "$A/scripts/compilar.sh" soma > "$A/godot/bin/libforja.linux.x86_64.so.fonte"
+espera 0 "caixa_fonte: com a soma regravada (o que o compilar.sh faz), passa de novo" monta "$A"
+rm "$A/godot/bin/libforja.linux.x86_64.so.fonte"
+espera 2 "caixa_fonte: o módulo sem o .fonte sai 2" monta "$A"
+rm "$A/godot/bin/libforja.linux.x86_64.so"
+espera 2 "caixa_fonte: sem o módulo sai 2" monta "$A"
+A="$(arvore fonte-git)"; fonte_tree "$A"
+git -C "$A" init -q -b main && git -C "$A" config user.email prova@forja.invalid && git -C "$A" config user.name prova
+git -C "$A" config commit.gpgsign false && git -C "$A" config core.hooksPath /dev/null
+printf 'godot/bin/\n' > "$A/.gitignore"
+git -C "$A" add -A && git -C "$A" commit -q -m "a fonte"
+bash "$A/scripts/compilar.sh" soma > "$A/godot/bin/libforja.linux.x86_64.so.fonte"
+espera 0 "caixa_fonte: num repositório, o módulo da fonte versionada passa" monta "$A"
+printf 'int novo(void) { return 1; }\n' > "$A/nativo/src/novo.c"
+espera 2 "caixa_fonte: o .c novo, ainda sem git add, também conta" monta "$A"
 
 # --- o rodar.sh -------------------------------------------------------------------------------------------------
 espera 0 "rodar.sh: os portões do repositório passam (a arte e o som em aviso)" bash "$P/rodar.sh"

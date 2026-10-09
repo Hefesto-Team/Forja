@@ -87,7 +87,10 @@ jobs:
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: forja-modulo-linux-x86_64
-          path: godot/bin/libforja.linux.x86_64.so
+          # o .fonte vai junto: a caixa das provas confere de que fonte o módulo saiu (tests/caixa.sh)
+          path: |
+            godot/bin/libforja.linux.x86_64.so
+            godot/bin/libforja.linux.x86_64.so.fonte
           if-no-files-found: error
 
   portoes:
@@ -150,7 +153,10 @@ jobs:
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: forja-modulo-windows-x86_64
-          path: godot/bin/libforja.windows.x86_64.dll
+          # o .fonte vai junto: a caixa das provas confere de que fonte o módulo saiu (tests/caixa.sh)
+          path: |
+            godot/bin/libforja.windows.x86_64.dll
+            godot/bin/libforja.windows.x86_64.dll.fonte
           if-no-files-found: error
 
   exportar:
