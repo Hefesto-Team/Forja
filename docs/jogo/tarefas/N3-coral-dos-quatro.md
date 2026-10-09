@@ -592,7 +592,7 @@ o resto, a mesa padrão (P1 `bom`, P2 `medio`, P3 `medio`, P4 `ruim`, semente 7,
 | 7. quem perde joga | a maior distância entre duas linhas `nota` seguidas de cada lugar é de até 11 batidas; o P4 tem um `toque` BOM ou melhor em cada terço | o P4 aparece em 100 % dos quadros de jogo |
 | 8. a câmera | cada `acorde` tem 0,2 ≤ `x_tela` ≤ 0,8 e `altura_tela` ≥ 0,08 (0,5 e 0,15) | o vitral se vê inteiro no quadro de 480 × 270 |
 | 9. o impacto | para cada `acorde`, uma linha `sensacao` `golpe` a até 16,7 ms, a até 1 quadro de uma colcheia | o quadro seguinte mostra a boca do coro aberta |
-| 10. o placar no mundo | o número de painéis do `momento` `reta` bate com o `acesos` do registro naquele tempo | no quadro de 85 s, quem olha conta os painéis, e a conta bate com o registro |
+| 10. o placar no mundo | o número de painéis do `momento` `reta` bate com o `acesos` do registro naquele tempo | no quadro de 82 s, quem olha conta os painéis, e a conta bate com o registro |
 
 A `prova_do_jogo.sh` roda com `--robo` sem valor, que é o `bom` da F09, nos quatro: é a mesa boa, e a prova confere os
 itens 1, 4, 8, 9 e 10 com ela. O item 5 e a mesa padrão esperam o robô por lugar (`--robo=bom,medio,medio,ruim`), que a
@@ -666,8 +666,8 @@ func _prova_do_coral() -> void:
 ### As pranchas que o jogador do time olha
 
 A prancha da prova visual (480 × 270, um quadro a cada 2 s): o quadro de 10 s (um sino balançando), os de 30 e 60 s
-(o vitral cresce), os quadros com a boca do coro aberta (o acorde), os com uma trinca, e o de 85 s (os painéis
-contados).
+(o vitral cresce), os quadros com a boca do coro aberta (o acorde), os com uma trinca, e o de 82 s (os painéis
+contados, antes da reta das 83,0 s: a mesa boa fecha o vitral aos 84 s).
 
 ### O que o André joga e sente
 

@@ -746,7 +746,8 @@ static func passar(sala: SalaJogo, c: Dictionary, no_pico: bool) -> void:
 	var batida := 60.0 / Ritmo.bpm
 	if no_pico != bool(c.pico):
 		c.pico = no_pico
-		var pose := pose_da_camera(1.1 if no_pico else 1.0, sala.camera_olhar if sala.camera_modo == "corrida" else CAMERA_OLHAR)
+		# o olhar da sala, não o CAMERA_OLHAR: o Eco (N2) e o Código (N4) montam com o deles, e o pico e a volta ficam nele
+		var pose := pose_da_camera(1.1 if no_pico else 1.0, sala.camera_olhar)
 		if sala.camera_modo != "corrida":
 			sala.camera_pos = pose[0]
 			sala.camera_olhar = pose[1]
