@@ -251,3 +251,55 @@ gasta por faixa e desliga o rasgo sem Flashes.
 
 Marcar G15 como **feito** no [quadro](README.md), com o gasto. Commit sugerido:
 `feat(luz): a luz de cada seção, o pós da fita em duas passadas e o brilho com dono`.
+
+## O que foi feito (leva 1, a-fita)
+
+- **A luz de cada seção** (`tema.gd`, `arte.json`): os tokens da luz (`para_oklab`, `CHAVE_SECAO`, `luz_da_secao`,
+  `AMBIENTE_SALAO`) e o `acender(numero, lado_b)` em `main.gd`, `sala.gd` e `salao.gd`. Cada sala acende na entrada
+  com a chave, o preenchimento e a névoa da seção dela (`Sala.numero()`/`SECAO_DE`; a Bancada é a seção 0, mostarda).
+  O Sol da cena recebe o preenchimento da seção (o `main.tscn` não fixa mais `light_color`). SSAO desligado.
+- **O brilho com dono:** as três funções (`Tema.emissivo`, `Tema.neon`, `Tema.contorno`) e os shaders
+  `neon/contorno/pos_fita.gdshader`; os 17 `emission_enabled` soltos e as animações passaram por elas (`Kit.material`
+  leva o dono). O teto de energia é do dono (mundo 1,2, forja 2,4, lugar 3,0); dono inválido cai no teto 1,0.
+  `Tema.brilho_de()` deixa as animações lerem a energia sem escrever fora do tema.
+- **O cavaleiro** (`player.gd`): o anel no chão é néon do lugar (1,5), o contorno de néon do lugar (2,4 no jogo, 1,6
+  na montagem, `contornar(energia)`) em toda superfície do boneco e do que ele leva (a normal suavizada vai no
+  TANGENT, em cache), e a luz de dono (0,9, 3,4 m, sem sombra, a 0,6 m) que só acende com `controlavel`.
+- **O pós da fita** (`PosFita`, autoload, duas passadas nas camadas 5 e 20): grão, vinheta e o rasgo, gastos por faixa
+  (`gastar` na entrada da sala), `rasgo_curto()` na entrada da sala e na volta da pausa, e sem rasgo com
+  `Opcoes.flashes` desligado (o rasgo que já corre é cortado no meio).
+- **O portão de arte** (`scripts/portoes/arte.py`, regra 6): emissão fora do tema, néon sem dono, energia acima do
+  teto e shader escrito à mão reprovam; `prova_dos_portoes.sh` foi a 46 casos.
+- **A prancha** (`godot/testes/prancha_da_luz.*`, `docs/imagens/jogo/luz.jpg`): a Centelha real nas cinco tintas,
+  lado A e B, com os quatro bonecos.
+- **Medida:** o portão de arte foi de **127 para 35 achados**, todos de cor e todos da G14b (os `Color(...)` de
+  `atmosfera`, o sino, a faísca, a barra de luz, o metal do Molde); **zero** de emissivo. SSAO 1,2 para desligado; limiar
+  do glow 0,9 para 0,82; 17 `emission_enabled` para 3 funções.
+- **Provas:** `_prova_da_luz` em `prova_do_jogo.gd` (a chave e a névoa por seção e por lado, o acender da sala e do
+  salão, o teto por dono, o anel, o contorno e a luz de dono dos quatro bonecos, o pós por faixa, o rasgo cortado no
+  meio). Mordeu, uma a uma: SSAO ligado; limiar 0,9; acender sem a chave; teto do grão em 0,060; Flashes ignorados no
+  pós; boneco sem `contornar`; luz de dono sem seguir `controlavel`; 30 rasgos por segundo; `gastar` na entrada;
+  `TETO_MUNDO` 3,0; chave da seção 0 fixa; lado B sem ×1,3; e as quatro do portão. `rodar.sh` e `prova_sem_rastro` ok.
+- **O que a prova achou no caminho:** as salas penduram peças no boneco (a vara da Viga, o martelo, a arma da
+  Galeria) com o material da sala; a régua do contorno olha só o que é do boneco (sem `material_override`).
+
+### Escolhas minhas, para ela validar
+
+- Superfícies claras de cenário (ouro, madeira, metal, gramas, pedra) caem em `OXIDO_BRILHO` pela regra do token mais
+  perto em OKLab, e o visual achata; ouro, brasa, olhos e a bola de fogo ficaram com albedo `TUNGSTENIO` ou
+  `OXIDO_BRILHO` e emissão do dono «forja».
+- O anel de efeito some baixando a energia (o shader neon não tem alfa; o anel fica opaco enquanto some).
+- A lanterna do Impacto: emissão fixa na cor do lugar (perde o tom do estado no brilho).
+- `atmosfera()` ignora `cor_neon`: os tubos são sempre `VIOLETA`, a cor do mundo.
+- O disco da equipe da prova e a bola de tiro têm dono «forja».
+- Contorno de 0,012 no espaço do modelo (escala 2,0, uns 0,024 m); aplicado em `visual()` porque a G13 não existe.
+- O pós gasta pela faixa da noite (uma partida de 9 salas só chega à faixa 9, grão 0,034); o teto 0,040 é da faixa 12.
+
+### Para o André (local)
+
+- Abrir `docs/imagens/jogo/luz.jpg` ao lado de `docs/imagens/direcao/13_luz.jpg` na placa de vídeo: a foto é de software
+  (llvmpipe), a aparência não se aprova ali; as manchas rosa e amarela da luz de dono no chão da prancha parecem fortes.
+- Ver o contorno, o anel e a luz de dono com o controle de verdade; o rasgo do pós; o glow no Compatibility.
+- Medir o quadro com 4 contornos na máquina da prova: se passar de 16,7 ms, `normal_suave` vai a false.
+- Fica para a G14b: os 35 achados de cor. Fica para a G13: chamar `contornar(1.6)` na montagem. Fica para quem fizer a
+  Dissonância: chamar `PosFita.rasgo_curto()`.
