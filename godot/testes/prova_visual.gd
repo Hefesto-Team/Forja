@@ -440,6 +440,13 @@ func _autoteste() -> int:
 	var pouco := limpo.duplicate(true)
 	pouco[0].contraste = 1.4
 	ok.call(ChecagensVisuais.texto(10.0, pouco, TELA).size() == 1, "texto: o contraste de 1,4:1 reprova")
+	var contador := limpo.duplicate(true)
+	contador[0].frase = "Pontos 80"
+	contador[1].frase = "Pontos 81"
+	contador[1].rect = contador[0].rect
+	ok.call(ChecagensVisuais.texto(10.0, contador, TELA).is_empty(), "texto: o contador com o número trocado no mesmo lugar passa")
+	contador[1].frase = "Tempo 81"
+	ok.call(ChecagensVisuais.texto(10.0, contador, TELA).size() == 1, "texto: duas frases diferentes no mesmo lugar reprovam")
 	var sobe := [
 		{"t": 1.0, "slot": "centelha", "fase": "jogo", "resta": 80.0},
 		{"t": 2.0, "slot": "centelha", "fase": "jogo", "resta": 79.0},

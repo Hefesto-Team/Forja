@@ -112,8 +112,9 @@ static func texto(t: float, frases: Array, tela: Vector2) -> Array:
 			achados.append("%s: «%s» com contraste %.1f:1 (o mínimo é %.1f)" % [hora(t), _curta(f.frase), c, CONTRASTE_MIN])
 		for j in range(i + 1, frases.size()):
 			var g: Dictionary = frases[j]
-			if g.frase == f.frase:
-				continue  # a mesma frase duas vezes é sombra ou contorno, não colisão
+			if g.frase == f.frase or _sem_numeros(g.frase) == _sem_numeros(f.frase):
+				continue  # a mesma frase duas vezes é sombra ou contorno; o mesmo texto com o número
+				# trocado («80 s», «81 s») é um contador amostrado em dois quadros, não colisão
 			var inter := r.intersection(g.rect)
 			if inter.get_area() <= 0.0:
 				continue
@@ -216,6 +217,10 @@ static func hora(s: float) -> String:
 
 static func _onde(q: Dictionary) -> String:
 	return "%s%s" % [q.estado, " · " + str(q.sala) if str(q.sala) != "" else ""]
+
+
+static func _sem_numeros(s: String) -> String:
+	return RegEx.create_from_string("\\d+").sub(s, "#", true)
 
 
 static func _curta(s: String) -> String:
