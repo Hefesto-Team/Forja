@@ -28,7 +28,7 @@ const LIMITE_S := 5400.0  ## o teto de uma partida, em s de jogo
 
 var jogo: Node
 var t := 0.0
-var _proximo := 0.0
+var _proximo := 1.0  ## o primeiro quadro um segundo depois de abrir: o contador de quadros ainda não andou
 var saida := ""
 var indice := 1
 var n_salas := 5
