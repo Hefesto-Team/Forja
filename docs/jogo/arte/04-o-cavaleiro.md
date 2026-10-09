@@ -297,6 +297,94 @@ Na oitava, a chave da coluna passa de violeta a tungstênio em 1 compasso, e
 o pio do cavaleiro sai do controle. Quando todos estão prontos, o corte vai
 para o plano dos prontos (85 mm, baixo, travelling pelos quatro).
 
+## O primeiro minuto
+
+A fala dela: «as pessoas precisam ter prazer no início do jogo.» A montagem é
+o primeiro minuto da noite. Cada troca de peça tem que dar gosto: um encaixe
+que se ouve, se sente na mão e se vê, e um cavaleiro que reage. A 120 BPM, a
+batida tem 500 ms, a colcheia 250 ms e a semicolcheia 125 ms.
+
+### Uma troca, do toque ao descanso
+
+| quando | o que acontece | quanto dura |
+| --- | --- | --- |
+| o quadro do toque (0 ms) | a seta apertada (◀ ou ▶) cresce a 1,2 e volta, `MOLA`; a peça velha afunda à escala 0,92, `ENTRA` | 4 quadros; 2 quadros |
+| **o encaixe**: a semicolcheia seguinte (de 0 a 125 ms depois do toque) | a peça nova cai de 0,06 acima e chega da escala 0,9 a 1,0, `MOLA`; `ui_peca` na altura da parte (cabeça +7, superior +4, inferior 0, item −5 semitons) no alto-falante do dono e na TV a −12 dB; o pulso de metal de 150 Hz nos atuadores; 8 faíscas na junta, na cor do dono, energia 2,4; o acento da peça nova sobe a 2,6 e volta a 1,6, `SAI`; o VU anda um segmento a cada 30 ms | tudo no mesmo quadro de 16,7 ms; o som 120 ms, o pulso 40 ms, as faíscas 12 quadros, o acento 250 ms |
+| o encaixe + 250 ms (a colcheia), se nenhum toque novo chegou | a pose de reação e o giro da plataforma (as tabelas abaixo) | 500 ms (1 batida) |
+| a mesma colcheia, na troca de cabeça ou de raça | o pio da cabeça nova, `pio_p{n}_{intervalo}`, na TV e no alto-falante | 300 ms |
+| a batida seguinte, se o arquétipo mudou | a etiqueta vira (`ENTRA_SAI`) e a caneta reescreve o arquétipo com `fx_caneta` | 180 ms; 400 ms |
+| a batida seguinte, se o item entrou em liga | `car_liga` (Dó5 e Sol5) e a marca da liga no VU acende | 400 ms |
+| a batida seguinte, se a build ficou boa | os dois sublinhados de caneta (`fx_caneta`) e o acorde do lugar no alto-falante ([a build boa](../sistemas/README.md#a-build-boa); o id é do diretor de som) | 400 ms |
+| o descanso | a pose volta ao `idle` | 120 ms |
+
+Do toque ao descanso, uma troca leva 1 s (2 batidas). Dez trocas cabem em
+10 s.
+
+**A roleta e o prêmio.** Toques com menos de 250 ms entre eles são a roleta:
+cada um faz o encaixe (som, pulso, peça), com 4 faíscas em vez de 8, e nada
+mais. A pose, o giro e o pio esperam a pessoa parar 250 ms numa peça. Passar
+rápido soa como roleta; parar é o prêmio.
+
+**O sorteio (△)** segue o [05](05-movimento.md#as-poses-de-cada-momento): 6
+trocas, uma por semicolcheia, a última em `MOLA` num tempo; depois, a reação
+da cabeça (o aceno e o pio).
+
+### A pose de cada linha
+
+| linha | a pose (animação do Mini Characters) | o giro da plataforma | o que soa a mais |
+| --- | --- | --- | --- |
+| Cabeça e raça | `emote-yes`: o aceno | 25° para o centro da tela e volta | o pio da cabeça nova |
+| Superior | `holding-both`: os braços sobem à frente, como quem veste | 25°, como a cabeça | — |
+| Inferior | `attack-kick-right`: o chute que testa a bota; na cadeira, `wheelchair-move-forward` (a cadeira anda 0,1 e volta) | nenhum: o chute já move | — |
+| Arma | `attack-melee-right` (com o escudo, `attack-melee-left`): o golpe de teste, com o contato na colcheia | nenhum | a vibração do item ([03](03-som.md#o-casamento-evento-por-evento)) |
+| Amuleto | `interact-right`: a mão toca o peito | 25° | — |
+| Nome | nenhuma | nenhum | `fx_caneta` a cada palavra confirmada |
+
+**O giro é da plataforma, não da câmera.** Os quatro lugares dividem um plano
+(50 mm, frontal, [01](01-cinema.md#o-plano-de-cada-momento)); mexer a câmera
+para um mexeria os quatro. Quem gira é o cavaleiro sobre o anel: ida em
+120 ms (`SAI`), fica 260 ms, volta em 120 ms (`ENTRA_SAI`). A câmera só se
+mexe quando todos forjaram (o corte para os prontos).
+
+### O carimbo do nome, na forja
+
+Na oitava martelada:
+
+- a plataforma dá uma volta inteira, 360° em 1 compasso (2 s), `ENTRA_SAI`;
+- o nome na placa pousa como carimbo ([07](07-vfx.md#o-carimbo)): escala de
+  1,35 a 1,0 em 80 ms, `MOLA`, inclinado −4°, com a chapa `FITA` deslocada
+  3 px (round(0,08 × 32)); a letra continua a da placa, Archivo Narrow 600 de
+  32 px;
+- «Forjado», em VT323 de 30 px e `ETIQUETA`, aparece embaixo do nome na
+  batida seguinte;
+- a oitava martelada é do degrau «golpe» da
+  [diversão](../diversao/README.md#o-exagero-do-impacto): parada de 2 quadros
+  (33 ms) só no cavaleiro.
+
+### Com o movimento reduzido
+
+Pelo [10](10-acessibilidade.md#o-movimento-reduzido): o giro e a volta inteira
+somem; a peça nova chega por opacidade em 4 quadros; o carimbo chega por
+opacidade em 4 quadros; as faíscas caem para 4. A pose fica: é o corpo, não a
+câmera. O som, o pulso e o pio não mudam.
+
+### Conferido contra a régua da diversão
+
+A [régua](../diversao/README.md#a-régua-da-diversão) é de minigame; a
+montagem cumpre os itens que valem fora dele.
+
+| item da régua | como a montagem cumpre |
+| --- | --- |
+| 1, a graça em 10 s | o pré-montado está a uma troca da build boa ([o pré-montado](../sistemas/README.md#o-pré-montado)): a primeira troca certa toca `car_liga` e sublinha o arquétipo, e uma troca leva 1 s |
+| 3, ensina sem falar | o VU pisca o que a peça mudaria antes da troca; a pose mostra a peça nova; o texto na tela é só o nome das peças e as dicas de botão |
+| 7, ninguém fica 8 batidas parado | o cavaleiro abaixa 2 % em toda batida ([05](05-movimento.md#as-poses-de-cada-momento)); quem já forjou faz `emote-yes` no tempo 1 do compasso dele |
+| 9, o impacto no mesmo quadro e na batida | no encaixe, a peça, `ui_peca` na TV e no controle e o pulso saem no mesmo quadro de 16,7 ms, na semicolcheia |
+| o exagero do impacto | a troca é do degrau «toque» (8 faíscas, a consequência de 1 batida: a pose); a oitava martelada é «golpe» |
+| a medida da noite ([sistemas](../sistemas/README.md#o-que-a-noite-de-seis-horas-mede)) | a primeira montagem em até 90 s, e no máximo 50 % forjando sem trocar nada na segunda noite: é o que mede se a troca dá gosto |
+
+Os itens 2, 4, 5, 6, 8 e 10 falam da partida de um minigame e não se aplicam
+à montagem.
+
 ## O nome
 
 As regras do nome (o sorteado, o tamanho, o filtro, a maiúscula) estão em

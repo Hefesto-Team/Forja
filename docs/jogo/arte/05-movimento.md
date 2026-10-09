@@ -117,7 +117,7 @@ começa em `t_tempo − contato / speed_scale`, pelo relógio de áudio.
 | momento | quem | animação | o que pousa no tempo |
 | --- | --- | --- | --- |
 | montagem, parado | os quatro | `idle` | a cabeça abaixa 2 % no tempo (ver abaixo) |
-| trocar uma peça | o dono | a peça nova chega com escala 0,9 a 1,0 em 4 quadros, `MOLA` | a troca cai na próxima colcheia |
+| trocar uma peça | o dono | a peça nova chega com escala 0,9 a 1,0 em 4 quadros, `MOLA`; depois, a pose da linha ([04, o primeiro minuto](04-o-cavaleiro.md#o-primeiro-minuto)) | o encaixe cai na próxima semicolcheia (até 125 ms a 120 BPM; a colcheia esperava até 250 ms e a troca parecia atrasada); a pose, na colcheia seguinte |
 | sortear (△) | o dono | 6 trocas, uma por semicolcheia, e a última em `MOLA` | a última troca cai num tempo |
 | a forja (8 marteladas) | o dono | `attack-melee-right` | o contato em cada um dos 8 tempos |
 | os prontos | cada um, na vez dele | `emote-yes` | o tempo 1 do compasso dele |
