@@ -640,9 +640,35 @@ func _prova_do_percurso() -> void:
 
 
 func _joga_a_sala(id: String, features: Array) -> void:
+	if Catalogo.MINIGAMES.has(Catalogo.resolver(id)):
+		await _passa_pelo_minigame(id)
+		return
 	var sala = await _comeca_a_sala(id)
 	if sala:
 		await _termina_a_sala(sala, features)
+
+
+func _passa_pelo_minigame(id: String) -> void:
+	var sala = await _comeca_a_sala(id)
+	if sala == null:
+		return
+	_esperar(sala is Minigame and Ritmo.dono == sala.id, "%s: o minigame %s joga no relógio da faixa" % [id, sala.id])
+	var inicio := Time.get_ticks_usec()
+	while is_instance_valid(sala) and sala.fase == "jogo" and Time.get_ticks_usec() - inicio < 1500000:
+		await _quadros(1)
+	if is_instance_valid(sala) and sala.fase == "jogo":
+		sala.terminar()
+	await _quadros(2)
+	_esperar(is_instance_valid(sala) and sala.fase == "fim", "%s: fechou" % id)
+	await _volta_ao_salao(id)
+
+
+func _volta_ao_salao(rotulo: String) -> void:
+	var q := 0
+	while (jogo.estado != "salao" or jogo._trocando) and q < 900:
+		await _quadros(5)
+		q += 5
+	_esperar(jogo.estado == "salao", "%s: de volta ao salão" % rotulo)
 
 
 func _e_a_sala(sala, id: String) -> bool:
