@@ -29,6 +29,7 @@ const VIOLETA_FUNDO := Color("#1d1638")  ## a névoa e o preenchimento do salão
 const TUNGSTENIO := Color("#ffd9a8")  ## a luz de lâmpada (pódio, foco da bigorna): luz, nunca traço nem texto
 const OXIDO := Color("#3b2a22")      ## a fita magnética em si: o rolo, a tira do confete no escuro
 const OXIDO_BRILHO := Color("#7a5640")  ## o óxido que pega luz: a face da tira que vira, o cabo do martelo
+const AMBIENTE_SALAO := Color("#2a2738")  ## o preenchimento do salão, a luz ambiente da casa (arte/01, a luz das cinco tintas)
 
 # --- os jogadores: os únicos néons saturados da tela ---
 ## A cor da lightbar do controle segue esta mesma tabela (LUZ_DO_LUGAR, nativo/nucleo/pads.c).
@@ -46,6 +47,16 @@ const SECAO := [
 	Color("#1f8a7e"),  ## petróleo: S3, S7
 	Color("#c79a2a"),  ## mostarda: S4, o pódio
 	Color("#86409a"),  ## ameixa: S5, S8
+]
+
+## A chave de cada tinta (arte/01, a luz das cinco tintas): o tungstênio esquentado pela tinta. É uma
+## constante, não uma conta: `TUNGSTENIO.lerp(tinta, 0.2)` dá `#f4bb90` no vermelhão, e a tabela do 01 diz `#ffc99c`.
+const CHAVE_SECAO := [
+	Color("#ffc99c"),  ## vermelhão
+	Color("#e5d3c6"),  ## cobalto
+	Color("#e5d7ad"),  ## petróleo
+	Color("#f8d096"),  ## mostarda
+	Color("#f8ccba"),  ## ameixa
 ]
 
 # --- o erro ---
@@ -133,6 +144,141 @@ static func tinta_da_secao(numero: int) -> Color:
 		5, 8:
 			return SECAO[4]
 	return SECAO[3]
+
+
+## Cor <-> OKLab (L, a, b), de godot/estudos/direcao/fita.gd: a conta da luz das seções pensa em luminosidade e croma.
+static func _lin(v: float) -> float:
+	return v / 12.92 if v <= 0.04045 else pow((v + 0.055) / 1.055, 2.4)
+
+
+static func _srgb(v: float) -> float:
+	v = clampf(v, 0.0, 1.0)
+	return v * 12.92 if v <= 0.0031308 else 1.055 * pow(v, 1.0 / 2.4) - 0.055
+
+
+static func para_oklab(c: Color) -> Vector3:
+	var r := _lin(c.r)
+	var g := _lin(c.g)
+	var b := _lin(c.b)
+	var l := pow(0.4122214708 * r + 0.5363325363 * g + 0.0514459929 * b, 1.0 / 3.0)
+	var m := pow(0.2119034982 * r + 0.6806995451 * g + 0.1073969566 * b, 1.0 / 3.0)
+	var s := pow(0.0883024619 * r + 0.2817188376 * g + 0.6299787005 * b, 1.0 / 3.0)
+	return Vector3(0.2104542553 * l + 0.7936177850 * m - 0.0040720468 * s,
+		1.9779984951 * l - 2.4285922050 * m + 0.4505937099 * s,
+		0.0259040371 * l + 0.7827717662 * m - 0.8086757660 * s)
+
+
+static func de_oklab(v: Vector3, a := 1.0) -> Color:
+	var l := pow(v.x + 0.3963377774 * v.y + 0.2158037573 * v.z, 3.0)
+	var m := pow(v.x - 0.1055613458 * v.y - 0.0638541728 * v.z, 3.0)
+	var s := pow(v.x - 0.0894841775 * v.y - 1.2914855480 * v.z, 3.0)
+	return Color(_srgb(4.0767416621 * l - 3.3077115913 * m + 0.2309699292 * s),
+		_srgb(-1.2684380046 * l + 2.6097574011 * m - 0.3413193965 * s),
+		_srgb(-0.0041960863 * l - 0.7034186147 * m + 1.7076147010 * s), a)
+
+
+## A luz de uma seção (arte/01, a luz das cinco tintas), tirada da tinta no OKLab: a névoa (L 0,17, croma a 30 %),
+## o preenchimento (L 0,34, croma a 55 %) e a chave (a constante CHAVE_SECAO da tinta). `numero` -1 é o salão.
+## O lado B adensa a névoa (×1,3) e baixa a chave (×0,85).
+static func luz_da_secao(numero: int, lado_b := false) -> Dictionary:
+	var luz := {
+		"densidade": 0.012 * (1.3 if lado_b else 1.0),
+		"energia_chave": 1.8 * (0.85 if lado_b else 1.0),
+	}
+	if numero < 0:
+		luz["nevoa"] = VIOLETA_FUNDO
+		luz["preenchimento"] = AMBIENTE_SALAO
+		luz["chave"] = TUNGSTENIO
+		return luz
+	var tinta := tinta_da_secao(numero)
+	var o := para_oklab(tinta)
+	luz["nevoa"] = de_oklab(Vector3(0.17, o.y * 0.30, o.z * 0.30))
+	luz["preenchimento"] = de_oklab(Vector3(0.34, o.y * 0.55, o.z * 0.55))
+	luz["chave"] = CHAVE_SECAO[maxi(0, SECAO.find(tinta))]
+	return luz
+
+
+# --- o brilho com dono (arte/07, a tabela do brilho; arte/12, o portão 6) ---
+## Todo material que brilha nasce destas três funções, e cada uma pede o dono: um lugar (0 a 3, a cor dele, teto 3,0),
+## "mundo" (VIOLETA, teto 1,2) ou "forja" (TUNGSTENIO, teto 2,4). Energia acima do teto, ou dono que não existe,
+## dá `push_error` com o arquivo que chamou, e a energia é cortada no teto.
+const TETO_LUGAR := 3.0
+const TETO_MUNDO := 1.2
+const TETO_FORJA := 2.4
+const SHADER_NEON := "res://shaders/neon.gdshader"
+const SHADER_CONTORNO := "res://shaders/contorno.gdshader"
+
+
+## A cor e o teto de um dono: {"cor": Color, "teto": float}; sem dono válido, {"cor": cor_dada, "teto": 1.0}.
+static func dono_do_brilho(dono: Variant, cor_dada := Color.WHITE) -> Dictionary:
+	if typeof(dono) == TYPE_INT and int(dono) >= 0 and int(dono) < JOGADOR.size():
+		return {"cor": JOGADOR[int(dono)], "teto": TETO_LUGAR, "valido": true}
+	if typeof(dono) == TYPE_STRING or typeof(dono) == TYPE_STRING_NAME:
+		if str(dono) == "mundo":
+			return {"cor": VIOLETA, "teto": TETO_MUNDO, "valido": true}
+		if str(dono) == "forja":
+			return {"cor": TUNGSTENIO, "teto": TETO_FORJA, "valido": true}
+	return {"cor": cor_dada, "teto": 1.0, "valido": false}
+
+
+## Quem chamou (o primeiro quadro fora deste arquivo), para o erro dizer onde.
+static func _quem_chamou() -> String:
+	for q in get_stack():
+		var fonte := str(q.get("source", ""))
+		if not fonte.ends_with("tema.gd"):
+			return "%s:%d" % [fonte.get_file(), int(q.get("line", 0))]
+	return "?"
+
+
+static func _energia_do_dono(energia: float, d: Dictionary, dono: Variant) -> float:
+	if not d.valido:
+		push_error("Tema: dono do brilho inválido (%s) em %s" % [str(dono), _quem_chamou()])
+	elif energia > d.teto + 0.0001:
+		push_error("Tema: energia %.2f acima do teto %.2f do dono %s em %s" % [energia, d.teto, str(dono), _quem_chamou()])
+	return clampf(energia, 0.0, d.teto)
+
+
+static func _cor_do_dono(cor: Color, d: Dictionary, dono: Variant) -> Color:
+	if d.valido and not cor.is_equal_approx(d.cor):
+		push_error("Tema: a cor do dono %s é %s; %s ignorada em %s" % [str(dono), d.cor.to_html(false), cor.to_html(false), _quem_chamou()])
+	return d.cor if d.valido else cor
+
+
+## O néon que trabalha: chapado, a energia acima de 1 para o glow pegar (shaders/neon.gdshader).
+static func neon(cor: Color, energia: float, dono: Variant) -> ShaderMaterial:
+	var d := dono_do_brilho(dono, cor)
+	var m := ShaderMaterial.new()
+	m.shader = load(SHADER_NEON)
+	m.set_shader_parameter("cor", _cor_do_dono(cor, d, dono))
+	m.set_shader_parameter("energia", _energia_do_dono(energia, d, dono))
+	return m
+
+
+## O contorno de néon, para o `next_pass` de uma superfície (shaders/contorno.gdshader).
+static func contorno(cor: Color, largura: float, energia: float, dono: Variant) -> ShaderMaterial:
+	var d := dono_do_brilho(dono, cor)
+	var m := ShaderMaterial.new()
+	m.shader = load(SHADER_CONTORNO)
+	m.set_shader_parameter("cor", _cor_do_dono(cor, d, dono))
+	m.set_shader_parameter("largura", largura)
+	m.set_shader_parameter("energia", _energia_do_dono(energia, d, dono))
+	m.set_shader_parameter("normal_suave", true)
+	return m
+
+
+## A energia com que um material brilha agora (0 se não brilha): quem anima o brilho lê daqui e escreve por `emissivo`.
+static func brilho_de(material: StandardMaterial3D) -> float:
+	return material.emission_energy_multiplier if material.emission_enabled else 0.0
+
+
+## Liga o brilho de um material do corpo (emissão na cor do dono); energia 0 desliga. Devolve o próprio material.
+static func emissivo(material: StandardMaterial3D, energia: float, dono: Variant) -> StandardMaterial3D:
+	var d := dono_do_brilho(dono, material.albedo_color)
+	var e := _energia_do_dono(energia, d, dono)
+	material.emission_enabled = e > 0.0
+	material.emission = d.cor
+	material.emission_energy_multiplier = e
+	return material
 
 
 static func _variacao(caminho: String, peso: int) -> Font:
