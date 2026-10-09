@@ -1,0 +1,32 @@
+{
+  "_leia": "As regras do portão de som (scripts/portoes/som.py). As colunas do mapa são as de docs/jogo/o-time/o-mapa-do-audio.md. Virar para reprovar: \"modo\": \"reprova\" (a ficha V08).",
+  "modo": "aviso",
+  "mapa": "docs/jogo/audio/mapa.csv",
+  "escopo": ["godot/scripts"],
+  "extensoes": [".gd"],
+  "ignorar": ["godot/addons/", "godot/estudos/", "godot/testes/", "godot/scripts/som.gd"],
+  "_ignorar": "o som.gd é o tocador: as chamadas de dentro dele só repassam o id que recebeu",
+  "chamadas": {
+    "Som.tocar": 0,
+    "Som.laco": 0,
+    "Som.no_controle": 1,
+    "Som.jingle": 0,
+    "Forja.som_falante": 1,
+    "Musica.tocar": 0
+  },
+  "colunas": {
+    "id": "id",
+    "arquivo": "arquivo",
+    "duracao_ms": "duracao_ms",
+    "pico_dbfs": "pico_dbfs",
+    "estado": "estado"
+  },
+  "estados_sem_arquivo": ["a fazer", "pedido", "sintetizado", "receita"],
+  "tolerancia_duracao_ms": 30,
+  "tolerancia_pico_db": 0.1,
+  "_pico": "o pico_dbfs do mapa é o máximo; a tolerância é só a folga da medida",
+  "pico_maximo_dbfs": -1.0,
+  "clique": {"janela_ms": 0.25, "limiar": 0.05},
+  "_clique": "estala quando alguma amostra no primeiro ou no último quarto de milissegundo passa de 5% do fundo de escala: o som não começa nem acaba no zero",
+  "raiz_do_res": "godot"
+}
