@@ -536,3 +536,51 @@ sugerido (sem trailer):
 ```
 feat: a câmera filma em milímetros, enquadra o grupo e a corrida, e o tremor vem do evento em três degraus
 ```
+
+## O que foi feito (leva 1, a-fita)
+
+- **Entrou:** `Lente` (`fov`, `PADRAO`, `recuo`) e `Enquadramento` (`grupo`, `corrida`, `puxar`, a margem de 15 %, a altura de
+  1,6 m), cada um com o `.uid`; em `Sala`, os modos, `camera_lente`, `lente()`, `alvos_da_camera()`, `tremer()`, `abalo`,
+  `puxar_os_de_tras()` e os degraus `TREMOR_GOLPE`, `TREMOR_ESTRONDO`, `TREMOR_EXPLOSAO` (o estrondo), `TREMOR_CATASTROFE`;
+  no `main.gd`, `_lente()`, `_tangentes()`, `_pose_da_sala()`, o `_enquadrar()` pela lente, o pódio recuado e o tremor sem
+  roll; A Prova no modo `"grupo"` de 17 a 25,5 m, com o `alvos_da_camera()` só de quem está na partida. A linha da câmera e a
+  tabela do kit no [13](../13-arquitetura.md) foram escritas antes.
+- **Medida:** o FOV da arena, do pódio e do salão foi de 40,0° para 37,8° (35 mm), e a pose fixa recua 6,16 % sobre o olhar
+  (o enquadramento de hoje); o tremor foi de roll de até 0,7° mais 0,12 m para três degraus de 0,02, 0,05 e 0,08 m, de 1, 2
+  e 4 batidas, sem roll e nunca acima de 0,08 m; A Prova tem 0 quadros com pé ou cabeça fora da tela em 300 de robô.
+- **Provas** (`prova_do_jogo.gd`: `_prova_das_contas_da_camera` e `_prova_da_camera_na_prova`): a lente de 28, 35 e 50 mm, o
+  recuo, o piso e o teto de 24 a 100 mm, a lente de cada modo, os quatro cantos da arena na tela com a margem justa (6,5 % da
+  borda), a distância mínima e a máxima, o líder e o último na corrida, `puxar` com nós de verdade, a duração de cada degrau
+  em batidas (e a 60 BPM), o teto, o tremor menor que não substitui o maior, o desconto em linha reta, o balanço conta a conta
+  (no plano da câmera, sem girar), o Reduzido, a fixa, a dupla, o pódio, os alvos de A Prova e de uma sala de base, e a pose do
+  main igual à da conta no grupo e na corrida. Mordeu, uma a uma: a lente do grupo e a da corrida; a margem em 0 e em 0,4; o
+  `puxar` sem o alcance; o centro da corrida em 50 %; a altura do cavaleiro; a batida do golpe; o menor substituindo o maior; o
+  teto de 0,1; o desconto dobrado; um roll plantado; o balanço sem o Reduzido; o tremor antigo sem o teto; o pódio sem o recuo;
+  a fixa sem o recuo; o empurrão da dupla em 3 m, em 30 % e com altura; a lente do salão em 40°; as tangentes trocadas no
+  grupo e na corrida; o FOV de 40° no `_enquadrar`; a corrida sem o `puxar_os_de_tras`; a distância e o modo d'A Prova; o filtro
+  de quem está na partida; o filtro de quem está visível.
+- **Fica para a G05b** ([G05b](G05b-o-que-a-g05-deixou-por-dependencia.md)): o `Lente` do G01 no merge, a lente do título e da
+  montagem, a pose do salão a 35 mm (G06), as salas que ainda balançam pelo `tremor` antigo e a prova visual d'A Prova nas
+  partidas de 4, 2 e 1.
+
+### Escolhas minhas, para ela validar
+
+- O salão passou a 35 mm (37,8°) sem mexer na pose: a câmera ficou uns 5 % mais fechada; o título, o lobby e a montagem
+  seguem a 40°.
+- Sem alvo nenhum, o modo grupo e o da corrida caem na pose fixa da sala.
+- Sem ninguém na partida, A Prova enquadra todos os visíveis (não a pose fixa).
+- O tremor antigo das salas (`tremor`) continua e vira `min(0,08, 0,12 × tremor)` m; vale o maior entre ele e o `abalo`.
+- A batida do degrau é a do `Ritmo.bpm` na hora do pedido (120 BPM sem música).
+- `_tangentes()` chama `_enquadrar()` antes, porque a cortina (`_trocar`) pede a pose na hora, quando o estado já mudou e o
+  FOV da câmera ainda é o da sala velha.
+- `_pose_da_sala` aceita as tangentes por parâmetro só para a prova fixar uma tela de 16:9 (a janela desta passada é quase
+  quadrada).
+- `Sala.TREMOR_EXPLOSAO` ficou igual ao estrondo (0,05), como a ficha manda, para as fichas de minigame que já o chamam.
+
+### Para o André (local)
+
+1. `./run-local.sh -- --sala=prova`: correr com os quatro para os cantos; a câmera abre e fecha sem salto e ninguém some.
+2. Na mesma sala, o susto (o `tremor` d'A Prova): o quadro balança e não gira.
+3. Opções › Movimento › Reduzido: nada treme.
+4. `bash tests/prova_visual.sh` sem `--fixed-fps`, com a placa de vídeo: comparar as pranchas das salas fixas com as de antes;
+   as raias continuam inteiras (a lente de 35 mm vê uns 5 % menos que a de 40°) e o salão não corta nenhum boneco.
