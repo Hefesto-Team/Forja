@@ -155,6 +155,7 @@ com o porquê; o que o simulador alcança, mede.
 bash tests/prova_visual.sh pasta/              # as quatro partidas, nas duas passadas
 PASSADAS=fixa bash tests/prova_visual.sh pasta/   # só a de --fixed-fps 60 (a da sessão)
 PARTIDAS="3 4" bash tests/prova_visual.sh pasta/  # só duas das quatro
+NA_TELA=1 PASSADAS=livre bash tests/prova_visual.sh pasta/  # a passada livre NA SUA TELA, com a placa de vídeo
 bash tests/prova_visual.sh --autoteste         # cada checagem reprova o defeito plantado
 bash tests/telas.sh visual pasta/              # o mesmo, pelo atalho das telas
 ```
@@ -171,7 +172,10 @@ pequeno ou sem contraste, relógio que sobe, minigame sem vencedor, frase com
 minúscula; os quadros por segundo só avisam. Roda no Xvfb com OpenGL por
 software, dentro da caixa, sem janela na sua tela. A aparência (luz, cor, arte)
 **não** se aprova por ela: a prancha da nuvem não é a da placa de vídeo. A passada
-`livre` (sem `--fixed-fps`) dura o tempo real e é a de quem tem placa de vídeo.
+`livre` (sem `--fixed-fps`) dura o tempo real; no Xvfb ela ainda é por software,
+e só com `NA_TELA=1` (a janela abre na tela de quem roda) usa a placa de vídeo e
+mostra as travadas de verdade. Com as duas passadas, a mesma semente tem de dar o
+mesmo vencedor em cada minigame e o mesmo pódio; se não der, é defeito do jogo.
 
 ## As fotos e o trailer
 

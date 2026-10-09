@@ -59,7 +59,8 @@ Cada uma nasceu de um defeito real.
   (o `.exe` roda pelo Wine).
 - **A prova visual:** `bash tests/prova_visual.sh <pasta>` (quatro partidas do
   título ao pódio, a prancha de cada uma e as checagens de todos os quadros);
-  `PASSADAS=fixa` na sessão, sem `--fixed-fps` na máquina com placa de vídeo.
+  `PASSADAS=fixa` na sessão; na máquina com placa de vídeo, `NA_TELA=1` (a
+  janela abre na tela) e as duas passadas.
   Ficha de tela, arte, câmera, HUD ou minigame só fecha com a prancha olhada.
 - **As fotos das telas** (de divulgação): `godot/testes/captura_jogo.gd` (o cabeçalho diz como),
   sempre com `--fixed-fps 60`.

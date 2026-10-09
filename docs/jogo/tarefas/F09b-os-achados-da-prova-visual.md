@@ -33,6 +33,14 @@ em `checagens-<n>.txt` da pasta que a prova recebeu.
 | texto em cima de texto | duas frases desenhadas no mesmo lugar | no 2 contra 2, `Brasa · vida 1 · 1 balas` com `Brasa · derrubado` (a linha de vida e a de derrubado, no mesmo lugar, na hora em que o jogador cai) |
 | tela parada por mais de 5 s | a sala espera sem mexer quase nada | A Centelha entre duas runas, O Impacto e A Prova mais de 5 s sem mexer quase nada |
 
+Achado da conferência, na prancha da partida 4 (um jogador, o cabo que cai no
+meio do segundo minigame): a sala termina no quadro em que o único controle cai
+(«P1 venceu» em A Galeria, aos 01:31, com o aviso «P1 sem controle — reconecte
+para voltar» por cima do resultado). Em `godot/scripts/salas/sala_jogo.gd`, quem
+está sem controle conta como quem acabou, e com um jogador só isso fecha a sala.
+Medir com a pessoa se, sozinho, o jogo deve esperar a volta do controle (a
+pausa) em vez de dar a vitória; a validar por ela.
+
 O que a prova **não** achou nas quatro partidas: tela vazia, relógio que sobe,
 minigame sem vencedor e frase de tela com minúscula.
 
