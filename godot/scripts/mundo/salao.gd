@@ -523,7 +523,7 @@ func centro_do_portao(id: String) -> Vector3:
 func _material_do_tubo() -> ShaderMaterial:
 	if _mat_do_tubo == null:
 		# o dono do tubo é a forja (teto 2,4 do arte/07); 1,3 de energia, para o glow pegar sem estourar
-		_mat_do_tubo = Kit.neon(Tema.TUNGSTENIO, 1.3)
+		_mat_do_tubo = Tema.neon(Tema.TUNGSTENIO, 1.3, "forja")
 	return _mat_do_tubo
 
 

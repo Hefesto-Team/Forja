@@ -21,7 +21,6 @@ const BONECOS := [
 ]
 ## Os shaders do cavaleiro (arte/04): a roupa por faixa de valor, o contorno e o néon.
 const SH_CAVALEIRO := preload("res://shaders/cavaleiro.gdshader")
-const SH_NEON := preload("res://shaders/neon.gdshader")
 ## O contorno: 1,6 na montagem, 2,4 no resto (arte/07).
 const CONTORNO_MONTAGEM := 1.6
 const CONTORNO_JOGO := 2.4
@@ -248,15 +247,7 @@ func _contornar_em(n: Node) -> void:
 	if n is MeshInstance3D:
 		var mi := n as MeshInstance3D
 		if mi.mesh:
-			# o corpo e a cabeça já levam o contorno da roupa (_vestir), e o que já tem contorno só troca a energia
-			if _ja_contornado(mi.material_override) or _ja_contornado(mi.get_surface_override_material(0)):
-				pass
-			elif mi.material_override:
-				# a peça com material único (a runa, o vão dela): o contorno no próprio material,
-				# que a runa acende e apaga
-				_suavizar(mi)
-				mi.material_override.next_pass = _novo_contorno()
-			else:
+			if not _ja_contornado(mi.get_surface_override_material(0)):
 				_suavizar(mi)
 				for s in mi.mesh.get_surface_count():
 					var base: Material = mi.get_surface_override_material(s)
@@ -271,6 +262,7 @@ func _contornar_em(n: Node) -> void:
 		_contornar_em(filho)
 
 
+## O corpo e a cabeça já levam o contorno da roupa (_vestir); o que já tem contorno só troca a energia.
 func _ja_contornado(m: Material) -> bool:
 	return m != null and m.next_pass is ShaderMaterial and _contornos.has(m.next_pass)
 

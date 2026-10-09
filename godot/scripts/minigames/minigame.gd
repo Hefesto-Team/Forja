@@ -186,9 +186,7 @@ func raia(l: int) -> Node3D:
 	borda.position = Vector3(0, 0.08, 0)
 	borda.scale = Vector3(1, 0.35, 1)
 	var mat := Kit.material(cor.darkened(0.45), 0.0, 0.7)
-	mat.emission_enabled = true
-	mat.emission = cor
-	mat.emission_energy_multiplier = 0.4
+	Tema.emissivo(mat, 0.4, l)
 	borda.material_override = mat
 	raiz.add_child(borda)
 	var luz := OmniLight3D.new()
@@ -206,7 +204,7 @@ func acender_raia(l: int, forca: float) -> void:
 	if not _raias.has(l):
 		return
 	var r: Dictionary = _raias[l]
-	(r.mat_borda as StandardMaterial3D).emission_energy_multiplier = 0.4 + 2.0 * forca
+	Tema.emissivo(r.mat_borda, 0.4 + 2.0 * forca, l)
 	(r.luz as OmniLight3D).light_energy = 1.6 * forca
 
 

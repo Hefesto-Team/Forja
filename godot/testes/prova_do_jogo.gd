@@ -2439,8 +2439,8 @@ func _prova_da_letra_e_da_margem() -> void:
 	var antes_q := Tema.escala_texto
 	for esc in [1.0, 1.15]:
 		Tema.escala_texto = esc
-		for id in jogo.SALAS:
-			var sl = jogo.SALAS[id].new()
+		for id in Catalogo.MINIGAMES.keys() + Catalogo.SALAS_ANTIGAS.keys():
+			var sl = Catalogo.criar(id)
 			var qs: Dictionary = HudJogo.quadro_da_sala(str(sl.nome), str(sl.acao), 1920.0)
 			sl.free()
 			_esperar(not str(qs["acao"]).ends_with("…"), "HUD: a ação de «%s» cabe inteira (%.2f×: %s)" % [id, esc, qs["acao"]])
@@ -2532,7 +2532,7 @@ func _prova_da_luz() -> void:
 			if mi.material_override != null:
 				continue  # o que a sala pendura no boneco (a vara, o martelo) tem o material da sala
 			for s in mi.mesh.get_surface_count():
-				var m = mi.material_override if mi.material_override else mi.get_surface_override_material(s)
+				var m = mi.get_surface_override_material(s)
 				if m and m.next_pass is ShaderMaterial and m.next_pass.get_shader_parameter("cor") == Tema.JOGADOR[l] \
 						and is_equal_approx(m.next_pass.get_shader_parameter("energia"), 2.4):
 					com_contorno += 1
@@ -2678,8 +2678,8 @@ func _prova_do_conforto() -> void:
 			if texto.contains("speed_scale = 0.0") and not texto.contains("Opcoes.parada("):
 				parada_sem_ajuda.append(arq.get_file())
 	var fonte := FileAccess.get_file_as_string("res://scripts/main.gd")
-	_esperar(fonte.contains("Opcoes.confete(22)") and fonte.contains("0.0 if Opcoes.reduzido() else _t * 0.08")
-		and fonte.contains('estado == "sala" and sala and not Opcoes.reduzido()'), "movimento: o confete, o giro do título e o tremor da câmera leem o Reduzido")
+	_esperar(fonte.contains("Opcoes.confete(22)") and fonte.contains("0.0 if Opcoes.reduzido() else 0.03 * TelaIntro.entra_sai")
+		and fonte.contains('estado == "sala" and sala and not Opcoes.reduzido()'), "movimento: o confete, o push-in do título e o tremor da câmera leem o Reduzido")
 	_esperar(tremor_velho.is_empty(), "movimento: nenhum script lê o tremor antigo (%s)" % [tremor_velho])
 	_esperar(parada_sem_ajuda.is_empty(), "movimento: toda parada de quadros passa por Opcoes.parada (%s)" % [parada_sem_ajuda])
 	# a lista que desliza
@@ -2790,11 +2790,11 @@ func _prova_da_noite_da_fita() -> void:
 	var pontos := [[10, 40, 30, 20], [0, 50, 10, 20], [5, 60, 0, 0]]
 	for i in 3:
 		var q := 0
-		while (not jogo.sala is SalaJogo or jogo.sala.id != p.salas[i] or jogo._trocando) and q < 900:
+		while (not jogo.sala is SalaJogo or Catalogo.apelido(jogo.sala.id) != p.salas[i] or jogo._trocando) and q < 900:
 			await _quadros(2)
 			q += 2
 		var sala = jogo.sala
-		if not sala is SalaJogo or sala.id != p.salas[i]:
+		if not sala is SalaJogo or Catalogo.apelido(sala.id) != p.salas[i]:
 			_esperar(false, "noite: a faixa %d (%s) não abriu (estado %s, overlay %s, sala %s, trocando %s, t %s, pronto %s, robo %s, rodada %s)" % [i + 1, p.salas[i], jogo.estado, jogo.overlay, jogo.sala, jogo._trocando, jogo.placar._t, jogo.placar.pronto(), Forja.robo, jogo._robo_placar_rodada])
 			return
 		_esperar(is_equal_approx(jogo.env.fog_density, Tema.luz_da_secao(sala.numero(), false).densidade), "noite: a faixa %d acende no lado A" % (i + 1))
@@ -2841,10 +2841,10 @@ func _prova_da_noite_da_fita() -> void:
 	await _quadros(40)
 	await _aperta(0, Forja.CRUZ)
 	q = 0
-	while (not jogo.sala is SalaJogo or jogo.sala.id != p.salas[3] or jogo._trocando) and q < 600:
+	while (not jogo.sala is SalaJogo or Catalogo.apelido(jogo.sala.id) != p.salas[3] or jogo._trocando) and q < 600:
 		await _quadros(2)
 		q += 2
-	_esperar(jogo.estado != "intervalo" and jogo.sala is SalaJogo and jogo.sala.id == p.salas[3], "noite: o ✕ depois dos 500 ms segue para a 4ª faixa (%s)" % jogo.sala.id)
+	_esperar(jogo.estado != "intervalo" and jogo.sala is SalaJogo and Catalogo.apelido(jogo.sala.id) == p.salas[3], "noite: o ✕ depois dos 500 ms segue para a 4ª faixa (%s)" % jogo.sala.id)
 	await _quadros(3)
 	_esperar(is_equal_approx(jogo.env.fog_density, Tema.luz_da_secao(jogo.sala.numero(), true).densidade), "noite: a 4ª faixa acende no lado B")
 	_esperar(is_equal_approx(PosFita.valor("grao"), 0.018 + 0.002 * 3.0) or PosFita.valor("grao") > 0.018, "noite: a 4ª faixa gasta a fita (grão %.3f)" % PosFita.valor("grao"))

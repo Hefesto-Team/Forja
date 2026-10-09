@@ -12,7 +12,6 @@ const ESCALA_DO_PACOTE := {
 	"pirate-kit": 0.4, "cube-pets": 0.4, "blaster-kit": 0.3, "modular-dungeon-kit": 0.25,
 	"modular-cave-kit": 0.25, "modular-space-kit": 0.25,
 }
-const SH_NEON := preload("res://shaders/neon.gdshader")
 
 static var _cenas := {}
 
@@ -136,15 +135,6 @@ static func anel(pai: Node, raio_dentro: float, raio_fora: float, pos: Vector3, 
 	return mi
 
 
-## Um néon que trabalha: chapado, com a energia acima de 1 para o glow pegar.
-static func neon(cor: Color, energia := 2.0) -> ShaderMaterial:
-	var m := ShaderMaterial.new()
-	m.shader = SH_NEON
-	m.set_shader_parameter("cor", cor)
-	m.set_shader_parameter("energia", energia)
-	return m
-
-
 ## O anel de 8 lados no chão, na cor do lugar, com as lâmpadas do controle à
 ## frente: a cor nunca sozinha (arte/04). Devolve o nó, para esconder ou apagar.
 static func anel_do_dono(pai: Node3D, lugar: int) -> Node3D:
@@ -162,7 +152,7 @@ static func anel_do_dono(pai: Node3D, lugar: int) -> Node3D:
 	mi.mesh = t
 	mi.scale = Vector3(1, 0.22, 1)
 	mi.rotation.y = PI / 8.0
-	mi.material_override = neon(cor, 1.5)
+	mi.material_override = Tema.neon(cor, 1.5, lugar)
 	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	a.add_child(mi)
 	for i in 5:
@@ -173,7 +163,7 @@ static func anel_do_dono(pai: Node3D, lugar: int) -> Node3D:
 		bm.size = Vector3(0.09, 0.02, 0.14)
 		luz.mesh = bm
 		luz.position = Vector3((i - 2) * 0.16, 0.0, 0.82)
-		luz.material_override = neon(cor, 1.8)
+		luz.material_override = Tema.neon(cor, 1.8, lugar)
 		luz.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 		a.add_child(luz)
 	return a

@@ -1394,7 +1394,7 @@ func _pose_da_camera() -> Array:
 			# com o movimento desligado)
 			var b := salao.bigorna.global_position
 			var olhar := b + Vector3(0, 1.0, 0)
-			var k := 1.0 - (0.03 * TelaIntro.entra_sai(fmod(titulo.batidas, 32.0) / 32.0) if not Opcoes.reduzido() else 0.0)
+			var k := 1.0 - (0.0 if Opcoes.reduzido() else 0.03 * TelaIntro.entra_sai(fmod(titulo.batidas, 32.0) / 32.0))
 			return [olhar + Vector3(0, 0, 9.0) * k, olhar]
 		"intro":
 			return intro.pose_da_camera()
