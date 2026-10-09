@@ -13,6 +13,7 @@ extends RefCounted
 ## contraste: float (-1: não medido)}.
 
 const AREA_SEGURA := 0.05  ## 5% de cada borda
+const SEGURA_FOLGA := 8.0  ## px: a caixa da linha traz o espaço do acento, que a tinta não ocupa
 const FONTE_MIN := 30  ## px, a letra que se lê do sofá
 const PARADA_DIFERENCA := 0.005  ## 0,5% de diferença média de pixel
 const PARADA_SEGUNDOS := 5.0
@@ -98,7 +99,7 @@ static func telas_vazias(quadros: Array) -> Array:
 ## contraste. `tela` é o tamanho do jogo (1920×1080).
 static func texto(t: float, frases: Array, tela: Vector2) -> Array:
 	var achados: Array = []
-	var seguro := Rect2(tela * AREA_SEGURA, tela * (1.0 - 2.0 * AREA_SEGURA))
+	var seguro := Rect2(tela * AREA_SEGURA, tela * (1.0 - 2.0 * AREA_SEGURA)).grow(SEGURA_FOLGA)
 	for i in frases.size():
 		var f: Dictionary = frases[i]
 		var r: Rect2 = f.rect
@@ -120,6 +121,30 @@ static func texto(t: float, frases: Array, tela: Vector2) -> Array:
 			if menor > 0.0 and inter.get_area() / menor >= SOBREPOSICAO_MIN:
 				achados.append("%s: «%s» encavalada com «%s» (%s e %s)" % [hora(t), _curta(f.frase), _curta(g.frase), _ret(r), _ret(g.rect)])
 	return achados
+
+
+## Junta os achados que são o mesmo defeito parado na tela: a chave é a frase
+## com os números trocados por «#» e sem a hora. Devolve {linhas: as linhas para
+## ler, primeiros: os achados que valem uma marca na prancha}.
+static func resumir(achados: Array) -> Dictionary:
+	var re_hora := RegEx.create_from_string("^\\d\\d:\\d\\d: ")
+	var re_num := RegEx.create_from_string("\\d+")
+	var grupos := {}
+	var ordem: Array = []
+	for a in achados:
+		var cru := re_hora.sub(str(a), "")
+		var chave := re_num.sub(cru, "#", true)
+		if not grupos.has(chave):
+			grupos[chave] = {"primeiro": str(a), "n": 0}
+			ordem.append(chave)
+		grupos[chave].n += 1
+	var linhas: Array = []
+	var primeiros: Array = []
+	for chave in ordem:
+		var g: Dictionary = grupos[chave]
+		linhas.append(g.primeiro if int(g.n) == 1 else "%s (e mais %d iguais)" % [g.primeiro, int(g.n) - 1])
+		primeiros.append(g.primeiro)
+	return {"linhas": linhas, "primeiros": primeiros}
 
 
 ## O relógio de um minigame nunca sobe durante a fase `jogo`.

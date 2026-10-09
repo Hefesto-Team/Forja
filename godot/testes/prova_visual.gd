@@ -259,7 +259,7 @@ func _fotografar() -> void:
 	var quadro := img.duplicate() as Image
 	quadro.convert(Image.FORMAT_RGB8)
 	quadro.resize(QUADRO.x, QUADRO.y, Image.INTERPOLATE_BILINEAR)
-	quadros.append({"t": t, "estado": estado, "sala": id, "pausa": jogo.overlay == "pausa", "pq": peq, "img": quadro})
+	quadros.append({"t": t, "estado": estado, "sala": id, "pausa": jogo.overlay == "pausa" or estado == "podio", "pq": peq, "img": quadro})
 	textos.append({"t": t, "estado": estado, "sala": id, "frases": frases})
 
 
@@ -269,7 +269,7 @@ func _contraste(img: Image, r: Rect2, cor: Color) -> float:
 	if cor.a < 0.3:
 		return -1.0
 	var k := Vector2(img.get_size()) / TELA
-	var fora := r.grow(3.0)
+	var fora := r.grow(maxf(3.0, 2.0 / k.x))  # ao menos 2 pixels da imagem para fora do texto
 	var pontos: Array = []
 	for i in 8:
 		var f := (i + 0.5) / 8.0
@@ -286,7 +286,10 @@ func _contraste(img: Image, r: Rect2, cor: Color) -> float:
 	if luzes.size() < 8:
 		return -1.0
 	luzes.sort()
-	return ChecagensVisuais.razao(ChecagensVisuais.luminancia(cor), float(luzes[luzes.size() / 2]))
+	var fundo := float(luzes[luzes.size() / 2])
+	# o texto esmaecido (alfa < 1) chega ao olho misturado com o fundo
+	var luz_texto := ChecagensVisuais.luminancia(cor) * cor.a + fundo * (1.0 - cor.a)
+	return ChecagensVisuais.razao(luz_texto, fundo)
 
 
 # ------------------------------------------------------ o fim: as checagens --
@@ -313,33 +316,30 @@ func _fechar(roteiro_ok: bool) -> void:
 		Forja.robo_temperamento if Forja.robo_temperamento != "" else "padrão", n_salas, ", com o cabo que cai" if com_cabo else "",
 		quadros.size(), ChecagensVisuais.hora(t)])
 	relato.append("")
+	var todos: Array = []
 	if not roteiro_ok:
-		reprovados.append_array(falhas)
-	reprovados.append_array(ChecagensVisuais.tela_parada(quadros))
-	reprovados.append_array(ChecagensVisuais.telas_vazias(quadros))
-	var por_frase := {}
+		todos.append_array(falhas)
+	todos.append_array(ChecagensVisuais.tela_parada(quadros))
+	todos.append_array(ChecagensVisuais.telas_vazias(quadros))
 	for tx in textos:
-		var achados := ChecagensVisuais.texto(float(tx.t), tx.frases, TELA)
-		for a in achados:
-			var chave := str(a).substr(str(a).find(":") + 2)
-			if not por_frase.has(chave):  # o mesmo defeito, parado na tela, conta uma vez
-				por_frase[chave] = true
-				reprovados.append(a)
-	reprovados.append_array(ChecagensVisuais.relogio_sobe(observacoes))
-	reprovados.append_array(ChecagensVisuais.fim_sem_vencedor(eventos))
-	reprovados.append_array(ChecagensVisuais.minuscula(Desenho._coletados.keys()))
+		todos.append_array(ChecagensVisuais.texto(float(tx.t), tx.frases, TELA))
+	todos.append_array(ChecagensVisuais.relogio_sobe(observacoes))
+	todos.append_array(ChecagensVisuais.fim_sem_vencedor(eventos))
+	todos.append_array(ChecagensVisuais.minuscula(Desenho._coletados.keys()))
+	var resumo := ChecagensVisuais.resumir(todos)  # o mesmo defeito, parado na tela, conta uma vez
+	reprovados = resumo.linhas
 	avisos.append_array(ChecagensVisuais.desempenho(eventos))
 	if reprovados.is_empty():
 		relato.append("REPROVADAS: nenhuma")
 	else:
-		relato.append("REPROVADAS (%d):" % reprovados.size())
+		relato.append("REPROVADAS (%d defeitos distintos, %d achados nos quadros):" % [reprovados.size(), todos.size()])
 		for r in reprovados:
 			relato.append("  FAIL " + str(r))
 	relato.append("")
 	relato.append("AVISOS (quadros por segundo, só avisa; abaixo de %d no renderizador por software é de esperar): %d" % [int(ChecagensVisuais.FPS_AVISO), avisos.size()])
 	for a in avisos:
 		relato.append("  aviso " + str(a))
-	var marcados := _marcar(reprovados)
+	var marcados := _marcar(resumo.primeiros)
 	var paginas := _pranchas(marcados)
 	relato.append("")
 	relato.append("pranchas: " + ", ".join(paginas))
@@ -469,5 +469,12 @@ func _autoteste() -> int:
 	for i in riscado.size() / 2:
 		riscado[i] = 250 if i % 2 == 0 else 10
 	ok.call(not ChecagensVisuais.tela_vazia({"pq": riscado}), "vazia: um quadro com conteúdo passa")
+	var iguais := ["00:12: «Runa 3 de 17 · 0» com letra de 28 px (o mínimo é 30)",
+		"00:14: «Runa 4 de 17 · 9» com letra de 28 px (o mínimo é 30)", "00:14: «Pontos» com letra de 24 px (o mínimo é 30)"]
+	var res := ChecagensVisuais.resumir(iguais)
+	ok.call(res.linhas.size() == 2 and res.primeiros.size() == 2, "resumo: o mesmo defeito parado conta uma vez, o outro conta à parte")
+	var colado := limpo.duplicate(true)
+	colado[0].rect = Rect2(96, 56, 300, 40)
+	ok.call(ChecagensVisuais.texto(10.0, colado, TELA).is_empty(), "texto: o rente à área segura, com a folga da linha, passa")
 	print("autoteste da prova visual: %s" % ("ok" if erros[0] == 0 else "%d falha(s)" % erros[0]))
 	return 0 if erros[0] == 0 else 1

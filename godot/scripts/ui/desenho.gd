@@ -99,7 +99,12 @@ static var retangulos: Array = []
 ## base, no espaço do `ci`). `largura` > 0 é a caixa em que ele se alinha.
 static func anotar(ci: CanvasItem, pos: Vector2, traduzido: String, f: Font, px: int, cor: Color,
 		alinhamento := HORIZONTAL_ALIGNMENT_LEFT, largura := -1.0, max_linhas := 0) -> void:
-	var tam := f.get_multiline_string_size(traduzido, HORIZONTAL_ALIGNMENT_LEFT, largura if max_linhas != 0 else -1.0, px, max_linhas)
+	var tam: Vector2
+	if max_linhas == 0:
+		# uma linha só (`texto`, `selo`, `dica`): a largura da frase e a altura da linha
+		tam = Vector2(f.get_string_size(traduzido, HORIZONTAL_ALIGNMENT_LEFT, -1.0, px).x, f.get_height(px))
+	else:
+		tam = f.get_multiline_string_size(traduzido, HORIZONTAL_ALIGNMENT_LEFT, largura, px, max_linhas)
 	var x := pos.x
 	if largura > 0.0 and max_linhas == 0:
 		if alinhamento == HORIZONTAL_ALIGNMENT_CENTER:
