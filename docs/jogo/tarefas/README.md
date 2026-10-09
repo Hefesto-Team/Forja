@@ -52,6 +52,7 @@ Os estados, e o que cada um quer dizer, estão em
 | [G14](G14-a-cor-e-a-letra-da-fita.md) | A cor e a letra da Fita | M | F00, F09 | feito |
 | [G15](G15-a-luz-o-pos-e-o-brilho-com-dono.md) | A luz, o pós e o brilho com dono | G | F00, F09, G14 | feito |
 | [G16](G16-o-virar-da-fita-e-o-conforto.md) | O virar da fita, o movimento e as reações nas Opções | M | F00, F07, F09, G14 | feito |
+| [G16b](G16b-o-que-a-g16-deixou-por-dependencia.md) | O que a G16 deixou por dependência | P | G01, G05, G11, G12 | a fazer |
 | [G14b](G14b-as-cores-de-luz-que-sobraram.md) | As cores de luz que sobraram | P | G14, G15 | a fazer |
 
 ## H — O ritmo, o som e o kit
