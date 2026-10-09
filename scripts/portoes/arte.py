@@ -15,7 +15,12 @@ escopo (godot/scripts, godot/scenes, godot/project.godot):
      `T_*` do arquivo de tokens;
   4. as cores dos jogadores só nos jogadores: o hex de um jogador escrito fora
      do arquivo de tokens, e a cor de jogador pedida por índice literal
-     (`JOGADOR[0]`, `cor_do_lugar(2)`): a cor do P1 usada como enfeite.
+     (`JOGADOR[0]`, `cor_do_lugar(2)`): a cor do P1 usada como enfeite;
+  6. o emissivo com dono: `emission_enabled`, `emission_energy_multiplier` e
+     `emission =` só no arquivo de tokens; `Tema.neon`, `Tema.contorno` e
+     `Tema.emissivo` sempre com o argumento do dono; energia escrita em número
+     acima do teto do dono escrito em texto; o shader do néon ou do contorno
+     montado à mão (docs/jogo/arte/12-portoes.md#6).
 
 MODO: entra em AVISO (não reprova o CI) até a bíblia entrar no jogo pela G14.
 Para virar, ponha "modo": "reprova" em scripts/portoes/arte.json (a ficha
@@ -31,6 +36,11 @@ import comum
 COR_LITERAL = re.compile(r"\bColor8\s*\(|\bColor\.html\s*\(|\bColor\s*\(\s*(\"|'|-?\d|\.\d)")
 COR_NOMEADA = re.compile(r"\bColor\.([A-Z][A-Z_]+)\b")
 HEX = re.compile(r"#([0-9a-fA-F]{8}|[0-9a-fA-F]{6})\b")
+EMISSAO = re.compile(r"\bemission_enabled\b|\bemission_energy_multiplier\b|\bemission\s*=(?!=)")
+SHADER_DO_BRILHO = re.compile(r"shaders/(?:neon|contorno)\.gdshader")
+## As três funções do brilho: quantos argumentos pedem e em que lugar mora a energia.
+FUNCOES_DO_BRILHO = {"Tema.neon": (3, 1), "Tema.contorno": (4, 2), "Tema.emissivo": (3, 1)}
+TETO_DO_DONO = {"mundo": 1.2, "forja": 2.4}
 FONTE = re.compile(r"[\w./-]+\.(?:ttf|otf|woff2?)\b")
 
 
@@ -109,6 +119,29 @@ def main() -> int:
                 for m in rx.finditer(texto):
                     rel.achou(rel_f, comum.linha_de(texto, m.start()),
                               f"a cor de um jogador pedida por índice fixo ({m.group(0)}): só o dono usa a cor dele")
+
+        # 6. o emissivo com dono
+        if not e_tokens:
+            for m in EMISSAO.finditer(texto):
+                rel.achou(rel_f, comum.linha_de(texto, m.start()),
+                          "brilho escrito fora do arquivo de tokens (use Tema.neon, Tema.contorno ou Tema.emissivo)")
+            for m in SHADER_DO_BRILHO.finditer(texto):
+                rel.achou(rel_f, comum.linha_de(texto, m.start()),
+                          "shader do néon ou do contorno montado à mão (use Tema.neon ou Tema.contorno)")
+            if f.suffix == ".gd":
+                for nome, (pede, i_energia) in FUNCOES_DO_BRILHO.items():
+                    for m in re.finditer(r"(?<![\w.])" + re.escape(nome) + r"\s*\(", texto):
+                        args = comum.args_da_chamada(texto, m.end() - 1)
+                        linha = comum.linha_de(texto, m.start())
+                        if args is None or len(args) < pede:
+                            rel.achou(rel_f, linha, f"{nome} sem o dono do brilho")
+                            continue
+                        energia, dono = args[i_energia].strip(), args[-1].strip()
+                        if not re.fullmatch(r"\d+(?:\.\d+)?", energia):
+                            continue
+                        teto = TETO_DO_DONO.get(dono.strip("\"'"), 3.0 if re.fullmatch(r"[0-3]", dono) else None)
+                        if teto is not None and float(energia) > teto:
+                            rel.achou(rel_f, linha, f"energia {energia} acima do teto {teto} do dono {dono}")
 
     pasta = raiz / r.get("pasta_das_fontes", "")
     if r.get("pasta_das_fontes") and pasta.is_dir():
