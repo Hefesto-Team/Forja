@@ -66,7 +66,7 @@ dir, ganho)`, `Forja.gatilho(l, lado, modo, a, b, c)` (lado 0 = L2, 1 = R2),
 `Ritmo.batida()`, `Ritmo.t_da_batida(b)`, `Ritmo.bpm`, `Ritmo.simples[l]`.
 Do G03: `Itens.antecipacao_s(l, bpm)` (a Lanterna). Da G15: `Tema.neon(cor,
 energia, dono)`, `Tema.emissivo(material, energia, dono)` e
-`Tema.luz_da_secao(secao, lado)`; o dono é um lugar (teto 3,0), `"mundo"` (1,2)
+`Tema.luz_da_secao(numero, lado_b := false)` (o número da seção: S1 = 1, o pódio 0); o dono é um lugar (teto 3,0), `"mundo"` (1,2)
 ou `"forja"` (2,4). `Forja.vibrar` não é para a sala (F05): só `Forja.sentir`.
 
 ### A função `momento` (em `minigame.gd`, de todos)
@@ -1020,7 +1020,7 @@ quadro.
 ### A luz da seção
 
 S1 é o vermelhão (`Tema.SECAO[0]`, `#c8432f`), lado A.
-`Tema.luz_da_secao(0, "A")` (G15) devolve a névoa `#210502`, o preenchimento
+`Tema.luz_da_secao(1)` (G15; S1, lado A: `lado_b` false) devolve a névoa `#210502`, o preenchimento
 `#602016` e a chave `#ffc99c`. A névoa é do main (a G15 a põe pela seção do
 slot). O `secao.gd` põe o preenchimento (o `atmosfera` da sala, com as brasas),
 a chave (uma `OmniLight3D` em `(0, 8, 3)`, energia 0,9, alcance 26) e a
@@ -1093,7 +1093,7 @@ extends RefCounted
 ## Sem class_name: quem usa carrega pelo caminho,
 ## const SECAO := preload("res://scripts/minigames/s01/secao.gd").
 
-const SECAO := 0  ## Tema.SECAO[0], o vermelhão
+const NUMERO := 1  ## a seção S1, o vermelhão Tema.SECAO[0]; Tema.luz_da_secao conta de 1 (o pódio é 0)
 ## A arena (docs/jogo/arte/01-cinema.md): 35 mm, plongée de 50°.
 const CAMERA_OLHAR := Vector3(0, 1.2, -0.2)
 const CAMERA_ANGULO := 50.0
@@ -1133,7 +1133,7 @@ static func pose_da_camera(recuo := 1.0, olhar := CAMERA_OLHAR, distancia := CAM
 static func montar(sala: SalaJogo, olhar := CAMERA_OLHAR, distancia := CAMERA_DISTANCIA,
 		angulo := CAMERA_ANGULO) -> Dictionary:
 	Kit.arena(sala, 5, 3)
-	var luz: Dictionary = Tema.luz_da_secao(SECAO, "A")
+	var luz: Dictionary = Tema.luz_da_secao(NUMERO)  # lado A: lado_b false
 	sala.atmosfera(luz.preenchimento, Tema.VIOLETA, true, 60)
 	sala.luzes([Vector3(-9, 2.5, -4), Vector3(9, 2.5, -4), Vector3(0, 3.0, 4)])
 	var chave := OmniLight3D.new()
@@ -1490,7 +1490,8 @@ Ainda em `_prova_do_relatorio()`, depois da contagem do Martelo, os momentos
 (a régua):
 
 ```gdscript
-	var linhas := _linha_do_tempo().filter(func(e): return e.get("slot") == "S01_J01")
+	var todas := _linha_do_tempo()
+	var linhas := todas.filter(func(e): return e.get("slot") == "S01_J01")
 	var rachas := linhas.filter(func(e): return e.get("tipo") == "momento" and e.get("nome") == "racha_no_quinto")
 	var reta := linhas.filter(func(e): return e.get("tipo") == "momento" and e.get("nome") == "reta")
 	_esperar(reta.size() == 1, "S01_J01: a linha momento reta aparece uma vez")
@@ -1498,8 +1499,10 @@ Ainda em `_prova_do_relatorio()`, depois da contagem do Martelo, os momentos
 		_esperar(float(r.get("x_tela", 0.0)) >= 0.2 and float(r.get("x_tela", 0.0)) <= 0.8 \
 			and float(r.get("altura_tela", 0.0)) >= 0.08, "S01_J01: a racha no meio da tela (%s)" % [r])
 		var t := float(r.get("t_musica", 0.0))
-		var golpe := linhas.filter(func(e): return e.get("tipo") == "sensacao" and e.get("nome") == "golpe" \
-			and int(e.get("lugar", -9)) == int(r.get("lugar", -1)) and absf(float(e.get("t_musica", -9.0)) - t) <= 0.0167)
+		# a sensacao (F05) não leva slot: procura em todas, perto no relógio da sessão (t)
+		var golpe := todas.filter(func(e): return e.get("tipo") == "sensacao" and e.get("nome") == "golpe" \
+			and int(e.get("lugar", -9)) == int(r.get("lugar", -1)) and absf(float(e.get("t_musica", -9.0)) - t) <= 0.0167 \
+			and absf(float(e.get("t", -9.0)) - float(r.get("t", 0.0))) <= 1.0)
 		_esperar(not golpe.is_empty(), "S01_J01: a racha tem a sensação golpe no mesmo quadro (%s)" % [r])
 ```
 

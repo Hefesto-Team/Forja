@@ -56,7 +56,7 @@ dir, ganho)`, `Forja.gatilho(l, lado, modo, a, b, c)` (lado 0 = L2, 1 = R2),
 `Ritmo.batida()`, `Ritmo.t_da_batida(b)`, `Ritmo.bpm`, `Ritmo.simples[l]`.
 Do G03: `Itens.antecipacao_s(l, bpm)` (a Lanterna). Da G15: `Tema.neon(cor,
 energia, dono)`, `Tema.emissivo(material, energia, dono)` e
-`Tema.luz_da_secao(secao, lado)`; o dono é um lugar (teto 3,0), `"mundo"` (1,2)
+`Tema.luz_da_secao(numero, lado_b := false)` (o número da seção: S1 = 1, o pódio 0); o dono é um lugar (teto 3,0), `"mundo"` (1,2)
 ou `"forja"` (2,4). `Forja.vibrar` não é para a sala (F05): só `Forja.sentir`.
 
 Do `secao.gd` da I1 (`const SECAO := preload("res://scripts/minigames/s01/secao.gd")`;
@@ -212,6 +212,7 @@ var j := {}
 var chegada: Array = []
 var _fim_da_reta := -1.0
 var _neon: Array = []  ## as barras do túnel (piscam no pico)
+var _mat_tunel: StandardMaterial3D  ## o material das cinco barras do túnel, um só
 var contagem := [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]
 var cena := {}  ## o que o SECAO.montar devolveu
 var _adiados: Array = []  ## o que cai na próxima colcheia (SECAO.adiar)
@@ -232,10 +233,12 @@ func montar() -> void:
 	branca.light_energy = 1.2
 	branca.omni_range = 10.0
 	_fim_do_tunel.add_child(branca)
+	# um material só para as cinco barras: o pulso do pico muda as cinco de uma vez
+	_mat_tunel = Kit.material(Tema.VIOLETA, 1.2, 0.8, "mundo")
 	for x in [-8.0, -4.0, 0.0, 4.0, 8.0]:
 		for z in [-6.0, -3.0, 0.0]:
 			Kit.peca(self, "column", Vector3(x, 0, z))
-		_neon.append(Kit.caixa(self, Vector3(0.08, 0.08, 9.0), Vector3(x, 3.0, -3.0), Tema.neon(Tema.VIOLETA, 1.2, "mundo")))
+		_neon.append(Kit.caixa(self, Vector3(0.08, 0.08, 9.0), Vector3(x, 3.0, -3.0), _mat_tunel))
 	for p in jogadores:
 		var l: int = p.lugar
 		raia(l)
@@ -336,9 +339,8 @@ func jogar(_dt: float) -> void:
 	if _fim_da_reta >= 0.0 and Ritmo.batida() >= _fim_da_reta:
 		for l in presentes():
 			acabou[l] = true
-	# o néon do túnel: 1,2 parado; no pico, pulsa de 1,2 (na batida) a 0,6 (as cinco barras dividem o material)
-	var m: StandardMaterial3D = (_neon[0] as MeshInstance3D).material_override
-	Tema.emissivo(m, 0.6 + 0.6 * (1.0 - fmod(Ritmo.batida(), 1.0)) if no_pico() else 1.2, "mundo")
+	# o néon do túnel: 1,2 parado; no pico, pulsa de 1,2 (na batida) a 0,6 (as cinco barras dividem o _mat_tunel)
+	Tema.emissivo(_mat_tunel, 0.6 + 0.6 * (1.0 - fmod(Ritmo.batida(), 1.0)) if no_pico() else 1.2, "mundo")
 
 
 ## A nota da vez foi julgada: o portão sai da fila e o próximo vira a nota.
@@ -491,7 +493,7 @@ func _contagem() -> void:
 ## (SECAO.adiar), com tudo junto.
 func _achatado(l: int) -> void:
 	var pos := Vector3(RAIAS[l], 0.11, Z_JOGADOR)
-	var mat: StandardMaterial3D = Tema.neon(Forja.cor_do_lugar(l), 2.4, l).duplicate()
+	var mat := Kit.material(Forja.cor_do_lugar(l), 2.4, 0.8, l)  # um material novo por marca: apagar não toca as barras
 	var marca := Kit.caixa(self, Vector3(0.6, 0.02, 1.0), pos, mat)
 	var apagar := func(v: float) -> void:
 		Tema.emissivo(mat, v, l)
@@ -530,10 +532,14 @@ de todos, com `objeto` `tunel` e `valores`, os portões de cada lugar).
 - **A panqueca cai na colcheia** seguinte ao erro (`SECAO.adiar`): a marca,
   o tremor, a vibração `golpe` e o momento juntos. O achatar do boneco segue
   a batida do portão (`esmagado_b`), como hoje.
-- **A marca duplica o material** (`Tema.neon(...).duplicate()`): apagar o
-  material do `Tema.neon` apagaria também as barras dos portões do lugar.
-- **As cinco barras do túnel dividem um material** (o mesmo `Tema.neon`):
-  o pulso muda a primeira e as cinco seguem.
+- **A marca tem material próprio** (`Kit.material(cor do lugar, 2.4, 0.8, l)`,
+  um `StandardMaterial3D` novo por marca): o `Tema.emissivo` só age num
+  `StandardMaterial3D`, nunca no `ShaderMaterial` do `Tema.neon`, e apagar a
+  marca não apaga as barras dos portões do lugar.
+- **As cinco barras do túnel dividem um material** (`_mat_tunel`, um
+  `Kit.material(Tema.VIOLETA, 1.2, 0.8, "mundo")` criado antes do laço): o
+  pulso muda esse material e as cinco seguem. Um `Tema.neon` por barra daria
+  cinco materiais, e o `Tema.emissivo` não age no `ShaderMaterial` dele.
 - **O portão vale 2 na reta** e a meta segue 40: quem está a 1 portão e
   passa na reta vai a 41 e chega.
 - **Nenhum `Color("#…")` nem `Tema.ROXO`, `Tema.CIANO`, `Tema.AMARELO`**:
@@ -558,7 +564,7 @@ main faz o caminho.
 ### A luz da seção
 
 S1 é o vermelhão (`Tema.SECAO[0]`, `#c8432f`), lado A.
-`Tema.luz_da_secao(0, "A")` (G15) devolve a névoa `#210502`, o preenchimento
+`Tema.luz_da_secao(1)` (G15; S1, lado A: `lado_b` false) devolve a névoa `#210502`, o preenchimento
 `#602016` e a chave `#ffc99c`. O `SECAO.montar` da I1 põe o preenchimento (o
 `atmosfera`, com as brasas), a chave (`OmniLight3D` em `(0, 8, 3)`, energia
 0,9, alcance 26) e a fornalha do fundo (`Tema.TUNGSTENIO`, 1,4, alcance 8, em
@@ -581,12 +587,12 @@ cada lugar:
 | --- | --- | --- |
 | a raia | `raia(l)` | `(RAIAS[l], 0, Z_JOGADOR)` |
 | os pilares do túnel | `column` | `x ∈ {−8, −4, 0, 4, 8}`, `z ∈ {−6, −3, 0}` |
-| o néon do túnel | `Kit.caixa(0.08, 0.08, 9.0)`, `Tema.neon(Tema.VIOLETA, 1.2, "mundo")` | em cima de cada fila de pilares, `y = 3.0`, `z = −3` |
+| o néon do túnel | `Kit.caixa(0.08, 0.08, 9.0)`, as cinco com o mesmo `Kit.material(Tema.VIOLETA, 1.2, 0.8, "mundo")` | em cima de cada fila de pilares, `y = 3.0`, `z = −3` |
 | os portões | quatro por lugar, reciclados: um `Node3D` com `gate` (escala 2) e a barra `Kit.caixa(1.8, 0.08, 0.08)`, `Tema.neon(cor do lugar, 2.4, l)`, a 2,4 m | `x = RAIAS[l]`; `z = Z_JOGADOR − (b − batida) × 2`; `y = 2.6 × clamp(b − batida, 0, 1)` |
 | o portão vazio | o mesmo portão, um por lugar | `(RAIAS[l], 2.6 → 0, Z_JOGADOR − 1.2)`, só nas batidas 0 a 3 |
 | a saída | `wall-opening` | `x = RAIAS[l]`; aparece quando faltam 6 portões, em `z = Z_JOGADOR − 1.6 × faltam − 1` |
 | o fim do túnel | `wall-opening`, escala 4, e a luz branca | `(0, 0, −9.5)`; aparece a 2/3 |
-| a marca do portão | `Kit.caixa(0.6, 0.02, 1.0)`, o néon do lugar duplicado, 2,4 → 0 em 4 s | no chão, sob o cavaleiro achatado |
+| a marca do portão | `Kit.caixa(0.6, 0.02, 1.0)`, `Kit.material(cor do lugar, 2.4, 0.8, l)` (um por marca), 2,4 → 0 em 4 s | no chão, sob o cavaleiro achatado |
 | o cavaleiro | o boneco, de costas, `sprint` no lugar | `(RAIAS[l], 0.1, Z_JOGADOR)` |
 
 Portões com `z < −7.5` ficam escondidos (ainda estão longe).
@@ -600,7 +606,7 @@ Portões com `z < −7.5` ficam escondidos (ainda estão longe).
 | a marca do portão no chão | o lugar | 2,4 → 0 em 4 s |
 | as faíscas do BOM (o elmo raspado) | o lugar | `Forja.cor_do_lugar(l)`, 12 partículas |
 | as faíscas da panqueca | a forja | `Tema.TUNGSTENIO`, 20 partículas |
-| o néon do túnel | o mundo | `Tema.neon(Tema.VIOLETA, 1.2, "mundo")`; no pico, 1,2 → 0,6 a cada batida |
+| o néon do túnel | o mundo | `Kit.material(Tema.VIOLETA, 1.2, 0.8, "mundo")`; no pico, `Tema.emissivo` de 1,2 → 0,6 a cada batida |
 | a luz do fim do túnel | o mundo | luz, não material |
 
 Nenhuma cor fora dos tokens: o `Tema.ROXO`, o `Tema.CIANO` e o `Tema.AMARELO`
@@ -760,7 +766,8 @@ Ainda na `_prova_dos_portoes()`, antes de esperar o salão, os momentos (a
 régua):
 
 ```gdscript
-	var linhas := _linha_do_tempo().filter(func(e): return e.get("slot") == "S01_J03")
+	var todas := _linha_do_tempo()
+	var linhas := todas.filter(func(e): return e.get("slot") == "S01_J03")
 	var momentos := linhas.filter(func(e): return e.get("tipo") == "momento" and e.get("nome") == "achatado")
 	var reta := linhas.filter(func(e): return e.get("tipo") == "momento" and e.get("nome") == "reta")
 	_esperar(reta.size() == 1, "S01_J03: a linha momento reta aparece uma vez")
@@ -768,9 +775,11 @@ régua):
 		_esperar(float(r.get("x_tela", 0.0)) >= 0.2 and float(r.get("x_tela", 0.0)) <= 0.8 \
 			and float(r.get("altura_tela", 0.0)) >= 0.08, "S01_J03: o momento no meio da tela (%s)" % [r])
 		var t := float(r.get("t_musica", 0.0))
-		var sente := linhas.filter(func(e): return e.get("tipo") == "sensacao" and e.get("nome") == "golpe" \
+		# a sensacao (F05) não leva slot: procura em todas, perto no relógio da sessão (t)
+		var sente := todas.filter(func(e): return e.get("tipo") == "sensacao" and e.get("nome") == "golpe" \
 			and int(e.get("lugar", -9)) == int(r.get("lugar", -1)) \
-			and absf(float(e.get("t_musica", -9.0)) - t) <= 0.0167)
+			and absf(float(e.get("t_musica", -9.0)) - t) <= 0.0167 \
+			and absf(float(e.get("t", -9.0)) - float(r.get("t", 0.0))) <= 1.0)
 		_esperar(not sente.is_empty(), "S01_J03: o momento tem a sensação golpe no mesmo quadro (%s)" % [r])
 ```
 

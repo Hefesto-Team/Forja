@@ -57,7 +57,7 @@ dir, ganho)`, `Forja.gatilho(l, lado, modo, a, b, c)` (lado 0 = L2, 1 = R2),
 `Ritmo.batida()`, `Ritmo.t_da_batida(b)`, `Ritmo.bpm`, `Ritmo.simples[l]`.
 Do G03: `Itens.antecipacao_s(l, bpm)` (a Lanterna). Da G15: `Tema.neon(cor,
 energia, dono)`, `Tema.emissivo(material, energia, dono)` e
-`Tema.luz_da_secao(secao, lado)`; o dono é um lugar (teto 3,0), `"mundo"` (1,2)
+`Tema.luz_da_secao(numero, lado_b := false)` (o número da seção: S1 = 1, o pódio 0); o dono é um lugar (teto 3,0), `"mundo"` (1,2)
 ou `"forja"` (2,4). `Forja.vibrar` não é para a sala (F05): só `Forja.sentir`.
 
 Do `secao.gd` da I1 (`const SECAO := preload("res://scripts/minigames/s01/secao.gd")`;
@@ -708,7 +708,7 @@ do main faz o caminho.
 ### A luz da seção
 
 S1 é o vermelhão (`Tema.SECAO[0]`, `#c8432f`), lado A.
-`Tema.luz_da_secao(0, "A")` (G15) devolve a névoa `#210502`, o preenchimento
+`Tema.luz_da_secao(1)` (G15; S1, lado A: `lado_b` false) devolve a névoa `#210502`, o preenchimento
 `#602016` e a chave `#ffc99c`. O `SECAO.montar` da I1 põe o preenchimento (o
 `atmosfera`, com as brasas), a chave (`OmniLight3D` em `(0, 8, 3)`, energia
 0,9, alcance 26) e a fornalha do fundo (`Tema.TUNGSTENIO`, 1,4, alcance 8, em
@@ -923,7 +923,8 @@ Ainda na `_prova_da_esteira()`, antes de esperar o salão, os momentos (a
 régua):
 
 ```gdscript
-	var linhas := _linha_do_tempo().filter(func(e): return e.get("slot") == "S01_J05")
+	var todas := _linha_do_tempo()
+	var linhas := todas.filter(func(e): return e.get("slot") == "S01_J05")
 	var momentos := linhas.filter(func(e): return e.get("tipo") == "momento" and e.get("nome") == "lingote_de_ouro")
 	var reta := linhas.filter(func(e): return e.get("tipo") == "momento" and e.get("nome") == "reta")
 	_esperar(reta.size() == 1, "S01_J05: a linha momento reta aparece uma vez")
@@ -931,9 +932,11 @@ régua):
 		_esperar(float(r.get("x_tela", 0.0)) >= 0.2 and float(r.get("x_tela", 0.0)) <= 0.8 \
 			and float(r.get("altura_tela", 0.0)) >= 0.08, "S01_J05: o momento no meio da tela (%s)" % [r])
 		var t := float(r.get("t_musica", 0.0))
-		var sente := linhas.filter(func(e): return e.get("tipo") == "sensacao" and e.get("nome") == "explosao" \
+		# a sensacao (F05) não leva slot: procura em todas, perto no relógio da sessão (t)
+		var sente := todas.filter(func(e): return e.get("tipo") == "sensacao" and e.get("nome") == "explosao" \
 			and int(e.get("lugar", -9)) == int(r.get("lugar", -1)) \
-			and absf(float(e.get("t_musica", -9.0)) - t) <= 0.0167)
+			and absf(float(e.get("t_musica", -9.0)) - t) <= 0.0167 \
+			and absf(float(e.get("t", -9.0)) - float(r.get("t", 0.0))) <= 1.0)
 		_esperar(not sente.is_empty(), "S01_J05: o momento tem a sensação explosao no mesmo quadro (%s)" % [r])
 	for r in momentos:
 		_esperar(float(r.get("t_musica", 0.0)) >= 80.0, "S01_J05: o ouro só nas últimas 16 batidas (%s)" % [r])
