@@ -190,30 +190,49 @@ func atmosfera(cor_ar: Color, cor_neon: Color, brasas := false, n := 48, largura
 		Efeitos.poeira(self, Vector3(0, 1.8, 0), caixa, cor_ar, n)
 	_preenchimento = OmniLight3D.new()
 	_preenchimento.position = Vector3(0, 6.5, 1.0)
-	_preenchimento.light_color = cor_ar
 	_preenchimento.light_energy = preenche
 	_preenchimento.omni_range = 24.0
 	add_child(_preenchimento)
+	enchimento(_preenchimento)
 	_energia_preenchimento = _preenchimento.light_energy
 	for lado in [-1.0, 1.0]:
 		var neon := MeshInstance3D.new()
 		var barra := BoxMesh.new()
 		barra.size = Vector3(largura * 0.32, 0.08, 0.08)
 		neon.mesh = barra
-		var mat := StandardMaterial3D.new()
-		mat.albedo_color = cor_neon
-		mat.emission_enabled = true
-		mat.emission = cor_neon
-		mat.emission_energy_multiplier = 3.0
+		var mat := Tema.neon(Tema.VIOLETA, 1.0, "mundo")
+		_tubos.append(mat)
 		neon.material_override = mat
 		neon.position = Vector3(lado * largura * 0.27, 2.3, fundo)
 		add_child(neon)
 		var brilho := OmniLight3D.new()
-		brilho.light_color = cor_neon
+		brilho.light_color = Tema.VIOLETA
 		brilho.light_energy = 0.8
 		brilho.omni_range = 5.0
 		brilho.position = neon.position + Vector3(0, -0.3, 0.6)
 		add_child(brilho)
+	if not Ritmo.compasso.is_connected(_tubos_no_tempo_1):
+		Ritmo.compasso.connect(_tubos_no_tempo_1)
+
+
+var _tubos: Array[ShaderMaterial] = []  ## os dois tubos de néon do fundo (o mundo, VIOLETA)
+
+
+## Os tubos do fundo sobem a 1,1 no tempo 1 de cada compasso e voltam a 1,0 em uma colcheia (arte/07).
+func _tubos_no_tempo_1(_n: int) -> void:
+	for m in _tubos:
+		m.set_shader_parameter("energia", 1.1)
+	var colcheia := 30.0 / maxf(1.0, Ritmo.bpm if Ritmo.bpm > 0.0 else 120.0)
+	var tw := create_tween()
+	tw.tween_interval(colcheia)
+	tw.tween_callback(func() -> void:
+		for m in _tubos:
+			m.set_shader_parameter("energia", 1.0))
+
+
+func _exit_tree() -> void:
+	if Ritmo.compasso.is_connected(_tubos_no_tempo_1):
+		Ritmo.compasso.disconnect(_tubos_no_tempo_1)
 
 
 ## Um pulso no preenchimento (o "Valendo!", o fim da sala), na cor pedida.
