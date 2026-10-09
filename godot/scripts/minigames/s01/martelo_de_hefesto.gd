@@ -1,28 +1,54 @@
-class_name SalaCentelha
-extends SalaJogo
-## A Centelha — runas que acendem ao apertar (o QTE e o jogo de ritmo).
+extends Minigame
+## O Martelo de Hefesto (S01_J01) — por enquanto, A Centelha de antes no kit:
+## runas que acendem ao apertar. Cada jogador tem a sua bigorna; em cima dela
+## acende uma runa com um símbolo e um anel que vai se fechando. Apertar o
+## botão da runa antes do anel fechar faz o boneco martelar a bigorna. A fila
+## de cada um passa por todos os botões que um jogo usa (✕ ○ □ △, L1, R1, L3,
+## R3, as quatro setas e o Create), por dois círculos (cada analógico até a
+## borda, nas oito direções) e pelo fole (cada gatilho segurado na faixa
+## dourada e depois apertado até o fundo), numa ordem sorteada pela semente.
+## Runa perdida volta para o fim da fila (até três vezes).
 ##
-## Cada jogador tem a sua bigorna; em cima dela acende uma runa com um símbolo
-## e um anel que vai se fechando. Apertar o botão da runa antes do anel fechar
-## faz o boneco martelar a bigorna. A fila de cada um passa por todos os botões
-## que um jogo usa (✕ ○ □ △, L1, R1, L3, R3, as quatro setas e o Create), por
-## dois círculos (cada analógico até a borda, nas oito direções) e pelo fole
-## (cada gatilho segurado na faixa dourada e depois apertado até o fundo), numa
-## ordem sorteada pela semente. Runa perdida volta para o fim da fila (até três
-## vezes).
+## A regra é a de antes: a H04 só mudou a casa. O Martelo no tempo da faixa,
+## com as quatro bigornas e a nota de cada um, é da ficha da seção (I).
+##
+## A falha: a runa treme e o boneco balança a cabeça. O vencedor: mais pontos.
+## O registro mede: cada botão, analógico e gatilho pedido e respondido (as
+## medidas do núcleo, que servem à bancada). O robô: vê a runa e reage como
+## gente — às vezes o dedo escorrega para o vizinho e corrige; gira o
+## analógico em volta; segura o gatilho no meio e aperta.
 ##
 ## O Options é a pausa, o PS fica de fora (o sistema toma), o botão do
 ## microfone é d'A Voz e o clique do touchpad é d'O Molde.
 
-const F := preload("res://scripts/forja.gd")
-const BOTOES := [F.CRUZ, F.CIRCULO, F.QUADRADO, F.TRIANGULO, F.L1, F.R1, F.L3, F.R3,
-	F.CIMA, F.BAIXO, F.ESQUERDA, F.DIREITA, F.CREATE]
-const GLIFO := {
-	F.CRUZ: "cross", F.CIRCULO: "circle", F.QUADRADO: "square", F.TRIANGULO: "triangle",
-	F.L1: "l1", F.R1: "r1", F.L3: "stick_l", F.R3: "stick_r", F.CIMA: "dpad_up", F.BAIXO: "dpad_down",
-	F.ESQUERDA: "dpad_left", F.DIREITA: "dpad_right", F.CREATE: "share",
+const BOTOES := [Forja.CRUZ, Forja.CIRCULO, Forja.QUADRADO, Forja.TRIANGULO, Forja.L1, Forja.R1, Forja.L3,
+	Forja.R3, Forja.CIMA, Forja.BAIXO, Forja.ESQUERDA, Forja.DIREITA, Forja.CREATE]
+
+const FICHA := {
+	"slot": "S01_J01",
+	"titulo": "O Martelo de Hefesto",
+	"verbo": "Bata!",
+	"genero": "tct",
+	"icone": "botoes",
+	"entradas": BOTOES,
+	"camera": "fixa",
+	"faixa": "MUS_S01_J01",
+	"duracao": 100.0,
+	"fim": "tempo",
+	"sensacoes": ["acerto", "erro"],
+	"material": "metal",
+	"microjogo": {"verbo": "Bata!", "segundos": 6.0},
+	# o que a bancada mede (o veredito é das medidas do núcleo)
+	"features": ["botoes", "analogicos", "gatilhos_analogicos"],
+	"botoes_medidos": BOTOES,
+	"gesto": "attack-melee-right",
 }
-const RAIAS := [-6.0, -2.0, 2.0, 6.0]
+
+const GLIFO := {
+	Forja.CRUZ: "cross", Forja.CIRCULO: "circle", Forja.QUADRADO: "square", Forja.TRIANGULO: "triangle",
+	Forja.L1: "l1", Forja.R1: "r1", Forja.L3: "stick_l", Forja.R3: "stick_r", Forja.CIMA: "dpad_up",
+	Forja.BAIXO: "dpad_down", Forja.ESQUERDA: "dpad_left", Forja.DIREITA: "dpad_right", Forja.CREATE: "share",
+}
 const JANELA_INICIAL := 2.8
 const JANELA_MINIMA := 1.5
 const JANELA_ANALOGICO := 7.0
@@ -34,21 +60,9 @@ var j := {}  ## lugar -> o estado do jogador
 var runas := {}  ## lugar -> os nós da runa (glifo, anel, marcas, fole)
 
 
-func _init() -> void:
-	id = "centelha"
-	nome = "A Centelha"
-	acao = "Aperte o botão da runa antes do anel fechar."
-	icone = "cross"
-	gesto_do_aviso = "attack-melee-right"
-	objetivo = "Aperte o botão da runa antes do anel fechar. Na runa do analógico, gire até a borda; no fole, segure o gatilho na faixa e aperte até o fundo."
-	features = ["botoes", "analogicos", "gatilhos_analogicos"]
-	botoes_pedidos = F.mascara(BOTOES)
-	duracao = 100.0
+func montar() -> void:
 	camera_pos = Vector3(0, 7.2, 12.4)
 	camera_olhar = Vector3(0, 1.2, -0.2)
-
-
-func montar() -> void:
 	Kit.arena(self, 5, 3)
 	# a forja: brasas subindo, e o neon rosa do Hefesto
 	atmosfera(Color("#ff9a52"), Tema.ROSA, true, 60)
@@ -243,8 +257,6 @@ func jogar(dt: float) -> void:
 		e.pop = move_toward(e.pop, 0.0, dt * 5.0)
 		e.tremor = move_toward(e.tremor, 0.0, dt * 4.0)
 		if not acabou[l]:
-			if Forja.robo:
-				_robo(l, dt)
 			_jogar(l, p, dt)
 		_mostrar_runa(l)
 
@@ -384,14 +396,20 @@ func status(lugar: int) -> String:
 # ------------------------------------------------------------------ o robô --
 # Vê a runa e reage como gente: às vezes o dedo escorrega para o vizinho e
 # corrige; gira o analógico em volta; segura o gatilho no meio e aperta.
+# O kit chama robo(l, dt) antes de jogar(dt), a cada quadro, de quem ainda joga.
 
-func _robo(l: int, dt: float) -> void:
+func robo(l: int, dt: float) -> void:
+	if not Forja.robo:
+		return
 	var e: Dictionary = j[l]
 	var r = _runa_atual(l)
 	if r == null:
 		return
 	if e.robo_reacao < 0.0:
 		e.robo_reacao = 0.35 + 0.55 * rng.randf()
+		# o temperamento (--robo=bom|medio|ruim): quando não acerta, chega tarde e perde a runa
+		if not Forja.robo_acerta():
+			e.robo_reacao += JANELA_GATILHO + 1.0
 	match str(r.tipo):
 		"botao":
 			if e.robo_passo == 0 and e.t >= e.robo_reacao:

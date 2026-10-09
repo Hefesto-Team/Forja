@@ -10,19 +10,6 @@ extends Node3D
 ##
 ## Toda entrada e toda saída passam pelo autoload Forja, por lugar (0..3).
 
-const SALAS := {
-	"centelha": preload("res://scripts/salas/centelha.gd"),
-	"molde": preload("res://scripts/salas/molde.gd"),
-	"galeria": preload("res://scripts/salas/galeria.gd"),
-	"impacto": preload("res://scripts/salas/impacto.gd"),
-	"viga": preload("res://scripts/salas/viga.gd"),
-	"voz": preload("res://scripts/salas/voz.gd"),
-	"caminhos": preload("res://scripts/salas/caminhos.gd"),
-	"canto": preload("res://scripts/salas/canto.gd"),
-	"prova": preload("res://scripts/salas/prova.gd"),
-	"bancada": preload("res://scripts/salas/bancada.gd"),
-}
-
 ## A Prova de Fogo: todas as salas, na ordem do percurso, e o livro no fim.
 const ORDEM_DO_FOGO := ["centelha", "viga", "molde", "impacto", "galeria", "canto", "caminhos", "voz", "prova"]
 
@@ -188,7 +175,7 @@ func _abrir_pelos_args() -> void:
 		_ir_para_o_salao(false)
 		_comecar_a_partida(n_partida, "--sorteada" in OS.get_cmdline_user_args(), false)
 		return
-	if sala_pedida != "" and SALAS.has(sala_pedida):
+	if sala_pedida != "" and Catalogo.existe(sala_pedida):
 		_ir_para_o_salao(false)
 		_entrar_na_sala(sala_pedida, false)
 		return
@@ -300,15 +287,15 @@ func _ir_para_o_salao(com_cortina := true) -> void:
 		_cam_olhar = _pose_da_camera()[1]
 
 
-func _entrar_na_sala(id: String, com_cortina := true) -> void:
-	if not SALAS.has(id):
+func _entrar_na_sala(id: String, com_cortina := true, pronta: Sala = null) -> void:
+	if pronta == null and not Catalogo.existe(id):
 		return
 	var feito := func():
 		_sair_da_sala()
 		if salao.get_parent() != null:
 			remove_child(salao)
 		sala_id = id
-		sala = SALAS[id].new()
+		sala = pronta if pronta != null else Catalogo.criar(id)
 		sala.name = "Sala"
 		add_child(sala)
 		var js: Array = []
@@ -404,12 +391,12 @@ func _placar_da_sala(sj: SalaJogo) -> void:
 	for l in 4:
 		if sj.jogando[l]:
 			presentes.append(l)
-	var e := partida.registrar(sj.id, sj.pontos, presentes)
+	var e := partida.registrar(sala_id, sj.pontos, presentes)
 	var linha: PackedStringArray = []
 	for l in presentes:
 		linha.append("P%d %dº +%d" % [l + 1, int(e.colocacao[l]), int(e.ganhos[l])])
 	Forja.registrar("Partida: %s — %s" % [sj.nome, " · ".join(linha)])
-	Forja.evento("sala", 0, {"evento": "partida", "o": "placar", "sala": sj.id, "ganhos": e.ganhos})
+	Forja.evento("sala", 0, {"evento": "partida", "o": "placar", "sala": sala_id, "ganhos": e.ganhos})
 	_abrir_overlay("placar", 0)
 
 
