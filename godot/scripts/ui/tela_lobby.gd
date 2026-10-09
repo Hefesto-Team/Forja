@@ -501,6 +501,9 @@ func _robo_escreve(l: int) -> void:
 		if _robo_teclado[l] == 1:
 			_robo_teclado[l] = 2
 			Forja.robo_apertar(l, Forja.TRIANGULO)
+		elif t.no_pronto() and not t.pode_gravar():
+			# outro lugar gravou o mesmo nome antes: o Pronto apagou, sorteia de novo
+			Forja.robo_apertar(l, Forja.TRIANGULO)
 		elif t.no_pronto():
 			Forja.robo_apertar(l, Forja.CRUZ)
 		return
