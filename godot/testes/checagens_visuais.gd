@@ -13,7 +13,7 @@ extends RefCounted
 ## contraste: float (-1: não medido)}.
 
 const AREA_SEGURA := 0.05  ## 5% de cada borda
-const SEGURA_FOLGA := 8.0  ## px: a caixa da linha traz o espaço do acento, que a tinta não ocupa
+const SEGURA_FOLGA := 4.0  ## px: a margem de erro da caixa da tinta
 const FONTE_MIN := 30  ## px, a letra que se lê do sofá
 const PARADA_DIFERENCA := 0.005  ## 0,5% de diferença média de pixel
 const PARADA_SEGUNDOS := 5.0

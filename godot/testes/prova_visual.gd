@@ -474,7 +474,17 @@ func _autoteste() -> int:
 	var res := ChecagensVisuais.resumir(iguais)
 	ok.call(res.linhas.size() == 2 and res.primeiros.size() == 2, "resumo: o mesmo defeito parado conta uma vez, o outro conta à parte")
 	var colado := limpo.duplicate(true)
-	colado[0].rect = Rect2(96, 56, 300, 40)
+	colado[0].rect = Rect2(96, 51, 300, 40)
 	ok.call(ChecagensVisuais.texto(10.0, colado, TELA).is_empty(), "texto: o rente à área segura, com a folga da linha, passa")
+	# a coleta do retângulo: a caixa da tinta, de uma linha, com o tamanho da letra
+	var no := Node2D.new()
+	add_child(no)
+	Desenho.retangulos.clear()
+	Desenho.anotar(no, Vector2(100, 300), "Hefesto", ThemeDB.fallback_font, 100, Color.WHITE)
+	var r: Rect2 = Desenho.retangulos[0].rect
+	ok.call(absf(r.size.y - 100.0) < 0.5 and absf(r.position.y - 222.0) < 0.5 and r.size.x > 100.0 and absf(r.position.x - 100.0) < 0.5,
+		"coleta: o retângulo de uma linha é a caixa da tinta (%s)" % [r])
+	Desenho.retangulos.clear()
+	no.queue_free()
 	print("autoteste da prova visual: %s" % ("ok" if erros[0] == 0 else "%d falha(s)" % erros[0]))
 	return 0 if erros[0] == 0 else 1

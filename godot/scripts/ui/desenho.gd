@@ -99,19 +99,24 @@ static var retangulos: Array = []
 ## base, no espaço do `ci`). `largura` > 0 é a caixa em que ele se alinha.
 static func anotar(ci: CanvasItem, pos: Vector2, traduzido: String, f: Font, px: int, cor: Color,
 		alinhamento := HORIZONTAL_ALIGNMENT_LEFT, largura := -1.0, max_linhas := 0) -> void:
+	# a caixa da TINTA, não a da linha: do alto das letras altas (0,78 do corpo acima da
+	# linha de base) à ponta das descendentes (0,22 abaixo). A caixa da linha traz o
+	# espaço do acento e do entrelinha, e dois títulos de entrelinha justa «encavalariam»
+	# sem que nenhuma letra se tocasse.
 	var tam: Vector2
+	var folga_linha := maxf(0.0, f.get_height(px) - float(px))
 	if max_linhas == 0:
-		# uma linha só (`texto`, `selo`, `dica`): a largura da frase e a altura da linha
-		tam = Vector2(f.get_string_size(traduzido, HORIZONTAL_ALIGNMENT_LEFT, -1.0, px).x, f.get_height(px))
+		tam = Vector2(f.get_string_size(traduzido, HORIZONTAL_ALIGNMENT_LEFT, -1.0, px).x, float(px))
 	else:
 		tam = f.get_multiline_string_size(traduzido, HORIZONTAL_ALIGNMENT_LEFT, largura, px, max_linhas)
+		tam.y = maxf(float(px), tam.y - folga_linha)
 	var x := pos.x
 	if largura > 0.0 and max_linhas == 0:
 		if alinhamento == HORIZONTAL_ALIGNMENT_CENTER:
 			x += (largura - tam.x) * 0.5
 		elif alinhamento == HORIZONTAL_ALIGNMENT_RIGHT:
 			x += largura - tam.x
-	var local := Rect2(Vector2(x, pos.y - f.get_ascent(px)), tam)
+	var local := Rect2(Vector2(x, pos.y - 0.78 * px), tam)
 	var m := ci.get_global_transform_with_canvas()
 	retangulos.append({"frase": traduzido, "rect": m * local, "tam": px, "cor": cor, "no": ci.get_instance_id()})
 
