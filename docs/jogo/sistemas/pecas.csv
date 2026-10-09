@@ -1,0 +1,37 @@
+id,parte,personagem,nome,peso,passo,folego,faro,principal,estado
+cab-female-a,cabeca,female-a,Coque preto,1,0,0,2,faro,proposta
+cab-female-b,cabeca,female-b,Duas bolotas,0,1,0,2,faro,proposta
+cab-female-c,cabeca,female-c,Touca listrada,1,0,2,0,folego,proposta
+cab-female-d,cabeca,female-d,Coque ruivo,0,0,2,1,folego,proposta
+cab-female-e,cabeca,female-e,Franja preta,2,0,1,0,peso,proposta
+cab-female-f,cabeca,female-f,Cabelo longo,0,2,0,1,passo,proposta
+cab-male-a,cabeca,male-a,Óculos redondo,2,1,0,0,peso,proposta
+cab-male-b,cabeca,male-b,Barba ruiva,2,0,0,1,peso,proposta
+cab-male-c,cabeca,male-c,Quepe azul,0,1,2,0,folego,proposta
+cab-male-d,cabeca,male-d,Ruivo curto,1,2,0,0,passo,proposta
+cab-male-e,cabeca,male-e,Óculos de obra,0,0,1,2,faro,proposta
+cab-male-f,cabeca,male-f,Topete preto,0,2,1,0,passo,proposta
+sup-female-a,superior,female-a,Blusa roxa,1,0,0,2,faro,proposta
+sup-female-b,superior,female-b,Blusa amarela,1,2,0,0,passo,proposta
+sup-female-c,superior,female-c,Camisa azul,2,1,0,0,peso,proposta
+sup-female-d,superior,female-d,Terninho,0,1,2,0,folego,proposta
+sup-female-e,superior,female-e,Jaleco,0,1,0,2,faro,proposta
+sup-female-f,superior,female-f,Jaqueta preta,1,0,2,0,folego,proposta
+sup-male-a,superior,male-a,Camisa verde,0,0,1,2,faro,proposta
+sup-male-b,superior,male-b,Camisa laranja,0,0,2,1,folego,proposta
+sup-male-c,superior,male-c,Farda azul,2,0,0,1,peso,proposta
+sup-male-d,superior,male-d,Terno,0,2,1,0,passo,proposta
+sup-male-e,superior,male-e,Macacão,2,0,1,0,peso,proposta
+sup-male-f,superior,male-f,Regata verde,0,2,0,1,passo,proposta
+inf-female-a,inferior,female-a,Short claro,0,2,1,0,passo,proposta
+inf-female-b,inferior,female-b,Saia roxa,1,0,0,2,faro,proposta
+inf-female-c,inferior,female-c,Short laranja,0,0,2,1,folego,proposta
+inf-female-d,inferior,female-d,Calça social,0,2,0,1,passo,proposta
+inf-female-e,inferior,female-e,Calça branca,2,1,0,0,peso,proposta
+inf-female-f,inferior,female-f,Saia lilás,1,2,0,0,passo,proposta
+inf-male-a,inferior,male-a,Tênis amarelo,2,0,0,1,peso,proposta
+inf-male-b,inferior,male-b,Short azul,0,1,2,0,folego,proposta
+inf-male-c,inferior,male-c,Calça da farda,2,0,1,0,peso,proposta
+inf-male-d,inferior,male-d,Calça preta,1,0,2,0,folego,proposta
+inf-male-e,inferior,male-e,Botina de obra,0,1,0,2,faro,proposta
+inf-male-f,inferior,male-f,Bermuda,0,0,1,2,faro,proposta
