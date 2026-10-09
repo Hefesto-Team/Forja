@@ -15,10 +15,9 @@ RAIZ="$(cd "$(dirname "$0")/.." && pwd)"
 source "$RAIZ/scripts/engine.sh"   # a versão da engine mora lá (ADR-009)
 GODOT="$FORJA_GODOT"
 [ -x "$GODOT" ] || { echo "sem Godot: rode ./run-local.sh uma vez, ou GODOT=<binário>"; exit 2; }
-TMP="$(mktemp -d /tmp/forja-prova-de-poucos-XXXXXX)"
-trap 'rm -rf "$TMP"' EXIT
 # a caixa (tests/caixa.sh): o jogo não acha o controle ligado na máquina
 source "$RAIZ/tests/caixa.sh"
+caixa_pasta prova-de-poucos; TMP="$CAIXA_PASTA"   # no vermelho, a pasta fica em .cache/provas/ (WQ04)
 caixa_montar "$TMP"
 
 caixa "$GODOT" --headless --path "$RAIZ/godot" --import --quit > "$TMP/import.log" 2>&1

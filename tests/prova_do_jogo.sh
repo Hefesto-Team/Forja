@@ -18,9 +18,8 @@ source "$RAIZ/scripts/engine.sh"   # a versão da engine mora lá (ADR-009)
 GODOT="$FORJA_GODOT"
 [ -x "$GODOT" ] || { echo "sem Godot: rode ./run-local.sh uma vez, ou GODOT=<binário>"; exit 2; }
 python3 "$RAIZ/scripts/check_texto_de_tela.py" || exit 1   # o portão do texto de tela (F07)
-TMP="$(mktemp -d /tmp/forja-prova-do-jogo-XXXXXX)"
-trap 'rm -rf "$TMP"' EXIT
 source "$RAIZ/tests/caixa.sh"
+caixa_pasta prova-do-jogo; TMP="$CAIXA_PASTA"   # no vermelho, a pasta fica em .cache/provas/ (WQ04)
 caixa_montar "$TMP"
 
 cat > "$TMP/forma-a" <<'SINKS'

@@ -47,6 +47,12 @@ A prova do jogo, a de poucos, a da bancada e o gauntlet também reprovam pelo er
 rodada, e toda linha que começa por `ERROR:` ou `SCRIPT ERROR:` reprova, menos as de `tests/erros_esperados.txt`, cada
 uma com o motivo escrito.
 
+Onde fica o registro de uma prova vermelha (a [WQ04](../tarefas/WQ04-o-registro-fica-quando-a-prova-reprova.md)): a
+prova do jogo, a de poucos, a da bancada, a do som, a da exportação e o gauntlet pegam a pasta temporária pelo
+`caixa_pasta` de `tests/caixa.sh`. No verde, a pasta some. No vermelho, ela é copiada para
+`.cache/provas/<prova>-<AAAAMMDD-HHMMSS>/` (as cinco mais novas de cada prova), com o registro de cada rodada e os
+relatórios, e a saída termina nas últimas 20 linhas do maior registro e em «o registro: <caminho>».
+
 - A régua do jogo mora em `godot/testes/prova_do_jogo.gd` (a [V02](../tarefas/V02-a-prova-do-jogo-em-partes.md) a divide).
 - O robô e os 20 defeitos de mentira moram em `nativo/nucleo/simulador.c`.
 - O relógio do ritmo corre no tempo de parede, e a prova do kit sente a máquina carregada

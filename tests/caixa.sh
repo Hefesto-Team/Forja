@@ -98,3 +98,39 @@ caixa_julgar() {
     END { exit ruins > 0 }
   ' "$registro"
 }
+
+## caixa_pasta <nome>: a pasta temporária da prova (a WQ04), em CAIXA_PASTA, com
+## o trap da saída. No verde (a prova sai 0), apaga a pasta. No vermelho, copia
+## a pasta para .cache/provas/<nome>-<AAAAMMDD-HHMMSS>/, guarda só as cinco
+## mais novas da prova, mostra as últimas 20 linhas do maior registro e, por
+## último, «o registro: <caminho>». Uso, logo depois do source:
+##   caixa_pasta prova-do-jogo; TMP="$CAIXA_PASTA"
+_CAIXA_RAIZ="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+caixa_pasta() {
+  CAIXA_NOME="$1"
+  CAIXA_PASTA="$(mktemp -d "/tmp/forja-$1-XXXXXX")"
+  trap '_caixa_fim $?' EXIT
+}
+_caixa_fim() {
+  local rc="$1"
+  [ -n "${CAIXA_PASTA:-}" ] && [ -d "$CAIXA_PASTA" ] || return 0
+  if [ "$rc" -eq 0 ]; then
+    rm -rf "$CAIXA_PASTA"
+    return 0
+  fi
+  local base="$_CAIXA_RAIZ/.cache/provas"
+  local destino="$base/$CAIXA_NOME-$(date +%Y%m%d-%H%M%S)"
+  local n=2
+  while [ -e "$destino" ]; do destino="${destino%-v*}-v$n"; n=$((n + 1)); done
+  mkdir -p "$base" && cp -a "$CAIXA_PASTA" "$destino" && rm -rf "$CAIXA_PASTA"
+  # só as cinco mais novas desta prova (o nome leva a data, e a ordem do nome é a do tempo)
+  find "$base" -mindepth 1 -maxdepth 1 -type d -name "$CAIXA_NOME-[0-9]*" -printf '%f\n' | LC_ALL=C sort -r |
+    tail -n +6 | while IFS= read -r velha; do rm -rf "${base:?}/$velha"; done
+  local maior
+  maior="$(find "$destino" -type f -name '*.log' -size +0c -printf '%s %p\n' 2> /dev/null | sort -n | tail -1 | cut -d' ' -f2-)"
+  if [ -n "$maior" ]; then
+    echo "--- as últimas 20 linhas de ${maior#"$_CAIXA_RAIZ"/}:"
+    tail -n 20 "$maior"
+  fi
+  echo "o registro: $destino"
+}

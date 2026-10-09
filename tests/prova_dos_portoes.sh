@@ -317,6 +317,32 @@ printf '%s\n' 'ERROR: minigame res://scripts/minigames/s01/martelo_de_hefesto.gd
   'prova do jogo ok' > "$A/esperado.log"
 espera 0 "erro do motor: os de propósito da lista, o WARNING e o «erro» do meio da linha passam" julga "$A/esperado.log"
 
+# --- o registro da prova vermelha (tests/caixa.sh, caixa_pasta: WQ04), na prova do jogo com um Godot de mentira -
+pasta_tree() { # <pasta> <rc do Godot de mentira>
+  mkdir -p "$1/tests" "$1/scripts" "$1/godot"
+  cp "$RAIZ/tests/prova_do_jogo.sh" "$RAIZ/tests/caixa.sh" "$RAIZ/tests/erros_esperados.txt" "$1/tests/"
+  cp "$RAIZ/scripts/engine.sh" "$1/scripts/"
+  printf 'import sys\nsys.exit(0)\n' > "$1/scripts/check_texto_de_tela.py"
+  cp "$1/scripts/check_texto_de_tela.py" "$1/scripts/conferir_ost.py"
+  printf '#!/usr/bin/env bash\nexit %s\n' "$2" > "$1/godot-de-mentira"
+  chmod +x "$1/godot-de-mentira"
+}
+A="$(arvore pasta-vermelha)"; pasta_tree "$A" 124
+for i in 1 2 3 4 5 6; do mkdir -p "$A/.cache/provas/prova-do-jogo-20000101-00000$i"; done
+GODOT="$A/godot-de-mentira" bash "$A/tests/prova_do_jogo.sh" > "$A/saida.txt" 2>&1
+echo "$?" > "$A/rc.txt"
+espera 0 "caixa_pasta: a prova que o Godot deixa por tempo (rc 124) sai 1" grep -qx 1 "$A/rc.txt"
+espera 0 "caixa_pasta: a pasta da prova vermelha fica em .cache/provas/, com o registro de cada rodada" \
+  bash -c 'ls "$1"/.cache/provas/prova-do-jogo-2*/forma-a.log "$1"/.cache/provas/prova-do-jogo-2*/antes.log' _ "$A"
+espera 0 "caixa_pasta: a última linha é «o registro: <caminho>», e o caminho existe" \
+  bash -c 'c="$(tail -n 1 "$1/saida.txt")"; [ "${c#o registro: }" != "$c" ] && [ -f "${c#o registro: }/forma-a.log" ]' _ "$A"
+espera 0 "caixa_pasta: ficam só as cinco pastas mais novas da prova" \
+  bash -c '[ "$(ls -d "$1"/.cache/provas/prova-do-jogo-* | wc -l)" -eq 5 ] && [ ! -e "$1/.cache/provas/prova-do-jogo-20000101-000001" ]' _ "$A"
+A="$(arvore pasta-verde)"; pasta_tree "$A" 0
+espera 0 "caixa_pasta: com o Godot de mentira que sai 0, a prova sai 0" \
+  env GODOT="$A/godot-de-mentira" bash "$A/tests/prova_do_jogo.sh"
+espera 0 "caixa_pasta: na prova verde, a pasta não fica" bash -c '[ -z "$(ls -A "$1/.cache/provas" 2> /dev/null)" ]' _ "$A"
+
 # --- o rodar.sh -------------------------------------------------------------------------------------------------
 espera 0 "rodar.sh: os portões do repositório passam (a arte e o som em aviso)" bash "$P/rodar.sh"
 
