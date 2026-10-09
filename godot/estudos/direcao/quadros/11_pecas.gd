@@ -117,7 +117,7 @@ func _item(raiz: Node3D, id: String, centro_px: Vector2) -> void:
 
 
 func _texto(ci: CanvasItem) -> void:
-	Hud.etiqueta(ci, Rect2(48, 14, 660, 118), "As peças", "PRANCHA  ·  ITEM 2  ·  36 + 6", Fita.SECAO[0], 54, -0.01)
+	Hud.etiqueta(ci, Rect2(48, 10, 660, 140), "As peças", "PRANCHA  ·  ITEM 2  ·  36 + 6", Fita.SECAO[0], 54, -0.01)
 	Hud.texto(ci, Fita.archivo(500), 30, Vector2(760, 44), "O corte do 04: cada personagem dá três peças, de frente, na mesma escala.", Color(Fita.ETIQUETA, 0.85))
 	Hud.texto(ci, Fita.archivo(500), 30, Vector2(760, 86), "Embaixo de cada uma: o emblema (+2) e o secundário (+1), de pecas.csv.", Color(Fita.ETIQUETA, 0.85))
 	for c in 12:
