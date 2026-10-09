@@ -55,6 +55,9 @@ python3 "$RAIZ/scripts/conferir_ost.py" > "$TMP/ost.log" 2>&1
 OST=$?
 grep -E "^NÃO|^==>" "$TMP/ost.log"
 
+# os bonecos (G08): ossos, animações, triângulos e metal, antes de entrarem no jogo
+python3 "$RAIZ/scripts/conferir_bonecos.py" > "$TMP/bonecos.log" && python3 "$RAIZ/scripts/conferir_bonecos.py" --teste >> "$TMP/bonecos.log" || { cat "$TMP/bonecos.log"; echo "FAIL os bonecos"; exit 1; }
+
 "${CAIXA[@]}" "$GODOT" --headless --path "$RAIZ/godot" --import --quit > "$TMP/import.log" 2>&1
 
 FALHAS=0

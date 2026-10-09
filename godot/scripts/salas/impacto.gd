@@ -113,9 +113,10 @@ func _montar_raia(l: int, p: ForjaPlayer) -> Dictionary:
 	Kit.cilindro(self, 1.55, 0.04, Vector3(x, 0.02, Z_JOGADOR - 0.3), Kit.material(Color("#231c30"), 0.0, 0.95))
 	var borda := MeshInstance3D.new()
 	var tor := TorusMesh.new()
+	tor.rings = 8
+	tor.ring_segments = 6
 	tor.inner_radius = 1.5
 	tor.outer_radius = 1.62
-	tor.rings = 48
 	borda.mesh = tor
 	borda.position = Vector3(x, 0.05, Z_JOGADOR - 0.3)
 	borda.scale = Vector3(1, 0.4, 1)

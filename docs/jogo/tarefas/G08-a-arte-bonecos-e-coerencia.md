@@ -897,3 +897,49 @@ com o commit e o gasto. Commit sugerido (sem trailer):
 ```
 feat(arte): cada parte do cavaleiro na sua faixa, o néon do dono só no acento e as quatro raças
 ```
+
+
+## O que foi feito (leva 1, o-cavaleiro)
+
+**Parte A feita. A parte B (as quatro raças) espera a G10 e a G13** e não foi tocada: nem `Racas`, nem a tela de montagem das raças, nem os
+cube-pets, nem `importar_kenney.py`, nem `_prova_das_racas`, nem as traduções do B4.
+
+- **A pintura** (`scripts/mundo/pintura.gd`, `class_name Pintura`): a `GRADE` de quatro papéis (personagem, tecido, couro, objeto) com os
+  tetos de croma 0,098 / 0,098 / 0,07 / 0,03, o OKLab (`para_oklab`, `de_oklab`, `delta_e`), `graduar`, `recolorir`, `trocar_matiz`,
+  `textura` (com cache), `preparar` (grava na malha o papel de cada vértice pelo osso de maior peso: superior ou inferior, a posição de
+  repouso e a normal suave do contorno; mede o friso e a costura) e `medianas` (a mediana de L de cada parte, que a prova lê).
+- **Os três shaders** (`godot/shaders/`): `cavaleiro.gdshader` (o corpo na faixa dele e o néon do dono só no friso, na costura e no aro;
+  nada se tinge), `contorno.gdshader` (o casco de 1,6 na montagem e 2,4 no resto) e `neon.gdshader`.
+- **O cavaleiro** (`player.gd`): `_vestir` novo (um `ShaderMaterial` por superfície, o contorno no `next_pass`, o corpo apagado em
+  `Tema.GRAFITE`), `BONECOS` com o intervalo do pio (saem `MODELOS`, `NOME_DO_MODELO` e `INTERVALO_DO_MODELO`; `Som.pio` e o cartão do
+  lugar leem de lá), `brilho_do_contorno`, `acender_acento` (o acento sobe a 2,6 e volta a 1,6 em 0,25 s), `acender(k)` pela uniform `acesa`,
+  o acabamento só em rugosidade e metal, e o aro do dono (`Kit.anel_do_dono`).
+- **A coerência** (`kit.gd` e as salas): toda curva em no máximo 8 lados (cilindro, esfera 8 x 4, toro de 8 anéis, CSG), os `metallic` em
+  0,2 com rugosidade 0,5, o guardião d'A Voz em blocos (a boca abre em degraus de 0,25).
+- **Os bonecos** (`scripts/conferir_bonecos.py`, na linha de `tests/prova_do_jogo.sh`): ossos, animações, triângulos e metal dos dois
+  bonecos que existem; tem `--teste` (a régua reprova o defeito que ela procura).
+- **As provas** (`prova_do_jogo.gd`): `_prova_da_peca()` no lobby (a mediana de L do superior em [0,46; 0,58], a do inferior em [0,22; 0,36], a
+  diferença de 0,10, croma até 0,10, ΔE de 0,08 até cada néon, o acento em até 8 % da frente, o aro, nada se tinge, `acender(0)`/`acender(1)`,
+  o contorno a 1,6) e `_confere_a_arte(sala, id)` em cada sala e no salão (nenhuma curva lisa, nada acima de `metallic` 0,2, o contorno a 2,4
+  fora da montagem, o guardião sem esfera). A prova visual ganhou a prancha cinza da montagem (`prancha-montagem-cinza.png`: o quadro sem cor e
+  cada cavaleiro a 64 px de altura).
+- **Medidas** (P1 a P4): superior 0,530 / 0,529 / 0,530 / 0,529; inferior 0,315 / 0,322 / 0,315 / 0,322; diferença de 0,207 a 0,215.
+
+### Desvios e decisões (a validar por ela)
+
+- O acabamento «Fosco» (o 0, o de todo mundo) deixa a rugosidade de cada parte como a tabela (0,85 / 0,70 / 0,90) em vez dos 0,95 da G02; os
+  outros acabamentos escrevem rugosidade e metal no superior e no inferior.
+- O anel do dono tem raio de 0,57 a 0,65 em unidades do jogador (a ficha diz «1,24 m» depois da `ESCALA`, mas o anel é filho do jogador, que
+  não escala): literal em A5.
+- O `tinge` do estudo foi retirado (valia 0). A cabeça do guardião usa `Tema.CASCO` no escuro e `Tema.GRAFITE` na pedra.
+- Mais cilindros e esferas de efeito (rastro da galeria, disco da prova, marcas da centelha, chama do salão) foram a 8 lados, porque a régua da
+  ficha os pega.
+- O teste «croma do tom do item» (G03) passou de 0,0801 para 0,0805: o latão `#b59b63` mede 0,0802, e a ficha da G03 chama o croma dele de «0,080».
+- `metallic` 0,2 em float de 32 bits é 0,2000000030; a régua compara com 0,2001.
+- A parte B pede a G10 (`Kit.caminho`, os 12 Mini Characters) e a G13 (peças e stats): fica para depois delas.
+
+### O que fica para a mão
+
+Está em «Para o André (local)» acima: a prova visual sem `--fixed-fps` com placa de vídeo (a prancha cinza, a camisa e a calça de cada um, o
+néon só no contorno, no friso, na costura e no aro) e, de 3 m da TV, apontar o seu cavaleiro sem olhar o P#. A parte B (as cinco raças nos
+quatro lugares) fica para quando ela existir.

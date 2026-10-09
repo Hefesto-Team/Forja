@@ -27,9 +27,11 @@ godot/
     salas/sala_jogo.gd     SalaJogo: as fases aviso → jogo → fim, treino, pontos, vereditos
     salas/<id>.gd          as nove salas de hoje e a bancada
     mundo/kit.gd           Kit: peças do Kenney, caixas, cilindros, materiais
+    mundo/pintura.gd       Pintura: o OKLab, a grade de tons de cada papel, a recoloração do colormap, a malha preparada (G08)
     mundo/efeitos.gd       Efeitos: faíscas, brasas, poeira
     mundo/salao.gd         Salao: o hub, os portões
     ui/*.gd                as telas e o HUD, todos desenhados em _draw()
+  shaders/                 cavaleiro (o corpo na faixa e o néon só no acento), contorno e neon (G08)
   testes/prova_do_jogo.gd  a prova sem janela (quatro controles simulados + robô)
 nativo/
   nucleo/                  C: pads (SDL3), medidas, vereditos, registro, linha do tempo, relatório
@@ -389,6 +391,7 @@ decidido:
 | `SalaJogo` | o sinal `no_visor`, `combo(l)` | G04 |
 | `SalaJogo` | `camera_modo`, `camera_distancia`, `camera_frente`, `camera_alcance`, `camera_foco`, `tremer()`, `abalo`, `TREMOR_GOLPE`, `TREMOR_EXPLOSAO`; `godot/scripts/enquadramento.gd` (`class_name Enquadramento`) | G05 |
 | `SalaJogo` | `usa_gatilho`, `errou(l)` | G03 |
+| `player.gd` | `BONECOS` com o `intervalo` do pio (saem `MODELOS`, `NOME_DO_MODELO`, `INTERVALO_DO_MODELO`), `nome_do_boneco`, `brilho_do_contorno`, `acender_acento`; `Kit.anel_do_dono` | G08 |
 | `SalaJogo` | `falar(l, evento)`, `mostrar_julgamento(l, j)` — em `SalaJogo`, para as salas de hoje usarem antes do kit; `godot/scripts/falas.gd` | G07 |
 | `Salao` | `pulso`, `apagado`, `acender_bigorna`, `mostrar_colecao`; `godot/scripts/colecao.gd` | G06 |
 | `scripts/` | `conferir_bonecos.py`: confere os sete ossos e as animações de um `.glb` | G08 |

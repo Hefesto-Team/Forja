@@ -125,8 +125,8 @@ static func sino(pai: Node3D, pos: Vector3, escala: float, cor: Color) -> Dictio
 	st.generate_normals()
 	var malha := MeshInstance3D.new()
 	malha.mesh = st.commit()
-	var mat := Kit.material(cor, 0.0, 0.35)
-	mat.metallic = 0.75
+	var mat := Kit.material(cor, 0.0, 0.5)
+	mat.metallic = 0.2
 	mat.emission_enabled = true
 	mat.emission = Tema.AMARELO
 	mat.emission_energy_multiplier = 0.0
@@ -137,6 +137,8 @@ static func sino(pai: Node3D, pos: Vector3, escala: float, cor: Color) -> Dictio
 	pivo.add_child(malha)
 	var argola := MeshInstance3D.new()
 	var tor := TorusMesh.new()
+	tor.rings = 8
+	tor.ring_segments = 6
 	tor.inner_radius = 0.07
 	tor.outer_radius = 0.13
 	argola.mesh = tor
@@ -186,9 +188,10 @@ func _montar_raia(l: int, p: ForjaPlayer) -> Dictionary:
 	Kit.cilindro(self, 1.45, 0.08, Vector3(x, 0.04, Z_JOGADOR), Kit.material(Color("#3a2a24"), 0.0, 0.9))
 	var borda := MeshInstance3D.new()
 	var tor := TorusMesh.new()
+	tor.rings = 8
+	tor.ring_segments = 6
 	tor.inner_radius = 1.4
 	tor.outer_radius = 1.5
-	tor.rings = 48
 	borda.mesh = tor
 	borda.position = Vector3(x, 0.09, Z_JOGADOR)
 	borda.scale = Vector3(1, 0.35, 1)
@@ -223,6 +226,8 @@ func _montar_raia(l: int, p: ForjaPlayer) -> Dictionary:
 	for k in NOTAS:
 		var anel := MeshInstance3D.new()
 		var ta := TorusMesh.new()
+		ta.rings = 8
+		ta.ring_segments = 6
 		ta.inner_radius = 0.1
 		ta.outer_radius = 0.15
 		anel.mesh = ta

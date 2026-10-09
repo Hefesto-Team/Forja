@@ -265,6 +265,9 @@ func _mostrar(qual: String) -> void:
 	hud.visible = _hud_visivel()
 	salao.pedestais_no.visible = qual in ["lobby", "podio", "intro"]
 	_focar_o_titulo(qual == "titulo")
+	# o contorno de néon do dono: 1,6 na montagem, 2,4 no resto (G08)
+	for p in jogadores:
+		p.brilho_do_contorno(ForjaPlayer.CONTORNO_MONTAGEM if qual == "lobby" else ForjaPlayer.CONTORNO_JOGO)
 	if qual == "lobby":
 		for l in 4:
 			var p := jogadores[l]

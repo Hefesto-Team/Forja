@@ -11,10 +11,23 @@ extends CharacterBody3D
 const VELOCIDADE := 4.6
 const CORRIDA := 6.8
 const ESCALA := 2.0
-const MODELOS := ["character-human", "character-orc"]
-const NOME_DO_MODELO := ["humano", "orc"]
-## O intervalo do pio de cada modelo (arte/03), alinhado com MODELOS.
-const INTERVALO_DO_MODELO := ["segunda", "quinta_baixo"]
+## Os bonecos registrados: o arquivo e o intervalo do pio (arte/03). A G10
+## acrescenta os 12 do Mini Characters; a G13 troca por peças.
+const BONECOS := [
+	{"nome": "Humano", "arquivo": "character-human", "intervalo": "segunda"},
+	{"nome": "Orc", "arquivo": "character-orc", "intervalo": "quinta_baixo"},
+]
+## Os shaders do cavaleiro (arte/04): a roupa por faixa de valor, o contorno e o néon.
+const SH_CAVALEIRO := preload("res://shaders/cavaleiro.gdshader")
+const SH_CONTORNO := preload("res://shaders/contorno.gdshader")
+const SH_NEON := preload("res://shaders/neon.gdshader")
+## O contorno: 1,6 na montagem, 2,4 no resto (arte/07).
+const CONTORNO_MONTAGEM := 1.6
+const CONTORNO_JOGO := 2.4
+## A rugosidade de cada parte (A cena da G08); o acabamento Fosco as deixa como estão.
+const RUGOSO_CIMA := 0.85
+const RUGOSO_BAIXO := 0.70
+const RUGOSO_CABECA := 0.90
 ## O item: o índice é o de Itens (G03). "id" é o de docs/jogo/sistemas/itens.csv.
 ## O corpo leva o item que o _segurar() monta; a regra é a da classe Itens.
 const ITENS := [
@@ -64,10 +77,15 @@ var item_i := 0
 var acabamento_i := 0
 var nome := ""
 var anim: AnimationPlayer
-var aro: MeshInstance3D
+var aro: Node3D   ## o anel de 8 lados no chão e as lâmpadas do lugar (Kit.anel_do_dono)
 var etiqueta: Label3D
 var _anim_atual := ""
-var _roupas: Array = []  ## [material do corpo, a cor que o _vestir deu], para o acender
+var _mats_corpo: Array[ShaderMaterial] = []    ## os do body*, para o acento, o acabamento e o acender
+var _mats_cabeca: Array[ShaderMaterial] = []   ## os do head*, para o acender
+var _contornos: Array[ShaderMaterial] = []     ## o casco de cada malha, na cor do dono
+var _medidas := {}                             ## o que Pintura.preparar mediu no corpo (a área do acento)
+var _brilho_do_contorno := CONTORNO_JOGO
+var _arquivo := ""                             ## o .glb do modelo vestido (o colormap mora ao lado)
 var _mats_runa: Array[Material] = []  ## a linha da runa do item, para acender e o encaixe
 var _area_runa := 0.0   ## a área de frente das linhas da runa
 var _area_item := 0.0   ## a área de frente do item (o AABB das malhas)
@@ -90,22 +108,7 @@ func montar(l: int) -> void:
 	forma.position.y = 0.75
 	add_child(forma)
 
-	aro = MeshInstance3D.new()
-	var t := TorusMesh.new()
-	t.inner_radius = 0.52
-	t.outer_radius = 0.64
-	t.rings = 32
-	aro.mesh = t
-	var m := StandardMaterial3D.new()
-	m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	m.albedo_color = cor
-	m.emission_enabled = true
-	m.emission = cor
-	m.emission_energy_multiplier = 1.4
-	aro.material_override = m
-	aro.scale = Vector3(1, 0.25, 1)
-	aro.position.y = 0.04
-	add_child(aro)
+	aro = Kit.anel_do_dono(self, l)
 
 	etiqueta = Label3D.new()
 	etiqueta.text = "P%d" % (l + 1)
@@ -124,16 +127,20 @@ func montar(l: int) -> void:
 
 ## Troca o boneco e o que ele leva. A animação recomeça do "parado".
 func visual(m: int, item: int) -> void:
-	var trocou_modelo := modelo == null or wrapi(m, 0, MODELOS.size()) != modelo_i
-	modelo_i = wrapi(m, 0, MODELOS.size())
+	var trocou_modelo := modelo == null or wrapi(m, 0, BONECOS.size()) != modelo_i
+	modelo_i = wrapi(m, 0, BONECOS.size())
 	item_i = wrapi(item, 0, ITENS.size())
 	if trocou_modelo:
 		if modelo:
 			modelo.queue_free()
-		modelo = load("res://assets/kenney/%s.glb" % MODELOS[modelo_i]).instantiate()
+		_arquivo = "res://assets/kenney/%s.glb" % BONECOS[modelo_i].arquivo
+		modelo = load(_arquivo).instantiate()
 		modelo.scale = Vector3.ONE * ESCALA
 		add_child(modelo)
-		_roupas.clear()
+		_mats_corpo.clear()
+		_mats_cabeca.clear()
+		_contornos.clear()
+		_medidas = {}
 		anim = modelo.find_child("AnimationPlayer", true, false)
 		for nome in ["idle", "walk", "sprint"]:
 			if anim and anim.has_animation(nome):
@@ -172,18 +179,26 @@ func vestir(c: Dictionary) -> void:
 	visual(int(c.get("boneco", 0)), item)
 
 
-## O acabamento nos materiais do corpo: só a rugosidade e o metal, nunca o
-## albedo. A G08 escreve o mesmo nos ShaderMaterial de _mats_corpo.
+## O acabamento nos materiais do corpo: só a rugosidade e o metal, nunca a cor.
+## O Fosco (o 0, o de todo mundo) deixa cada parte como a tabela dela (A cena da
+## G08); os outros põem a rugosidade e o metal do acabamento no superior e no
+## inferior.
 func _aplicar_acabamento() -> void:
 	var a: Dictionary = ACABAMENTOS[clampi(acabamento_i, 0, ACABAMENTOS.size() - 1)]
-	for par in _roupas:
-		var m: StandardMaterial3D = par[0]
-		m.roughness = float(a.rugoso)
-		m.metallic = float(a.metal)
+	var padrao := acabamento_i == 0
+	for m in _mats_corpo:
+		m.set_shader_parameter("rugoso_cima", RUGOSO_CIMA if padrao else float(a.rugoso))
+		m.set_shader_parameter("rugoso_baixo", RUGOSO_BAIXO if padrao else float(a.rugoso))
+		m.set_shader_parameter("metal", 0.0 if padrao else float(a.metal))
+
+
+## O nome de um boneco, na língua do jogo.
+static func nome_do_boneco(i: int) -> String:
+	return Traducoes.traduzir(BONECOS[wrapi(i, 0, BONECOS.size())].nome)
 
 
 func descricao_do_visual() -> String:
-	return "%s · %s" % [NOME_DO_MODELO[modelo_i], ITENS[item_i].nome]
+	return "%s · %s" % [str(BONECOS[modelo_i].nome).to_lower(), ITENS[item_i].nome]
 
 
 ## Prende o item escolhido num BoneAttachment3D "Item" (G03): o Martelo na mão
@@ -342,29 +357,93 @@ func _runa(pai: Node3D, tamanho: Vector3, pos: Vector3, giro_z := 0.0, eixo := 2
 	_area_runa += tamanho.x * tamanho.y
 
 
-## A roupa na cor do lugar: o corpo do boneco multiplicado pela cor (a cabeça fica).
+## A roupa (arte/04): cada parte na sua faixa de valor, o néon do dono só no
+## acento (o friso e a costura), no contorno e no aro. O corpo nunca é tingido.
+## O colormap fica ao lado do .glb; num boneco do Mini Characters a pele fica
+## com a graduação da cabeça (pp = "personagem"), nos outros o colormap inteiro
+## vai pelo papel da parte.
 func _vestir(n: Node) -> void:
-	for filho in n.get_children():
-		if filho is MeshInstance3D and String(filho.name).begins_with("body"):
-			var mi: MeshInstance3D = filho
-			for s in mi.mesh.get_surface_count():
-				var base := mi.mesh.surface_get_material(s)
-				if base is StandardMaterial3D:
-					var roupa: StandardMaterial3D = base.duplicate()
-					roupa.albedo_color = cor.lerp(Color.WHITE, 0.25)
-					mi.set_surface_override_material(s, roupa)
-					_roupas.append([roupa, roupa.albedo_color])
-		_vestir(filho)
+	var esqueleto: Skeleton3D = n.find_child("Skeleton3D", true, false)
+	var colormap := _arquivo.get_base_dir() + "/Textures/colormap.png"
+	var pp := "personagem" if "/mini-characters/" in _arquivo else ""
+	n.set_meta("so_pano", pp != "")
+	for filho in n.find_children("*", "MeshInstance3D", true, false):
+		var mi: MeshInstance3D = filho
+		var nome_da_malha := String(mi.name)
+		var corpo := nome_da_malha.begins_with("body")
+		if not corpo and not nome_da_malha.begins_with("head"):
+			continue
+		var medidas := Pintura.preparar(mi, esqueleto)
+		for s in mi.mesh.get_surface_count():
+			var m := ShaderMaterial.new()
+			m.shader = SH_CAVALEIRO
+			if corpo:
+				m.set_shader_parameter("textura_cima", Pintura.textura(colormap, "tecido", pp))
+				m.set_shader_parameter("textura_baixo", Pintura.textura(colormap, "couro", pp))
+				m.set_shader_parameter("rugoso_cima", RUGOSO_CIMA)
+				m.set_shader_parameter("rugoso_baixo", RUGOSO_BAIXO)
+				for k in ["friso_y0", "friso_y1", "friso_alto", "costura_x", "costura_larg"]:
+					m.set_shader_parameter(k, float(medidas[k]))
+				if _medidas.is_empty():
+					_medidas = medidas
+			else:
+				var cabeca := Pintura.textura(colormap, "personagem", "personagem" if pp != "" else "")
+				m.set_shader_parameter("textura_cima", cabeca)
+				m.set_shader_parameter("textura_baixo", cabeca)
+				m.set_shader_parameter("rugoso_cima", RUGOSO_CABECA)
+				m.set_shader_parameter("rugoso_baixo", RUGOSO_CABECA)
+				m.set_shader_parameter("tem_acento", false)
+			var ctn := ShaderMaterial.new()
+			ctn.shader = SH_CONTORNO
+			ctn.set_shader_parameter("cor", Tema.JOGADOR[lugar])
+			ctn.set_shader_parameter("largura", 0.012)
+			ctn.set_shader_parameter("energia", _brilho_do_contorno * _acesa)
+			m.next_pass = ctn
+			m.set_shader_parameter("dono", Tema.JOGADOR[lugar])
+			m.set_shader_parameter("apagado", Tema.GRAFITE)
+			m.set_shader_parameter("acesa", _acesa)
+			m.set_shader_parameter("pele_uv", Vector4(Pintura.PELE_UV.position.x, Pintura.PELE_UV.position.y,
+				Pintura.PELE_UV.end.x, Pintura.PELE_UV.end.y))
+			mi.set_surface_override_material(s, m)
+			_contornos.append(ctn)
+			(_mats_corpo if corpo else _mats_cabeca).append(m)
 
 
-## A armadura apagada (0: o corpo em Tema.GRAFITE, sem o anel) ou acesa (1:
-## como o _vestir deixou). A G08 mantém este contrato no shader novo.
+## O contorno de todo casco: 1,6 na montagem, 2,4 no resto.
+func brilho_do_contorno(energia: float) -> void:
+	_brilho_do_contorno = energia
+	for c in _contornos:
+		c.set_shader_parameter("energia", energia * _acesa)
+
+
+## O encaixe de uma peça (a G13 chama; a G03 chama ao trocar o item): o acento do
+## corpo e a runa do item sobem a 2,6 e voltam a 1,6 em 0,25 s (SAI). É luz, não
+## movimento: vale também com o movimento reduzido.
+func acender_acento() -> void:
+	if not is_inside_tree():
+		return
+	var t := create_tween().set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	t.tween_method(_acento_em, 2.6, 1.6, 0.25)
+
+
+func _acento_em(v: float) -> void:
+	for m in _mats_corpo:
+		m.set_shader_parameter("acento", v)
+	for m in _mats_runa:
+		(m as StandardMaterial3D).emission_energy_multiplier = v * _acesa
+
+
+## A armadura apagada (0: o corpo em Tema.GRAFITE, sem acento, sem aro, sem
+## contorno) ou acesa (1: como o _vestir deixou).
 func acender(k: float) -> void:
 	k = clampf(k, 0.0, 1.0)
-	for par in _roupas:
-		var m: StandardMaterial3D = par[0]
-		m.albedo_color = Tema.GRAFITE.lerp(par[1], k)
 	_acesa = k
+	for m in _mats_corpo:
+		m.set_shader_parameter("acesa", k)
+	for m in _mats_cabeca:
+		m.set_shader_parameter("acesa", k)
+	for c in _contornos:
+		c.set_shader_parameter("energia", _brilho_do_contorno * k)
 	for m in _mats_runa:
 		(m as StandardMaterial3D).emission_energy_multiplier = 1.6 * k
 	if aro:

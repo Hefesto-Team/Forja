@@ -123,8 +123,8 @@ func _montar_chao() -> void:
 		var base := Kit.cilindro(self, 1.3, 0.04, Vector3(lado * (ARENA_X - 1.5), 0.04, 0),
 			Kit.material(LUZ_EQUIPE[0 if lado < 0 else 1].darkened(0.55), 0.3, 0.8))
 		base.name = "base"
-	var metal := Kit.material(COR_CHAO[2], 0.0, 0.35)
-	metal.metallic = 0.8
+	var metal := Kit.material(COR_CHAO[2], 0.0, 0.5)
+	metal.metallic = 0.2
 	Kit.caixa(self, Vector3(METAL_X * 2, 0.04, ARENA_Z * 2 + 0.6), Vector3(0, 0.02, 0), metal)
 	var agua := Kit.material(COR_CHAO[3], 0.4, 0.2)
 	agua.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
@@ -186,6 +186,7 @@ func _montar_lutadores() -> void:
 		var disco := MeshInstance3D.new()
 		var cil := CylinderMesh.new()
 		cil.top_radius = 0.7
+		cil.radial_segments = 8
 		cil.bottom_radius = 0.7
 		cil.height = 0.02
 		disco.mesh = cil

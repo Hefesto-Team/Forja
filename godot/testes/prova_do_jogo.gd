@@ -189,16 +189,16 @@ func _prova_do_percurso() -> void:
 			armaduras = maxi(armaduras, n)
 		# a cor da armadura: grafite antes da primeira acender, a do dono depois da última
 		for l in 4:
-			var r: Array = jogo.jogadores[l]._roupas
+			var r: Array = jogo.jogadores[l]._mats_corpo
 			if r.is_empty():
 				vazia[l] = true
 				continue
-			var cor: Color = (r[0][0] as StandardMaterial3D).albedo_color
+			var acesa := float(r[0].get_shader_parameter("acesa"))
 			if jogo.intro.t < 12.0:
-				grafite[l] = grafite[l] and cor.is_equal_approx(Tema.GRAFITE)
+				grafite[l] = grafite[l] and is_zero_approx(acesa)
 				viu_antes[l] = true
 			elif jogo.intro.t > 18.0:
-				da_cor[l] = da_cor[l] and cor.is_equal_approx(r[0][1])
+				da_cor[l] = da_cor[l] and is_equal_approx(acesa, 1.0)
 				viu_depois[l] = true
 		for s in 4:
 			if not Forja.ocupado(s):
@@ -261,6 +261,7 @@ func _prova_do_percurso() -> void:
 		_esperar(luz.is_equal_approx(Forja.cor_do_lugar(l)), "P%d: a barra de luz na cor do lugar" % (l + 1))
 		_esperar(int(e.get("leds_jogador", 0)) == Forja.LEDS_DO_LUGAR[l], "P%d: o estado das lâmpadas" % (l + 1))
 		_esperar(not jogo.lobby.prontos[l], "P%d: entrar não é ficar pronto" % (l + 1))
+	_prova_da_peca()
 	# a construção: ◀▶ e ▼ mexem só no próprio lugar; o robô forja os quatro na batida
 	var visuais := {}
 	var nomes0 := {}
@@ -345,6 +346,10 @@ func _prova_do_percurso() -> void:
 			"P%d: o item no tamanho (%.2f do corpo)" % [l + 1, alto / corpo])
 		_esperar(pi._mats_runa.size() >= 1, "P%d: o item tem a runa" % (l + 1))
 		_esperar(pi._area_runa <= 0.12 * pi._area_item, "P%d: a runa em até 12 %% do item (%.3f)" % [l + 1, pi._area_runa / maxf(pi._area_item, 0.0001)])
+	_confere_a_arte(jogo.salao, "o salão")
+	for l in 4:
+		var cont: ShaderMaterial = jogo.jogadores[l]._mats_corpo[0].next_pass
+		_esperar(is_equal_approx(float(cont.get_shader_parameter("energia")), 2.4), "P%d: o contorno a 2,4 fora da montagem" % (l + 1))
 	var nomes_f := {}
 	for l in 4:
 		_esperar(perfeito[l], "P%d: a oitava vibrou o perfeito no controle" % (l + 1))
@@ -567,6 +572,8 @@ func _prova_do_percurso() -> void:
 	# e olha a luz; o mudo acende o LED de quem apertou, e só o dele
 	var voz = await _comeca_a_sala("voz")
 	if voz:
+		_esperar(voz.g.pivo.find_children("*", "MeshInstance3D", true, false).all(func(m): return not (m.mesh is SphereMesh)),
+			"o guardião d'A Voz não tem esfera")
 		var viu := false
 		var q := 0
 		while is_instance_valid(voz) and voz.fase == "jogo" and not viu and q < 6000:
@@ -647,6 +654,8 @@ func _comeca_a_sala(id: String):
 	_esperar(is_instance_valid(sala) and sala.fase == "jogo", "%s: o aviso passou com os quatro prontos" % id)
 	# o ✕ do robô chegou pelo controle simulado (F08): passou antes dos 8 s do relógio
 	_esperar(q < int(SalaJogo.AVISO_MAX * 60) - 60, "%s: o ✕ dos quatro veio do controle, não do relógio (%d quadros)" % [id, q])
+	if is_instance_valid(sala):
+		_confere_a_arte(sala, id)
 	return sala if is_instance_valid(sala) else null
 
 
@@ -770,13 +779,16 @@ func _prova_do_cavaleiro_guardado() -> void:
 	var c := {"boneco": 1, "item": "escudo", "nome": "Cromo", "acabamento": 1}
 	p.vestir(c)
 	_esperar(p.cavaleiro() == c, "o cavaleiro: vestir e cavaleiro() são inversos (%s)" % [p.cavaleiro()])
-	var albedo_antes: Color = (p._roupas[0][0] as StandardMaterial3D).albedo_color
-	var m: StandardMaterial3D = p._roupas[0][0]
-	_esperar(is_equal_approx(m.roughness, 0.45) and is_equal_approx(m.metallic, 0.2), "o acabamento Polido mexe na rugosidade e no metal (%.2f %.2f)" % [m.roughness, m.metallic])
+	var m: ShaderMaterial = p._mats_corpo[0]
+	var tex_antes = m.get_shader_parameter("textura_cima")
+	_esperar(is_equal_approx(float(m.get_shader_parameter("rugoso_cima")), 0.45) and is_equal_approx(float(m.get_shader_parameter("rugoso_baixo")), 0.45)
+		and is_equal_approx(float(m.get_shader_parameter("metal")), 0.2), "o acabamento Polido mexe na rugosidade e no metal")
 	p.vestir({"boneco": 1, "item": "escudo", "nome": "Cromo", "acabamento": 0})
-	var m0: StandardMaterial3D = p._roupas[0][0]
-	_esperar(is_equal_approx(m0.roughness, 0.95) and m0.metallic == 0.0 and m0.albedo_color.is_equal_approx(albedo_antes),
-		"e o Fosco volta ao áspero, com a mesma cor")
+	var m0: ShaderMaterial = p._mats_corpo[0]
+	_esperar(is_equal_approx(float(m0.get_shader_parameter("rugoso_cima")), ForjaPlayer.RUGOSO_CIMA)
+		and is_equal_approx(float(m0.get_shader_parameter("rugoso_baixo")), ForjaPlayer.RUGOSO_BAIXO)
+		and float(m0.get_shader_parameter("metal")) == 0.0 and m0.get_shader_parameter("textura_cima") == tex_antes,
+		"e o Fosco volta à rugosidade de cada parte, com a mesma cor")
 	var maior := 0.0
 	for a in ForjaPlayer.ACABAMENTOS:
 		maior = maxf(maior, float(a.metal))
@@ -1693,6 +1705,66 @@ func _prova_das_contas_dos_itens() -> void:
 	Itens.em_liga = [true, true, false, false]
 	_esperar(is_equal_approx(Itens.ganho_da_nota(0, "tct"), 1.3), "Diapasão em liga: a nota mais alta no todos contra todos")
 	_esperar(is_equal_approx(Itens.velocidade(1, "corrida"), 1.0), "Âncora em liga: a velocidade normal")
+	for c in [Itens.METAL, Itens.CERAMICA, Itens.LATAO]:
+		var v := Pintura.para_oklab(c)
+		_esperar(v.x >= 0.68 and v.x <= 0.80 and Vector2(v.y, v.z).length() <= 0.0805, "o tom %s na faixa do item" % c.to_html(false))
+		for j in Tema.JOGADOR:
+			_esperar(Pintura.delta_e(c, j) >= 0.08, "o tom %s longe do néon %s" % [c.to_html(false), j.to_html(false)])
 	Itens.escolhido = antes
 	Itens.em_liga = liga_antes
 	Itens.novo_minigame()
+
+
+## A peça se distingue (arte/04): as faixas de L, o croma, a distância até os
+## néons e a área do acento.
+func _prova_da_peca() -> void:
+	for p in jogo.jogadores:
+		var m: Dictionary = Pintura.medianas(p.modelo)
+		_esperar(m.superior >= 0.46 and m.superior <= 0.58, "P%d: o superior na faixa (%.3f)" % [p.lugar + 1, m.superior])
+		_esperar(m.inferior >= 0.22 and m.inferior <= 0.36, "P%d: o inferior na faixa (%.3f)" % [p.lugar + 1, m.inferior])
+		_esperar(m.superior - m.inferior >= 0.10, "P%d: superior e inferior diferem 0,10 (%.3f)" % [p.lugar + 1, m.superior - m.inferior])
+		var ruins := []
+		for c in m.cores:
+			var v := Pintura.para_oklab(c)
+			if Vector2(v.y, v.z).length() > 0.1001:
+				ruins.append("croma %s" % c.to_html(false))
+			for j in Tema.JOGADOR:
+				if Pintura.delta_e(c, j) < 0.08:
+					ruins.append("perto do néon %s" % c.to_html(false))
+		_esperar(ruins.is_empty(), "P%d: a peça nunca é néon %s" % [p.lugar + 1, ruins])
+		var mat: ShaderMaterial = p._mats_corpo[0]
+		var area: float = 2.0 * float(mat.get_shader_parameter("friso_alto")) * p._medidas.largura_torso \
+			+ 2.0 * float(mat.get_shader_parameter("costura_larg")) * p._medidas.altura_perna
+		_esperar(area <= 0.0801 * (p._medidas.frente_cima + p._medidas.frente_baixo), "P%d: o acento em até 8 %% da frente" % (p.lugar + 1))
+		_esperar(mat.shader.code.contains("uniform float aro = 0.25;"), "P%d: o aro a 0,25" % (p.lugar + 1))
+		_esperar(not mat.shader.code.contains("tingir"), "P%d: nada se tinge" % (p.lugar + 1))
+		p.acender(0.0)
+		_esperar(is_zero_approx(float(mat.get_shader_parameter("acesa"))), "P%d: acender(0) apaga a armadura" % (p.lugar + 1))
+		p.acender(1.0)
+		_esperar(is_equal_approx(float(mat.get_shader_parameter("acesa")), 1.0), "P%d: acender(1) volta" % (p.lugar + 1))
+		var cont: ShaderMaterial = mat.next_pass
+		_esperar(is_equal_approx(float(cont.get_shader_parameter("energia")), 1.6), "P%d: o contorno a 1,6 na montagem" % (p.lugar + 1))
+
+
+## O checklist que se confere sem olho: nada liso, nada metálico.
+func _confere_a_arte(raiz: Node, onde: String) -> void:
+	var lisas: Array = []
+	var metalicos: Array = []
+	for n in raiz.find_children("*", "MeshInstance3D", true, false):
+		var mi := n as MeshInstance3D
+		var m := mi.mesh
+		if (m is SphereMesh and (m as SphereMesh).radial_segments > 8) \
+				or (m is TorusMesh and (m as TorusMesh).rings > 8) \
+				or (m is CylinderMesh and (m as CylinderMesh).radial_segments > 8):
+			lisas.append(str(raiz.get_path_to(mi)))
+		var mat := mi.material_override
+		if mat is StandardMaterial3D and (mat as StandardMaterial3D).metallic > 0.2001:   # 0,2 em float de 32 bits passa de 0,2
+			metalicos.append(str(raiz.get_path_to(mi)))
+	for n in raiz.find_children("*", "CSGCylinder3D", true, false):
+		if (n as CSGCylinder3D).sides > 8:
+			lisas.append(str(raiz.get_path_to(n)))
+	for n in raiz.find_children("*", "CSGTorus3D", true, false):
+		if (n as CSGTorus3D).sides > 8:
+			lisas.append(str(raiz.get_path_to(n)))
+	_esperar(lisas.is_empty(), "%s: nenhuma curva lisa %s" % [onde, lisas])
+	_esperar(metalicos.is_empty(), "%s: nada metálico acima de 0,2 %s" % [onde, metalicos])

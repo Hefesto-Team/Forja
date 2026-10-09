@@ -84,9 +84,10 @@ static func brasas(pai: Node, centro: Vector3, tamanho: Vector3, cor: Color, n :
 static func anel(pai: Node, pos: Vector3, cor: Color, raio := 0.6, virado_para := Vector3.BACK) -> void:
 	var a := MeshInstance3D.new()
 	var t := TorusMesh.new()
+	t.rings = 8
+	t.ring_segments = 6
 	t.inner_radius = raio * 0.86
 	t.outer_radius = raio
-	t.rings = 40
 	a.mesh = t
 	var m := StandardMaterial3D.new()
 	m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
