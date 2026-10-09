@@ -303,3 +303,14 @@ Marcar G15 como **feito** no [quadro](README.md), com o gasto. Commit sugerido:
 - Medir o quadro com 4 contornos na máquina da prova: se passar de 16,7 ms, `normal_suave` vai a false.
 - Fica para a G14b: os 35 achados de cor. Fica para a G13: chamar `contornar(1.6)` na montagem. Fica para quem fizer a
   Dissonância: chamar `PosFita.rasgo_curto()`.
+
+### Na conferência (leva 1, a-fita)
+
+- O contorno trouxe um erro novo no log da prova do jogo: `Parameter "material" is null` (0 na base, 16 a cada passada
+  depois da G15), no fim de cada sala e na troca do boneco. A causa: o material duplicado com `next_pass` morria na fila
+  de deleção junto com o boneco, e o servidor de desenho ainda o pedia no quadro em que outro boneco nascia. A cura, em
+  `player.gd`: `_soltar_contorno()` devolve as superfícies ao material do kit antes de todo `queue_free` (o modelo, os
+  itens nos ossos e o próprio boneco, no `NOTIFICATION_PREDELETE`), e `_contornar_em` pula o que já está na fila. Medido
+  de novo: 0 nas duas passadas.
+- O «Pronto quando» pede o portão de arte sem achado de cor: ficam os 35, que a G14b assume um a um. A cor de controle
+  (as equipes do Impacto e da Prova, o `Color(1, 0, 0)` da pergunta) e o metal do Molde pedem decisão dela.

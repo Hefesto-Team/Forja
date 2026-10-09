@@ -584,3 +584,11 @@ feat: a câmera filma em milímetros, enquadra o grupo e a corrida, e o tremor v
 3. Opções › Movimento › Reduzido: nada treme.
 4. `bash tests/prova_visual.sh` sem `--fixed-fps`, com a placa de vídeo: comparar as pranchas das salas fixas com as de antes;
    as raias continuam inteiras (a lente de 35 mm vê uns 5 % menos que a de 40°) e o salão não corta nenhum boneco.
+
+### Na conferência (leva 1, a-fita)
+
+- A prova visual já filma A Prova nas partidas de 4, 2 e 1 jogador (partidas 1, 3 e 4 do `prova_visual.sh`). Nas
+  pranchas da passada `visual-g05/fixa` (`prancha-1-3`, `prancha-3-2`, `prancha-4-2`), o grupo está inteiro na tela em
+  todo quadro de A Prova. O que falta para fechar é a passada inteira, que reprova pela «tela parada» de Impacto,
+  Centelha e Galeria (o defeito da F09b, que já reprovava na base), e um quadro de cada degrau do tremor; a G05b foi
+  corrigida para dizer isso.
