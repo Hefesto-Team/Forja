@@ -264,7 +264,7 @@ func _jogar(l: int, p: ForjaPlayer, dt: float) -> void:
 		if pedido >= 0 and b == pedido:
 			_acertou(l, p, 100)
 			return
-		if pedido >= 0:
+		if pedido >= 0 and not errou(l):
 			e.combo = 0
 			e.tremor = 0.6
 			Som.tocar("falha", p.global_position + Vector3(0, 1.5, -2), -10.0)
@@ -350,6 +350,12 @@ func _acertou(l: int, p: ForjaPlayer, base: int) -> void:
 func _perdeu(l: int, p: ForjaPlayer) -> void:
 	var e: Dictionary = j[l]
 	var r: Dictionary = _runa_atual(l)
+	if errou(l):
+		# o Escudo absorveu: a runa passa sem castigo e sem voltar à fila
+		_proxima(l)
+		if e.atual >= e.fila.size():
+			acabou[l] = true
+		return
 	e.combo = 0
 	e.tremor = 1.0
 	Som.tocar("falha", runas[l].raiz.global_position, -4.0)

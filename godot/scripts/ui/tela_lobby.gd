@@ -101,6 +101,8 @@ func entrou(l: int) -> void:
 		etapa[l] = EDITANDO
 		p.visual(ForjaPlayer.VISUAL_DO_LUGAR[l][0], ForjaPlayer.VISUAL_DO_LUGAR[l][1])
 		p.nome = _nome_livre(l, 1, (Forja.semente * 7 + l * 5) % NOMES.size() - 1)
+	Itens.escolhido[l] = p.item_i
+	Itens.sentir(l)
 	p.acender(1.0)
 	salao.acender_bigorna(l, 1.5)
 	Som.pio(l, p.modelo_i)
@@ -252,8 +254,11 @@ func _som_do_boneco(l: int) -> void:
 	Forja.sentir(l, "metal")
 
 
-## A troca do item, na TV e na mão (a G03 troca o corpo: o gatilho do item).
+## A troca do item, na TV e na mão: a mecânica passa a ser a do que se escolheu
+## (Itens.escolhido) e o L2 diz o item (Itens.sentir, G03).
 func _sentir_o_item(l: int) -> void:
+	Itens.escolhido[l] = jogadores[l].item_i
+	Itens.sentir(l)
 	Som.tocar("ui_peca", null, -12.0, 0.7492)
 	Som.no_controle(l, "ui_peca", 0.85)
 	Forja.sentir(l, "acerto")
@@ -277,6 +282,7 @@ func martelar(l: int) -> void:
 func _forjou(l: int) -> void:
 	desvio[l] = mediana(golpes[l])
 	Ritmo.definir_desvio(l, desvio[l], "construcao", golpes[l].size())  # Opcoes.tempo_ms e o evento calibracao
+	Itens.escolhido[l] = jogadores[l].item_i
 	Opcoes.cavaleiro[l] = jogadores[l].cavaleiro()
 	Opcoes.noite_dos_cavaleiros = Opcoes.noite()
 	Opcoes.guardar()
