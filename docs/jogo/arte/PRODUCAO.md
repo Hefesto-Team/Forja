@@ -360,6 +360,23 @@ trocam de imagem; a 19 e a 20 ganham seção, com a etiqueta no estilo das
 outras e a linha para o 04; a página abre em `file://`; nenhuma imagem passa
 de 1 MB.
 
+### O que o ajuste deixou para decidir
+
+Do produtor de arte, 09/10. Os seis itens saíram; os desvios e os números
+estão no [04, o que a medida deu](04-o-cavaleiro.md#o-que-a-medida-deu-em-0910)
+e no [04, o que mudou no estudo](04-o-cavaleiro.md#o-que-mudou-no-estudo-em-0910).
+
+- **Item 17, as faixas não passam.** O croma (0,099), o ΔE (0,085) e o
+  acento (5,37 %) passam. A faixa do rosto passa em 2 de 12, a do superior e
+  a do inferior em 11 de 12 (o male-f), e os vizinhos rosto e superior em 82
+  de 144 pares. A pele não se clareou: é a diversidade de tons da Kenney. A
+  proposta é medir o rosto pelo contraste com o superior, com a gola acesa
+  onde o par não chega a 0,10. Decide o diretor de arte.
+- **Item 15, o que não se mediu.** A cauda pelo vão da cadeira só se vê na
+  10 (P3). As mãos de pinça e os punhos de pedra não foram conferidos nas 32
+  animações, uma a uma; nas pranchas (idle e holding-both) seguem o osso.
+- **Item 16, a linha das calças na 11.** Sai pequena, como antes.
+
 ## Os sons
 
 Os sons não estão nesta lista. Todo som e toda música da Forja estão no mapa

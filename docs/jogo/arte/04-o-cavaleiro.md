@@ -140,6 +140,38 @@ converte para L (OKLab). Passa quando:
   64 px, sem cor;
 - a área de acento fica nos tetos da tabela.
 
+### O que a medida deu, em 09/10
+
+O `medir_pecas.gd` mede as 36 peças nas faces de frente e grava
+[pecas_medidas.csv](dados/pecas_medidas.csv). Duas rodadas dão o mesmo
+arquivo, byte a byte.
+
+| critério | o pior caso | passa |
+| --- | --- | --- |
+| croma de toda face | 0,099 (teto 0,10) | sim |
+| ΔE OKLab até um `JOGADOR` | 0,085 (piso 0,08) | sim |
+| acento sobre a área de frente | 5,37 % no superior do male-b (teto 8 %) | sim |
+| superior em L 0,46 a 0,58 | 11 de 12; o male-f dá 0,593 | não |
+| inferior em L 0,22 a 0,36 | 11 de 12; o male-f dá 0,694 (a bermuda: as pernas são pele) | não |
+| rosto em L 0,68 a 0,80 | 2 de 12 (female-e 0,720, male-b 0,694); os outros vão de 0,520 a 0,678 | não |
+| superior e inferior a 0,10 ou mais | 132 de 144 pares; os 12 que falham são todos com o inferior do male-f | não |
+| rosto e superior a 0,10 ou mais | 82 de 144 pares | não |
+
+**A decisão: a pele não se clareia.** Os 12 rostos da Kenney têm tons de
+pele de 0,52 a 0,72. Subir todos para 0,68 apaga essa diversidade. O
+`recolorir` deixa a pele como veio (papel `personagem`, `l0` 0,06 e `l1`
+0,86) e só corta o croma.
+
+**A proposta para o critério do rosto.** Medir a cabeça pelo contraste com o
+superior do mesmo cavaleiro, não por uma faixa absoluta: |ΔL| de 0,10 ou mais
+entre o rosto e o superior, e, quando o par não chega a isso, a gola com o
+friso aceso marca o corte (é o que a 10 mostra a 64 px). A faixa de 0,68 a
+0,80 fica só para as raças, cuja pele é token. Decisão do diretor de arte.
+
+**O male-f.** O inferior dele é a bermuda: a mediana cai na pele das pernas.
+Duas saídas: medir o inferior só nas faces de pano (a UV fora de
+`PELE_UV`), ou tirar o male-f do inferior. Decisão do diretor de arte.
+
 ## As raças
 
 A fala dela: «só temos assets de personagens humanos. Acho que podemos
@@ -188,6 +220,38 @@ A cabeça de cada raça, como a humana, passa no teste de 64 px e cinza: o rosto
 na faixa de 0,68 a 0,80, e a silhueta própria (as presas e a cabeça alta do
 orc, a antena do autômato, o bloco sem pescoço do golem, as orelhas e o
 focinho da raposa).
+
+### O que mudou no estudo, em 09/10
+
+O produtor fez as quatro pelas medidas acima. Onde a prancha pediu outra
+coisa, a medida mudou e ficou registrada aqui:
+
+- **A cabeça de raça a 1,30.** As cabeças por código saíam 30 % menores que
+  a humana (0,45 de altura com o cabelo). `Racas.ESCALA_CABECA` = 1,30, para
+  as quatro.
+- **O golem é um tronco de pirâmide.** O bloco de 0,34 × 0,24 × 0,30 se lia,
+  a 64 px, como a cabeça humana. Agora: a base de 0,36 × 0,30, o topo de
+  0,26 × 0,24, 0,27 de altura, faces chapadas. Na frente: a sobrancelha de
+  pedra de 0,30 × 0,045 × 0,07, os olhos e a boca em `TINTA`, duas pedras de
+  0,08 × 0,075 × 0,12 nas bochechas (x ±0,165) e uma laje torta de
+  0,15 × 0,05 × 0,14 no alto. A rachadura é um zigue-zague de três traços:
+  o vão `JANELA` de 0,018, com o acento de 0,007 dentro. O líquen vai em dois
+  tufos desencontrados.
+- **A raposa ganhou a máscara creme.** Uma placa de 0,26 × 0,10 em
+  `ETIQUETA_SOMBRA` cobre a metade de baixo da cara; o focinho é creme, de
+  0,11 × 0,07 × 0,08, com o nariz em `TINTA` de 0,045 × 0,028. Sem ela, a
+  cabeça laranja se perdia no superior laranja.
+- **A boca do autômato.** Uma grade de três frestas `JANELA` de
+  0,018 × 0,04, a 0,04 uma da outra.
+- **O verde do orc.** O verde da pele do `character-orc` vira o matiz e o
+  croma de `PELE_ORC` (#89aa77), com a luz 0,05 abaixo, no `recolorir`.
+- **A costura vai também na frente da perna**, junto ao lado de fora (0,008
+  de largura). Só na lateral, ela não aparecia de frente.
+- **O teto e a folga.** O teto de croma no `recolorir` é 0,098 e o piso de
+  ΔE até um `JOGADOR` é 0,085. A 0,10 e a 0,08, o arredondamento do sRGB de
+  8 bits passava do limite (o croma 0,101; o cabelo ruivo do male-c a 0,057
+  do âmbar antes da folga). O `graduar` baixa o croma 10 % por passo até a
+  peça ficar a 0,085 de todo `JOGADOR`.
 
 ### O que se pesquisou e ficou de fora
 
