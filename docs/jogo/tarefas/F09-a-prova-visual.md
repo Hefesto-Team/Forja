@@ -245,6 +245,11 @@ sobe, fim sem vencedor nem minúscula. A cura é do jogo, não da régua, e viro
   quadro. A coleta (`desenho.gd`) conta agora cada desenho pelo sinal `draw` do
   nó, e só o último vale.
 
+Com tudo isso, a partida 4 nas duas passadas: a `fixa` dá os mesmos 20 defeitos
+de antes (é determinística), a `livre` dá 19, dos mesmos grupos (letra, margem,
+contraste, tela parada), sem tela vazia nem encavalado falso, e a semente bate.
+As partidas 1 a 3 não rodaram de novo depois da conferência.
+
 **Fica para a mão dela ou do André.** A passada `livre` (sem `--fixed-fps`,
 com placa de vídeo) e as quatro pranchas olhadas; a aparência (luz, cor, arte)
 não se aprova pelo renderizador por software; as partidas 2 e 3 desta rodada
