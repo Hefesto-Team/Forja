@@ -263,7 +263,7 @@ func desenhar(ci: CanvasItem, x0: float, cor_do_dono: Color) -> void:
 	# batida vai a 5 px e volta a 3 px em 1 colcheia.
 	var alvo := _retangulo_da_tecla(cursor)
 	var k := clampf(float(Time.get_ticks_msec() - _anda_em_ms) / CURSOR_MS, 0.0, 1.0)
-	if not Opcoes.tremor:
+	if Opcoes.reduzido():
 		k = 1.0
 	k = 1.0 - pow(1.0 - k, 3.0)
 	var onde := Rect2(_anda_de.position.lerp(alvo.position, k), _anda_de.size.lerp(alvo.size, k))

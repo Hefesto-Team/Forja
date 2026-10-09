@@ -38,6 +38,7 @@ var vitorias := [0, 0, 0, 0]  ## as salas em que cada lugar ficou em primeiro
 ## Uma entrada por sala jogada: {sala, nome, pontos: [4], colocacao: [4], ganhos: [4]}.
 ## Quem não jogou a sala tem colocação 0 e ganho 0.
 var historico: Array = []
+var virou := false  ## a fita já virou nesta noite (o intervalo já aconteceu)
 
 
 ## As salas de uma partida de `n` salas. Na ordem: as de NA_ORDEM, ou o
@@ -89,6 +90,16 @@ func sala_atual() -> String:
 
 func acabou() -> bool:
 	return passo >= salas.size()
+
+
+## As faixas do lado A: depois de `ceil(n / 2)` faixas a fita vira (2 de 3, 3 de 5, 5 de 9).
+func metade() -> int:
+	return ceili(salas.size() / 2.0)
+
+
+## "A" até a metade da noite; "B" daí até o pódio.
+func lado() -> String:
+	return "B" if passo >= metade() else "A"
 
 
 ## "Partida · sala 2 de 5".

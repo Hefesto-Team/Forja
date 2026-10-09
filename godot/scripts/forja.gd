@@ -507,7 +507,7 @@ const SENSACOES := {
 	"aviso":     [0.6, 0.0,  200],   # perigo um tempo antes
 	"golpe_esq": [1.0, 0.0,  250],   # o golpe que vem da esquerda: só o motor forte
 	"golpe_dir": [0.0, 1.0,  250],   # o da direita: só o motor fraco
-	"fita":      [0.0, 0.3,  400],   # o PLAY: o motor da fita girando na mão
+	"fita":      [0.0, 0.3,  400],   # o PLAY e o virar da fita (G16): o motor girando na mão, o rumble fraco
 	"metal":     [0.0, 0.45,  40],   # a troca de peça na construção: o pulso curto
 }
 var _agora := 0.0  ## o relógio do jogo (a soma dos quadros), para o motor e a háptica

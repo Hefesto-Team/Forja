@@ -127,7 +127,7 @@ func _acender_a_armadura(l: int) -> void:
 	if Forja.ocupado(l):
 		Forja.sentir(l, "acerto")
 	var p: ForjaPlayer = jogadores[l]
-	var pouco := not Opcoes.tremor
+	var pouco := Opcoes.reduzido()
 	Efeitos.faiscas(salao, p.global_position + Vector3(0, 1.6, 0), Tema.JOGADOR[l], 8 if pouco else 24, 0.8)
 
 
@@ -160,7 +160,7 @@ func _draw() -> void:
 	if _estatica <= 0.0:
 		return
 	var densidade := _estatica
-	if not Opcoes.tremor:
+	if Opcoes.reduzido():
 		densidade = 0.0  # o movimento reduzido: sem estática, só o véu
 	elif not Opcoes.flashes:
 		densidade *= 0.4
