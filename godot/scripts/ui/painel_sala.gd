@@ -330,7 +330,7 @@ func _tempo() -> void:
 	# o tempo que resta, logo abaixo do nome da sala (o quadro da HUD)
 	if sala.treinando:
 		return  # o treino não gasta o relógio: a barra só aparece valendo
-	var resta := maxf(0.0, d - float(sala.t_jogo))
+	var resta := float(sala.tempo_que_resta())
 	var larg := 480.0
 	var p := Vector2(Tema.MARGEM_X - 28, topo_das_faixas + 22.0)
 	var cor := Tema.SECAO[3] if resta < 15.0 else Tema.ETIQUETA

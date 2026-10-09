@@ -15,6 +15,7 @@ var pontos: Array = [0, 0, 0, 0]
 var coop := false
 var coop_venceu := false
 var titulo := ""  ## o nome da sala
+var frase := ""  ## a frase do vencedor que o minigame dá (coop, dupla); vazia: a de sempre
 var sala_da_bancada: SalaJogo = null  ## só no Modo bancada: a tabela de veredito embaixo
 
 var _t := 0.0
@@ -29,7 +30,8 @@ func _ready() -> void:
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 
 
-func abrir(col: Array, pts: Array, eh_coop := false, venceu := false, nome := "") -> void:
+func abrir(col: Array, pts: Array, eh_coop := false, venceu := false, nome := "", frase_do_minigame := "") -> void:
+	frase = frase_do_minigame
 	colocacao = col.duplicate()
 	pontos = pts.duplicate()
 	coop = eh_coop
@@ -74,6 +76,9 @@ func _empatados_no_topo() -> int:
 
 ## A frase de quem venceu e a cor dela.
 func _frase() -> Array:
+	if frase != "":
+		# a do minigame (coop, dupla); a derrota do coop na cor de sempre da derrota
+		return [frase, Tema.SECAO[3] if coop and not coop_venceu else Tema.ETIQUETA]
 	if coop:
 		return ["Vocês venceram!", Tema.ETIQUETA] if coop_venceu else ["Não deu desta vez.", Tema.SECAO[3]]
 	if colocacao.is_empty():
@@ -105,9 +110,9 @@ func _draw() -> void:
 	var r := Rect2(Vector2((size.x - LARG) * 0.5, topo), Vector2(LARG, alt))
 	Desenho.moldura(self, r, Color(Tema.CASCO, 0.97), Tema.GRAFITE, 2, Tema.RAIO_QUADRO)
 	Desenho.texto(self, r.position + Vector2(48, 84), titulo, Tema.bungee(), Tema.T_TITULO, Tema.ETIQUETA)
-	var frase := _frase()
-	if str(frase[0]) != "":
-		Desenho.texto(self, r.position + Vector2(48, 148), str(frase[0]), Tema.archivo(700), Tema.T_CORPO + 8, frase[1],
+	var dita := _frase()
+	if str(dita[0]) != "":
+		Desenho.texto(self, r.position + Vector2(48, 148), str(dita[0]), Tema.archivo(700), Tema.T_CORPO + 8, dita[1],
 			HORIZONTAL_ALIGNMENT_LEFT, LARG - 96)
 	var cols := Partida.colocacoes(pontos, colocacao)
 	var y := r.position.y + 190.0

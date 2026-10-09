@@ -118,7 +118,7 @@ func _aperta(sim: int, botao: int) -> void:
 func _observar() -> void:
 	var sala = jogo.sala
 	if sala is SalaJogo and sala.fase == "jogo" and not sala.treinando and sala.duracao > 0.0:
-		observacoes.append({"t": t, "slot": sala.id, "fase": "jogo", "resta": float(sala.duracao) - float(sala.t_jogo)})
+		observacoes.append({"t": t, "slot": sala.id, "fase": "jogo", "resta": float(sala.tempo_que_resta())})
 	elif sala is SalaJogo:
 		observacoes.append({"t": t, "slot": sala.id, "fase": str(sala.fase), "resta": -1.0})
 

@@ -283,7 +283,7 @@ func _process(dt: float) -> void:
 			for p in jogadores:
 				if jogando[p.lugar] and not acabou[p.lugar] and Forja.lugar(p.lugar).get("conectado", false):
 					todos = false
-			if todos or (duracao > 0.0 and t_jogo >= duracao):
+			if todos or tempo_acabou():
 				terminar()
 		"fim":
 			_quadro_fim()
@@ -425,9 +425,7 @@ func terminar() -> void:
 	Forja.evento("sala", 0, {"sala": id, "evento": "jogo_terminou"})
 	Forja.evento("desempenho", 0, {"slot": id, "fps_min": snappedf(_fps_min if _fps_n > 0 else 0.0, 0.1),
 		"fps_media": snappedf(_fps_soma / _fps_n if _fps_n > 0 else 0.0, 0.1)})
-	Forja.evento("minigame", 0, {"slot": id, "evento": "terminou",
-		"vencedor": colocacao[0] if not colocacao.is_empty() else -1,
-		"pontos": pontos, "duracao": snappedf(t_jogo, 0.1)})
+	Forja.evento("minigame", 0, campos_do_fim())
 	Forja.gravar_relatorio()
 	# o apito fecha a sala: a música para em seco e o jingle do resultado vem
 	# em seguida (no _celebrar, aos APITO_S da tela de resultado)
@@ -435,6 +433,45 @@ func terminar() -> void:
 	Som.jingle("JIN_APITO")
 	pulso_de_luz(Tema.TUNGSTENIO, 1.6)
 	ao_terminar()
+
+
+## O tempo que já valeu, em s (o treino fora). O kit troca pelo tempo de
+## música (H08): nunca o t_fase, que com --fixed-fps corre mais depressa.
+func tempo_jogado() -> float:
+	return t_jogo
+
+
+## O tempo da sala acabou?
+func tempo_acabou() -> bool:
+	return duracao > 0.0 and tempo_jogado() >= duracao
+
+
+## O que resta do relógio, em s (a barra do painel e a prova do relógio).
+func tempo_que_resta() -> float:
+	return maxf(0.0, duracao - tempo_jogado())
+
+
+## Os campos do `minigame` `terminou` (o registro v2). O kit acrescenta o
+## gênero, o coop e a dupla (H08).
+func campos_do_fim() -> Dictionary:
+	return {"slot": id, "evento": "terminou", "vencedor": int(colocacao[0]) if not colocacao.is_empty() else -1,
+		"pontos": pontos, "duracao": snappedf(tempo_jogado(), 0.1)}
+
+
+## A frase do resultado no lugar de "P1 venceu!" (vazia: a da tela). O kit
+## diz a do coop e a da dupla.
+func frase_do_resultado() -> String:
+	return ""
+
+
+## Quem comemora no fim (o gesto): o primeiro colocado.
+func quem_comemora() -> Array:
+	return [colocacao[0]] if not colocacao.is_empty() else []
+
+
+## Quem ganha as faíscas no fim: o primeiro colocado (-1: ninguém).
+func quem_brilha() -> int:
+	return int(colocacao[0]) if not colocacao.is_empty() else -1
 
 
 ## Os lugares que jogaram, do maior ponto ao menor; no empate, o lugar menor
@@ -452,12 +489,14 @@ func vencedor() -> Array:
 ## Quem venceu pula de alegria, com faíscas na cor do lugar. Ninguém balança a
 ## cabeça: o veredito é do Modo bancada, não do boneco.
 func _celebrar() -> void:
-	if not colocacao.is_empty():
-		var l: int = colocacao[0]
-		var p := jogador(l)
+	for l in quem_comemora():
+		var p := jogador(int(l))
 		if p != null and is_instance_valid(p):
 			p.gesto("emote-yes", 1.4)
-			Efeitos.faiscas(self, p.global_position + Vector3(0, 2.2, 0), Forja.cor_do_lugar(l), 40, 1.3)
+	var b := quem_brilha()
+	var pb := jogador(b) if b >= 0 else null
+	if pb != null and is_instance_valid(pb):
+		Efeitos.faiscas(self, pb.global_position + Vector3(0, 2.2, 0), Forja.cor_do_lugar(b), 40, 1.3)
 	# o jingle do resultado (H06): vitória, empate ou, no coop, a de todos ou a derrota
 	Som.jingle(Som.jingle_do_resultado(pontos, _presentes_do_fim(), coop, coop_venceu))
 

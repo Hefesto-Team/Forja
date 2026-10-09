@@ -853,7 +853,7 @@ func _termina_a_sala(sala, features: Array) -> void:
 				if not _mesmo_tom(pc.get("luz", Color.BLACK), Forja.cor_do_lugar(l)):
 					fora_do_tom += 1
 		if is_instance_valid(sala) and sala.duracao > 0.0 and not sala.treinando:
-			var resta: float = sala.duracao - sala.t_jogo
+			var resta: float = sala.tempo_que_resta()
 			subiu = subiu or resta > resta_antes + 0.01
 			resta_antes = resta
 		if not Forja.bancada and is_instance_valid(sala) and sala.fase == "jogo":
