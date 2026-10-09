@@ -791,6 +791,9 @@ func _prova_da_partida() -> void:
 			await _quadros(2)
 			q += 2
 		_esperar(jogo.overlay == "placar" and jogo.partida.historico.size() == i + 1, "partida: o placar depois d%s" % Placar._contracao(sala.nome))
+		# a partida fala pelo apelido (H04): o slot do minigame não chega ao placar
+		_esperar(not jogo.partida.historico.is_empty() and str(jogo.partida.historico[-1].sala) == ids[i],
+			"partida: o placar guarda a sala pelo apelido (%s)" % [jogo.partida.historico[-1].sala if not jogo.partida.historico.is_empty() else "-"])
 	var q := 0
 	while (jogo.estado != "podio" or jogo._trocando) and q < 900:
 		await _quadros(2)
