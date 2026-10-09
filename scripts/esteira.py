@@ -36,7 +36,8 @@ A dependência se lê pelo código da ficha (F04, I1, R) e por «seção I», «
 aprovada») vai para `dependencias_em_texto`, para conferir à mão: não segura nem solta.
 
 Saída (stdout, JSON):
-  {"prontas_para_despachar": [{"secao", "nome", "fichas", "caminhos" (das fichas), "arquivos", "estimado"}],
+  {"prontas_para_despachar": [{"secao", "nome", "base" (sim/não: a seção não espera enriquecimento, e as fichas
+                               dela não têm «A diversão»), "fichas", "caminhos" (das fichas), "arquivos", "estimado"}],
    "na_fila": [{"secao", "motivo"}],
    "em_voo": {"<conjunto>": {"secoes", "fichas", "arquivos"}},
    "espera_ela": [{"desde", "decide", "espera", "segura"}],
@@ -287,7 +288,8 @@ def main() -> int:
         if motivos:
             bloqueadas.append({"secao": s["letra"], "motivos": motivos})
             continue
-        prontas.append({"secao": s["letra"], "nome": s["nome"], "fichas": [f["codigo"] for f in abertas],
+        prontas.append({"secao": s["letra"], "nome": s["nome"], "base": s["letra"] in bases,
+                        "fichas": [f["codigo"] for f in abertas],
                         "caminhos": [str((pasta / f["arquivo"]).relative_to(raiz)) for f in abertas],
                         "arquivos": arquivos, "estimado": [f["codigo"] for f in abertas if f["estimado"]]})
 
