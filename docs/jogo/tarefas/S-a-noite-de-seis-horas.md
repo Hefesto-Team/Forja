@@ -1,24 +1,74 @@
 # S — A noite de seis horas
 
-**Sprint:** S · **Tamanho:** M · **Depende de:** F06 (o registro v2), F09, H07, as seções I a Q e a R prontas; a O1 e a P1 (as linhas `pista`, `troca`, `voz` no 13); e, com o André, a noite em si
+**Sprint:** S · **Tamanho:** M · **Depende de:** F06 (o registro v2), F09, H07, as seções I a Q e a R prontas; a O1 e a P1 (as linhas `pista`, `troca`, `voz` no 13); a G02 e a G13 (a linha `cavaleiro`, com o campo `montagem_s` da G13); e, com o André, a noite em si
 
 ## Por quê
 
 A validação final não é uma prova sem aparelho: é o jogo completo jogado de
 verdade. Quatro pessoas, seis horas, dois controles no cabo e dois no rádio
 (trocam na metade). O jogo manda e registra tudo; depois, um script cruza o
-que o jogo mandou com o que a ponte do rádio registrou e com o que os
-jogadores fizeram. Esta ficha escreve esse script — **inteiro aqui embaixo,
-já provado** com uma noite sintética —, a prova dele, e o roteiro da noite
-para o André.
+que o jogo mandou com o que a ponte do rádio registrou, com o que os
+jogadores fizeram e com o cavaleiro que cada um forjou. Esta ficha escreve
+esse script (**inteiro aqui embaixo, já provado** com uma noite sintética:
+25 checagens), a prova dele, e o roteiro da noite para o André.
 
 ## Ler antes
 
 - [08 — A noite de seis horas](../08-a-noite-de-6-horas.md) (o protocolo e as perguntas)
-- [13 — O registro v2](../13-arquitetura.md#o-registro-v2--f06-h01-h02-g02-h07) (os tipos e os campos; `pista`, `troca`, `voz` e `estacao` vêm da O1, da P1 e da Q4)
-- [05 — O rádio](../05-haptica-e-controle.md#o-rádio) e o [CONTRATO](../../../CONTRATO.md) (o jogo nunca fala com a ponte)
+- [13 — O registro v2](../13-arquitetura.md#o-registro-v2--f06-h01-h02-g02-h07) (os tipos e os campos; `pista`, `troca`, `voz` e `estacao` vêm da O1, da P1 e da Q4; `momento` vem da R)
+- [O que a noite de seis horas mede](../sistemas/README.md#o-que-a-noite-de-seis-horas-mede) (a linha `cavaleiro` e os cinco alvos do RPG)
 
-## O que o script lê
+## Arquivos que mudam
+
+| arquivo | o quê | de todos? |
+| --- | --- | --- |
+| `scripts/cruzar_noite.py` | novo: o script inteiro de «O script» abaixo | não |
+| `tests/prova_do_cruzamento.sh` | novo: a prova, em «Provas» | não |
+| `.github/workflows/forja.yml` | um passo novo no job `linux`, logo depois do passo da prova sem rastro: `- name: A prova do cruzamento da noite (só Python, sem Godot)` e `run: bash tests/prova_do_cruzamento.sh` | **de todos** (toda ficha que cria prova encosta neste arquivo: acrescente o passo, não mexa nos outros) |
+| `docs/jogo/08-a-noite-de-6-horas.md` | depois da noite: a seção «A primeira noite (<data>)» | não |
+| `experimental/RESULTADOS.md` | depois da noite: os números que importam | **de todos** (acrescente no fim) |
+
+**Com a R (a outra ficha do lote):** nenhum arquivo em comum. A S só **lê** a
+linha `momento` que a R grava (o tipo entra no 13 pela R).
+
+## Como se joga
+
+A S não é minigame: o que se joga é a noite. O protocolo é o do 08; esta
+ficha acrescenta, na ordem:
+
+1. **Antes:** `scripts/exportar.sh tudo && bash tests/prova_da_exportacao.sh`
+   (a noite roda o pacote exportado, a regra 6 da paridade); a pasta da noite
+   vazia; a ponte gravando o registro dela **na mesma pasta**, no formato de
+   «O controle»; `bash tests/prova_do_cruzamento.sh` verde.
+2. **Começo:** o pacote com `--relatorios=<pasta da noite>` (na árvore, sem
+   o pacote: `./run-local.sh -- --relatorios=<pasta da noite>`); P1 e P2 no
+   cabo, P3 e P4 no rádio; a montagem dos quatro cavaleiros (a G13 grava a
+   linha `cavaleiro` com `montagem_s`); o Relâmpago de aquecimento (três
+   vidas).
+3. **A noite:** partidas sorteadas de 5 e de 9; os 45 minigames aparecem pelo
+   menos uma vez (a partida de 9 é uma de cada seção: 5 partidas de 9
+   cobrem); 10 minutos de pausa a cada hora; na metade (3 h), P1 e P2 vão
+   para o rádio e P3 e P4 para o cabo (o jogo segue; a `conexao` registra a
+   troca). Cada um pode reforjar o cavaleiro entre partidas: cada forja é uma
+   linha `cavaleiro`.
+4. **Durante:** só as notas à mão em `anotacoes.txt`, uma por linha,
+   `HH:MM texto`: quem pediu «mais uma», quem reclamou do quê, a hora do
+   cansaço, quem gritou e em qual minigame. O jogo não pergunta nada a
+   ninguém.
+5. **Depois:** `python3 scripts/cruzar_noite.py <pasta da noite>`; os
+   resultados (o `cruzamento.txt` resumido, os números que importam) entram
+   em `docs/jogo/08-a-noite-de-6-horas.md`, numa seção «A primeira noite
+   (<data>)», e em `experimental/RESULTADOS.md`.
+6. **Cada número estranho vira uma ficha nova** no [quadro](README.md): uma
+   ponte que registrou 90% das vibrações de um controle, um P3 que respondeu
+   71% às pistas no rádio contra 94% no cabo, um desvio que cresce depois da
+   terceira hora, um arquétipo acima de 35% num gênero, um minigame sem
+   momento.
+7. **O que sobrou do Sprint A:** o `.exe` pela Steam (a Steam Input no
+   caminho), a TV de 40" a 3 m (o texto de 30 px lido do sofá), o Steam Deck
+   (um controle a mais), cada um com uma linha nas notas à mão.
+
+### O que o script lê
 
 Tudo numa **pasta da noite** (a de `--relatorios=<pasta>`):
 
@@ -26,51 +76,14 @@ Tudo numa **pasta da noite** (a de `--relatorios=<pasta>`):
    sessão (o jogo pode ter sido reaberto na noite). Só as do formato
    `hefesto-tech-demo/linha-do-tempo/2` entram; as outras saem com aviso.
    Linhas que não são JSON são contadas e puladas. As sessões se ordenam pelo
-   nome e se somam uma depois da outra — é o "tempo de noite" das horas. Uma
+   nome e se somam uma depois da outra: é o «tempo de noite» das horas. Uma
    sessão com `"relogio": "jogo"` (o `--acelerado` da F06) não cruza com a
    ponte.
-2. **O registro da ponte**, `ponte*.csv` ou `ponte*.jsonl` (um ou vários,
-   de qualquer origem). **O formato mínimo esperado** — uma linha por
-   relatório USB `0x02` que a ponte recebeu para um controle:
+2. **O registro da ponte**, `ponte*.csv` ou `ponte*.jsonl` (em «O controle»).
+3. **As notas à mão**, `anotacoes.txt`: o script conta as que dizem «mais
+   uma» (sem diferença de caixa nem de acento) e lista todas.
 
-   | campo | obrigatório | o que é |
-   | --- | --- | --- |
-   | `t` | sim | segundos, no relógio da ponte (qualquer origem: o script acha a diferença para o do jogo) |
-   | `lugar` | um dos dois | 0..3 — o jogador; a ponte o tira das luzinhas de jogador do próprio relatório (a tabela do CONTRATO: `0x04` P1, `0x0A` P2, `0x15` P3, `0x1B` P4) |
-   | `controle` | um dos dois | um nome opaco da ponte (`radio-1`...), quando ela não sabe o lugar; o `--mapa radio-1=2,...` diz de quem é. Nunca endereço de aparelho: o COMO-CONTRIBUIR proíbe |
-   | `o` | não | o tipo da saída, se a ponte decodifica (`vibracao`, `gatilho`, `lightbar`, `leds_jogador`, `led_microfone`, `audio_hid`) — com ele, o casamento só junta saídas do mesmo tipo |
-   | `escreveu` | não | `1`/`0` (ou `true`/`false`): a ponte escreveu no rádio; sem o campo, conta como escrita |
-   | `seq` | não | a contagem da própria ponte (o `0x02` não carrega o `seq` do jogo); o script não a usa para casar |
-
-   Exemplo em CSV:
-
-   ```csv
-   t,lugar,o,escreveu
-   1042.3317,2,vibracao,1
-   1042.8120,2,gatilho,1
-   ```
-
-3. **As notas à mão**, `anotacoes.txt`: uma nota por linha, `HH:MM texto`
-   ("21:10 P2 pediu mais uma"). O script conta as que dizem "mais uma" (sem
-   diferença de caixa nem de acento) e lista todas.
-
-## O casamento
-
-Por lugar e por sessão, só as saídas do jogo feitas **no rádio** (o
-transporte da última `conexao` daquele lugar antes da saída é `bt`):
-
-1. **A diferença dos relógios**, por voto: cada uma das primeiras 20 saídas
-   do jogo vota em todas as diferenças `t_ponte − t_jogo` possíveis, em
-   baldes de 10 ms; o balde mais votado é a diferença. Depois, o resíduo
-   mediano das saídas casadas afina a diferença (o balde tem 10 ms; o
-   resíduo leva ao milissegundo). `--desvio S` força uma diferença.
-2. **O casamento pela ordem e pela janela**: cada saída do jogo, em ordem,
-   casa com a primeira linha **livre** da ponte do mesmo lugar (e do mesmo
-   `o`, se os dois têm) a menos de `--janela` (padrão 50 ms) do instante
-   esperado; uma linha da ponte casa uma vez só.
-3. **"A ponte escreveu"** é a linha casada com `escreveu` verdadeiro.
-
-## As perguntas do 08 e as contas
+### As perguntas do 08 e as contas
 
 | pergunta | a conta |
 | --- | --- |
@@ -81,22 +94,175 @@ transporte da última `conexao` daquele lugar antes da saída é `bt`):
 | o jogador percebeu? | `pista` `respondeu` `certo` sobre `pista` `mandou`, por lugar, transporte e `via`; contra o acerto dos toques nos minigames sem pista, do mesmo lugar e transporte |
 | o tempo de cada um | o desvio médio e o espalhamento (desvio padrão) dos `toque` sem erro, por lugar e transporte; a `calibracao` (mediana) |
 | o cansaço | o erro e o desvio por hora de noite, por lugar |
-| o item | vitórias sobre participações por item (o `item` mais recente do lugar antes de cada `minigame` `terminou`) |
-| a diversão | as notas com "mais uma" e a lista das notas |
+| o item | vitórias sobre participações por item (o `item` mais recente do lugar antes de cada `minigame` `terminou`); acima de 35% sai marcado |
+| o cavaleiro | as cinco contas de «O cavaleiro» |
+| a diversão | as notas com «mais uma», a lista das notas e os momentos por minigame (em «A diversão») |
 
 E mais, para a próxima rodada de trabalho: as `troca` (o recurso que faltou,
 por lugar e transporte) e os `som_controle` com e sem placa.
 
 **A saída:** `<pasta>/cruzamento.txt` (o texto, em PT-BR, com milhar em ponto
-e decimal em vírgula — "O jogo mandou 41.203 vibrações ao P3 no rádio; o SDL
-aceitou 41.203; a ponte registrou 38.910 (94%) e escreveu no rádio 38.870.")
+e decimal em vírgula: «O jogo mandou 41.203 vibrações ao P3 no rádio; o SDL
+aceitou 41.203; a ponte registrou 38.910 (94%) e escreveu no rádio 38.870.»)
 e `<pasta>/cruzamento.csv` (a tabela, para máquina: uma linha por lugar,
 transporte e tipo de saída, ponto decimal). O texto sai também na tela.
+
+## A cena
+
+Não se aplica: a S é um script de Python fora do jogo; não desenha nada na
+TV. O que se vê é o `cruzamento.txt`.
+
+## O som
+
+Não se aplica: o script não toca som. O som da noite é o de cada ficha de
+minigame; a S só conta o `som_controle` (com e sem placa) que o jogo gravou.
+
+## O controle
+
+A S não manda nada ao controle: ela **confere** o que o jogo mandou contra o
+que a ponte do rádio registrou.
+
+**O registro da ponte**, `ponte*.csv` ou `ponte*.jsonl` (um ou vários, de
+qualquer origem). O formato mínimo: uma linha por relatório USB `0x02` que a
+ponte recebeu para um controle.
+
+| campo | obrigatório | o que é |
+| --- | --- | --- |
+| `t` | sim | segundos, no relógio da ponte (qualquer origem: o script acha a diferença para o do jogo) |
+| `lugar` | um dos dois | 0..3, o jogador; a ponte o tira das luzinhas de jogador do próprio relatório (a tabela do CONTRATO: `0x04` P1, `0x0A` P2, `0x15` P3, `0x1B` P4) |
+| `controle` | um dos dois | um nome opaco da ponte (`radio-1`...), quando ela não sabe o lugar; o `--mapa radio-1=2,...` diz de quem é. Nunca endereço de aparelho: o COMO-CONTRIBUIR proíbe |
+| `o` | não | o tipo da saída, se a ponte decodifica (`vibracao`, `gatilho`, `lightbar`, `leds_jogador`, `led_microfone`, `audio_hid`); com ele, o casamento só junta saídas do mesmo tipo |
+| `escreveu` | não | `1`/`0` (ou `true`/`false`): a ponte escreveu no rádio; sem o campo, conta como escrita |
+| `seq` | não | a contagem da própria ponte (o `0x02` não carrega o `seq` do jogo); o script não a usa para casar |
+
+Exemplo em CSV:
+
+```csv
+t,lugar,o,escreveu
+1042.3317,2,vibracao,1
+1042.8120,2,gatilho,1
+```
+
+**O casamento.** Por lugar e por sessão, só as saídas do jogo feitas **no
+rádio** (o transporte da última `conexao` daquele lugar antes da saída é
+`bt`):
+
+1. **A diferença dos relógios**, por voto: cada uma das primeiras 20 saídas
+   do jogo (`PRIMEIRAS`) vota em todas as diferenças `t_ponte − t_jogo`
+   possíveis, em baldes de 10 ms (`BALDE_S`); o balde mais votado é a
+   diferença. Depois, o resíduo mediano das saídas casadas afina a diferença
+   ao milissegundo. `--desvio S` força uma diferença.
+2. **O casamento pela ordem e pela janela**: cada saída do jogo, em ordem,
+   casa com a primeira linha **livre** da ponte do mesmo lugar (e do mesmo
+   `o`, se os dois têm) a menos de `--janela` (padrão 0,050 s, `JANELA_S`)
+   do instante esperado; uma linha da ponte casa uma vez só.
+3. **«A ponte escreveu»** é a linha casada com `escreveu` verdadeiro.
+
+O jogo nunca fala com a ponte ([05 — O rádio](../05-haptica-e-controle.md#o-rádio)
+e o [CONTRATO](../../../CONTRATO.md)): o encontro é só nos arquivos, depois.
+
+## O cavaleiro
+
+A S mede o RPG pela linha que a montagem grava a cada forja (a G02 e a G13):
+
+```
+Forja.evento("cavaleiro", lugar, {"cabeca", "superior", "inferior", "item", "nome",
+    "stats": [peso, passo, folego, faro], "arquetipo", "liga", "boa", "perdidos",
+    "montagem_s"})
+```
+
+O campo `montagem_s` (segundos do primeiro ✕ na montagem até a forja) é
+**pedido à G13**; sem ele, a conta da primeira montagem diz «a primeira forja
+não tem montagem_s» e as outras seguem.
+
+| a conta | como se conta | o alvo (constante do script) | a frase no texto |
+| --- | --- | --- | --- |
+| vitórias por arquétipo, por gênero | o `arquetipo` da linha `cavaleiro` mais recente do lugar antes de cada `minigame` `terminou`, separado pelo `genero` do `terminou`; vitórias sobre participações; só gênero com 20 ou mais minigames na noite (`MINIGAMES_DO_GENERO`) | nenhum acima de 35% (`TETO_VITORIAS`) | «Muralha em tct: 8 vitórias em 20 minigames (40%) — acima de 35%.»; gênero com menos: «coop: 3 minigames na noite, menos de 20; o arquétipo não se conta.» |
+| build boa até a terceira partida | as 3 primeiras forjas de cada lugar (`FORJAS_DO_COMECO`), somadas na noite; `boa` verdadeiro sobre o total | 50% ou mais (`PISO_BUILD_BOA`) | «Build boa nas 3 primeiras forjas de cada um: 6 de 12 (50%); o alvo é 50% ou mais.» |
+| a primeira montagem | o `montagem_s` da primeira forja de cada lugar | 90 s ou menos (`TETO_MONTAGEM_S`) | «P3: a primeira montagem levou 95 s — acima de 90 s.» |
+| forjar sem trocar nada | cada forja a partir da segunda de um lugar, comparada com a anterior do mesmo lugar: iguais quando `cabeca`, `superior`, `inferior` e `item` são os mesmos | 50% ou menos na segunda noite (`TETO_SEM_TROCA`) | «Forjaram igual à forja anterior: 4 de 8 (50%); o alvo é 50% ou menos na segunda noite.» |
+| vitórias por item | já em «As perguntas do 08» | nenhum acima de 35% | «MARTELO: 8 vitórias em 20 minigames (40%) — acima de 35%.» |
+
+Sem nenhuma linha `cavaleiro` na noite, a seção diz «Nenhuma linha cavaleiro
+na noite: as contas do cavaleiro esperam a montagem gravar o evento.» e o
+script segue sem erro.
+
+O que se faz com cada número passado do alvo está na tabela do
+[sistemas](../sistemas/README.md#o-que-a-noite-de-seis-horas-mede) (o gancho
+cai à metade, a troca do item dobra, o pré-montado em liga, a ficha para o
+diretor de arte). A S **não** muda CSV nenhum: o número vira ficha nova, e o
+valor confirmado passa de `proposta` a `medido` no commit dessa ficha.
+
+## As reações
+
+Não se aplica: a S não dispara adesivo nem carimbo; é um script que roda
+depois da noite.
+
+## A diversão
+
+A noite tem de dar vontade de jogar mais uma. Três medidas, todas no
+`cruzamento.txt`, seção «A diversão»:
+
+1. **«Mais uma»:** as notas à mão que dizem «mais uma» (sem caixa nem
+   acento), contadas: «"Mais uma?": 2 vezes.», e a lista de todas as notas.
+2. **Os momentos por minigame:** cada linha `momento` (o tipo que a R põe no
+   13, com `slot` e `nome`), contada por (slot, nome): «O momento
+   todos_falharam de RELAMPAGO: 1 vez.»
+3. **O que terminou sem momento:** todo slot com 3 ou mais `minigame`
+   `terminou` (`TERMINOU_SEM_MOMENTO`) e nenhuma linha `momento` sai na lista:
+   «Sem momento: S02_J07 terminou 3 vezes e nenhuma linha momento.»
+
+**Como o jogador do time confere:** abre o `cruzamento.txt` e procura a seção
+«A diversão». Cada linha «Sem momento: …» vira uma ficha nova no quadro
+(o minigame que não fez ninguém gritar). Zero linhas «Sem momento» e pelo
+menos 1 «mais uma» por hora de noite (6 na noite) é a noite que passou.
+
+## Pronto quando
+
+`bash tests/prova_do_cruzamento.sh` passa com as 25 checagens; o script
+responde as perguntas do 08 numa pasta de robôs (sem a ponte) sem erro; a
+noite acontece, os quatro jogam seis horas, e o cruzamento responde as
+perguntas para os quatro controles nos dois transportes e as contas do
+cavaleiro; os resultados estão no 08 e em `experimental/RESULTADOS.md`; e
+cada número estranho virou ficha.
+
+## Provas
+
+- **`tests/prova_do_cruzamento.sh`** (novo):
+
+  ```bash
+  #!/usr/bin/env bash
+  # A prova do cruzamento da noite: uma noite sintética com a resposta
+  # conhecida (duas sessões, a troca de cabo e rádio na metade, a ponte com o
+  # relógio adiantado e perdas marcadas, em CSV e em JSONL, pistas, toques,
+  # itens, os cavaleiros, os momentos, uma sessão v1 e as notas à mão).
+  # Só Python, sem Godot.
+  set -eu
+  RAIZ="$(cd "$(dirname "$0")/.." && pwd)"
+  python3 "$RAIZ/scripts/cruzar_noite.py" --prova
+  ```
+
+  `chmod +x`. Ela passa **sem aparelho e sem Godot** em 0,3 s: 25 linhas
+  `ok` e, no fim, `prova do cruzamento ok`.
+- **Na sessão:** `bash tests/prova_do_cruzamento.sh` e
+  `bash tests/prova_do_jogo.sh` (nada do jogo muda, mas a regra é a de todo
+  push). O CI roda a prova nova a cada push, pelo passo de «Arquivos que
+  mudam».
+- **Com uma rodada de robôs** (com o André, local: o `./run-local.sh` abre a
+  janela e não roda numa sessão da nuvem):
+  `./run-local.sh -- --simular=4 --robo --partida=5 --sorteada --relatorios=<pasta>`,
+  e `python3 scripts/cruzar_noite.py <pasta>`. Os controles simulados são
+  `virtual`: a seção da ponte fica vazia, as outras respondem (as pistas com
+  `via` `haptica`, os toques, os itens, o cavaleiro se a montagem gravou)
+  sem erro.
+- **Com o André:** a noite inteira, e o cruzamento sobre a pasta dela.
+- **Pranchas:** nenhuma; a S não desenha. O que o jogador olha é o
+  `cruzamento.txt` da rodada de robôs.
 
 ## O script: `scripts/cruzar_noite.py`
 
 Copie inteiro (é o que foi provado nesta preparação: a prova sintética
-passa com as 17 checagens):
+passa com as 25 checagens):
 
 ```python
 #!/usr/bin/env python3
@@ -107,7 +273,9 @@ formato hefesto-tech-demo/linha-do-tempo/2), o registro da ponte do rádio
 (ponte*.csv ou ponte*.jsonl) e as notas à mão (anotacoes.txt), e responde,
 por controle e por transporte: quanto o jogo mandou, quanto o SDL aceitou,
 quanto a ponte recebeu e escreveu, quanto o jogador percebeu das pistas, o
-tempo de cada um e o cansaço por hora, as vitórias por item e a diversão.
+tempo de cada um e o cansaço por hora, as vitórias por item, o cavaleiro
+(o arquétipo por gênero, a build boa, a primeira montagem, a forja sem troca)
+e a diversão (as notas à mão e as linhas `momento` de cada minigame).
 
 O jogo nunca fala com a ponte: o encontro é só nos arquivos, depois. Cada
 saída do jogo casa com uma linha da ponte do mesmo lugar, pela ordem e por
@@ -137,6 +305,14 @@ FORMATO_V2 = "hefesto-tech-demo/linha-do-tempo/2"
 JANELA_S = 0.050  # o casamento: a saída do jogo e a linha da ponte a menos disto
 PRIMEIRAS = 20  # quantas saídas do começo de cada sessão votam na diferença dos relógios
 BALDE_S = 0.010  # o balde do voto
+# o cavaleiro (docs/jogo/sistemas/README.md, «O que a noite de seis horas mede»)
+TETO_VITORIAS = 0.35  # arquétipo num gênero e item: nenhum acima disto
+MINIGAMES_DO_GENERO = 20  # o gênero só entra na conta do arquétipo com tantos minigames na noite
+PISO_BUILD_BOA = 0.50  # build boa nas três primeiras forjas de cada lugar: pelo menos isto
+TETO_MONTAGEM_S = 90.0  # a primeira montagem, do primeiro ✕ à forja
+TETO_SEM_TROCA = 0.50  # forjar igual à forja anterior: no máximo isto (na segunda noite)
+FORJAS_DO_COMECO = 3  # «até a terceira partida»: as três primeiras forjas de cada lugar
+TERMINOU_SEM_MOMENTO = 3  # minigame que terminou tantas vezes sem nenhuma linha momento entra na lista
 
 
 # ---------------------------------------------------------------- a leitura --
@@ -288,6 +464,8 @@ def cruzar(pasta, janela=JANELA_S, desvio_fixo=None, mapa=None):
         "horas": defaultdict(lambda: {"n": 0, "erros": 0, "desvios": []}),
         "sem_pista": defaultdict(lambda: {"n": 0, "certos": 0}),
         "itens": defaultdict(lambda: {"jogou": 0, "venceu": 0}),
+        "arquetipos": defaultdict(lambda: {"jogou": 0, "venceu": 0}), "generos": Counter(),
+        "forjas": defaultdict(list), "momentos": Counter(), "terminou": Counter(),
         "trocas": Counter(), "som": Counter(), "calibracao": defaultdict(list),
         "desvios_relogio": [], "anotacoes": anotacoes,
         "mais_uma": [a for a in anotacoes if "mais uma" in _sem_acento(a)],
@@ -308,6 +486,7 @@ def cruzar(pasta, janela=JANELA_S, desvio_fixo=None, mapa=None):
             if ev.get("tipo") == "conexao" and "lugar" in ev and ev.get("transporte"):
                 conexoes[ev["lugar"]].append((float(ev["t"]), ev["transporte"]))
         item_de = {}
+        arquetipo_de = {}
         slots_com_pista = {ev.get("slot") for ev in linhas if ev.get("tipo") == "pista"}
         pista_aberta = {}
         saidas_do_lugar = defaultdict(list)
@@ -356,6 +535,15 @@ def cruzar(pasta, janela=JANELA_S, desvio_fixo=None, mapa=None):
                     g["certos"] += 0 if erro else 1
             elif tipo == "item" and lugar is not None:
                 item_de[lugar] = ev.get("item", "")
+            elif tipo == "cavaleiro" and lugar is not None:
+                if ev.get("item"):
+                    item_de[lugar] = ev["item"]
+                arquetipo_de[lugar] = ev.get("arquetipo", "") or "sem arquétipo"
+                r["forjas"][lugar].append({"pecas": (ev.get("cabeca"), ev.get("superior"), ev.get("inferior"), ev.get("item")),
+                                           "boa": _bool(ev.get("boa", False)), "montagem_s": ev.get("montagem_s")})
+            elif tipo == "momento":
+                if ev.get("slot") and ev.get("nome"):
+                    r["momentos"][(ev["slot"], ev["nome"])] += 1
             elif tipo == "minigame" and ev.get("evento") == "terminou":
                 col = ev.get("colocacao", "")
                 lugares = [int(x) for x in col.split(",") if x.strip() != ""] if isinstance(col, str) else list(col or [])
@@ -364,6 +552,15 @@ def cruzar(pasta, janela=JANELA_S, desvio_fixo=None, mapa=None):
                 v = ev.get("vencedor", -1)
                 if isinstance(v, int) and v >= 0:
                     r["itens"][item_de.get(v, "sem item")]["venceu"] += 1
+                if ev.get("slot"):
+                    r["terminou"][ev["slot"]] += 1
+                genero = ev.get("genero", "")
+                if genero:
+                    r["generos"][genero] += 1
+                    for l in lugares:
+                        r["arquetipos"][(genero, arquetipo_de.get(l, "sem cavaleiro"))]["jogou"] += 1
+                    if isinstance(v, int) and v >= 0:
+                        r["arquetipos"][(genero, arquetipo_de.get(v, "sem cavaleiro"))]["venceu"] += 1
         # a ponte: só com o relógio de parede
         if s["relogio"] != "parede":
             r["avisos"].append("%s: relógio «%s» — sem cruzamento com a ponte" % (s["nome"], s["relogio"]))
@@ -409,6 +606,10 @@ def _vezes(n):
 
 def _pc(a, b):
     return "—" if b == 0 else "%d%%" % round(100.0 * a / b)
+
+
+def _acima(a, b, teto):
+    return " — acima de %d%%" % round(100 * teto) if b and a > teto * b else ""
 
 
 def _media_dp(v):
@@ -464,7 +665,36 @@ def escrever(r, pasta):
     t.append("")
     t.append("## O item")
     for item, g in sorted(r["itens"].items()):
-        t.append("%s: %s vitórias em %s minigames (%s)." % (item or "sem item", _n(g["venceu"]), _n(g["jogou"]), _pc(g["venceu"], g["jogou"])))
+        t.append("%s: %s vitórias em %s minigames (%s)%s." % (item or "sem item", _n(g["venceu"]), _n(g["jogou"]),
+                                                            _pc(g["venceu"], g["jogou"]), _acima(g["venceu"], g["jogou"], TETO_VITORIAS)))
+    t.append("")
+    t.append("## O cavaleiro")
+    if not r["forjas"]:
+        t.append("Nenhuma linha cavaleiro na noite: as contas do cavaleiro esperam a montagem gravar o evento.")
+    else:
+        for genero, n in sorted(r["generos"].items()):
+            if n < MINIGAMES_DO_GENERO:
+                t.append("%s: %s minigames na noite, menos de %d; o arquétipo não se conta." % (genero, _n(n), MINIGAMES_DO_GENERO))
+                continue
+            for (g, arq), c in sorted(r["arquetipos"].items()):
+                if g == genero:
+                    t.append("%s em %s: %s vitórias em %s minigames (%s)%s." % (arq, genero, _n(c["venceu"]), _n(c["jogou"]),
+                                                                            _pc(c["venceu"], c["jogou"]), _acima(c["venceu"], c["jogou"], TETO_VITORIAS)))
+        comeco = [f for forjas in r["forjas"].values() for f in forjas[:FORJAS_DO_COMECO]]
+        boas = sum(1 for f in comeco if f["boa"])
+        t.append("Build boa nas %d primeiras forjas de cada um: %s de %s (%s); o alvo é %d%% ou mais." % (
+            FORJAS_DO_COMECO, _n(boas), _n(len(comeco)), _pc(boas, len(comeco)), round(100 * PISO_BUILD_BOA)))
+        for lugar, forjas in sorted(r["forjas"].items()):
+            m = forjas[0]["montagem_s"]
+            if isinstance(m, (int, float)):
+                t.append("P%d: a primeira montagem levou %s s%s." % (lugar + 1, _dec(m, 0),
+                                                                     " — acima de %d s" % TETO_MONTAGEM_S if m > TETO_MONTAGEM_S else ""))
+            else:
+                t.append("P%d: a primeira forja não tem montagem_s." % (lugar + 1))
+        pares = [(a, b) for forjas in r["forjas"].values() for a, b in zip(forjas, forjas[1:])]
+        iguais = sum(1 for a, b in pares if a["pecas"] == b["pecas"])
+        t.append("Forjaram igual à forja anterior: %s de %s (%s); o alvo é %d%% ou menos na segunda noite." % (
+            _n(iguais), _n(len(pares)), _pc(iguais, len(pares)), round(100 * TETO_SEM_TROCA)))
     t.append("")
     t.append("## As trocas (o recurso que faltou e o caminho que o jogo tomou)")
     for (lugar, tr, recurso, para, motivo), n in sorted(r["trocas"].items()):
@@ -477,6 +707,12 @@ def escrever(r, pasta):
     t.append("\"Mais uma?\": %s." % _vezes(len(r["mais_uma"])))
     for a in r["anotacoes"]:
         t.append("- " + a)
+    for (slot, nome), n in sorted(r["momentos"].items()):
+        t.append("O momento %s de %s: %s." % (nome, slot, _vezes(n)))
+    com_momento = {slot for slot, _nome in r["momentos"]}
+    for slot, n in sorted(r["terminou"].items()):
+        if n >= TERMINOU_SEM_MOMENTO and slot not in com_momento:
+            t.append("Sem momento: %s terminou %s e nenhuma linha momento." % (slot, _vezes(n)))
     if r["desvios_relogio"] or r["avisos"]:
         t.append("")
         t.append("## Para conferir")
@@ -512,7 +748,9 @@ def _gerar_noite(pasta):
     """Uma noite sintética com a resposta conhecida: duas sessões de 30 min, P1 e
     P2 no cabo e P3 e P4 no rádio na primeira, trocados na segunda; a ponte com
     o relógio adiantado (12,345 s e 500 s), um tremor de ±5 ms, e perdas
-    marcadas; pistas com 94% e 71% de acerto; itens e vitórias; as notas."""
+    marcadas; pistas com 94% e 71% de acerto; itens e vitórias; os
+    cavaleiros (três forjas por lugar, o arquétipo, a build boa, a primeira
+    montagem); as linhas momento; as notas."""
     rnd = random.Random(7)
     ponte_csv, ponte_jsonl = [], []
     for k, (nome, radio, desvio) in enumerate([("a", (2, 3), 12.345), ("b", (0, 1), 500.0)]):
@@ -523,6 +761,22 @@ def _gerar_noite(pasta):
         itens = ["MARTELO", "ESCUDO", "NENHUM", "FOLE"]
         for l in range(4):
             linhas.append({"t": 0.2, "tipo": "item", "jogador": l + 1, "lugar": l, "item": itens[l], "efeito": "leva"})
+        # os cavaleiros: a forja do começo de cada sessão e, na sessão a, uma segunda forja (t 1.500);
+        # o P1 nunca troca nada, o P2 troca sempre, o P3 troca só na sessão b, o P4 só na segunda forja da a
+        arquetipos = ["Muralha", "Torre", "Corrente", "Relâmpago"]
+        forjas = [(0.3, ["female-a", "male-b", "male-c", "female-d"], [True, True, False, False], [40.0, 75.0, 95.0, 120.0])]
+        if k == 0:
+            forjas.append((1500.0, ["female-a", "male-e", "male-c", "male-f"], [True, False, True, False], [None] * 4))
+        else:
+            forjas[0] = (0.3, ["female-a", "male-a", "female-b", "male-f"], [False, True, True, False], [None] * 4)
+        for tf, cabecas, boas, montagens in forjas:
+            for l in range(4):
+                linha = {"t": tf, "tipo": "cavaleiro", "jogador": l + 1, "lugar": l, "cabeca": cabecas[l],
+                         "superior": "female-b", "inferior": "male-d", "item": itens[l], "nome": "Cavaleiro %d" % (l + 1),
+                         "stats": [3, 3, 2, 2], "arquetipo": arquetipos[l], "liga": False, "boa": boas[l], "perdidos": 0}
+                if montagens[l] is not None:
+                    linha["montagem_s"] = montagens[l]
+                linhas.append(linha)
         # 1.200 vibrações por lugar, em intervalos irregulares; a ponte recebe as do rádio
         for l in range(4):
             t, seq = 1.0, 0
@@ -556,7 +810,17 @@ def _gerar_noite(pasta):
         # dez minigames: vence o P1 em 4, o P2 em 3, o P3 em 2, o P4 em 1
         for m, v in enumerate([0, 0, 0, 0, 1, 1, 1, 2, 2, 3]):
             linhas.append({"t": 1600.0 + m, "tipo": "minigame", "slot": "S01_J01", "evento": "terminou", "vencedor": v,
-                           "colocacao": ",".join(str(x) for x in [v] + [y for y in range(4) if y != v])})
+                           "genero": "tct", "colocacao": ",".join(str(x) for x in [v] + [y for y in range(4) if y != v])})
+        if k == 0:
+            # as linhas momento: duas do Martelo, uma do Relâmpago (de todos: lugar -1)
+            for tm, slot, grito, l in ((1601.5, "S01_J01", "racha_no_quinto", 2), (1603.5, "S01_J01", "racha_no_quinto", 0),
+                                       (10.0, "RELAMPAGO", "todos_falharam", -1)):
+                linhas.append({"t": tm, "tipo": "momento", "slot": slot, "nome": grito, "lugar": l, "t_musica": 41.2})
+        else:
+            # três Pêndulos do coop sem colocação e sem nenhuma linha momento
+            for m in range(3):
+                linhas.append({"t": 1700.0 + m, "tipo": "minigame", "slot": "S02_J07", "evento": "terminou", "vencedor": -1,
+                               "genero": "coop", "colocacao": ""})
         if k == 0:
             linhas.append({"t": 5.0, "tipo": "troca", "jogador": 3, "lugar": 2, "slot": "S07_J32", "recurso": "haptica",
                            "para": "rumble", "motivo": "sem_placa"})
@@ -613,6 +877,24 @@ def prova():
         espera(any("formato" in a and "velha" in a for a in r["avisos"]), "a sessão v1 foi pulada com aviso")
         espera(os.path.exists(os.path.join(pasta, "cruzamento.csv")) and os.path.exists(os.path.join(pasta, "cruzamento.txt")), "a tabela e o texto na pasta")
         espera("O jogo mandou 1.200 vibrações ao P3 no rádio; o SDL aceitou 1.200; a ponte registrou 1.080 (90%)" in texto, "a frase do 08, com os números")
+        a = r["arquetipos"]
+        espera(a[("tct", "Muralha")] == {"jogou": 20, "venceu": 8} and "Muralha em tct: 8 vitórias em 20 minigames (40%) — acima de 35%." in texto
+               and "Torre em tct: 6 vitórias em 20 minigames (30%)." in texto, "o arquétipo por gênero: a Muralha acima de 35% no tct")
+        espera("coop: 3 minigames na noite, menos de 20; o arquétipo não se conta." in texto, "o gênero com menos de 20 minigames fica fora")
+        espera("Build boa nas 3 primeiras forjas de cada um: 6 de 12 (50%)" in texto, "a build boa nas três primeiras forjas: 6 de 12")
+        espera("P1: a primeira montagem levou 40 s." in texto and "P3: a primeira montagem levou 95 s — acima de 90 s." in texto,
+               "a primeira montagem, com o teto de 90 s")
+        espera("Forjaram igual à forja anterior: 4 de 8 (50%)" in texto, "a forja sem troca: 4 de 8")
+        espera(r["momentos"][("S01_J01", "racha_no_quinto")] == 2 and "O momento todos_falharam de RELAMPAGO: 1 vez." in texto
+               and "Sem momento: S02_J07 terminou 3 vezes e nenhuma linha momento." in texto and "Sem momento: S01_J01" not in texto,
+               "os momentos por minigame, e o que terminou sem momento")
+        espera(r["itens"]["MARTELO"]["venceu"] == 8 and "MARTELO: 8 vitórias em 20 minigames (40%) — acima de 35%." in texto,
+               "o item acima de 35% aparece marcado")
+    with tempfile.TemporaryDirectory() as pasta:
+        with open(os.path.join(pasta, "linha-do-tempo-robos.jsonl"), "w", encoding="utf-8") as f:
+            f.write(json.dumps({"t": 0.0, "tipo": "sessao", "formato": FORMATO_V2, "relogio": "parede"}) + "\n")
+        texto = escrever(cruzar(pasta), pasta)
+        espera("Nenhuma linha cavaleiro na noite" in texto, "sem linha cavaleiro, a seção do cavaleiro diz que espera a montagem")
     if falhas:
         print("FAIL a prova do cruzamento: %d falhas" % len(falhas))
         return 1
@@ -645,61 +927,6 @@ if __name__ == "__main__":
     sys.exit(main())
 ```
 
-## A prova
-
-- **`tests/prova_do_cruzamento.sh`** (novo):
-
-  ```bash
-  #!/usr/bin/env bash
-  # A prova do cruzamento da noite: uma noite sintética com a resposta
-  # conhecida (duas sessões, a troca de cabo e rádio na metade, a ponte com o
-  # relógio adiantado e perdas marcadas, em CSV e em JSONL, pistas, toques,
-  # itens, uma sessão v1 e as notas à mão). Só Python, sem Godot.
-  set -eu
-  RAIZ="$(cd "$(dirname "$0")/.." && pwd)"
-  python3 "$RAIZ/scripts/cruzar_noite.py" --prova
-  ```
-
-  `chmod +x`. Ela passa **sem aparelho e sem Godot** (uns 0,3 s).
-- **Com uma rodada de robôs** (com o André, local — o `./run-local.sh` abre
-  a janela e não roda numa sessão da nuvem): uma partida de robô com os
-  relatórios numa pasta,
-  `./run-local.sh -- --simular=4 --robo --partida=5 --sorteada --relatorios=<pasta>`,
-  e `python3 scripts/cruzar_noite.py <pasta>`. Os controles simulados são
-  `virtual`: a seção da ponte fica vazia, as outras respondem (as pistas com
-  `via` `haptica`, os toques, os itens) sem erro.
-- Acrescente `bash tests/prova_do_cruzamento.sh` à lista "Antes de todo push"
-  do `docs/DESENVOLVER.md` (as provas rápidas).
-
-## A noite (com o André)
-
-O protocolo é o do 08. O que esta ficha acrescenta, na ordem:
-
-1. **Antes:** `scripts/exportar.sh tudo && bash tests/prova_da_exportacao.sh`
-   (a noite roda o pacote exportado, a regra 6 da paridade); a pasta da noite
-   vazia; a ponte gravando o registro dela **na mesma pasta**, no formato
-   acima; `bash tests/prova_do_cruzamento.sh` verde.
-2. **Começo:** o pacote com `--relatorios=<pasta da noite>`; P1 e P2 no cabo,
-   P3 e P4 no rádio; o Relâmpago de aquecimento (três vidas).
-3. **A noite:** partidas sorteadas de 5 e de 9; os 45 minigames aparecem pelo
-   menos uma vez (a partida de 9 é uma de cada seção: umas cinco partidas de
-   9 cobrem); dez minutos de pausa a cada hora; na metade, P1 e P2 vão para o
-   rádio e P3 e P4 para o cabo (o jogo segue; a `conexao` registra a troca).
-4. **Durante:** só as notas à mão em `anotacoes.txt` — quem pediu "mais uma",
-   quem reclamou do quê, a hora do cansaço. O jogo não pergunta nada a
-   ninguém.
-5. **Depois:** `python3 scripts/cruzar_noite.py <pasta da noite>`; os
-   resultados (o `cruzamento.txt` resumido, os números que importam) entram
-   em `docs/jogo/08-a-noite-de-6-horas.md`, numa seção "A primeira noite
-   (<data>)", e em `experimental/RESULTADOS.md`.
-6. **Cada número estranho vira uma ficha nova** no [quadro](README.md): uma
-   ponte que registrou 90% das vibrações de um controle, um P3 que respondeu
-   71% às pistas no rádio contra 94% no cabo, um desvio que cresce depois da
-   terceira hora.
-7. **O que sobrou do Sprint A:** o `.exe` pela Steam (a Steam Input no
-   caminho), a TV de 40" a 3 m (o texto de 30 px lido do sofá), o Steam Deck
-   (um controle a mais) — cada um com uma linha nas notas à mão.
-
 ## Armadilhas
 
 - **Nenhum endereço de aparelho** no registro da ponte, no script ou no
@@ -712,33 +939,21 @@ O protocolo é o do 08. O que esta ficha acrescenta, na ordem:
   zero; a ponte, não).
 - **Saídas periódicas enganam o voto** (uma saída por segundo casaria com a
   ponte deslocada de um segundo). O jogo de verdade não é periódico; se o
-  aviso "não achei a diferença dos relógios" aparecer, rode com `--desvio`
+  aviso «não achei a diferença dos relógios» aparecer, rode com `--desvio`
   (a diferença que a ponte mostrar numa saída conhecida, como o `player_index`
   da conexão).
-- **"Sem resposta" é o que sobra:** o script conta as `pista` `mandou` e as
-  respostas `certo`/`errado`; as outras são "sem resposta" (o `respondeu`
+- **«Sem resposta» é o que sobra:** o script conta as `pista` `mandou` e as
+  respostas `certo`/`errado`; as outras são «sem resposta» (o `respondeu`
   `nenhuma` que o minigame grava só confirma).
-- **Só biblioteca padrão:** nada de `pandas`, `numpy` ou `matplotlib` — o
+- **O arquétipo é o da forja mais recente antes do minigame**, não o da
+  primeira: quem reforja no meio da noite passa a contar no arquétipo novo.
+- **Só biblioteca padrão:** nada de `pandas`, `numpy` ou `matplotlib`; o
   script tem de rodar no computador da noite sem instalar nada.
-
-## Pronto quando
-
-`bash tests/prova_do_cruzamento.sh` passa; o script responde as perguntas do
-08 numa pasta de robôs (sem a ponte) sem erro; a noite acontece, os quatro
-jogam seis horas com vontade, e o cruzamento responde as perguntas para os
-quatro controles nos dois transportes; os resultados estão no 08 e em
-`experimental/RESULTADOS.md`; e cada número estranho virou ficha.
-
-## Provas
-
-- **Na sessão:** `bash tests/prova_do_cruzamento.sh` e `bash tests/prova_do_jogo.sh`
-  (nada do jogo muda, mas a regra é a de todo push).
-- **Com o André:** a noite inteira, e o cruzamento sobre a pasta dela.
 
 ## Ao terminar
 
 - No [quadro](README.md), a linha S: **feito**, com o commit;
   e as fichas novas que a noite pediu.
 - Commits sugeridos (sem trailer):
-  `feat: o cruzamento da noite — o jogo, a ponte e os jogadores, por controle e por transporte`
+  `feat: o cruzamento da noite — o jogo, a ponte, o cavaleiro e os jogadores, por controle e por transporte`
   e, depois da noite, `docs: a primeira noite de seis horas, e o que ela pediu`
