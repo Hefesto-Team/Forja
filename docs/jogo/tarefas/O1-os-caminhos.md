@@ -1,25 +1,45 @@
 # O1 — Os Caminhos
 
-**Sprint:** O · **Slot:** S07_J31 · **Tamanho:** G · **Depende de:** H04, H08, F09, F01, H07, G08
+**Sprint:** O · **Slot:** S07_J31 · **Tamanho:** G · **Depende de:** H04, H07, H08, F01, F09, G05, G08, G10, G13, G14, G15
 
 ## Por quê
 
-A sala de hoje (`godot/scripts/salas/caminhos.gd`) é uma prova às cegas: três
-passos no escuro e a pergunta "que chão é esse?". No kit ela vira corrida: a
-senha do seu portão chega **só na sua mão** (a textura do chão certo), três
-trilhas se abrem à sua frente, e você pisa na certa no tempo. A pergunta some:
-a trilha que a pessoa escolhe **é** a resposta, e continua alimentando o
-veredito `haptica_audio` da bancada.
+A sala de hoje (`godot/scripts/salas/caminhos.gd`) é uma prova às cegas: três passos no escuro e a pergunta «que chão é
+esse?». No kit ela vira corrida: a senha do seu portão chega **só na sua mão** (a textura do chão certo), três trilhas
+se abrem à sua frente, e você pisa na certa no tempo. A pergunta some: a trilha escolhida **é** a resposta, e continua
+alimentando o veredito `haptica_audio` da bancada.
 
 ## Ler antes
 
-- [O molde de minigame](molde-de-minigame.md) e [o kit, no 13](../13-arquitetura.md#o-kit-do-minigame--h04)
-- [A ficha-mãe da seção](O-os-caminhos.md)
-- [05 — a háptica por material e o rádio](../05-haptica-e-controle.md#a-háptica-por-material)
-- `godot/scripts/salas/caminhos.gd` inteiro (é o que sai), em especial
-  `_novo_ladrilho` (`:110-158`), `_montar_raia` (`:161-209`), `_robo_sentir`
-  (`:521-556`) e `dar_vereditos` (`:388-399`)
-- A H07, "O GDScript" (`Forja.tocar_material`, os sons `material:<nome>`)
+- [O molde de minigame](molde-de-minigame.md)
+- [O kit, no 13](../13-arquitetura.md#o-kit-do-minigame--h04)
+- [A diversão da seção O](../diversao/O-os-caminhos.md)
+
+Tudo o mais que esta ficha usa está copiado aqui: o `_pista`, o `_respondeu`, o `_robo_sentir`, os ids de som e os
+números de luz e câmera.
+
+## Arquivos que mudam
+
+| arquivo | o quê | de todos? |
+| --- | --- | --- |
+| `godot/scripts/minigames/s07/os_caminhos.gd` e o `.uid` | novo | não |
+| `godot/scripts/minigames/catalogo.gd` | `"S07_J31"` em `MINIGAMES` e na seção `S07`; tirar `"caminhos"` de `SALAS_ANTIGAS` | **sim** (O2 a O5 também) |
+| `godot/scripts/traducoes.gd` | as frases novas; tirar as que só a sala velha usava | **sim** |
+| `godot/testes/prova_do_jogo.gd` | a `_prova_os_caminhos()` no `match` de `_prova_da_ficha`; tirar a prova às cegas velha | **sim** |
+| `godot/scripts/minigames/minigame.gd` | `"momento"` em `TIPOS_DO_JOGO`, se ainda não estiver | **sim** (o kit) |
+| `docs/jogo/13-arquitetura.md` | a linha `momento` na tabela «Os eventos do jogo», no mesmo commit | **sim** |
+| `godot/scripts/salas/caminhos.gd` e o `.uid` | saem (`git rm`) | não |
+| `godot/assets/kenney/mini-forest/`, `hexagon-kit/`, `tower-defense-kit/`, `graveyard-kit/` | importados pelo script da G10 | **sim** (a O2 e a O4 usam o `graveyard-kit`) |
+
+Na `prova_do_jogo.gd`, o que sai e o que muda (as linhas de hoje):
+
+1. O bloco «Os Caminhos, às cegas» (linhas 226 a 248) sai inteiro.
+2. Em `_em_pergunta`, o ramo `"caminhos":` (linhas 872 a 875, `SalaCaminhos.PERGUNTA`) sai.
+3. Em `_prova_do_modo`, `"caminhos"` sai da lista das perguntas da bancada (linha 906).
+4. Na linha 912, a linha do tempo compara pelo apelido: `Catalogo.apelido(str(e.get("slot", ""))) == id`.
+
+Continuam valendo pelo apelido, sem mudar: `SALAS=...caminhos` em `tests/prova_de_poucos.sh`, `musica.gd`,
+`partida.gd` e `salao.gd`. `grep -rn "SalaCaminhos" godot/` tem de dar vazio no fim.
 
 ## A ficha de dados
 
@@ -27,7 +47,7 @@ veredito `haptica_audio` da bancada.
 const FICHA := {
 	"slot": "S07_J31",
 	"titulo": "Os Caminhos",
-	"verbo": "Sinta o chão!",
+	"verbo": "Sinta e pise!",
 	"genero": "corrida",
 	"icone": "haptica",
 	"entradas": [Forja.ESQUERDA, Forja.CIMA, Forja.DIREITA],
@@ -39,234 +59,250 @@ const FICHA := {
 	"material": "pedra",
 	"microjogo": {"verbo": "Sinta!", "segundos": 7.0},
 	"papel_som": Forja.PAPEL_HAPTICA,  # o kit abre este papel de som no entrar() (H08)
-	# a bancada: o veredito da háptica sai das trilhas escolhidas
-	"features": ["haptica_audio"],
+	"features": ["haptica_audio"],     # a bancada: o veredito da háptica sai das trilhas escolhidas
 	"botoes_medidos": [Forja.ESQUERDA, Forja.CIMA, Forja.DIREITA, Forja.TOUCHPAD],
 	"gesto": "lados",
 }
 ```
 
+O verbo é o da [diversão](../diversao/O-os-caminhos.md#o1--os-caminhos): «Sinta e pise!» (duas palavras de ação, a régua
+item 2).
+
 ## Como se joga
 
-A faixa é `MUS_S07_J31`, 120 bpm (uma batida = 0,5 s). As quatro primeiras
-batidas são a contagem de entrada (`BATIDA_DA_PRIMEIRA_NOTA` (4, do kit: H08)).
+A faixa é `MUS_S07_J31`, 120 bpm (uma batida = 0,5 s). As quatro primeiras batidas são a contagem
+(`BATIDA_DA_PRIMEIRA_NOTA` = 4, do kit, H08).
 
-**Uma bifurcação** dura `CICLO := 8` batidas. Para o lugar `l`, a bifurcação
-`k` começa na batida `b0`:
+**Uma bifurcação** dura `CICLO := 8` batidas. Para o lugar `l`, a bifurcação `k` começa na batida `b0`:
 
 | batida | o que acontece |
 | --- | --- |
-| `b0` | a senha, 1º passo: `passo:<senha>:<k % 3>` nos **dois** atuadores do dono |
-| `b0 + 2` | a senha, 2º passo: `passo:<senha>:<(k + 1) % 3>` |
-| `b0 + 4` | as três trilhas acendem na frente do boneco (esquerda, meio, direita), cada uma num chão diferente; uma delas é a da senha |
+| `b0` | a senha, 1º passo: `passo:<senha>:<k % 3>` **só no atuador esquerdo** do dono |
+| `b0 + 2` | a senha, 2º passo: `passo:<senha>:<(k + 1) % 3>` **só no atuador direito** |
+| `b0 + 4` | as três trilhas sobem na frente do cavaleiro (esquerda, meio, direita), cada uma num chão; uma é a da senha |
 | `b0 + 6` | **a escolha**: ◀, ▲ ou ▶ no tempo (a nota `k`, alvo `Ritmo.t_da_batida(b0 + 6)`) |
-| `b0 + 6` a `b0 + 8` | o boneco anda para a trilha escolhida (o mundo desliza pela batida) |
+| `b0 + 6` a `b0 + 8` | o cavaleiro anda para a trilha escolhida (o mundo desliza pela batida) |
 
-- **O hoqueto:** a primeira bifurcação de cada um começa em
-  `BATIDA_DA_PRIMEIRA_NOTA + 2 * i`, onde `i` é a posição do lugar em `presentes()`. Com
-  quatro, as escolhas caem nas batidas 2, 4, 6 e 8 de cada ciclo, uma por
-  jogador, e a nota de cada um soa na TV (`TOM_DO_LUGAR` do kit) — a frase só
-  fica inteira se os quatro escolhem no tempo.
-- **A entrada:** a direção só vale de `b0 + 4` (as trilhas acesas) até a nota
-  passar (`alvo + Ritmo.JANELA_BOM`); antes de `b0 + 4` o aperto é ignorado.
-  A primeira direção apertada é a escolha (não se troca).
-- **O julgamento:** trilha certa → `julgar_toque(l, alvo, k, true)` (a trilha
-  é perigo físico: quem está em último ganha a folga). Trilha errada →
-  `nota_perdida(l, k)` com `_motivo[l] = "lama"`. Nenhuma direção até a nota
-  passar → `nota_perdida(l, k)` com `_motivo[l] = "parou"`.
-- **Os pontos e o avanço** (`toque`): o boneco avança `AVANCO[j]` trechos
-  (BOM 1,0; ÓTIMO 1,25; PERFEITO 1,5) e marca `round(100 * avanço)`.
-- **A meta:** `META := 12.0` trechos até o portão.
-- **A partitura simples** (`Ritmo.simples[l]`): as bifurcações de `k` ímpar
-  (fora do pico) viram corredor reto — sem senha, sem nota; o boneco anda
-  0,5 trecho sozinho na batida `b0 + 6`.
-- **O relógio da corrida:** a `duracao` da FICHA é 100 s, e o kit os conta
-  em tempo de música (H08), não pelo relógio do jogo — a bancada precisa das
-  bifurcações todas, também na prova, onde o jogo anda 16 vezes mais
-  depressa que a música. `FIM_BATIDA := BATIDA_DA_PRIMEIRA_NOTA + 196` (os
-  mesmos 100 s, em batidas a 120 bpm) só serve para prever as bifurcações.
-- **O pico no meio — a descida:** `_pico_k` é a metade das bifurcações
-  previstas (`floor((FIM_BATIDA - BATIDA_DA_PRIMEIRA_NOTA) / CICLO / 2)` = 12). As
-  bifurcações `_pico_k` a `_pico_k + 3` vêm no dobro (`CICLO_PICO := 4`): só o
-  1º passo da senha em `b0`, as trilhas em `b0 + 2`, a escolha em `b0 + 2`
-  (a nota), e o avanço vale 1,5 vez. A TV marca a descida: `Som.tocar("sobe")`
-  na primeira e `pulso_de_luz(Tema.CIANO)`.
+A senha **anda** na mão: da esquerda para a direita, como um passo. É a mágica 1 da pesquisa, e é o que ensina sem
+falar que o chão vem de baixo e passa.
 
-## O cenário
+- **O hoqueto:** a primeira bifurcação de cada um começa em `BATIDA_DA_PRIMEIRA_NOTA + 2 * i`, onde `i` é a posição do
+  lugar em `presentes()`. Com quatro, as escolhas caem nas batidas 2, 4, 6 e 8 de cada ciclo, uma por jogador, e a nota
+  de cada um soa na TV (`TOM_DO_LUGAR` do kit). A frase só fica inteira se os quatro escolhem no tempo.
+- **A entrada:** a direção vale de `b0 + 4` até `alvo + Ritmo.JANELA_BOM` (140 ms). Antes de `b0 + 4` o aperto é
+  ignorado. A primeira direção apertada é a escolha, e não se troca.
+- **O julgamento:** trilha certa → `julgar_toque(l, alvo, k, true)` (a trilha é perigo físico: quem está em último ganha
+  a folga do kit). Trilha errada → `nota_perdida(l, k)` com `_motivo[l] = "lama"`. Nenhuma direção até a nota passar →
+  `nota_perdida(l, k)` com `_motivo[l] = "parou"`.
+- **Os pontos e o avanço** (`toque`): o cavaleiro avança `AVANCO[j]` trechos (BOM 1,0; ÓTIMO 1,25; PERFEITO 1,5) e
+  marca `round(100 * avanço)`.
+- **A meta:** `META := 12.0` trechos até o portão. Um trecho = `LADRILHO := 1.5` m.
+- **A partitura simples** (`Ritmo.simples[l]`): as bifurcações de `k` ímpar, fora do pico, viram corredor reto: sem
+  senha, sem nota; o cavaleiro anda 0,5 trecho sozinho em `b0 + 6`.
+- **O relógio:** a `duracao` é 100 s de música (o kit conta em tempo de música, H08). `FIM_BATIDA :=
+  BATIDA_DA_PRIMEIRA_NOTA + 196` só serve para prever as bifurcações.
+- **O pico, a descida** (33 a 66 s): `_pico_k = floor((FIM_BATIDA - BATIDA_DA_PRIMEIRA_NOTA) / CICLO / 2)` = 12. As
+  bifurcações 12 a 15 vêm no dobro (`CICLO_PICO := 4`): o 1º passo da senha em `b0`, **nos dois atuadores**, as trilhas
+  e a escolha em `b0 + 2`, e o avanço vale 1,5 vez.
+- **A reta** (as últimas 16 batidas, de `RETA_B := FIM_BATIDA - 16` em diante): cada bifurcação certa vale **2 trechos**
+  (no lugar de `AVANCO[j]`) e `200` pontos, para todos. Nenhuma regra nova.
+- **A lama se espalha** (quem está perdendo): quando alguém cai na lama de chão `c`, a próxima bifurcação do líder
+  (o maior `_dist` entre os outros) chega enlameada se a trilha certa dele tem o chão `c`: o acerto nela avança metade
+  (`ganho * 0.5`). A janela não muda.
 
-- **Chão:** `Kit.arena(self, 5, 3)`.
-- **Luz:** a da casa, baixa (é um túnel, não terror):
-  `atmosfera(Color("#b9b0ff"), Tema.CIANO, false, 30, 22.0, -7.8, 0.15)` e duas
-  tochas (`OmniLight3D`, `#ffb070`, energia 0,9, alcance 9) em
-  `(-9, 3, -5)` e `(9, 3, -5)`.
-- **Cada raia** (`_montar_raia(l)`): `raia(l)` e `posicionar(l)` do kit; depois
-  `p.rotation.y = PI` (de costas, andando para o fundo) e `p.preso = true`.
-  - o corredor: um `Node3D` `trilha` em `(RAIAS[l], 0, Z_JOGADOR)`, com
-    `META + 3` lajes `Kit.caixa(trilha, Vector3(2.6, 0.08, 1.42), Vector3(0, 0.04, -s * LADRILHO), pedra)`
-    (`LADRILHO := 1.5`, `pedra := Kit.material(Color("#3a3542"), 0.0, 0.95)`) e
-    as pedras da borda `Kit.peca(trilha, "rocks", Vector3(±1.5, 0, -s * LADRILHO), <giro pela semente>, 0.34)`
-    a cada dois trechos;
-  - o portão: `Kit.peca(trilha, "gate", Vector3(0, 0, -META * LADRILHO - 0.8))`;
-  - as três placas da bifurcação, filhas de `self` (não da trilha: ficam
-    sempre à frente do boneco): `Kit.caixa(self, Vector3(0.7, 0.06, 1.2), Vector3(RAIAS[l] + DX_TRILHA[d], 0.1, Z_JOGADOR - 1.4), escuro)`
-    com `DX_TRILHA := [-0.8, 0.0, 0.8]`; `escuro := Kit.material(Color("#17141f"), 0.0, 0.95)`;
-  - os enfeites de cada placa, um `Node3D` por chão, só o do chão da vez
-    visível quando a placa acende: grama = 5 caixas `(0.05, 0.2, 0.05)`
-    `#6fcf5a`; cascalho = 6 caixas `(0.1, 0.07, 0.1)` `#b8ab94` em tons;
-    metal = 4 rebites `(0.08, 0.04, 0.08)` `#d0d6e0` nos cantos; água =
-    `Kit.anel(no, 0.3, 0.34, Vector3.ZERO, Kit.material(Color("#9fd4ff"), 0.0, 0.2))` (G08);
-  - a cor de cada placa acesa: `COR_CHAO := [#4f9a45, #9a8a70, #8c98aa, #3a7fd0]`
-    com `Kit.material(cor, 0.0, 0.9)` (o metal: `rugoso 0.35`, `metallic 0.2`
-    — nunca 0,8 como hoje);
-  - a lanterna do boneco: `OmniLight3D` em `(RAIAS[l], 2.6, Z_JOGADOR + 0.6)`,
-    `Forja.cor_do_lugar(l).lerp(Color.WHITE, 0.55)`, energia 1,3, alcance 3,2.
-- **A câmera:** `camera_pos = Vector3(0, 7.2, 10.6)`,
-  `camera_olhar = Vector3(0, 0.4, -1.8)` (as de hoje), no começo do `montar()`.
-- **O movimento, pela batida:** o `trilha.position.z` é
-  `Z_JOGADOR + LADRILHO * lerpf(_de[l], _ate[l], clampf(b - _passo_b[l], 0.0, 1.0))`,
-  onde `b = Ritmo.batida()`, `_de`/`_ate` são a distância antes e depois do
-  último avanço e `_passo_b` a batida em que ele começou. O boneco faz `walk`
-  enquanto `b - _passo_b < 1`, `sprint` no PERFEITO, `idle` no resto.
-- **Checklist de arte (11):** nada de esfera, cilindro liso nem toro liso (as
-  de hoje saem: tufos em caixa, cascalho em caixa, água em `Kit.anel`); metal
-  `metallic` 0,2; o emissivo só na borda da raia (do kit); nenhuma placa usa
-  as cores dos lugares; a foto ao lado de um boneco na prancha.
+## A cena
 
-## O repertório
+**A câmera** (a «arena» do [01](../arte/01-cinema.md#o-plano-de-cada-momento)): lente de 35 mm, campo vertical de
+37,8°, plongée de 50°. `camera_pos = Vector3(0, 12.6, 8.6)`, `camera_olhar = Vector3(0, 0.4, -1.6)`, no começo do
+`montar()`. A 15,9 m do alvo, a largura vista em 16:9 é 19,4 m: o cavaleiro de fora (x ±6, até 1,8 m de altura) fica a
+77 % da meia largura e as placas de fora (x ±6,8) a 74 %, medido com a projeção da lente. Roll zero. **Nunca corta** durante o jogo. Enquanto o kit não tem a lente por sala, a câmera do main fica com o
+campo de hoje (40°) e a pose acima vale do mesmo jeito (2 % mais aberta).
 
-| recurso | o quê | quando |
+**A luz da seção** (S7, lado B, tinta petróleo `Tema.SECAO[2]` = `#1f8a7e`): por `Tema.luz_da_secao(7, "B")` (G15),
+que devolve a névoa `#011311`, o preenchimento `#11413b` e a chave `#e5d7ad` do [01](../arte/01-cinema.md#a-luz-de-cada-seção),
+com a chave a ×0,85 e a névoa a ×1,3 do lado A. A ficha não escreve cor de luz em hex: sai o
+`atmosfera(Color("#b9b0ff"), ...)` de hoje e saem as tochas `#ffb070`.
+
+- **O pico:** na batida de `_pico_k`, a chave sobe 20 % em 1 batida (0,5 s) e a névoa abre (densidade ×0,8); volta em
+  2 batidas quando a bifurcação 15 acaba. Com `Opcoes.flashes` desligado, sobe 10 % em 2 batidas.
+- **O dono do grito:** na lama de `l`, a luz de dono das outras três raias cai 30 % por 1 batida e volta em 1 batida.
+
+**As peças Kenney** (G10, `Kit.peca(pai, "<pacote>/<peça>", pos, rot_y, escala)`; sem barra = `mini-dungeon`). Antes:
+`python3 scripts/importar_kenney.py "oficina/kenney/3.7.0/3D assets" mini-forest hexagon-kit tower-defense-kit graveyard-kit`.
+
+| papel | peça | escala | onde |
+| --- | --- | --- | --- |
+| o chão da arena | `Kit.arena(self, 5, 3)` (do kit) | — | — |
+| o corredor de cada raia | `graveyard-kit/road`, duas por trecho, lado a lado | 1,9 (1,52 × 1,50 m cada) | `Node3D` `trilha` em `(RAIAS[l], 0, Z_JOGADOR)`, x = ±0,76, z = `-s * LADRILHO`, `META + 3` trechos |
+| a borda | `mini-forest/rocks-low` | 0,6 | x = ±1,7, a cada dois trechos, giro `_rng[l].randf() * TAU` |
+| o portão | `gate` (mini-dungeon) | 1 | `(0, 0, -META * LADRILHO - 0.8)` na trilha |
+| a trilha **grama** | `mini-forest/patch-grass` | 0,8 | as placas, abaixo |
+| a trilha **cascalho** | `mini-forest/patch-dirt` com `mini-forest/stones` em cima | 0,8 e 0,4 | |
+| a trilha **metal** | `tower-defense-kit/tile` | 0,8 | |
+| a trilha **água** | `hexagon-kit/water` | 0,7 | |
+| a lama | `Kit.caixa(self, Vector3(1.0, 0.5, 1.0), <pos do cavaleiro>, Kit.material(Tema.OXIDO, 0.0, 1.0))` | — | em volta do cavaleiro, na bifurcação seguinte à queda |
+
+As três placas da bifurcação são filhas de `self` (ficam sempre à frente do cavaleiro), em
+`(RAIAS[l] + DX_TRILHA[d], -0.2, Z_JOGADOR - 1.4)`, com `DX_TRILHA := [-0.8, 0.0, 0.8]`. Cada placa tem as quatro peças
+de chão filhas, e só a do chão da vez fica visível. Em `b0 + 4` sobem de y = −0,2 a 0,05 em 1 batida. `metallic` no
+máximo 0,2 em tudo; nenhuma cor de chão em hex: a diferença entre os chãos vem da peça.
+
+**O que brilha e de quem é:**
+
+| o quê | energia | dono |
 | --- | --- | --- |
-| **háptica (protagonista)** | a senha: `passo:<chão>:<v>` nos dois atuadores, ganho 1,0 | `b0` e `b0 + 2` (no pico, só `b0`) |
-| háptica por material | a trilha certa: o kit toca `material:pedra` no acerto (`tocar_material`); o lamaçal: `Forja.tocar_material(l, "lama", "golpe", 1.0)` | no toque; na falha "lama" |
-| barra de luz | a cor do lugar, sempre; o minigame não chama `Forja.luz` | — |
-| alto-falante do dono | a nota do dono no PERFEITO e a quebrada no erro (o kit); `Forja.som_falante(l, "coleta", 0.7)` ao passar o portão | no toque; na chegada |
-| vibração | o kit (`acerto`, `perfeito`, `erro`); a queda na lama `Forja.sentir(l, "golpe")` só no rádio (no cabo vai pela háptica) | no toque e na falha |
-| gatilho | nada a segurar: `Forja.gatilhos_off(l)` no `montar()` | — |
-| TV | a música, a nota de cada um (kit), `Som.tocar("portao", pos)` na chegada, `Som.tocar("sobe")` na descida | — |
+| a placa escolhida, `Tema.contorno(Tema.JOGADOR[l], 0.03, 2.0, l)` | 2,0; 2,6 por 4 quadros no acerto | `l` |
+| a placa certa da **primeira** senha de cada um (o ensino), o mesmo contorno, de `b0 + 4` a `b0 + 5` | 2,0 | `l` |
+| a luz de dono, `OmniLight3D` cor `Tema.JOGADOR[l]`, em `(RAIAS[l], 0.3, Z_JOGADOR - 2.6)`: o cavaleiro fica a 2,3 m ou mais, fora do alcance | 0,9, alcance 2,0 m | `l` |
+| as faíscas da lama, `Efeitos.faiscas(self, pos, Tema.OXIDO_BRILHO, 48, 1.0)` | 2,4 por 12 quadros | `l` |
+| a borda da raia (do kit) | a do kit | `l` |
+| qualquer outra coisa | no máximo 1,0 | `"mundo"` |
 
-**No rádio (sem placa):** `_rumble[l] = not Forja.som_tem(l, Forja.PAPEL_HAPTICA)`
-no `iniciar_jogo()`; a senha vai por `Forja.sentir(l, RUMBLE_CHAO[chao])`, com
-`RUMBLE_CHAO := ["toque", "golpe_esq", "golpe", "golpe_dir"]` (grama leve,
-cascalho à esquerda, metal forte, água à direita — grosseira, mas se aprende
-no treino), e a linha `troca` é gravada uma vez. O microfone não é usado.
+**O cavaleiro na cena:** `raia(l)` e `posicionar(l)` do kit; `p.rotation.y = PI` (de costas, andando para o fundo) e
+`p.preso = true`. O mundo desliza pela batida: `trilha.position.z = Z_JOGADOR + LADRILHO * lerpf(_de[l], _ate[l],
+clampf(b - _passo_b[l], 0.0, 1.0))`. O cavaleiro faz `walk` enquanto `b - _passo_b < 1`, `sprint` no PERFEITO, `idle`
+no resto.
 
-## A falha
+## O som
 
-- **"lama"** (trilha errada): o boneco faz `fall` (0,8 s) e afunda meio
-  palmo (`p.position.y = -0.25` até a próxima bifurcação); a placa escolhida
-  vira lama (`Kit.material(Color("#4a3a2a"), 0.0, 1.0)`); a mão sente a lama
-  (`tocar_material(l, "lama", "golpe")`). **A recuperação:** a bifurcação
-  seguinte se perde no lamaçal (`_lama[l] = k + 1`: sem senha, sem nota, o
-  boneco anda devagar, `walk` a 0,4, e avança 0,25 trecho).
-- **"parou"** (atrasou, adiantou demais ou não escolheu): o boneco faz
-  `emote-no` (0,6 s) diante das placas; não avança; a próxima bifurcação vem
-  normal.
+Só ids do [mapa do áudio](../o-time/o-mapa-do-audio.md) (`docs/jogo/audio/mapa.csv`):
 
-## O fim e o vencedor
+| evento | id | onde toca | chamada |
+| --- | --- | --- | --- |
+| a faixa | `mus_s07_j31` (120 bpm, Sol menor) | TV | a `faixa` da FICHA |
+| a senha, cada passo | `mod_passo_<chão>_<v>` (grama, cascalho, metal, agua; v de 0 a 2) | atuadores do dono | `Forja.som_haptica(l, "passo:<s>:<v>", "", 1.0)` e o espelho |
+| a trilha certa (o kit) | `mod_material_pedra` | atuadores do dono | o `material` da FICHA, pelo kit |
+| a lama | `mod_material_lama` | atuadores do dono | `Forja.tocar_material(l, "lama", "golpe", 1.0)` |
+| a lama, na TV | `fx_tropeco_*` (hoje `falha_*`, que ele substitui) | TV | `Som.tocar("falha", pos, -4.0)` |
+| a chegada | `portao_0` | TV | `Som.tocar("portao", pos)` |
+| a chegada, no dono | `mod_coleta` | alto-falante do dono | `Forja.som_falante(l, "coleta", 0.7)` |
+| a descida (o pico) | `sobe_0` | TV | `Som.tocar("sobe")` na bifurcação 12 |
 
-Quem passa do `META` chega: `_chegada.append(l)`, `acabou[l] = true`,
-`p.gesto("emote-yes", 1.2)`. Na primeira chegada, `_fim_batida = b + CORTESIA`
-(`CORTESIA := 8`): os outros ainda correm dois compassos, e então todos
-acabam (`acabou[l] = true`) e o kit fecha. Sem chegada, o kit fecha aos 100 s
-de música (H08). `vencedor()`: a ordem de `_chegada`, depois os outros pela
-distância (e pelos pontos no empate).
+A nota de cada um e o julgamento escrito são do kit. `fx_tropeco_*` e `falha_*` ainda não listam a O1 na coluna
+`fichas` do mapa: o diretor de som acrescenta.
 
-## Com menos de quatro
+## O controle
 
-- **3, 2, 1:** nada muda na regra; o hoqueto espalha as escolhas pelas
-  posições em `presentes()` (com dois, batidas 2 e 4 de cada ciclo). Com um,
-  ele corre contra o portão e vence ao chegar (ou ao fim, pela distância).
-- **O controle que cai:** a nota de quem está sem controle não vira erro
-  (`if not conectado(l): _fora[l] = true; continue`). Quando volta, as
-  bifurcações que já começaram são puladas sem registro
-  (`while _b0[l] + _ciclo(_k[l]) - 2 < b + 0.5: _pular(l)`), e a próxima vem
-  normal.
-- **Duplas:** não há.
+| evento | para quem | háptica (cabo) | rumble (rádio) | prova sem o controle na mão |
+| --- | --- | --- | --- | --- |
+| senha, 1º passo (`b0`) | só o dono | `passo` **só no esquerdo**, ganho 1,0 | `Forja.sentir(l, RUMBLE_CHAO[s])` | `Forja.som_virtual(l)`: de `b0` a `b0 + 0,3`, `esq > 0,05` e `dir < 0,02` |
+| senha, 2º passo (`b0 + 2`) | só o dono | `passo` **só no direito**, ganho 1,0 | o mesmo `sentir` | de `b0 + 2` a `b0 + 2,3`, `dir > 0,05` e `esq < 0,02` |
+| senha no pico | só o dono | `passo` nos **dois**, ganho 1,0 | o mesmo | `esq` e `dir` > 0,05 |
+| trilha certa | o dono | `material:pedra` nos dois, 60 ms (o kit) | `acerto` (o kit) | a linha `toque` com julgamento |
+| lama | o dono | `material:lama`, `golpe` | `Forja.sentir(l, "golpe")` | `Forja.percepcao(l)`: `forte > 0` no rádio simulado |
 
-## O robô
+- `RUMBLE_CHAO := ["toque", "golpe_esq", "golpe", "golpe_dir"]`: grama leve, cascalho à esquerda, metal forte, água à
+  direita. No rádio a senha não anda de lado (o rumble não separa os atuadores como a placa).
+- **O rádio:** `_rumble[l] = not Forja.som_tem(l, Forja.PAPEL_HAPTICA)` no `iniciar_jogo()`, e a linha `troca`
+  (`de` `haptica`, `para` `rumble`, `motivo` `sem_placa`) uma vez.
+- **A barra de luz:** a cor do lugar, sempre; o minigame não chama `Forja.luz`. Prova: `Forja.percepcao(l).luz` igual a
+  `Forja.cor_do_lugar(l)` fora do piscar do kit.
+- **O gatilho:** nada a segurar: `Forja.gatilhos_off(l)` no `montar()`. Prova: `percepcao(l).gatilho_dir == 0`.
+- **O alto-falante:** a nota do dono no PERFEITO (o kit) e a coleta na chegada. Prova: `som_virtual(l).falante > 0,05`
+  no quadro da chegada.
+- **O microfone:** não se usa.
+- **Os outros jogadores** não sentem nada da senha de ninguém: a pista é privada.
 
-Ele **sente** a senha na placa virtual do controle simulado — o mesmo
-`_robo_sentir` de hoje, copiado sem mudar (`caminhos.gd:521-556`: o
-envelope de cada passo, `Forja.chao_do_envelope`, os votos por chão). Assim,
-um defeito de mentira que corta a háptica faz o robô errar, e o `scripts/gauntlet.sh`
-continua vendo o veredito cair.
+O código da pista, igual nas cinco fichas da seção:
 
 ```gdscript
-func robo(l: int, _dt: float) -> void:
-	if not Forja.robo:
-		return
-	_robo_sentir(l)
-	var k: int = _k[l]
-	if _lama[l] == k or _reto[l] or _escolheu[l] >= 0 or _robo_k[l] == k:
-		return
-	var b := Ritmo.batida()
-	if b < _b0[l] + _ciclo(k) / 2:
-		return
-	if _robo_mira_de[l] != k:
-		# o temperamento (--robo=bom|medio|ruim), uma vez por bifurcação
-		_robo_mira_de[l] = k
-		_robo_certo[l] = Forja.robo_acerta()
-		_robo_atraso[l] = 0.0 if _robo_certo[l] or _robo_rng.randf() < 0.5 else 0.25
-	var alvo := Ritmo.t_da_batida(_b0[l] + _ciclo(k) - 2)
-	if Ritmo.t_musica() < alvo + float(_robo_atraso[l]):
-		return
-	var sentido := _mais_votado(l)   # o chão que a mão sentiu, ou -1
-	var d := -1
-	if sentido >= 0:
-		d = (_trilhas[l] as Array).find(sentido)
-	if d < 0:
-		if Forja.bancada:
-			Forja.robo_apertar(l, Forja.TOUCHPAD, 0.08)   # "não senti"
-			_robo_k[l] = k
-			return
-		d = _robo_rng.randi_range(0, 2)
-	if not _robo_certo[l] and float(_robo_atraso[l]) == 0.0:
-		d = (d + 1 + _robo_rng.randi_range(0, 1)) % 3   # erra a trilha
-	Forja.robo_apertar(l, DIRECAO[d], 0.08)
-	_robo_k[l] = k
+# A pista na mão do lugar: no cabo, a onda nos atuadores; sem placa (o
+# rádio), a mesma pista pelo rumble, nunca os dois (docs/jogo/05, o rádio).
+func _pista(l: int, esq: String, dir: String, sensacao: String, n: int, o_que: String) -> void:
+	if _rumble[l]:
+		Forja.sentir(l, sensacao)
+	else:
+		Forja.som_haptica(l, esq, dir, 1.0)
+	anotar("pista", l, {"n": n, "evento": "mandou",
+		"canal": "rumble" if _rumble[l] else "haptica", "o_que": o_que})
+
+
+func _respondeu(l: int, n: int, resposta: String) -> void:
+	anotar("entrada", l, {"o": "resposta", "n": n, "resposta": resposta})  # o que o jogador fez com a pista (13, H08)
 ```
 
-`_robo_sentir(l)` é o de hoje com o estado por lugar em arrays
-(`_robo_env[l]`, `_robo_gravando[l]`, `_robo_silencio[l]`, `_robo_somas[l]`,
-`_robo_votos[l]`); os votos zeram em `_nova_bifurcacao`. O tropeço de hoje
-sai (o lado da háptica é d'O4), então o ramo `robo_lado` também sai.
+A senha: no 1º passo `_pista(l, "passo:%d:%d" % [s, v], "", RUMBLE_CHAO[s], k, NOME_CHAO[s])`; no 2º
+`_pista(l, "", "passo:%d:%d" % [s, v], ...)`; no pico os dois lados com o mesmo som.
 
-## Os ganchos
+## O cavaleiro
 
-O arquivo `godot/scripts/minigames/s07/os_caminhos.gd`, `extends Minigame`,
-sem `class_name`. O que muda do `caminhos.gd` de hoje:
+O cavaleiro chega pronto da G13 (`jogador(l)`): cabeça, superior, inferior e item, de qualquer raça. A ficha não
+presume que ele é humano e **nunca recolore** uma peça: a roupa de cima e a de baixo ficam com as tintas da montagem
+do começo ao fim. A lama é uma caixa em volta dele, não uma cor nele. A luz de dono fica 2,6 m à frente, com alcance de 2,0 m,
+e não chega às peças. A raça não muda a raia, o passo nem a janela; o superior e o inferior ficam nas faixas de
+valor da bíblia do cavaleiro (tecido L 0,46 a 0,58, couro 0,22 a 0,36), com o néon do dono só nos acentos a 1,6.
+
+Os ganchos (`Cavaleiro.gancho(l, "<gancho>")`, H04; a linha 31 do `minigames.csv`):
+
+| stat | gancho | o que muda aqui | 1 | 3 | 5 |
+| --- | --- | --- | --- | --- | --- |
+| Passo | `velocidade` | o deslize do trecho: `clampf((b - _passo_b) * gancho, 0, 1)` | ×0,94 | ×1 | ×1,06 |
+| Fôlego | `levantar` | a queda na lama: 3 tempos × gancho, arredondado à semicolcheia, mínimo uma | ×1,25 | ×1 | ×0,75 |
+| Faro | `pista` | a senha chega antes: `b0 - gancho / 1000 / 0,5` batidas (a nota não muda) | −40 ms | 0 | +40 ms |
+
+O Peso não se usa aqui. **Os itens:** o Martelo dobra o PERFEITO no tempo forte (o kit); a Âncora anda 10 % mais devagar
+fora da liga (multiplica o `velocidade`); o Escudo absorve o primeiro erro (o kit); o Fole é do combo (o kit); a
+Lanterna adianta a senha meio tempo (0,25 s), somada ao Faro. O Diapasão não muda nada aqui (não é dupla). A cadeira de
+rodas anda na velocidade do Passo, como as pernas. **Nenhum stat nem item muda a janela** (140 ms) nem o momento da nota.
+
+## As reações
+
+Os carimbos vêm do kit; a ficha não chama nada, só diz quais podem sair:
+
+- `car_em_chamas`: 5 «Ressonância!» seguidas do mesmo jogador (possível: uma escolha por ciclo).
+- `car_por_um_fio`: o vencedor chega com 2 % dos pontos ou menos de vantagem.
+- `car_virada`: quem passa a ser o primeiro no placar.
+- `car_emburrado`: o último, no inserto do resultado.
+- `car_acorde`: **não sai** aqui: o hoqueto põe uma escolha por tempo, os quatro nunca acertam no mesmo tempo 1.
+
+No máximo 1 carimbo vivo por jogador e 2 na tela. Adesivos `rea_*`: só de quem já chegou ao portão.
+
+## A diversão
+
+**O grito: a lama** (`lama`), degrau «estrondo». A trilha errada vira lama: o cavaleiro afunda 0,5 m (`p.position.y =
+-0.5`), faz `fall` (0,8 s), e a bifurcação seguinte se perde no lamaçal: sem senha, sem nota, `walk` a 0,4 e avanço de
+0,25 trecho, enquanto os outros passam.
+
+- **O exagero:** 48 partículas de lama; `tremer(Sala.TREMOR_GOLPE)` (G05; o degrau pede 2 batidas, amplitude 0,05);
+  hit-stop de 3 quadros (50 ms) só no cavaleiro (`p.anim.speed_scale = 0.0` e volta a 1,0 depois de 0,05 s de
+  música); a mão, a TV e o quadro no mesmo quadro de 16,7 ms.
+- **O rastro:** a caixa de lama fica em volta dele até o fim da bifurcação seguinte (8 batidas = 4 s); a placa de lama
+  fica no caminho e quem vem atrás a vê.
+- **A linha:** na queda, `anotar("momento", l, {"nome": "lama", "t_musica": Ritmo.t_musica()})`. Na batida `RETA_B`,
+  `anotar("momento", -1, {"nome": "reta", "t_musica": Ritmo.t_musica(), "ordem": <os lugares por _dist, do maior ao menor>})`.
+- **A curva:** 0 a 33 s, uma bifurcação a cada 8 batidas; 33 a 66 s, a descida no dobro; 66 s ao fim, a reta.
+- **Ensina sem falar:** a primeira senha de cada um vem com a placa certa acesa por 1 batida.
+- **Quem está na frente se vê:** a distância na pista (o portão de cada raia mais perto).
+
+**Como o jogador do time confere** (mesa padrão: P1 `bom`, P2 `medio`, P3 `medio`, P4 `ruim`, semente 7):
+
+1. Robô: pelo menos 4 linhas `momento` `lama` em 100 s, pelo menos 1 antes de 20 s, e 1 linha `momento` `reta`.
+2. Prancha: um cavaleiro na caixa de lama em 1 quadro de cada 4.
+3. Enquanto o robô por lugar (`--robo=bom,medio,medio,ruim`) não existe, a conferência da mesa padrão é só pela
+   prancha, com o temperamento único.
+
+## A ficha do código
+
+`godot/scripts/minigames/s07/os_caminhos.gd`, `extends Minigame`, sem `class_name`. O que sai do `caminhos.gd` de hoje:
 
 | sai | por quê |
 | --- | --- |
 | `class_name SalaCaminhos`, `_init()`, `const RAIAS`, `Z_JOGADOR`, `_conectado` | o kit tem |
-| `PERGUNTA`, `REVELA`, `pergunta()`, `_fechar_pergunta()`, o `objetivo` | a pergunta às cegas vira a escolha da trilha |
-| o tropeço (`trop_*`, `_fechar_tropeco`, `CAMINHO_NADA_LADO`) | o lado da háptica é d'O4 |
-| o treino próprio (`TREINO`, `com_treino = false`) | o treino do kit (10 s, julga igual e não soma) ensina as trilhas |
-| o `_process` e o `_mostrar` chamado dele | o kit não deixa sobrescrever `_process`; o `_mostrar(b)` é chamado do fim do `jogar` |
-| `e.t += dt` | tudo pela batida |
-
-O esqueleto:
+| `PERGUNTA`, `REVELA`, `pergunta()`, `_fechar_pergunta()`, o `objetivo` | a pergunta vira a escolha da trilha |
+| o tropeço (`trop_*`, `_fechar_tropeco`, `CAMINHO_NADA_LADO`) e o `robo_lado` | o lado da háptica é da O4 |
+| o treino próprio (`TREINO`, `com_treino = false`) | o treino do kit (10 s) ensina |
+| o `_process` e o `e.t += dt` | o kit não deixa sobrescrever `_process`; tudo pela batida |
 
 ```gdscript
 extends Minigame
-## Os Caminhos (S07_J31). A senha do seu portão chega só na sua mão — o passo
-## de um chão (grama, cascalho, metal, água) nos atuadores —, três trilhas
-## acendem à sua frente, e ◀ ▲ ▶ no tempo pisa na que tem aquele chão.
-##
-## A falha: a trilha errada é um lamaçal (o boneco afunda e perde a próxima
-## bifurcação); atrasar é parar diante das placas.
-## O vencedor: o primeiro no portão (os outros ainda correm dois compassos).
-## O alto-falante do dono: a nota dele (kit) e a coleta ao passar o portão.
-## O registro mede: cada senha mandada (pista, pelo canal da háptica ou do rumble), a trilha
-## escolhida (a entrada resposta) e o veredito haptica_audio da bancada.
-## O robô: sente a senha na placa virtual (o envelope, chao_do_envelope).
-## Com menos de quatro: nada muda; o hoqueto se espalha por quem joga.
-## A régua: título, verbo e ícone bastam; sem a tela não dá para ver as
-## trilhas, mas a senha é só do controle; nada pergunta se o controle obedeceu.
+## Os Caminhos (S07_J31). A senha do seu portão chega só na sua mão, o passo
+## de um chão andando da esquerda para a direita; três trilhas sobem à sua
+## frente, e ◀ ▲ ▶ no tempo pisa na que tem aquele chão.
 
 const FICHA := { ... }   # a de cima
 
-const FIM_BATIDA := BATIDA_DA_PRIMEIRA_NOTA + 196  ## os 100 s de música em batidas: só para prever as bifurcações (o fim é do kit, H08)
+const FIM_BATIDA := BATIDA_DA_PRIMEIRA_NOTA + 196
+const RETA_B := FIM_BATIDA - 16
 const CICLO := 8
 const CICLO_PICO := 4
 const PICO_BIFURCACOES := 4
@@ -277,12 +313,13 @@ const AVANCO := [0.0, 1.0, 1.25, 1.5]
 const DX_TRILHA := [-0.8, 0.0, 0.8]
 const DIRECAO := [Forja.ESQUERDA, Forja.CIMA, Forja.DIREITA]
 const NOME_CHAO := ["grama", "cascalho", "metal", "água"]
-const COR_CHAO := [Color("#4f9a45"), Color("#9a8a70"), Color("#8c98aa"), Color("#3a7fd0")]
+const PECA_CHAO := ["mini-forest/patch-grass", "mini-forest/patch-dirt", "tower-defense-kit/tile", "hexagon-kit/water"]
 const RUMBLE_CHAO := ["toque", "golpe_esq", "golpe", "golpe_dir"]
-const CAMINHO_NADA := 4  ## "não senti" (cegas.h), só na bancada
+const CAMINHO_NADA := 4  ## «não senti» (cegas.h), só na bancada
 const ENV_MAX := 64
 
-var _rng := {}  ## lugar -> RandomNumberGenerator (o caminho de cada um, da semente)
+var _rng := {}            ## lugar -> RandomNumberGenerator (a semente do kit + 7919 * (l + 1))
+var _robo_rng := RandomNumberGenerator.new()   ## a semente do kit + 99: o robô nunca muda o sorteio do jogo
 var _k := [0, 0, 0, 0]
 var _b0 := [0.0, 0.0, 0.0, 0.0]
 var _senha := [0, 0, 0, 0]
@@ -290,20 +327,21 @@ var _trilhas := [[], [], [], []]
 var _escolheu := [-1, -1, -1, -1]
 var _reto := [false, false, false, false]
 var _lama := [-1, -1, -1, -1]
+var _enlameada := [-1, -1, -1, -1]   ## a bifurcação do líder que chega com lama (o acerto vale metade)
 var _motivo := ["", "", "", ""]
 var _dist := [0.0, 0.0, 0.0, 0.0]
 var _de := [0.0, 0.0, 0.0, 0.0]
 var _ate := [0.0, 0.0, 0.0, 0.0]
 var _passo_b := [-9.0, -9.0, -9.0, -9.0]
-var _passos_dados := [0, 0, 0, 0]  ## quantos passos da senha já soaram nesta bifurcação
+var _passos_dados := [0, 0, 0, 0]
 var _chegada: Array = []
 var _fim_batida := -1.0
 var _pico_k := 999
+var _reta_anotada := false
 var _rumble := [false, false, false, false]
-var _chao := {}  ## lugar -> Cega (a bancada)
+var _chao := {}           ## lugar -> Cega (a bancada)
 var _fora := [false, false, false, false]
-var _nos := {}   ## lugar -> {trilha, placas, enfeites, lanterna}
-# o robô (só lido e escrito dentro de robo() e _robo_sentir())
+var _nos := {}            ## lugar -> {trilha, placas, luz}
 var _robo_k := [-1, -1, -1, -1]
 var _robo_mira_de := [-1, -1, -1, -1]
 var _robo_certo := [true, true, true, true]
@@ -316,12 +354,10 @@ var _robo_votos := [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]
 
 
 func montar() -> void:
-	camera_pos = Vector3(0, 7.2, 10.6)
-	camera_olhar = Vector3(0, 0.4, -1.8)
+	camera_pos = Vector3(0, 12.6, 8.6)
+	camera_olhar = Vector3(0, 0.4, -1.6)
 	Kit.arena(self, 5, 3)
-	atmosfera(Color("#b9b0ff"), Tema.CIANO, false, 30, 22.0, -7.8, 0.15)
-	for x in [-9.0, 9.0]:
-		_tocha(Vector3(x, 3.0, -5.0), 0.9)
+	# a luz da seção: Tema.luz_da_secao(7, "B") (G15), ver «A cena»
 	for p in jogadores:
 		var l: int = p.lugar
 		_nos[l] = _montar_raia(l)
@@ -330,6 +366,7 @@ func montar() -> void:
 
 
 func iniciar_jogo() -> void:
+	_robo_rng.seed = rng.seed + 99
 	_pico_k = int(floor(float(FIM_BATIDA - BATIDA_DA_PRIMEIRA_NOTA) / CICLO / 2.0))
 	var ordem := presentes()
 	for i in ordem.size():
@@ -346,6 +383,9 @@ func iniciar_jogo() -> void:
 
 func jogar(_dt: float) -> void:
 	var b := Ritmo.batida()
+	if b >= RETA_B and not _reta_anotada:
+		_reta_anotada = true
+		anotar("momento", -1, {"nome": "reta", "t_musica": Ritmo.t_musica(), "ordem": _ordem_por_distancia()})
 	for l in presentes():
 		if acabou[l]:
 			continue
@@ -384,16 +424,20 @@ func jogar(_dt: float) -> void:
 			_b0[l] += _ciclo(k)
 			_k[l] = k + 1
 			_nova_bifurcacao(l)
-	if _fim_batida > 0.0 and b >= _fim_batida:  # sem chegada, o kit fecha aos 100 s de música (H08)
+	if _fim_batida > 0.0 and b >= _fim_batida:
 		for l in presentes():
 			acabou[l] = true
 	_mostrar(b)
 
 
 func toque(l: int, j: int) -> void:
-	var ganho: float = AVANCO[j] * (1.5 if _no_pico(_k[l]) else 1.0)
+	var k: int = _k[l]
+	var b_escolha := _b0[l] + _ciclo(k) - 2
+	var ganho: float = 2.0 if b_escolha >= RETA_B else AVANCO[j] * (1.5 if _no_pico(k) else 1.0)
+	if _enlameada[l] == k:
+		ganho *= 0.5
 	marcar(l, int(round(100.0 * ganho)))
-	_andar(l, ganho, _b0[l] + _ciclo(_k[l]) - 2)
+	_andar(l, ganho, b_escolha)
 
 
 func falha(l: int) -> void:
@@ -402,7 +446,10 @@ func falha(l: int) -> void:
 		_lama[l] = _k[l] + 1
 		p.gesto("fall", 0.8)
 		Forja.tocar_material(l, "lama", "golpe", 1.0)
-		# a placa escolhida vira lama (o _mostrar a pinta até a próxima bifurcação)
+		Som.tocar("falha", p.global_position, -4.0)
+		anotar("momento", l, {"nome": "lama", "t_musica": Ritmo.t_musica()})
+		_espalhar_lama(l, int(_trilhas[l][_escolheu[l]]))
+		# a caixa de lama, as 48 partículas, o tremor, o hit-stop e a luz das outras raias: «A diversão»
 	else:
 		p.gesto("emote-no", 0.6)
 
@@ -420,175 +467,220 @@ func dar_vereditos(l: int) -> Array:
 	return [] if v.is_empty() else [v]
 ```
 
-As funções que faltam, pelo que já foi dito: `_ciclo(k)`,
-`_no_pico(k)`, `_nova_bifurcacao(l)` (sorteia a senha e os outros dois chãos
-com `_rng[l]`, põe a certa numa das três posições, `_escolheu[l] = -1`,
-`_passos_dados[l] = 0`, `_reto[l] = Ritmo.simples[l] and k % 2 == 1 and not _no_pico(k)`,
-zera `_robo_votos[l]`, e `nova_nota(l, k, Ritmo.t_da_batida(escolha))` se não
-for reta nem lama), `_pular(l)` (avança `_b0` e `_k` sem nota),
-`_senha_na_mao(l, b)` (os passos em `b0` e `b0 + 2` — no pico só `b0` —
-pelo `_pista`, uma vez cada, contados em `_passos_dados`), `_direcao(l)`
-(a primeira de `DIRECAO` com `Forja.apertou`), `_escolher(l, d, alvo)`
-(`_escolheu[l] = d`; certo: `Cega.certo`, `_respondeu(l, k, "certo")`,
-`_motivo[l] = "parou"`, `julgar_toque(l, alvo, k, true)`; errado:
-`Cega.errado(_chao[l], chao)`, `_respondeu(l, k, "errado")`,
-`_motivo[l] = "lama"`, `nota_perdida(l, k)`), `_andar(l, ganho, b_de)`
-(`_de = _dist`, `_dist += ganho`, `_ate = _dist`, `_passo_b = b_de`; se
-`_dist >= META` e `not l in _chegada`: a chegada), `_tocha(pos, energia)`,
-`_montar_raia(l)` e `_mostrar(b)`. E as duas da pista, iguais nas cinco
-fichas da seção:
+As funções que faltam, pelo que já foi dito:
+
+- `_ciclo(k)`: `CICLO_PICO` se `_no_pico(k)`, senão `CICLO`. `_no_pico(k)`: `k >= _pico_k and k < _pico_k + PICO_BIFURCACOES`.
+- `_nova_bifurcacao(l)`: sorteia a senha e os outros dois chãos com `_rng[l]`, põe a certa numa das três posições,
+  `_escolheu[l] = -1`, `_passos_dados[l] = 0`, `_reto[l] = Ritmo.simples[l] and k % 2 == 1 and not _no_pico(k)`, zera
+  `_robo_votos[l]`, e `nova_nota(l, k, Ritmo.t_da_batida(escolha))` se não for reta nem lama.
+- `_pular(l)`: avança `_b0` e `_k` sem nota.
+- `_senha_na_mao(l, b)`: os passos em `b0` (esquerdo) e `b0 + 2` (direito), no pico só `b0` (os dois), adiantados pelo
+  Faro e pela Lanterna, pelo `_pista`, uma vez cada (`_passos_dados`).
+- `_direcao(l)`: a primeira de `DIRECAO` com `Forja.apertou`.
+- `_escolher(l, d, alvo)`: `_escolheu[l] = d`; certo: `Cega.certo(_chao[l])`, `_respondeu(l, k, "certo")`,
+  `_motivo[l] = "parou"`, `julgar_toque(l, alvo, k, true)`; errado: `Cega.errado(_chao[l], chao)`,
+  `_respondeu(l, k, "errado")`, `_motivo[l] = "lama"`, `nota_perdida(l, k)`.
+- `_andar(l, ganho, b_de)`: `_de = _dist`, `_dist += ganho`, `_ate = _dist`, `_passo_b = b_de`; se `_dist >= META` e
+  `not l in _chegada`: `_chegada.append(l)`, `acabou[l] = true`, `p.gesto("emote-yes", 1.2)`, o portão e a coleta; na
+  primeira chegada, `_fim_batida = b + CORTESIA`.
+- `_espalhar_lama(l, c)`: o líder `d` (maior `_dist`, `d != l`); se a senha da bifurcação seguinte dele é `c`,
+  `_enlameada[d] = _k[d] + 1` e a placa certa dele aparece com a caixa de lama de 0,2 m de altura.
+- `_ordem_por_distancia()`: `presentes()` pelo `_dist`, do maior ao menor.
+- `_montar_raia(l)` e `_mostrar(b)`: a cena de cima.
+
+A dica (`dica(l)`, com a guarda `if not na_raia(l): return {}`): na escolha, `{"partes": ["@dpad_left", "@dpad_up",
+"@dpad_right"], "pos": Vector3(RAIAS[l], 0, 4.6)}` enquanto `not aprendeu(l)`. O `status(l)`: `"%d de %d" %
+[floor(_dist[l]), META]`, ou `"Chegou"`. Nenhuma frase fala de chão, de háptica ou de controle.
+
+`godot/scripts/traducoes.gd`: `"Os Caminhos": "The Paths"`, `"Sinta e pise!": "Feel and step!"`, `"Sinta!": "Feel!"`,
+`"Chegou": "Made it"`. Tire `"Que chão é esse?"`, `"treino: sinta %s"` e `"tropeçou!"` se `grep -rn` não achar outro uso.
+
+## O robô
+
+Ele **sente** a senha na placa virtual: um defeito de mentira que corta a háptica faz o robô errar, e o
+`scripts/gauntlet.sh` vê o veredito cair.
 
 ```gdscript
-## A pista na mão do lugar: no cabo, a onda nos atuadores; sem placa (o
-## rádio), a mesma pista pelo rumble — nunca os dois (docs/jogo/05, o rádio).
-func _pista(l: int, esq: String, dir: String, sensacao: String, n: int, o_que: String) -> void:
-	if _rumble[l]:
-		Forja.sentir(l, sensacao)
-	else:
-		Forja.som_haptica(l, esq, dir, 1.0)
-	anotar("pista", l, {"n": n, "evento": "mandou",
-		"canal": "rumble" if _rumble[l] else "haptica", "o_que": o_que})
+func robo(l: int, _dt: float) -> void:
+	if not Forja.robo:
+		return
+	_robo_sentir(l)
+	var k: int = _k[l]
+	if _lama[l] == k or _reto[l] or _escolheu[l] >= 0 or _robo_k[l] == k:
+		return
+	var b := Ritmo.batida()
+	if b < _b0[l] + _ciclo(k) / 2:
+		return
+	if _robo_mira_de[l] != k:
+		_robo_mira_de[l] = k
+		_robo_certo[l] = Forja.robo_acerta()
+		_robo_atraso[l] = 0.0 if _robo_certo[l] or _robo_rng.randf() < 0.5 else 0.25
+	var alvo := Ritmo.t_da_batida(_b0[l] + _ciclo(k) - 2)
+	if Ritmo.t_musica() < alvo + float(_robo_atraso[l]):
+		return
+	var sentido := _mais_votado(l)   # o chão que a mão sentiu, ou -1
+	var d := -1
+	if sentido >= 0:
+		d = (_trilhas[l] as Array).find(sentido)
+	if d < 0:
+		if Forja.bancada:
+			Forja.robo_apertar(l, Forja.TOUCHPAD, 0.08)   # «não senti»
+			_robo_k[l] = k
+			return
+		d = _robo_rng.randi_range(0, 2)
+	if not _robo_certo[l] and float(_robo_atraso[l]) == 0.0:
+		d = (d + 1 + _robo_rng.randi_range(0, 1)) % 3   # erra a trilha
+	Forja.robo_apertar(l, DIRECAO[d], 0.08)
+	_robo_k[l] = k
 
 
-func _respondeu(l: int, n: int, resposta: String) -> void:
-	anotar("entrada", l, {"o": "resposta", "n": n, "resposta": resposta})  # o que o jogador fez com a pista (13, H08)
+# O envelope de cada passo na placa virtual vota num chão. A senha anda de um
+# atuador para o outro, então o ramo «um lado só» de hoje sai: todo passo vota.
+func _robo_sentir(l: int) -> void:
+	var v := Forja.som_virtual(l)
+	var esq := float(v.get("esq", 0.0))
+	var dir := float(v.get("dir", 0.0))
+	var nivel := maxf(esq, dir)
+	var env: Array = _robo_env[l]
+	if not _robo_gravando[l] and nivel > 0.05:
+		_robo_gravando[l] = true
+		env.clear()
+		env.append(0.0)
+		env.append(0.0)
+		_robo_somas[l] = Vector2.ZERO
+		_robo_silencio[l] = 0
+	if not _robo_gravando[l]:
+		return
+	if env.size() < ENV_MAX:
+		env.append(nivel)
+	_robo_somas[l] += Vector2(esq, dir)
+	_robo_silencio[l] = int(_robo_silencio[l]) + 1 if nivel < 0.02 else 0
+	# 0,2 s de silêncio fecham o passo: a água tem um vão de 0,1 s entre as duas ondas
+	if int(_robo_silencio[l]) < 12 and env.size() < ENV_MAX:
+		return
+	_robo_gravando[l] = false
+	if (_robo_somas[l] as Vector2).length() <= 0.0:
+		return
+	var c := Forja.chao_do_envelope(PackedFloat32Array(env))
+	if c >= 0 and c < 4:
+		_robo_votos[l][c] = int(_robo_votos[l][c]) + 1
+
+
+func _mais_votado(l: int) -> int:
+	var votos: Array = _robo_votos[l]
+	var m := -1
+	for c in 4:
+		if int(votos[c]) > 0 and (m < 0 or int(votos[c]) > int(votos[m])):
+			m = c
+	return m
 ```
 
-A senha: `_pista(l, "passo:%d:%d" % [s, v], "passo:%d:%d" % [s, v], RUMBLE_CHAO[s], k, NOME_CHAO[s])`.
+## A falha
 
-**A casa nova e o catálogo** (o molde, "Onde mora"):
+- **«lama»** (trilha errada): o grito da seção, em «A diversão». A recuperação: a bifurcação seguinte se perde
+  (`_lama[l] = k + 1`), com o tempo de queda do `levantar`.
+- **«parou»** (atrasou, adiantou demais ou não escolheu): `emote-no` (0,6 s) diante das placas; não avança; a próxima
+  bifurcação vem normal.
 
-1. `godot/scripts/minigames/s07/os_caminhos.gd` criado; importe
-   (`"$GODOT" --headless --path godot --import --quit`) e commite o `.uid`.
-2. `godot/scripts/minigames/catalogo.gd`: `"S07_J31": preload("res://scripts/minigames/s07/os_caminhos.gd")`
-   em `MINIGAMES`; `"minigames": ["S07_J31"]` na seção `S07`; tire
-   `"caminhos"` de `SALAS_ANTIGAS`.
-3. `git rm godot/scripts/salas/caminhos.gd godot/scripts/salas/caminhos.gd.uid`;
-   `grep -rn "SalaCaminhos" godot/` tem de dar vazio.
-4. `godot/scripts/traducoes.gd`: `"Os Caminhos": "The Paths"`,
-   `"Sinta o chão!": "Feel the ground!"`, `"Sinta!": "Feel!"`,
-   `"Chegou": "Made it"`, e tire as frases que só a sala de hoje usava
-   (`"Que chão é esse?"`, `"treino: sinta %s"`, `"tropeçou!"`...) se nenhum
-   outro script as usa (`grep -rn`).
+## O fim e o vencedor
 
-A dica (`dica(l)`, com a guarda `if not na_raia(l): return {}`): na escolha,
-`{"partes": ["@dpad_left", "@dpad_up", "@dpad_right"], "pos": Vector3(RAIAS[l], 0, 4.6)}`
-enquanto `not aprendeu(l)`; nada depois. O `status(l)`: `"%d de %d" % [floor(_dist[l]), META]`,
-ou `"Chegou"`. Nenhuma frase fala de chão, de háptica ou de controle.
+Quem passa do `META` chega. Na primeira chegada, os outros correm mais `CORTESIA` = 8 batidas (dois compassos), e todos
+acabam. Sem chegada, o kit fecha aos 100 s de música. `vencedor()`: a ordem de `_chegada`, depois os outros pela
+distância, e pelos pontos no empate.
+
+## Com menos de quatro
+
+- **3, 2, 1:** a regra não muda; o hoqueto espalha as escolhas pelas posições em `presentes()` (com dois, batidas 2 e 4
+  de cada ciclo). Com um, ele corre contra o portão e vence ao chegar, ou ao fim, pela distância.
+- **O controle que cai:** a nota de quem está sem controle não vira erro (`_fora[l] = true`). Quando volta, as
+  bifurcações já começadas são puladas sem registro, e a próxima vem normal.
+- **Duplas:** não há.
 
 ## O que o registro mede
 
-- `pista` `mandou` de cada senha (`o_que` = o chão, `canal`), e
-  a `entrada` `resposta` com `certo`/`errado`/`nenhuma` — a pergunta antiga, respondida
-  com os pés;
+- `pista` `mandou` de cada senha (`o_que` = o chão, `canal`), e a `entrada` `resposta` (`certo`, `errado`, `nenhuma`);
 - `troca` quando o lugar não tem placa;
-- `som_controle` de cada passo (a H07, com `placa`), `nota` e `toque` (o kit);
+- `som_controle` de cada passo (H07, com `placa`), `nota` e `toque` (o kit);
+- `momento` `lama` e `reta`;
 - o veredito `haptica_audio` (a bancada), calculado nos dois modos.
-
-As linhas `pista` e `troca` são as do [13](../13-arquitetura.md#as-decisões-comuns-dos-minigames--h08)
-(H08): a `pista` com `n`, `evento` `mandou`, `canal` e `o_que` (a resposta é a `entrada` `resposta`);
-a `troca` com `de` e `para` (`haptica` → `rumble`) e o `motivo` junto
-(`sem_placa`, `sem_estereo`).
 
 ## Armadilhas
 
-- **O robô sorteia no dele.** `var _robo_rng := RandomNumberGenerator.new()`, com
-  `_robo_rng.seed = rng.seed + 99` no `iniciar_jogo()`: o `rng` do kit é do jogo
-  (os caminhos, os lados, o Aprendiz), e o robô não pode mudar o que o jogo sorteia
-  (a paridade: com robô ou com gente, o mesmo jogo).
-- **A cauda do metal.** O passo de metal soa por 0,55 s; os dois passos da
-  senha ficam a 2 batidas (1 s) um do outro para o envelope fechar entre eles
-  (0,2 s de silêncio). No pico, só um passo. Não aproxime.
-- **O acerto do kit também toca na háptica** (`material:pedra`, 60 ms, na
-  batida da escolha). Ele cai 2 batidas antes da próxima senha: os votos do
-  robô zeram em `_nova_bifurcacao`, depois dele.
-- **A placa virtual e o relógio.** Com `--fixed-fps 60` o jogo anda ~16 vezes
-  mais depressa que a música. Meça antes de confiar no `_robo_sentir`: ponha
-  um `print` do tamanho do envelope por passo numa rodada da prova; se passar
-  de `ENV_MAX` (a placa virtual anda pelo relógio de parede), feche o
-  envelope por tempo de música (0,2 s de `Ritmo.t_musica()`) em vez de 12
-  quadros. Anote na ficha o que mediu.
-- **A prova fica mais longa.** Como o fim é pela música (H08), a corrida
-  inteira roda na prova (até 100 s de relógio, nas duas rodadas). É o
-  preço de o `haptica_audio` sair medido; se o `timeout 1200` do
-  `tests/prova_do_jogo.sh` apertar, anote e avise — não encurte a corrida
-  (a regra 7 da paridade).
-- **`rng` por lugar.** A ordem das chamadas muda com o quadro; cada lugar tem
-  o seu `RandomNumberGenerator` (a semente do kit + o lugar), senão o caminho
-  muda de uma rodada para outra.
-- **Não chame `errou()`** nem `Forja.vibrar`: o Escudo e as sensações são do
-  kit.
-- **As provas que falam `caminhos`**: `--sala=caminhos` continua abrindo (o
-  apelido); `_joga_a_sala("caminhos", ["haptica_audio"])` da prova passa a
-  abrir o `S07_J31` (`_e_a_sala`, H04).
+- **O robô sorteia no dele** (`_robo_rng`, semente do kit + 99): com robô ou com gente, o mesmo jogo.
+- **A cauda do metal.** O passo de metal soa por 0,55 s; os dois passos ficam a 2 batidas (1 s) para o envelope fechar
+  entre eles (0,2 s de silêncio). Não aproxime.
+- **O acerto do kit também toca na háptica** (`material:pedra`, 60 ms, na escolha), 2 batidas antes da próxima senha:
+  os votos zeram em `_nova_bifurcacao`, depois dele.
+- **A placa virtual e o relógio.** Com `--fixed-fps 60` o jogo anda cerca de 16 vezes mais depressa que a música. Meça
+  o tamanho do envelope por passo numa rodada da prova; se passar de `ENV_MAX`, feche o envelope por 0,2 s de
+  `Ritmo.t_musica()` em vez de 12 quadros, e anote aqui o que mediu.
+- **A prova fica mais longa:** a corrida inteira roda (até 100 s de relógio). Se o `timeout 1200` de
+  `tests/prova_do_jogo.sh` apertar, anote e avise; não encurte a corrida.
+- **Não chame `errou()`** nem `Forja.vibrar`: o Escudo e as sensações são do kit.
+- **`--sala=caminhos`** continua abrindo, pelo apelido, o `S07_J31`.
 
 ## Pronto quando
 
-`--sala=caminhos` abre Os Caminhos no kit; joga do aviso ao resultado com 4, 3,
-2 e 1 jogador e com o robô nos três temperamentos; aguenta o cabo que cai e
-volta; fecha com vencedor; nenhuma pergunta aparece fora da bancada; com
-`--bancada` o `haptica_audio` sai PASSOU com o robô bom e cai com o defeito de
-mentira da háptica (o gauntlet); `salas/caminhos.gd` e o `.uid` saíram;
-`bash tests/prova_do_jogo.sh` e `bash tests/prova_visual.sh` passam, e a
-prancha foi olhada (Os Caminhos nas partidas com quatro, dois, um e o cabo
-que cai: as placas acesas, o boneco andando, o portão).
+`--sala=caminhos` abre Os Caminhos no kit e joga do aviso ao resultado com 4, 3, 2 e 1 jogador e com o robô nos três
+temperamentos; aguenta o cabo que cai; fecha com vencedor; nenhuma pergunta aparece fora da bancada; com `--bancada` o
+`haptica_audio` sai PASSOU com o robô bom e cai com o defeito de mentira da háptica; a senha anda (esquerda em `b0`,
+direita em `b0 + 2`); `salas/caminhos.gd` saiu; a mesa padrão grava pelo menos 4 `momento` `lama`; e as provas abaixo
+passam com a prancha olhada.
 
 ## Provas
 
-Em `godot/testes/prova_do_jogo.gd`:
+`_prova_os_caminhos()` em `godot/testes/prova_do_jogo.gd`, chamada pelo `match` de `_prova_da_ficha(slot)`:
+`"S07_J31": await _prova_os_caminhos()`. Não entra no percurso.
 
-1. **A espera pelo relógio de parede** é a da H08 (o `_joga_o_minigame`, e o
-   `_termina_a_sala` e a prova de poucos com a mesma espera): Os Caminhos
-   acabam pela música (até 100 s). Esta ficha não mexe nelas.
+```gdscript
+## S07_J31: a senha anda na mão (esquerda, depois direita), o robô escolhe
+## trilhas, nenhuma pergunta fora da bancada, e o haptica_audio sai das trilhas.
+func _prova_os_caminhos() -> void:
+	var esq_so := [false, false, false, false]
+	var dir_so := [false, false, false, false]
+	var vazou := [0]
+	var olhar := func(mg: Minigame) -> void:
+		var b := Ritmo.batida()
+		for l in mg.presentes():
+			if mg._no_pico(mg._k[l]) or mg._reto[l] or mg._lama[l] == mg._k[l]:
+				continue
+			var v := Forja.som_virtual(l)
+			var e := float(v.get("esq", 0.0))
+			var d := float(v.get("dir", 0.0))
+			var b0: float = mg._b0[l]
+			if b >= b0 and b < b0 + 0.3 and e > 0.05:
+				esq_so[l] = true
+				if d >= 0.02:
+					vazou[0] += 1
+			if b >= b0 + 2.0 and b < b0 + 2.3 and d > 0.05:
+				dir_so[l] = true
+				if e >= 0.02:
+					vazou[0] += 1
+	var mg := await _joga_o_minigame("S07_J31", 140.0, olhar)
+	if mg == null:
+		return
+	_esperar(esq_so.all(func(s): return s), "S07_J31: o 1º passo chegou só à esquerda dos quatro %s" % [esq_so])
+	_esperar(dir_so.all(func(s): return s), "S07_J31: o 2º passo chegou só à direita dos quatro %s" % [dir_so])
+	_esperar(vazou[0] == 0, "S07_J31: nenhum passo vazou para o outro atuador (%d)" % vazou[0])
+	_confere_os_vereditos(mg, ["haptica_audio"])
+```
 
-2. **`_prova_os_caminhos()`**, no lugar do bloco "Os Caminhos, às cegas"
-   (o tropeço saiu):
+No `_prova_do_relatorio()`, no laço da linha do tempo: as `pista` com `slot == "S07_J31"` e `evento == "mandou"` são
+≥ 8 e todas `canal == "haptica"`; as `entrada` `resposta` com `resposta == "certo"` são ≥ 4; há ≥ 1 `momento` `lama` e
+1 `momento` `reta`; não há `troca` desse slot.
 
-   ```gdscript
-   ## S07_J31: a senha chega aos dois atuadores de cada um (a placa virtual), o
-   ## robô escolhe trilhas, nenhuma pergunta aparece fora da bancada, e o
-   ## haptica_audio sai PASSOU pelas trilhas escolhidas.
-   func _prova_os_caminhos() -> void:
-   	var sala = await _comeca_a_sala("caminhos")
-   	if sala == null:
-   		return
-   	_esperar(sala.id == "S07_J31", "caminhos: o apelido abre o S07_J31")
-   	var sentiu := [false, false, false, false]
-   	var perguntou := false
-   	var inicio := Time.get_ticks_usec()
-   	while is_instance_valid(sala) and sala.fase == "jogo" and not sentiu.all(func(s): return s) \
-   			and Time.get_ticks_usec() - inicio < 30000000:
-   		for l in 4:
-   			var v := Forja.som_virtual(l)
-   			if float(v.get("esq", 0.0)) > 0.05 and float(v.get("dir", 0.0)) > 0.05:
-   				sentiu[l] = true
-   			if not Forja.bancada and not sala.pergunta(l).is_empty():
-   				perguntou = true
-   		await _quadros(1)
-   	_esperar(sentiu.all(func(s): return s), "caminhos: a senha chegou aos dois atuadores dos quatro %s" % [sentiu])
-   	_esperar(not perguntou, "caminhos: nenhuma pergunta fora da bancada")
-   	await _termina_a_sala(sala, ["haptica_audio"])
-   ```
+Os comandos:
 
-   (`_esperar` imprime cada chamada: por isso a pergunta vira uma variável e
-   uma checagem só, no fim.)
-3. **No `_prova_do_relatorio()`**, no laço da linha do tempo: as `pista` com
-   `slot == "S07_J31"` e `evento == "mandou"` são ≥ 8 e todas `canal == "haptica"`
-   (a placa virtual existe), as `entrada` `resposta` com `resposta == "certo"` são ≥ 4,
-   e não há `troca` desse slot.
-
-`bash tests/prova_do_jogo.sh` e `bash tests/prova_visual.sh`.
-
-**Com o André (local):** `scripts/gauntlet.sh` e `bash tests/prova_de_poucos.sh`
-(é sala da seção: os dois); `./run-local.sh -- --sala=caminhos`. Ele joga com
-um controle no cabo e um no rádio: no cabo, cada chão tem de ser outro na mão
-(grama macia, cascalho em estalos, metal que ressoa, água em duas ondas) e a
-escolha tem de dar para fazer de olhos fechados para a senha; no rádio, a
-senha pelo rumble tem de ser aprendível no treino. A descida (o pico) tem de
-se sentir mais rápida, não mais confusa.
+1. `SALA=S07_J31 bash tests/prova_do_jogo.sh`
+2. `bash tests/prova_visual.sh`, e olhar a prancha `SAIDA/prancha-<n>.png` (480 × 270 a cada 2 s, 6 colunas) nas
+   partidas com quatro (`bom` e `ruim`), com dois (`medio`), com um e com o cabo que cai. O que se olha: as três placas
+   com chãos diferentes, o cavaleiro andando, a caixa de lama em 1 quadro de cada 4, as peças do cavaleiro com as tintas
+   da montagem em todo quadro, e o portão.
+3. Na máquina do André: `scripts/gauntlet.sh` e `bash tests/prova_de_poucos.sh`; `./run-local.sh -- --sala=caminhos`
+   com um controle no cabo e um no rádio. No cabo, o passo tem de atravessar a palma da esquerda para a direita, e cada
+   chão tem de ser outro na mão.
 
 ## Ao terminar
 
 - No [quadro](README.md), a linha O1: **feito**, com o commit.
-- Commit sugerido (sem trailer):
-  `feat: Os Caminhos no kit — a senha na mão escolhe a trilha, sem pergunta`
+- Commit sugerido: `feat(caminhos): Os Caminhos no kit, a senha anda na mão e escolhe a trilha`
