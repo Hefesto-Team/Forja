@@ -163,6 +163,33 @@ static void provas_do_sysfs(void) {
   snprintf(d, sizeof(d), "%s/class/input/event21/device", raiz);
   espera(symlink(c, d) == 0, "symlink do event21");
 
+  /* o mesmo DualSense do cabo, pelo evdev (a WU03): o aparelho HID publica o
+   * input30 e, ao lado, o hidraw3; o /dev de mentira tem o nó do hidraw3 */
+  char hid[1200];
+  snprintf(hid, sizeof(hid), "%s/devices/usb3/3-4/3-4:1.3/0003:054C:0CE6.0001", raiz);
+  snprintf(d, sizeof(d), "%s/hidraw/hidraw3", hid);
+  mkdir_p(d);
+  snprintf(c, sizeof(c), "%s/input/input30/id", hid);
+  mkdir_p(c);
+  snprintf(c, sizeof(c), "%s/input/input30", hid);
+  snprintf(d, sizeof(d), "%s/name", c);
+  escreve(d, "Sony Interactive Entertainment DualSense Wireless Controller\n");
+  snprintf(d, sizeof(d), "%s/id/bustype", c);
+  escreve(d, "0003\n");
+  snprintf(d, sizeof(d), "%s/id/vendor", c);
+  escreve(d, "054c\n");
+  snprintf(d, sizeof(d), "%s/id/product", c);
+  escreve(d, "0ce6\n");
+  snprintf(d, sizeof(d), "%s/class/input/event30", raiz);
+  mkdir_p(d);
+  snprintf(d, sizeof(d), "%s/class/input/event30/device", raiz);
+  espera(symlink(c, d) == 0, "symlink do event30");
+  char dev[1100], no[1200];
+  snprintf(dev, sizeof(dev), "%s/dev", raiz);
+  mkdir_p(dev);
+  snprintf(no, sizeof(no), "%s/hidraw3", dev);
+  escreve(no, "");
+
   setenv("FORJA_SYSFS", raiz, 1);
 
   OrigemFatos f;
@@ -188,6 +215,34 @@ static void provas_do_sysfs(void) {
   espera(origem_fatos_linux("/dev/input/event21", &f) == 1, "acha o event21");
   origem_classificar(&f, &o);
   espera(o.tipo == ORIGEM_XBOX_VIRTUAL_UINPUT, "Xbox virtual por uinput");
+  espera(!f.hidraw_sem_permissao, "o Xbox não é da Sony: nada a conferir no hidraw");
+
+  /* a WU03: o DualSense que chegou pelo evdev, com o hidraw irmão trancado */
+  setenv("FORJA_DEV", dev, 1);
+  espera(chmod(no, 0444) == 0, "o nó do hidraw3 sem escrita");
+  memset(&f, 0, sizeof(f));
+  espera(origem_fatos_linux("/dev/input/event30", &f) == 1, "acha o event30");
+  espera(f.vid == 0x054c && f.pid == 0x0ce6, "o evdev é do DualSense");
+  origem_classificar(&f, &o);
+  if (geteuid() == 0) {
+    /* como root o access() deixa escrever em tudo: a falta não se mede aqui */
+    printf("  (como root, a falta de permissão não se mede: só o caminho do hidraw irmão)\n");
+  } else {
+    espera(f.hidraw_sem_permissao, "o hidraw irmão sem escrita: hidraw_sem_permissao");
+    espera(o.hidraw_sem_permissao, "e a origem carrega a causa");
+  }
+  espera(chmod(no, 0666) == 0, "o nó do hidraw3 com escrita");
+  memset(&f, 0, sizeof(f));
+  origem_fatos_linux("/dev/input/event30", &f);
+  espera(!f.hidraw_sem_permissao, "com escrita no hidraw irmão, nada a dizer");
+  espera(unlink(no) == 0, "o nó do hidraw3 some");
+  memset(&f, 0, sizeof(f));
+  origem_fatos_linux("/dev/input/event30", &f);
+  espera(!f.hidraw_sem_permissao, "o nó que não existe não é falta de permissão");
+  memset(&f, 0, sizeof(f));
+  origem_fatos_linux("/dev/hidraw3", &f);
+  espera(!f.hidraw_sem_permissao, "pelo hidraw, o SDL já abriu: nada a conferir");
+  unsetenv("FORJA_DEV");
 
   memset(&f, 0, sizeof(f));
   espera(origem_fatos_linux("/dev/hidraw99", &f) == 0, "o que não existe não é achado");

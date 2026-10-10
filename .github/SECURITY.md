@@ -27,7 +27,7 @@ Só a versão mais recente dos pacotes publicados na página de releases.
 ## O que conta como falha de segurança
 
 - O jogo ou o módulo nativo executar código de fora, ou abrir arquivo fora da pasta do jogo, a partir de um dado que um jogador ou um arquivo de perfil controla.
-- As regras do udev que vêm no pacote (`udev/99-forja-dualsense.rules`) darem acesso a mais do que o controle.
+- As regras do udev que vêm no pacote (`udev/70-forja-dualsense.rules`) darem acesso a mais do que o controle.
 - Um pacote publicado que não bate com o código do repositório.
 
 ## O que não conta

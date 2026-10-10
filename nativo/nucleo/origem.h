@@ -64,6 +64,10 @@ typedef struct OrigemFatos {
   int conexao_sdl;        /* 0 desconhecida, 1 com fio, 2 sem fio */
   int windows;            /* build Windows */
   int wine;               /* Windows sob Wine/Proton */
+  /* 1 quando o controle da Sony chegou ao SDL pelo evdev e o hidraw irmão (o
+   * mesmo aparelho HID) existe e não dá leitura e escrita a quem joga: o SDL
+   * cai no driver genérico, e os efeitos não chegam (Linux; a WU03) */
+  int hidraw_sem_permissao;
 } OrigemFatos;
 
 typedef struct Origem {
@@ -71,6 +75,7 @@ typedef struct Origem {
   Conexao conexao;
   int inferida; /* 1 quando não veio do sysfs */
   char evidencia[160];
+  int hidraw_sem_permissao; /* copiado dos fatos: a causa do «efeitos não» */
 } Origem;
 
 void origem_classificar(const OrigemFatos *f, Origem *out);
@@ -90,6 +95,8 @@ int origem_aceitar_na_sessao(int so_virtuais, int virtual_do_sdl);
 
 /* A raiz do sysfs: FORJA_SYSFS (as provas montam um sysfs de mentira) ou /sys. */
 const char *origem_raiz_sysfs(void);
+/* A pasta dos nós: FORJA_DEV (as provas montam um /dev de mentira) ou /dev. */
+const char *origem_raiz_dev(void);
 
 /* Linux: coleta os fatos a partir do caminho do SDL ("/dev/hidraw5",
  * "/dev/input/event12"). Devolve 1 se achou o dispositivo no sysfs. Nas outras

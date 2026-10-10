@@ -228,6 +228,7 @@ static void preencher_relatorio(Forja *a, int slot) {
   c->giro_declarado_hz = p->giro_hz_declarado;
   c->acel_declarado_hz = p->acel_hz_declarado;
   c->reconexoes = a->pads.slot[slot].reconexoes;
+  c->hidraw_sem_permissao = p->origem.hidraw_sem_permissao;
   forja_relatorio_mudou(a);
 }
 
@@ -374,6 +375,8 @@ static void conectou(Forja *a, SDL_JoystickID id) {
             p->cap_efeitos ? "sim" : "não", p->cap_giro ? "sim" : "não", p->giro_hz_declarado,
             p->cap_touch ? "sim" : "não", p->fw,
             p->rumble_escala_cheia ? "inteiro" : "pela metade (firmware abaixo de 2.24)", pad_transporte(p));
+  if (p->origem.hidraw_sem_permissao)
+    reg_linha(&a->reg, "%s: %s (falta a regra do udev)", p->nome, REL_CAUSA_HIDRAW);
   if (a->pads.contrato_estrito && p->origem.conexao == CONEXAO_BT && origem_eh_dualsense(p->origem.tipo))
     reg_linha(&a->reg, "%s: no rádio, só entrada — este jogo não fala o relatório 0x31. ligue o "
                        "DualSense no cabo, ou um DualSense virtual USB.",

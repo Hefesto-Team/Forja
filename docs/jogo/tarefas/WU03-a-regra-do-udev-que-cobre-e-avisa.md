@@ -96,3 +96,58 @@ religar o controle: «efeitos sim» no cabo.
 
 Marcar WU03 como **feito** no [quadro](README.md), com o commit e o gasto. Commit sugerido:
 `fix(udev): a regra cobre cabo, rádio e uhid só para quem está na máquina, e a falta é dita`.
+
+## O que foi feito (leva 1, a-entrega)
+
+- **A regra:** `udev/99-forja-dualsense.rules` virou `udev/70-forja-dualsense.rules`. São quatro linhas, cabo
+  (`ATTRS{idVendor}`/`ATTRS{idProduct}`) e rádio com uhid (`KERNELS=="*054C:0CE6*"`, `"*054C:0DF2*"`), todas com
+  `MODE="0660", TAG+="uaccess"` e sem `GROUP`. O número 70 vem do `uaccess`: a marca só vale se chegar antes do
+  `73-seat-late.rules`, e com o 99 ela não valeria. O `udevadm verify` passa. A trava da máquina dela
+  (`73-hefesto-ps5-controller.rules`, com `MODE:="0600"` e `TAG-="uaccess"`) roda depois da 70 e antes da
+  `73-seat-late`, então segue vencendo. Isso foi lido na ordem dos arquivos; o `udevadm test` pede a regra
+  instalada, e nada foi instalado nesta máquina.
+- **O portão:** `scripts/portoes/udev.py` (base, reprova) reprova:
+  - modo que dá escrita a «outros», ou `GROUP=`;
+  - linha de hidraw sem `uaccess`;
+  - falta da linha do cabo ou da do rádio e do uhid, do DualSense ou do Edge;
+  - número de 73 para cima, ou nenhuma regra.
+
+  Entrou no `rodar.sh`, no LEIA-ME dos portões e na `tests/prova_dos_portoes.sh`, com seis casos.
+- **O instalar:**
+  - `sistema` põe a regra em `/etc/udev/rules.d/` no mesmo sudo, mesmo quando nenhum pacote falta. Tira a
+    `99-forja-dualsense.rules` antiga se ela estiver lá, recarrega o udev, reaplica no hidraw e anota o arquivo em
+    `oficina/arquivos-do-sistema.txt`. Com `DESTDIR`, vai para a raiz falsa sem sudo e sem recarga;
+  - `conferir` ganhou «O controle»: para cada hidraw com `HID_ID` de 054C:0CE6 ou 054C:0DF2, faz o teste
+    `-r`/`-w` sem abrir o nó, e diz «falta a regra do udev (os efeitos do controle)»;
+  - `desinstalar` tira o que está anotado.
+
+  `FORJA_SYSFS` e `FORJA_DEV` trocam o `/sys` e o `/dev` que ele lê.
+- **O módulo:** `origem_linux.c`, quando um controle da Sony chega por `/dev/input/event*`, sobe até quatro pais no
+  sysfs atrás do `hidraw/hidrawN` irmão. Ele testa `access(R_OK|W_OK)` no nó (sem abrir), em `origem_raiz_dev()`, que
+  é o `FORJA_DEV` ou o `/dev`. `OrigemFatos` e `Origem` ganham `hidraw_sem_permissao`. Com o campo ligado:
+  - o registro diz «<controle>: sem permissão no hidraw: os efeitos não chegam (falta a regra do udev)»;
+  - o JSON do relatório ganha `"causa_sem_efeitos"`, com a frase ou `null`;
+  - o texto do relatório ganha a linha `efeitos       sem permissão no hidraw: os efeitos não chegam`.
+
+  A tela não muda.
+- **O texto do pacote:** o LEIA-ME do Linux diz o que o `COMO-RODAR.md` diz: sem a regra, os botões chegam, mas
+  gatilhos, barra de luz, luzinhas e report cru não. Ele também diz que a regra vale só para quem está na
+  máquina, e manda religar o controle. O nome novo está em `exportar.sh`, `COMO-RODAR.md`, `docs/DESENVOLVER.md`
+  e `.github/SECURITY.md`.
+- **As provas e as mordidas:**
+  - `prova_origem.c`: um sysfs de mentira com o evdev 054c:0ce6, o hidraw irmão e um `/dev` de mentira. Com 0444,
+    o campo liga; com 0666, sem o nó, ou com o `/dev` de verdade, não liga. Como root, o caso trancado é pulado;
+  - `prova_relatorio.c`: a causa e o `null` no JSON, e a linha no texto;
+  - `tests/prova_das_ferramentas.sh instalar`: 13 casos numa raiz falsa, com sudo, apt-get, dpkg e udevadm de
+    mentira no PATH.
+
+  Cada prova foi quebrada de propósito e reprovou:
+  - o teste do `access` desligado dá 4 falhas nas provas nativas;
+  - o `-w` tirado do `conferir` e a regra antiga deixada para trás dão 2 falhas no `instalar`;
+  - a checagem do modo e a do rádio desligadas no portão dão 2 falhas na prova dos portões.
+- **Fica para ela:**
+  - na máquina dela, o `instalar.sh conferir` vai dizer que falta a regra para o DualSense físico. É a trava dela
+    (0600, de propósito), e a regra do jogo não a vence;
+  - validar o número 70 e a variável nova `FORJA_DEV`.
+- **Fica para o André:** o passo da seção «Para o André». Num PC sem a Steam: primeiro o relatório com a causa,
+  depois `scripts/instalar.sh sistema`, religar o controle e ver «efeitos sim» no cabo.

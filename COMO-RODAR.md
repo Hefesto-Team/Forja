@@ -58,7 +58,7 @@ As provas do jogo inteiro (o gauntlet, a bancada e a exportação) estão no
 Se `forja-send` imprimir `Permission denied`:
 
 ```bash
-sudo cp udev/99-forja-dualsense.rules /etc/udev/rules.d/
+sudo cp udev/70-forja-dualsense.rules /etc/udev/rules.d/
 sudo udevadm control --reload-rules
 sudo udevadm trigger
 ```

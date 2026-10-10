@@ -128,6 +128,9 @@ static void json_controle(TextoBuf *b, const RelControle *c, int ultimo) {
   tb_texto(b, ",\n      \"bateria\": ");
   tb_json_str(b, c->bateria[0] ? c->bateria : NULL);
   tb_printf(b, ",\n      \"reconexoes\": %d,\n", c->reconexoes);
+  tb_texto(b, "      \"causa_sem_efeitos\": ");
+  tb_json_str(b, c->hidraw_sem_permissao ? REL_CAUSA_HIDRAW : NULL);
+  tb_texto(b, ",\n");
   json_hz(b, "giroscopio_hz_declarado_pelo_sdl", c->giro_declarado_hz, 0);
   json_hz(b, "giroscopio_hz_medido_relogio_do_host", c->giro_medido_hz, 0);
   json_hz(b, "giroscopio_hz_medido_relogio_do_controle", c->giro_medido_relogio_hz, 0);
@@ -308,6 +311,8 @@ int rel_texto(const Relatorio *r, char **saida, size_t *tam) {
     texto_som(&b, "háptica", &c->haptica);
     if (c->reconexoes)
       tb_printf(&b, "    reconexões    %d\n", c->reconexoes);
+    if (c->hidraw_sem_permissao)
+      tb_printf(&b, "    efeitos       %s\n", REL_CAUSA_HIDRAW);
   }
   if (!algum)
     tb_texto(&b, "(nenhum controle entrou nesta sessão)\n");

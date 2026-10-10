@@ -134,6 +134,7 @@ void provas_relatorio(void) {
   c3->presente = 1;
   rel_copiar(c3->nome, sizeof(c3->nome), "DualSense \"aspas\" \\ barra\ttab");
   rel_copiar(c3->evidencia, sizeof(c3->evidencia), "phys 02:3a:9a:12:34:ab");
+  c3->hidraw_sem_permissao = 1; /* a WU03: o relatório diz a causa do «efeitos não» */
 
   espera(strcmp(c3->evidencia, "phys 02:3a:9a:00:00:ab") == 0, "o relatório mascara na entrada");
 
@@ -170,6 +171,9 @@ void provas_relatorio(void) {
     espera(linhas == 2 * F_TOTAL, "a matriz tem toda feature de todo controle presente");
     espera(strstr(json, "\"motivo\": \"a sala não foi jogada com este controle\"") != NULL,
            "o não medido traz o motivo");
+    espera(strstr(json, "\"causa_sem_efeitos\": \"" REL_CAUSA_HIDRAW "\"") != NULL,
+           "o JSON diz a causa do hidraw sem permissão");
+    espera(strstr(json, "\"causa_sem_efeitos\": null") != NULL, "e null no controle que tem permissão");
     free(json);
   }
 
@@ -180,6 +184,7 @@ void provas_relatorio(void) {
     espera(strstr(txt, "Giroscópio: passou") != NULL, "o detalhe diz o veredito");
     espera(strstr(txt, "não medido — a sala") != NULL, "e diz o que não foi medido");
     espera(strstr(txt, "--semente 42") != NULL, "e como refazer os sorteios");
+    espera(strstr(txt, "efeitos       " REL_CAUSA_HIDRAW) != NULL, "o texto diz a causa do hidraw");
     free(txt);
   }
   rel_liberar(&r);

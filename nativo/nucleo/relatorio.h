@@ -65,7 +65,12 @@ typedef struct RelControle {
   double acel_declarado_hz, acel_medido_hz;
   RelSom alto_falante, microfone, haptica;
   int reconexoes;
+  int hidraw_sem_permissao; /* a causa do «efeitos não»: REL_CAUSA_HIDRAW */
 } RelControle;
+
+/* A causa, no registro e no relatório, quando o hidraw do controle da Sony não
+ * dá leitura e escrita a quem joga (a WU03). Fica fora da tela. */
+#define REL_CAUSA_HIDRAW "sem permissão no hidraw: os efeitos não chegam"
 
 typedef struct RelItem {
   int jogador; /* 1..4 */

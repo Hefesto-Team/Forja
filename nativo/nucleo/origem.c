@@ -20,6 +20,11 @@ const char *origem_raiz_sysfs(void) {
   return (raiz && raiz[0]) ? raiz : "/sys";
 }
 
+const char *origem_raiz_dev(void) {
+  const char *raiz = getenv("FORJA_DEV");
+  return (raiz && raiz[0]) ? raiz : "/dev";
+}
+
 const char *origem_rotulo(OrigemTipo t) {
   switch (t) {
   case ORIGEM_DUALSENSE_NATIVO:
@@ -140,6 +145,7 @@ static void classificar_windows(const OrigemFatos *f, Origem *o) {
 
 void origem_classificar(const OrigemFatos *f, Origem *o) {
   memset(o, 0, sizeof(*o));
+  o->hidraw_sem_permissao = f->hidraw_sem_permissao;
   if (!f->tem_sysfs) {
     if (f->windows) {
       classificar_windows(f, o);

@@ -391,7 +391,7 @@ curto_tree() { # <pasta> <rc do portão barulhento>
   mkdir -p "$1/scripts/portoes" "$1/tests"
   cp "$P/rodar.sh" "$1/scripts/portoes/"
   local quieto='print("quieto: 0 achados")'
-  for g in mensagens_de_commit ficha_pronta teste_mudo caixa arte; do echo "$quieto" > "$1/scripts/portoes/$g.py"; done
+  for g in mensagens_de_commit ficha_pronta teste_mudo caixa arte udev; do echo "$quieto" > "$1/scripts/portoes/$g.py"; done
   echo "$quieto" > "$1/scripts/check_texto_de_tela.py"
   printf '#!/usr/bin/env bash\necho "ok   sem rastro"\n' > "$1/tests/prova_sem_rastro.sh"
   printf 'import sys\nfor i in range(500):\n    print(f"AVISO som: docs/x{i}.md: um aviso velho")\nprint("FAIL som: docs/novo.md: o achado novo")\nprint("som: 501 achados")\nsys.exit(%s)\n' "$2" \
@@ -417,6 +417,31 @@ A="$(arvore curto-ok)"; curto_tree "$A" 0
 espera 0 "rodar.sh: com os portões em ok dá 0" bash "$A/scripts/portoes/rodar.sh"
 A="$(arvore curto-erro)"; curto_tree "$A" 2
 espera 2 "rodar.sh: o portão que não conferiu dá 2" bash "$A/scripts/portoes/rodar.sh"
+
+# --- a regra do udev (WU03) -------------------------------------------------------------------------------------
+regra_tree() { # <pasta> <nome do arquivo> [linhas da regra]: sem linhas, a regra de verdade do repositório
+  mkdir -p "$1/udev"
+  if [ $# -ge 3 ]; then printf '%s\n' "$3" > "$1/udev/$2"; else cp "$RAIZ"/udev/*-forja-dualsense.rules "$1/udev/$2"; fi
+}
+A="$(arvore udev-velha)"; regra_tree "$A" 99-forja-dualsense.rules \
+'KERNEL=="hidraw*", ATTRS{idVendor}=="054c", ATTRS{idProduct}=="0ce6", MODE="0666", GROUP="plugdev"
+KERNEL=="hidraw*", ATTRS{idVendor}=="054c", ATTRS{idProduct}=="0df2", MODE="0666", GROUP="plugdev"'
+espera 1 "regra do udev: reprova a regra de antes (0666, plugdev, sem uaccess, sem o rádio, o 99)" \
+  python3 "$P/udev.py" --raiz "$A"
+A="$(arvore udev-sem-radio)"; regra_tree "$A" 70-forja-dualsense.rules \
+'KERNEL=="hidraw*", SUBSYSTEM=="hidraw", ATTRS{idVendor}=="054c", ATTRS{idProduct}=="0ce6", MODE="0660", TAG+="uaccess"
+KERNEL=="hidraw*", SUBSYSTEM=="hidraw", ATTRS{idVendor}=="054c", ATTRS{idProduct}=="0df2", MODE="0660", TAG+="uaccess"'
+espera 1 "regra do udev: reprova a regra que só casa o cabo (o rádio e o uhid ficam de fora)" \
+  python3 "$P/udev.py" --raiz "$A"
+A="$(arvore udev-aberta)"; regra_tree "$A" 70-forja-dualsense.rules
+sed -i '0,/^KERNEL.*MODE="0660"/s/MODE="0660"/MODE="0666"/' "$A/udev/70-forja-dualsense.rules"   # a primeira linha de regra
+espera 1 "regra do udev: reprova uma linha só com 0666" python3 "$P/udev.py" --raiz "$A"
+A="$(arvore udev-tarde)"; regra_tree "$A" 80-forja-dualsense.rules
+espera 1 "regra do udev: reprova a regra boa com número depois do 73" python3 "$P/udev.py" --raiz "$A"
+A="$(arvore udev-nenhuma)"; mkdir -p "$A/udev"
+espera 1 "regra do udev: reprova a árvore sem regra" python3 "$P/udev.py" --raiz "$A"
+A="$(arvore udev-boa)"; regra_tree "$A" 70-forja-dualsense.rules
+espera 0 "regra do udev: deixa passar a regra do repositório" python3 "$P/udev.py" --raiz "$A"
 
 # --- o rodar.sh -------------------------------------------------------------------------------------------------
 espera 0 "rodar.sh: os portões do repositório passam (a arte e o som em aviso)" bash "$P/rodar.sh"

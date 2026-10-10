@@ -114,7 +114,7 @@ Para ler e escrever o hidraw do DualSense no cabo sem root (o report cru do
 jack do fone, e as ferramentas de bancada), a regra do udev:
 
 ```sh
-sudo cp udev/99-forja-dualsense.rules /etc/udev/rules.d/
+sudo cp udev/70-forja-dualsense.rules /etc/udev/rules.d/
 sudo udevadm control --reload-rules && sudo udevadm trigger
 ```
 

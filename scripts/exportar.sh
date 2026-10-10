@@ -94,11 +94,16 @@ TEXTO
   if [[ "$1" == linux ]]; then
     cat <<'TEXTO'
 
-Para ler e escrever o hidraw do DualSense no cabo sem root (o report cru do
-jack do fone), a regra do udev que vem junto:
+Sem a regra do udev que vem junto, o controle chega pelo joystick genérico do
+sistema: os botões funcionam, mas os gatilhos, a barra de luz, as luzinhas de
+jogador e o report cru não chegam. A regra vale só para quem está sentado na
+máquina, no cabo e no rádio, para o DualSense e o DualSense Edge:
 
-  sudo cp 99-forja-dualsense.rules /etc/udev/rules.d/
+  sudo cp 70-forja-dualsense.rules /etc/udev/rules.d/
   sudo udevadm control --reload-rules && sudo udevadm trigger
+
+Depois, desligue e religue o controle. Sem a regra, o relatório da sessão diz
+a causa na linha «efeitos» de cada controle.
 TEXTO
   else
     cat <<'TEXTO'
@@ -211,7 +216,7 @@ exportar() {
   leia_me "$qual" > "$saida/LEIA-ME.txt"
   licencas > "$saida/LICENCAS.txt"
   if [[ "$qual" == linux ]]; then
-    cp "$RAIZ/udev/99-forja-dualsense.rules" "$saida/"
+    cp "$RAIZ/udev/70-forja-dualsense.rules" "$saida/"
     cp "$RAIZ/godot/assets/forja-logo.png" "$saida/forja.png"
     desktop > "$saida/forja.desktop"
     tar -C "$DIST" -czf "$DIST/$nome.tar.gz" "$nome"
