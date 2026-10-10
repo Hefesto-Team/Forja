@@ -8,8 +8,14 @@
 # YAML não tem, reprova (rc=2) antes de rodar qualquer coisa.
 #
 # É o mesmo motor do `scripts/ci-local.sh` do Hefesto (cópia de 06/10/2026: os dois repositórios são
-# separados, e cada um carrega o seu); o que difere é só a tabela e a imagem (aqui a `catthehacker/ubuntu:act-24.04`
-# pura, sem o Dockerfile do Hefesto).
+# separados, e cada um carrega o seu). O que difere, e quem copiar de volta não pode desfazer:
+#   - a tabela e a imagem (aqui a `catthehacker/ubuntu:act-24.04` pura, sem o Dockerfile do Hefesto);
+#   - a CASA é a da Forja (`FORJA_CASA`, padrão `~/.local/state/forja-casa`), não a `hefesto-casa`: os dois
+#     escreviam o recibo no mesmo `ultimo-<modo>.txt`, e o da Forja pisava no do Hefesto;
+#   - o `act` tem versão e sha256 fixos aqui (`ACT_VER`, `ACT_SHA256`), e o script o baixa sozinho para
+#     `$CASA/bin/act` quando não o acha: a máquina de quem chega à Forja não tem o Hefesto;
+#   - as imagens montadas se chamam `forja-ci-local`, e não há o `EM-TAG` (a Forja não tem workflow em tag nem
+#     `pyproject.toml`; se um dia tiver, ele volta lendo a versão de onde a Forja a guardar).
 #
 # USO:
 #     bash scripts/ci-local.sh --rapido          # o que roda em minutos
@@ -25,18 +31,18 @@
 # `$CASA/ci-local/<data>/<job>.log`; o resumo é UMA linha (a última). NÃO RODADO NÃO É VERDE: job que devia
 # rodar e não rodou (sem o `act`, sem o docker, sem a imagem, ou a REDE caída no meio) sai rc=2.
 #
-# O `act` vem de `$CASA/bin/act` (baixado da release oficial, com o sha256 conferido) ou do PATH; sem ele o script
-# diz «não há act» e sai 2, nunca verde. O servidor de artefato e o de cache dele ficam em 127.0.0.1.
+# O `act` vem de `$CASA/bin/act` ou do PATH; sem nenhum dos dois, o script o baixa da release oficial para
+# `$CASA/bin/act` e confere o sha256 do pacote antes de usar. Sem rede, ou com a soma que não bate (o arquivo é
+# apagado), sai 2: não rodou, nunca verde. O servidor de artefato e o de cache dele ficam em 127.0.0.1.
 #
 # rc: 0 tudo verde · 1 algum vermelho (ou, no --conferir, algo a rodar) · 2 não rodou
-# (sem act, sem docker, rede, tabela fora do YAML, argumento ruim).
+# (sem act e sem como baixá-lo, sem docker, rede, tabela fora do YAML, argumento ruim).
 set -uo pipefail
 
 # --- a tabela ---------------------------------------------------------------------
 #   ROLA|job|rapido|imagem        roda no act. `rapido` entra no --rapido e no --completo, `completo` só no --completo
 #   PULA-NO-RAPIDO|job|passo      no --rapido o passo de nome exato sai da cópia do YAML
 #   SEM-NEEDS|job|dep,dep|motivo  as dependências citadas saem do `needs:` do job, na cópia
-#   EM-TAG|workflow.yml|motivo    o workflow dispara em tag: o act roda `push` com `ref: refs/tags/v<versão>`
 #   FORA-DE-CASA|job|motivo       não roda em casa, com o motivo medido
 TABELA="$(cat <<'FIM_DA_TABELA'
 # O que esta casa decide sobre cada job dos workflows (forja.yml e rotulos.yml). Medido em 06/10/2026 com o
@@ -62,7 +68,12 @@ FIM_DA_TABELA
 )"
 
 RAIZ="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-CASA="${HEFESTO_CASA:-$HOME/.local/state/hefesto-casa}"
+CASA="${FORJA_CASA:-$HOME/.local/state/forja-casa}"
+# O act, por versão E por sha256 (o molde do SDL em scripts/compilar.sh): a soma é a do pacote da release, a do
+# checksums.txt da página da versão. Quem troca a versão por variável de ambiente troca a soma junto.
+ACT_VER="${FORJA_ACT_VER:-0.2.89}"
+ACT_SHA256="${FORJA_ACT_SHA256:-0191d6f1f3b716b5c55820032605d05fc3c1cdbf581ebeff655019e5dd1524c0}"
+ACT_URL="https://github.com/nektos/act/releases/download/v${ACT_VER}/act_Linux_x86_64.tar.gz"
 DOCKERFILE="$RAIZ/scripts/ci-local/Dockerfile" # não há na Forja: a imagem é a do act, pura
 BASE="catthehacker/ubuntu:act-24.04"
 BASE_22="catthehacker/ubuntu:act-22.04"
@@ -105,7 +116,6 @@ done
 # PULA-NO-RAPIDO|job|passo     no --rapido o passo de nome exato sai da cópia do YAML
 # SEM-NEEDS|job|dep,dep|motivo  as dependências citadas saem do `needs:` do job, na cópia (o act seguiria o `needs:` e rodaria
 #                              de novo, antes dele, o job de que ele depende); o `needs:` que sobra continua valendo
-# EM-TAG|workflow.yml|motivo   o workflow dispara em tag: o act roda o evento `push` com `ref: refs/tags/v<versão do pyproject>`
 # FORA-DE-CASA|job|motivo      não roda em casa, com o motivo medido
 linhas() {
   printf '%s\n' "$TABELA" | grep -vE '^\s*(#|$)'
@@ -141,15 +151,12 @@ conferir_tabela() {
   [ -z "$dup" ] || { echo "ci-local: o job '$dup' existe em mais de um workflow; a tabela o nomeia só pelo id" >&2; erros=1; }
   while IFS='|' read -r tipo j resto _; do
     [ -n "$j" ] || continue
-    [ "$tipo" = EM-TAG ] || jobs_do_yaml | awk -v j="$j" '$2==j {ok=1} END{exit !ok}' \
+    jobs_do_yaml | awk -v j="$j" '$2==j {ok=1} END{exit !ok}' \
       || { echo "ci-local: a tabela cita o job '$j', que nenhum workflow tem" >&2; erros=1; }
     case "$tipo" in
       ROLA) case "$resto" in rapido|completo) ;; *) echo "ci-local: ROLA|$j|$resto: o modo é rapido ou completo" >&2; erros=1 ;; esac ;;
       FORA-DE-CASA) [ -n "$resto" ] || { echo "ci-local: FORA-DE-CASA|$j sem motivo" >&2; erros=1; } ;;
       PULA-NO-RAPIDO) passo_existe "$j" "$resto" || { echo "ci-local: PULA-NO-RAPIDO|$j|$resto: o job não tem esse passo" >&2; erros=1; } ;;
-      EM-TAG)
-        [ -f "$RAIZ/.github/workflows/$j" ] || { echo "ci-local: EM-TAG|$j: o workflow não existe" >&2; erros=1; }
-        [ -n "$resto" ] || { echo "ci-local: EM-TAG|$j sem motivo" >&2; erros=1; } ;;
       SEM-NEEDS)
         [ -n "$resto" ] || { echo "ci-local: SEM-NEEDS|$j sem a lista de dependências" >&2; erros=1; }
         [ -n "$(linhas | awk -F'|' -v j="$j" '$1=="SEM-NEEDS" && $2==j {print $4}')" ] || { echo "ci-local: SEM-NEEDS|$j sem motivo" >&2; erros=1; } ;;
@@ -215,18 +222,41 @@ if [ "$conferir" = 1 ]; then
 fi
 
 # --- o que tem de existir ------------------------------------------------------------
-# O act: o do state da casa (onde o baixamos, com o sha256 da release conferido) ou o do PATH.
+# O act: o do state da casa (onde o baixamos, com o sha256 da release conferido) ou o do PATH; sem nenhum, baixa.
+baixar_act() { # -> 0 com o act em $CASA/bin/act; 2 sem rede ou com a soma que não bate (nada fica)
+  local tmp tem
+  echo "ci-local: não há act; baixando o $ACT_VER da release oficial para $CASA/bin/act" >&2
+  tmp="$(mktemp -d "${TMPDIR:-/tmp}/cil-act.XXXXXX")" || return 2
+  if ! curl -fsSL -o "$tmp/act.tar.gz" "$ACT_URL"; then
+    rm -rf "$tmp"; echo "ci-local: o act não baixou de $ACT_URL (rede?); nada rodou, e nada rodado não é verde" >&2; return 2
+  fi
+  tem="$(sha256sum "$tmp/act.tar.gz" | cut -d' ' -f1)"
+  if [ "$tem" != "$ACT_SHA256" ]; then
+    rm -rf "$tmp"
+    echo "ci-local: sha256 do act não confere: $tem (esperado $ACT_SHA256); o arquivo foi apagado, nada rodou" >&2
+    return 2
+  fi
+  if ! tar -xzf "$tmp/act.tar.gz" -C "$tmp" act 2>/dev/null || [ ! -f "$tmp/act" ]; then
+    rm -rf "$tmp"; echo "ci-local: o pacote do act não tem o binário act; nada rodou" >&2; return 2
+  fi
+  mkdir -p "$CASA/bin" && install -m 0755 "$tmp/act" "$CASA/bin/act" || { rm -rf "$tmp"; return 2; }
+  rm -rf "$tmp"
+  echo "ci-local: act $ACT_VER conferido em $CASA/bin/act" >&2
+}
 ACT=""
 for c in "$CASA/bin/act" "$(command -v act 2>/dev/null || true)"; do
   [ -n "$c" ] && [ -x "$c" ] && { ACT="$c"; break; }
 done
-[ -n "$ACT" ] || { echo "ci-local: não há act (esperado em $CASA/bin/act ou no PATH); nada rodou, e nada rodado não é verde" >&2; exit 2; }
+if [ -z "$ACT" ]; then
+  baixar_act || exit 2
+  ACT="$CASA/bin/act"
+fi
 docker info >/dev/null 2>&1 || { echo "ci-local: o docker não responde; nada rodou, e nada rodado não é verde" >&2; exit 2; }
 
 IMAGEM="${CI_LOCAL_IMAGEM:-}"
 if [ -z "$IMAGEM" ]; then
   if [ -f "$DOCKERFILE" ]; then
-    IMAGEM="hefesto-ci-local:$(sha256sum "$DOCKERFILE" | cut -c1-10)"
+    IMAGEM="forja-ci-local:$(sha256sum "$DOCKERFILE" | cut -c1-10)"
     if ! docker image inspect "$IMAGEM" >/dev/null 2>&1; then
       echo "ci-local: montando a imagem $IMAGEM sobre $BASE (uma vez só; a base baixa uns 570 MB)" >&2
       docker build -q -t "$IMAGEM" -f "$DOCKERFILE" "$RAIZ/scripts/ci-local" >/dev/null 2>&1 \
@@ -243,7 +273,7 @@ DOCKERFILE_22="$RAIZ/scripts/ci-local/Dockerfile.ubuntu-22.04"
 for j in "${JOBS[@]}"; do
   [ "$(campo ROLA "$j" 4)" = ubuntu-22.04 ] || continue
   if [ -f "$DOCKERFILE_22" ]; then
-    IMAGEM_22="hefesto-ci-local-22:$(sha256sum "$DOCKERFILE_22" | cut -c1-10)"
+    IMAGEM_22="forja-ci-local-22:$(sha256sum "$DOCKERFILE_22" | cut -c1-10)"
     if ! docker image inspect "$IMAGEM_22" >/dev/null 2>&1; then
       echo "ci-local: montando a imagem $IMAGEM_22 sobre $BASE_22 (uma vez só)" >&2
       docker build -q -t "$IMAGEM_22" -f "$DOCKERFILE_22" "$RAIZ/scripts/ci-local" >/dev/null 2>&1 \
@@ -339,7 +369,6 @@ chamar_act() { # job yml log porta [rótulo do runner da matriz]
   cache="$TMP/acoes-$job${rotulo:+-$rotulo}"
   mkdir -p "$CACHE_ACOES"
   cp -a "$CACHE_ACOES/." "$cache/" 2>/dev/null || mkdir -p "$cache"
-  [ -f "$TMP/tag-$job.json" ] && extras+=(-e "$TMP/tag-$job.json")
   # A matriz de runners (`runs-on: ${{ matrix.os }}`) roda UMA perna por chamada: com as duas imagens no mesmo
   # `-P`, o act dá a mesma imagem às duas pernas (a ordem do mapa muda de corrida para corrida: medido em
   # 06/10/2026, o `deb` rodou as duas pernas no noble numa corrida e no jammy na outra).
@@ -389,17 +418,12 @@ so_a_rede_reprovou() { # log -> 0 se só a rede explica a reprovação
 }
 
 rodar_job() { # job índice
-  local job="$1" i="$2" yml log rc=0 r ini porta rot arquivo_do_yaml numero rotulos=("")
+  local job="$1" i="$2" yml log rc=0 r ini porta rot rotulos=("")
   log="$SAIDA/$job.log"
   ini=$(date +%s)
   yml="$(yaml_de "$job")" || { echo "ci-local: o job '$job' não está em workflow nenhum" > "$log"; echo 2 > "$SAIDA/$job.rc"; return 2; }
   # uma porta por job da corrida (são menos de 40): duas chamadas na mesma porta derrubam o act da segunda
   porta=$((20000 + ($$ % 1000) * 40 + i % 40))
-  arquivo_do_yaml="$(arquivo_do_job "$job")"
-  if [ -n "$(campo EM-TAG "$arquivo_do_yaml" 3)" ]; then
-    numero="$(sed -nE 's/^version *= *"([^"]+)".*/\1/p' "$ARV/pyproject.toml" 2>/dev/null | head -1)"
-    printf '{"ref": "refs/tags/v%s"}\n' "${numero:-0.0.0-local}" > "$TMP/tag-$job.json"
-  fi
   [ "$(campo ROLA "$job" 4)" = ubuntu-22.04 ] && rotulos=(ubuntu-24.04 ubuntu-22.04)
   [ -n "$SO_PERNA" ] && [ "${#rotulos[@]}" -gt 1 ] && rotulos=("$SO_PERNA")
   : > "$log"
@@ -506,9 +530,12 @@ RES="ci-local --$modo: ${#VERDE[@]} verde(s), ${#VERMELHO[@]} vermelho(s)"
 RES="$RES, ${#NAO_RODOU[@]} não rodado(s)"
 [ "${#NAO_RODOU[@]}" -gt 0 ] && RES="$RES [${NAO_RODOU[*]}]"
 RES="$RES; $FORA fora de casa declarado(s); $(( $(date +%s) - INI ))s; logs em $SAIDA$SUJA"
-# O recibo: a corrida, para o fecho e para quem confere o `--completo` antes da janela.
+# O recibo: a corrida, para o fecho e para quem confere o `--completo` antes da janela. A linha diz de que
+# repositório é (o nome do `origin`, ou o da pasta do repositório sem ele): data|repositório|commit|resumo.
 mkdir -p "$CASA/ci-local"
-printf '%s|%s|%s\n' "$(date +%Y-%m-%dT%H:%M)" "$(git -C "$RAIZ" rev-parse --short=12 HEAD 2>/dev/null || echo -)" "$RES" \
+REPO="$(git -C "$RAIZ" remote get-url origin 2>/dev/null | sed -E 's#.*[/:]##; s#\.git$##')"
+[ -n "$REPO" ] || REPO="$(basename "$(dirname "$(git -C "$RAIZ" rev-parse --path-format=absolute --git-common-dir 2>/dev/null || echo "$RAIZ/.git")")")"
+printf '%s|%s|%s|%s\n' "$(date +%Y-%m-%dT%H:%M)" "$REPO" "$(git -C "$RAIZ" rev-parse --short=12 HEAD 2>/dev/null || echo -)" "$RES" \
   > "$CASA/ci-local/ultimo-$modo.txt"
 echo "$RES"
 [ "${#VERMELHO[@]}" -gt 0 ] && exit 1

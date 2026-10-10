@@ -231,6 +231,78 @@ espera 2 "costura: a prova que não existe não começa (rc 2)" bash "$C" voo/li
 gr switch -q voo/limpo
 espera 2 "costura: a integração no próprio ramo não começa (rc 2)" bash "$C" voo/limpo --integracao "$R" --prova "bash olha.sh"
 
+## as pesadas (WE04): o ci-local que não rodou (rc 2) não é vermelho. Um ci-local de mentira, fora do índice (a costura
+## só olha o que é versionado), sai com o rc de CI_FALSO_RC.
+gr switch -q integra
+mkdir -p "$R/scripts"
+printf '#!/usr/bin/env bash\necho "ci-local de mentira $*"\nexit "${CI_FALSO_RC:?}"\n' > "$R/scripts/ci-local.sh"
+for n in 2 1; do
+  gr switch -q -c "voo/pesadas-$n" main; printf '%s\n' "$n" > "$R/p$n.txt"; gr add "p$n.txt"; gr commit -q -m "as pesadas $n"
+done
+gr switch -q integra
+ANTES="$(topo)"
+espera 4 "costura --pesadas: o ci-local que sai 2 não rodou (rc 4)" \
+  env -u VEZ CI_FALSO_RC=2 bash "$C" voo/pesadas-2 --integracao "$R" --prova "bash olha.sh" --pesadas
+CASOS=$((CASOS + 1))
+if grep -q 'costura: as pesadas não rodaram (o ci-local saiu 2)' "$TMP/saida.log" && ! grep -q VERMELHO "$TMP/saida.log"; then
+  echo "ok   costura --pesadas: diz «as pesadas não rodaram», e não «VERMELHO»"
+else
+  echo "FAIL costura --pesadas: diz «as pesadas não rodaram», e não «VERMELHO»"; FALHAS=$((FALHAS + 1))
+fi
+git -C "$R" reset -q --keep "$ANTES"
+espera 1 "costura --pesadas: o ci-local que sai 1 é vermelho (rc 1)" \
+  env -u VEZ CI_FALSO_RC=1 bash "$C" voo/pesadas-1 --integracao "$R" --prova "bash olha.sh" --pesadas
+CASOS=$((CASOS + 1))
+if grep -q 'costura: VERMELHO em «bash scripts/ci-local.sh --rapido»' "$TMP/saida.log" \
+    && ! grep -q 'não rodaram' "$TMP/saida.log"; then
+  echo "ok   costura --pesadas: o 1 do ci-local diz «VERMELHO»"
+else
+  echo "FAIL costura --pesadas: o 1 do ci-local diz «VERMELHO»"; FALHAS=$((FALHAS + 1))
+fi
+git -C "$R" reset -q --keep "$ANTES"
+
+# --- o ci-local com casa própria (WE04) -----------------------------------------------------------------------------
+## Um HOME vazio, um curl de mentira que entrega um pacote do act feito na hora (ou falha como rede caída) e um docker
+## que não responde: o ci-local baixa e confere o act, e para no docker com rc 2. Nada sai para a rede.
+H="$TMP/ci-local"
+mkdir -p "$H/home" "$H/bin" "$H/pacote" "$H/tmp"
+printf '#!/bin/sh\necho "act de mentira"\n' > "$H/pacote/act"; chmod +x "$H/pacote/act"
+tar -czf "$H/act.tar.gz" -C "$H/pacote" act
+SOMA_ACT="$(sha256sum "$H/act.tar.gz" | cut -d' ' -f1)"
+cat > "$H/bin/curl" <<CURL
+#!/bin/sh
+[ -n "\${CURL_FALSO_SEM_REDE:-}" ] && exit 6
+while [ \$# -gt 0 ]; do [ "\$1" = -o ] && { cp "$H/act.tar.gz" "\$2"; exit 0; }; shift; done
+exit 1
+CURL
+printf '#!/bin/sh\nexit 1\n' > "$H/bin/docker"
+chmod +x "$H/bin/curl" "$H/bin/docker"
+cil() { # [VAR=valor ...] argumentos do ci-local
+  local mais=()
+  while [ $# -gt 0 ] && [ "${1#*=}" != "$1" ]; do mais+=("$1"); shift; done
+  env -u FORJA_CASA HOME="$H/home" TMPDIR="$H/tmp" PATH="$H/bin:$PATH" "${mais[@]}" bash "$RAIZ/scripts/ci-local.sh" "$@"
+}
+CASA_ACT="$H/home/.local/state/forja-casa/bin/act"
+espera 0 "ci-local: com o HOME vazio, o --listar passa" cil --listar
+if command -v act > /dev/null 2>&1; then
+  echo "     (esta máquina tem um act no PATH: os casos do download ficam de fora)"
+else
+  espera 2 "ci-local: sem rede, o act não baixa e o --rapido sai 2 (não rodou)" cil CURL_FALSO_SEM_REDE=1 --rapido
+  cp "$TMP/saida.log" "$H/ultima.log"
+  espera 0 "ci-local: e diz que o act não baixou" grep -q "o act não baixou de " "$H/ultima.log"
+  espera 2 "ci-local: com a soma do act trocada, sai 2" cil FORJA_ACT_SHA256="$(printf '%064d' 0)" --rapido
+  cp "$TMP/saida.log" "$H/ultima.log"
+  espera 0 "ci-local: e diz que a soma não confere" grep -q "sha256 do act não confere: $SOMA_ACT" "$H/ultima.log"
+  espera 0 "ci-local: e não deixa o act na casa nem o pacote no temporário" \
+    bash -c '[ ! -e "$1" ] && [ -z "$(ls -A "$2")" ]' _ "$CASA_ACT" "$H/tmp"
+  espera 2 "ci-local: com a soma certa, baixa o act e para no docker que não responde (rc 2)" \
+    cil FORJA_ACT_SHA256="$SOMA_ACT" --rapido
+  cp "$TMP/saida.log" "$H/ultima.log"
+  espera 0 "ci-local: o act conferido mora na casa da Forja e não na do Hefesto" \
+    bash -c '[ -x "$1" ] && [ ! -e "$2" ] && grep -q "act .* conferido em $1" "$3" && grep -q "o docker não responde" "$3"' \
+    _ "$CASA_ACT" "$H/home/.local/state/hefesto-casa" "$H/ultima.log"
+fi
+
 # --- as regras de execução (WT04) ---------------------------------------------------------------------------------
 ## regras <raiz>: o regras.md existe, tem no máximo 60 linhas, e o 12, o COMO-CONTRIBUIR e a a-esteira apontam para ele.
 regras() {

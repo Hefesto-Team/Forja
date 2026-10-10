@@ -83,3 +83,27 @@ rápidos rodam.
 
 Pôr a linha da WE04 no [quadro](README.md) como **feito**, com o commit, e trocar em
 [A esteira](../o-time/a-esteira.md) o caminho do recibo, se ele aparecer lá.
+
+## O que foi feito (leva 1, a-entrega)
+
+- A casa: `CASA="${FORJA_CASA:-$HOME/.local/state/forja-casa}"`. O recibo `ultimo-<modo>.txt` nasce em
+  `forja-casa/ci-local/` e diz o repositório na linha: `data|repositório|commit|resumo` (o repositório é o nome do
+  `origin`, ou o da pasta do repositório sem ele). A `hefesto-casa` e o `HEFESTO_CASA` não são mais lidos pelo
+  `ci-local` da Forja; o do Hefesto segue com os dele, intocado.
+- O `act`: `ACT_VER=0.2.89` e o sha256 do `act_Linux_x86_64.tar.gz` (conferido contra o `checksums.txt` da release; o
+  binário de dentro é o mesmo `6be37b10…` que a máquina já tinha) fixos no script, com `FORJA_ACT_VER` e
+  `FORJA_ACT_SHA256` para quem sobe de versão. Sem `act` em `$CASA/bin` nem no PATH, o script baixa, confere a soma
+  do pacote e só então instala em `$CASA/bin/act`; sem rede, ou com a soma que não bate (o pacote é apagado), sai 2.
+- As imagens montadas viram `forja-ci-local`; o `EM-TAG` saiu inteiro (a regra, a conferência, o JSON da tag e o
+  `pyproject.toml`). O cabeçalho diz o que difere do motor do Hefesto.
+- A `costura.sh --pesadas`: o `ci-local` que sai 2 vira «costura: as pesadas não rodaram (o ci-local saiu 2)», rc 4,
+  escrito no cabeçalho; o que sai 1 segue «VERMELHO», rc 1.
+- As provas, na `tests/prova_da_esteira.sh` (59 casos, verde): a costura com um `ci-local` de mentira que sai 2 (rc 4,
+  sem «VERMELHO») e que sai 1 (rc 1, «VERMELHO»); o `ci-local` com o HOME vazio, um `curl` de mentira e um `docker`
+  que não responde: `--listar` passa, sem rede sai 2 e diz que o act não baixou, com a soma trocada sai 2 e não deixa
+  arquivo, com a soma certa instala o act na `forja-casa` e para no docker. Morde: a costura antiga reprova 2 casos, o
+  `ci-local` antigo reprova 3.
+- Medido com a rede de verdade, num HOME vazio e um docker de mentira: o `--listar` passa, e o `--rapido` baixa o
+  0.2.89, confere e para em «o docker não responde» (rc 2).
+- Para o André: rodar `bash scripts/ci-local.sh --rapido` na máquina dele, sem nada do Hefesto: o `act` baixa
+  sozinho para `~/.local/state/forja-casa/bin/act` e os jobs rápidos rodam.
