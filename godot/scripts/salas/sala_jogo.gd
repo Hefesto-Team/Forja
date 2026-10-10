@@ -264,6 +264,8 @@ func _process(dt: float) -> void:
 	super(dt)
 	if congelada:
 		return
+	if fase == "jogo" and _esperar_o_controle():
+		return  # sem controle nenhum, a sala espera (F09c): nem o relógio nem o jogar andam
 	t_fase += dt
 	match fase:
 		"aviso":
@@ -628,3 +630,57 @@ func com_poucos() -> String:
 ## O padrão é 0; o kit de minigames (H04) soma os `julgar` e a sala que erra sobrescreve.
 func erros_do_grupo() -> int:
 	return 0
+
+
+# ---------------------------------------------- o controle que cai (F09c) --
+
+var esperando_controle := false  ## todo lugar que ainda joga está sem controle: a sala espera
+var _tela_reconectar: TelaReconectar = null
+
+
+## Os lugares que ainda jogam, se TODOS estão sem controle; vazio quando algum
+## ainda tem (a sala segue com quem tem, e quem caiu conta como quem acabou).
+func lugares_sem_controle() -> Array:
+	var fora: Array = []
+	for p in jogadores:
+		if jogando[p.lugar] and not acabou[p.lugar]:
+			if Forja.lugar(p.lugar).get("conectado", false):
+				return []
+			fora.append(p.lugar)
+	return fora
+
+
+## A guarda do quadro de jogo: true enquanto a sala espera o controle voltar.
+func _esperar_o_controle() -> bool:
+	var fora := lugares_sem_controle()
+	esperar_o_controle(not fora.is_empty(), fora)
+	return esperando_controle
+
+
+## A espera do controle (F09c): a sala para (o relógio, o jogar e a medida) e a
+## tela de reconectar fica por cima, com a sala visível atrás; no quadro em que
+## o controle volta, a tela some e a sala segue de onde parou. O minigame
+## também para a música (minigame.gd).
+func esperar_o_controle(sim: bool, lugares: Array) -> void:
+	if sim and _tela_reconectar != null:
+		_tela_reconectar.lugares = lugares
+	if esperando_controle == sim:
+		return
+	esperando_controle = sim
+	for p in jogadores:
+		if sim:
+			Forja.med_parar(p.lugar)
+		else:
+			Forja.med_retomar(p.lugar)
+	if sim:
+		var camada := CanvasLayer.new()
+		camada.layer = 11  # por cima da Interface (10), por baixo do pós da fita (20)
+		_tela_reconectar = TelaReconectar.new()
+		_tela_reconectar.lugares = lugares
+		_tela_reconectar.sala = self
+		camada.add_child(_tela_reconectar)
+		add_child(camada)
+	elif _tela_reconectar != null:
+		_tela_reconectar.visible = false  # some neste quadro; o nó sai no fim dele
+		_tela_reconectar.get_parent().queue_free()
+		_tela_reconectar = null

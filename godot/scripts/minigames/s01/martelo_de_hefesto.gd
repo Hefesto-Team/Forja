@@ -82,6 +82,7 @@ func montar() -> void:
 		forja.omni_range = 4.0
 		add_child(forja)
 		runas[l] = _montar_runa(l)
+		runas[l]["forja"] = forja  # a espera viva (F09d): a forja esquenta até a runa fechar
 		j[l] = _novo_jogador()
 		Forja.gatilhos_off(l)
 
@@ -210,6 +211,7 @@ func _mostrar_runa(l: int) -> void:
 	var r = _runa_atual(l)
 	n.raiz.visible = r != null and fase == "jogo"
 	if r == null:
+		_forja_na_espera(l, -1.0)
 		return
 	var glifo: Sprite3D = n.glifo
 	var nome_glifo := ""
@@ -229,7 +231,8 @@ func _mostrar_runa(l: int) -> void:
 	var janela: float = e.janela if r.tipo == "botao" else (JANELA_ANALOGICO if r.tipo == "analogico" else JANELA_GATILHO)
 	var resto := clampf(1.0 - e.t / janela, 0.0, 1.0)
 	var anel: MeshInstance3D = n.anel
-	anel.scale = Vector3.ONE * lerpf(0.35, 1.0, resto)
+	anel.scale = Vector3.ONE * lerpf(0.35, 1.0, resto) * (1.0 + 0.1 * amplitude_da_espera() * pulso_da_batida())
+	_forja_na_espera(l, 1.0 - resto)
 	anel.visible = true
 	for s in 8:
 		var m: MeshInstance3D = n.marcas[s]
@@ -254,6 +257,7 @@ func _lugar_da(l: int) -> int:
 # ------------------------------------------------------------------ o jogo --
 
 func jogar(dt: float) -> void:
+	_calor = 0.0
 	for p in jogadores:
 		var l: int = p.lugar
 		var e: Dictionary = j[l]
@@ -262,6 +266,7 @@ func jogar(dt: float) -> void:
 		if not acabou[l]:
 			_jogar(l, p, dt)
 		_mostrar_runa(l)
+	_chaves_na_espera()
 
 
 func _jogar(l: int, p: ForjaPlayer, dt: float) -> void:
@@ -446,3 +451,44 @@ func robo(l: int, dt: float) -> void:
 				alvo = 1.0
 			e.robo_gatilho = move_toward(e.robo_gatilho, alvo, dt * 4.0)
 			Forja.robo_eixo(l, Forja.R2 if r.alvo == 1 else Forja.L2, e.robo_gatilho, 0.06)
+
+
+# ------------------------------------------------------- a espera viva (F09d) --
+
+const FORJA_ENERGIA := 0.9  ## a luz da forja de cada bigorna, sem runa
+const FORJA_TENSAO := 1.8  ## o quanto ela esquenta até o anel fechar
+const FORJA_BATIDA := 0.6  ## o toque de cada tempo
+
+
+## Entre uma martelada e a próxima a tela não para: a forja do lugar esquenta
+## enquanto o anel fecha (`tensao` 0..1; < 0: sem runa, a luz parada) e bate no
+## tempo da faixa. Com o movimento Reduzido, a metade.
+func _forja_na_espera(l: int, tensao: float) -> void:
+	var luz: OmniLight3D = runas[l].get("forja")
+	if luz == null:
+		return
+	if tensao < 0.0:
+		luz.light_energy = FORJA_ENERGIA
+		return
+	luz.light_energy = FORJA_ENERGIA + amplitude_da_espera() * (FORJA_TENSAO * tensao + FORJA_BATIDA * pulso_da_batida())
+	_calor = maxf(_calor, tensao)
+
+
+const CHAVE_CALOR := 0.8  ## o quanto as tochas da sala sobem com a runa mais perto de fechar
+const CHAVE_BATIDA := 0.25  ## o toque de cada tempo nas tochas
+
+var _calor := 0.0  ## a tensão da runa mais perto de fechar, neste quadro (0..1)
+var _chaves_base := {}  ## a energia de cada tocha da sala quando o jogo começou
+
+
+## A sala inteira esquenta com a forja: as tochas (as chaves da seção) sobem
+## com a runa mais perto de fechar e tocam no tempo. A luz da bigorna sozinha
+## é pequena demais para a tela ver a espera.
+func _chaves_na_espera() -> void:
+	if _chaves_base.is_empty():
+		for luz in _chaves_com_energia:
+			_chaves_base[luz] = luz.light_energy
+	var k := 1.0 + amplitude_da_espera() * (CHAVE_CALOR * _calor + CHAVE_BATIDA * pulso_da_batida())
+	for luz in _chaves_base:
+		if is_instance_valid(luz):
+			luz.light_energy = float(_chaves_base[luz]) * k

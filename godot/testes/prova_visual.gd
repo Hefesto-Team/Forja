@@ -39,6 +39,11 @@ var observacoes: Array = []
 var falhas: Array = []
 var falhas_da_prancha: Array = []   ## as da prancha cinza da montagem: entram mesmo com o roteiro inteiro
 var _cabo_fora := false
+var _cabo_caiu_em := -1.0  ## o t de jogo em que o cabo caiu (-1: ainda não)
+const CABO_FORA_S := 12.0  ## quanto tempo de jogo o cabo fica fora
+var _cabo_sala := 0  ## a sala em que o cabo caiu
+var _cabo_t_jogo := -1.0  ## o relógio dela logo depois da queda
+var falhas_do_cabo: Array = []   ## a espera do controle (F09c): entram mesmo com o roteiro inteiro
 var _batida := 30.0
 
 
@@ -179,7 +184,8 @@ func _roteiro() -> bool:
 
 
 ## A partida de um jogador que perde o cabo no meio do segundo minigame e o
-## recupera no terceiro.
+## recupera `CABO_FORA_S` s de jogo depois, na mesma sala: sozinho, a sala
+## espera o controle (F09c), então religar por tempo, não pelas salas feitas.
 func _cabo() -> void:
 	if not com_cabo or jogo.partida == null:
 		return
@@ -187,12 +193,35 @@ func _cabo() -> void:
 	var sala = jogo.sala
 	if not sala is SalaJogo:
 		return
-	if feitos == 1 and not _cabo_fora and sala.fase == "jogo" and sala.t_fase > 20.0:
+	if feitos == 1 and not _cabo_fora and _cabo_caiu_em < 0.0 and sala.fase == "jogo" and sala.t_fase > 20.0:
 		_cabo_fora = true
+		_cabo_caiu_em = t
+		_cabo_sala = sala.get_instance_id()
+		_cabo_t_jogo = -1.0
 		Forja.ctl.simulador_cabo(0, false)
-	elif feitos == 2 and _cabo_fora and sala.t_fase > 5.0:
+	elif _cabo_fora and t - _cabo_caiu_em > CABO_FORA_S:
 		_cabo_fora = false
 		Forja.ctl.simulador_cabo(0, true)
+	elif _cabo_fora and t - _cabo_caiu_em > 0.5:
+		# sem controle, a sala espera (F09c): não termina, o relógio dela não anda, a tela de reconectar à vista
+		var hora := ChecagensVisuais.hora(t)
+		if sala.get_instance_id() != _cabo_sala or sala.fase != "jogo":
+			_falha_do_cabo("a sala terminou sem controle (%s, fase %s)" % [hora, sala.fase])
+		elif _cabo_t_jogo < 0.0:
+			_cabo_t_jogo = float(sala.t_jogo)  # o relógio de meio segundo depois da queda: daqui não anda
+		elif absf(float(sala.t_jogo) - _cabo_t_jogo) > 0.1:
+			_falha_do_cabo("o relógio da sala andou sem controle (%s: %.1f s → %.1f s)" % [hora, _cabo_t_jogo, sala.t_jogo])
+		elif sala._tela_reconectar == null or not sala._tela_reconectar.is_visible_in_tree():
+			_falha_do_cabo("sem controle, a tela de reconectar não está à vista (%s)" % hora)
+
+
+## Uma falha do roteiro do cabo, uma vez cada (o mesmo defeito em todo quadro conta uma).
+func _falha_do_cabo(s: String) -> void:
+	var chave := s.get_slice(" (", 0)
+	for f in falhas_do_cabo:
+		if str(f).begins_with(chave):
+			return
+	falhas_do_cabo.append(s)
 
 
 ## O P1 anda até o pé da bigorna pelo analógico, olhando a posição (o mundo é o
@@ -220,6 +249,9 @@ func _ir_ate_a_bigorna() -> bool:
 # ------------------------------------------------------------ os quadros --
 
 func _topo() -> Node:
+	var sala = jogo.sala
+	if sala is SalaJogo and sala._tela_reconectar != null and sala._tela_reconectar.is_visible_in_tree() and str(jogo.overlay) == "":
+		return sala._tela_reconectar  # a espera do controle (F09c): a tela de reconectar fica por cima
 	match str(jogo.overlay):
 		"placar": return jogo.placar
 		"pausa": return jogo.pausa
@@ -341,6 +373,7 @@ func _fechar(roteiro_ok: bool) -> void:
 	if not roteiro_ok:
 		todos.append_array(falhas)
 	todos.append_array(falhas_da_prancha)
+	todos.append_array(falhas_do_cabo)
 	todos.append_array(ChecagensVisuais.tela_parada(quadros))
 	todos.append_array(ChecagensVisuais.telas_vazias(quadros))
 	for tx in textos:

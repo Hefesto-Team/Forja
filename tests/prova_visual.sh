@@ -10,7 +10,9 @@
 #                                          (sem ela: uma pasta temporária, apagada no fim)
 #   PASSADAS="fixa livre"                  fixa = --fixed-fps 60 (a da sessão); livre = sem
 #                                          --fixed-fps (a do André: dura o tempo real, uns 15
-#                                          minutos por partida, e mostra as travadas)
+#                                          minutos por partida, e mostra as travadas);
+#                                          reduzida = a fixa com o movimento Reduzido (G16):
+#                                          a espera mexe menos, mas não para (F09d)
 #   PARTIDAS="1 3"                         só estas das quatro
 #   RES=1280x720                           o tamanho da janela (padrão 640x360: no Xvfb, a
 #                                          1280x720 a passada fixa fica duas vezes mais lenta)
@@ -104,8 +106,11 @@ for passada in ${PASSADAS:-fixa livre}; do
   case "$passada" in
     fixa) QUADROS=(--fixed-fps 60) ;;
     livre) QUADROS=() ;;
-    *) echo "passada desconhecida: $passada (fixa ou livre)"; exit 2 ;;
+    reduzida) QUADROS=(--fixed-fps 60) ;;
+    *) echo "passada desconhecida: $passada (fixa, reduzida ou livre)"; exit 2 ;;
   esac
+  MOVIMENTO=()
+  [ "$passada" = reduzida ] && MOVIMENTO=(--movimento=reduzido)
   for linha in "${PARTIDAS_TODAS[@]}"; do
     IFS='|' read -r n jogadores robo salas extra <<< "$linha"
     case " ${PARTIDAS:-1 2 3 4} " in *" $n "*) ;; *) continue ;; esac
@@ -117,7 +122,7 @@ for passada in ${PASSADAS:-fixa livre}; do
     timeout "${LIMITE_S:-3000}" "${JANELA[@]}" \
       "${CAIXA[@]}" "$GODOT" "${GODOT_JANELA[@]}" "${QUADROS[@]}" res://testes/prova_visual.tscn \
       -- --simular="$jogadores" --robo="$robo" --semente=7 --relatorios="$rel" --saida="$pasta" \
-         --salas="$salas" --indice="$n" $extra > "$pasta/partida-$n.log" 2>&1
+         --salas="$salas" --indice="$n" "${MOVIMENTO[@]}" $extra > "$pasta/partida-$n.log" 2>&1
     rc=$?
     grep -E "SCRIPT ERROR|^ERROR|^FAIL" "$pasta/partida-$n.log" | head -5
     if [ -f "$pasta/checagens-$n.txt" ]; then

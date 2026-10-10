@@ -133,10 +133,12 @@ func _montar_chao() -> void:
 		base.name = "base"
 	var metal := Kit.material(COR_CHAO[2], 0.0, 0.5)
 	metal.metallic = 0.2
+	_mat_metal = metal  # a contagem na batida (F09d)
 	Kit.caixa(self, Vector3(METAL_X * 2, 0.04, ARENA_Z * 2 + 0.6), Vector3(0, 0.02, 0), metal)
 	var agua := Kit.material(COR_CHAO[3], 0.4, 0.2)
 	agua.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	agua.albedo_color.a = 0.8
+	_mat_agua = agua
 	Kit.caixa(self, Vector3(ARENA_X * 2 + 0.6, 0.05, AGUA_Z * 2), Vector3(0, 0.035, 0), agua)
 
 
@@ -718,6 +720,7 @@ func _process(dt: float) -> void:
 	super(dt)
 	for e in lut:
 		_mostrar(e, dt)
+	_contagem_na_batida()
 
 
 func _mostrar(e: Dictionary, dt: float) -> void:
@@ -923,3 +926,30 @@ func com_poucos() -> String:
 		2: return "1 contra 1"
 		3: return "2 contra 1 + boneco"
 	return ""
+
+
+# ------------------------------------------------------- a espera viva (F09d) --
+
+const RESPIRO_TEMPOS := 3.0  ## o chão do meio respira a cada três tempos da faixa
+const CONTAGEM_METAL := 0.6  ## o brilho da faixa de metal no respiro, no fim da partida
+const CONTAGEM_AGUA := 0.6  ## o tanto que o riacho clareia, por cima do brilho dele
+const AGUA_BRILHO := 0.4  ## o brilho de sempre do riacho (o do _montar_chao)
+
+var _mat_metal: StandardMaterial3D = null
+var _mat_agua: StandardMaterial3D = null
+
+
+## A contagem até a prova final, na batida: a faixa de metal do meio e o riacho
+## respiram no tempo da faixa, e o respiro cresce conforme os noventa segundos
+## acabam. O chão inteiro, nunca um lado: não aponta ninguém. Com o movimento
+## Reduzido, a metade.
+func _contagem_na_batida() -> void:
+	if _mat_metal == null or _mat_agua == null:
+		return
+	var k := 0.0
+	if fase == "jogo" and etapa == PARTIDA:
+		var fim := clampf(t_etapa / (PARTIDA_S * ritmo_nivel), 0.0, 1.0)
+		var respiro := 0.5 + 0.5 * cos(TAU * batida_da_sala() / RESPIRO_TEMPOS)
+		k = amplitude_da_espera() * (0.5 + 0.5 * fim) * respiro
+	Tema.emissivo(_mat_metal, CONTAGEM_METAL * k, "mundo")
+	Tema.emissivo(_mat_agua, AGUA_BRILHO + CONTAGEM_AGUA * k, "mundo")

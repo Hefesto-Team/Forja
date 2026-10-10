@@ -36,6 +36,7 @@ var com_cabo := false
 func _ready() -> void:
 	com_opcoes = OS.get_environment("OPCOES_DE_TESTE") == "1"
 	com_cabo = OS.get_environment("CABO") == "1"
+	com_cabo_sozinho = OS.get_environment("CABO_SOZINHO") == "1"
 	if com_opcoes:
 		_prova_das_contas_das_opcoes()
 		Opcoes.vibracao[1] = 0
@@ -76,6 +77,8 @@ func _joga(id: String, n: int) -> void:
 	var q := 0
 	if com_cabo:
 		await _tira_e_poe_o_cabo(sala, id)
+	if com_cabo_sozinho:
+		await _sozinho_sem_cabo(sala, id)
 	while is_instance_valid(sala) and sala.fase != "fim" and q < 20000:
 		await _quadros(10)
 		q += 10
@@ -151,3 +154,46 @@ func _tira_e_poe_o_cabo(sala, id: String) -> void:
 	_esperar(Forja.lugar(1).get("conectado", false), "%s: o P2 voltou ao lugar" % id)
 	var p: Dictionary = Forja.ctl.percepcao(Forja.pad_do_lugar(1))
 	_esperar(int(p.get("player_index", -9)) == 1, "%s: com o mesmo player index (1)" % id)
+
+
+## CABO_SOZINHO=1 (F09c): um jogador só, e o cabo dele cai no meio da sala.
+var com_cabo_sozinho := false
+
+
+## Sozinho, o cabo cai no meio do jogo: a sala espera (não termina, o relógio
+## dela não anda, a tela de reconectar à vista) e, quando ele volta, a tela
+## some e a sala segue de onde parou, até acabar sozinha.
+func _sozinho_sem_cabo(sala, id: String) -> void:
+	var q := 0
+	while is_instance_valid(sala) and (sala.fase != "jogo" or sala.treinando or sala.t_fase < 2.0) and q < 6000:
+		await _quadros(1)
+		q += 1
+	if not is_instance_valid(sala) or sala.fase != "jogo":
+		_esperar(false, "%s: a sala chegou ao jogo para tirar o cabo" % id)
+		return
+	_esperar(Forja.ctl.simulador_cabo(0, false), "%s sozinho: o cabo do P1 saiu" % id)
+	await _quadros(30)
+	# os dois relógios: o da sala (t_jogo, em quadros de jogo) e o tempo jogado (no minigame, o da música)
+	var t_sala: float = sala.t_jogo if is_instance_valid(sala) else -1.0
+	var jogado: float = sala.tempo_jogado() if is_instance_valid(sala) else -1.0
+	await _quadros(600)
+	_esperar(is_instance_valid(sala) and sala.fase == "jogo", "%s sozinho: 10 s sem controle, a sala não terminou (%s)" % [
+		id, str(sala.fase) if is_instance_valid(sala) else "fechada"])
+	if not is_instance_valid(sala):
+		return
+	_esperar(absf(float(sala.t_jogo) - t_sala) < 0.05 and absf(float(sala.tempo_jogado()) - jogado) < 0.05,
+		"%s sozinho: sem controle, o relógio da sala parou (%.2f → %.2f s; jogado %.2f → %.2f s)" % [
+		id, t_sala, float(sala.t_jogo), jogado, float(sala.tempo_jogado())])
+	_esperar(sala.esperando_controle and sala._tela_reconectar != null and sala._tela_reconectar.is_visible_in_tree(),
+		"%s sozinho: a tela de reconectar está à vista" % id)
+	_esperar(Forja.ctl.simulador_cabo(0, true), "%s sozinho: o cabo do P1 voltou" % id)
+	q = 0
+	while not Forja.lugar(0).get("conectado", false) and q < 300:
+		await _quadros(1)
+		q += 1
+	await _quadros(2)
+	_esperar(not sala.esperando_controle and sala._tela_reconectar == null, "%s sozinho: com o controle de volta, a tela sumiu" % id)
+	t_sala = float(sala.t_jogo)
+	await _quadros(60)
+	_esperar(is_instance_valid(sala) and (sala.fase == "fim" or float(sala.t_jogo) > t_sala + 0.5),
+		"%s sozinho: a sala seguiu de onde parou (%.2f → %.2f s)" % [id, t_sala, float(sala.t_jogo) if is_instance_valid(sala) else -1.0])

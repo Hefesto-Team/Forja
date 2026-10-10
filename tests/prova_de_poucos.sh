@@ -6,7 +6,9 @@
 # "não medido", nunca "falhou". E os ritmos (--nivel=0 e 2): as janelas de
 # tempo mudam, e o robô ainda passa sem nenhum "falhou". E o controle que cai
 # (CABO=1): em cada sala o cabo do P2 sai e volta; a sala segue, o lugar
-# espera, o controle volta ao mesmo lugar, e ninguém sai com "falhou".
+# espera, o controle volta ao mesmo lugar, e ninguém sai com "falhou". E
+# sozinho (CABO_SOZINHO=1): a sala espera o controle voltar, com a tela de
+# reconectar, e segue de onde parou.
 #
 # Precisa do módulo compilado (scripts/compilar.sh linux).
 # Uso: bash tests/prova_de_poucos.sh        (GODOT=<binário> para outro Godot)
@@ -53,5 +55,7 @@ OPCOES_DE_TESTE=1 SALAS=impacto,galeria,caminhos rodar opcoes --simular=4 & g=$!
 for p in $d $e $f $g; do wait "$p" || FALHAS=$((FALHAS + 1)); done
 # o controle que cai: em cada sala, o cabo do P2 sai por 3 s e volta
 CABO=1 rodar cabo --simular=4 || FALHAS=$((FALHAS + 1))
+# sozinho, o cabo cai: a sala espera o controle, com a tela de reconectar, e segue quando ele volta (F09c)
+CABO_SOZINHO=1 SALAS=galeria,centelha rodar sozinho-sem-cabo --simular=1 || FALHAS=$((FALHAS + 1))
 [ "$FALHAS" -eq 0 ] || exit 1
-echo "prova de poucos ok — as nove salas com 1, 2 e 3 controles, A Voz com o microfone mudo no sistema, os três ritmos, as opções e o controle que cai"
+echo "prova de poucos ok — as nove salas com 1, 2 e 3 controles, A Voz com o microfone mudo no sistema, os três ritmos, as opções e o controle que cai (com quatro e sozinho)"
