@@ -109,10 +109,13 @@ Marcar WU03 como **feito** no [quadro](README.md), com o commit e o gasto. Commi
 - **O portão:** `scripts/portoes/udev.py` (base, reprova) reprova:
   - modo que dá escrita a «outros», ou `GROUP=`;
   - linha de hidraw sem `uaccess`;
-  - falta da linha do cabo ou da do rádio e do uhid, do DualSense ou do Edge;
+  - falta da linha do cabo ou da do rádio e do uhid, do DualSense ou do Edge (a linha só conta quando é do
+    hidraw, dá o `uaccess` e escreve as letras na caixa do sysfs: `054c` no pai USB, `054C:0CE6` no nome do
+    aparelho HID);
   - número de 73 para cima, ou nenhuma regra.
 
-  Entrou no `rodar.sh`, no LEIA-ME dos portões e na `tests/prova_dos_portoes.sh`, com seis casos.
+  Entrou no `rodar.sh`, no LEIA-ME dos portões e na `tests/prova_dos_portoes.sh`, com sete casos (o sétimo,
+  da conferência: o `KERNELS` em minúscula, que o udev não casaria).
 - **O instalar:**
   - `sistema` põe a regra em `/etc/udev/rules.d/` no mesmo sudo, mesmo quando nenhum pacote falta. Tira a
     `99-forja-dualsense.rules` antiga se ela estiver lá, recarrega o udev, reaplica no hidraw e anota o arquivo em
@@ -136,13 +139,16 @@ Marcar WU03 como **feito** no [quadro](README.md), com o commit e o gasto. Commi
   e `.github/SECURITY.md`.
 - **As provas e as mordidas:**
   - `prova_origem.c`: um sysfs de mentira com o evdev 054c:0ce6, o hidraw irmão e um `/dev` de mentira. Com 0444,
-    o campo liga; com 0666, sem o nó, ou com o `/dev` de verdade, não liga. Como root, o caso trancado é pulado;
+    o campo liga; com 0666, sem o nó, ou quando o controle chega pelo próprio hidraw, não liga. Como root, o caso
+    trancado é pulado;
   - `prova_relatorio.c`: a causa e o `null` no JSON, e a linha no texto;
-  - `tests/prova_das_ferramentas.sh instalar`: 13 casos numa raiz falsa, com sudo, apt-get, dpkg e udevadm de
-    mentira no PATH.
+  - `tests/prova_das_ferramentas.sh instalar`: 15 casos numa raiz falsa, com sudo, apt-get, dpkg e udevadm de
+    mentira no PATH (o Edge no rádio e a anotação que fica quando o desinstalar não tira a regra entraram na
+    conferência).
 
   Cada prova foi quebrada de propósito e reprovou:
-  - o teste do `access` desligado dá 4 falhas nas provas nativas;
+  - o teste do `access` desligado dá 2 falhas na `prova_origem`, e a chave do JSON trocada dá outras 2 na
+    `prova_relatorio`;
   - o `-w` tirado do `conferir` e a regra antiga deixada para trás dão 2 falhas no `instalar`;
   - a checagem do modo e a do rádio desligadas no portão dão 2 falhas na prova dos portões.
 - **Fica para ela:**
