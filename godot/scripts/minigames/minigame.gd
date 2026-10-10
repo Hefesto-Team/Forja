@@ -241,12 +241,9 @@ func nova_nota(l: int, n: int, t_alvo: float) -> void:
 
 
 ## Uma fala do cavaleiro do lugar, no máximo uma a cada FALA_S s. Devolve se
-## falou. A G07 põe a fala de verdade aqui.
-func falar(l: int, _evento: String) -> bool:
-	if t - float(_ultima_fala[l]) < FALA_S:
-		return false
-	_ultima_fala[l] = t
-	return true
+## falou. A fala de verdade é a da SalaJogo (G07).
+func falar(l: int, evento: String) -> bool:
+	return super(l, evento)
 
 
 func _reagir(l: int, j: int) -> void:

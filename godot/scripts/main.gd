@@ -180,6 +180,7 @@ func _interface() -> void:
 	ui.add_child(visor)
 	ui.move_child(visor, hud.get_index() + 1)
 	lobby.visor = visor  # G13: o «LIGA!» do item na etiqueta da coluna
+	placar.virou.connect(_virou_no_placar)  # G07: «VIRADA!» carimbado no placar
 	cortina = ColorRect.new()
 	cortina.color = Color(Tema.FITA, 0.0)
 	cortina.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -1189,7 +1190,7 @@ func _perto_da_bigorna() -> void:
 
 func _quadro_sala() -> void:
 	# o fim da sala: a tela de resultado abre sozinha (e reabre ao sair da pausa)
-	if sala is SalaJogo and (sala as SalaJogo).fase == "fim" and not resultado.visible and overlay == "":
+	if sala is SalaJogo and (sala as SalaJogo).fase == "fim" and not resultado.visible and overlay == "" and _plano_do_fim() == "":
 		var sj := sala as SalaJogo
 		resultado.abrir(sj.colocacao, sj.pontos, sj.coop, sj.coop_venceu, sj.nome)
 		resultado.sala_da_bancada = sj if Forja.bancada else null
@@ -1460,6 +1461,8 @@ func _pose_da_camera() -> Array:
 			var pos_do_podio := Vector3(-4.6, 4.0, 19.5)
 			return [olhar_do_podio + (pos_do_podio - olhar_do_podio) * Lente.recuo(_lente()), olhar_do_podio]
 		"sala":
+			if sala is SalaJogo and _plano_do_fim() != "":
+				return _pose_do_fim(sala as SalaJogo, _plano_do_fim())
 			if sala:
 				return _pose_da_sala()
 	# o salão: enquadra quem está jogando
@@ -1501,7 +1504,7 @@ func _lente() -> float:
 		"intro":
 			return 35.0
 		"sala":
-			return sala.lente() if sala else 35.0
+			return _lente_da_sala()
 		"salao", "podio":
 			return 35.0
 	return Lente.PADRAO
@@ -1564,6 +1567,8 @@ func _mover_camera(dt: float) -> void:
 	_enquadrar()
 	var pose := _pose_da_camera()
 	var k := minf(1.0, dt * (1.2 if estado in ["titulo", "intro"] else 4.0))
+	if _cortou_o_fim(pose):
+		k = 1.0
 	_cam_pos = _cam_pos.lerp(pose[0], k)
 	_cam_olhar = _cam_olhar.lerp(pose[1], k)
 	camera.global_position = _cam_pos
@@ -1596,3 +1601,102 @@ func _parar_a_fita() -> void:
 func _ui(l: int, id: String) -> void:
 	Som.ui(l, id)
 	Forja.sentir(l, "toque")
+
+
+# ------------------------------------------------------------------ o fim filmado (G07) --
+var _plano_antes := ""  ## o plano do fim no quadro anterior (o corte)
+
+
+## O plano do fim da sala de agora: "resultado", "inserto" ou "" (fora do fim, ou a câmera da sala com a tabela).
+func _plano_do_fim() -> String:
+	if estado != "sala" or not sala is SalaJogo:
+		return ""
+	return (sala as SalaJogo).plano_do_fim()
+
+
+## A lente da sala: 50 mm no plano do vencedor, 85 mm no inserto, e a da sala no resto.
+func _lente_da_sala() -> float:
+	match _plano_do_fim():
+		"resultado":
+			return 50.0
+		"inserto":
+			return 85.0
+	return sala.lente() if sala else 35.0
+
+
+## A pose do fim (01): o vencedor de baixo (contra-plongée de 8°) a 5,2 m, girando 15° em 4 batidas, `ENTRA_SAI`; sem
+## vencedor, o grupo inteiro no quadro. No inserto, o rosto do último a 3,2 m, à altura dos olhos, parado.
+func _pose_do_fim(sj: SalaJogo, plano: String) -> Array:
+	if plano == "inserto":
+		var u := sj.jogador(sj.ultimo_do_inserto())
+		if u != null and is_instance_valid(u):
+			var cabeca := u.global_position + Vector3(0, 1.3, 0)
+			return [cabeca + _horizontal_para_a_camera(sj, cabeca) * 3.2, cabeca]
+	var w := sj.vencedor_do_fim()
+	var pw: ForjaPlayer = sj.jogador(w) if w >= 0 else null
+	var alvo := Vector3.ZERO
+	var d := 5.2
+	if pw != null and is_instance_valid(pw):
+		alvo = pw.global_position + Vector3(0, 1.1, 0)
+	else:
+		var juntos: Array = []
+		for l in 4:
+			var p := sj.jogador(l)
+			if sj.jogando[l] and p != null and is_instance_valid(p):
+				juntos.append(p.global_position)
+		if juntos.is_empty():
+			return _pose_da_sala()
+		var centro := Vector3.ZERO
+		for q in juntos:
+			centro += q
+		centro /= juntos.size()
+		var raio := 0.0
+		for q in juntos:
+			raio = maxf(raio, (q - centro).length())
+		alvo = centro + Vector3(0, 1.1, 0)
+		d = maxf(5.2, 2.4 * raio + 1.2)
+	var k := 0.5
+	if not Opcoes.reduzido():
+		k = TelaIntro.entra_sai(clampf(sj.t_fase / (SalaJogo.BATIDAS_DO_RESULTADO * sj.batida_do_fim()), 0.0, 1.0))
+	var dir := _horizontal_para_a_camera(sj, alvo).rotated(Vector3.UP, deg_to_rad(lerpf(-7.5, 7.5, k)))
+	var baixo := deg_to_rad(8.0)
+	return [alvo + dir * d * cos(baixo) - Vector3(0, d * sin(baixo), 0), alvo]
+
+
+## A direção horizontal do alvo para a câmera que a sala desenhou.
+func _horizontal_para_a_camera(sj: SalaJogo, alvo: Vector3) -> Vector3:
+	var dir: Vector3 = sj.camera_pos - alvo
+	dir.y = 0.0
+	return dir.normalized() if dir.length() > 0.01 else Vector3.BACK
+
+
+## O corte do fim: quando o plano muda, a câmera vai direto à pose nova (nunca desliza de um plano a outro). No
+## começo do resultado o vencedor olha a câmera; no do inserto, o último; na saída do inserto, a cara emburrada some.
+func _cortou_o_fim(pose: Array) -> bool:
+	var plano := _plano_do_fim()
+	if plano == _plano_antes:
+		return false
+	var antes := _plano_antes
+	_plano_antes = plano
+	if antes == "inserto":
+		visor.vivos = visor.vivos.filter(func(c): return c.id != "car_emburrado")
+	if sala is SalaJogo:
+		var sj := sala as SalaJogo
+		var quem := sj.vencedor_do_fim() if plano == "resultado" else (sj.ultimo_do_inserto() if plano == "inserto" else -1)
+		var p: ForjaPlayer = sj.jogador(quem) if quem >= 0 else null
+		if p != null and is_instance_valid(p):
+			p.olhar_para(pose[0])
+	return true
+
+
+## A virada no placar (G07): o visor fica por cima do placar enquanto ele está aberto, e o carimbo bate no cabeçalho.
+func _virou_no_placar(l: int, onde: Vector2) -> void:
+	if visor.get_index() < placar.get_index():
+		ui.move_child(visor, placar.get_index())
+	if not placar.visibility_changed.is_connected(_visor_volta_ao_hud):
+		placar.visibility_changed.connect(_visor_volta_ao_hud, CONNECT_ONE_SHOT)
+	visor.bater(l, "car_virada", onde)
+
+
+func _visor_volta_ao_hud() -> void:
+	ui.move_child(visor, hud.get_index() + 1)

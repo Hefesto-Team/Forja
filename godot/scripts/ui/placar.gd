@@ -5,6 +5,9 @@ extends Control
 ## a sala seguinte. No fim: o pódio, com quem venceu a noite numa frase.
 ## Sempre com o número do lugar e a palavra — nunca só a cor.
 
+## O líder mudou (G07): o main carimba «VIRADA!» (`car_virada`) em `onde`, no canto direito do cabeçalho.
+signal virou(l: int, onde: Vector2)
+
 var partida: Partida = null
 var no_podio := false
 var _t := 0.0
@@ -96,7 +99,8 @@ func _sons() -> void:
 	if _t >= T_LIDER and not _soou.has("lider"):
 		_soou["lider"] = true
 		if _virada:
-			Som.jingle("JIN_VIRADA")
+			# o carimbo toca o jin_virada e vibra no dono (o Visor da G04)
+			virou.emit(int(_depois[0].lugar), ponto_da_virada())
 		else:
 			Som.tocar("confirma")
 
@@ -127,18 +131,9 @@ func _draw() -> void:
 		draw_rect(Rect2(Vector2.ZERO, size), Color(Tema.CASCO, 0.86 * _suave(_t / 0.3)))
 	var lista: Array = _depois if not _depois.is_empty() else partida.podio(partida.presentes())
 	var ultima: Dictionary = partida.historico[partida.historico.size() - 1]
-	var larg := 1180.0
-	var linha := 104.0
-	var alt := 300.0 + linha * lista.size()
-	var r := Rect2(Vector2((size.x - larg) * 0.5, (size.y - alt) * 0.5), Vector2(larg, alt))
-	if no_podio:
-		# o pódio fica à esquerda: os bonecos nos pedestais aparecem à direita
-		r.position = Vector2(Tema.MARGEM_X, (size.y - alt) * 0.5)
-		larg = 860.0
-		r.size.x = larg
-	else:
-		# o quadro entra subindo
-		r.position.y += 60.0 * (1.0 - _suave(_t / 0.35))
+	var linha := LINHA
+	var r := _retangulo()
+	var larg := r.size.x
 	Desenho.moldura(self, r, Color(Tema.CASCO, 0.97), Tema.GRAFITE, 2, Tema.RAIO_QUADRO)
 	var x := r.position.x + 48
 	if no_podio:
@@ -148,11 +143,6 @@ func _draw() -> void:
 		Desenho.texto(self, Vector2(x, r.position.y + 84), "O placar", Tema.bungee(), Tema.T_TITULO, Tema.ETIQUETA)
 		var depois := "Depois d%s · sala %d de %d" % [_contracao(str(ultima.nome)), partida.historico.size(), partida.salas.size()]
 		Desenho.texto(self, Vector2(x, r.position.y + 140), depois, Tema.archivo(500), Tema.T_ROTULO, Tema.ETIQUETA)
-		if _virada and _t >= T_LIDER:
-			var fv := Tema.bungee()
-			var pulso := 1.0 + 0.06 * sin(_t * 8.0)
-			var tv := int(Tema.T_SUBTITULO * pulso)
-			Desenho.texto(self, Vector2(r.end.x - 48 - Desenho.largura("Virada!", fv, tv), r.position.y + 90), "Virada!", fv, tv, Tema.ETIQUETA)
 	# o cabeçalho das colunas
 	var y0 := r.position.y + 206
 	var c_total := r.end.x - 48 - 150
@@ -223,3 +213,30 @@ static func _contracao(nome: String) -> String:
 	if nome.begins_with("As "):
 		return "as " + nome.substr(3)
 	return "'" + nome
+
+
+# ------------------------------------------------------------------ a virada (G07) --
+const LINHA := 104.0  ## a altura de cada linha do placar
+
+
+## O retângulo do placar agora (o `_draw` desenha nele): 1180 px no meio, entrando de baixo; no pódio, 860 px à
+## esquerda (os bonecos nos pedestais aparecem à direita).
+func _retangulo() -> Rect2:
+	var n := 0
+	if partida != null:
+		n = _depois.size() if not _depois.is_empty() else partida.podio(partida.presentes()).size()
+	var larg := 1180.0
+	var alt := 300.0 + LINHA * n
+	var r := Rect2(Vector2((size.x - larg) * 0.5, (size.y - alt) * 0.5), Vector2(larg, alt))
+	if no_podio:
+		r.position = Vector2(Tema.MARGEM_X, (size.y - alt) * 0.5)
+		r.size.x = 860.0
+	else:
+		r.position.y += 60.0 * (1.0 - _suave(_t / 0.35))
+	return r
+
+
+## Onde «VIRADA!» bate: o centro do canto direito do cabeçalho.
+func ponto_da_virada() -> Vector2:
+	var r := _retangulo()
+	return Vector2(r.end.x - 48.0 - 170.0, r.position.y + 70.0)

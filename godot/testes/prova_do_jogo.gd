@@ -65,6 +65,7 @@ func _ready() -> void:
 	add_child(jogo)
 	_prova_do_catalogo()
 	await _prova_do_percurso()
+	_prova_das_falas()
 	await _prova_do_motor_que_vence()
 	await _prova_do_aviso_sozinho()
 	await _prova_do_relatorio()
@@ -76,6 +77,7 @@ func _ready() -> void:
 	_prova_das_contas_dos_itens()
 	_prova_do_teclado()
 	await _prova_da_partida()
+	await _prova_da_virada()
 	_prova_do_modo()
 	_prova_das_frases()
 	_prova_das_maiusculas()
@@ -916,6 +918,14 @@ func _termina_a_sala(sala, features: Array) -> void:
 	# resultado mostra quem venceu e os quatro, e a sala avança sozinha em 6 s
 	_esperar(not subiu and is_equal_approx(float(sala.duracao), duracao_no_inicio),
 		"%s: o relógio nunca volta a encher" % id)
+	# o fim filmado (G07): a tabela só abre depois da cena (o vencedor e, quando há, o inserto)
+	var cena: float = sala.fim_da_cena()
+	_esperar(sala.plano_do_fim() == "resultado" and not jogo.resultado.visible,
+		"%s: o fim começa no plano do vencedor, sem a tabela (%s)" % [id, sala.plano_do_fim()])
+	q = 0
+	while is_instance_valid(sala) and sala.plano_do_fim() != "" and q < 900:
+		await _quadros(1)
+		q += 1
 	await _quadros(40)
 	var col: Array = jogo.resultado.colocacao
 	var melhor := -1
@@ -927,8 +937,8 @@ func _termina_a_sala(sala, features: Array) -> void:
 	while fim[0] < 0.0 and q < 900:
 		await _quadros(1)
 		q += 1
-	_esperar(fim[0] >= TelaResultado.AVANCA_S - 0.05 and fim[0] <= TelaResultado.AVANCA_S + 0.1,
-		"%s: o fim avança sozinho em 6 s, robô ou não (%.2f s)" % [id, fim[0]])
+	_esperar(fim[0] >= cena + TelaResultado.AVANCA_S - 0.05 and fim[0] <= cena + TelaResultado.AVANCA_S + 0.1,
+		"%s: o fim avança sozinho em 6 s depois da cena de %.2f s, robô ou não (%.2f s)" % [id, cena, fim[0]])
 	_esperar(Som.ultimo_jingle == jingle_certo, "%s: o jingle do resultado é o certo (%s; esperado %s)" % [id, Som.ultimo_jingle, jingle_certo])
 	# o robô aperta ✕ no veredito; a cortina leva de volta ao salão
 	q = 0
@@ -1274,6 +1284,8 @@ func _prova_da_partida() -> void:
 		for l in 4:
 			sala.pontos[l] = pontos[i][l]
 		sala.terminar()
+		if i == 0:
+			await _prova_do_fim_filmado(sala)
 		q = 0
 		while jogo.overlay != "placar" and q < 600:
 			await _quadros(2)
@@ -3567,3 +3579,145 @@ func _prova_da_entrada(mg) -> void:
 		var dt := _contar_registro("sensacao", l, "toque") - int(toques[l])
 		_esperar(dt == 1, "aviso P%d: o ✕ do pronto vibra um toque (%d)" % [l + 1, dt])
 
+
+
+## As falas (G07): as regras do 07 (uma por vez, 20 s por lugar), o vocabulário, o lado no treino, as falas que o
+## julgamento puxa e o «por um fio».
+func _prova_das_falas() -> void:
+	var s := SalaJogo.new()
+	var ditas: Array = []
+	s.falou.connect(func(l, texto, seg): ditas.append([l, texto, seg]))
+	s.t = 100.0
+	_esperar(s.falar(0, "vencedor") and ditas.size() == 1 and is_equal_approx(float(ditas[0][2]), Falas.DURACAO_S),
+		"falas: a primeira fala sai, por 2 s (%s)" % [ditas])
+	s.t = 101.0
+	_esperar(not s.falar(1, "combo_equipe"), "falas: duas ao mesmo tempo, não")
+	s.t = 102.1
+	_esperar(s.falar(1, "combo_equipe"), "falas: passados 2 s, a fala do P2 sai")
+	s.t = 110.0
+	_esperar(not s.falar(0, "voltou"), "falas: o P1 não fala de novo antes de 20 s")
+	s.t = 120.5
+	_esperar(s.falar(0, "voltou"), "falas: passados 20 s, o P1 fala de novo")
+	s.t = 200.0
+	_esperar(not s.falar(2, "nao_existe"), "falas: evento sem frase não fala")
+	s.free()
+	_esperar(Falas.do_julgamento(Falas.PERFEITO) == "Ressonância!" and Falas.do_julgamento(Falas.OTIMO) == "Afinado"
+		and Falas.do_julgamento(Falas.BOM) == "Quase" and Falas.do_julgamento(Falas.ERRO) == "", "falas: o vocabulário do visor")
+	_esperar(Falas.do_julgamento(Falas.BOM, true, -0.08) == "Cedo" and Falas.do_julgamento(Falas.OTIMO, true, 0.07) == "Tarde"
+		and Falas.do_julgamento(Falas.PERFEITO, true, 0.01) == "Ressonância!", "falas: no treino, cedo e tarde; o perfeito é perfeito")
+	var sem := []
+	for evento in Falas.DO_EVENTO:
+		for frase in Falas.DO_EVENTO[evento]:
+			if frase.substr(0, 1) != frase.substr(0, 1).to_upper() or not Traducoes.EN.has(frase):
+				sem.append(frase)
+	for palavra in ["Cedo", "Tarde"]:
+		if not Traducoes.EN.has(palavra):
+			sem.append(palavra)
+	_esperar(sem.is_empty(), "falas: toda fala começa com maiúscula e tem inglês %s" % [sem])
+	# o julgamento: a palavra do treino pelo desvio, e as falas que ele puxa fora do treino
+	var j := SalaJogo.new()
+	j.jogando = [true, true, false, false]
+	var palavras: Array = []
+	var faladas: Array = []
+	j.julgou.connect(func(_l, _jj, palavra): palavras.append(palavra))
+	j.falou.connect(func(l, texto, _seg): faladas.append([l, texto]))
+	j.treinando = true
+	j.julgar(0, Falas.BOM, "", false, -0.08)
+	j.julgar(0, Falas.PERFEITO, "", false, 0.05)
+	_esperar(palavras == ["Cedo", "Ressonância!"], "falas: no treino, o julgamento diz o lado (%s)" % [palavras])
+	_esperar(faladas.is_empty(), "falas: o treino não fala")
+	j.treinando = false
+	j.t = 10.0
+	for k in 3:
+		j.julgar(0, Falas.OTIMO, "", false, 0.07)
+	_esperar(faladas.size() == 1 and int(faladas[0][0]) == 0 and faladas[0][1] in Falas.DO_EVENTO.arrastando,
+		"falas: três toques tarde seguidos, «arrastando» (%s)" % [faladas])
+	j.t = 40.0
+	j.julgar(1, Falas.ERRO)
+	_esperar(faladas.size() == 1, "falas: um erro sozinho não é «todos erraram» (%s)" % [faladas])
+	j.t = 40.5
+	j.julgar(0, Falas.ERRO)
+	_esperar(faladas.size() == 2 and faladas[1][1] in Falas.DO_EVENTO.todos_erraram,
+		"falas: os dois erram em 1,5 s, «Tá tudo desafinado!» (%s)" % [faladas])
+	j.free()
+	# o fim: quem vence, quem vai ao inserto, por um fio (2 % ou menos)
+	var f := SalaJogo.new()
+	f.jogando = [true, true, false, false]
+	f.pontos = [100, 99, 0, 0]
+	_esperar(f.por_um_fio() and f.vencedor_do_fim() == 0 and f.ultimo_do_inserto() == 1, "fim: por um fio com 1 %")
+	f.pontos = [100, 97, 0, 0]
+	_esperar(not f.por_um_fio(), "fim: 3 % não é por um fio")
+	f.pontos = [50, 50, 0, 0]
+	_esperar(f.vencedor_do_fim() == -1 and f.ultimo_do_inserto() == -1, "fim: o empate não tem vencedor nem inserto")
+	f.jogando = [true, false, false, false]
+	f.pontos = [10, 0, 0, 0]
+	_esperar(f.vencedor_do_fim() == 0 and f.ultimo_do_inserto() == -1, "fim: sozinho, vence e não há inserto")
+	f.coop = true
+	_esperar(f.vencedor_do_fim() == -1 and f.ultimo_do_inserto() == -1, "fim: o coop não tem vencedor nem inserto")
+	f.free()
+
+
+## O FOV que o main põe para a lente `mm` nesta tela (16:9 guarda a altura; mais estreita, a largura).
+func _fov_de(mm: float) -> float:
+	var tam := get_viewport().get_visible_rect().size
+	if tam.y > 0.0 and tam.x / tam.y < 16.0 / 9.0 - 0.01:
+		return rad_to_deg(2.0 * atan(tan(deg_to_rad(Lente.fov(mm)) * 0.5) * 16.0 / 9.0))
+	return Lente.fov(mm)
+
+
+## O fim filmado (G07), na primeira faixa da partida (pontos [10, 40, 30, 20], três jogando: o P2 vence, o P1 é o
+## último): o plano do vencedor a 50 mm com o batimento na mão e o arpejo no alto-falante dele, o inserto a 85 mm
+## com a cara emburrada e o controle que desmaia, e a tabela só depois da cena.
+func _prova_do_fim_filmado(sala) -> void:
+	await _quadros(2)
+	_esperar(sala.vencedor_do_fim() == 1 and sala.ultimo_do_inserto() == 0,
+		"fim: o P2 vence e o P1 vai ao inserto (%d, %d)" % [sala.vencedor_do_fim(), sala.ultimo_do_inserto()])
+	_esperar(sala.plano_do_fim() == "resultado" and absf(jogo.camera.fov - _fov_de(50.0)) < 0.05,
+		"fim: o plano do vencedor a 50 mm (%s, fov %.2f)" % [sala.plano_do_fim(), jogo.camera.fov])
+	var b: float = sala.batida_do_fim()
+	var pico := 0.0
+	var falou := false
+	var tabela := false
+	var ate := Time.get_ticks_msec() + int(b * 4000.0) + 1500
+	while is_instance_valid(sala) and sala.plano_do_fim() == "resultado" and Time.get_ticks_msec() < ate:
+		pico = maxf(pico, float(_perc(1).get("forte", 0.0)))
+		falou = falou or float(Forja.som_virtual(1).get("falante", 0.0)) > 0.0
+		tabela = tabela or jogo.resultado.visible
+		await _quadros(1)
+	_esperar(pico >= 0.8 and falou, "fim: a vitória bate na mão do P2 (%.2f) e toca no alto-falante dele (%s)" % [pico, falou])
+	_esperar(_contar_registro("sensacao", 1, "vitoria_eco") >= 1, "fim: o batimento duplo do P2 no registro")
+	_esperar(is_instance_valid(sala) and sala.plano_do_fim() == "inserto" and absf(jogo.camera.fov - _fov_de(85.0)) < 0.05,
+		"fim: o inserto do último a 85 mm (%s, fov %.2f)" % [sala.plano_do_fim() if is_instance_valid(sala) else "-", jogo.camera.fov])
+	await _quadros(2)
+	_esperar(jogo.visor.do_lugar(0).any(func(v): return v.id == "car_emburrado"), "fim: a cara emburrada acima do P1")
+	_esperar(float(_perc(0).get("forte", 0.0)) > 0.3, "fim: o controle do P1 desmaia (%.2f)" % float(_perc(0).get("forte", 0.0)))
+	ate = Time.get_ticks_msec() + int(b * 1000.0) + 1500
+	while is_instance_valid(sala) and sala.plano_do_fim() != "" and Time.get_ticks_msec() < ate:
+		tabela = tabela or jogo.resultado.visible
+		await _quadros(1)
+	_esperar(not tabela, "fim: a tabela não abre durante a cena")
+	await _quadros(3)
+	_esperar(not jogo.visor.vivos.any(func(v): return v.id == "car_emburrado"), "fim: a cara emburrada some no corte")
+	_esperar(jogo.resultado.visible, "fim: depois da cena, a tabela")
+
+
+## A virada no placar (G07): o líder muda e «VIRADA!» bate no cabeçalho, com o visor por cima do placar; ao fechar,
+## o visor volta para cima do HUD.
+func _prova_da_virada() -> void:
+	var p := Partida.nova(2, false, 7, ["centelha", "galeria"])
+	p.registrar("centelha", [40, 30, 10, 0], [0, 1, 2])
+	p.registrar("galeria", [0, 40, 30, 0], [0, 1, 2])
+	var virou: Array = []
+	jogo.placar.virou.connect(func(l, _onde): virou.append(l), CONNECT_ONE_SHOT)
+	jogo.placar.abrir(p, false)
+	jogo.placar.visible = true
+	await _quadros(int(60 * (Placar.T_LIDER + 0.3)))
+	_esperar(virou == [1], "virada: o placar carimba o P2 (%s)" % [virou])
+	var carimbo: Array = jogo.visor.vivos.filter(func(c): return c.id == "car_virada")
+	_esperar(carimbo.size() == 1 and carimbo[0].onde == jogo.placar.ponto_da_virada(),
+		"virada: «VIRADA!» no canto do cabeçalho (%s)" % [carimbo])
+	_esperar(jogo.visor.get_index() > jogo.placar.get_index(), "virada: o visor por cima do placar")
+	jogo.placar.visible = false
+	await _quadros(1)
+	_esperar(jogo.visor.get_index() == jogo.hud.get_index() + 1, "virada: o visor volta para cima do HUD")
+	jogo.visor.vivos = jogo.visor.vivos.filter(func(c): return c.id != "car_virada")

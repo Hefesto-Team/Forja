@@ -419,6 +419,7 @@ func terminar() -> void:
 	fase = "fim"
 	t_fase = 0.0
 	_celebrou = false
+	_emburrou = false
 	colocacao = vencedor()
 	for p in jogadores:
 		var l: int = p.lugar
@@ -453,17 +454,38 @@ func vencedor() -> Array:
 	return lugares
 
 
-## Quem venceu pula de alegria, com faíscas na cor do lugar. Ninguém balança a
-## cabeça: o veredito é do Modo bancada, não do boneco.
+## 1 batida depois do apito (G07): quem venceu pula de alegria, com faíscas na cor do lugar, o arpejo dele na TV e
+## na mão, o batimento duplo e «POR UM FIO» ou a fala do vencedor. Ninguém balança a cabeça: o veredito é do Modo
+## bancada, não do boneco. O jingle do resultado (H06) vem depois do som da vitória ou da derrota (o mapa do áudio).
 func _celebrar() -> void:
-	if not colocacao.is_empty():
-		var l: int = colocacao[0]
-		var p := jogador(l)
+	var jingle := Som.jingle_do_resultado(pontos, _presentes_do_fim(), coop, coop_venceu)
+	var w := vencedor_do_fim()
+	var espera := 0.0
+	if w >= 0:
+		var p := jogador(w)
 		if p != null and is_instance_valid(p):
 			p.gesto("emote-yes", 1.4)
-			Efeitos.faiscas(self, p.global_position + Vector3(0, 2.2, 0), Forja.cor_do_lugar(l), 40, 1.3)
-	# o jingle do resultado (H06): vitória, empate ou, no coop, a de todos ou a derrota
-	Som.jingle(Som.jingle_do_resultado(pontos, _presentes_do_fim(), coop, coop_venceu))
+			Efeitos.faiscas(self, p.global_position + Vector3(0, 2.2, 0), Forja.cor_do_lugar(w), 40, 1.3)
+		Som.tocar(FX_VITORIA[w], p.global_position if p != null and is_instance_valid(p) else null, -9.0)
+		Som.no_controle(w, FX_VITORIA[w], 0.85)
+		Forja.batimento_duplo(w)
+		if por_um_fio():
+			carimbou.emit(w, "car_por_um_fio")
+		else:
+			falar(w, "vencedor")
+		espera = FX_VITORIA_S
+	elif coop and coop_venceu:
+		for l in _presentes_do_fim():
+			Forja.batimento_duplo(l)
+	elif coop:
+		Som.tocar("fx_derrota", null, -6.0)
+		for l in _presentes_do_fim():
+			Forja.desmaio(l)
+		espera = FX_DERROTA_S
+	if espera > 0.0:
+		get_tree().create_timer(espera).timeout.connect(Som.jingle.bind(jingle))
+	else:
+		Som.jingle(jingle)
 
 
 ## Os lugares que jogaram (os que o resultado conta).
@@ -496,14 +518,19 @@ func ao_terminar() -> void:
 	pass
 
 
+## O fim filmado (G07): o vencedor em 1 batida, o inserto do último em 4, a tabela depois da cena. O ✕ só vale
+## 0,8 s depois da cena; sem ele, a sala avança sozinha em AVANCA_S depois da cena.
 func _quadro_fim() -> void:
-	if t_fase >= TelaResultado.APITO_S and not _celebrou:
+	if t_fase >= batida_do_fim() and not _celebrou:
 		_celebrou = true
 		_celebrar()
-	if t_fase >= TelaResultado.AVANCA_S:
+	if t_fase >= BATIDAS_DO_RESULTADO * batida_do_fim() and not _emburrou and ultimo_do_inserto() >= 0:
+		_emburrou = true
+		_no_inserto()
+	if t_fase >= fim_da_cena() + TelaResultado.AVANCA_S:
 		terminou.emit()
 		return
-	if t_fase < 0.8:
+	if t_fase < fim_da_cena() + 0.8:
 		return
 	for p in jogadores:
 		if Forja.apertou(p.lugar, Forja.CRUZ):
@@ -608,10 +635,13 @@ var _acorde := [-1, -1, -1, -1]  ## o compasso da última «Ressonância!» no t
 
 ## O julgamento de um toque: o som do lugar na TV e na mão, a vibração e o carimbo.
 ## `palavra` vazia usa PALAVRA[j] (a G07 passa «Cedo»/«Tarde» no treino).
-## O kit (H04) chama; o erro chega aqui só se `errou(l)` (G03) devolveu false.
-func julgar(l: int, j: int, palavra := "", no_tempo_1 := false) -> void:
+## O kit (H04) chama; o erro chega aqui só se `errou(l)` (G03) devolveu false. `desvio_s`: o desvio do toque em
+## segundos (negativo: cedo; G07); quem não mede passa 0 e nunca ouve «Cedo», «Tarde» nem a fala do lado.
+func julgar(l: int, j: int, palavra := "", no_tempo_1 := false, desvio_s := 0.0) -> void:
 	if l < 0 or l > 3 or j < 0 or j > 3:
 		return
+	if palavra == "" and treinando:
+		palavra = Falas.do_julgamento(j, true, desvio_s)
 	var id := "jul_%s_p%d" % [JUL[j], l + 1]
 	var p := jogador(l)
 	Som.tocar(id, p.global_position + Vector3(0, 1.2, 0) if p else null, -12.0)
@@ -620,6 +650,7 @@ func julgar(l: int, j: int, palavra := "", no_tempo_1 := false) -> void:
 	julgou.emit(l, j, palavra if palavra != "" or j == 0 else PALAVRA[j])
 	if treinando:
 		return
+	_falas_do_julgamento(l, j, desvio_s)
 	_ressonancias[l] = _ressonancias[l] + 1 if j == 3 else 0
 	if _ressonancias[l] >= 5:
 		_ressonancias[l] = 0
@@ -730,3 +761,148 @@ func _impacto() -> void:
 	PosFita.rasgo_curto()
 	Forja.evento("momento", 0, {"slot": id, "nome": "verbo_carimbado", "lugar": -1,
 		"t_musica": snappedf(Ritmo.t_musica(), 0.001), "t_alvo": snappedf(_t_impacto, 0.001)})
+
+
+# ---------------------------------------------------------------- as falas e o fim filmado (G07) --
+## As falas (07): uma por lugar a cada Falas.INTERVALO_S, uma só na tela, sorteada pela semente da sala (`rng`).
+var _t_da_ultima_fala := [-INF, -INF, -INF, -INF]  ## o `t` da última fala de cada lugar
+var _fala_ate := -INF  ## até quando há uma fala na tela
+var _acertos_da_equipe := 0  ## acertos seguidos da equipe (fora do treino)
+var _erros_seguidos := [0, 0, 0, 0]
+var _ultimo_erro := [-INF, -INF, -INF, -INF]
+var _lado_seguido := [0, 0, 0, 0]  ## +n: n toques tarde seguidos; −n: n cedo
+
+
+## Uma fala do cavaleiro do lugar por um evento do 07. Devolve false (e não fala) se o lugar falou há menos de 20 s,
+## se outra fala está na tela ou se o evento não tem frase.
+func falar(l: int, evento: String) -> bool:
+	if l < 0 or l > 3 or not Falas.DO_EVENTO.has(evento):
+		return false
+	if t < _fala_ate or t - float(_t_da_ultima_fala[l]) < Falas.INTERVALO_S:
+		return false
+	var frases: Array = Falas.DO_EVENTO[evento]
+	var texto: String = frases[rng.randi() % frases.size()]
+	_t_da_ultima_fala[l] = t
+	_fala_ate = t + Falas.DURACAO_S
+	falou.emit(l, texto, Falas.DURACAO_S)
+	Forja.evento("fala", l + 1, {"evento": evento})
+	return true
+
+
+## As falas que o julgamento puxa (fora do treino): o combo da equipe, a volta depois dos erros, todos errando
+## juntos e o lado (arrastando, correndo).
+func _falas_do_julgamento(l: int, j: int, desvio_s: float) -> void:
+	if j > Falas.ERRO:
+		_acertos_da_equipe += 1
+		if _acertos_da_equipe >= Falas.COMBO_DA_EQUIPE:
+			_acertos_da_equipe = 0
+			falar(l, "combo_equipe")
+		if int(_erros_seguidos[l]) >= Falas.VOLTOU:
+			falar(l, "voltou")
+		_erros_seguidos[l] = 0
+	else:
+		_ultimo_erro[l] = t
+		_erros_seguidos[l] = int(_erros_seguidos[l]) + 1
+		_acertos_da_equipe = 0
+		var todos := true
+		for k in 4:
+			if jogando[k] and Forja.ocupado(k) and t - float(_ultimo_erro[k]) > Falas.TODOS_S:
+				todos = false
+		if todos:
+			falar(l, "todos_erraram")
+	if desvio_s > Falas.ARRASTA_S:
+		_lado_seguido[l] = maxi(int(_lado_seguido[l]), 0) + 1
+	elif desvio_s < Falas.CORRE_S:
+		_lado_seguido[l] = mini(int(_lado_seguido[l]), 0) - 1
+	else:
+		_lado_seguido[l] = 0
+	if int(_lado_seguido[l]) >= Falas.SEGUIDOS:
+		_lado_seguido[l] = 0
+		falar(l, "arrastando")
+	elif int(_lado_seguido[l]) <= -Falas.SEGUIDOS:
+		_lado_seguido[l] = 0
+		falar(l, "correndo")
+
+
+## O fim filmado (01: o resultado e o inserto): o vencedor de baixo por 4 batidas, o rosto do último por 1, e então
+## a câmera da sala com a tabela. O main lê `plano_do_fim()` para a pose e a lente.
+const BATIDAS_DO_RESULTADO := 4
+const BATIDAS_DO_INSERTO := 1
+const POR_UM_FIO := 0.02  ## venceu por 2 % ou menos
+const FX_VITORIA := ["fx_vitoria_p1", "fx_vitoria_p2", "fx_vitoria_p3", "fx_vitoria_p4"]
+const FX_VITORIA_S := 1.0  ## o arpejo do vencedor (o mapa: 1000 ms)
+const FX_DERROTA_S := 1.4  ## a fita que desacelera (o mapa: 1400 ms)
+var _emburrou := false
+
+
+## Uma batida do fim, em s (sem música, a 120).
+func batida_do_fim() -> float:
+	return 60.0 / (Ritmo.bpm if Ritmo.bpm > 0.0 else 120.0)
+
+
+## Quem venceu a faixa: fora do coop, o primeiro de `vencedor()` com pontos e à frente do segundo (sozinho, basta
+## pontuar); -1 no empate em cima, sem pontos ou no coop.
+func vencedor_do_fim() -> int:
+	if coop:
+		return -1
+	var ordem := vencedor()
+	if ordem.is_empty() or int(pontos[ordem[0]]) <= 0:
+		return -1
+	if ordem.size() >= 2 and int(pontos[ordem[1]]) >= int(pontos[ordem[0]]):
+		return -1
+	return int(ordem[0])
+
+
+## O último do inserto: fora do coop, com 2 ou mais jogando, o último de `vencedor()` se fez menos que o penúltimo e
+## não é o vencedor; senão -1 (sem inserto).
+func ultimo_do_inserto() -> int:
+	if coop:
+		return -1
+	var ordem := vencedor()
+	if ordem.size() < 2:
+		return -1
+	var u := int(ordem[ordem.size() - 1])
+	if int(pontos[u]) >= int(pontos[ordem[ordem.size() - 2]]) or u == vencedor_do_fim():
+		return -1
+	return u
+
+
+## Por um fio: há vencedor, o segundo pontuou e a diferença é de 2 % do vencedor ou menos.
+func por_um_fio() -> bool:
+	var w := vencedor_do_fim()
+	var ordem := vencedor()
+	if w < 0 or ordem.size() < 2 or int(pontos[ordem[1]]) <= 0:
+		return false
+	return int(pontos[w]) - int(pontos[ordem[1]]) <= POR_UM_FIO * int(pontos[w])
+
+
+## Quando a câmera volta à sala e a tabela abre: 5 batidas com inserto, 4 sem.
+func fim_da_cena() -> float:
+	var n := BATIDAS_DO_RESULTADO + (BATIDAS_DO_INSERTO if ultimo_do_inserto() >= 0 else 0)
+	return n * batida_do_fim()
+
+
+## "resultado", "inserto" ou "" (a câmera da sala, a tabela). Fora do fim, "".
+func plano_do_fim() -> String:
+	if fase != "fim":
+		return ""
+	if t_fase < BATIDAS_DO_RESULTADO * batida_do_fim():
+		return "resultado"
+	if t_fase < fim_da_cena() and ultimo_do_inserto() >= 0:
+		return "inserto"
+	return ""
+
+
+## O começo do inserto: a cara emburrada acima do último, ele senta, a fita desacelera na TV e na mão dele, e o
+## controle dele desmaia.
+func _no_inserto() -> void:
+	var u := ultimo_do_inserto()
+	if u < 0:
+		return
+	carimbou.emit(u, "car_emburrado")
+	var p := jogador(u)
+	if p != null and is_instance_valid(p):
+		p.gesto("sit", batida_do_fim() + 0.7)
+	Som.tocar("fx_derrota", null, -6.0)
+	Som.no_controle(u, "fx_derrota", 0.85)
+	Forja.desmaio(u)

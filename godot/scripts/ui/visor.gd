@@ -93,7 +93,8 @@ func bater(l: int, id: String, onde: Variant = null) -> bool:
 		for k in 4:
 			if Forja.ocupado(k):
 				Forja.sentir(k, "acerto")
-	elif l >= 0:
+	elif l >= 0 and id != "car_emburrado":
+		# o emburrado não vibra: a mão do último já desmaia com o `fx_derrota` (03)
 		Forja.sentir(l, "acerto")
 	return true
 
@@ -194,6 +195,10 @@ func _draw() -> void:
 				alfa = clampf(1.0 - (idade - BATE - float(c.fica)) / SOME, 0.0, 1.0)
 		if c.id == "fala":
 			_fala(int(c.l), centro, str(c.palavra), alfa)
+			continue
+		if c.id == "car_emburrado":
+			# a cara de fita no lugar da palavra (G07), nas fases do carimbo, sem respingos
+			Desenho.cara_emburrada(self, centro, Tema.JOGADOR[clampi(int(c.l), 0, 3)], graus, escala, alfa)
 			continue
 		var cor: Color = Tema.ETIQUETA if c.id == "car_acorde" or int(c.l) < 0 else Tema.JOGADOR[int(c.l)]
 		if not reduzido and idade < ESPIRRA:

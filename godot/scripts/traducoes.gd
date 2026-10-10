@@ -403,6 +403,19 @@ const EN := {
 	"Apertar o botão da runa": "Press the rune's button",
 	"Girar até a borda": "Spin to the edge",
 	"Segurar o fole no dourado": "Hold the bellows on gold",
+	# as falas do cavaleiro e o lado no treino (G07)
+	"Frequência travada!": "Frequency locked!",
+	"Ninguém nos apaga!": "Nobody puts us out!",
+	"Segura menos!": "Ease off!",
+	"Vai com o baixo!": "Ride the bass!",
+	"Calma, espera o bumbo!": "Easy, wait for the kick!",
+	"Tá tudo desafinado!": "Everything's out of tune!",
+	"De novo, do começo.": "Again, from the top.",
+	"Deixa comigo o refrão!": "I've got the chorus!",
+	"Faltou ginga pra eles.": "They lacked the groove.",
+	"A forja canta de novo.": "The forge sings again.",
+	"Cedo": "Early",
+	"Tarde": "Late",
 }
 
 ## Os textos com número: [padrão, substituição] (a substituição usa $1, $2…).
