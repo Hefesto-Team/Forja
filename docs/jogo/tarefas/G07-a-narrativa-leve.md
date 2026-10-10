@@ -771,3 +771,48 @@ sugerido (sem trailer):
 ```
 feat: as falas curtas, o fim de cada faixa filmado e o encarte da noite até o fim da fita
 ```
+
+## O que foi feito (leva 1, as-telas)
+
+- **As falas:** `godot/scripts/falas.gd` (novo, com o `.uid`) guarda as frases do 07 e a palavra do visor
+  (`do_julgamento`: «Quase», «Afinado», «Ressonância!»; no treino, «Cedo» ou «Tarde» pelo desvio). A `SalaJogo` ganhou
+  `falar(l, evento)` (uma por lugar a cada 20 s, uma só na tela por 2 s, sorteada pelo `rng` da sala, com a linha
+  `fala` no registro) e `_falas_do_julgamento` (o combo da equipe em 15, «voltou» depois de 5 erros, todos errando em
+  1,5 s, três toques do mesmo lado). O `julgar` ganhou `desvio_s`; o `falar` do `Minigame` passa a ser o da sala.
+- **O fim filmado:** `plano_do_fim()` («resultado» por 4 batidas, «inserto» por 1 quando há um último, depois ""),
+  `vencedor_do_fim()`, `ultimo_do_inserto()`, `por_um_fio()` (2 % ou menos) e `fim_da_cena()`. O main filma o
+  vencedor de baixo (8°) a 50 mm, girando 15° em 4 batidas (parado com o movimento reduzido), corta para o rosto do
+  último a 85 mm e só então abre a tabela; o avanço sozinho conta `AVANCA_S` depois da cena e o ✕ vale 0,8 s depois
+  dela. No inserto, a cara emburrada (`Desenho.cara_emburrada`, desenhada pelo `Visor`) bate acima do último, ele
+  senta, o `fx_derrota` toca na TV e no controle dele e o controle desmaia (`Forja.desmaio`: 0,6 caindo a 0 em
+  700 ms, os degraus `desmaio_0` a `desmaio_6` da tabela de sensações); a cara some no corte. Na vitória,
+  `fx_vitoria_p{n}` na TV e no alto-falante do vencedor e o batimento duplo (`Forja.batimento_duplo`, as sensações
+  `vitoria` e `vitoria_eco`); «POR UM FIO» no lugar da fala do vencedor quando a diferença é de 2 % ou menos. O
+  coop vencido bate em todos; o perdido toca `fx_derrota` e desmaia em todos.
+- **A virada:** o placar emite `virou(l, ponto_da_virada())` e o main carimba `car_virada` no canto do cabeçalho, com
+  o visor por cima do placar enquanto ele está aberto; o «Virada!» rosa escrito saiu.
+- **O som:** `fx_vitoria_p1` a `fx_vitoria_p4` e `fx_derrota` em `godot/assets/sons/` (`compress/mode=0`), com as
+  linhas do mapa em «no jogo». As traduções das dez falas, «Cedo» e «Tarde».
+- **Medida antes:** nenhuma fala; a tabela abria 0,5 s depois do apito; ninguém tocava `fx_vitoria_p*` nem
+  `fx_derrota`; a virada era a palavra rosa. **Depois:** a prova mede o plano, a lente, o batimento (pico na mão do
+  vencedor), o alto-falante dele, a cara emburrada, o desmaio e a tabela só depois da cena.
+- **As provas** (`prova_do_jogo.gd`): `_prova_das_falas()` (as regras do 07, o vocabulário, a maiúscula e o inglês de
+  cada fala, «Cedo» no treino, «arrastando» com três toques tarde, «todos erraram», por um fio com `[100, 99]` e não
+  com `[100, 97]`, o empate, o sozinho e o coop); `_prova_do_fim_filmado()` na primeira faixa da partida;
+  `_prova_da_virada()`; e o percurso espera a cena antes de ler a tabela.
+- **A prova do jogo** (as duas passadas, «forma-a» e «antes»): toda checagem da G07 passa, inclusive «toda vibração
+  da sessão veio da tabela». Na primeira rodada, duas reprovaram e foram curadas: o batimento e o desmaio vibravam
+  fora da tabela de sensações (entraram nela), e a prova lia a lente do inserto no mesmo quadro do corte (46,2°, a
+  lente de 50 mm ainda; passou a ler 2 quadros depois). O que ainda reprova na rodada são as checagens do robô do kit
+  («kit P1: perfeito em 1 de 12 notas» e parecidas) e o ◀▶ da construção, que reprovam igual na base de outras
+  frentes com a máquina carregada; nenhuma passa pela G07.
+- **Ficou para depois:** o encarte da noite, o fim da fita, o «Fechar a fita» no pódio, o kit passando o desvio a
+  `julgar` (sem isso, «Cedo», «Tarde», «arrastando» e «correndo» só saem de quem passar `desvio_s`), a fala
+  «ajudou» do Diapasão, as linhas do 13 e a prancha estão na [G07b](G07b-o-encarte-da-noite-e-o-fim-da-fita.md).
+- **Para a mão dela ou do André:** `./run-local.sh -- --partida=5`, olhando o fim de cada faixa (o vencedor de baixo
+  girando, o corte para o último que senta com a cara emburrada, o controle de cada um sentindo o seu), a virada no
+  placar e as falas, que não podem encavalar; e o mesmo em inglês.
+- **A mordida:** a cópia com as curas tiradas (o batimento duplo, o limite de 20 s do `falar`, o «Cedo» e «Tarde» do
+  treino, o `virou` do placar, a tabela que espera a cena, a cara emburrada e o desmaio do inserto) está montada; o
+  semáforo das provas ficou ocupado a sessão inteira e ela não rodou. A primeira rodada da prova já reprovou duas
+  checagens novas de verdade (acima), curadas.

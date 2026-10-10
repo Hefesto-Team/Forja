@@ -248,3 +248,31 @@ reprova; e a prova visual passa em todas as escalas e línguas, de 1 a 4 jogador
 
 Marcar G12 como **feito** no [quadro](README.md), com o gasto. Commit sugerido:
 `feat(kit): a cortina da fita com o verbo no tempo 1 e o J-card com o como jogar`.
+
+## O que foi feito (leva 1, as-telas)
+
+- **A entrada do kit:** todo minigame do kit (`com_entrada`) abre pela cortina diagonal na tinta da seção. O verbo
+  carimba no tempo 1 do relógio da música (`_t_impacto`), com a contagem nos três tempos antes (`jin_entrada_tique`,
+  um toque em cada controle), o impacto com `fx_entrada`, um golpe em cada controle e a lightbar dos quatro piscando
+  em papel; 900 ms depois, no tempo 1 seguinte, a cortina sai e o J-card entra com o título, o gênero, o Como jogar
+  da `FICHA`, o treino e os chips («Aguardando», «Treinando», «Pronto»). As salas antigas seguem com o aviso de antes.
+- **O kit valida:** `Minigame.validar` reprova a `FICHA` sem `como_jogar`, com frase que não cabe no J-card, com glifo
+  que não existe ou com verbo que não cabe na cortina a 160 (`PainelSala.tamanho_do_verbo`). `Partida.lado()` diz
+  «A» ou «B». O ✕ do pronto toca `ui_confirma` e dá um toque.
+- **O som:** `fx_entrada`, `jin_entrada_tique` e `jin_entrada_vai` em `godot/assets/sons/` (`compress/mode=0`), com
+  o mapa em «no jogo».
+- **Medida antes:** o aviso aparecia de uma vez, sem transição, e não dizia como se joga. **Depois:** a prova mede a
+  cortina, o verbo no tempo 1 (o desvio em ms), um toque por tique e um golpe no impacto por lugar, a lightbar em
+  papel, o J-card parado no aviso e o lado A e B. Achado na medida: o verbo em Bungee só fica a 252 quando é bem
+  curto («Martele!» já sai a 204), e passando de uns 8 caracteres não cabe nem a 160: «Inclinem juntos!», «Soprem o
+  fole!» e «Equilibrem!» reprovam. Por isso a prova usa casos reais e não os exemplos da ficha.
+- **As provas:** as checagens da entrada e do kit em `prova_do_jogo.gd`; os portões passam.
+  Na prova do jogo (as duas passadas, rodada junto com a G07), toda checagem desta ficha passa; o que reprova na
+  rodada são as checagens do robô do kit, que reprovam igual na base de outras frentes com a máquina carregada.
+- **A faixa no tempo 1 e a prancha da entrada** (a faixa que começa no impacto, o apito depois do J-card, a
+  `prancha_da_entrada.gd` e a matriz da prova visual) ficaram na
+  [G12b](G12b-a-faixa-no-tempo-1-e-a-prancha-da-entrada.md).
+- **A mordida:** a cópia com as curas tiradas (o golpe e a luz do impacto, o toque de cada tique, a checagem do
+  tamanho do verbo e a do glifo no `validar`) está montada; o semáforo das provas ficou ocupado a sessão inteira e ela
+  não rodou. Falta rodar e ver reprovar «um toque por tique e um golpe no impacto», a lightbar em papel e «verbo que
+  não cabe na cortina reprova».
