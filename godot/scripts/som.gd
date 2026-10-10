@@ -270,7 +270,23 @@ static func jingle_do_resultado(pontos: Array, presentes: Array, coop: bool, coo
 ## O pio do cavaleiro do lugar (arte/03): a nota do lugar e o intervalo da
 ## cabeça, na TV e no alto-falante do dono.
 func pio(lugar: int, boneco: int) -> void:
-	var i := wrapi(boneco, 0, ForjaPlayer.BONECOS.size())
-	var id := "pio_p%d_%s" % [lugar + 1, ForjaPlayer.BONECOS[i].intervalo]
+	var id := id_do_pio(lugar, boneco)
 	tocar(id, null, -12.0)
-	no_controle(lugar, id, 0.85)
+	pio_no_controle(lugar, boneco)
+
+
+## O id do pio do lugar no mapa do áudio (pio_p<N>_<intervalo>).
+static func id_do_pio(lugar: int, boneco: int) -> String:
+	var i := wrapi(boneco, 0, ForjaPlayer.BONECOS.size())
+	return "pio_p%d_%s" % [lugar + 1, ForjaPlayer.BONECOS[i].intervalo]
+
+
+## O pio no alto-falante do dono, por um caminho só (H07b): o gravado do mapa
+## do áudio, pelo Forja.som_falante; o sintetizado do módulo só quando o
+## arquivo falta.
+func pio_no_controle(lugar: int, boneco: int) -> void:
+	var id := id_do_pio(lugar, boneco)
+	if arquivo(id) != null:
+		no_controle(lugar, id, 0.85)
+	else:
+		Forja.som_falante(lugar, "pio:%d" % boneco, 0.8)

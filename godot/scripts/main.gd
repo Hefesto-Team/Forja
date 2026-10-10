@@ -260,23 +260,19 @@ func _mostrar(qual: String) -> void:
 	var antes := estado
 	var era_lobby := antes == "lobby"
 	estado = qual
-	if antes == "titulo" and qual != "titulo":
-		Forja.som_encerrar()  # o alto-falante dos controles era só do pio
+	# o alto-falante dos controles fica aberto entre as telas: o dono é o _abrir_o_som (H07b)
 	if era_lobby and qual != "lobby":
 		Ritmo.parar()  # o salão não segue o relógio da construção
-		Forja.som_encerrar()  # o alto-falante dos controles era só do pio e do tique
 		for l in 4:
 			Forja.gatilhos_off(l)
 	if qual == "titulo":
 		_t_titulo = 0.0
-		_som_de_quem = ""  # a placa se refaz no título (a construção a fechou ao sair)
 		titulo.play_desde = -1.0
 		_tocar_o_titulo()
 	elif qual == "lobby":
 		_toca_titulo = null
 		var m := Musica.mapa("MUS_TELA_CONSTRUCAO")
 		Ritmo.tocar("MUS_TELA_CONSTRUCAO", m.bpm, m.primeiro_tempo)
-		_som_de_quem = ""  # o alto-falante de quem se senta é achado a cada quadro da construção
 	elif qual == "virar":
 		_toca_titulo = null
 		Musica.calar()  # a fita para no eject
@@ -292,7 +288,7 @@ func _mostrar(qual: String) -> void:
 		hud.vencidas = -1
 		hud.dica_presa = {}
 	salao.pausar_ambiente(not qual in ["salao", "intervalo"])
-	if qual == "salao":
+	if qual == "salao" and not Forja.som_pronto():
 		Forja.som_preparar(Forja.PAPEL_ALTO_FALANTE)  # o ✕ do salão soa na mão de quem apertou
 	salao.pedestais_no.visible = qual in ["lobby", "podio", "intro", "intervalo"]
 	_focar_o_titulo(qual == "titulo")
@@ -348,7 +344,7 @@ func _ao_mudar_os_controles() -> void:
 ## A placa de áudio de cada controle abre na entrada do lugar e fica aberta
 ## (docs/jogo/05#a-agenda-do-alto-falante); só se refaz quando muda quem está
 ## (ou quando um controle volta). Quem acabou de entrar ouve o pio do seu
-## cavaleiro, no próprio controle.
+## cavaleiro, no próprio controle: o gravado, e só ele (H07b).
 func _abrir_o_som(refazer := false) -> void:
 	var quem := ""
 	for l in 4:
@@ -364,7 +360,7 @@ func _abrir_o_som(refazer := false) -> void:
 	Forja.som_preparar(papel)
 	for l in 4:
 		if Forja.ocupado(l) and not str(l) in antes:
-			Forja.som_falante(l, "pio:%d" % jogadores[l].modelo_i, 0.8)
+			Som.pio(l, jogadores[l].modelo_i)
 
 
 func _trocar(acao: Callable) -> void:
@@ -906,16 +902,19 @@ func _quadro_titulo(dt: float) -> void:
 			var i := int(p.pad)
 			var l := int(p.lugar)
 			var play := Forja.pad_apertou(i, Forja.CRUZ) or Forja.pad_apertou(i, Forja.OPTIONS)
+			var sentou := false  # o pio de quem se senta é o do _abrir_o_som, e só ele (H07b)
 			# o controle sem lugar que aperta ✕ ou Options se senta, para ter pio e vibração
 			if l < 0 and play and titulo.play_desde < 0.0:
 				l = Forja.entrar(i)
 				if l >= 0:
 					Forja.registrar("P%d entrou" % (l + 1))
 					_achar_os_alto_falantes()
+					sentou = true
 			if l >= 0:
 				for b in [Forja.CRUZ, Forja.CIRCULO, Forja.QUADRADO, Forja.TRIANGULO, Forja.OPTIONS]:
 					if Forja.pad_apertou(i, b):
-						Som.pio(l, jogadores[l].modelo_i)
+						if not sentou:
+							Som.pio(l, jogadores[l].modelo_i)
 						Forja.sentir(l, "toque")
 						Forja.gatilhos_off(l)
 						break
@@ -1066,8 +1065,8 @@ func _quadro_lobby(dt: float) -> void:
 			var l := Forja.entrar(int(p.pad))
 			if l >= 0:
 				Forja.registrar("P%d entrou no lobby" % (l + 1))
+				lobby.entrou(l)  # veste o cavaleiro antes: o pio do _abrir_o_som é o da cabeça dele (H07b)
 				_sincronizar_jogadores()
-				lobby.entrou(l)
 	var dx := [0, 0, 0, 0]
 	var dy := [0, 0, 0, 0]
 	for l in 4:

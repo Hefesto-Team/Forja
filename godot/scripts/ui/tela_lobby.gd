@@ -122,7 +122,7 @@ func entrou(l: int) -> void:
 	Itens.sentir(l)
 	p.acender(1.0)
 	salao.acender_bigorna(l, 1.5)
-	Som.pio(l, p.modelo_i)
+	# o pio de quem entra é o do main.gd (_abrir_o_som), um só por entrada (H07b)
 	_robo_espera[l] = 1.2   # o robô espera um instante antes de forjar (a tela da construção não fica parada mais de 5 s)
 	_entrou_agora[l] = true
 

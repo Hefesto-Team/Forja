@@ -914,7 +914,11 @@ func som_preparar(papel: int) -> void:
 		ctl.som_preparar(papel)
 
 
+var som_encerrados := 0  ## quantas vezes a placa dos controles fechou (H07b: entre as telas, nenhuma)
+
+
 func som_encerrar() -> void:
+	som_encerrados += 1
 	if modulo:
 		ctl.som_encerrar()
 

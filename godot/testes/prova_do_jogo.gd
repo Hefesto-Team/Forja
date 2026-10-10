@@ -167,12 +167,23 @@ func _prova_do_percurso() -> void:
 	var fita := 0.0
 	var nq := 0
 	var nq_play := -1
+	# H07b: o quadro em que o P1 se senta tem um som só no controle dele, o pio gravado
+	var p1_sentado := Forja.ocupado(0)
+	var seq_p1 := int(Forja.som_virtual(0).get("som_seq", 0))
+	var pio_do_titulo := ""
+	var sons_ao_sentar := -1
+	var fechou_antes := Forja.som_encerrados
 	# a batida do título segue a placa de som, que anda em tempo de parede; o
 	# jogo, sem janela, anda muito mais depressa: o laço espera pelo relógio de parede
 	var t_parede := Time.get_ticks_msec()
 	while jogo.estado == "titulo" and Time.get_ticks_msec() - t_parede < 20000:
 		await _quadros(1)
 		nq += 1
+		if not p1_sentado and Forja.ocupado(0):
+			p1_sentado = true
+			pio_do_titulo = str(Forja.som_virtual(0).get("som", ""))
+			sons_ao_sentar = int(Forja.som_virtual(0).get("som_seq", 0)) - seq_p1
+		seq_p1 = int(Forja.som_virtual(0).get("som_seq", 0))
 		for l in 2:
 			pio[l] = maxf(pio[l], float(Forja.som_virtual(l).get("falante", 0.0)))
 		if jogo.play_ms >= 0:
@@ -185,6 +196,8 @@ func _prova_do_percurso() -> void:
 	_esperar(fita > 0.0, "o PLAY vibrou no controle do P1 (%.2f)" % fita)
 	_esperar(pio[0] > 0.05, "o pio do P1 saiu no alto-falante do P1 (%.2f)" % pio[0])
 	_esperar(pio[1] < 0.02, "e não no do P2 (%.2f)" % pio[1])
+	_esperar(sons_ao_sentar == 1 and pio_do_titulo.begins_with("pio_p1_"),
+		"P1 se sentou no título: um pio só no controle dele, o gravado (%s, %d sons no quadro)" % [pio_do_titulo, sons_ao_sentar])
 	_esperar(jogo.estado == "intro", "o PLAY leva à introdução")
 	_esperar(int(round(jogo._batidas_do_titulo())) % 4 <= 1, "o corte caiu no tempo 1")
 	var armaduras := 0
@@ -266,7 +279,13 @@ func _prova_do_percurso() -> void:
 	# o ✕ só confirma: em ordem inversa, cada um fica com o lugar que a conexão deu
 	for s in [3, 2, 1, 0]:
 		if int(Forja.pad(_pad_do_sim(s)).get("lugar", -1)) < 0:  # o P1 já se sentou no título
+			var seq_antes := int(Forja.som_virtual(s).get("som_seq", 0))
 			await _aperta(s, Forja.CRUZ)
+			# um pio só, o gravado do mapa do áudio, e nenhum outro som no controle (H07b)
+			var sons := int(Forja.som_virtual(s).get("som_seq", 0)) - seq_antes
+			var qual := str(Forja.som_virtual(s).get("som", ""))
+			_esperar(sons == 1 and qual.begins_with("pio_p%d_" % (s + 1)),
+				"P%d entrou: um pio só no controle dele, o gravado (%s, %d sons)" % [s + 1, qual, sons])
 			# o pio do cavaleiro sai no controle de quem entrou, e só nele (H07)
 			var nivel := float(Forja.som_virtual(s).get("falante", 0.0))
 			var outros := 0.0
@@ -280,6 +299,7 @@ func _prova_do_percurso() -> void:
 		_esperar(Forja.pad_do_lugar(s) == _pad_do_sim(s), "o ✕ confirma: o simulado %d é P%d, mesmo apertando por último" % [s + 1, s + 1])
 	_esperar(Forja.jogadores() == 4, "os quatro entraram")
 	_esperar(Forja.som_pronto(), "a placa de áudio dos quatro abriu na entrada")
+	_esperar(Forja.som_encerrados == fechou_antes, "do título à construção, a placa dos controles não fechou (%d vezes)" % (Forja.som_encerrados - fechou_antes))
 	# um som por vez no alto-falante (H07): o sino longo soa; o clique chega,
 	# o sino sai pela rampa, e quando o clique (20 ms) acaba não sobra nada
 	Forja.som_falante(0, "sino", 0.9)
@@ -1117,6 +1137,7 @@ func _prova_do_relatorio() -> void:
 	# placa (a virtual, nos simulados), o pio na entrada e a nota do perfeito
 	var sons := [0, 0, 0, 0]
 	var pios := 0
+	var pios_sintetizados := 0  # o pio sintetizado é só a reserva de quando o arquivo falta (H07b)
 	var notas := 0
 	var materiais := 0
 	var quebradas := 0
@@ -1131,7 +1152,8 @@ func _prova_do_relatorio() -> void:
 			var l := int(ev.get("lugar", -1))
 			if l >= 0 and l < 4 and ev.get("placa", false):
 				sons[l] += 1
-			pios += 1 if str(ev.get("som", "")).begins_with("pio:") else 0
+			pios += 1 if str(ev.get("som", "")).begins_with("pio_p") else 0  # o gravado (H07b)
+			pios_sintetizados += 1 if str(ev.get("som", "")).begins_with("pio:") else 0
 			notas += 1 if str(ev.get("som", "")) == "nota:0" else 0
 			materiais += 1 if str(ev.get("som", "")).begins_with("material:") else 0
 			# o P4 do minigame de prova nunca aperta: a nota dele quebra, no controle dele
@@ -1140,6 +1162,7 @@ func _prova_do_relatorio() -> void:
 			cliques += 1 if l == 1 and str(ev.get("som", "")) == "clique" and is_equal_approx(float(ev.get("ganho", 0.0)), 0.5) else 0
 	_esperar(sons.all(func(n): return n > 0), "registro: cada controle recebeu som, com a placa (%s)" % [sons])
 	_esperar(pios >= 4 and notas >= 1, "registro: o pio de cada um e a nota do perfeito (%d pios, %d notas)" % [pios, notas])
+	_esperar(pios_sintetizados == 0, "registro: nenhum pio sintetizado, com o gravado no mapa do áudio (%d)" % pios_sintetizados)
 	_esperar(materiais > 0, "registro: a textura do material chegou ao controle (%d)" % materiais)
 	_esperar(quebradas > 0, "registro: o erro quebra a nota no controle do dono (%d)" % quebradas)
 	_esperar(cliques > 0, "registro: a navegação clica no controle de quem navegou (%d)" % cliques)
@@ -1307,6 +1330,7 @@ func _prova_da_partida() -> void:
 	for l in 4:
 		_esperar(not jogo.jogadores[l].controlavel, "partida: no pódio, o P%d fica no pedestal" % (l + 1))
 	_esperar(Forja.som_pronto(), "partida: no pódio, a placa de áudio continua aberta")
+	_esperar(Forja.som_encerrados == 0, "do título ao pódio, nenhuma tela fechou a placa dos controles (%d vezes)" % Forja.som_encerrados)
 	await _quadros(60)
 	await _aperta(0, Forja.CIRCULO)
 	q = 0
