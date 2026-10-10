@@ -761,7 +761,11 @@ func som_preparar(papel: int) -> void:
 		ctl.som_preparar(papel)
 
 
+var som_encerrados := 0
+
+
 func som_encerrar() -> void:
+	som_encerrados += 1
 	if modulo:
 		ctl.som_encerrar()
 

@@ -229,7 +229,19 @@ static func jingle_do_resultado(pontos: Array, presentes: Array, coop: bool, coo
 
 
 func pio(lugar: int, boneco: int) -> void:
-	var i := wrapi(boneco, 0, ForjaPlayer.BONECOS.size())
-	var id := "pio_p%d_%s" % [lugar + 1, ForjaPlayer.BONECOS[i].intervalo]
+	var id := id_do_pio(lugar, boneco)
 	tocar(id, null, -12.0)
-	no_controle(lugar, id, 0.85)
+	pio_no_controle(lugar, boneco)
+
+
+static func id_do_pio(lugar: int, boneco: int) -> String:
+	var i := wrapi(boneco, 0, ForjaPlayer.BONECOS.size())
+	return "pio_p%d_%s" % [lugar + 1, ForjaPlayer.BONECOS[i].intervalo]
+
+
+func pio_no_controle(lugar: int, boneco: int) -> void:
+	var id := id_do_pio(lugar, boneco)
+	if arquivo(id) != null:
+		no_controle(lugar, id, 0.85)
+	else:
+		Forja.som_falante(lugar, "pio:%d" % boneco, 0.8)

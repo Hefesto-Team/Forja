@@ -110,7 +110,6 @@ func entrou(l: int) -> void:
 	Itens.sentir(l)
 	p.acender(1.0)
 	salao.acender_bigorna(l, 1.5)
-	Som.pio(l, p.modelo_i)
 	_robo_espera[l] = 1.2
 	_entrou_agora[l] = true
 
