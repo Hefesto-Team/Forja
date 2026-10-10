@@ -466,8 +466,8 @@ func _celebrar() -> void:
 		if p != null and is_instance_valid(p):
 			p.gesto("emote-yes", 1.4)
 			Efeitos.faiscas(self, p.global_position + Vector3(0, 2.2, 0), Forja.cor_do_lugar(w), 40, 1.3)
-		Som.tocar(FX_VITORIA[w], p.global_position if p != null and is_instance_valid(p) else null, -9.0)
-		Som.no_controle(w, FX_VITORIA[w], 0.85)
+		Som.tocar(["fx_vitoria_p1", "fx_vitoria_p2", "fx_vitoria_p3", "fx_vitoria_p4"][w], p.global_position if p != null and is_instance_valid(p) else null, -9.0)
+		Som.no_controle(w, ["fx_vitoria_p1", "fx_vitoria_p2", "fx_vitoria_p3", "fx_vitoria_p4"][w], 0.85)
 		Forja.batimento_duplo(w)
 		if por_um_fio():
 			carimbou.emit(w, "car_por_um_fio")
@@ -829,7 +829,6 @@ func _falas_do_julgamento(l: int, j: int, desvio_s: float) -> void:
 const BATIDAS_DO_RESULTADO := 4
 const BATIDAS_DO_INSERTO := 1
 const POR_UM_FIO := 0.02  ## venceu por 2 % ou menos
-const FX_VITORIA := ["fx_vitoria_p1", "fx_vitoria_p2", "fx_vitoria_p3", "fx_vitoria_p4"]
 const FX_VITORIA_S := 1.0  ## o arpejo do vencedor (o mapa: 1000 ms)
 const FX_DERROTA_S := 1.4  ## a fita que desacelera (o mapa: 1400 ms)
 var _emburrou := false
