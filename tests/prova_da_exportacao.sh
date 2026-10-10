@@ -229,7 +229,6 @@ sys.exit(1 if erros else 0)
 PY
 }
 echo "==> o atalho do menu no Linux: o instalar-atalho.sh, numa casa de mentira"
-# não validado não é verde: sem o validador, a prova diz e reprova (o CI instala o desktop-file-utils)
 command -v desktop-file-validate > /dev/null \
   || falha "sem o desktop-file-validate (o pacote desktop-file-utils): o atalho do menu não foi validado"
 mkdir -p "$TMP/casa" "$TMP/casa-esquisita"

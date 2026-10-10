@@ -19,7 +19,7 @@ fi
 echo "==> módulo nativo (SDL3 + godot-cpp; a primeira vez baixa e compila)"
 "$ROOT/scripts/compilar.sh" linux
 
-forja_baixar_engine
+forja_baixar_engine || exit 1
 
 echo "==> importando os assets (a primeira vez demora)"
 "$GODOT_BIN" --headless --path "$ROOT/godot" --import >"$ROOT/build/godot-import.log" 2>&1 || true

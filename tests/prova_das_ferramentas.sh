@@ -5,7 +5,7 @@ TMP="$(mktemp -d "${TMPDIR:-/tmp}/forja-prova-das-ferramentas-XXXXXX")"
 trap 'rm -rf "$TMP"' EXIT
 FALHAS=0
 CASOS=0
-TODAS=(kenney mapa_de_batidas trilha_fichas gerar_trilha descrever_trilha baixador instalar)
+TODAS=(kenney mapa_de_batidas trilha_fichas gerar_trilha descrever_trilha baixador instalar engine)
 PEDIDAS=("$@")
 [ "${#PEDIDAS[@]}" -eq 0 ] && PEDIDAS=("${TODAS[@]}")
 
@@ -142,7 +142,6 @@ if pedida instalar; then
     confere "e o udev recarrega as regras e reaplica no hidraw" \
       grep -q "^sudo udevadm trigger --subsystem-match=hidraw" "$F/chamadas"
   fi
-  # o Edge no rádio também conta (HID_ID 0005, produto 0DF2), e o Xbox segue fora
   mkdir -p "$F/sys/class/hidraw/hidraw5/device"
   echo "HID_ID=0003:0000054C:00000CE6" > "$F/sys/class/hidraw/hidraw3/device/uevent"
   echo "HID_ID=0005:0000054C:00000DF2" > "$F/sys/class/hidraw/hidraw5/device/uevent"
@@ -151,7 +150,6 @@ if pedida instalar; then
     inst conferir > "$F/conferir.log" 2>&1
     confere "o conferir conta o DualSense no cabo e o Edge no rádio, e não o Xbox" \
       grep -q "falta a regra do udev (os efeitos do controle): 2 DualSense" "$F/conferir.log"
-    # o que o desinstalar não conseguiu tirar fica anotado para a próxima vez
     rm -f "$F/oficina/arquivos-do-sistema.txt"
     env DESTDIR="$F/destino" PATH="$F/bin:$PATH" FORJA_OFICINA="$F/oficina" bash "$F/raiz/scripts/instalar.sh" sistema \
       > "$F/sistema.log" 2>&1
@@ -162,6 +160,28 @@ if pedida instalar; then
     confere "a regra que o desinstalar não tirou segue anotada" \
       grep -qx "$F/destino/etc/udev/rules.d/70-forja-dualsense.rules" "$F/oficina/arquivos-do-sistema.txt"
   fi
+fi
+
+if pedida engine; then
+  echo "==> engine: o run-local.sh e o exportar.sh numa árvore sem tools/"
+  E="$TMP/engine"
+  mkdir -p "$E/raiz/scripts" "$E/bin"
+  cp "$RAIZ/run-local.sh" "$E/raiz/"
+  cp "$RAIZ/scripts/engine.sh" "$RAIZ/scripts/exportar.sh" "$E/raiz/scripts/"
+  printf '#!/bin/sh\nexit 0\n' > "$E/raiz/scripts/compilar.sh"
+  printf '#!/bin/sh\nexit 0\n' > "$E/bin/make"
+  printf '#!/bin/sh\nfor a in "$@"; do u="$a"; done\necho "$u" >> "%s"\nexit 1\n' "$E/urls" > "$E/bin/curl"
+  chmod +x "$E/raiz/scripts/compilar.sh" "$E/bin/make" "$E/bin/curl"
+  url="$(bash -c 'source "$1/scripts/engine.sh"; echo "$FORJA_GODOT_URL"' _ "$RAIZ")"
+  for quem in run-local.sh "scripts/exportar.sh linux"; do
+    : > "$E/urls"
+    # shellcheck disable=SC2086
+    espera 1 "$quem sem tools/ sai 1 quando o Godot não baixa" \
+      env PATH="$E/bin:$PATH" GODOT=/nao/existe bash "$E/raiz/"$quem
+    confere "$quem diz a mensagem do forja_baixar_engine" grep -q "não deu para baixar a engine de $url" "$TMP/saida.log"
+    confere "$quem pede ao curl só a URL do engine.sh" bash -c '[ "$(cat "$1")" = "$2" ]' _ "$E/urls" "$url"
+  done
+  confere "nenhum dos dois deixa o Godot em tools/" test ! -e "$E/raiz/tools"
 fi
 
 echo

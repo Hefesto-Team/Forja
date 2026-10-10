@@ -214,7 +214,6 @@ desinstalar() {
   if [[ -s "$REGISTRO_ARQUIVOS" ]]; then
     while read -r arq; do
       [[ -n "$arq" && -f "$arq" ]] || continue
-      # o que não saiu (o sudo recusado) fica anotado, para o próximo desinstalar
       if como_raiz rm -f "$arq"; then
         ok "tirei $arq"; tirou=1
       else

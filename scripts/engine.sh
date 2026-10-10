@@ -5,7 +5,8 @@ FORJA_GODOT_SHA512="${FORJA_GODOT_SHA512:-9aa00f7a605200940bce3027a567b782f49bd8
 
 _engine_raiz="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 FORJA_GODOT="${GODOT:-$_engine_raiz/tools/Godot_v${FORJA_GODOT_VER}_linux.x86_64}"
-FORJA_GODOT_URL="https://github.com/godotengine/godot/releases/download/${FORJA_GODOT_VER}/Godot_v${FORJA_GODOT_VER}_linux.x86_64.zip"
+FORJA_GODOT_RELEASE="https://github.com/godotengine/godot/releases/download/${FORJA_GODOT_VER}"
+FORJA_GODOT_URL="${FORJA_GODOT_RELEASE}/Godot_v${FORJA_GODOT_VER}_linux.x86_64.zip"
 
 forja_baixar_engine() {
   [[ -x "$FORJA_GODOT" ]] && return 0

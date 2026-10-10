@@ -68,3 +68,21 @@ Clonar o repositório numa pasta nova e rodar `./run-local.sh`: o Godot baixa, c
 
 Pôr a linha da WE05 no [quadro](README.md) como **feito**, com o commit, e na [F00](F00-o-ambiente-da-sessao.md)
 trocar o «Anotado, não mexido» por um apontador para esta ficha.
+
+## O que foi feito (leva 1, a-entrega)
+
+- Medido antes: a V01 já tinha levado o `run-local.sh` ao `forja_baixar_engine` (sem o `|| exit 1`), e o
+  `exportar.sh` chamava o engine por um `garantir_godot` de uma linha. O «Pronto quando» ainda achava
+  `godotengine/godot/releases` no `exportar.sh:28`: o endereço do pacote dos modelos, escrito de novo à mão.
+- O que entrou: o `engine.sh` guarda a página da versão em `FORJA_GODOT_RELEASE`, de onde saem o zip do editor e o
+  pacote dos modelos (o download dos modelos e a soma deles não mudaram); o `run-local.sh` chama
+  `forja_baixar_engine || exit 1`; o `garantir_godot` saiu e o `exportar.sh` chama o `forja_baixar_engine` direto. O
+  cabeçalho do `run-local.sh` e o `docs/DESENVOLVER.md` (`:7`, `:12`, `:28`) apontam para o `engine.sh` em vez da
+  versão.
+- A prova: o caso `engine` da `tests/prova_das_ferramentas.sh` copia o `run-local.sh`, o `engine.sh` e o
+  `exportar.sh` para uma árvore sem `tools/`, com um `curl` de mentira que anota a URL e sai 1: os dois saem 1 com «não
+  deu para baixar a engine de …» e pedem só a URL do `engine.sh`. Morde: com o bloco antigo do `run-local.sh` (o
+  `curl` da `$GODOT_URL`) de volta, dois casos ficam vermelhos.
+- Fica de fora (anotado): o `docs/DESENVOLVER.md` ainda cita `tools/Godot_v4.4.1-stable_linux.x86_64` nas linhas das
+  ferramentas de medida (`:202`, `:204`, `:252`) e «godot-cpp da série 4.4» (`:14`); a ficha só pedia as três linhas.
+- Para o André: clonar numa pasta nova e rodar `./run-local.sh`; o Godot baixa, confere e o jogo abre.

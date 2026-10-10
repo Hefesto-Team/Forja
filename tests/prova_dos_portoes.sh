@@ -451,7 +451,7 @@ espera 1 "regra do udev: reprova a árvore sem regra" python3 "$P/udev.py" --rai
 A="$(arvore udev-boa)"; regra_tree "$A" 70-forja-dualsense.rules
 espera 0 "regra do udev: deixa passar a regra do repositório" python3 "$P/udev.py" --raiz "$A"
 A="$(arvore udev-caixa)"; regra_tree "$A" 70-forja-dualsense.rules
-sed -i 's/054C:0CE6/054c:0ce6/' "$A/udev/70-forja-dualsense.rules"   # o udev compara com caixa: este KERNELS não casa nada
+sed -i 's/054C:0CE6/054c:0ce6/' "$A/udev/70-forja-dualsense.rules"
 espera 1 "regra do udev: reprova o KERNELS em minúscula (o nome do aparelho HID vem em maiúscula)" \
   python3 "$P/udev.py" --raiz "$A"
 

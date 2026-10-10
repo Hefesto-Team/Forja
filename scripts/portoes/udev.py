@@ -57,9 +57,6 @@ def main() -> int:
                 relato.achou(rel, n, "GROUP= entrega o controle a um grupo; o acesso é da sessão (TAG+=\"uaccess\")")
             if 'KERNEL=="hidraw*"' in linha and 'TAG+="uaccess"' not in linha:
                 relato.achou(rel, n, 'a linha do hidraw sem TAG+="uaccess"')
-        # Só conta a linha que é do hidraw e dá o uaccess. E a caixa das letras é a do sysfs, porque o udev
-        # compara com caixa: o idVendor e o idProduct do pai USB vêm em minúscula («054c»), e o nome do
-        # aparelho HID em maiúscula («0003:054C:0CE6.0001»); um «*054c:0ce6*» não casaria nada.
         do_hidraw = [(n, l) for n, l in linhas if "hidraw" in l and 'TAG+="uaccess"' in l]
         for vid, pid, nome in CONTROLES:
             cabo = [n for n, l in do_hidraw if f'ATTRS{{idVendor}}=="{vid}"' in l
