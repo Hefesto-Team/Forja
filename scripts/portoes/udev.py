@@ -8,6 +8,8 @@ A regra que o pacote leva (udev/*-forja-dualsense.rules) segue o padrão das reg
   - para o DualSense (054C:0CE6) e o DualSense Edge (054C:0DF2), uma linha pelo pai USB
     (ATTRS{idVendor}/ATTRS{idProduct}, o cabo) e uma pelo nome do aparelho HID (KERNELS=="*054C:0CE6*",
     o rádio e o nó virtual por uhid, que não tem pai USB);
+  - as linhas do cabo e do rádio só contam quando são do hidraw e dão o uaccess, e com a caixa das letras
+    do sysfs (o udev compara com caixa: «054c» no pai USB, «054C:0CE6» no nome do aparelho HID);
   - o número do arquivo vem antes do 73 (o 73-seat-late.rules aplica o uaccess: marca que chega depois
     dele não vale).
 
@@ -55,10 +57,14 @@ def main() -> int:
                 relato.achou(rel, n, "GROUP= entrega o controle a um grupo; o acesso é da sessão (TAG+=\"uaccess\")")
             if 'KERNEL=="hidraw*"' in linha and 'TAG+="uaccess"' not in linha:
                 relato.achou(rel, n, 'a linha do hidraw sem TAG+="uaccess"')
+        # Só conta a linha que é do hidraw e dá o uaccess. E a caixa das letras é a do sysfs, porque o udev
+        # compara com caixa: o idVendor e o idProduct do pai USB vêm em minúscula («054c»), e o nome do
+        # aparelho HID em maiúscula («0003:054C:0CE6.0001»); um «*054c:0ce6*» não casaria nada.
+        do_hidraw = [(n, l) for n, l in linhas if "hidraw" in l and 'TAG+="uaccess"' in l]
         for vid, pid, nome in CONTROLES:
-            cabo = [n for n, l in linhas if re.search(rf'ATTRS\{{idVendor\}}=="{vid}"', l, re.I)
-                    and re.search(rf'ATTRS\{{idProduct\}}=="{pid}"', l, re.I)]
-            radio = [n for n, l in linhas if re.search(rf'KERNELS=="\*{vid}:{pid}\*"', l, re.I)]
+            cabo = [n for n, l in do_hidraw if f'ATTRS{{idVendor}}=="{vid}"' in l
+                    and f'ATTRS{{idProduct}}=="{pid}"' in l]
+            radio = [n for n, l in do_hidraw if f'KERNELS=="*{vid.upper()}:{pid.upper()}*"' in l]
             if not cabo:
                 relato.achou(rel, 0, f"falta a linha do {nome} no cabo (ATTRS{{idVendor}}==\"{vid}\", "
                                      f"ATTRS{{idProduct}}==\"{pid}\")")
