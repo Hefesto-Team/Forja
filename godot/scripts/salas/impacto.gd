@@ -92,7 +92,8 @@ static func _sentinela_pos(l: int, lado: int) -> Vector3:
 func _montar_raia(l: int, p: ForjaPlayer) -> Dictionary:
 	var x: float = RAIAS[l]
 	var alvo := Vector3(x, 0, Z_JOGADOR)
-	Kit.cilindro(self, 1.55, 0.04, Vector3(x, 0.02, Z_JOGADOR - 0.3), Kit.material(Tema.CASCO, 0.0, 0.95))
+	var mat_chao := Kit.material(Tema.CASCO, 0.0, 0.95)
+	Kit.cilindro(self, 1.55, 0.04, Vector3(x, 0.02, Z_JOGADOR - 0.3), mat_chao)
 	var borda := MeshInstance3D.new()
 	var tor := TorusMesh.new()
 	tor.rings = 8
@@ -152,7 +153,7 @@ func _montar_raia(l: int, p: ForjaPlayer) -> Dictionary:
 	p.rotation.y = PI
 	maos_livres(p)
 	return {"borda": borda, "mat_borda": mat_borda, "sentinelas": sentinelas, "olhos": olhos, "escudos": escudos,
-		"aviso": aviso, "duvida": duvida, "chama": chama, "luz": luz}
+		"aviso": aviso, "duvida": duvida, "chama": chama, "luz": luz, "mat_chao": mat_chao}
 
 
 func _cor_da_vida(l: int) -> Color:
@@ -460,7 +461,8 @@ func _mostrar(l: int, dt: float) -> void:
 	if alvo:
 		Tema.emissivo(mb, 1.0 + 1.2 * (0.5 + 0.5 * sin(t * 18.0)), "forja")
 	else:
-		Tema.emissivo(mb, 0.0, "forja")
+		Tema.emissivo(mb, _carga_da_espera(), "forja")
+	Tema.emissivo(nos.mat_chao, CHAO_DA_CARGA * _carga_da_espera(), "forja")
 	var duvida: Label3D = nos.duvida
 	duvida.visible = e.interroga > 0.02
 	duvida.modulate.a = float(e.interroga)
@@ -567,3 +569,15 @@ func com_poucos() -> String:
 	match jogadores.size():
 		1: return "Só você na arena"
 	return ""
+
+
+const CARGA_MAX := 0.9
+const CARGA_BATIDA := 0.45
+const CHAO_DA_CARGA := 0.4
+
+
+func _carga_da_espera() -> float:
+	if fase != "jogo" or estado == PERGUNTA or estado == RESPOSTA or estado == ACABOU:
+		return 0.0
+	var carga := clampf(t_estado / maxf(espera, 0.1), 0.0, 1.0) if estado == PAUSA else 0.3
+	return amplitude_da_espera() * (CARGA_MAX * carga + CARGA_BATIDA * pulso_da_batida())

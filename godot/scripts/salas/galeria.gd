@@ -75,8 +75,8 @@ func _novo_jogador() -> Dictionary:
 func _montar_raia(l: int, p: ForjaPlayer) -> Dictionary:
 	var x: float = RAIAS[l]
 	var cor: Color = Forja.cor_do_lugar(l)
-	Kit.caixa(self, Vector3(1.5, 0.02, Z_JOGADOR - Z_ALVOS + 0.6), Vector3(x, 0.02, (Z_JOGADOR + Z_ALVOS) * 0.5),
-		Kit.material(cor.darkened(0.6), 0.25, 0.8, l))
+	var mat_raia := Kit.material(cor.darkened(0.6), RAIA_BRILHO, 0.8, l)
+	Kit.caixa(self, Vector3(1.5, 0.02, Z_JOGADOR - Z_ALVOS + 0.6), Vector3(x, 0.02, (Z_JOGADOR + Z_ALVOS) * 0.5), mat_raia)
 	Kit.caixa(self, Vector3(1.3, 0.5, 0.9), Vector3(x, 0.25, Z_BAU), Kit.material(Tema.GRAFITE, 0.0, 0.9))
 	var bau := Kit.peca(self, "chest", Vector3(x, 0.5, Z_BAU - 0.1), 0.0, 1.9)
 	var interroga := Label3D.new()
@@ -116,7 +116,7 @@ func _montar_raia(l: int, p: ForjaPlayer) -> Dictionary:
 	p.preso = true
 	maos_livres(p)
 	return {"bau": bau, "interroga": interroga, "vitrine": vitrine, "alvos": alvos, "mira": mira,
-		"arma_mao": null, "aberto": false}
+		"arma_mao": null, "aberto": false, "mat_raia": mat_raia}
 
 
 func _alvo_no() -> Node3D:
@@ -575,6 +575,7 @@ func _mostrar(l: int, p: ForjaPlayer) -> void:
 		p.animar("holding-right")
 	else:
 		p.animar("idle")
+	_raia_na_batida(l)
 
 
 func status(lugar: int) -> String:
@@ -712,3 +713,15 @@ static func _luzes_acesas(mascara: int) -> int:
 	for i in 5:
 		total += (mascara >> i) & 1
 	return total
+
+
+const RAIA_BRILHO := 0.25
+const RAIA_BATIDA := 0.7
+
+
+func _raia_na_batida(l: int) -> void:
+	var mat: StandardMaterial3D = n[l].get("mat_raia")
+	if mat == null:
+		return
+	var toque := RAIA_BATIDA * amplitude_da_espera() * pulso_da_batida() if fase == "jogo" else 0.0
+	Tema.emissivo(mat, RAIA_BRILHO + toque, l)

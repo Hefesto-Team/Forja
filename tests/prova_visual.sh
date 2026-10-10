@@ -51,8 +51,11 @@ for passada in ${PASSADAS:-fixa livre}; do
   case "$passada" in
     fixa) QUADROS=(--fixed-fps 60) ;;
     livre) QUADROS=() ;;
-    *) echo "passada desconhecida: $passada (fixa ou livre)"; exit 2 ;;
+    reduzida) QUADROS=(--fixed-fps 60) ;;
+    *) echo "passada desconhecida: $passada (fixa, reduzida ou livre)"; exit 2 ;;
   esac
+  MOVIMENTO=()
+  [ "$passada" = reduzida ] && MOVIMENTO=(--movimento=reduzido)
   for linha in "${PARTIDAS_TODAS[@]}"; do
     IFS='|' read -r n jogadores robo salas extra <<< "$linha"
     case " ${PARTIDAS:-1 2 3 4} " in *" $n "*) ;; *) continue ;; esac
@@ -64,7 +67,7 @@ for passada in ${PASSADAS:-fixa livre}; do
     timeout "${LIMITE_S:-3000}" "${JANELA[@]}" \
       caixa "$GODOT" "${GODOT_JANELA[@]}" "${QUADROS[@]}" res://testes/prova_visual.tscn \
       -- --simular="$jogadores" --robo="$robo" --semente=7 --relatorios="$rel" --saida="$pasta" \
-         --salas="$salas" --indice="$n" $extra > "$pasta/partida-$n.log" 2>&1
+         --salas="$salas" --indice="$n" "${MOVIMENTO[@]}" $extra > "$pasta/partida-$n.log" 2>&1
     rc=$?
     grep -E "SCRIPT ERROR|^ERROR|^FAIL" "$pasta/partida-$n.log" | head -5
     if [ -f "$pasta/checagens-$n.txt" ]; then

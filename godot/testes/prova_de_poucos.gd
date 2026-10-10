@@ -26,6 +26,7 @@ var com_cabo := false
 func _ready() -> void:
 	com_opcoes = OS.get_environment("OPCOES_DE_TESTE") == "1"
 	com_cabo = OS.get_environment("CABO") == "1"
+	com_cabo_sozinho = OS.get_environment("CABO_SOZINHO") == "1"
 	if com_opcoes:
 		_prova_das_contas_das_opcoes()
 		Opcoes.vibracao[1] = 0
@@ -67,6 +68,8 @@ func _joga(id: String, n: int) -> void:
 	var q := 0
 	if com_cabo:
 		await _tira_e_poe_o_cabo(sala, id)
+	if com_cabo_sozinho:
+		await _sozinho_sem_cabo(sala, id)
 	while is_instance_valid(sala) and sala.fase != "fim" and q < 20000:
 		await _quadros(10)
 		q += 10
@@ -140,37 +143,39 @@ func _tira_e_poe_o_cabo(sala, id: String) -> void:
 	_esperar(int(p.get("player_index", -9)) == 1, "%s: com o mesmo player index (1)" % id)
 
 
-func _prova_do_x_que_nao_cai(n: int) -> void:
-	jogo._entrar_na_sala("centelha", false)
+var com_cabo_sozinho := false
+
+
+func _sozinho_sem_cabo(sala, id: String) -> void:
 	var q := 0
-	while q < 120 and not (jogo.sala is SalaJogo and jogo.sala._robo_confirmou):
+	while is_instance_valid(sala) and (sala.fase != "jogo" or sala.treinando or sala.t_fase < 2.0) and q < 6000:
 		await _quadros(1)
 		q += 1
-	if not (jogo.sala is SalaJogo and jogo.sala._robo_confirmou):
-		_esperar(false, "o ✕ da sala que saiu: o robô do aviso pediu o ✕")
+	if not is_instance_valid(sala) or sala.fase != "jogo":
+		_esperar(false, "%s: a sala chegou ao jogo para tirar o cabo" % id)
 		return
-	var sala: Node = jogo.sala
-	await _quadros(18)
-	jogo._ir_para_o_salao(false)
-	await _quadros(1)
-	var liberada := not is_instance_valid(sala)
-	var viu := []
-	for i in 300:
+	_esperar(Forja.ctl.simulador_cabo(0, false), "%s sozinho: o cabo do P1 saiu" % id)
+	await _quadros(30)
+	var t_sala: float = sala.t_jogo if is_instance_valid(sala) else -1.0
+	var jogado: float = sala.tempo_jogado() if is_instance_valid(sala) else -1.0
+	await _quadros(600)
+	_esperar(is_instance_valid(sala) and sala.fase == "jogo", "%s sozinho: 10 s sem controle, a sala não terminou (%s)" % [
+		id, str(sala.fase) if is_instance_valid(sala) else "fechada"])
+	if not is_instance_valid(sala):
+		return
+	_esperar(absf(float(sala.t_jogo) - t_sala) < 0.05 and absf(float(sala.tempo_jogado()) - jogado) < 0.05,
+		"%s sozinho: sem controle, o relógio da sala parou (%.2f → %.2f s; jogado %.2f → %.2f s)" % [
+		id, t_sala, float(sala.t_jogo), jogado, float(sala.tempo_jogado())])
+	_esperar(sala.esperando_controle and sala._tela_reconectar != null and sala._tela_reconectar.is_visible_in_tree(),
+		"%s sozinho: a tela de reconectar está à vista" % id)
+	_esperar(Forja.ctl.simulador_cabo(0, true), "%s sozinho: o cabo do P1 voltou" % id)
+	q = 0
+	while not Forja.lugar(0).get("conectado", false) and q < 300:
 		await _quadros(1)
-		for l in n:
-			if Forja.segura(l, Forja.CRUZ) and not viu.has(l):
-				viu.append(l)
-	_esperar(liberada and viu.is_empty(), "o ✕ da sala que saiu antes dele não caiu no salão (liberada: %s; ✕ em %s)" % [
-		liberada, str(viu.map(func(l: int) -> String: return "P%d" % (l + 1)))])
-
-
-func _calar_o_som_antes_de_sair() -> void:
-	var pilha: Array[Node] = [get_tree().root]
-	while not pilha.is_empty():
-		var no: Node = pilha.pop_back()
-		if no is AudioStreamPlayer or no is AudioStreamPlayer2D or no is AudioStreamPlayer3D:
-			no.stop()
-		pilha.append_array(no.get_children())
-	for i in 20:
-		OS.delay_msec(10)
-		await get_tree().process_frame
+		q += 1
+	await _quadros(2)
+	_esperar(not sala.esperando_controle and sala._tela_reconectar == null, "%s sozinho: com o controle de volta, a tela sumiu" % id)
+	t_sala = float(sala.t_jogo)
+	await _quadros(60)
+	_esperar(is_instance_valid(sala) and (sala.fase == "fim" or float(sala.t_jogo) > t_sala + 0.5),
+		"%s sozinho: a sala seguiu de onde parou (%.2f → %.2f s)" % [id, t_sala, float(sala.t_jogo) if is_instance_valid(sala) else -1.0])

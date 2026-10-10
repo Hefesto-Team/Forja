@@ -35,5 +35,6 @@ SALAS=centelha,impacto,galeria,prova rodar primeira-vez --simular=2 --nivel=0 & 
 OPCOES_DE_TESTE=1 SALAS=impacto,galeria,caminhos rodar opcoes --simular=4 & g=$!
 for p in $d $e $f $g; do wait "$p" || FALHAS=$((FALHAS + 1)); done
 CABO=1 rodar cabo --simular=4 || FALHAS=$((FALHAS + 1))
+CABO_SOZINHO=1 SALAS=galeria,centelha rodar sozinho-sem-cabo --simular=1 || FALHAS=$((FALHAS + 1))
 [ "$FALHAS" -eq 0 ] || exit 1
-echo "prova de poucos ok — as nove salas com 1, 2 e 3 controles, A Voz com o microfone mudo no sistema, os três ritmos, as opções e o controle que cai"
+echo "prova de poucos ok — as nove salas com 1, 2 e 3 controles, A Voz com o microfone mudo no sistema, os três ritmos, as opções e o controle que cai (com quatro e sozinho)"

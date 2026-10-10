@@ -140,7 +140,7 @@ func sair() -> void:
 
 func congelar(sim: bool) -> void:
 	super(sim)
-	Ritmo.pausar(sim)
+	Ritmo.pausar(sim or esperando_controle)
 
 
 func _process(dt: float) -> void:
@@ -534,3 +534,10 @@ func anotar(tipo: String, l: int, campos := {}) -> void:
 	var c: Dictionary = campos.duplicate()
 	c["slot"] = id
 	Forja.evento(tipo, l + 1 if l >= 0 else 0, c)
+
+
+func esperar_o_controle(sim: bool, lugares: Array) -> void:
+	var antes := esperando_controle
+	super(sim, lugares)
+	if antes != esperando_controle:
+		Ritmo.pausar(esperando_controle or congelada)

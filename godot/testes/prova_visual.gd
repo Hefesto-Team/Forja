@@ -21,6 +21,11 @@ var observacoes: Array = []
 var falhas: Array = []
 var falhas_da_prancha: Array = []
 var _cabo_fora := false
+var _cabo_caiu_em := -1.0
+const CABO_FORA_S := 12.0
+var _cabo_sala := 0
+var _cabo_t_jogo := -1.0
+var falhas_do_cabo: Array = []
 var _batida := 30.0
 
 
@@ -157,12 +162,33 @@ func _cabo() -> void:
 	var sala = jogo.sala
 	if not sala is SalaJogo:
 		return
-	if feitos == 1 and not _cabo_fora and sala.fase == "jogo" and sala.t_fase > 20.0:
+	if feitos == 1 and not _cabo_fora and _cabo_caiu_em < 0.0 and sala.fase == "jogo" and sala.t_fase > 20.0:
 		_cabo_fora = true
+		_cabo_caiu_em = t
+		_cabo_sala = sala.get_instance_id()
+		_cabo_t_jogo = -1.0
 		Forja.ctl.simulador_cabo(0, false)
-	elif feitos == 2 and _cabo_fora and sala.t_fase > 5.0:
+	elif _cabo_fora and t - _cabo_caiu_em > CABO_FORA_S:
 		_cabo_fora = false
 		Forja.ctl.simulador_cabo(0, true)
+	elif _cabo_fora and t - _cabo_caiu_em > 0.5:
+		var hora := ChecagensVisuais.hora(t)
+		if sala.get_instance_id() != _cabo_sala or sala.fase != "jogo":
+			_falha_do_cabo("a sala terminou sem controle (%s, fase %s)" % [hora, sala.fase])
+		elif _cabo_t_jogo < 0.0:
+			_cabo_t_jogo = float(sala.t_jogo)
+		elif absf(float(sala.t_jogo) - _cabo_t_jogo) > 0.1:
+			_falha_do_cabo("o relógio da sala andou sem controle (%s: %.1f s → %.1f s)" % [hora, _cabo_t_jogo, sala.t_jogo])
+		elif sala._tela_reconectar == null or not sala._tela_reconectar.is_visible_in_tree():
+			_falha_do_cabo("sem controle, a tela de reconectar não está à vista (%s)" % hora)
+
+
+func _falha_do_cabo(s: String) -> void:
+	var chave := s.get_slice(" (", 0)
+	for f in falhas_do_cabo:
+		if str(f).begins_with(chave):
+			return
+	falhas_do_cabo.append(s)
 
 
 func _ir_ate_a_bigorna() -> bool:
@@ -186,6 +212,9 @@ func _ir_ate_a_bigorna() -> bool:
 
 
 func _topo() -> Node:
+	var sala = jogo.sala
+	if sala is SalaJogo and sala._tela_reconectar != null and sala._tela_reconectar.is_visible_in_tree() and str(jogo.overlay) == "":
+		return sala._tela_reconectar
 	match str(jogo.overlay):
 		"placar": return jogo.placar
 		"pausa": return jogo.pausa
@@ -297,6 +326,7 @@ func _fechar(roteiro_ok: bool) -> void:
 	if not roteiro_ok:
 		todos.append_array(falhas)
 	todos.append_array(falhas_da_prancha)
+	todos.append_array(falhas_do_cabo)
 	todos.append_array(ChecagensVisuais.tela_parada(quadros))
 	todos.append_array(ChecagensVisuais.telas_vazias(quadros))
 	for tx in textos:

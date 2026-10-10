@@ -199,6 +199,8 @@ func _process(dt: float) -> void:
 	super(dt)
 	if congelada:
 		return
+	if fase == "jogo" and _esperar_o_controle():
+		return
 	t_fase += dt
 	match fase:
 		"aviso":
@@ -513,3 +515,48 @@ func com_poucos() -> String:
 
 func erros_do_grupo() -> int:
 	return 0
+
+
+var esperando_controle := false
+var _tela_reconectar: TelaReconectar = null
+
+
+func lugares_sem_controle() -> Array:
+	var fora: Array = []
+	for p in jogadores:
+		if jogando[p.lugar] and not acabou[p.lugar]:
+			if Forja.lugar(p.lugar).get("conectado", false):
+				return []
+			fora.append(p.lugar)
+	return fora
+
+
+func _esperar_o_controle() -> bool:
+	var fora := lugares_sem_controle()
+	esperar_o_controle(not fora.is_empty(), fora)
+	return esperando_controle
+
+
+func esperar_o_controle(sim: bool, lugares: Array) -> void:
+	if sim and _tela_reconectar != null:
+		_tela_reconectar.lugares = lugares
+	if esperando_controle == sim:
+		return
+	esperando_controle = sim
+	for p in jogadores:
+		if sim:
+			Forja.med_parar(p.lugar)
+		else:
+			Forja.med_retomar(p.lugar)
+	if sim:
+		var camada := CanvasLayer.new()
+		camada.layer = 11
+		_tela_reconectar = TelaReconectar.new()
+		_tela_reconectar.lugares = lugares
+		_tela_reconectar.sala = self
+		camada.add_child(_tela_reconectar)
+		add_child(camada)
+	elif _tela_reconectar != null:
+		_tela_reconectar.visible = false
+		_tela_reconectar.get_parent().queue_free()
+		_tela_reconectar = null
