@@ -511,6 +511,15 @@ const SENSACOES := {
 	"golpe_dir": [0.0, 1.0,  250],   # o da direita: só o motor fraco
 	"fita":      [0.0, 0.3,  400],   # o PLAY e o virar da fita (G16): o motor girando na mão, o rumble fraco
 	"metal":     [0.0, 0.45,  40],   # a troca de peça na construção: o pulso curto
+	"vitoria":     [1.0, 0.6, 120],  # o batimento duplo do vencedor da faixa (G07): a primeira batida
+	"vitoria_eco": [0.7, 0.4, 120],  # e a segunda, 240 ms depois
+	"desmaio_0":   [0.6, 0.6, 100],  # o controle do último desmaia (G07): 0,6 · (7 − k) / 7, um degrau a cada 100 ms
+	"desmaio_1":   [0.51, 0.51, 100],
+	"desmaio_2":   [0.43, 0.43, 100],
+	"desmaio_3":   [0.34, 0.34, 100],
+	"desmaio_4":   [0.26, 0.26, 100],
+	"desmaio_5":   [0.17, 0.17, 100],
+	"desmaio_6":   [0.09, 0.09, 100],
 }
 var _agora := 0.0  ## o relógio do jogo (a soma dos quadros), para o motor e a háptica
 var _motor_ate := [0.0, 0.0, 0.0, 0.0]
@@ -1131,23 +1140,13 @@ func gatilhos_devolver(l: int) -> void:
 ## A vitória da faixa na mão do vencedor (G07, 03): o batimento duplo, 1,0/0,6 por 120 ms, pausa de 120 ms e
 ## 0,7/0,4 por 120 ms. Pela escala do lugar, como toda vibração.
 func batimento_duplo(l: int) -> void:
-	_vibrar_registrado(l, "vitoria", 1.0, 0.6, 120)
-	get_tree().create_timer(0.24).timeout.connect(_vibrar_registrado.bind(l, "vitoria_eco", 0.7, 0.4, 120))
+	sentir(l, "vitoria")
+	get_tree().create_timer(0.24).timeout.connect(sentir.bind(l, "vitoria_eco", -1))
 
 
-## O controle do último desmaia na mão (G07, 03): o rumble 0,6/0,6 cai a 0 em 700 ms, 7 degraus de 100 ms.
+## O controle do último desmaia na mão (G07, 03): o rumble 0,6/0,6 cai a 0 em 700 ms, os 7 degraus de 100 ms da
+## tabela (`desmaio_0` a `desmaio_6`).
 func desmaio(l: int) -> void:
-	for k in 7:
-		var f := 0.6 * float(7 - k) / 7.0
-		if k == 0:
-			_vibrar_registrado(l, "desmaio", f, f, 100)
-		else:
-			get_tree().create_timer(0.1 * k).timeout.connect(vibrar.bind(l, f, f, 100))
-	_motor_ate[clampi(l, 0, 3)] = _agora + 0.7
-
-
-## Uma vibração fora da tabela de sensações, com a linha `sensacao` no registro (o nome diz qual).
-func _vibrar_registrado(l: int, nome: String, forte: float, fraco: float, ms: int) -> bool:
-	_motor_ate[clampi(l, 0, 3)] = maxf(_motor_ate[clampi(l, 0, 3)], _agora + ms / 1000.0)
-	evento("sensacao", l + 1, {"nome": nome, "escala": Opcoes.escala_vibracao(l), "ms": ms})
-	return vibrar(l, forte, fraco, ms)
+	sentir(l, "desmaio_0")
+	for k in range(1, 7):
+		get_tree().create_timer(0.1 * k).timeout.connect(sentir.bind(l, "desmaio_%d" % k, -1))

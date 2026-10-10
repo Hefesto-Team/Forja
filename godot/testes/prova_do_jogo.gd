@@ -3686,9 +3686,9 @@ func _prova_do_fim_filmado(sala) -> void:
 		await _quadros(1)
 	_esperar(pico >= 0.8 and falou, "fim: a vitória bate na mão do P2 (%.2f) e toca no alto-falante dele (%s)" % [pico, falou])
 	_esperar(_contar_registro("sensacao", 1, "vitoria_eco") >= 1, "fim: o batimento duplo do P2 no registro")
+	await _quadros(2)  # a lente muda no quadro do main depois do corte
 	_esperar(is_instance_valid(sala) and sala.plano_do_fim() == "inserto" and absf(jogo.camera.fov - _fov_de(85.0)) < 0.05,
 		"fim: o inserto do último a 85 mm (%s, fov %.2f)" % [sala.plano_do_fim() if is_instance_valid(sala) else "-", jogo.camera.fov])
-	await _quadros(2)
 	_esperar(jogo.visor.do_lugar(0).any(func(v): return v.id == "car_emburrado"), "fim: a cara emburrada acima do P1")
 	_esperar(float(_perc(0).get("forte", 0.0)) > 0.3, "fim: o controle do P1 desmaia (%.2f)" % float(_perc(0).get("forte", 0.0)))
 	ate = Time.get_ticks_msec() + int(b * 1000.0) + 1500
