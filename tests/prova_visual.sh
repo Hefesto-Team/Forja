@@ -44,6 +44,8 @@ PARTIDAS_TODAS=(
   "2|4|ruim|5|"
   "3|2|medio|3|"
   "4|1|medio|3|--cabo"
+  "5|4|medio|3||FORJA_IDIOMA=en FORJA_TEXTO=grande|en-grande"
+  "6|4|medio|3||FORJA_TEXTO=grande|pt-grande"
 )
 FALHAS=0
 : > "$SAIDA/checagens.txt"
@@ -57,18 +59,23 @@ for passada in ${PASSADAS:-fixa livre}; do
   MOVIMENTO=()
   [ "$passada" = reduzida ] && MOVIMENTO=(--movimento=reduzido)
   for linha in "${PARTIDAS_TODAS[@]}"; do
-    IFS='|' read -r n jogadores robo salas extra <<< "$linha"
-    case " ${PARTIDAS:-1 2 3 4} " in *" $n "*) ;; *) continue ;; esac
+    IFS='|' read -r n jogadores robo salas extra ambiente nome_da_prancha <<< "$linha"
+    case " ${PARTIDAS:-1 2 3 4 5 6} " in *" $n "*) ;; *) continue ;; esac
     pasta="$SAIDA/$passada"
     rel="$TMP/relatorios-$passada-$n"
     mkdir -p "$pasta" "$rel"
-    echo "==> partida $n ($passada): $jogadores jogador(es), robô $robo, $salas salas ${extra:+($extra)}"
+    echo "==> partida $n ($passada): $jogadores jogador(es), robô $robo, $salas salas ${extra:+($extra)}${ambiente:+ ($ambiente)}"
     # shellcheck disable=SC2086
-    timeout "${LIMITE_S:-3000}" "${JANELA[@]}" \
-      caixa "$GODOT" "${GODOT_JANELA[@]}" "${QUADROS[@]}" res://testes/prova_visual.tscn \
+    timeout "${LIMITE_S:-3000}" env $ambiente "${JANELA[@]}" \
+      "${CAIXA[@]}" "$GODOT" "${GODOT_JANELA[@]}" "${QUADROS[@]}" res://testes/prova_visual.tscn \
       -- --simular="$jogadores" --robo="$robo" --semente=7 --relatorios="$rel" --saida="$pasta" \
          --salas="$salas" --indice="$n" "${MOVIMENTO[@]}" $extra > "$pasta/partida-$n.log" 2>&1
     rc=$?
+    if [ -n "${nome_da_prancha:-}" ]; then
+      for png in "$pasta"/prancha-"$n".png "$pasta"/prancha-"$n"-*.png; do
+        [ -f "$png" ] && mv "$png" "${png/prancha-$n/prancha-$nome_da_prancha}"
+      done
+    fi
     grep -E "SCRIPT ERROR|^ERROR|^FAIL" "$pasta/partida-$n.log" | head -5
     if [ -f "$pasta/checagens-$n.txt" ]; then
       { echo "=== passada $passada ==="; cat "$pasta/checagens-$n.txt"; echo; } >> "$SAIDA/checagens.txt"
@@ -113,4 +120,4 @@ if [ -z "$SAIDA_PEDIDA" ]; then
   echo "(sem pasta pedida: as pranchas foram apagadas com a pasta temporária; passe uma pasta para guardá-las)"
 fi
 [ "$FALHAS" -eq 0 ] || { echo "prova visual: $FALHAS partida(s) reprovada(s)"; exit 1; }
-echo "prova visual ok: as quatro partidas, as pranchas e as checagens${SAIDA_PEDIDA:+ em $SAIDA_PEDIDA}"
+echo "prova visual ok: as seis partidas, as pranchas e as checagens${SAIDA_PEDIDA:+ em $SAIDA_PEDIDA}"

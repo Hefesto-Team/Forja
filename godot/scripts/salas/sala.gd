@@ -2,6 +2,9 @@ class_name Sala
 extends Node3D
 
 signal terminou
+signal julgou(l: int, j: int, palavra: String)
+signal carimbou(l: int, id: String)
+signal falou(l: int, texto: String, segundos: float)
 
 const SECAO_DE := {
 	"centelha": 1, "viga": 2, "molde": 3, "impacto": 4, "galeria": 5,

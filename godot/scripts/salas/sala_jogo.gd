@@ -517,46 +517,42 @@ func erros_do_grupo() -> int:
 	return 0
 
 
-var esperando_controle := false
-var _tela_reconectar: TelaReconectar = null
+const PALAVRA := ["", "Quase", "Afinado", "Ressonância!"]
+const JUL := ["erro", "quase", "afinado", "ressonancia"]
+const SENSACAO_DO_JULGAMENTO := ["erro", "acerto", "acerto", "perfeito"]
+var _ressonancias := [0, 0, 0, 0]
+var _acorde := [-1, -1, -1, -1]
 
 
-func lugares_sem_controle() -> Array:
-	var fora: Array = []
-	for p in jogadores:
-		if jogando[p.lugar] and not acabou[p.lugar]:
-			if Forja.lugar(p.lugar).get("conectado", false):
-				return []
-			fora.append(p.lugar)
-	return fora
-
-
-func _esperar_o_controle() -> bool:
-	var fora := lugares_sem_controle()
-	esperar_o_controle(not fora.is_empty(), fora)
-	return esperando_controle
-
-
-func esperar_o_controle(sim: bool, lugares: Array) -> void:
-	if sim and _tela_reconectar != null:
-		_tela_reconectar.lugares = lugares
-	if esperando_controle == sim:
+func julgar(l: int, j: int, palavra := "", no_tempo_1 := false) -> void:
+	if l < 0 or l > 3 or j < 0 or j > 3:
 		return
-	esperando_controle = sim
-	for p in jogadores:
-		if sim:
-			Forja.med_parar(p.lugar)
-		else:
-			Forja.med_retomar(p.lugar)
-	if sim:
-		var camada := CanvasLayer.new()
-		camada.layer = 11
-		_tela_reconectar = TelaReconectar.new()
-		_tela_reconectar.lugares = lugares
-		_tela_reconectar.sala = self
-		camada.add_child(_tela_reconectar)
-		add_child(camada)
-	elif _tela_reconectar != null:
-		_tela_reconectar.visible = false
-		_tela_reconectar.get_parent().queue_free()
-		_tela_reconectar = null
+	var id := "jul_%s_p%d" % [JUL[j], l + 1]
+	var p := jogador(l)
+	Som.tocar(id, p.global_position + Vector3(0, 1.2, 0) if p else null, -12.0)
+	Som.no_controle(l, id, 0.85)
+	Forja.sentir(l, SENSACAO_DO_JULGAMENTO[j])
+	julgou.emit(l, j, palavra if palavra != "" or j == 0 else PALAVRA[j])
+	if treinando:
+		return
+	_ressonancias[l] = _ressonancias[l] + 1 if j == 3 else 0
+	if _ressonancias[l] >= 5:
+		_ressonancias[l] = 0
+		carimbou.emit(l, "car_em_chamas")
+	if j != 3:
+		_acorde[l] = -1
+		return
+	if not no_tempo_1:
+		return
+	_acorde[l] = roundi(Ritmo.batida() / 4.0)
+	var quem: Array = []
+	for k in 4:
+		if jogando[k]:
+			quem.append(k)
+	if quem.size() >= 3 and quem.all(func(k): return _acorde[k] == _acorde[l]):
+		_acorde = [-1, -1, -1, -1]
+		carimbou.emit(-1, "car_acorde")
+
+
+func combo(_l: int) -> int:
+	return 0

@@ -144,6 +144,14 @@ func _dicas() -> void:
 		r.position.y = clampf(r.position.y, 12.0, size.y - 140.0)
 		pilulas.append([l, partes, r])
 	_afastar(pilulas, FOLGA_PILULA)
+	if bool(sala.com_hud):
+		for it in pilulas:
+			var rp: Rect2 = it[2]
+			for k in 4:
+				var c := HudJogo.cartao(k, size)
+				if rp.intersects(c):
+					rp.position.y = c.end.y + 8.0 if k < 2 else c.position.y - rp.size.y - 8.0
+			it[2] = rp
 	var valendo := _rect_valendo()
 	if valendo.size.x > 0.0:
 		pilulas = pilulas.filter(func(it): return not (it[2] as Rect2).intersects(valendo))
@@ -274,40 +282,45 @@ func _pergunta(l: int, q: Dictionary, r: Rect2) -> void:
 func _tempo() -> void:
 	_dicas()
 	_treino_e_valendo()
-	var topo_das_faixas: float = (HudJogo.quadro_da_sala(str(sala.nome), str(sala.acao), size.x)["rect"] as Rect2).end.y + 8.0
-	var d: float = sala.duracao
-	if d <= 0.0:
-		var linha := str(sala.progresso())
-		if linha != "":
-			var fp := Tema.archivo(500)
-			var lw := Desenho.largura(linha, fp, Tema.T_SELO)
-			var q := Rect2(Vector2(Tema.MARGEM_X - 28, topo_das_faixas), Vector2(lw + 56, 52))
-			Desenho.moldura(self, q, Color(Tema.CASCO, 0.9), Tema.GRAFITE, 2, 12)
-			Desenho.texto(self, q.position + Vector2(28, 34), linha, fp, Tema.T_SELO, Tema.ETIQUETA_SOMBRA)
-		return
-	if sala.treinando:
-		return
-	var resta := float(sala.tempo_que_resta())
-	var larg := 480.0
-	var p := Vector2(Tema.MARGEM_X - 28, topo_das_faixas + 22.0)
-	var cor := Tema.SECAO[3] if resta < 15.0 else Tema.ETIQUETA
-	var r := Rect2(p - Vector2(0, 22), Vector2(larg + 110, 52))
-	Desenho.moldura(self, r, Color(Tema.CASCO, 0.9), Tema.GRAFITE, 2, 12)
-	var trilho := Rect2(p + Vector2(20, 0), Vector2(larg, 8))
-	draw_rect(trilho, Tema.GRAFITE)
-	draw_rect(Rect2(trilho.position, Vector2(larg * resta / d, 8)), cor)
-	var s := "%d s" % int(ceil(resta))
-	var f := Tema.vt()
-	Desenho.texto(self, Vector2(trilho.end.x + 18, p.y + 12), s, f, Tema.T_SELO, cor)
+	var q := _rect_progresso()
+	if q.size.x > 0.0:
+		Desenho.placa(self, q)
+		Desenho.texto(self, q.position + Vector2(28, 36), str(sala.progresso()), Tema.archivo(500), Tema.T_SELO, Tema.ETIQUETA)
+
+
+func _rect_progresso() -> Rect2:
+	if sala == null or not is_instance_valid(sala) or not sala is SalaJogo or float(sala.duracao) > 0.0:
+		return Rect2()
+	var linha := str(sala.progresso())
+	if linha == "":
+		return Rect2()
+	var lw := Desenho.largura(linha, Tema.archivo(500), Tema.T_SELO) + 56.0
+	return Rect2(Vector2((size.x - lw) * 0.5, 214.0), Vector2(lw, 52.0))
+
+
+func _rect_selo() -> Rect2:
+	if sala == null or not is_instance_valid(sala) or not sala is SalaJogo or not sala.treinando:
+		return Rect2()
+	var w := Desenho.largura("Treino — não vale ponto", Tema.archivo(600), Tema.T_ROTULO) + 56.0
+	return Rect2(Vector2((size.x - w) * 0.5, 282.0), Vector2(w, 56.0))
+
+
+func retangulos() -> Array:
+	var r: Array = []
+	if sala == null or not is_instance_valid(sala) or not sala is SalaJogo or str(sala.fase) != "jogo":
+		return r
+	for q in [_rect_progresso(), _rect_selo()]:
+		if q.size.x > 0.0:
+			r.append(q)
+	return r
 
 
 func _treino_e_valendo() -> void:
 	if sala.treinando:
 		var s := "Treino — não vale ponto"
 		var f := Tema.archivo(600)
-		var w := Desenho.largura(s, f, Tema.T_ROTULO) + 56
-		var r := Rect2(Vector2((size.x - w) * 0.5, 176), Vector2(w, 56))
-		Desenho.moldura(self, r, Color(Tema.CASCO, 0.94), Tema.ETIQUETA, 3, 14)
+		var r := _rect_selo()
+		Desenho.placa(self, r)
 		Desenho.texto(self, r.position + Vector2(28, 38), s, f, Tema.T_ROTULO, Tema.ETIQUETA)
 	elif float(sala.valendo_t) > 0.0:
 		var k: float = 1.4 - float(sala.valendo_t)

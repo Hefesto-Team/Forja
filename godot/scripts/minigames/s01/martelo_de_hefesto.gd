@@ -252,7 +252,7 @@ func _jogar(l: int, p: ForjaPlayer, dt: float) -> void:
 		if pedido >= 0 and not errou(l):
 			e.combo = 0
 			e.tremor = 0.6
-			Som.tocar("falha", p.global_position + Vector3(0, 1.5, -2), -10.0)
+			julgar(l, 0)
 	if r == null:
 		return
 	e.t += dt
@@ -318,9 +318,8 @@ func _acertou(l: int, p: ForjaPlayer, base: int) -> void:
 	Efeitos.anel(self, runas[l].raiz.global_position, Forja.cor_do_lugar(l), 0.7, Vector3.BACK, l)
 	Som.tocar("bigorna_aguda" if r != null and r.tipo == "botao" else "bigorna", bigorna_topo, -2.0)
 	Som.tocar("martelo", bigorna_topo, -6.0)
-	Som.no_controle(l, "martelo", 0.55)
+	julgar(l, (3 if rapidez >= 0.66 else (2 if rapidez >= 0.33 else 1)) if r != null and r.tipo == "botao" else 2)
 	p.gesto("attack-melee-right", 0.45)
-	Forja.sentir(l, "acerto")
 	if r != null and r.tipo == "botao" and e.janela > JANELA_MINIMA * ritmo_nivel:
 		e.janela -= 0.08
 	_proxima(l)
@@ -341,7 +340,7 @@ func _perdeu(l: int, p: ForjaPlayer) -> void:
 		return
 	e.combo = 0
 	e.tremor = 1.0
-	Som.tocar("falha", runas[l].raiz.global_position, -4.0)
+	julgar(l, 0)
 	p.gesto("emote-no", 0.6)
 	r.tentativas = int(r.tentativas) + 1
 	if r.tentativas < MAX_TENTATIVAS:
@@ -411,34 +410,5 @@ func robo(l: int, dt: float) -> void:
 			Forja.robo_eixo(l, Forja.R2 if r.alvo == 1 else Forja.L2, e.robo_gatilho, 0.06)
 
 
-const FORJA_ENERGIA := 0.9
-const FORJA_TENSAO := 1.8
-const FORJA_BATIDA := 0.6
-
-
-func _forja_na_espera(l: int, tensao: float) -> void:
-	var luz: OmniLight3D = runas[l].get("forja")
-	if luz == null:
-		return
-	if tensao < 0.0:
-		luz.light_energy = FORJA_ENERGIA
-		return
-	luz.light_energy = FORJA_ENERGIA + amplitude_da_espera() * (FORJA_TENSAO * tensao + FORJA_BATIDA * pulso_da_batida())
-	_calor = maxf(_calor, tensao)
-
-
-const CHAVE_CALOR := 0.8
-const CHAVE_BATIDA := 0.25
-
-var _calor := 0.0
-var _chaves_base := {}
-
-
-func _chaves_na_espera() -> void:
-	if _chaves_base.is_empty():
-		for luz in _chaves_com_energia:
-			_chaves_base[luz] = luz.light_energy
-	var k := 1.0 + amplitude_da_espera() * (CHAVE_CALOR * _calor + CHAVE_BATIDA * pulso_da_batida())
-	for luz in _chaves_base:
-		if is_instance_valid(luz):
-			luz.light_energy = float(_chaves_base[luz]) * k
+func combo(l: int) -> int:
+	return int(j[l].combo) if j.has(l) else 0

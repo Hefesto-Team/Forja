@@ -302,12 +302,15 @@ const EN := {
 	"Guardado": "Saved",
 	"Escrever": "Write",
 	"Apagar": "Erase",
-	"Todos venceram!": "Everyone won!",
-	"A forja apagou.": "The forge went out.",
-	"A Brasa venceu!": "The Ember won!",
-	"A Maré venceu!": "The Tide won!",
-	"A Forja de Todos": "Everyone's Forge",
-	"Juntos!": "Together!",
+	"O Salão": "The Hall",
+	"Quase": "Close",
+	"Afinado": "In tune",
+	"Ressonância!": "Resonance!",
+	"EM CHAMAS": "ON FIRE",
+	"ACORDE MAIOR!": "MAJOR CHORD!",
+	"VIRADA!": "COMEBACK!",
+	"POR UM FIO": "BY A HAIR",
+	"LIGA!": "ALLOY!",
 }
 
 const EN_PADROES := [
@@ -385,6 +388,8 @@ const EN_PADROES := [
 	["^Era (.+) \\((.+)\\)$", "It was $1 ($2)"],
 	["^Não — o jogo acendeu (\\d+)$", "No — the game lit $1"],
 	["^Não — o jogo mandou (.+)$", "No — the game sent $1"],
+	["^LADO ([AB]) · FAIXA (\\d\\d)$", "SIDE $1 · TRACK $2"],
+	["^A FORJA · LADO ([AB])$", "THE FORGE · SIDE $1"],
 ]
 
 

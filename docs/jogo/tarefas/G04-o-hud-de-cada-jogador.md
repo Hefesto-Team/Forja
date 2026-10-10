@@ -664,3 +664,67 @@ sugerido (sem trailer):
 ```
 feat: o cartão de cada jogador no canto, a etiqueta e o deck da faixa, e o carimbo do julgamento com a nota de cada um
 ```
+
+## O que foi feito (leva 1, as-telas)
+
+**A medida antes:** no alto da sala, a fileira de quatro chips de 250 × 92 (`hud.gd:108-142`) com o
+`status_da_sala` encolhendo até 20 px, abaixo do piso de 30. Nenhum julgamento na tela, nenhum `jul_*`/`car_*` em
+`assets/sons/`. Na primeira passada do texto grande em inglês (partida 5 nova da prova visual), o carimbo do
+julgamento saía da área segura com o cavaleiro na borda: «Resonance!» em x −49 e «In tune» em x 12.
+
+**O que entrou:**
+
+- `hud.gd`: os quatro cartões nos cantos (`HudJogo.cartao(l, tela)`: 96 px das laterais, 60 do alto ou de baixo,
+  520 de largura, a altura cresce com o texto grande), com nome, pontos, combo, VU e item, nos três estados
+  (jogando, «Sem controle», vazio); a etiqueta da faixa e o deck no alto, o deck contando o tempo da faixa;
+  `retangulos()` para a prova. Os chips antigos saíram da tela.
+- `visor.gd` (novo): a camada acima do HUD com a vaga 0 (o carimbo do julgamento, 500 ms) e a vaga 1 (um carimbo
+  do jogo ou a fala), a vez de no máximo dois na tela, «EM CHAMAS» na quinta «Ressonância!» seguida, «ACORDE
+  MAIOR!» com os quatro no tempo 1. O carimbo que segue o cavaleiro é empurrado para dentro da área segura
+  (`Visor.na_area_segura`).
+- `sala_jogo.gd`/`sala.gd`: `julgar(l, j, palavra, no_tempo_1)` toca o `jul_*` do lugar na TV e no controle, sente
+  pela tabela (`Forja.sentir`) e emite `julgou`; `combo(l)`. A Centelha e O Impacto julgam por ela.
+- `desenho.gd`: o carimbo, a etiqueta, o VU e a caixa do carimbo. `painel_sala.gd`: o relógio, a linha de progresso,
+  o selo do treino e as pílulas saem de cima dos cartões.
+- Os 21 sons (`jul_{ressonancia,afinado,quase,erro}_p1..4`, `car_em_chamas`, `car_acorde`, `car_por_um_fio`,
+  `car_liga`, `jin_virada`) copiados do estudo para `assets/sons/`, com `estado` = `no jogo` no `mapa.csv`.
+- `tests/prova_visual.sh`: as partidas 5 (inglês, texto grande) e 6 (português, texto grande), com as pranchas
+  `prancha-en-grande*.png` e `prancha-pt-grande*.png`.
+
+**As provas:** `bash tests/prova_do_jogo.sh` verde (o único FAIL foi o do kit, «kit P2: otimo em N de 12 notas»,
+conhecido em todas as árvores e que não é desta ficha: a G14b, antes da G04, já o tinha); `_confere_o_hud` nas duas línguas e nas duas escalas;
+`_prova_do_julgamento` (o carimbo, o som no alto-falante do P4, a mão sente 0,5/0,8, some em meio segundo, EM CHAMAS,
+o erro sem palavra, o acorde, a vez, a fala, a área segura); os portões verdes.
+
+**As mordidas:** com os cartões no lugar antigo, «HUD n'A Centelha, pt_BR/en, 1.00/1.15: nada encosta e tudo cabe»
+reprova nas quatro combinações; com o `Forja.vibrar` direto no julgamento e no visor, o portão «nenhuma vibração fora
+da tabela de sensações» reprova (`sala_jogo.gd`, `visor.gd`); com o julgamento quebrado, reprovam «a mão do P4 sente o
+perfeito», «cinco seguidas: EM CHAMAS», «a vez» e «a fala»; com o carimbo sem o empurrão, as quatro pontas de «o
+carimbo com o cavaleiro em (40, 512) … fica dentro da área segura» reprovam. Tudo restaurado e verde de novo.
+
+**A prova visual** (`PASSADAS=fixa PARTIDAS="5 6"`, as duas partidas novas do texto grande): os cartões nos cantos, a
+etiqueta e o deck no alto e os carimbos acima dos cavaleiros, olhados nas pranchas. O HUD não reprovou nada. O carimbo
+fora da área segura («Resonance!» em x −49, «Ressonância!» em x −84, «In tune» em 12, «Afinado» em −1) foi curado depois
+da passada, e a cura está provada na prova do jogo, não numa segunda passada. As outras reprovações não são do HUD: o
+título, o cartão do resultado, o placar e o contraste do carimbo sobre o chão aceso viraram a ficha
+[G04c](G04c-o-texto-grande-fora-do-hud.md). A tela parada já é da F09b e da F09d. **O «Pronto quando» pede as seis
+passadas verdes, e elas não fecham enquanto a G04c e a F09b estiverem abertas.**
+
+**Escolhas a validar por ela** (a ficha não decidia):
+
+- As tarjas do «ACORDE MAIOR!»: uma tarja por lugar com o P# no papel, embaixo da palavra.
+- `quadro_da_sala`, `LARG_CHIP` e `status_da_sala` continuam no `hud.gd`, mas não se desenham mais (a G06 e o
+  diagnóstico ainda escrevem neles).
+- O acerto d'A Centelha não vibra mais pelo `"acerto"` além do julgamento: a vibração é só a do julgamento.
+- O contador da G06 desceu para y 60; o deck tem 196 px de largura; a fala sai inteira até a metade do sumiço (o
+  papel não tem alfa); o número da seção vem de `Catalogo.apelido`.
+- O carimbo do cavaleiro na borda anda para dentro da área segura em vez de sumir.
+
+**Ficou para depois:** [G04b](G04b-as-placas-que-entram-e-a-troca-de-etiqueta.md), as placas que entram e a troca de
+etiqueta com a caneta (só movimento), e [G04c](G04c-o-texto-grande-fora-do-hud.md). As fichas novas não ganharam
+linha no quadro, porque quem marca o quadro é quem coordena.
+
+**Para o André (local):** os quatro itens de «Para o André» acima, sem mudança: a prova visual sem `--fixed-fps`
+com a placa de vídeo (as pranchas em inglês e com o texto grande ao lado de `01_centelha_depois.jpg`), a Centelha
+com um DualSense (a nota no controle, o erro desafinado, EM CHAMAS), a TV do sofá e Opções › Texto › Grande com
+Idioma › English.
