@@ -1764,8 +1764,9 @@ bash tests/prova_de_poucos.sh
 ./run-local.sh -- --sala=centelha
 ```
 
-- A prova de poucos e o gauntlet ficam mais longos: o Martelo agora dura os
-  100 s da música, com dois, com um e com quatro.
+- A prova de poucos e o gauntlet ficam mais longos: o Martelo agora conta os
+  100 s em tempo de música (ou acaba antes, quando todos terminam as runas),
+  com dois, com um e com quatro.
 - Na partida de 5, O Canto aparece (no lugar d'A Viga), e o placar diz "a
   seguir: <o título do minigame>".
 - Com o controle na mão, no Martelo: o perfeito pisca a barra de luz de
@@ -1846,7 +1847,8 @@ A passada livre foi interrompida, porque a máquina estava com carga de 18 a
 **Escolhas a validar por ela:**
 
 - As trocas e os canais seguem o 13, e não a lista curta.
-- As cores das equipes ficaram literais (+3 avisos na régua de arte).
+- As cores das equipes e o branco do piscar ficaram literais (+3 avisos na
+  régua de arte, depois da conferência).
 - «A seguir» ficou com maiúscula.
 - O histórico da partida guarda o slot.
 - A fila tolera toque sem nota quando a nota daquele lugar passou, por
@@ -1854,3 +1856,38 @@ A passada livre foi interrompida, porque a máquina estava com carga de 18 a
 - O robô mira com a calibração do lugar.
 - O «Empate!» já existia como «Tie!», então entraram seis frases, e não
   sete.
+
+**A conferência.** Quatro consertos, cada um com a sua prova:
+
+- **O destaque do 2v2 não separava a dupla.** O `marcar_equipe` chamava o
+  `marcar` da SalaJogo para os dois, e cada um somava o acerto: a dupla
+  ficava empatada nos acertos, e o parceiro que não tocou levava o
+  «aprendeu» da dica. Agora os pontos vão aos dois, e o acerto só a quem
+  tocou (o 13 diz isso também). A prova das decisões faz o P4 tocar e
+  confere pontos iguais e um acerto a mais para ele.
+- **Quem caiu não tinha prova.** O minigame de tempo tira o cabo do P3 aos
+  30 s e o devolve quando as notas dele já passaram, contadas em tempo de
+  música (no mínimo 4 s). A prova confere que a fila dele esvaziou sem
+  erro: a contagem de erros seguidos ficou a mesma. A luz de quem está sem
+  controle não entra na amostra do piso, nem a do quadro em que o cabo
+  muda: nesse quadro o lugar ainda diz conectado, e o controle já sumiu.
+- **A luz pedida vazia** usa o `Color.TRANSPARENT`. O valor muda de
+  (0, 0, 0, 0) para (1, 1, 1, 0), mas o `_voltar_a_cor` só lê o alfa, que
+  segue 0. Isso tira 7 avisos da régua de arte: ela foi de 48 a 41 (eram 38
+  na base).
+- **A prova das decisões** solta o minigame no fim (`mg.free()`).
+
+As mordidas novas: o `notas_perdidas` sem o calado de quem caiu reprova
+«quem caiu», e o `marcar_equipe` com o acerto para os dois reprova a dupla.
+
+As provas da conferência: `SALA=S01_J01 bash tests/prova_do_jogo.sh` verde
+(os dois servidores, a prova inteira e a ficha). Na `bash
+tests/prova_do_jogo.sh` só reprovou o «kit P2» (ótimo em 3 de 12), a
+checagem de antes da H08 que já reprovava na base com a máquina carregada.
+Com a carga alta, o relógio da música também atrasa em relação à parede
+(90 s de música em 150 s), e a checagem dos 90 s reprova: isso é a máquina,
+e não o jogo.
+
+No «Para o André», o primeiro item dizia que o Martelo dura os 100 s, e o
+último, que ele acaba quando todos terminam as runas. O primeiro agora diz
+as duas coisas.
