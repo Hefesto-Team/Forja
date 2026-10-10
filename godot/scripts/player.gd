@@ -8,7 +8,20 @@ const CONTORNO_LARGURA := 0.012
 const BONECOS := [
 	{"nome": "Humano", "arquivo": "character-human", "intervalo": "segunda"},
 	{"nome": "Orc", "arquivo": "character-orc", "intervalo": "quinta_baixo"},
+	{"nome": "Coque preto", "arquivo": "mini-characters/character-female-a", "intervalo": "segunda"},
+	{"nome": "Duas bolotas", "arquivo": "mini-characters/character-female-b", "intervalo": "terca"},
+	{"nome": "Touca listrada", "arquivo": "mini-characters/character-female-c", "intervalo": "quarta"},
+	{"nome": "Coque ruivo", "arquivo": "mini-characters/character-female-d", "intervalo": "quinta"},
+	{"nome": "Franja preta", "arquivo": "mini-characters/character-female-e", "intervalo": "quinta_baixo"},
+	{"nome": "Cabelo longo", "arquivo": "mini-characters/character-female-f", "intervalo": "oitava"},
+	{"nome": "Óculos redondo", "arquivo": "mini-characters/character-male-a", "intervalo": "segunda"},
+	{"nome": "Barba ruiva", "arquivo": "mini-characters/character-male-b", "intervalo": "terca"},
+	{"nome": "Quepe azul", "arquivo": "mini-characters/character-male-c", "intervalo": "quarta"},
+	{"nome": "Ruivo curto", "arquivo": "mini-characters/character-male-d", "intervalo": "quinta"},
+	{"nome": "Óculos de obra", "arquivo": "mini-characters/character-male-e", "intervalo": "quinta_baixo"},
+	{"nome": "Topete preto", "arquivo": "mini-characters/character-male-f", "intervalo": "oitava"},
 ]
+const PRIMEIRO_PERSONAGEM := 2
 const SH_CAVALEIRO := preload("res://shaders/cavaleiro.gdshader")
 const CONTORNO_MONTAGEM := 1.6
 const CONTORNO_JOGO := 2.4
@@ -77,6 +90,8 @@ var _area_runa := 0.0
 var _area_item := 0.0
 var _acesa := 1.0
 var _yaw := PI
+var pecas: Array = []
+var cadeira := ""
 var _gesto := 0.0
 
 
@@ -121,6 +136,12 @@ func montar(l: int) -> void:
 
 
 func visual(m: int, item: int) -> void:
+	if wrapi(m, 0, BONECOS.size()) >= PRIMEIRO_PERSONAGEM and (pecas.is_empty() or wrapi(m, 0, BONECOS.size()) != modelo_i):
+		var p: String = Cavaleiro.PERSONAGENS[wrapi(m, 0, BONECOS.size()) - PRIMEIRO_PERSONAGEM]
+		vestir_pecas([p, p, p], item)
+		return
+	if wrapi(m, 0, BONECOS.size()) < PRIMEIRO_PERSONAGEM:
+		pecas = []
 	var trocou_modelo := modelo == null or wrapi(m, 0, BONECOS.size()) != modelo_i
 	modelo_i = wrapi(m, 0, BONECOS.size())
 	item_i = wrapi(item, 0, ITENS.size())
@@ -157,6 +178,9 @@ static func acabamentos_disponiveis() -> Array:
 
 
 func cavaleiro() -> Dictionary:
+	if pecas.size() == 3:
+		return {"cabeca": pecas[0], "superior": pecas[1], "inferior": pecas[2], "cadeira": cadeira,
+			"item": ITENS[item_i].id, "nome": nome, "acabamento": acabamento_i}
 	return {"boneco": modelo_i, "item": ITENS[item_i].id, "nome": nome, "acabamento": acabamento_i}
 
 
@@ -167,6 +191,13 @@ func vestir(c: Dictionary) -> void:
 			item = i
 	nome = str(c.get("nome", ""))
 	acabamento_i = clampi(int(c.get("acabamento", 0)), 0, ACABAMENTOS.size() - 1)
+	if c.has("cabeca") or c.has("boneco"):
+		var novas: Array = [str(c.get("cabeca", "")), str(c.get("superior", "")), str(c.get("inferior", ""))]
+		if not c.has("cabeca") or Cavaleiro.peca("cabeca", novas[0]).is_empty():
+			novas = Cavaleiro.pre_montado(lugar, {}).pecas
+		cadeira = str(c.get("cadeira", ""))
+		vestir_pecas(novas, item)
+		return
 	visual(int(c.get("boneco", 0)), item)
 
 
@@ -505,6 +536,8 @@ func acender(k: float) -> void:
 
 func cabeca(visivel: bool) -> void:
 	var c := modelo.find_child("head-mesh", true, false) if modelo else null
+	if c == null and modelo:
+		c = modelo.find_child("head", true, false)
 	if c is Node3D:
 		c.visible = visivel
 
@@ -574,3 +607,101 @@ func _physics_process(dt: float) -> void:
 		_animar("sprint" if rapido else "walk", 0.8 + mv.length() * 0.5)
 	else:
 		_animar("idle")
+
+
+static func indice_do_personagem(personagem: String) -> int:
+	return PRIMEIRO_PERSONAGEM + maxi(0, Cavaleiro.PERSONAGENS.find(personagem))
+
+
+func vestir_pecas(novas: Array, item := -1) -> void:
+	pecas = [str(novas[0]), str(novas[1]), str(novas[2])]
+	if item >= 0:
+		item_i = wrapi(item, 0, ITENS.size())
+	modelo_i = indice_do_personagem(pecas[0])
+	if modelo:
+		_soltar_contorno(modelo)
+		modelo.queue_free()
+	_arquivo = Kit.caminho(str(BONECOS[indice_do_personagem(pecas[1])].arquivo))
+	modelo = load(_arquivo).instantiate()
+	Montar.trocar(modelo, pecas)
+	modelo.scale = Vector3.ONE * ESCALA
+	add_child(modelo)
+	_mats_corpo.clear()
+	_mats_cabeca.clear()
+	_contornos.clear()
+	_medidas = {}
+	anim = modelo.find_child("AnimationPlayer", true, false)
+	for nome_da_anim in ["idle", "walk", "sprint"]:
+		if anim and anim.has_animation(nome_da_anim):
+			anim.get_animation(nome_da_anim).loop_mode = Animation.LOOP_LINEAR
+	_vestir(modelo)
+	_juntar_as_medidas()
+	_anim_atual = ""
+	_animar("idle")
+	_segurar()
+	_aplicar_acabamento()
+	contornar(_brilho_do_contorno)
+
+
+func trocar_peca(parte: int, personagem: String) -> void:
+	if pecas.size() != 3 or modelo == null:
+		vestir_pecas([personagem, personagem, personagem])
+		return
+	pecas[parte] = personagem
+	if parte == 0:
+		modelo_i = indice_do_personagem(personagem)
+	var esq: Skeleton3D = modelo.find_child("Skeleton3D", true, false)
+	var velha := esq.get_node_or_null(Montar.MALHAS[parte])
+	if velha:
+		_soltar_contorno(velha)
+	for m in _mats_corpo + _mats_cabeca:
+		_contornos.erase(m.next_pass)
+	_mats_corpo.clear()
+	_mats_cabeca.clear()
+	_medidas = {}
+	Montar.parte(esq, parte, personagem)
+	_vestir(modelo)
+	_juntar_as_medidas()
+	_aplicar_acabamento()
+
+
+func _juntar_as_medidas() -> void:
+	var esq: Skeleton3D = modelo.find_child("Skeleton3D", true, false) if modelo else null
+	var sup := esq.get_node_or_null("body-sup") as MeshInstance3D if esq else null
+	var inf := esq.get_node_or_null("body-inf") as MeshInstance3D if esq else null
+	if sup == null or inf == null:
+		return
+	_medidas = Pintura.juntar_medidas(Pintura.medidas_da(sup), Pintura.medidas_da(inf))
+	for m in _mats_corpo:
+		for k in ["friso_y0", "friso_y1", "friso_alto", "costura_x", "costura_larg"]:
+			m.set_shader_parameter(k, float(_medidas[k]))
+
+
+func acender_parte(parte: String, k: float) -> void:
+	k = clampf(k, 0.0, 1.0)
+	var esq: Skeleton3D = modelo.find_child("Skeleton3D", true, false) if modelo else null
+	if esq == null:
+		return
+	if parte == "item":
+		var item := esq.find_child("Item", false, false)
+		var malhas: Array[Node] = []
+		if item:
+			malhas = item.find_children("*", "MeshInstance3D", true, false)
+		for n in malhas:
+			var mi := n as MeshInstance3D
+			for s in mi.mesh.get_surface_count():
+				var m := mi.get_surface_override_material(s)
+				if m and m.next_pass is ShaderMaterial:
+					(m.next_pass as ShaderMaterial).set_shader_parameter("energia", _brilho_do_contorno * k)
+		for m in _mats_runa:
+			Tema.emissivo(m, 1.6 * k, lugar)
+		return
+	var mi := esq.get_node_or_null(["head", "body-sup", "body-inf"][maxi(0, ["cabeca", "superior", "inferior"].find(parte))]) as MeshInstance3D
+	if mi == null:
+		return
+	for s in mi.mesh.get_surface_count():
+		var m := mi.get_surface_override_material(s) as ShaderMaterial
+		if m:
+			m.set_shader_parameter("acesa", k)
+			if m.next_pass is ShaderMaterial:
+				(m.next_pass as ShaderMaterial).set_shader_parameter("energia", _brilho_do_contorno * k)

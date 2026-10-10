@@ -1,26 +1,13 @@
 extends SceneTree
-## O corte do cavaleiro (G13; arte/04, o corte), uma vez, por script: cada um
-## dos 12 do Mini Characters vira cabeça, superior e inferior, pelo osso de
-## maior peso de cada vértice do triângulo. Grava em
-## `res://assets/kenney/mini-characters/pecas/` as três `ArrayMesh` e as duas
-## peles (`Skin`) de cada personagem: 12 × 5 = 60 arquivos. O orc do Mini
-## Dungeon só entra na contagem.
-##
-##   "$GODOT" --headless --path godot -s res://testes/cortar_pecas.gd
-##
-## Sai com 1 se algum triângulo tem vértices em partes diferentes (o corte
-## abriria um buraco), dizendo qual.
 
 const RAIZ := "res://assets/kenney/mini-characters/character-%s.glb"
 const ORC := "res://assets/kenney/mini-dungeon-personagens/character-orc.glb"
 const SAIDA := "res://assets/kenney/mini-characters/pecas/"
 const PERSONAGENS := ["female-a", "female-b", "female-c", "female-d", "female-e", "female-f",
 	"male-a", "male-b", "male-c", "male-d", "male-e", "male-f"]
-## Os ossos do esqueleto de 7: root 0, leg-left 1, leg-right 2, torso 3, arm-left 4, arm-right 5, head 6.
 const OSSOS := {"superior": [3, 4, 5], "inferior": [1, 2]}
 
 
-## O osso de maior peso do vértice `v`.
 static func _osso(ossos: PackedInt32Array, pesos: PackedFloat32Array, v: int, k: int) -> int:
 	var melhor := 0
 	for j in k:
@@ -29,8 +16,6 @@ static func _osso(ossos: PackedInt32Array, pesos: PackedFloat32Array, v: int, k:
 	return ossos[v * k + melhor]
 
 
-## As partes de um personagem: {"cabeca", "superior", "inferior"} (ArrayMesh), "pele", "pele_cabeca" (Skin),
-## "tri" (triângulos por parte) e "misturados".
 static func partes(caminho: String) -> Dictionary:
 	var cena: Node = (load(caminho) as PackedScene).instantiate()
 	var cabeca: MeshInstance3D = cena.find_child("head-mesh", true, false)

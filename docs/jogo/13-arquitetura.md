@@ -197,7 +197,7 @@ Os tipos, e quem os escreve:
 | `calibracao` | `lugar`, `desvio_ms`, `amostras`, `origem` (`opcoes`/`construcao`), `transporte` (o `conexao_curta` do controle do lugar, repetido para o cruzamento não precisar juntar) | H03 (à mão), G02 (a construção) |
 | `item` | `item`, `efeito` | G03 |
 | `sessao` | amplia o de hoje com `escala_vibracao` e `gatilho` de cada lugar | F05 |
-| `cavaleiro` | `boneco`, `item`, `nome`, `acabamento` (a G13 troca `boneco` por `cabeca`, `superior`, `inferior`); `nome_escrito` (digitado, não sorteado) e `t_nome_ms` (o tempo com o teclado aberto, em ms de parede) | G02, G09 |
+| `cavaleiro` | `cabeca`, `superior`, `inferior`, `cadeira`, `item`, `nome`, `acabamento`, `stats`, `arquetipo`, `liga`, `boa`, `perdidos` (G13; `raca` entra com a G08 parte B); `nome_escrito` (digitado, não sorteado) e `t_nome_ms` (o tempo com o teclado aberto, em ms de parede) | G02, G09, G13 |
 | `colecao` | `id` (o minigame que acabou), `trofeus` (o que ganhou: `vitoria`, `recorde`, `coop`), `desbloqueou` (os acabamentos que a coleção abriu) | G06 |
 | `momento` | `slot`, `nome`, `t_musica`; hoje só `montagem` / `nome_escrito` (o lugar gravou um nome que ele mesmo digitou) | G09 |
 | `fala` | `evento`, `texto` | G07 |

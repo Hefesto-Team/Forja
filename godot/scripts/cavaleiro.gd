@@ -1,30 +1,21 @@
 class_name Cavaleiro
 extends RefCounted
-## Os stats do cavaleiro montado (G13; docs/jogo/sistemas): as contas do
-## `conferir.py`, lidas das cópias de `res://dados/` que o
-## `scripts/dados_do_cavaleiro.py` faz. Nenhum número de stat, gancho ou
-## critério mora aqui: o jogo só lê os CSV do designer de sistemas.
 
 const ST := ["peso", "passo", "folego", "faro"]
 const NOME_ST := ["Peso", "Passo", "Fôlego", "Faro"]
 const EMBLEMA := {"peso": "emb_bigorna", "passo": "emb_mola", "folego": "emb_brasa", "faro": "emb_lume"}
 const PARTES := ["cabeca", "superior", "inferior"]
-## Os 12 do Mini Characters, na ordem de `ForjaPlayer.BONECOS` (female-a … male-f).
 const PERSONAGENS := ["female-a", "female-b", "female-c", "female-d", "female-e", "female-f",
 	"male-a", "male-b", "male-c", "male-d", "male-e", "male-f"]
-## Os itens com stat, na ordem de `ForjaPlayer.ITENS` (sem as Mãos livres).
 const ITENS := ["martelo", "escudo", "fole", "lanterna", "diapasao", "ancora"]
 
-## O forjado de cada lugar (3 = neutro), posto na oitava martelada.
 static var stats := [[3, 3, 3, 3], [3, 3, 3, 3], [3, 3, 3, 3], [3, 3, 3, 3]]
-## A partida no Relâmpago (microjogos): com `stats_no_relampago` em `nao`, o gancho é o neutro.
 static var no_relampago := false
 
 static var _tabelas := {}
-static var _pecas := {}   ## "parte|personagem" -> a linha de pecas.csv
+static var _pecas := {}
 
 
-## As linhas de `res://dados/<nome>.csv` como Dictionary (o cabeçalho é a chave).
 static func tabela(nome: String) -> Array:
 	if _tabelas.has(nome):
 		return _tabelas[nome]
@@ -46,7 +37,6 @@ static func tabela(nome: String) -> Array:
 	return linhas
 
 
-## O valor de uma chave de regras.csv.
 static func regra(chave: String) -> String:
 	for r in tabela("regras"):
 		if r.chave == chave:
@@ -54,7 +44,6 @@ static func regra(chave: String) -> String:
 	return ""
 
 
-## Os pares de opostos de regras.csv: stat -> o oposto.
 static func opostos() -> Dictionary:
 	var o := {}
 	for par in regra("opostos").split(";", false):
@@ -65,7 +54,6 @@ static func opostos() -> Dictionary:
 	return o
 
 
-## A peça de uma parte ("cabeca", "superior", "inferior") pelo personagem.
 static func peca(parte: String, personagem: String) -> Dictionary:
 	if _pecas.is_empty():
 		for p in tabela("pecas"):
@@ -80,8 +68,6 @@ static func item(id: String) -> Dictionary:
 	return {}
 
 
-## As contas de um corpo [cabeça, superior, inferior] (pelo personagem):
-## {"stats": [4], "perdidos", "arquetipo": a linha de arquetipos.csv, "valido", "principais"}.
 static func corpo(personagens: Array) -> Dictionary:
 	var base := int(regra("stat_base"))
 	var teto := int(regra("stat_teto"))
@@ -121,7 +107,6 @@ static func corpo(personagens: Array) -> Dictionary:
 	return {"stats": st, "perdidos": perdidos, "arquetipo": arq, "valido": valido, "principais": principais}
 
 
-## O item no corpo: "fora" (não alcança), "alcanca" ou "liga".
 static func no_corpo(id: String, st: Array) -> String:
 	var it := item(id)
 	if it.is_empty():
@@ -135,7 +120,6 @@ static func no_corpo(id: String, st: Array) -> String:
 	return "liga"
 
 
-## Todo stat que o item pede está entre os dois maiores (desempate só pela ordem, sem contar peças).
 static func coerente(id: String, st: Array) -> bool:
 	var it := item(id)
 	var ordem := [0, 1, 2, 3]
@@ -146,12 +130,10 @@ static func coerente(id: String, st: Array) -> bool:
 	return true
 
 
-## A build boa: nada perdido, o item em liga e no seu canto.
 static func build_boa(c: Dictionary, id: String) -> bool:
 	return int(c.perdidos) == 0 and no_corpo(id, c.stats) == "liga" and coerente(id, c.stats)
 
 
-## As duas chaves: [corpo, espírito], cada uma −1 (Peso, Fôlego), 0 (nenhum) ou 1 (Passo, Faro).
 static func chaves(personagens: Array) -> Array:
 	var p: Array = corpo(personagens).principais
 	var c := -1 if "peso" in p else (1 if "passo" in p else 0)
@@ -159,7 +141,6 @@ static func chaves(personagens: Array) -> Array:
 	return [c, e]
 
 
-## Os itens que o corpo alcança, na ordem de ForjaPlayer.ITENS.
 static func alcancaveis(st: Array) -> Array:
 	var v: Array = []
 	for id in ITENS:
@@ -168,8 +149,6 @@ static func alcancaveis(st: Array) -> Array:
 	return v
 
 
-## A troca de uma peça que põe o item em liga com o corpo ainda válido nos opostos
-## (o `uma_troca_da_liga` do conferir.py): {"parte": int, "personagem": String}, ou {} se não há.
 static func troca_da_liga(personagens: Array, id: String) -> Dictionary:
 	for k in 3:
 		for nova in PERSONAGENS:
@@ -183,7 +162,6 @@ static func troca_da_liga(personagens: Array, id: String) -> Dictionary:
 	return {}
 
 
-## O gancho de um stat (stats.csv): neutro + por_ponto × (stat do lugar − 3). No Relâmpago, o neutro.
 static func gancho(l: int, nome: String) -> float:
 	for g in tabela("stats"):
 		if g.gancho == nome:
@@ -195,9 +173,6 @@ static func gancho(l: int, nome: String) -> float:
 	return 1.0
 
 
-## O pré-montado do lugar (sistemas/README, «O pré-montado»): um cavaleiro bom, mas não fechado.
-## `ocupados`: lugar -> o ForjaPlayer.cavaleiro() dos outros presentes. `travado`: parte (0 a 2) ->
-## personagem, e "item" -> id, que ficam fixos. Devolve {"pecas", "item", "nome", "troca"}.
 static func pre_montado(lugar: int, ocupados: Dictionary, travado := {}) -> Dictionary:
 	var rng := RandomNumberGenerator.new()
 	rng.seed = Forja.semente * 31 + lugar
@@ -215,7 +190,6 @@ static func pre_montado(lugar: int, ocupados: Dictionary, travado := {}) -> Dict
 		if not co.arquetipo.is_empty():
 			arqs_dos_outros.append(str(co.arquetipo.id))
 	var unica := regra("cabeca_unica_na_mesa") == "sim"
-	# os candidatos: cada corpo válido com cada item, na ordem embaralhada pela semente
 	var candidatos: Array = []
 	for a in PERSONAGENS:
 		if travado.has(0) and travado[0] != a:
@@ -237,7 +211,6 @@ static func pre_montado(lugar: int, ocupados: Dictionary, travado := {}) -> Dict
 		var t = candidatos[i]
 		candidatos[i] = candidatos[j]
 		candidatos[j] = t
-	# larga o critério 4, depois o 2, depois o 1; nunca os opostos nem a cabeça livre
 	for nivel in [4, 2, 1, 0]:
 		for cand in candidatos:
 			var pc: Array = [cand[0], cand[1], cand[2]]
@@ -259,7 +232,6 @@ static func pre_montado(lugar: int, ocupados: Dictionary, travado := {}) -> Dict
 	return {"pecas": ["male-a", "male-a", "male-a"], "item": "martelo", "nome": _nome(rng, {}, nomes_dos_outros), "troca": {}}
 
 
-## Um dos seis nomes do arquétipo que ninguém usa; sem nenhum livre, qualquer um dos 24 livre.
 static func _nome(rng: RandomNumberGenerator, arq: Dictionary, usados: Array) -> String:
 	var do_arq: Array = []
 	var todos: Array = []
