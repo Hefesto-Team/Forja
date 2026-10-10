@@ -495,9 +495,11 @@ func pontos_da_equipe(e: int) -> int:
 
 
 func marcar_equipe(e: int, n: int) -> void:
+	var quem := -1
 	for l in 4:
 		if equipe[l] == e and _julgando[l] > Ritmo.ERRO and n > 0:
 			n = Itens.pontos_do_acerto(l, n, _julgando[l], _tempo_forte[l])
+			quem = l
 			break
 	var lista := da_equipe(e)
 	if lista.is_empty():
@@ -505,7 +507,10 @@ func marcar_equipe(e: int, n: int) -> void:
 			_pontos_sem_lugar[e] += n
 		return
 	for l in lista:
-		super.marcar(l, n)
+		if quem < 0 or l == quem:
+			super.marcar(l, n)
+		elif not treinando:
+			pontos[l] += n
 
 
 func equipe_vencedora() -> int:
