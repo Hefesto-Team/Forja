@@ -61,10 +61,15 @@ esperar haptica-nomeada 4 "medido: «placa virtual do controle simulado», simul
 rodar haptica-nomeada haptica-trocada --defeitos=haptica-trocada
 esperar haptica-trocada 4 "falhou: .*lado certo 0 de 4"
 
+# a conta sai da tabela SENSACOES do forja.gd: uma sensação nova entra sozinha.
+# Com os motores trocados, só falha a que tem forte diferente de fraco.
+SENSACOES=$(awk '/^const SENSACOES/{d=1;next} d&&/^}/{exit} d&&/^\t"/' "$RAIZ/godot/scripts/forja.gd")
+N_SENS=$(printf '%s\n' "$SENSACOES" | grep -c .)
+N_ASSIM=$(printf '%s\n' "$SENSACOES" | sed 's/.*\[\([^]]*\)\].*/\1/' | LC_ALL=C awk -F, '$1+0 != $2+0' | grep -c .)
 rodar haptico haptico
-esperar haptico 36 "medido: "
+esperar haptico $((4 * N_SENS)) "medido: "
 rodar haptico motores-trocados --defeitos=motores-trocados
-esperar motores-trocados 32 "falhou: "
+esperar motores-trocados $((4 * N_ASSIM)) "falhou: "
 
 # a força (F10): o jogo obedece ao arquivo de comandos do roteiro do rumble seco
 printf '0 0.5 80\n1 1.0 80\n2 0.25 80\nparar 0\nfim\n' > "$TMP/forca.cmd"
