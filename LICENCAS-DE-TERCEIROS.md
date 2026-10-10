@@ -20,6 +20,7 @@ binário (`scripts/licencas.gd`).
 | Factory Kit 3.0 (`kenney/factory-kit/`) | Kenney (www.kenney.nl) | CC0 1.0 |
 | Mini Dungeon 2.0 (`kenney/mini-dungeon/`) | Kenney (www.kenney.nl) | CC0 1.0 |
 | Mini Dungeon 2.0 (`kenney/mini-dungeon-personagens/`) | Kenney (www.kenney.nl) | CC0 1.0 |
+| Input Prompts (`glifos/mudo.png`, `glifos/touchpad_*.png`) | Kenney (www.kenney.nl) | CC0 1.0 |
 | o desenho do DualSense, os glifos e o logo | o app Hefesto | MIT |
 | a trilha (`godot/assets/ost/`) | gerada com o ACE-Step 1.5 (github.com/ace-step/ACE-Step-1.5), na máquina do Forja | o modelo é MIT; a música gerada por programa não tem autor e segue com o jogo |
 

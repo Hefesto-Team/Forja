@@ -209,11 +209,16 @@ botões do PS5 nomeados por geração, como `playstation5_button_create`) entram
 
 ## A interface
 
-O UI Pack e o UI Pack Sci-fi (em vetor) dão molduras, painéis, barras e
-botões. Eles entram **reatribuídos às cores do `Tema`** (a paleta Dracula do
-[estudo 03](../estudos/03-o-sistema-visual-do-app-hefesto.md)), nunca nas
-cores originais, e passam pela coleta de texto e pela prova visual como
-qualquer tela. A ficha é a [G11](tarefas/G11-a-interface-com-o-ui-pack.md).
+O UI Pack e o UI Pack Sci-fi **ficam de fora**: as molduras e os painéis
+deles são de outro jogo. A interface da Forja é desenhada em código pelos
+objetos da fita do [06](arte/06-interface-e-texto.md) (a placa de casco, a
+etiqueta, o J-card, o chip, as lâmpadas e a dica de botão), em `Desenho`, nas
+cores do `Tema`. A prova do jogo confere que nenhum arquivo do UI Pack entrou.
+A ficha é a [G11](tarefas/G11-a-interface-com-o-ui-pack.md).
+
+Do Input Prompts entraram seis ícones, onde faltava desenho: o botão de mudo e
+os cinco gestos do touchpad (`godot/assets/glifos/mudo.png` e
+`touchpad_*.png`), exportados por `scripts/glifos_do_kenney.py`.
 
 ## O áudio
 

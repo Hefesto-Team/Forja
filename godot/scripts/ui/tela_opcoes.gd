@@ -297,3 +297,10 @@ func _desenhar_regua(caixa: Rect2) -> void:
 		var ms: float = _toques[i]
 		var alfa := 1.0 if i == _toques.size() - 1 else 0.25
 		_lista.draw_circle(Vector2(cx + clampf(ms / REGUA_MS, -1.0, 1.0) * 220.0, y + 4.0), 7.0, Color(cor, alfa))
+
+
+const SENTEM_AO_TROCAR := ["vibracao", "movimento", "reacoes"]
+
+
+func sente_ao_trocar() -> bool:
+	return not _linhas.is_empty() and _linhas[linha][0] in SENTEM_AO_TROCAR

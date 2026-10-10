@@ -16,6 +16,7 @@
 | `kenney/factory-kit/` | Factory Kit (cenario), 143 modelos | Kenney (www.kenney.nl), Factory Kit 3.0 | CC0, `kenney/factory-kit/License.txt` |
 | `kenney/mini-dungeon/` | Mini Dungeon (cenario), 28 modelos | Kenney (www.kenney.nl), Mini Dungeon 2.0 | CC0, `kenney/mini-dungeon/License.txt` |
 | `kenney/mini-dungeon-personagens/` | Mini Dungeon (personagem), 2 modelos | Kenney (www.kenney.nl), Mini Dungeon 2.0 | CC0, `kenney/mini-dungeon-personagens/License.txt` |
+| `glifos/mudo.png`, `glifos/touchpad_*.png` | o botão de mudo e os cinco gestos do touchpad (PNG 128×128, máscara branca, para tingir) | Kenney (www.kenney.nl), Input Prompts do All-in-1 3.7.0 (PlayStation Series, vetor), exportados por `scripts/glifos_do_kenney.py`; só o desenho do botão e do gesto, sem logo | CC0 |
 
 Nenhum destes arquivos vem do SDK da Sony.
 

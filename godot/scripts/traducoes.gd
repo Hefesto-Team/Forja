@@ -440,6 +440,7 @@ const EN_PADROES := [
 	["^Não — o jogo mandou (.+)$", "No — the game sent $1"],
 	["^LADO ([AB]) · FAIXA (\\d\\d)$", "SIDE $1 · TRACK $2"],
 	["^A FORJA · LADO ([AB])$", "THE FORGE · SIDE $1"],
+	["^PAUSA · P(\\d)$", "PAUSE · P$1"],
 ]
 
 

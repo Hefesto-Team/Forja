@@ -527,11 +527,13 @@ func _voltar_a_cor() -> void:
 
 
 func gatilho(l: int, lado: int, modo: int, a := 0, b := 0, c := 0) -> bool:
+	_gatilho_pedido[clampi(l, 0, 3)][clampi(lado, 0, 1)] = [modo, a, b, c]
 	var g := Opcoes.ajustar_gatilho(l, modo, a, b, c)
 	return ctl.gatilho(l, lado, g[0], g[1], g[2], g[3]) if modulo else false
 
 
 func gatilhos_off(l: int) -> bool:
+	_gatilho_pedido[clampi(l, 0, 3)] = [[], []]
 	return ctl.gatilhos_off(l) if modulo else false
 
 
@@ -548,16 +550,13 @@ func leds_jogador(l: int, mascara: int) -> bool:
 
 
 func silencio(l: int) -> void:
-	_cor_pedida[l] = Color.TRANSPARENT
-	_piscar_ate[l] = 0.0
+	_gatilho_pedido[clampi(l, 0, 3)] = [[], []]
 	if modulo:
 		ctl.silencio(l)
 
 
 func silencio_todos() -> void:
-	for l in 4:
-		_cor_pedida[l] = Color.TRANSPARENT
-		_piscar_ate[l] = 0.0
+	_gatilho_pedido = [[[], []], [[], []], [[], []], [[], []]]
 	if modulo:
 		ctl.silencio_todos()
 
@@ -992,9 +991,16 @@ func capacidade(l: int, qual: String) -> bool:
 	return bool(pad(p).get(qual, false))
 
 
-func acelerada() -> bool:
-	return modulo and simular > 0 and _args.has("acelerado")
+var _gatilho_pedido := [[[], []], [[], []], [[], []], [[], []]]
 
 
-func agora_us() -> int:
-	return int(round(_agora * 1000000.0))
+func gatilhos_pausar(l: int) -> bool:
+	return ctl.gatilhos_off(l) if modulo else false
+
+
+func gatilhos_devolver(l: int) -> void:
+	var lugar := clampi(l, 0, 3)
+	for lado in 2:
+		var g: Array = _gatilho_pedido[lugar][lado]
+		if not g.is_empty():
+			gatilho(lugar, lado, int(g[0]), int(g[1]), int(g[2]), int(g[3]))
