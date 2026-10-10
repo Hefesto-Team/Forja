@@ -38,15 +38,14 @@ static func glifo(nome: String) -> Texture2D:
 	return tex
 
 
+## Toda moldura é a placa de casco (arte/06, G11): a sombra deslocada, o raio de 14 e a borda de 3 px. O `raio`
+## pedido fica pela assinatura e não vale. A borda de 3 px ou mais na cor pedida (4 é o foco; 3 é a borda do dono,
+## como o chip e a tecla sob o cursor); a fina de hoje vira `CASCO_ALTO`. O fundo é o de quem chama, e a sombra e a
+## borda seguem a opacidade dele (a placa que entra ou some some inteira).
 static func moldura(ci: CanvasItem, r: Rect2, fundo: Color, borda: Color, largura := 2, raio := Tema.RAIO_QUADRO) -> void:
-	var s := StyleBoxFlat.new()
-	s.bg_color = fundo
-	s.draw_center = fundo.a > 0.0
-	s.border_color = borda
-	s.set_border_width_all(largura)
-	s.set_corner_radius_all(raio)
-	s.anti_aliasing = true
-	ci.draw_style_box(s, r)
+	var cor_da_borda := borda if largura >= Tema.BORDA_PLACA and borda.a > 0.0 else Color(Tema.CASCO_ALTO, fundo.a)
+	caixa(ci, Rect2(r.position + Tema.SOMBRA_PLACA, r.size), Color(Tema.SOMBRA, Tema.SOMBRA.a * fundo.a), Tema.RAIO_PLACA)
+	caixa(ci, r, fundo, Tema.RAIO_PLACA, cor_da_borda, Tema.BORDA_PLACA)
 
 
 ## A borda tracejada: o "pendente" do app (laranja) ou o lugar sem controle.
@@ -187,7 +186,7 @@ static func selo(ci: CanvasItem, pos: Vector2, s: String, cor: Color, tam := Tem
 	var w := largura(s, f, tam) + tam * 0.9
 	var h := tam * 1.45
 	var r := Rect2(pos, Vector2(w, h))
-	moldura(ci, r, cor, cor, 0, Tema.RAIO_SELO)
+	caixa(ci, r, cor, Tema.RAIO_SELO)  # o selo é tinta chapada, não placa
 	var dito := t(s)
 	ci.draw_string(f, Vector2(pos.x + tam * 0.45, pos.y + h * 0.5 + tam * 0.36), dito, HORIZONTAL_ALIGNMENT_LEFT, -1, Tema.t(tam), Tema.TINTA)
 	if coletar_retangulos:
@@ -233,31 +232,46 @@ static func cabecalho(ci: CanvasItem, pos: Vector2, lado := 88.0) -> void:
 	texto(ci, pos + Vector2(lado + 18, lado * 0.46 + tam * 1.12), "Tech Demo", Tema.archivo(700), tam, Tema.ETIQUETA)
 
 
-## Uma fileira de dicas "[glifo] palavra", da direita para a esquerda a partir de `fim`.
+## O lado do glifo da dica e o vão entre duas dicas de uma fileira (arte/06, a dica de botão).
+const LADO_DA_DICA := 52.0
+const VAO_DAS_DICAS := 40.0
+
+
+## A largura de uma fileira de dicas (`pares` de [glifo, frase]), com o vão entre elas.
+static func largura_das_dicas(pares: Array) -> float:
+	var total := VAO_DAS_DICAS * maxi(pares.size() - 1, 0)
+	for par in pares:
+		total += largura_da_dica(str(par[1]))
+	return total
+
+
+## A largura de uma `dica`: o glifo, os 12 px e a frase em Archivo 600 de 34.
+static func largura_da_dica(frase: String) -> float:
+	return LADO_DA_DICA + 12.0 + largura(frase, Tema.archivo(600), 34)
+
+
+## Uma fileira de dicas (`dica`: o glifo de 52 px e a frase de 34), da direita para a esquerda a partir de `fim`, que
+## é a linha de base da frase. O `tam` fica pela assinatura: a dica tem o tamanho dela.
 ## Com `placa`, uma placa escura atrás de toda a fileira (as dicas sobre a arena clara).
-static func dicas_a_direita(ci: CanvasItem, fim: Vector2, pares: Array, tam := Tema.T_ROTULO, placa := false) -> void:
+static func dicas_a_direita(ci: CanvasItem, fim: Vector2, pares: Array, _tam := Tema.T_ROTULO, placa := false) -> void:
 	if placa and not pares.is_empty():
-		var total := 40.0 * (pares.size() - 1)
-		for i in pares.size():
-			total += Glifo.largura_dica(pares[i][0], pares[i][1], tam, i == 0)
-		var alto := Tema.t(tam) * 1.25
-		moldura(ci, Rect2(Vector2(fim.x - total - 24.0, fim.y - alto * 0.82 - 14.0), Vector2(total + 48.0, alto + 28.0)),
-			Color(Tema.CASCO, 0.92), Tema.GRAFITE, 2, 12)
+		var total := largura_das_dicas(pares)
+		moldura(ci, Rect2(Vector2(fim.x - total - 24.0, fim.y - LADO_DA_DICA * 0.82 - 14.0), Vector2(total + 48.0, LADO_DA_DICA + 28.0)),
+			Color(Tema.CASCO, 0.92), Tema.GRAFITE)
 	var x := fim.x
 	for i in range(pares.size() - 1, -1, -1):
 		var par: Array = pares[i]
-		var w := Glifo.largura_dica(par[0], par[1], tam, i == 0)
-		x -= w
-		Glifo.dica(ci, Vector2(x, fim.y), par[0], par[1], tam, Tema.ETIQUETA, Tema.ETIQUETA_SOMBRA, i == 0)
-		x -= 40.0
+		x -= largura_da_dica(str(par[1]))
+		dica(ci, Vector2(x, fim.y - LADO_DA_DICA * 0.82), str(par[0]), str(par[1]))
+		x -= VAO_DAS_DICAS
 
 
-static func dicas_a_esquerda(ci: CanvasItem, inicio: Vector2, pares: Array, tam := Tema.T_ROTULO) -> void:
+static func dicas_a_esquerda(ci: CanvasItem, inicio: Vector2, pares: Array, _tam := Tema.T_ROTULO) -> void:
 	var x := inicio.x
 	for i in pares.size():
 		var par: Array = pares[i]
-		x += Glifo.dica(ci, Vector2(x, inicio.y), par[0], par[1], tam, Tema.ETIQUETA, Tema.ETIQUETA_SOMBRA, i == 0)
-		x += 40.0
+		x += dica(ci, Vector2(x, inicio.y - LADO_DA_DICA * 0.82), str(par[0]), str(par[1]))
+		x += VAO_DAS_DICAS
 
 
 # ------------------------------------------------------------- o cassete --
@@ -353,9 +367,10 @@ static func chip(ci: CanvasItem, r: Rect2, lugar: int, pronto: bool, palavra := 
 ## A placa de casco (arte/06): a sombra deslocada, o casco de raio 14 e a borda de 3 px; com `foco`, o casco
 ## em foco e a borda na cor dele.
 static func placa(ci: CanvasItem, r: Rect2, foco := Color.TRANSPARENT) -> void:
-	caixa(ci, Rect2(r.position + Vector2(4, 6), r.size), Tema.SOMBRA, Tema.RAIO_CARTAO)
+	caixa(ci, Rect2(r.position + Tema.SOMBRA_PLACA, r.size), Tema.SOMBRA, Tema.RAIO_PLACA)
 	var com_foco := foco.a > 0.0
-	caixa(ci, r, Tema.CASCO_ALTO if com_foco else Tema.CASCO, Tema.RAIO_CARTAO, foco if com_foco else Tema.CASCO_ALTO, 3)
+	caixa(ci, r, Tema.CASCO_ALTO if com_foco else Tema.CASCO, Tema.RAIO_PLACA, foco if com_foco else Tema.CASCO_ALTO,
+		Tema.BORDA_PLACA)
 
 
 ## A etiqueta de papel (arte/06): a sombra, o papel, a tarja da seção (duas no lado B) e as duas linhas pautadas,
@@ -363,8 +378,8 @@ static func placa(ci: CanvasItem, r: Rect2, foco := Color.TRANSPARENT) -> void:
 static func etiqueta(ci: CanvasItem, r: Rect2, tinta: Color, inclinacao := 0.0, lado_b := false) -> void:
 	ci.draw_set_transform(r.get_center(), deg_to_rad(inclinacao), Vector2.ONE)
 	var rr := Rect2(-r.size * 0.5, r.size)
-	caixa(ci, Rect2(rr.position + Vector2(5, 7), rr.size), Tema.SOMBRA, 8)
-	caixa(ci, rr, Tema.ETIQUETA, 8)
+	caixa(ci, Rect2(rr.position + Tema.SOMBRA_ETIQUETA, rr.size), Tema.SOMBRA, Tema.RAIO_ETIQUETA)
+	caixa(ci, rr, Tema.ETIQUETA, Tema.RAIO_ETIQUETA)
 	if lado_b:
 		ci.draw_rect(Rect2(rr.position + Vector2(0, 14), Vector2(rr.size.x, 7)), tinta)
 		ci.draw_rect(Rect2(rr.position + Vector2(0, 25), Vector2(rr.size.x, 7)), tinta)
@@ -388,11 +403,11 @@ static func lampadas(ci: CanvasItem, pos: Vector2, lugar: int, apagadas := false
 ## o casco, `TINTA` sobre a etiqueta. `pos` é o canto de cima do glifo. Devolve a largura.
 static func dica(ci: CanvasItem, pos: Vector2, glifo_nome: String, frase: String, sobre_etiqueta := false) -> float:
 	var cor := Tema.TINTA if sobre_etiqueta else Tema.ETIQUETA
-	Glifo.desenhar(ci, glifo_nome, Rect2(pos, Vector2(52, 52)), cor)
+	Glifo.desenhar(ci, glifo_nome, Rect2(pos, Vector2(LADO_DA_DICA, LADO_DA_DICA)), cor)
 	var f := Tema.archivo(600)
 	var dito := t(frase)
-	texto(ci, Vector2(pos.x + 64.0, pos.y + 26.0 + f.get_ascent(Tema.t(34)) * 0.36 + 2.0), frase, f, 34, cor)
-	return 64.0 + f.get_string_size(dito, HORIZONTAL_ALIGNMENT_LEFT, -1, Tema.t(34)).x
+	texto(ci, Vector2(pos.x + LADO_DA_DICA + 12.0, pos.y + LADO_DA_DICA * 0.5 + f.get_ascent(Tema.t(34)) * 0.36 + 2.0), frase, f, 34, cor)
+	return LADO_DA_DICA + 12.0 + f.get_string_size(dito, HORIZONTAL_ALIGNMENT_LEFT, -1, Tema.t(34)).x
 
 
 ## O VU (arte/06): `n` segmentos com vão de 4, os `aceso` primeiros na cor, o do pico em papel, o resto em grafite.
@@ -455,3 +470,42 @@ static func caixa_do_carimbo(centro: Vector2, palavra: String, tam: int) -> Rect
 	var px := Tema.t(tam)
 	var sz := f.get_string_size(t(palavra), HORIZONTAL_ALIGNMENT_LEFT, -1, px)
 	return Rect2(centro - Vector2(sz.x * 0.5, px * 0.5), Vector2(sz.x, px))
+
+
+# ------------------------------------------------------------- o J-card (G11) --
+const JCARD_LOMBADA := 104.0
+const JCARD_INCLINACAO := 0.5  ## a inclinação parada do J-card, em graus
+
+
+## O giro de `graus` em volta de `centro`, nas coordenadas da tela: o que se desenha depois sai girado no mesmo lugar
+## (o conteúdo do J-card). `inclinar(ci, Vector2.ZERO, 0.0)` desfaz.
+static func inclinar(ci: CanvasItem, centro: Vector2, graus: float) -> void:
+	ci.draw_set_transform_matrix(Transform2D(deg_to_rad(graus), centro) * Transform2D(0.0, -centro))
+
+
+## O J-card (arte/06): a sombra, o papel, a lombada de 104 px com a tarja da `tinta` no topo e o texto deitado em
+## VT323 46, e a tarja da frente de 16 px a 22 px do topo; tudo na inclinação parada de 0,5°. O conteúdo é de quem
+## chama, no mesmo giro (`inclinar(ci, r.get_center(), JCARD_INCLINACAO)`).
+static func jcard(ci: CanvasItem, r: Rect2, tinta: Color, lombada: String) -> void:
+	inclinar(ci, r.get_center(), JCARD_INCLINACAO)
+	caixa(ci, Rect2(r.position + Tema.SOMBRA_ETIQUETA, r.size), Tema.SOMBRA, Tema.RAIO_ETIQUETA)
+	caixa(ci, r, Tema.ETIQUETA, Tema.RAIO_ETIQUETA)
+	var dobra := StyleBoxFlat.new()
+	dobra.bg_color = Tema.ETIQUETA_SOMBRA
+	dobra.corner_radius_top_left = Tema.RAIO_ETIQUETA
+	dobra.corner_radius_bottom_left = Tema.RAIO_ETIQUETA
+	dobra.anti_aliasing = true
+	ci.draw_style_box(dobra, Rect2(r.position, Vector2(JCARD_LOMBADA, r.size.y)))
+	var tarja := dobra.duplicate() as StyleBoxFlat
+	tarja.bg_color = tinta
+	tarja.corner_radius_bottom_left = 0
+	ci.draw_style_box(tarja, Rect2(r.position, Vector2(JCARD_LOMBADA, 22)))
+	ci.draw_rect(Rect2(r.position + Vector2(JCARD_LOMBADA, 22), Vector2(r.size.x - JCARD_LOMBADA, 16)), tinta)
+	# o texto da lombada, deitado a −90° (lê de baixo para cima); fora da coleta de retângulos, que é horizontal
+	var f := Tema.vt()
+	var px := Tema.t(46)
+	var base := Vector2(r.position.x + JCARD_LOMBADA * 0.5 + px * 0.3, r.end.y - 40.0)
+	ci.draw_set_transform_matrix(Transform2D(deg_to_rad(JCARD_INCLINACAO), r.get_center()) * Transform2D(0.0, -r.get_center())
+		* Transform2D(-PI * 0.5, base))
+	ci.draw_string(f, Vector2.ZERO, t(lombada), HORIZONTAL_ALIGNMENT_LEFT, -1, px, Tema.TINTA_SUAVE)
+	inclinar(ci, Vector2.ZERO, 0.0)

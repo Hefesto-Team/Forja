@@ -238,7 +238,7 @@ func _com_cartoes() -> bool:
 
 
 func _lado_da_dica() -> float:
-	return Tema.t(Tema.T_SELO) * 1.25
+	return Desenho.LADO_DA_DICA
 
 
 ## Um cálculo só para o desenho e para a prova: o nome da caixa -> o retângulo.
@@ -248,9 +248,7 @@ func _caixas() -> Dictionary:
 	if sala.is_empty():
 		d["etiqueta"] = _caixa_girada(ETIQUETA_DO_SALAO, INCLINACAO_DO_SALAO)
 		var pares := [["create", "Diagnóstico"], ["options", "Pausa"]] if create_livre and Forja.bancada else [["options", "Pausa"]]
-		var total := 40.0 * (pares.size() - 1)
-		for i in pares.size():
-			total += Glifo.largura_dica(pares[i][0], pares[i][1], Tema.T_SELO, i == 0)
+		var total := Desenho.largura_das_dicas(pares)
 		d["dicas"] = Rect2(Vector2(w - Tema.MARGEM_X - total, TOPO_DAS_DICAS), Vector2(total, _lado_da_dica()))
 	elif _com_cartoes():
 		for l in 4:

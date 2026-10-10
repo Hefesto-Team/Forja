@@ -525,6 +525,7 @@ func _prova_do_percurso() -> void:
 		Itens.sentir(1)
 		await _quadros(2)
 		_esperar(int(_perc(1).get("gatilho_esq", 0)) == 0x21, "Centelha: o L2 do P2 firme com o Escudo inteiro")
+		await _prova_da_pausa_da_fita()
 		var golpe := 0.0
 		var metal := 0.0
 		_esperar(centelha.errou(1), "Centelha: o Escudo do P2 absorve o primeiro erro")
@@ -3422,3 +3423,52 @@ func _prova_do_encaixe() -> void:
 			"as faíscas do item do P2 saem do punho do %s (%s), não da altura fixa" % [presa.bone_name, j_item])
 	else:
 		_esperar(false, "o P2 segura um item num BoneAttachment3D «Item»")
+
+
+## A interface da fita (G11): os seis ícones novos, o UI Pack de fora e a pausa aberta no meio da Centelha (o P2 com
+## o L2 firme do Escudo): as linhas do 06, o `fx_stop`, os gatilhos Off nos quatro, a navegação que soa e vibra só
+## em quem apertou, e ao fechar o L2 do P2 de volta.
+func _prova_da_pausa_da_fita() -> void:
+	for nome in ["mudo", "touchpad_esquerda", "touchpad_direita", "touchpad_deslizar", "touchpad_cima", "touchpad_baixo"]:
+		var g := Desenho.glifo(nome)
+		_esperar(g != null and g.get_width() == 128, "glifo novo: %s" % nome)
+	_esperar(not DirAccess.dir_exists_absolute("res://assets/kenney/ui-pack"), "ui: o UI Pack não entrou")
+	# a pausa fora da bancada: quatro linhas
+	jogo.pausa.abrir(1, true, false, false)
+	_esperar(jogo.pausa.opcoes.map(func(o): return o[0]) == ["continuar", "opcoes", "salao", "sair"],
+		"pausa: as quatro do 06 (%s)" % [jogo.pausa.opcoes.map(func(o): return o[0])])
+	# a pausa aberta como o jogo abre (overlay "pausa"), com a sala na tela
+	jogo._abrir_overlay("pausa", 1)
+	await _quadros(2)
+	_esperar(Som.ultimo == "fx_stop", "pausa: abre com o fx_stop (%s)" % Som.ultimo)
+	_esperar(Musica.abafada, "pausa: a música abafa")
+	for l in 4:
+		var s := Forja.estado_saida(l)
+		_esperar(s.is_empty() or (int(s.l2) == Forja.GATILHO_OFF and int(s.r2) == Forja.GATILHO_OFF),
+			"pausa: gatilhos Off em P%d (%s)" % [l + 1, s])
+	# o som e o toque da navegação
+	var antes := _contar_registro("sensacao", 1, "toque")
+	var antes_p1 := _contar_registro("sensacao", 0, "toque")
+	# ▼ e não ▲: do Continuar, ▲ daria a volta até «Sair»
+	await _aperta(1, Forja.BAIXO)
+	await _quadros(6)
+	_esperar(jogo.overlay == "pausa", "pausa: segue aberta depois de navegar (%s)" % jogo.overlay)
+	_esperar(_contar_registro("sensacao", 1, "toque") == antes + 1,
+		"pausa: navegar vibra em quem apertou (%d -> %d)" % [antes, _contar_registro("sensacao", 1, "toque")])
+	_esperar(_contar_registro("sensacao", 0, "toque") == antes_p1, "pausa: navegar não vibra em quem não apertou")
+	_esperar(Som.ultimo == "ui_tique", "pausa: navegar soa ui_tique (%s)" % Som.ultimo)
+	await _aperta(1, Forja.CIMA)
+	jogo._fechar_overlay()
+	await _quadros(4)
+	_esperar(not Musica.abafada, "pausa: ao fechar, a música volta")
+	_esperar(int(_perc(1).get("gatilho_esq", 0)) == 0x21,
+		"pausa: ao fechar, o L2 do P2 volta firme (0x%02x)" % int(_perc(1).get("gatilho_esq", 0)))
+
+
+## Quantas linhas da linha do tempo têm este `tipo`, este lugar (`"jogador"` a partir de 1) e este `nome`.
+func _contar_registro(tipo: String, lugar: int, nome: String) -> int:
+	var n := 0
+	for e in _linha_do_tempo():
+		if e.get("tipo", "") == tipo and e.get("nome", "") == nome and int(e.get("jogador", 0)) == lugar + 1:
+			n += 1
+	return n

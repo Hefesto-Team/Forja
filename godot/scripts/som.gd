@@ -122,6 +122,7 @@ func arquivo(nome: String) -> AudioStreamWAV:
 
 
 func tocar(nome: String, pos: Variant = null, volume_db := 0.0, tom := 1.0) -> void:
+	ultimo = nome
 	var s: AudioStream = arquivo(nome)
 	if s == null:
 		var lista := versoes(GRAVADOS.get(nome, ""))
@@ -274,3 +275,14 @@ func pio(lugar: int, boneco: int) -> void:
 	var id := "pio_p%d_%s" % [lugar + 1, ForjaPlayer.BONECOS[i].intervalo]
 	tocar(id, null, -12.0)
 	no_controle(lugar, id, 0.85)
+
+
+# ---------------------------------------------------------------- a interface (G11) --
+
+var ultimo := ""  ## o id do último `tocar` (a prova olha)
+
+
+## O som da interface: o id do mapa na TV a −12 dB e no alto-falante do controle de quem apertou.
+func ui(lugar: int, id: String) -> void:
+	tocar(id, null, -12.0)
+	no_controle(lugar, id)

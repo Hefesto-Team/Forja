@@ -134,9 +134,9 @@ func _draw() -> void:
 func _desenhar_o_virar() -> void:
 	draw_rect(Rect2(Vector2.ZERO, size), Tema.FITA)
 	draw_rect(Rect2(DECK.position + Vector2(10, 16), DECK.size), Tema.SOMBRA)
-	Desenho.moldura(self, DECK, Tema.CASCO, Tema.CASCO_ALTO, 4, 40)
-	Desenho.moldura(self, BERCO, Tema.JANELA, Color.TRANSPARENT, 0, 28)
-	Desenho.moldura(self, TAMPA, Tema.GRAFITE, Color.TRANSPARENT, 0, 8)
+	Desenho.caixa(self, DECK, Tema.CASCO, 40, Tema.CASCO_ALTO, 4)
+	Desenho.caixa(self, BERCO, Tema.JANELA, 28)
+	Desenho.caixa(self, TAMPA, Tema.GRAFITE, 8)
 	var p := pose(ms, Opcoes.reduzido())
 	var animando: bool = not (is_equal_approx(float(p.esc), 1.0) and is_equal_approx(float(p.sx), 1.0) and is_zero_approx(float(p.dy)))
 	var coleta := Desenho.coletar_retangulos
@@ -154,7 +154,7 @@ func _desenhar_o_virar() -> void:
 
 ## O cassete: o casco, os parafusos, a etiqueta da face, a janela com os dois carretéis e o pé.
 func _cassete(face: String) -> void:
-	Desenho.moldura(self, CASSETE, Tema.CASCO_ALTO, Tema.MUDO, 4, 36)
+	Desenho.caixa(self, CASSETE, Tema.CASCO_ALTO, 36, Tema.MUDO, 4)
 	for canto in [Vector2(44, 44), Vector2(CASSETE.size.x - 44, 44), Vector2(44, CASSETE.size.y - 44), Vector2(CASSETE.size.x - 44, CASSETE.size.y - 44)]:
 		var c: Vector2 = CASSETE.position + canto
 		draw_circle(c, 15.0, Tema.GRAFITE)
@@ -162,7 +162,7 @@ func _cassete(face: String) -> void:
 	_etiqueta(face)
 	# a janela e os carretéis
 	var janela := Rect2(560, 610, 800, 150)
-	Desenho.moldura(self, janela, Tema.JANELA, Tema.GRAFITE, 3, 20)
+	Desenho.caixa(self, janela, Tema.JANELA, 20, Tema.GRAFITE, 3)
 	var cheios := carreteis(face)
 	var esq := Vector2(760, 685)
 	var dir := Vector2(1160, 685)
@@ -181,7 +181,7 @@ func _cassete(face: String) -> void:
 ## A etiqueta de papel. A face A leva o logo e o nome; a B vem em branco (a caneta escreve «Lado B»), com a tarja dupla.
 func _etiqueta(face: String) -> void:
 	var e := ETIQUETA
-	Desenho.moldura(self, e, Tema.ETIQUETA, Color.TRANSPARENT, 0, 10)
+	Desenho.caixa(self, e, Tema.ETIQUETA, 10)
 	draw_rect(Rect2(e.position, Vector2(e.size.x, 40)), Tema.SECAO[0])
 	if face == "B":
 		draw_rect(Rect2(e.position + Vector2(0, 52), Vector2(e.size.x, 14)), Tema.SECAO[0])
@@ -209,7 +209,7 @@ func _desenhar_caneta() -> void:
 func _desenhar_o_intervalo() -> void:
 	var e := Rect2(660, 60, 600, 150)
 	draw_rect(Rect2(e.position + Vector2(8, 12), e.size), Tema.SOMBRA)
-	Desenho.moldura(self, e, Tema.ETIQUETA, Color.TRANSPARENT, 0, 10)
+	Desenho.caixa(self, e, Tema.ETIQUETA, 10)
 	draw_rect(Rect2(e.position, Vector2(e.size.x, 18)), Tema.SECAO[0])
 	draw_rect(Rect2(e.position + Vector2(0, 26), Vector2(e.size.x, 8)), Tema.SECAO[0])
 	Desenho.texto(self, Vector2(660, 124), "Lado B", Tema.marcador(), 72, Tema.TINTA, HORIZONTAL_ALIGNMENT_CENTER, 600.0)

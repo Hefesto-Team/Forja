@@ -321,3 +321,23 @@ func reagir(evento: String) -> void:
 
 func _volume(db: float) -> void:
 	AudioServer.set_bus_volume_db(_bus, db)
+
+
+# ---------------------------------------------------------------- a pausa da fita (G11) --
+
+const ABAFAR_DB := 18.0  ## a música da pausa cai 18 dB abaixo do VOLUME_DB
+const ABAFAR_S := 0.067  ## em 4 quadros
+var abafada := false
+var _tw_abafar: Tween = null
+
+
+## A pausa abafa a música: o tocador ativo cai 18 dB abaixo do VOLUME_DB em 67 ms; `abafar(false)` volta em 67 ms.
+func abafar(sim: bool) -> void:
+	abafada = sim
+	if _tw_abafar:
+		_tw_abafar.kill()
+	var p := _tocadores[_ativo]
+	if not p.playing:
+		return
+	_tw_abafar = create_tween()
+	_tw_abafar.tween_property(p, "volume_db", VOLUME_DB - (ABAFAR_DB if sim else 0.0), ABAFAR_S)

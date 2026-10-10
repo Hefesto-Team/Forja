@@ -113,6 +113,12 @@ const RAIO_QUADRO := 18
 const RAIO_CARTAO := 14
 const RAIO_BOTAO := 14
 const RAIO_SELO := 8
+## A placa de casco e a etiqueta de papel (arte/02, a margem e a forma; arte/06, os objetos).
+const RAIO_PLACA := 14
+const RAIO_ETIQUETA := 8
+const BORDA_PLACA := 3
+const SOMBRA_PLACA := Vector2(4, 6)
+const SOMBRA_ETIQUETA := Vector2(5, 7)
 const BORDA := 2
 const MARGEM_X := 96
 const MARGEM_Y := 60  ## a área segura da TV (o estudo 02, item 5: y de 60 a 1020)

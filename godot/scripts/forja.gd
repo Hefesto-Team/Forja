@@ -571,11 +571,13 @@ func luz_do_lugar(l: int) -> bool:
 ## Um gatilho (lado 0 = L2, 1 = R2) num dos quatro modos oficiais.
 ## Pelas opções do lugar: desligado vira Off, fraco tem metade da força.
 func gatilho(l: int, lado: int, modo: int, a := 0, b := 0, c := 0) -> bool:
+	_gatilho_pedido[clampi(l, 0, 3)][clampi(lado, 0, 1)] = [modo, a, b, c]
 	var g := Opcoes.ajustar_gatilho(l, modo, a, b, c)
 	return ctl.gatilho(l, lado, g[0], g[1], g[2], g[3]) if modulo else false
 
 
 func gatilhos_off(l: int) -> bool:
+	_gatilho_pedido[clampi(l, 0, 3)] = [[], []]
 	return ctl.gatilhos_off(l) if modulo else false
 
 
@@ -593,11 +595,13 @@ func leds_jogador(l: int, mascara: int) -> bool:
 
 ## O lugar volta ao repouso: motores parados, gatilhos soltos, a luz e os LEDs do lugar.
 func silencio(l: int) -> void:
+	_gatilho_pedido[clampi(l, 0, 3)] = [[], []]
 	if modulo:
 		ctl.silencio(l)
 
 
 func silencio_todos() -> void:
+	_gatilho_pedido = [[[], []], [[], []], [[], []], [[], []]]
 	if modulo:
 		ctl.silencio_todos()
 
@@ -1103,3 +1107,22 @@ func capacidade(l: int, qual: String) -> bool:
 	if p < 0:
 		return false
 	return bool(pad(p).get(qual, false))
+
+
+## O que cada lugar pediu por último nos gatilhos ([L2, R2], cada um [modo, a, b, c]; vazio: Off), para a pausa
+## devolver (G11).
+var _gatilho_pedido := [[[], []], [[], []], [[], []], [[], []]]
+
+
+## A pausa solta os gatilhos (o `fx_stop`: Off em todos) sem esquecer o que foi pedido.
+func gatilhos_pausar(l: int) -> bool:
+	return ctl.gatilhos_off(l) if modulo else false
+
+
+## Ao fechar a pausa, cada gatilho volta ao que foi pedido por último, pelas opções de agora.
+func gatilhos_devolver(l: int) -> void:
+	var lugar := clampi(l, 0, 3)
+	for lado in 2:
+		var g: Array = _gatilho_pedido[lugar][lado]
+		if not g.is_empty():
+			gatilho(lugar, lado, int(g[0]), int(g[1]), int(g[2]), int(g[3]))

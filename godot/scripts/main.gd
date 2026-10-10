@@ -1241,7 +1241,9 @@ func _abrir_overlay(qual: String, lugar: int) -> void:
 	if qual == "livro":
 		livro.abrir()
 	if qual == "pausa":
-		pausa.abrir(lugar, estado == "sala", _diagnostico_livre(), Forja.bancada)
+		pausa.abrir(lugar, estado == "sala", _diagnostico_livre(), Forja.bancada,
+			hud.etiqueta.get("tinta", Tema.GRAFITE) if estado == "sala" else Tema.GRAFITE)
+		_parar_a_fita()
 	if qual == "partida":
 		escolha.abrir(lugar, Forja.semente + _partidas, ORDEM_DO_FOGO)
 	if qual == "placar":
@@ -1280,6 +1282,12 @@ func _fechar_overlay() -> void:
 	placar.visible = false
 	if overlay_antes_de_fechar == "pausa":
 		PosFita.rasgo_curto()
+	if _pausa_da_fita:
+		_pausa_da_fita = false
+		PosFita.soltar("desbota", 67)
+		Musica.abafar(false)
+		for l in 4:
+			Forja.gatilhos_devolver(l)
 	if overlay_antes_de_fechar == "opcoes":
 		Opcoes.gravar(Forja.robo)
 		Forja.registrar_opcoes()
@@ -1292,8 +1300,8 @@ func _fechar_overlay() -> void:
 		p.controlavel = pode and p.visible
 
 
-## Uma borda do analógico ou do d-pad: -1, 0 ou 1 no eixo pedido.
-func _passo(l: int, vertical: bool) -> int:
+## Uma borda do analógico ou do d-pad: -1, 0 ou 1 no eixo pedido. Os menus (`clique` falso) soam pelo `_ui`.
+func _passo(l: int, vertical: bool, clique := true) -> int:
 	var agora: Vector2 = Forja.mover(l)
 	var antes: Vector2 = _stick_antes[l]
 	var a := agora.y if vertical else agora.x
@@ -1303,7 +1311,7 @@ func _passo(l: int, vertical: bool) -> int:
 		passo = 1
 	elif a < -0.6 and b >= -0.6:
 		passo = -1
-	if passo != 0:
+	if passo != 0 and clique:
 		# a navegação clica baixinho, só no controle de quem navegou (H07)
 		Forja.som_falante(l, "clique", 0.5)
 	return passo
@@ -1314,53 +1322,75 @@ func _quadro_overlay() -> void:
 		"diagnostico":
 			for l in 4:
 				if Forja.apertou(l, Forja.CIRCULO) or Forja.apertou(l, Forja.CREATE):
+					_ui(l, "ui_volta")
 					_fechar_overlay()
 					return
 		"livro":
 			for l in 4:
 				if Forja.apertou(l, Forja.CIRCULO):
+					_ui(l, "ui_volta")
 					_fechar_overlay()
 					return
-				var dy := _passo(l, true)
-				var dx := _passo(l, false)
+				var dy := _passo(l, true, false)
+				var dx := _passo(l, false, false)
 				if dx != 0 or dy != 0:
 					livro.navegar(dx, dy)
+					_ui(l, "ui_tique")
 		"pausa":
 			var q := pausa.quem
-			var dy2 := _passo(q, true)
+			var dy2 := _passo(q, true, false)
 			if dy2 != 0:
 				pausa.navegar(dy2)
+				_ui(q, "ui_tique")
 			if Forja.apertou(q, Forja.CRUZ):
+				_ui(q, "ui_confirma")
 				pausa.confirmar()
 			elif Forja.apertou(q, Forja.CIRCULO) or Forja.apertou(q, Forja.OPTIONS):
+				_ui(q, "ui_volta")
 				_fechar_overlay()
 		"partida":
 			var qp := escolha.quem
-			var dy3 := _passo(qp, true)
+			var dy3 := _passo(qp, true, false)
 			if dy3 != 0:
 				escolha.navegar(dy3)
-			var dx3 := _passo(qp, false)
+				_ui(qp, "ui_tique")
+			var dx3 := _passo(qp, false, false)
 			if dx3 != 0:
 				escolha.trocar(dx3)
+				_ui(qp, "ui_tique")
 			if Forja.apertou(qp, Forja.CRUZ):
+				_ui(qp, "ui_confirma")
 				escolha.confirmar()
 			elif Forja.apertou(qp, Forja.CIRCULO):
+				_ui(qp, "ui_volta")
 				_fechar_overlay()
 		"opcoes":
 			var qo := tela_opcoes.quem
-			var dyo := _passo(qo, true)
+			var dyo := _passo(qo, true, false)
 			if dyo != 0:
 				tela_opcoes.navegar(dyo)
-			var dxo := _passo(qo, false)
+				_ui(qo, "ui_tique")
+			var dxo := _passo(qo, false, false)
 			if dxo != 0:
+				var ja_sente := tela_opcoes.sente_ao_trocar()
 				tela_opcoes.trocar(dxo)
+				if ja_sente:
+					Som.ui(qo, "ui_tique")
+				else:
+					_ui(qo, "ui_tique")
 			if Forja.apertou(qo, Forja.CRUZ):
+				_ui(qo, "ui_confirma")
 				tela_opcoes.tocou()
 			if Forja.apertou(qo, Forja.CIRCULO) or Forja.apertou(qo, Forja.OPTIONS):
+				_ui(qo, "ui_volta")
 				_fechar_overlay()
 		"creditos":
 			for p in Forja.pads():
 				if Forja.pad_apertou(int(p.pad), Forja.CIRCULO) or Forja.pad_apertou(int(p.pad), Forja.CRUZ):
+					if int(p.lugar) >= 0:
+						_ui(int(p.lugar), "ui_volta")
+					else:
+						Som.tocar("ui_volta", null, -12.0)
 					_fechar_overlay()
 					return
 		"placar":
@@ -1544,3 +1574,25 @@ func _mover_camera(dt: float) -> void:
 		if a > 0.0:
 			var b := camera.global_basis
 			camera.global_position += (b.x * sin(_t * 71.0) + b.y * sin(_t * 53.0 + 1.3)) * a
+
+
+var _pausa_da_fita := false  ## a pausa abriu a fita parada (G11): o desbota e a música abafada até fechar
+
+
+## A pausa da fita (arte/06, G11): o `fx_stop` na TV, os gatilhos soltos nos quatro, a imagem desbota em 4
+## quadros e a música cai por baixo. `_fechar_overlay` devolve tudo.
+func _parar_a_fita() -> void:
+	if _pausa_da_fita:
+		return
+	_pausa_da_fita = true
+	Som.tocar("fx_stop", null, -6.0)
+	for l in 4:
+		Forja.gatilhos_pausar(l)
+	PosFita.ajustar("desbota", 0.6, 67)
+	Musica.abafar(true)
+
+
+## O som e o toque da interface (G11): o id do mapa na TV e no alto-falante de quem apertou, e o toque na mão dele.
+func _ui(l: int, id: String) -> void:
+	Som.ui(l, id)
+	Forja.sentir(l, "toque")

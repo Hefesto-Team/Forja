@@ -470,6 +470,7 @@ const EN_PADROES := [
 	# a etiqueta da faixa e a do salão (G04)
 	["^LADO ([AB]) · FAIXA (\\d\\d)$", "SIDE $1 · TRACK $2"],
 	["^A FORJA · LADO ([AB])$", "THE FORGE · SIDE $1"],
+	["^PAUSA · P(\\d)$", "PAUSE · P$1"],
 ]
 
 
