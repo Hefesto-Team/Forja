@@ -60,6 +60,7 @@ func _init() -> void:
 	botoes_pedidos = Forja.mascara(Array(ficha.get("botoes_medidos", [])))
 	gesto_do_aviso = str(ficha.get("gesto", ""))
 	com_treino = bool(ficha.get("treino", true))
+	com_entrada = true  # a cortina e o J-card (G12) são do kit
 
 
 func entrar(js: Array) -> void:
@@ -69,18 +70,7 @@ func entrar(js: Array) -> void:
 
 ## Falta chave, ou um valor fora da lista? Falha alto (push_error) e diz qual.
 func conferir_a_ficha() -> bool:
-	var ok := true
-	for k in CHAVES:
-		if not ficha.has(k):
-			push_error("minigame %s: a FICHA não tem «%s»" % [get_script().resource_path, k])
-			ok = false
-	if not ok:
-		return false
-	for par in [["genero", GENEROS], ["fim", FINS], ["camera", CAMERAS], ["material", MATERIAIS]]:
-		if not str(ficha[par[0]]) in par[1]:
-			push_error("minigame %s: «%s» não vale em %s" % [id, ficha[par[0]], par[0]])
-			ok = false
-	return ok
+	return validar(ficha, get_script().resource_path)
 
 
 # ---------------------------------------------------------------- as fases --
@@ -306,3 +296,46 @@ func _contar_a_entrada(n: int) -> void:
 		Som.tocar("confirma")
 	if n >= 3 and Ritmo.batida_cheia.is_connected(_contar_a_entrada):
 		Ritmo.batida_cheia.disconnect(_contar_a_entrada)
+
+
+# ---------------------------------------------------------------- a FICHA conferida (H04, G12) --
+
+## A `como_jogar` (G12): de 1 a 3 pares [glifo, frase], o glifo de assets/glifos/ e a frase no infinitivo, até
+## COMO_JOGAR_LETRAS caracteres.
+const COMO_JOGAR_LETRAS := 28
+
+
+## A FICHA inteira conferida: as chaves, os valores das listas, a `como_jogar` e o verbo que cabe na cortina. Cada
+## falha sai alta (push_error) com `quem` (o script) e o que falta.
+static func validar(f: Dictionary, quem := "") -> bool:
+	var ok := true
+	for k in CHAVES + ["como_jogar"]:
+		if not f.has(k):
+			push_error("minigame %s: a FICHA não tem «%s»" % [quem, k])
+			ok = false
+	if not ok:
+		return false
+	for par in [["genero", GENEROS], ["fim", FINS], ["camera", CAMERAS], ["material", MATERIAIS]]:
+		if not str(f[par[0]]) in par[1]:
+			push_error("minigame %s: «%s» não vale em %s" % [quem, f[par[0]], par[0]])
+			ok = false
+	var como = f.como_jogar
+	if not como is Array or (como as Array).is_empty() or (como as Array).size() > 3:
+		push_error("minigame %s: a «como_jogar» tem de 1 a 3 linhas" % quem)
+		return false
+	for par in como:
+		if not par is Array or (par as Array).size() != 2:
+			push_error("minigame %s: cada linha da «como_jogar» é [glifo, frase] (%s)" % [quem, par])
+			ok = false
+			continue
+		if not ResourceLoader.exists("res://assets/glifos/%s.png" % par[0]):
+			push_error("minigame %s: o glifo «%s» da «como_jogar» não existe" % [quem, par[0]])
+			ok = false
+		if str(par[1]).length() > COMO_JOGAR_LETRAS or str(par[1]) == "":
+			push_error("minigame %s: a frase «%s» da «como_jogar» passa de %d letras" % [quem, par[1], COMO_JOGAR_LETRAS])
+			ok = false
+	if PainelSala.tamanho_do_verbo(str(f.verbo)) == 0:
+		push_error("minigame %s: verbo longo demais («%s» não cabe na cortina nem a %d px)" % [quem, f.verbo,
+			PainelSala.VERBO_MIN])
+		ok = false
+	return ok

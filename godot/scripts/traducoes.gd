@@ -388,6 +388,21 @@ const EN := {
 	"Calça preta": "Black pants",
 	"Botina de obra": "Work boots",
 	"Bermuda": "Bermuda shorts",
+	# o J-card do minigame (G12)
+	"Todos contra todos": "Free for all",
+	"Dupla contra dupla": "Two against two",
+	"Todos juntos": "All together",
+	"Corrida": "Race",
+	"Sobrevivência": "Survival",
+	"Terror": "Horror",
+	"Sabotagem": "Sabotage",
+	"Como jogar": "How to play",
+	"Treino · não vale ponto": "Practice · no points",
+	"Treinando": "Practicing",
+	"Bater no tempo": "Hit on the beat",
+	"Apertar o botão da runa": "Press the rune's button",
+	"Girar até a borda": "Spin to the edge",
+	"Segurar o fole no dourado": "Hold the bellows on gold",
 }
 
 ## Os textos com número: [padrão, substituição] (a substituição usa $1, $2…).
@@ -471,6 +486,11 @@ const EN_PADROES := [
 	["^LADO ([AB]) · FAIXA (\\d\\d)$", "SIDE $1 · TRACK $2"],
 	["^A FORJA · LADO ([AB])$", "THE FORGE · SIDE $1"],
 	["^PAUSA · P(\\d)$", "PAUSE · P$1"],
+	# a cortina e o J-card do minigame (G12)
+	["^Começa em (\\d+)$", "Starts in $1"],
+	["^LADO ([AB]) · FAIXA (\\d\\d) · (\\d+) BPM$", "SIDE $1 · TRACK $2 · $3 BPM"],
+	["^([ST]\\d) · (.+) · LADO ([AB])$", "$1 · $2 · SIDE $3"],
+	["^LADO ([AB])$", "SIDE $1"],
 ]
 
 

@@ -770,7 +770,8 @@ func _prova_do_kit() -> void:
 	var mg: Minigame = load("res://testes/minigame_de_prova.gd").new()
 	jogo._entrar_na_sala(mg.id, false, mg)
 	await _quadros(2)
-	_esperar(jogo.sala == mg and mg.fase == "aviso", "kit: o minigame de prova abriu")
+	_esperar(jogo.sala == mg and mg.fase in ["entrada", "aviso"], "kit: o minigame de prova abriu")
+	await _prova_da_entrada(mg)
 	var q := 0
 	while is_instance_valid(mg) and mg.fase == "aviso" and q < 600:
 		await _quadros(1)
@@ -843,6 +844,7 @@ func _comeca_a_sala(id: String):
 	sala.set_meta("fim", fim)
 	sala.set_meta("duracao_no_inicio", float(sala.duracao))
 	var q := 0
+	await _passar_a_entrada(sala)
 	while is_instance_valid(sala) and sala.fase == "aviso" and q < 600:
 		await _quadros(1)
 		q += 1
@@ -954,6 +956,7 @@ func _prova_de_fogo() -> void:
 	if not sala is SalaJogo:
 		return
 	var q := 0
+	await _passar_a_entrada(sala)
 	while is_instance_valid(sala) and sala.fase == "aviso" and q < 600:
 		await _quadros(1)
 		q += 1
@@ -1264,6 +1267,7 @@ func _prova_da_partida() -> void:
 		if not sala is SalaJogo:
 			return
 		q = 0
+		await _passar_a_entrada(sala)
 		while is_instance_valid(sala) and sala.fase == "aviso" and q < 600:
 			await _quadros(1)
 			q += 1
@@ -1801,6 +1805,7 @@ func _prova_do_aviso_sozinho() -> void:
 	await _quadros(2)
 	var sala = jogo.sala
 	var q := 0
+	await _passar_a_entrada(sala)
 	while is_instance_valid(sala) and sala.fase == "aviso" and q < 900:
 		await _quadros(1)
 		q += 1
@@ -2829,6 +2834,7 @@ func _prova_da_noite_da_fita() -> void:
 			return
 		_esperar(is_equal_approx(jogo.env.fog_density, Tema.luz_da_secao(sala.numero(), false).densidade), "noite: a faixa %d acende no lado A" % (i + 1))
 		q = 0
+		await _passar_a_entrada(sala)
 		while is_instance_valid(sala) and sala.fase == "aviso" and q < 600:
 			await _quadros(1)
 			q += 1
@@ -3472,3 +3478,92 @@ func _contar_registro(tipo: String, lugar: int, nome: String) -> int:
 		if e.get("tipo", "") == tipo and e.get("nome", "") == nome and int(e.get("jogador", 0)) == lugar + 1:
 			n += 1
 	return n
+
+
+## A entrada do minigame do kit (G12) passa sozinha: espera pelo relógio de parede (a cortina anda no tempo da
+## música), até 8 s. Sala sem entrada passa direto.
+func _passar_a_entrada(sala) -> void:
+	var t0 := Time.get_ticks_usec()
+	while is_instance_valid(sala) and str(sala.fase) == "entrada" and Time.get_ticks_usec() - t0 < 8000000:
+		await _quadros(1)
+
+
+## O último registro da linha do tempo com este tipo e este nome (vazio se não há).
+func _ultimo_registro(tipo: String, nome: String) -> Dictionary:
+	var ultimo := {}
+	for e in _linha_do_tempo():
+		if e.get("tipo", "") == tipo and e.get("nome", "") == nome:
+			ultimo = e
+	return ultimo
+
+
+## G12: a cortina com o verbo no tempo 1 e o J-card. O minigame de prova acabou de abrir: a fase é a entrada, a
+## contagem soa e vibra (um toque por tique, em cada lugar), o impacto cai num tempo 1 com um golpe em cada lugar e
+## a luz em papel, e o J-card fica parado no aviso. Depois, o tamanho do verbo, a `como_jogar` que reprova e o lado.
+func _prova_da_entrada(mg) -> void:
+	_esperar(mg.fase == "entrada", "entrada: a sala abre pela cortina")
+	var toques := []
+	var golpes := []
+	for l in 4:
+		toques.append(_contar_registro("sensacao", l, "toque"))
+		golpes.append(_contar_registro("sensacao", l, "golpe"))
+	# o impacto: pelo relógio de parede, até 5 s; no quadro dele a lightbar pisca em papel
+	var t0 := Time.get_ticks_usec()
+	var luz_em_papel := 0
+	while is_instance_valid(mg) and mg.fase == "entrada" and not mg._entrada_feito.has("luz") and Time.get_ticks_usec() - t0 < 5000000:
+		await _quadros(1)
+		if mg._entrada_feito.has("impacto") and not mg._entrada_feito.has("luz"):
+			var n_em_papel := 0
+			for l in 4:
+				var luz: Color = Forja.estado_saida(l).get("luz", Color.BLACK)
+				if absf(luz.r - Tema.ETIQUETA.r) <= 1.0 / 255.0 and absf(luz.g - Tema.ETIQUETA.g) <= 1.0 / 255.0 \
+						and absf(luz.b - Tema.ETIQUETA.b) <= 1.0 / 255.0:
+					n_em_papel += 1
+			luz_em_papel = maxi(luz_em_papel, n_em_papel)
+	_esperar(not Opcoes.flashes or luz_em_papel == 4, "entrada: no impacto a lightbar dos quatro pisca em papel (%d)" % luz_em_papel)
+	var m := _ultimo_registro("momento", "verbo_carimbado")
+	var nb: float = (float(m.get("t_musica", 0.0)) - Ritmo.primeiro_tempo) * Ritmo.bpm / 60.0
+	var alvo: float = (float(m.get("t_alvo", -1.0)) - Ritmo.primeiro_tempo) * Ritmo.bpm / 60.0
+	_esperar(not m.is_empty() and str(m.get("slot", "")) == mg.id and absf(alvo - 4.0 * roundf(alvo / 4.0)) < 0.001
+		and absf(nb - 4.0 * roundf(nb / 4.0)) * 60.0 / Ritmo.bpm < 0.020,
+		"entrada: o verbo carimba no tempo 1 (tempo %.3f, alvo %.3f)" % [nb, alvo])
+	await _passar_a_entrada(mg)
+	_esperar(is_instance_valid(mg) and mg.fase == "aviso", "entrada: a cortina sai e o aviso começa")
+	for l in 4:
+		var dt := _contar_registro("sensacao", l, "toque") - int(toques[l])
+		var dg := _contar_registro("sensacao", l, "golpe") - int(golpes[l])
+		_esperar(dt == 3 and dg == 1, "entrada P%d: um toque por tique e um golpe no impacto (%d toques, %d golpes)" % [l + 1, dt, dg])
+	_esperar(jogo.painel._jcard_fora() == 0.0 and jogo.painel._do_kit(), "J-card: parado no aviso")
+	# o tamanho do verbo: curto a 252, longo encolhe, comprido demais é 0
+	_esperar(PainelSala.tamanho_do_verbo("Bata!") == 252, "entrada: verbo curto a 252 (%d)" % PainelSala.tamanho_do_verbo("Bata!"))
+	var medio := PainelSala.tamanho_do_verbo("Martele!")
+	_esperar(medio >= PainelSala.VERBO_MIN and medio < 252, "entrada: verbo mais longo encolhe (%d)" % medio)
+	_esperar(PainelSala.tamanho_do_verbo("Inclinem juntos!") == 0, "entrada: verbo que não cabe a 160 é 0")
+	# a chave nova reprova: sem ela, vazia, com glifo que não existe, frase longa, verbo longo
+	_esperar(Minigame.validar(mg.ficha), "kit: a FICHA do minigame de prova passa")
+	var f: Dictionary = mg.ficha.duplicate(true)
+	f.erase("como_jogar")
+	_esperar(not Minigame.validar(f), "kit: sem como_jogar reprova")
+	for ruim in [[], [["glifo_que_nao_existe", "Bater"]], [["cross", "Uma frase comprida demais para o J-card"]],
+			[["cross", "A"], ["cross", "B"], ["cross", "C"], ["cross", "D"]]]:
+		f = mg.ficha.duplicate(true)
+		f["como_jogar"] = ruim
+		_esperar(not Minigame.validar(f), "kit: a como_jogar %s reprova" % [ruim])
+	f = mg.ficha.duplicate(true)
+	f["verbo"] = "Inclinem juntos!"
+	_esperar(not Minigame.validar(f), "kit: verbo que não cabe na cortina reprova")
+	var partida_de_teste := Partida.nova(3, false, 7, [])
+	_esperar(partida_de_teste.lado() == "A", "partida: o lado A no começo")
+	partida_de_teste.passo = 2
+	_esperar(partida_de_teste.lado() == "B", "partida: o lado B na segunda metade")
+	# o pronto dos quatro: mais um toque em cada um, no lugar do Forja.vibrar de antes
+	for l in 4:
+		toques[l] = _contar_registro("sensacao", l, "toque")
+	var q := 0
+	while is_instance_valid(mg) and mg.fase == "aviso" and not (mg.prontos as Array).all(func(x): return x) and q < 600:
+		await _quadros(1)
+		q += 1
+	for l in 4:
+		var dt := _contar_registro("sensacao", l, "toque") - int(toques[l])
+		_esperar(dt == 1, "aviso P%d: o ✕ do pronto vibra um toque (%d)" % [l + 1, dt])
+

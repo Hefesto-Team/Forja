@@ -42,6 +42,8 @@ const FICHA := {
 	"features": ["botoes", "analogicos", "gatilhos_analogicos"],
 	"botoes_medidos": BOTOES,
 	"gesto": "attack-melee-right",
+	"como_jogar": [["cross", "Apertar o botão da runa"], ["stick_l", "Girar até a borda"],
+		["l2", "Segurar o fole no dourado"]],
 }
 
 const GLIFO := {

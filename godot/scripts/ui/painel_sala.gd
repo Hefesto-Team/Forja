@@ -22,11 +22,19 @@ func _process(_dt: float) -> void:
 func _draw() -> void:
 	if sala == null or not is_instance_valid(sala) or not sala is SalaJogo:
 		return
+	var do_kit := sala is Minigame and bool(sala.com_entrada)
 	match str(sala.fase):
+		"entrada":
+			_entrada()
 		"aviso":
-			_aviso()
+			if do_kit:
+				_jcard()
+			else:
+				_aviso()
 		"jogo":
 			_tempo()
+			if do_kit:
+				_jcard()
 
 
 func _aviso() -> void:
@@ -343,7 +351,7 @@ func _rect_progresso() -> Rect2:
 
 ## O selo do treino: uma placa centrada em y 282, de 56 de altura. Vazia fora do treino.
 func _rect_selo() -> Rect2:
-	if sala == null or not is_instance_valid(sala) or not sala is SalaJogo or not sala.treinando:
+	if sala == null or not is_instance_valid(sala) or not sala is SalaJogo or not sala.treinando or _do_kit():
 		return Rect2()
 	var w := Desenho.largura("Treino — não vale ponto", Tema.archivo(600), Tema.T_ROTULO) + 56.0
 	return Rect2(Vector2((size.x - w) * 0.5, 282.0), Vector2(w, 56.0))
@@ -363,7 +371,9 @@ func retangulos() -> Array:
 
 ## O selo do treino no alto, e o "Valendo!" grande quando ele acaba.
 func _treino_e_valendo() -> void:
-	if sala.treinando:
+	if sala.treinando and _do_kit():
+		pass  # o treino do kit é a linha do J-card (G12)
+	elif sala.treinando:
 		var s := "Treino — não vale ponto"
 		var f := Tema.archivo(600)
 		var r := _rect_selo()
@@ -397,3 +407,247 @@ func _rect_valendo() -> Rect2:
 	var desc := f2.get_descent(Tema.t(tam))
 	var base := size.y * 0.42
 	return Rect2(Vector2((size.x - w2) * 0.5 - 48.0, base - asc - 20.0), Vector2(w2 + 96.0, asc + desc + 40.0))
+
+
+# ---------------------------------------------------------------- a cortina e o J-card do kit (G12) --
+## A cortina diagonal da fita (arte/06): o polígono na tinta da seção, a trama, a tira `FITA` e o fio `ETIQUETA`,
+## com o verbo carimbado no tempo 1. Os instantes são os ms da `SalaJogo.ms_da_entrada()` (0 = a cortina começa).
+const CORTINA := [Vector2(0, 0), Vector2(1240, 0), Vector2(930, 1080), Vector2(0, 1080)]
+const CORTINA_DE := -330.0  ## a borda de cima começa aqui e varre até 1240 em 600 ms
+const CORTINA_X := 1240.0
+const CORTINA_PE := 310.0  ## o quanto a borda de baixo fica à esquerda da de cima
+const TIRA := 26.0
+const FIO_VAO := 22.0
+const FIO := 4.0
+const VERBO_CENTRO := Vector2(905, 560)
+const VERBO_GRAUS := -2.58  ## −0,045 rad
+const VERBO_MAX := 252
+const VERBO_MIN := 160
+const VERBO_LARGURA := 1100.0
+const TREMOR := 8.0
+const TREMOR_QUADROS := 4
+## O J-card do minigame (arte/06): 1064 × 830 em (760, 90); entra da direita em 1 batida e sai em 1 colcheia.
+const JCARD_KIT := Rect2(760, 90, 1064, 830)
+const JCARD_DE := 1100.0
+const CHIP := Vector2(400, 64)
+const CHIP_VAO := 16.0
+const COMO_JOGAR_GLIFO := 64.0
+## A frase do gênero da FICHA (a caixa do J-card).
+const GENERO_FRASE := {"tct": "Todos contra todos", "2v2": "Dupla contra dupla", "coop": "Todos juntos",
+	"corrida": "Corrida", "sobrevivencia": "Sobrevivência", "terror": "Terror", "sabotagem": "Sabotagem"}
+
+var _quadro_do_impacto := -1  ## o quadro em que o verbo carimbou (o tremor conta 4 a partir dele)
+
+
+## O tamanho do verbo na cortina: Bungee 252 se couber em 1100 px; senão, o maior inteiro que caiba, até 160; 0 se
+## nem a 160 cabe (o `Minigame.validar` reprova). Mede a palavra como ela sai na tela (traduzida, na escala do texto).
+static func tamanho_do_verbo(s: String) -> int:
+	var f := Tema.bungee()
+	var dito := Traducoes.traduzir(s)
+	for tam in range(VERBO_MAX, VERBO_MIN - 1, -1):
+		if f.get_string_size(dito, HORIZONTAL_ALIGNMENT_LEFT, -1, Tema.t(tam)).x <= VERBO_LARGURA:
+			return tam
+	return 0
+
+
+## A sala é um minigame do kit (a cortina e o J-card no lugar do aviso de antes).
+func _do_kit() -> bool:
+	return sala != null and is_instance_valid(sala) and sala is Minigame and bool(sala.com_entrada)
+
+
+## A seção da sala pelo slot («S01_J01» dá 1; o minigame de prova, «T00_J00», dá 0).
+func _secao() -> int:
+	var slot := str(sala.id)
+	return int(slot.substr(1, 2)) if slot.length() >= 3 and slot.substr(1, 2).is_valid_int() else 0
+
+
+## A etiqueta da faixa que o HUD imprimiu para esta sala («LADO A · FAIXA 01»); fora de uma partida, a faixa 01.
+func _impresso() -> String:
+	for c in get_parent().get_children() if get_parent() else []:
+		if c is HudJogo and str((c as HudJogo).etiqueta.get("impresso", "")) != "":
+			return str((c as HudJogo).etiqueta.impresso)
+	return "LADO A · FAIXA 01"
+
+
+static func _entra(k: float) -> float:
+	var x := clampf(k, 0.0, 1.0)
+	return x * x * x
+
+
+static func _sai(k: float) -> float:
+	var x := 1.0 - clampf(k, 0.0, 1.0)
+	return 1.0 - x * x * x
+
+
+func _entrada() -> void:
+	var ms: float = sala.ms_da_entrada()
+	if ms < 0.0:
+		_quadro_do_impacto = -1
+		return
+	var impacto := SalaJogo.ENTRADA_ANTES * 1000.0
+	var saida: float = sala.ms_da_saida()
+	var n := _secao()
+	var tinta := Tema.tinta_da_secao(n)
+	var borda := lerpf(CORTINA_DE, CORTINA_X, _entra(ms / impacto))
+	var fora := _entra(saida / float(sala.ms_da_batida())) * size.x if saida >= 0.0 else 0.0
+	var off := Vector2(borda - CORTINA_X + fora, 0.0)
+	# o tremor do impacto: 8 px por 4 quadros (nenhum no Movimento Reduzido)
+	if ms >= impacto and _quadro_do_impacto < 0:
+		_quadro_do_impacto = Engine.get_process_frames()
+	var q := Engine.get_process_frames() - _quadro_do_impacto
+	if _quadro_do_impacto >= 0 and q < TREMOR_QUADROS and not Opcoes.reduzido():
+		off += Vector2(TREMOR if q % 2 == 0 else -TREMOR, -TREMOR if q % 2 == 0 else TREMOR)
+	var coleta := Desenho.coletar_retangulos
+	Desenho.coletar_retangulos = false  # a cortina passa; a prova visual mede o J-card parado
+	_cortina(off, tinta)
+	# as duas linhas pequenas: aparecem quando a borda passa delas
+	var cor := Tema.TINTA if n in [0, 3, 4, 7] else Tema.ETIQUETA
+	var linha := "%s · %d BPM" % [_impresso(), roundi(Ritmo.bpm)]
+	var fv := Tema.vt()
+	var fm := Tema.marcador()
+	if borda - CORTINA_PE * 120.0 / 1080.0 >= 110.0 + Desenho.largura(linha, fv, 56):
+		Desenho.texto(self, Vector2(110, 120) + off, linha, fv, 56, cor)
+	var titulo := Desenho.caber(str(sala.nome), fm, 72, 900.0, 1)
+	if borda - CORTINA_PE * 186.0 / 1080.0 >= 104.0 + Desenho.largura(titulo, fm, 72):
+		Desenho.texto(self, Vector2(104, 186) + off, titulo, fm, 72, cor)
+	# o verbo: carimba no tempo 1 (escala 1,35 a 1,0 em 80 ms, MOLA), com dois ecos até os 900 ms
+	if ms >= impacto:
+		var verbo := str(sala.acao)
+		var tam := maxi(tamanho_do_verbo(verbo), VERBO_MIN)
+		var k := clampf((ms - impacto) / 80.0, 0.0, 1.0)
+		var escala := lerpf(1.35, 1.0, float(Tween.interpolate_value(0.0, 1.0, k, 1.0, Tween.TRANS_BACK, Tween.EASE_OUT)))
+		var centro := VERBO_CENTRO + off
+		if ms < impacto + SalaJogo.ENTRADA_SEGURA * 1000.0:
+			Desenho.carimbo(self, centro, verbo, Tema.ETIQUETA, tam, VERBO_GRAUS, escala * 1.14, 0.08, false)
+			Desenho.carimbo(self, centro, verbo, Tema.ETIQUETA, tam, VERBO_GRAUS, escala * 1.07, 0.16, false)
+		Desenho.carimbo(self, centro, verbo, Tema.ETIQUETA, tam, VERBO_GRAUS, escala, 1.0, false)
+	Desenho.coletar_retangulos = coleta
+	# o J-card entra junto da saída da cortina
+	if saida >= 0.0:
+		_jcard()
+
+
+## O polígono chapado, a trama (2 px a cada 6, na tinta a ×0,88 de luz), a tira e o fio da borda.
+func _cortina(off: Vector2, tinta: Color) -> void:
+	var pts := PackedVector2Array()
+	for p in CORTINA:
+		pts.append(p + off)
+	draw_colored_polygon(pts, tinta)
+	var escura := Color(tinta.r * 0.88, tinta.g * 0.88, tinta.b * 0.88)
+	for y in range(0, 1080, 6):
+		draw_rect(Rect2(Vector2(off.x, y + off.y), Vector2(CORTINA_X - CORTINA_PE * y / 1080.0, 2.0)), escura)
+	var tira := PackedVector2Array([Vector2(CORTINA_X, 0), Vector2(CORTINA_X + TIRA, 0),
+		Vector2(CORTINA_X - CORTINA_PE + TIRA, 1080), Vector2(CORTINA_X - CORTINA_PE, 1080)])
+	for i in tira.size():
+		tira[i] += off
+	draw_colored_polygon(tira, Tema.FITA)
+	var x0 := CORTINA_X + TIRA + FIO_VAO
+	draw_colored_polygon(PackedVector2Array([Vector2(x0, 0) + off, Vector2(x0 + FIO, 0) + off,
+		Vector2(x0 + FIO - CORTINA_PE, 1080) + off, Vector2(x0 - CORTINA_PE, 1080) + off]), Tema.ETIQUETA)
+
+
+## O quanto o J-card está à direita do lugar dele: entra em 1 batida depois da cortina sair (`SAI`), fica parado no
+## aviso e no treino, e sai em 1 colcheia (`ENTRA`) quando o treino acaba (ou em `comecar()`, sem treino).
+func _jcard_fora() -> float:
+	var batida := float(sala.ms_da_batida()) / 1000.0
+	match str(sala.fase):
+		"entrada":
+			return JCARD_DE * (1.0 - _sai(float(sala.ms_da_saida()) / 1000.0 / batida))
+		"aviso":
+			return 0.0
+		"jogo":
+			if sala.treinando:
+				return 0.0
+			var passou := 1.4 - float(sala.valendo_t) if sala.com_treino else float(sala.t_fase)
+			if sala.com_treino and float(sala.valendo_t) <= 0.0:
+				return JCARD_DE
+			return JCARD_DE * _entra(passou / (batida * 0.5))
+	return JCARD_DE
+
+
+func _jcard() -> void:
+	var dx := _jcard_fora()
+	if dx >= JCARD_DE - 0.5:
+		return
+	var r := Rect2(JCARD_KIT.position + Vector2(dx, 0), JCARD_KIT.size)
+	var coleta := Desenho.coletar_retangulos
+	if dx > 0.5:
+		Desenho.coletar_retangulos = false  # o cartão que ainda corre: a prova visual mede o parado
+	var n := _secao()
+	var tinta := Tema.tinta_da_secao(n)
+	var impresso := _impresso()
+	var lado := impresso.get_slice(" · ", 0)  # «LADO A»
+	var faixa := impresso.right(2)
+	var lombada := "%s%d · %s · %s" % ["S" if n > 0 else "T", n, Traducoes.traduzir(str(sala.nome)).to_upper(), lado]
+	Desenho.jcard(self, r, tinta, Desenho.caber(lombada, Tema.vt(), 46, r.size.y - 80.0, 1))
+	Desenho.inclinar(self, r.get_center(), Desenho.JCARD_INCLINACAO)
+	var x0 := r.position.x + Desenho.JCARD_LOMBADA + 44.0
+	var x1 := r.end.x - 44.0
+	var w := x1 - x0
+	var fv := Tema.vt()
+	var y := r.position.y + 38.0 + 14.0
+	# a seção
+	if n > 0 and n <= Catalogo.SECOES.size():
+		y += fv.get_ascent(Tema.t(40))
+		Desenho.texto(self, Vector2(x0, y), Traducoes.traduzir(str(Catalogo.SECOES[n - 1].nome)).to_upper(), fv, 40, Tema.TINTA_SUAVE)
+		y += fv.get_descent(Tema.t(40)) + 4.0
+	# o título, à caneta
+	var fm := Tema.marcador()
+	var tam_titulo := 60 if Desenho.t(str(sala.nome)).length() > 22 else 74
+	y += fm.get_ascent(Tema.t(tam_titulo))
+	Desenho.texto(self, Vector2(x0, y), Desenho.caber(str(sala.nome), fm, tam_titulo, w, 1), fm, tam_titulo, Tema.TINTA)
+	y += fm.get_descent(Tema.t(tam_titulo)) + 8.0
+	# o gênero numa caixa com a borda na tinta; à direita, o lado e o número da faixa
+	var fg := Tema.archivo(700)
+	var genero := str(GENERO_FRASE.get(str(sala.ficha.get("genero", "")), ""))
+	var alto := maxf(54.0, fg.get_height(Tema.t(34)) + 10.0)
+	if genero != "":
+		var caixa := Rect2(Vector2(x0, y), Vector2(maxf(330.0, Desenho.largura(genero, fg, 34) + 40.0), alto))
+		Desenho.caixa(self, caixa, Color(Tema.ETIQUETA, 0.0), Tema.RAIO_ETIQUETA, tinta, 3)
+		Desenho.texto(self, Vector2(caixa.position.x + 20.0, caixa.get_center().y + fg.get_ascent(Tema.t(34)) * 0.36), genero, fg, 34, Tema.TINTA)
+	var base := y + alto
+	var lw := Desenho.largura(faixa, fv, 64)
+	Desenho.texto(self, Vector2(x1 - lw, base), faixa, fv, 64, Tema.TINTA)
+	Desenho.texto(self, Vector2(x1 - lw - 16.0 - Desenho.largura(lado, fv, 40), base), lado, fv, 40, Tema.TINTA_SUAVE)
+	y = base + 20.0
+	# como jogar; à direita, a linha do treino
+	y += fv.get_ascent(Tema.t(40))
+	Desenho.texto(self, Vector2(x0, y), "Como jogar", fv, 40, Tema.TINTA_SUAVE)
+	if sala.com_treino:
+		var tr := "Treino · não vale ponto"
+		Desenho.texto(self, Vector2(x1 - Desenho.largura(tr, fv, 40), y), tr, fv, 40, Tema.TINTA)
+	y += fv.get_descent(Tema.t(40)) + 6.0
+	var fc := Tema.archivo(600)
+	var y_chips := r.end.y - 44.0 - CHIP.y * 2.0 - CHIP_VAO
+	var y_comeca := y_chips - 12.0 - Desenho.LADO_DA_DICA
+	var pares: Array = sala.ficha.get("como_jogar", [])
+	var linha := clampf((y_comeca - 10.0 - y) / maxf(1.0, pares.size()), COMO_JOGAR_GLIFO, COMO_JOGAR_GLIFO + 16.0)
+	for i in pares.size():
+		var par: Array = pares[i]
+		if i > 0:
+			draw_line(Vector2(x0, y), Vector2(x1, y), Tema.ETIQUETA_SOMBRA, 2.0)
+		var meio := y + linha * 0.5
+		var tex := Desenho.glifo(str(par[0]))
+		if tex:
+			draw_texture_rect(tex, Rect2(Vector2(x0, meio - COMO_JOGAR_GLIFO * 0.5), Vector2(COMO_JOGAR_GLIFO, COMO_JOGAR_GLIFO)), false, Tema.TINTA)
+		var xf := x0 + COMO_JOGAR_GLIFO + 20.0
+		Desenho.texto(self, Vector2(xf, meio + fc.get_ascent(Tema.t(44)) * 0.36), Desenho.caber(str(par[1]), fc, 44, x1 - xf, 1), fc, 44, Tema.TINTA)
+		y += linha
+	# no aviso: quanto falta para começar, e o ✕ do pronto
+	if str(sala.fase) == "aviso":
+		var resta := maxi(1, ceili(SalaJogo.AVISO_MAX - float(sala.t_fase)))
+		Desenho.texto(self, Vector2(x0, y_comeca + Desenho.LADO_DA_DICA * 0.5 + fc.get_ascent(Tema.t(34)) * 0.36), "Começa em %d" % resta, fc, 34, Tema.TINTA)
+		var lp := Desenho.LADO_DA_DICA + 12.0 + Desenho.largura("Pronto", fc, 34)
+		Desenho.dica(self, Vector2(x1 - lp, y_comeca), "cruz", "Pronto", true)
+	# os chips, 2 × 2, um por lugar ocupado: pronto no aviso, ou o treino de cada um
+	var i := 0
+	for l in 4:
+		if not Forja.ocupado(l):
+			continue
+		var pos := Vector2(x0 + (i % 2) * (CHIP.x + CHIP_VAO), y_chips + (i / 2) * (CHIP.y + CHIP_VAO))
+		var pronto: bool = sala.prontos[l] if str(sala.fase) != "jogo" else bool(sala._treino_ok[l])
+		var palavra := "Pronto" if pronto else ("Treinando" if str(sala.fase) == "jogo" else "Aguardando")
+		Desenho.chip(self, Rect2(pos, CHIP), l, pronto, palavra)
+		i += 1
+	Desenho.inclinar(self, Vector2.ZERO, 0.0)
+	Desenho.coletar_retangulos = coleta

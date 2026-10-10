@@ -120,6 +120,8 @@ func entrar(js: Array) -> void:
 	elif sfx_no_controle and not Forja.som_pronto():
 		# a placa abre na entrada do lugar (main.gd); aqui só se ainda não abriu
 		Forja.som_preparar(Forja.PAPEL_ALTO_FALANTE)
+	if com_entrada:
+		_comecar_a_entrada()
 
 
 func sair() -> void:
@@ -266,6 +268,8 @@ func _process(dt: float) -> void:
 		return
 	t_fase += dt
 	match fase:
+		"entrada":
+			_quadro_entrada()
 		"aviso":
 			if Forja.robo:
 				_robo_do_aviso()
@@ -323,7 +327,7 @@ func _quadro_aviso() -> void:
 			if Forja.apertou(l, Forja.CRUZ):
 				prontos[l] = true
 				Forja.sentir(l, "toque")
-				Som.tocar("tique", p.global_position + Vector3(0, 1, 0))
+				Som.ui(l, "ui_confirma")
 		if prontos[l]:
 			n_prontos += 1
 		elif gesto_do_aviso != "":
@@ -509,7 +513,7 @@ func _quadro_fim() -> void:
 
 ## A linha da HUD de cada lugar: pontos, ou "terminou".
 func status(lugar: int) -> String:
-	if fase == "aviso":
+	if fase in ["entrada", "aviso"]:
 		return "Pronto" if prontos[lugar] else "✕ Quando pronto"
 	if fase == "fim":
 		return "%d pontos" % pontos[lugar]
@@ -638,3 +642,91 @@ func julgar(l: int, j: int, palavra := "", no_tempo_1 := false) -> void:
 ## O combo do lugar, para o cartão. As salas com combo devolvem o delas.
 func combo(_l: int) -> int:
 	return 0
+
+
+# ---------------------------------------------------------------- a entrada (G12) --
+## A cortina da fita antes do aviso (arte/06, a cortina diagonal): só nos minigames do kit (o `Minigame` liga).
+## Nenhum botão pula. O impacto (o verbo carimbado) cai no tempo 1 `_t_impacto` do relógio da música, o primeiro
+## a pelo menos ENTRADA_ESPERA s do `entrar()`; a contagem soa nos três tempos antes. Depois de 900 ms, no tempo 1
+## seguinte, a cortina sai e o J-card entra em 1 batida; com ele parado, o aviso começa (`t_fase` do zero).
+var com_entrada := false
+const ENTRADA_ESPERA := 1.6  ## s do `entrar()` ao impacto, no mínimo
+const ENTRADA_ANTES := 0.6  ## a cortina começa 600 ms antes do impacto (o `fx_entrada` tem o impacto em 600 ms)
+const ENTRADA_SEGURA := 0.3  ## o verbo segura 300 ms depois do impacto (os 900 ms fixos)
+var _t_impacto := 0.0  ## o t_musica do impacto
+var _n_impacto := 0  ## a batida do impacto (múltiplo de 4)
+var _t_saida := 0.0  ## o t_musica em que a cortina começa a sair (o tempo 1 depois dos 900 ms)
+var _entrada_feito := {}  ## o que da entrada já aconteceu ("tique0", "cortina", "impacto", "luz"...)
+
+
+## O tempo 1 do impacto e o da saída, pelo relógio da música (que sempre anda: a faixa, ou o sistema no mesmo bpm).
+func _comecar_a_entrada() -> void:
+	fase = "entrada"
+	t_fase = 0.0
+	_entrada_feito = {}
+	var n := ceilf(Ritmo.batida() + ENTRADA_ESPERA * Ritmo.bpm / 60.0)
+	_n_impacto = int(ceilf(n / 4.0) * 4.0)
+	_t_impacto = Ritmo.t_da_batida(_n_impacto)
+	var depois := ceilf((_n_impacto + ENTRADA_SEGURA * Ritmo.bpm / 60.0) / 4.0) * 4.0
+	_t_saida = Ritmo.t_da_batida(depois)
+
+
+## Os ms desde o começo da cortina (negativos antes dela), pelo relógio da música: o painel desenha por eles.
+func ms_da_entrada() -> float:
+	return (Ritmo.t_musica() - (_t_impacto - ENTRADA_ANTES)) * 1000.0
+
+
+## Os ms desde que a cortina começou a sair (negativos antes).
+func ms_da_saida() -> float:
+	return (Ritmo.t_musica() - _t_saida) * 1000.0
+
+
+## Uma batida, em ms, no relógio de agora.
+func ms_da_batida() -> float:
+	return 60000.0 / maxf(Ritmo.bpm, 1.0)
+
+
+func _uma_vez(nome: String) -> bool:
+	if _entrada_feito.has(nome):
+		return false
+	_entrada_feito[nome] = true
+	return true
+
+
+func _quadro_entrada() -> void:
+	var b := Ritmo.batida()
+	# a contagem: os tempos 2, 3 e 4 do compasso antes do impacto; no primeiro, os gatilhos soltam
+	for k in 3:
+		if b >= _n_impacto - 3 + k and _uma_vez("tique%d" % k):
+			Som.tocar("jin_entrada_tique", null, -9.0)
+			for p in jogadores:
+				if k == 0:
+					Forja.gatilhos_off(p.lugar)
+				Forja.sentir(p.lugar, "toque")
+	var ms := ms_da_entrada()
+	if ms >= 0.0 and _uma_vez("cortina"):
+		Som.tocar("fx_entrada", null, -6.0)
+		PosFita.ajustar("rasgo", 0.35, int(ENTRADA_ANTES * 1000.0))
+	if ms >= ENTRADA_ANTES * 1000.0 and _uma_vez("impacto"):
+		_impacto()
+	elif _entrada_feito.has("impacto") and not _entrada_feito.has("luz") and ms >= ENTRADA_ANTES * 1000.0 + 33.0:
+		_entrada_feito["luz"] = true
+		for p in jogadores:
+			Forja.luz_do_lugar(p.lugar)
+	# a cortina sai e o J-card entra juntos, em 1 batida; com o J-card parado, o aviso
+	if ms_da_saida() >= ms_da_batida():
+		fase = "aviso"
+		t_fase = 0.0
+
+
+## O impacto, no tempo 1: o vai na TV e em cada controle, o golpe em todos, a luz que pisca, o rasgo e o momento.
+func _impacto() -> void:
+	Som.tocar("jin_entrada_vai", null, -6.0)
+	for p in jogadores:
+		Som.no_controle(p.lugar, "jin_entrada_vai")
+		Forja.sentir(p.lugar, "golpe")
+		if Opcoes.flashes:
+			Forja.luz(p.lugar, Tema.ETIQUETA)
+	PosFita.rasgo_curto()
+	Forja.evento("momento", 0, {"slot": id, "nome": "verbo_carimbado", "lugar": -1,
+		"t_musica": snappedf(Ritmo.t_musica(), 0.001), "t_alvo": snappedf(_t_impacto, 0.001)})
