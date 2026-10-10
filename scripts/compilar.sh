@@ -7,6 +7,7 @@
 #   scripts/compilar.sh tudo       os três
 #   scripts/compilar.sh deps       só baixa e confere o SDL3 e o godot-cpp
 #   scripts/compilar.sh soma       só imprime a soma da fonte do módulo (a que vai no .fonte)
+#   scripts/compilar.sh piso [so]  reprova o módulo Linux que pede glibc acima do piso do pacote
 #
 # Ao lado de cada módulo fica godot/bin/<módulo>.fonte, com a soma da fonte de
 # que ele saiu: a caixa das provas (tests/caixa.sh) confere essa soma e recusa
@@ -38,6 +39,14 @@ GODOT_CPP_URL="https://github.com/godotengine/godot-cpp.git"
 # qual. A nossa é a da engine que o jogo roda (scripts/engine.sh).
 GODOT_CPP_API="${GODOT_CPP_API:-4.7}"
 
+# O piso de glibc do pacote: o do Godot 4.7.2, cujo binário oficial pede no
+# máximo GLIBC_2.28. O módulo que vai na exportação sai do job modulo-linux do
+# CI, compilado num contêiner manylinux_2_28 (glibc 2.28), e o CI reprova o
+# módulo que pedir mais que isto (`scripts/compilar.sh piso`). Compilado aqui,
+# o módulo pede a glibc desta máquina: serve para quem desenvolve, não para o
+# pacote.
+GLIBC_PISO="2.28"
+
 CACHE="${FORJA_CACHE:-$RAIZ/.cache}"
 JOBS="${JOBS:-$(getconf _NPROCESSORS_ONLN 2>/dev/null || echo 2)}"
 TIPO="${FORJA_BUILD_TIPO:-Release}"
@@ -68,6 +77,38 @@ soma_da_fonte() {
 gravar_a_fonte() {
   soma_da_fonte > "$RAIZ/godot/bin/$1.fonte"
   diga "a fonte do módulo: godot/bin/$1.fonte"
+}
+
+# $1 = a biblioteca: imprime a maior versão de glibc que ela pede («2.38»), ou
+# nada quando não há nenhuma.
+glibc_pedida() {
+  objdump -T "$1" | grep -oE 'GLIBC_[0-9.]+' | sed 's/^GLIBC_//' | sort -Vu | tail -n 1
+}
+
+# $1 = a versão: 0 quando ela cabe no piso.
+cabe_no_piso() {
+  [[ "$(printf '%s\n%s\n' "$1" "$GLIBC_PISO" | sort -V | tail -n 1)" == "$GLIBC_PISO" ]]
+}
+
+# $1 = a biblioteca: 0 quando o que ela pede da glibc cabe no piso do pacote;
+# 1 e os símbolos que passam dele quando não; 2 quando não dá para ler.
+conferir_piso() {
+  local so="$1" pede v
+  [[ -f "$so" ]] || { echo "falta $so" >&2; return 2; }
+  command -v objdump > /dev/null || { echo "falta o objdump (binutils) para ler $so" >&2; return 2; }
+  pede="$(glibc_pedida "$so")"
+  [[ -n "$pede" ]] || { echo "nenhuma versão de glibc em $so" >&2; return 2; }
+  if cabe_no_piso "$pede"; then
+    echo "$so pede glibc $pede; o piso do pacote é $GLIBC_PISO: cabe"
+    return 0
+  fi
+  echo "$so pede glibc $pede, acima do piso $GLIBC_PISO do pacote (o do Godot):" >&2
+  for v in $(objdump -T "$so" | grep -oE 'GLIBC_[0-9.]+' | sed 's/^GLIBC_//' | sort -Vu); do
+    cabe_no_piso "$v" && continue
+    printf '  GLIBC_%s: %s\n' "$v" \
+      "$(objdump -T "$so" | awk -v v="(GLIBC_$v)" 'index($0, v) { print $NF }' | sort -u | tr '\n' ' ')" >&2
+  done
+  return 1
 }
 
 baixar_sdl() {
@@ -171,6 +212,10 @@ compilar() {
     linux) gravar_a_fonte libforja.linux.x86_64.so ;;
     windows) gravar_a_fonte libforja.windows.x86_64.dll ;;
   esac
+  if [[ "$alvo" == linux ]] && command -v objdump > /dev/null; then
+    # só o aviso: aqui o módulo é de quem desenvolve; o do pacote sai do contêiner do CI
+    diga "este módulo pede glibc $(glibc_pedida "$RAIZ/godot/bin/libforja.linux.x86_64.so"); o pacote pede no máximo $GLIBC_PISO"
+  fi
   if [[ "$alvo" == testes ]]; then
     diga "provas da lógica"
     ctest --test-dir "$build" --output-on-failure
@@ -192,8 +237,9 @@ case "${1:-linux}" in
     preparar_godot_cpp >/dev/null
     ;;
   soma) soma_da_fonte ;;
+  piso) conferir_piso "${2:-$RAIZ/godot/bin/libforja.linux.x86_64.so}" ;;
   *)
-    echo "uso: scripts/compilar.sh [linux|windows|testes|tudo|deps|soma]" >&2
+    echo "uso: scripts/compilar.sh [linux|windows|testes|tudo|deps|soma|piso [biblioteca]]" >&2
     exit 64
     ;;
 esac

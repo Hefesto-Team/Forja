@@ -53,6 +53,8 @@ ROLA|linux|rapido
 ROLA|portoes|rapido
 ROLA|telas|completo
 ROLA|exportar|completo
+# modulo-linux (WU01): o módulo do pacote compilado no contêiner manylinux_2_28 (glibc 2.28); o `linux` precisa dele.
+ROLA|modulo-linux|rapido
 FORA-DE-CASA|release|publica: `gh release create` no servidor, e só roda em tag (`if: startsWith(github.ref, 'refs/tags/')`). Nada sai desta casa para o GitHub.
 FORA-DE-CASA|area|rotulos.yml: roda em `pull_request_target` e escreve o rótulo no PR pela API do GitHub (`pull-requests: write`); em casa não há PR nem servidor para receber o rótulo.
 FORA-DE-CASA|roteiro|rotulos.yml: roda no evento `issues` e escreve no quadro Roteiro da organização com o segredo `ROTEIRO_TOKEN`; em casa não há issue nem o segredo.

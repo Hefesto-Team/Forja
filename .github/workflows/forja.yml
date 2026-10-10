@@ -19,9 +19,59 @@ env:
   GODOT_VERSAO: "4.7.2-stable"
 
 jobs:
+  modulo-linux:
+    # O módulo do pacote pede no máximo a glibc do Godot 4.7.2 (2.28): compilado aqui, numa base manylinux_2_28
+    # (AlmaLinux 8, glibc 2.28, gcc-toolset-14), e não na 24.04 do runner, cuja glibc 2.39 dava ao módulo
+    # símbolos de 2.38 (__isoc23_*, strlcpy, arc4random, fmod) e o deixava fora do Ubuntu 22.04, do Debian 12
+    # e do ambiente da loja. A imagem vai por data E por digest; trocar de imagem troca também a chave do cache
+    # do SDL abaixo. As provas que abrem o Godot rodam no job `linux`, fora daqui, com este artefato.
+    name: Linux — o módulo no piso de glibc do Godot (manylinux_2_28)
+    runs-on: ubuntu-24.04
+    container:
+      image: quay.io/pypa/manylinux_2_28_x86_64:2026.09.23-1@sha256:ae21cd1c8220f773f9b5934f3b845d677494d4cd4b8981c1e416f654e8afa74e
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          fetch-depth: 0 # a versão do jogo vem do git describe
+
+      - name: O git confia na árvore (o contêiner roda como root, e a árvore é do runner)
+        run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
+
+      - name: Dependências (o SDL carrega X11, Wayland e o som em tempo de execução; o EL8 não tem o libdecor, e o PipeWire dele é velho para o SDL, que fala pelo PulseAudio)
+        run: |
+          dnf install -y -q ninja-build \
+            alsa-lib-devel pulseaudio-libs-devel pipewire-devel \
+            libX11-devel libXext-devel libXrandr-devel libXcursor-devel libXfixes-devel libXi-devel \
+            libXScrnSaver-devel libXtst-devel libxkbcommon-devel \
+            wayland-devel wayland-protocols-devel \
+            libdrm-devel mesa-libgbm-devel mesa-libGL-devel mesa-libEGL-devel \
+            dbus-devel systemd-devel libusbx-devel
+
+      - name: O SDL e o godot-cpp em cache (a chave leva a base, para um cache da 24.04 não voltar)
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
+        with:
+          path: .cache
+          key: deps-linux-manylinux_2_28-2026.09.23-1-${{ hashFiles('scripts/compilar.sh') }}
+
+      - name: O módulo Linux
+        run: scripts/compilar.sh linux
+
+      - name: O módulo cabe no piso de glibc do pacote (o do Godot)
+        run: scripts/compilar.sh piso godot/bin/libforja.linux.x86_64.so
+
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: forja-modulo-linux-x86_64
+          # o .fonte vai junto: a caixa das provas confere de que fonte o módulo saiu (tests/caixa.sh)
+          path: |
+            godot/bin/libforja.linux.x86_64.so
+            godot/bin/libforja.linux.x86_64.so.fonte
+          if-no-files-found: error
+
   linux:
     name: Linux — módulo, provas e a prova do jogo
     runs-on: ubuntu-24.04
+    needs: [modulo-linux]
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
@@ -42,17 +92,14 @@ jobs:
             libdrm-dev libgbm-dev libgl1-mesa-dev libgles2-mesa-dev libegl1-mesa-dev \
             libdbus-1-dev libudev-dev
 
-      - name: O SDL e o godot-cpp em cache
-        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
-        with:
-          path: .cache
-          key: deps-linux-${{ hashFiles('scripts/compilar.sh') }}
-
       - name: As provas da lógica (sem SDL, sem Godot)
         run: scripts/compilar.sh testes
 
-      - name: O módulo Linux
-        run: scripts/compilar.sh linux
+      - name: O módulo Linux (o artefato do job modulo-linux, no piso de glibc do Godot)
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: forja-modulo-linux-x86_64
+          path: godot/bin
 
       - name: As ferramentas de bancada e as provas delas
         run: make all
@@ -83,15 +130,6 @@ jobs:
 
       - name: A prova da bancada (os experimentos do experimental/, sem aparelho)
         run: bash tests/prova_da_bancada.sh
-
-      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
-        with:
-          name: forja-modulo-linux-x86_64
-          # o .fonte vai junto: a caixa das provas confere de que fonte o módulo saiu (tests/caixa.sh)
-          path: |
-            godot/bin/libforja.linux.x86_64.so
-            godot/bin/libforja.linux.x86_64.so.fonte
-          if-no-files-found: error
 
   portoes:
     name: Os portões — texto de tela, sem rastro, mensagens, ficha pronta; a arte e o som em aviso

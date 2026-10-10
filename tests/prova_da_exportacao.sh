@@ -201,6 +201,18 @@ done
 [ -s "$DIST/forja-linux-x86_64/forja.png" ] && grep -q "^Exec=forja.x86_64" "$DIST/forja-linux-x86_64/forja.desktop" \
   || falha "o Linux sem o ícone ou sem o .desktop"
 
+# O módulo que vai no pacote pede no máximo a glibc do Godot (a WU01): acima
+# disso, o Godot abre num Ubuntu 22.04 ou num Debian 12 e o módulo não carrega.
+# O do pacote sai do contêiner manylinux_2_28 do CI; o compilado numa máquina
+# nova reprova aqui, de propósito.
+echo "==> o módulo do pacote cabe no piso de glibc do Godot"
+if piso="$(bash "$RAIZ/scripts/compilar.sh" piso "$DIST/forja-linux-x86_64/libforja.linux.x86_64.so" 2>&1)"; then
+  echo "$piso" | sed "s|$DIST/||; s/^/    /"
+else
+  echo "$piso" | sed "s|$DIST/||; s/^/    /"
+  falha "o módulo do pacote pede uma glibc mais nova que a do Godot"
+fi
+
 APPIMAGE="$DIST/FORJA-x86_64.AppImage"
 if [ -f "$APPIMAGE" ]; then
   echo "==> o AppImage: a mesma Prova de Fogo"
