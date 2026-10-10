@@ -15,7 +15,10 @@ FORJA_GODOT_SHA512="${FORJA_GODOT_SHA512:-9aa00f7a605200940bce3027a567b782f49bd8
 
 _engine_raiz="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 FORJA_GODOT="${GODOT:-$_engine_raiz/tools/Godot_v${FORJA_GODOT_VER}_linux.x86_64}"
-FORJA_GODOT_URL="https://github.com/godotengine/godot/releases/download/${FORJA_GODOT_VER}/Godot_v${FORJA_GODOT_VER}_linux.x86_64.zip"
+# A página da versão: o zip do editor e o pacote dos modelos de exportação
+# (scripts/exportar.sh) saem dela, e o endereço mora só aqui.
+FORJA_GODOT_RELEASE="https://github.com/godotengine/godot/releases/download/${FORJA_GODOT_VER}"
+FORJA_GODOT_URL="${FORJA_GODOT_RELEASE}/Godot_v${FORJA_GODOT_VER}_linux.x86_64.zip"
 
 ## Baixa a engine para tools/ se ela não estiver lá, e só a descompacta se a
 ## soma do zip bate com FORJA_GODOT_SHA512. Não abre nada.

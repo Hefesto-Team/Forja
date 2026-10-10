@@ -4,12 +4,12 @@ Para quem vai mexer no código. Antes de qualquer patch, a lei:
 [CONTRATO.md](../CONTRATO.md) (o que o jogo fala com o controle, e o que
 nunca fala) e [COMO-CONTRIBUIR.md](COMO-CONTRIBUIR.md) (as regras da casa e os comandos).
 
-O jogo é o 3D em Godot 4.4; um módulo nativo em C, com o SDL3 dentro, fala
-com os controles ([ADR-007](adr/007-o-jogo-e-o-3d-em-godot.md)).
+O jogo é o 3D em Godot (a versão mora em `scripts/engine.sh`); um módulo nativo
+em C, com o SDL3 dentro, fala com os controles ([ADR-007](adr/007-o-jogo-e-o-3d-em-godot.md)).
 
 ## Compilar
 
-Godot 4.4 desenha; um módulo nativo com o SDL3 dentro fala com os controles
+O Godot da versão do `scripts/engine.sh` desenha; um módulo nativo com o SDL3 dentro fala com os controles
 ([ADR-007](adr/007-o-jogo-e-o-3d-em-godot.md)). O módulo leva o SDL
 3.4.14 (por versão **e** sha256) e o godot-cpp da série 4.4 (por tag **e**
 commit) — nunca o que a distro tiver —, e os caminhos da máquina saem do
@@ -25,7 +25,7 @@ sudo apt install mingw-w64          # só para o módulo do Windows
 ```
 
 ```sh
-./run-local.sh                 # compila o módulo, baixa o Godot 4.4.1 na primeira vez, e abre o jogo
+./run-local.sh                 # compila o módulo, baixa e confere o Godot do scripts/engine.sh na primeira vez, e abre o jogo
 ./run-local.sh -- --simular=4  # os argumentos do jogo depois de --
 ./run-local.sh -- --simular=4 --robo --acelerado   # o t da linha do tempo é o tempo do jogo, não o de parede
 

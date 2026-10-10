@@ -106,7 +106,6 @@ sugerido: `feat: a sessão da nuvem se prepara sozinha — pacotes, módulo e Go
 - Fica de fora (não é do repositório): registrar o gancho na configuração da
   sessão na nuvem, chamando `FORJA_NUVEM=1 bash scripts/preparar_sessao.sh`.
 - Para o André: conferir que `./run-local.sh` não mudou (o script não é chamado por ele).
-- Anotado, não mexido: o `run-local.sh` usa `$GODOT_URL`, que ele não define
-  (só o `engine.sh` define `FORJA_GODOT_URL`); com `set -u`, a primeira baixada
-  do Godot por ele quebra. O `preparar_sessao.sh` usa o `forja_baixar_engine`
-  do `engine.sh` e não tem esse problema.
+- O `run-local.sh` que usava uma `$GODOT_URL` que ninguém definia: curado na
+  [WE05](WE05-o-godot-baixado-num-lugar-so.md), que leva o `run-local.sh` e o
+  `exportar.sh` ao `forja_baixar_engine` do `engine.sh`.

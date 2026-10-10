@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Sobe o FORJA (a Hefesto Tech Demo) na máquina: o jogo 3D em Godot 4.4 com o
-# módulo nativo (SDL3) que fala com os DualSense.
+# Sobe o FORJA (a Hefesto Tech Demo) na máquina: o jogo 3D em Godot (a versão
+# mora em scripts/engine.sh) com o módulo nativo (SDL3) que fala com os DualSense.
 #
 #   ./run-local.sh                     compila o módulo e abre o jogo
 #   ./run-local.sh -- --simular=4      argumentos depois de -- vão para o jogo
@@ -29,7 +29,7 @@ echo "==> módulo nativo (SDL3 + godot-cpp; a primeira vez baixa e compila)"
 "$ROOT/scripts/compilar.sh" linux
 
 # O download e a conferência do sha512 moram no engine.sh, num lugar só.
-forja_baixar_engine
+forja_baixar_engine || exit 1
 
 echo "==> importando os assets (a primeira vez demora)"
 "$GODOT_BIN" --headless --path "$ROOT/godot" --import >"$ROOT/build/godot-import.log" 2>&1 || true

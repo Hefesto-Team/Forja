@@ -12,6 +12,9 @@
 #   instalar           scripts/instalar.sh numa raiz falsa (um /sys, um /dev e um DESTDIR de mentira, e sudo, apt-get,
 #                      dpkg e udevadm de mentira no PATH): o conferir acusa o DualSense sem a regra do udev, o
 #                      sistema põe a regra e tira a antiga, e o desinstalar a tira
+#   engine             run-local.sh e scripts/exportar.sh numa árvore sem tools/, com um curl de mentira que anota a
+#                      URL e sai 1: os dois baixam pelo forja_baixar_engine (a URL do engine.sh) e saem 1 com a
+#                      mensagem dele
 #
 # Fica fora: scripts/bancada_tui.py --prova, que cai em «No module named 'textual'» antes de chegar à prova fora
 # da oficina (o textual só existe lá). O scripts/conferir_ost.py já roda pela tests/prova_do_jogo.sh.
@@ -24,7 +27,7 @@ TMP="$(mktemp -d "${TMPDIR:-/tmp}/forja-prova-das-ferramentas-XXXXXX")"
 trap 'rm -rf "$TMP"' EXIT
 FALHAS=0
 CASOS=0
-TODAS=(kenney mapa_de_batidas trilha_fichas gerar_trilha descrever_trilha baixador instalar)
+TODAS=(kenney mapa_de_batidas trilha_fichas gerar_trilha descrever_trilha baixador instalar engine)
 PEDIDAS=("$@")
 [ "${#PEDIDAS[@]}" -eq 0 ] && PEDIDAS=("${TODAS[@]}")
 
@@ -188,6 +191,31 @@ if pedida instalar; then
     confere "a regra que o desinstalar não tirou segue anotada" \
       grep -qx "$F/destino/etc/udev/rules.d/70-forja-dualsense.rules" "$F/oficina/arquivos-do-sistema.txt"
   fi
+fi
+
+## o Godot baixado num lugar só (WE05): quem chega sem tools/ baixa pelo forja_baixar_engine, com a soma da V01
+if pedida engine; then
+  echo "==> engine: o run-local.sh e o exportar.sh numa árvore sem tools/"
+  E="$TMP/engine"
+  mkdir -p "$E/raiz/scripts" "$E/bin"
+  cp "$RAIZ/run-local.sh" "$E/raiz/"
+  cp "$RAIZ/scripts/engine.sh" "$RAIZ/scripts/exportar.sh" "$E/raiz/scripts/"
+  # o módulo e as ferramentas de bancada já «compilados»: a prova é do download, não da compilação
+  printf '#!/bin/sh\nexit 0\n' > "$E/raiz/scripts/compilar.sh"
+  printf '#!/bin/sh\nexit 0\n' > "$E/bin/make"
+  # o curl de mentira anota a URL pedida (o último argumento) e falha como uma rede caída
+  printf '#!/bin/sh\nfor a in "$@"; do u="$a"; done\necho "$u" >> "%s"\nexit 1\n' "$E/urls" > "$E/bin/curl"
+  chmod +x "$E/raiz/scripts/compilar.sh" "$E/bin/make" "$E/bin/curl"
+  url="$(bash -c 'source "$1/scripts/engine.sh"; echo "$FORJA_GODOT_URL"' _ "$RAIZ")"
+  for quem in run-local.sh "scripts/exportar.sh linux"; do
+    : > "$E/urls"
+    # shellcheck disable=SC2086
+    espera 1 "$quem sem tools/ sai 1 quando o Godot não baixa" \
+      env PATH="$E/bin:$PATH" GODOT=/nao/existe bash "$E/raiz/"$quem
+    confere "$quem diz a mensagem do forja_baixar_engine" grep -q "não deu para baixar a engine de $url" "$TMP/saida.log"
+    confere "$quem pede ao curl só a URL do engine.sh" bash -c '[ "$(cat "$1")" = "$2" ]' _ "$E/urls" "$url"
+  done
+  confere "nenhum dos dois deixa o Godot em tools/" test ! -e "$E/raiz/tools"
 fi
 
 echo

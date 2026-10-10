@@ -25,7 +25,7 @@ cd "$RAIZ"
 source "$RAIZ/scripts/engine.sh"   # a versão da engine mora lá (ADR-009)
 GODOT_VER="$FORJA_GODOT_VER"
 GODOT_BIN="$FORJA_GODOT"
-MODELOS_URL="https://github.com/godotengine/godot/releases/download/${GODOT_VER}/Godot_v${GODOT_VER}_export_templates.tpz"
+MODELOS_URL="${FORJA_GODOT_RELEASE}/Godot_v${GODOT_VER}_export_templates.tpz"
 MODELO_LINUX="linux_release.x86_64"
 MODELO_LINUX_SHA256="d9f79ab89b5ae369aeed11c6052d402e8218cd503bf85b4a235f9c30c46a7c63"
 MODELO_WINDOWS="windows_release_x86_64.exe"
@@ -43,11 +43,6 @@ MODELOS="$DADOS/godot/export_templates/${GODOT_VER/-/.}"
 DIST="$RAIZ/dist"
 
 diga() { printf '==> %s\n' "$*"; }
-
-# O download e a conferência do sha512 moram no engine.sh, num lugar só.
-garantir_godot() {
-  forja_baixar_engine || exit 1
-}
 
 confere() { # $1 = arquivo, $2 = sha256
   [[ -f "$1" ]] && [[ "$(sha256sum "$1" | cut -d' ' -f1)" == "$2" ]]
@@ -298,11 +293,11 @@ case "$ALVO" in
 esac
 
 if [[ "$ALVO" == appimage ]]; then
-  garantir_godot
+  forja_baixar_engine || exit 1   # o download e a soma moram no engine.sh, num lugar só
   appimage
   exit 0
 fi
-garantir_godot
+forja_baixar_engine || exit 1
 garantir_modelos
 mkdir -p "$DIST"
 diga "importando os assets"
