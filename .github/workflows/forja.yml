@@ -383,3 +383,63 @@ jobs:
           ls -la dist
           gh release create "${GITHUB_REF_NAME}" --title "FORJA ${GITHUB_REF_NAME}" --generate-notes --verify-tag \
             dist/forja-linux-x86_64.tar.gz dist/forja-windows-x86_64.zip dist/FORJA-x86_64.AppImage
+
+  gauntlet-pernas:
+    # As pernas do gauntlet saem da lista do simulador (a tabela DEFEITOS[] de nativo/nucleo/simulador.c), não de
+    # uma cópia aqui: defeito novo lá ganha perna sozinho, e reprova se nenhuma sala o pega.
+    name: O gauntlet — as pernas (os defeitos do simulador)
+    runs-on: ubuntu-24.04
+    outputs:
+      pernas: ${{ steps.pernas.outputs.pernas }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+
+      - name: As quatro pernas (a primeira leva o limpo)
+        id: pernas
+        run: echo "pernas=$(bash scripts/gauntlet.sh --pernas 4)" >> "$GITHUB_OUTPUT"
+
+  gauntlet:
+    # A prova da prova (ADR-003): a prova do jogo roda limpa e com cada defeito de mentira do simulador, e cada
+    # defeito tem de ser pego. Uma perna por pedaço da lista, com os defeitos no nome: a perna vermelha diz qual
+    # defeito a prova deixou passar. O Godot roda na caixa (tests/caixa.sh) e com --acelerado (scripts/gauntlet.sh).
+    name: O gauntlet — ${{ matrix.nome }}
+    runs-on: ubuntu-24.04
+    needs: [linux, gauntlet-pernas]
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJSON(needs.gauntlet-pernas.outputs.pernas) }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+
+      - name: O módulo Linux (o artefato do job modulo-linux)
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: forja-modulo-linux-x86_64
+          path: godot/bin
+
+      - name: A versão do Godot é a do engine.sh
+        run: |
+          grep -q "FORJA_GODOT_VER:-${GODOT_VERSAO}}" scripts/engine.sh \
+            || { echo "o CI baixa o Godot ${GODOT_VERSAO}, e o scripts/engine.sh pede outro: alinhe os dois"; exit 1; }
+
+      - name: O Godot em cache
+        id: godot
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
+        with:
+          path: tools
+          key: godot-${{ env.GODOT_VERSAO }}
+
+      - name: O Godot (baixado pelo scripts/baixar_engine.sh, que confere o sha512; com o cache, só mostra a versão)
+        run: bash scripts/baixar_engine.sh
+
+      - name: O gauntlet desta perna
+        run: bash scripts/gauntlet.sh --so "${{ matrix.so }}"
+
+      - name: Os registros da perna que reprovou (a caixa os guarda em .cache/provas/)
+        if: failure()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: forja-gauntlet-${{ strategy.job-index }}
+          path: .cache/provas/
+          if-no-files-found: ignore

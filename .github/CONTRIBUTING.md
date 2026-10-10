@@ -23,7 +23,8 @@ bash tests/prova_do_jogo.sh
 bash tests/prova_sem_rastro.sh
 ```
 
-Se a mudança toca uma sala ou o módulo nativo, rode também `scripts/gauntlet.sh` e `bash tests/prova_de_poucos.sh`.
+Se a mudança toca uma sala ou o módulo nativo, rode também `bash tests/prova_de_poucos.sh`. O CI roda o gauntlet
+(`scripts/gauntlet.sh`, em quatro pernas); para triar um defeito em casa, `scripts/gauntlet.sh --so <defeito>`.
 
 ## Dúvidas
 

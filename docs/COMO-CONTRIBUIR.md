@@ -55,8 +55,9 @@ Cada uma nasceu de um defeito real.
 - **O módulo nativo:** `scripts/compilar.sh linux|windows|testes`. Não
   recompile com um Godot rodando o jogo: ele segura o `.so`.
 - **Antes de todo push:** `bash tests/prova_do_jogo.sh`. Mexeu numa sala ou no
-  módulo: `scripts/gauntlet.sh` e `bash tests/prova_de_poucos.sh` também (uns
-  10 minutos e 1 minuto). A bancada: `bash tests/prova_da_bancada.sh`.
+  módulo: `bash tests/prova_de_poucos.sh` também (1 minuto); o CI roda o
+  gauntlet, e `scripts/gauntlet.sh --so <defeito>` tria um defeito em casa. A
+  bancada: `bash tests/prova_da_bancada.sh`.
 - **A exportação:** `scripts/exportar.sh tudo && bash tests/prova_da_exportacao.sh`
   (o `.exe` roda pelo Wine).
 - **A prova visual:** `bash tests/prova_visual.sh <pasta>` (quatro partidas do

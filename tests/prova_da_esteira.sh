@@ -303,6 +303,34 @@ else
     _ "$CASA_ACT" "$H/home/.local/state/hefesto-casa" "$H/ultima.log"
 fi
 
+# --- o gauntlet: a lista é a do simulador (WE03) ------------------------------------------------------------------
+## As partes do scripts/gauntlet.sh que não abrem o Godot: as pernas do CI saem da tabela do simulador e cobrem todo
+## defeito que o simulador.h declara; lista vazia e defeito desconhecido não rodam (rc 2).
+pernas_cobrem() { # <raiz>: as pernas do --pernas 4 cobrem os DEFEITO_* do simulador.h, uma vez cada, e a primeira leva o limpo
+  bash "$1/scripts/gauntlet.sh" --pernas 4 > "$TMP/pernas.json" || return 1
+  python3 - "$TMP/pernas.json" "$1/nativo/nucleo/simulador.h" <<'PY'
+import json, re, sys
+pernas = json.load(open(sys.argv[1]))
+h = open(sys.argv[2], encoding="utf-8").read()
+declarados = [n.lower().replace("_", "-") for n in re.findall(r"^\s*DEFEITO_([A-Z0-9_]+)\s*=\s*1\s*<<", h, re.M)]
+so = [d for p in pernas for d in p["so"].split(",")]
+nomes_ok = all(p["nome"] == p["so"].replace(",", ", ") for p in pernas)
+print("pernas:", len(pernas), "declarados:", len(declarados), "nas pernas:", len(so))
+sys.exit(0 if (len(pernas) == 4 and so[0] == "limpo" and so.count("limpo") == 1 and nomes_ok
+               and sorted(d for d in so if d != "limpo") == sorted(declarados) and declarados) else 1)
+PY
+}
+espera 0 "gauntlet: as quatro pernas cobrem todo defeito do simulador.h, uma vez cada, e a primeira leva o limpo" \
+  pernas_cobrem "$RAIZ"
+K="$TMP/gauntlet"
+mkdir -p "$K/scripts" "$K/nativo/nucleo"
+cp "$RAIZ/scripts/gauntlet.sh" "$K/scripts/"; cp "$RAIZ/nativo/nucleo/simulador.h" "$K/nativo/nucleo/"
+grep -v '^    {"' "$RAIZ/nativo/nucleo/simulador.c" > "$K/nativo/nucleo/simulador.c"
+espera 2 "gauntlet: a tabela do simulador sem nenhum defeito sai 2" bash "$K/scripts/gauntlet.sh" --pernas 4
+grep -v '{"engasga", DEFEITO_ENGASGA}' "$RAIZ/nativo/nucleo/simulador.c" > "$K/nativo/nucleo/simulador.c"
+espera 1 "gauntlet: o defeito que o simulador.h declara e a tabela esquece fica sem perna, e reprova" pernas_cobrem "$K"
+espera 2 "gauntlet: --so com um defeito que o simulador não tem sai 2" bash "$RAIZ/scripts/gauntlet.sh" --so limpo,nada
+
 # --- as regras de execução (WT04) ---------------------------------------------------------------------------------
 ## regras <raiz>: o regras.md existe, tem no máximo 60 linhas, e o 12, o COMO-CONTRIBUIR e a a-esteira apontam para ele.
 regras() {

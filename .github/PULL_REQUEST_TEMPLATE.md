@@ -16,7 +16,7 @@
 - [ ] Os commits estão assinados e o autor é quem escreveu (veja o [CONTRIBUTING](CONTRIBUTING.md)).
 - [ ] `bash tests/prova_do_jogo.sh` passou.
 - [ ] `bash tests/prova_sem_rastro.sh` passou.
-- [ ] Se mexeu numa sala ou no módulo: `scripts/gauntlet.sh` e `bash tests/prova_de_poucos.sh` também.
+- [ ] Se mexeu numa sala ou no módulo: `bash tests/prova_de_poucos.sh` também (o CI roda o gauntlet).
 - [ ] O português do Brasil está com acento, nos textos e nos commits.
 
 ## Como testei
