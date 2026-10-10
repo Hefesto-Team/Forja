@@ -200,11 +200,33 @@ func posicionar(l: int) -> void:
 	maos_livres(p)
 
 
-func falar(l: int, _evento: String) -> bool:
-	if t - float(_ultima_fala[l]) < FALA_S:
-		return false
-	_ultima_fala[l] = t
-	return true
+func julgar_toque(l: int, t_alvo: float, n := -1, perigo := false) -> int:
+	var t_toque := Ritmo.t_musica()
+	var folga := Ritmo.folga_para(l, pontos, presentes()) if perigo else 0.0
+	var j := Ritmo.julgar(l, t_toque, t_alvo, folga)
+	Ritmo.registrar_toque(l, n, j, Ritmo.desvio_ms(l, t_toque, t_alvo))
+	Ritmo.contar_para_ajuda(l, j)
+	_reagir(l, j)
+	if j == Ritmo.ERRO:
+		falha(l)
+	else:
+		toque(l, j)
+	return j
+
+
+func nota_perdida(l: int, n: int) -> void:
+	Ritmo.registrar_toque(l, n, Ritmo.ERRO)
+	Ritmo.contar_para_ajuda(l, Ritmo.ERRO)
+	_reagir(l, Ritmo.ERRO)
+	falha(l)
+
+
+func nova_nota(l: int, n: int, t_alvo: float) -> void:
+	Ritmo.registrar_nota(l, n, t_alvo)
+
+
+func falar(l: int, evento: String) -> bool:
+	return super(l, evento)
 
 
 func _reagir(l: int, j: int) -> void:

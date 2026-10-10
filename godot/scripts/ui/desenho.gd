@@ -429,3 +429,25 @@ static func jcard(ci: CanvasItem, r: Rect2, tinta: Color, lombada: String) -> vo
 		* Transform2D(-PI * 0.5, base))
 	ci.draw_string(f, Vector2.ZERO, t(lombada), HORIZONTAL_ALIGNMENT_LEFT, -1, px, Tema.TINTA_SUAVE)
 	inclinar(ci, Vector2.ZERO, 0.0)
+
+
+const EMBURRADA := Vector2(160, 104)
+const EMBURRADA_TRACO := 6.0
+
+
+static func cara_emburrada(ci: CanvasItem, centro: Vector2, cor: Color, graus := 0.0, escala := 1.0, alfa := 1.0) -> void:
+	if alfa <= 0.0:
+		return
+	var tinta := Color(cor, alfa)
+	var fita := Color(Tema.FITA, alfa)
+	var r := Rect2(-EMBURRADA * 0.5, EMBURRADA)
+	ci.draw_set_transform(centro, deg_to_rad(graus), Vector2(escala, escala))
+	caixa(ci, Rect2(r.position + Vector2(9, 9), r.size), fita, Tema.RAIO_PLACA)
+	caixa(ci, r, fita, Tema.RAIO_PLACA, tinta, int(EMBURRADA_TRACO))
+	for x in [-40.0, 40.0]:
+		var olho := Vector2(x, -10.0)
+		ci.draw_arc(olho, 18.0 - EMBURRADA_TRACO * 0.5, 0.0, TAU, 32, tinta, EMBURRADA_TRACO, true)
+		ci.draw_rect(Rect2(olho - Vector2(18.0 + 1.0, 18.0 + 1.0), Vector2(38.0, 18.0 + 1.0)), fita)
+		ci.draw_line(olho - Vector2(18.0, 0.0), olho + Vector2(18.0, 0.0), tinta, EMBURRADA_TRACO, true)
+	ci.draw_arc(Vector2(0.0, 44.0), 32.0, deg_to_rad(200.0), deg_to_rad(340.0), 24, tinta, EMBURRADA_TRACO, true)
+	ci.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
