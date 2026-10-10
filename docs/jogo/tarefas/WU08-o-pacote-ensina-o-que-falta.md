@@ -75,3 +75,42 @@ Descompactar o `.tar.gz` numa pasta qualquer, rodar o `instalar-atalho.sh`, abri
 
 Marcar WU08 como **feito** no [quadro](README.md), com o commit e o gasto. Commit sugerido:
 `docs(pacote): o atalho do Linux funciona fora do AppImage, e os dois LEIA-ME falam do Steam Input`.
+
+## O que foi feito (leva 1, a-entrega)
+
+- **O atalho:** a pasta do Linux (e o `.tar.gz`) não leva mais o `forja.desktop` sem caminho. No lugar vai o
+  `instalar-atalho.sh`, que não pede sudo e escreve `~/.local/share/applications/forja.desktop` (ou o do
+  `XDG_DATA_HOME`). A entrada sai com:
+  - o `Exec` absoluto e entre aspas, escapado como a especificação manda (a barra invertida, as aspas, a crase e o cifrão
+    escapados, e o `%` dobrado);
+  - o `Path` da pasta e o `Icon` absoluto.
+
+  Os outros campos saem da mesma `desktop()` do AppImage, que não mudou. O `docs/DESENVOLVER.md` diz o que o
+  pacote leva.
+- **O LEIA-ME do Linux:**
+  - ganha a linha do atalho;
+  - ganha o passo do Steam Input, com o mesmo texto do Windows, sem o Proton;
+  - o texto do udev é o da WU03, e ficou como estava.
+- **O LEIA-ME do Windows:** ganha «Abrindo o forja.exe», com quatro passos:
+  - o cabo: sem fio, o jogo recebe só os botões, e o som, a háptica, os gatilhos, a luz e o microfone pedem o cabo;
+  - fechar os programas que remapeiam o DualSense ou o escondem, sem nome de terceiro;
+  - a Steam aberta segurando o controle;
+  - o aviso de fornecedor desconhecido na primeira abertura.
+
+  O «Pelo Proton» continua igual.
+- **As provas:** a `tests/prova_da_exportacao.sh` roda o `instalar-atalho.sh` numa casa de mentira duas vezes:
+  - uma na pasta do pacote;
+  - outra numa pasta com espaço, aspas, cifrão e porcento no nome.
+
+  Nas duas, ela passa o `desktop-file-validate` no arquivo escrito, desfaz o `Exec` como a especificação manda e
+  confere que ele aponta para o `forja.x86_64` da pasta e que o `Icon` existe. Ela também confere o texto: «Steam
+  Input» nos dois LEIA-ME e a seção do `.exe` no do Windows. A conferência antiga (`^Exec=forja.x86_64`) saiu.
+  - Rodada inteira: `scripts/exportar.sh linux` com o módulo do contêiner `manylinux_2_28`, depois
+    `SO_LINUX=1 bash tests/prova_da_exportacao.sh`, que sai 0.
+  - Mordida: sem o escape do `Exec`, o `desktop-file-validate` reprova a pasta esquisita (o `$` sem escape e o
+    `%/` como código de campo). O texto de antes reprova as duas conferências de texto.
+  - O LEIA-ME do Windows foi conferido pelo texto que a `leia_me windows` gera; o `.exe` não foi exportado
+    nesta máquina.
+- **Fica para ela:** ler os dois LEIA-ME na voz do pacote, principalmente o passo 3 do Windows (a Steam aberta).
+- **Fica para o André:** o passo da seção «Para o André»: descompactar o `.tar.gz`, rodar o
+  `instalar-atalho.sh` e abrir pelo menu.

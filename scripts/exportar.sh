@@ -81,9 +81,33 @@ máquina, no cabo e no rádio, para o DualSense e o DualSense Edge:
 
 Depois, desligue e religue o controle. Sem a regra, o relatório da sessão diz
 a causa na linha «efeitos» de cada controle.
+
+O atalho no menu do sistema: rode ./instalar-atalho.sh nesta pasta. Ele não
+pede senha e aponta para esta pasta; se ela mudar de lugar, rode de novo.
+
+Pela Steam (o jogo adicionado à biblioteca, ou no Steam Deck), o Steam Input
+vem ligado:
+
+  Propriedades > Controle: desative o Steam Input para este jogo (com ele
+  ligado, o jogo recebe um controle Xbox e perde o resto do DualSense).
 TEXTO
   else
     cat <<'TEXTO'
+
+Abrindo o forja.exe:
+
+  1. Ligue o DualSense no cabo: sem fio, o jogo recebe só os botões. O som
+     no alto-falante do controle, a háptica, os gatilhos, a luz e o
+     microfone pedem o cabo.
+  2. Feche os programas que remapeiam o DualSense ou o escondem do Windows
+     (os que o fazem passar por um controle Xbox): com eles abertos, o jogo
+     não vê o controle de verdade.
+  3. Com a Steam aberta, ela pode segurar o controle mesmo para um jogo de
+     fora dela. Feche a Steam antes de abrir o jogo, ou adicione o forja.exe
+     à biblioteca e desative o Steam Input para ele (o passo 3 abaixo).
+  4. Na primeira abertura, o Windows avisa que o aplicativo é de um
+     fornecedor desconhecido (o forja.exe não é assinado): Mais informações >
+     Executar assim mesmo.
 
 Pelo Proton, na Steam:
 
@@ -120,6 +144,33 @@ Exec=forja.x86_64
 Icon=forja
 Terminal=false
 Categories=Game;
+TEXTO
+}
+
+instalar_atalho() {
+  cat <<'TEXTO'
+#!/bin/sh
+# O atalho do FORJA no menu do sistema, para esta pasta. Não pede senha: a
+# entrada vai para ~/.local/share/applications. Se a pasta mudar de lugar,
+# rode de novo.
+set -e
+AQUI="$(cd "$(dirname "$0")" && pwd)"
+[ -x "$AQUI/forja.x86_64" ] || { echo "não achei o forja.x86_64 ao lado deste script" >&2; exit 1; }
+escapa() { printf '%s' "$1" | sed 's/\\/\\\\/g'; }
+EXEC="\"$(printf '%s' "$AQUI/forja.x86_64" | sed 's/[\\"`$]/\\&/g; s/%/%%/g' | sed 's/\\/\\\\/g')\""
+PASTA="$(escapa "$AQUI")"
+ICONE="$(escapa "$AQUI/forja.png")"
+DESTINO="${XDG_DATA_HOME:-$HOME/.local/share}/applications"
+mkdir -p "$DESTINO"
+cat > "$DESTINO/forja.desktop" <<FIM
+TEXTO
+  desktop | sed -e 's|^Exec=.*|Exec=$EXEC\nPath=$PASTA|' -e 's|^Icon=.*|Icon=$ICONE|'
+  cat <<'TEXTO'
+FIM
+if command -v update-desktop-database > /dev/null 2>&1; then
+  update-desktop-database "$DESTINO" > /dev/null 2>&1 || true
+fi
+echo "o atalho do FORJA está no menu: $DESTINO/forja.desktop"
 TEXTO
 }
 
@@ -190,7 +241,8 @@ exportar() {
   if [[ "$qual" == linux ]]; then
     cp "$RAIZ/udev/70-forja-dualsense.rules" "$saida/"
     cp "$RAIZ/godot/assets/forja-logo.png" "$saida/forja.png"
-    desktop > "$saida/forja.desktop"
+    instalar_atalho > "$saida/instalar-atalho.sh"
+    chmod +x "$saida/instalar-atalho.sh"
     tar -C "$DIST" -czf "$DIST/$nome.tar.gz" "$nome"
     diga "dist/$nome.tar.gz"
   else
