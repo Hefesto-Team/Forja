@@ -352,7 +352,7 @@ static func chip(ci: CanvasItem, r: Rect2, lugar: int, pronto: bool, palavra := 
 # ------------------------------------------------ a placa, a etiqueta, o deck (G04, com as assinaturas da G11) --
 ## A placa de casco (arte/06): a sombra deslocada, o casco de raio 14 e a borda de 3 px; com `foco`, o casco
 ## em foco e a borda na cor dele.
-static func placa(ci: CanvasItem, r: Rect2, foco := Color(0, 0, 0, 0)) -> void:
+static func placa(ci: CanvasItem, r: Rect2, foco := Color.TRANSPARENT) -> void:
 	caixa(ci, Rect2(r.position + Vector2(4, 6), r.size), Tema.SOMBRA, Tema.RAIO_CARTAO)
 	var com_foco := foco.a > 0.0
 	caixa(ci, r, Tema.CASCO_ALTO if com_foco else Tema.CASCO, Tema.RAIO_CARTAO, foco if com_foco else Tema.CASCO_ALTO, 3)
