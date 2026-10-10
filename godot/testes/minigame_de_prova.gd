@@ -15,6 +15,7 @@ const FICHA := {
 	"material": "metal",
 	"microjogo": {"verbo": "Bata!", "segundos": 6.0},
 	"treino": false,
+	"como_jogar": [["cross", "Bater no tempo"]],
 }
 const NOTAS := 12
 const PRIMEIRA := BATIDA_DA_PRIMEIRA_NOTA

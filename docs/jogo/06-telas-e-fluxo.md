@@ -26,7 +26,7 @@ salas às cegas com as perguntas de hoje. Nada disso aparece para o jogador.
 | **introdução** | na primeira vez da noite: 20 a 30 segundos sem texto, a Dissonância apagando a forja e quatro armaduras vazias acendendo; qualquer botão pula | — |
 | **construção do cavaleiro** | a tela nova ([06b](06b-a-construcao-do-cavaleiro.md)): boneco, cor, peça, item e nome, com os quatro lugares lado a lado; é também o lobby | sai o cartão com VID:PID e "o que foi mandado" |
 | **salão** | o hub: um portão por seção, a bigorna da partida, a vitrine da coleção da noite | o subtítulo com o nome do hardware vira o nome da seção ("A Centelha") |
-| **aviso do minigame** | título, o verbo, o ícone do controle com a parte usada, o gênero ("Dupla", "Todos contra todos"); dez segundos de treino que não vale ponto | a lista de features; o aviso deixa de esperar ✕ de todos: começa sozinho em oito segundos, ou antes se todos apertarem |
+| **aviso do minigame** | a entrada pela cortina diagonal na tinta da seção, com o verbo carimbado no tempo 1, e o J-card ([arte/06](arte/06-interface-e-texto.md#o-j-card)): o título, a seção, o gênero, a faixa, o «Como jogar» da `FICHA`, o treino que não vale ponto e o chip de cada lugar (G12) | a lista de features; o aviso deixa de esperar ✕ de todos: começa sozinho em oito segundos, ou antes se todos apertarem |
 | **minigame** | o mundo, a música, o HUD de cada jogador | a tabela de veredito |
 | **resultado** | o apito, o vencedor em destaque com o boneco dele pulando, a colocação dos quatro, pontos da rodada, o jingle; avança sozinho em seis segundos | — |
 | **placar** | a partida inteira, a virada, o líder | — |

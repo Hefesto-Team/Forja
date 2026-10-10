@@ -96,6 +96,7 @@ As chaves obrigatórias (as mesmas de `Minigame.CHAVES`):
 | `sensacoes` | as sensações usadas, pelo nome (F05, H08) | `toque`, `toque_esq`, `toque_dir`, `acerto`, `perfeito`, `erro`, `golpe`, `golpe_esq`, `golpe_dir`, `explosao`, `aviso` |
 | `material` | o chão e os objetos ([05](../05-haptica-e-controle.md#a-háptica-por-material)): a textura que o kit toca na mão a cada acerto | `metal`, `pedra`, `areia`, `gelo`, `grama`, `lama`, `plasma`, `madeira` |
 | `microjogo` | o recorte para o Relâmpago | `{"verbo": "Bata!", "segundos": 6.0}` (5 a 8 s) |
+| `como_jogar` | o «Como jogar» do J-card (G12): de 1 a 3 pares `[glifo, frase]`, o glifo de `godot/assets/glifos/` e a frase no infinitivo, do mundo, até 28 caracteres. Sem ela, com 0 ou mais de 3, com glifo que não existe ou frase longa, `Minigame.validar` reprova; o verbo também reprova se não cabe na cortina a 160 px | `[["cross", "Martelar"], ["stick_l", "Inclinar para equilibrar"]]` |
 
 As chaves opcionais:
 
