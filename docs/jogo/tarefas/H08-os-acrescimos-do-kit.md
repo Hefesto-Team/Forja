@@ -1774,6 +1774,9 @@ bash tests/prova_de_poucos.sh
 - No salão, entre duas vezes no mesmo portão quando a seção tiver mais de um
   minigame: o segundo é outro.
 - Na prova visual da sua máquina, olhe as pranchas das partidas de 5.
+- O Martelo de Hefesto acaba quando todos terminam as runas, mesmo antes dos
+  100 s de música (a regra dele, que o kit não muda). Jogando, diga se ele
+  acaba cedo demais ou no ponto.
 
 ## Ao terminar
 
@@ -1783,3 +1786,71 @@ bash tests/prova_de_poucos.sh
   as seções (I a Q) dependem da H08.
 - Commit sugerido (sem trailer):
   `feat: os acréscimos do kit — o fim em tempo de música, o sorteio dos cinco, a fila de notas e a luz que reage`
+
+## O que foi feito (leva 1, o-kit-2)
+
+Os passos 2 a 14, um commit por passo (do `ae77fad` ao `872aaf5`), e depois
+três consertos da prova: o -1 do coop conferido com colocação, a ficha que
+joga fora da noite aberta e o relógio do fim conferido contra o tempo jogado,
+e a conta da bancada que sai da tabela de sensações.
+
+As provas verdes: `bash tests/prova_do_jogo.sh`,
+`SALA=S01_J01 bash tests/prova_do_jogo.sh` (com os doze vereditos),
+`bash tests/prova_da_bancada.sh` e `bash tests/prova_sem_rastro.sh`.
+
+**A medida.** O minigame de tempo, com `--fixed-fps 60`: 90 s de música em
+90,2 s de parede (96 235 quadros, 1 604 s de jogo). A luz nunca ficou abaixo
+do piso (0 amostras), e o branco do perfeito durou no máximo 10 quadros. O
+calar durou 2,22 s para 2,22 s esperados. O coop fechou com vencedor -1 e
+destaque P1. A fila casou o P1 em perfeito (75 de 77), o P3 em bom (71 de
+72) e o P4 em ótimo (70 de 76), e o P2 perdeu 42 notas sem toque.
+
+**As mordidas.** Cada regra foi quebrada, a prova reprovou, e o arquivo foi
+restaurado:
+
+- `tempo_jogado` pelo `t_jogo` reprova o relógio (90 s em 4,5 s), a fila e o
+  calar;
+- `luz_com_piso` sem o piso e o `_reagir` sem o piscar reprovam a luz;
+- a `ordem` sem embaralhar reprova o sorteio;
+- o `conferir_a_ficha` sem a duração reprova a ficha;
+- o coop sem o -1 reprova a decisão, depois do conserto (antes passava,
+  porque a sala vazia já dava -1);
+- a partida de 5 sem O Canto, a checagem visual sem a exceção do coop, o
+  `calar` mudo e o `notas_perdidas` mudo reprovam cada um a sua linha;
+- a ficha sem fechar a noite reprova a volta ao salão.
+
+**O que a prova da ficha achou.** Com `SALA=S01_J01`, o Martelo acabava em
+uns 5 s de parede: o robô termina as runas antes dos 100 s, e o "todos
+acabaram" da SalaJogo fecha a sala. A checagem do fim agora confere o tempo
+jogado contra a parede, e aceita o fim antes da duração só quando todos
+acabaram.
+
+**A bancada.** Ela esperava 36 e 32 vereditos, a conta de 9 sensações. A
+tabela já tinha 11 antes desta tarefa (a `fita` e o `metal`), e chegou a 13
+com o `toque_esq` e o `toque_dir`. A conta agora sai da tabela.
+
+**A prova visual** (a passada fixa, nas quatro partidas). O Canto aparece na
+partida de 5, e o placar diz «A seguir: O Canto». As reprovações são as
+famílias que já estavam no quadro:
+
+- a tela parada (F09d);
+- o contraste de «A FORJA», «Pronto» e «LADO B»;
+- o título fora da área segura;
+- a montagem cinza;
+- «O Martelo de Hefesto» encavalado com «Continuar» no resultado: é o nome
+  longo, cuja cura o `46aae4d` deixou para depois da fita.
+
+A passada livre foi interrompida, porque a máquina estava com carga de 18 a
+36.
+
+**Escolhas a validar por ela:**
+
+- As trocas e os canais seguem o 13, e não a lista curta.
+- As cores das equipes ficaram literais (+3 avisos na régua de arte).
+- «A seguir» ficou com maiúscula.
+- O histórico da partida guarda o slot.
+- A fila tolera toque sem nota quando a nota daquele lugar passou, por
+  causa da carga.
+- O robô mira com a calibração do lugar.
+- O «Empate!» já existia como «Tie!», então entraram seis frases, e não
+  sete.
