@@ -853,3 +853,17 @@ passada do servidor «antes»), e imprime um aviso com o estado da tela; a medid
 
 **Para o André (local):** os quatro itens de «Para o André» acima. A roleta (item 2) só fica completa com a G13b;
 hoje, ◀▶ rápido já faz só o encaixe com 4 faíscas.
+
+**A conferência:** duas linhas da tabela do encaixe não tinham entrado e não estavam na G13b; entraram agora.
+
+- **A junta do item:** as faíscas e a luz da martelada do item saíam da altura fixa 0,95. Agora
+  `TelaLobby.junta(l, k)` dá `Montar.mao(esq, osso do item)` (o osso do `BoneAttachment3D` «Item»: torso, arm-left ou
+  arm-right), e a altura fixa só sem o superior ou sem o item no esqueleto.
+- **O VU anda um segmento a cada 30 ms:** o VU pulava para o stat novo. Agora `CartaoJogador.vu_mostrado` anda um
+  segmento por 30 ms até o corpo, e o número acompanha.
+
+A prova do encaixe só lia o registro que o próprio código escreve. Ganhou três conferências de fora: o `t` do encaixe
+cai na grade de semicolcheias pelo relógio e não antes do toque; o VU depois de 31 ms anda no máximo um segmento e
+chega ao corpo em `máximo − 1` passos; a junta do item é o punho do osso. Mordidas (o encaixe no toque mais 1 ms, o
+VU que pula, a junta fixa) reprovam as três. O reaperto da prova do encaixe (quando o primeiro aperto não pede
+encaixe) continua, e pode esconder um aperto perdido: fica anotado para quem coordena.
