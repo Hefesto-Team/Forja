@@ -3392,24 +3392,36 @@ func _prova_do_tempo_de_musica() -> void:
 	var calada_ok := true
 	var calada_s := 0.0
 	var som_testado := false
-	# o cabo do P3 sai aos 30 s e volta aos 34 s: a nota de quem caiu sai calada
+	# o cabo do P3 sai aos 30 s e volta quando as notas dele já passaram (em
+	# tempo de música, e no mínimo 4 s): a nota de quem caiu sai calada
 	var cabo := 0  # 0 antes, 1 fora, 2 de volta
+	var fora_desde := 0
+	var passaram_em := 0.0
 	var erros_ao_cair := 0
 	var calada_ao_cair := false
+	var fila_ao_voltar := ""
 	var erros_fora := 0
 	while is_instance_valid(mg) and mg.fase == "jogo" and Time.get_ticks_usec() - inicio < 150000000:
 		quadros += 1
+		var mexeu := false  # no quadro do cabo, o lugar ainda diz conectado e o controle já sumiu
 		if cabo == 0 and Time.get_ticks_usec() - inicio > 30000000:
 			cabo = 1
+			mexeu = true
 			erros_ao_cair = int(Ritmo._erros_seguidos[2])
+			fora_desde = Time.get_ticks_usec()
+			passaram_em = Ritmo.t_musica() + 1.0
+			for n in mg.notas_em_aberto(2):
+				passaram_em = maxf(passaram_em, mg.alvo_da(2, n) + float(Ritmo.desvio[2]) + Minigame.FOLGA_PERDIDA + 0.3)
 			Forja.ctl.simulador_cabo(2, false)
-		elif cabo == 1 and Time.get_ticks_usec() - inicio > 34000000:
+		elif cabo == 1 and Time.get_ticks_usec() - fora_desde > 4000000 and Ritmo.t_musica() > passaram_em:
 			cabo = 2
+			mexeu = true
 			calada_ao_cair = mg.notas_em_aberto(2).is_empty()
+			fila_ao_voltar = "%s aos %.2f s de música, as notas passavam aos %.2f s" % [mg.notas_em_aberto(2), Ritmo.t_musica(), passaram_em]
 			erros_fora = int(Ritmo._erros_seguidos[2])
 			Forja.ctl.simulador_cabo(2, true)
 		for l in mg.presentes():
-			if not mg.conectado(l):
+			if not mg.conectado(l) or (mexeu and l == 2):
 				continue
 			var c: Color = _perc(l).get("luz", Color.BLACK)
 			if maxf(c.r, maxf(c.g, c.b)) < Forja.PISO_DA_LUZ - 0.02:
@@ -3441,6 +3453,8 @@ func _prova_do_tempo_de_musica() -> void:
 			Forja.textura(0, "metal")
 			_esperar(int(Forja.som_virtual(0).get("som_seq", 0)) == antes + 1, "textura: não passa pelo alto-falante")
 		await _quadros(1)
+	if cabo == 1:
+		Forja.ctl.simulador_cabo(2, true)  # o minigame acabou com o P3 fora: ele volta para o resto da prova
 	var parede := (Time.get_ticks_usec() - inicio) / 1e6
 	print("tempo de música: %d quadros (%.0f s de jogo) em %.1f s de parede" % [quadros, quadros / 60.0, parede])
 	_esperar(is_instance_valid(mg) and mg.fase == "fim", "tempo de música: acabou pelo relógio da faixa")
@@ -3467,7 +3481,7 @@ func _prova_do_tempo_de_musica() -> void:
 	_esperar(not sem_dono, "fila: todo toque achou a sua nota, ou a nota dele tinha passado (sem nota %s, perdidas %s)" % [mg.sem_nota, mg.perdidas])
 	# quem caiu: as notas saíram da fila sem virar erro dele
 	_esperar(cabo == 2 and calada_ao_cair and erros_fora == erros_ao_cair,
-		"quem caiu: a nota do P3 sem controle sai da fila calada (fila vazia %s, erros seguidos %d ao cair, %d fora)" % [calada_ao_cair, erros_ao_cair, erros_fora])
+		"quem caiu: a nota do P3 sem controle sai da fila calada (fila %s; erros seguidos %d ao cair, %d fora)" % [fila_ao_voltar, erros_ao_cair, erros_fora])
 	# a barra de luz
 	_esperar(abaixo_do_piso == 0, "luz: nunca abaixo de 30%% (%d amostras abaixo)" % abaixo_do_piso)
 	_esperar(viu_branco and branco_max <= int(Forja.PISCAR_MAX_S * 60.0) + 2, "luz: o perfeito pisca branco e volta (%d quadros no máximo)" % branco_max)
