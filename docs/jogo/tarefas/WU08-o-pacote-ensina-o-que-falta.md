@@ -110,7 +110,9 @@ Marcar WU08 como **feito** no [quadro](README.md), com o commit e o gasto. Commi
   - Mordida: sem o escape do `Exec`, o `desktop-file-validate` reprova a pasta esquisita (o `$` sem escape e o
     `%/` como código de campo). O texto de antes reprova as duas conferências de texto.
   - O LEIA-ME do Windows foi conferido pelo texto que a `leia_me windows` gera; o `.exe` não foi exportado
-    nesta máquina.
+    nesta máquina. Sem o `.exe` exportado, a prova não confere o texto do Windows: quem confere é o CI.
+  - Na conferência: sem o `desktop-file-validate` na máquina, a prova agora reprova e diz o pacote que falta
+    (o `desktop-file-utils`), em vez de seguir só com o caminho conferido.
 - **Fica para ela:** ler os dois LEIA-ME na voz do pacote, principalmente o passo 3 do Windows (a Steam aberta).
 - **Fica para o André:** o passo da seção «Para o André»: descompactar o `.tar.gz`, rodar o
   `instalar-atalho.sh` e abrir pelo menu.
