@@ -3266,6 +3266,12 @@ func _prova_das_decisoes() -> void:
 	_esperar(mg.pontos == [0, 0, 5, 5] and mg.equipe_vencedora() == Minigame.MARE and mg.frase_do_resultado() == "A Maré venceu!",
 		"dupla: os pontos vão para os dois, e a tela diz a equipe (%s)" % [mg.pontos])
 	_esperar(int(mg.campos_do_fim().get("equipe", -9)) == Minigame.MARE, "dupla: o registro leva a equipe")
+	# o toque do P4 dá pontos à dupla e o acerto só a ele: o destaque separa a dupla
+	mg._julgando[3] = Ritmo.PERFEITO
+	mg.marcar_equipe(Minigame.MARE, 1)
+	mg._julgando[3] = -1
+	_esperar(mg.pontos[2] == mg.pontos[3] and int(mg.acertos[3]) == int(mg.acertos[2]) + 1,
+		"dupla: o toque do P4 dá pontos aos dois e o acerto só a ele (pontos %s, acertos %s)" % [mg.pontos, mg.acertos])
 	# o coop: vencedor -1 e a frase
 	mg.ficha["genero"] = "coop"
 	mg.coop = true
@@ -3274,6 +3280,7 @@ func _prova_das_decisoes() -> void:
 	mg.colocacao = [2, 0, 1, 3]
 	_esperar(int(mg.campos_do_fim().get("vencedor", 0)) == -1 and mg.frase_do_resultado() == "A forja apagou.",
 		"coop: o vencedor é -1, e a tela diz que a forja apagou")
+	mg.free()
 
 
 ## Abre o minigame pelo catálogo — o mesmo caminho do --sala=<slot> —, deixa
@@ -3385,9 +3392,25 @@ func _prova_do_tempo_de_musica() -> void:
 	var calada_ok := true
 	var calada_s := 0.0
 	var som_testado := false
+	# o cabo do P3 sai aos 30 s e volta aos 34 s: a nota de quem caiu sai calada
+	var cabo := 0  # 0 antes, 1 fora, 2 de volta
+	var erros_ao_cair := 0
+	var calada_ao_cair := false
+	var erros_fora := 0
 	while is_instance_valid(mg) and mg.fase == "jogo" and Time.get_ticks_usec() - inicio < 150000000:
 		quadros += 1
+		if cabo == 0 and Time.get_ticks_usec() - inicio > 30000000:
+			cabo = 1
+			erros_ao_cair = int(Ritmo._erros_seguidos[2])
+			Forja.ctl.simulador_cabo(2, false)
+		elif cabo == 1 and Time.get_ticks_usec() - inicio > 34000000:
+			cabo = 2
+			calada_ao_cair = mg.notas_em_aberto(2).is_empty()
+			erros_fora = int(Ritmo._erros_seguidos[2])
+			Forja.ctl.simulador_cabo(2, true)
 		for l in mg.presentes():
+			if not mg.conectado(l):
+				continue
 			var c: Color = _perc(l).get("luz", Color.BLACK)
 			if maxf(c.r, maxf(c.g, c.b)) < Forja.PISO_DA_LUZ - 0.02:
 				abaixo_do_piso += 1
@@ -3442,6 +3465,9 @@ func _prova_do_tempo_de_musica() -> void:
 	for l in [0, 2, 3]:
 		sem_dono = sem_dono or int(mg.sem_nota[l]) > int(mg.perdidas[l])
 	_esperar(not sem_dono, "fila: todo toque achou a sua nota, ou a nota dele tinha passado (sem nota %s, perdidas %s)" % [mg.sem_nota, mg.perdidas])
+	# quem caiu: as notas saíram da fila sem virar erro dele
+	_esperar(cabo == 2 and calada_ao_cair and erros_fora == erros_ao_cair,
+		"quem caiu: a nota do P3 sem controle sai da fila calada (fila vazia %s, erros seguidos %d ao cair, %d fora)" % [calada_ao_cair, erros_ao_cair, erros_fora])
 	# a barra de luz
 	_esperar(abaixo_do_piso == 0, "luz: nunca abaixo de 30%% (%d amostras abaixo)" % abaixo_do_piso)
 	_esperar(viu_branco and branco_max <= int(Forja.PISCAR_MAX_S * 60.0) + 2, "luz: o perfeito pisca branco e volta (%d quadros no máximo)" % branco_max)
