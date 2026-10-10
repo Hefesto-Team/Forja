@@ -5,8 +5,6 @@ const ORDEM := ["car_acorde", "car_virada", "car_em_chamas", "car_por_um_fio", "
 const NO_VISOR := {"car_virada": "VIRADA!", "car_em_chamas": "EM CHAMAS", "car_por_um_fio": "POR UM FIO",
 	"car_liga": "LIGA!", "car_acorde": "ACORDE MAIOR!", "car_emburrado": ""}
 const LETRA := {"car_virada": 64, "car_em_chamas": 46, "car_por_um_fio": 64, "car_liga": 46, "car_acorde": 112}
-const SOM := {"car_virada": "jin_virada", "car_em_chamas": "car_em_chamas", "car_por_um_fio": "car_por_um_fio",
-	"car_liga": "car_liga", "car_acorde": "car_acorde"}
 const BATE := 0.08
 const SOME := 0.17
 const FICA_JULGAMENTO := 0.25
@@ -69,8 +67,12 @@ func bater(l: int, id: String, onde: Variant = null) -> bool:
 	var batidas := 2.0 if id == "car_virada" else 4.0
 	var fica := clampf(batidas * 60.0 / maxf(Ritmo.bpm, 1.0), 1.6, 2.8) if id != "car_virada" else batidas * 60.0 / maxf(Ritmo.bpm, 1.0)
 	vivos.append(_novo(l, id, str(NO_VISOR[id]), 1, fica, int(LETRA.get(id, 46)), onde))
-	if SOM.has(id):
-		Som.tocar(SOM[id], null, -9.0)
+	match id:
+		"car_virada": Som.tocar("jin_virada", null, -9.0)
+		"car_em_chamas": Som.tocar("car_em_chamas", null, -9.0)
+		"car_por_um_fio": Som.tocar("car_por_um_fio", null, -9.0)
+		"car_liga": Som.tocar("car_liga", null, -9.0)
+		"car_acorde": Som.tocar("car_acorde", null, -9.0)
 	if id == "car_acorde":
 		for k in 4:
 			if Forja.ocupado(k):

@@ -298,7 +298,7 @@ static func chip(ci: CanvasItem, r: Rect2, lugar: int, pronto: bool, palavra := 
 			texto(ci, Vector2(x, base), caber(palavra, f5, 32, cabe, 1), f5, 32, Tema.SECAO[3])
 
 
-static func placa(ci: CanvasItem, r: Rect2, foco := Color(0, 0, 0, 0)) -> void:
+static func placa(ci: CanvasItem, r: Rect2, foco := Color.TRANSPARENT) -> void:
 	caixa(ci, Rect2(r.position + Vector2(4, 6), r.size), Tema.SOMBRA, Tema.RAIO_CARTAO)
 	var com_foco := foco.a > 0.0
 	caixa(ci, r, Tema.CASCO_ALTO if com_foco else Tema.CASCO, Tema.RAIO_CARTAO, foco if com_foco else Tema.CASCO_ALTO, 3)
