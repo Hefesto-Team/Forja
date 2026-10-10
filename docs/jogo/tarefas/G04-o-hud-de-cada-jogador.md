@@ -675,7 +675,7 @@ julgamento saía da área segura com o cavaleiro na borda: «Resonance!» em x �
 **O que entrou:**
 
 - `hud.gd`: os quatro cartões nos cantos (`HudJogo.cartao(l, tela)`: 96 px das laterais, 60 do alto ou de baixo,
-  520 de largura, a altura cresce com o texto grande), com nome, pontos, combo, VU e item, nos três estados
+  420 de largura, a altura cresce com o texto grande), com nome, pontos, combo, VU e item, nos três estados
   (jogando, «Sem controle», vazio); a etiqueta da faixa e o deck no alto, o deck contando o tempo da faixa;
   `retangulos()` para a prova. Os chips antigos saíram da tela.
 - `visor.gd` (novo): a camada acima do HUD com a vaga 0 (o carimbo do julgamento, 500 ms) e a vaga 1 (um carimbo
@@ -683,7 +683,8 @@ julgamento saía da área segura com o cavaleiro na borda: «Resonance!» em x �
   MAIOR!» com os quatro no tempo 1. O carimbo que segue o cavaleiro é empurrado para dentro da área segura
   (`Visor.na_area_segura`).
 - `sala_jogo.gd`/`sala.gd`: `julgar(l, j, palavra, no_tempo_1)` toca o `jul_*` do lugar na TV e no controle, sente
-  pela tabela (`Forja.sentir`) e emite `julgou`; `combo(l)`. A Centelha e O Impacto julgam por ela.
+  pela tabela (`Forja.sentir`) e emite `julgou`; `combo(l)`. Só A Centelha julga por ela (no acerto e no erro que o `errou` deixou passar); O Impacto
+  só conta o `combo`, como a ficha pede («não levar o julgar às outras salas»).
 - `desenho.gd`: o carimbo, a etiqueta, o VU e a caixa do carimbo. `painel_sala.gd`: o relógio, a linha de progresso,
   o selo do treino e as pílulas saem de cima dos cartões.
 - Os 21 sons (`jul_{ressonancia,afinado,quase,erro}_p1..4`, `car_em_chamas`, `car_acorde`, `car_por_um_fio`,
@@ -716,7 +717,7 @@ passadas verdes, e elas não fecham enquanto a G04c e a F09b estiverem abertas.*
 - `quadro_da_sala`, `LARG_CHIP` e `status_da_sala` continuam no `hud.gd`, mas não se desenham mais (a G06 e o
   diagnóstico ainda escrevem neles).
 - O acerto d'A Centelha não vibra mais pelo `"acerto"` além do julgamento: a vibração é só a do julgamento.
-- O contador da G06 desceu para y 60; o deck tem 196 px de largura; a fala sai inteira até a metade do sumiço (o
+- O contador da G06 desceu para y 60; o deck tem 376 px de largura, com a janela da fita de 196; a fala sai inteira até a metade do sumiço (o
   papel não tem alfa); o número da seção vem de `Catalogo.apelido`.
 - O carimbo do cavaleiro na borda anda para dentro da área segura em vez de sumir.
 
@@ -728,3 +729,12 @@ linha no quadro, porque quem marca o quadro é quem coordena.
 com a placa de vídeo (as pranchas em inglês e com o texto grande ao lado de `01_centelha_depois.jpg`), a Centelha
 com um DualSense (a nota no controle, o erro desafinado, EM CHAMAS), a TV do sofá e Opções › Texto › Grande com
 Idioma › English.
+
+**A conferência:** três frases deste relato estavam erradas e foram corrigidas acima (o cartão tem 420 de largura,
+não 520; só A Centelha julga; o deck tem 376, a janela da fita é que tem 196). Os avisos do portão de som não eram
+«os mesmos de antes»: subiram de 171 para 174, três ids que o portão não lê. O do visor (`Som.tocar(SOM[id])`) virou
+um `match` com o id escrito em cada chamada, e o portão confere os cinco no mapa; os dois do `julgar`
+(`"jul_%s_p%d"`) ficam, porque o portão só lê o literal na chamada, e os 16 ids estão no mapa. O portão de arte
+acusava uma cor nova em `desenho.gd` (`Color(0, 0, 0, 0)` na `placa`), agora `Color.TRANSPARENT`. A prova de EM
+CHAMAS passava com o limiar em 6: agora zera a conta, confere que quatro seguidas não acendem e que a quinta acende;
+mordida com o limiar em 6, reprova.
