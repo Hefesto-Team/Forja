@@ -22,6 +22,7 @@ jobs:
   linux:
     name: Linux — módulo, provas e a prova do jogo
     runs-on: ubuntu-24.04
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
@@ -30,7 +31,19 @@ jobs:
       - name: A prova sem rastro (termo interno, trailer de coautoria, AGENTS.md; ela se prova sozinha)
         run: bash tests/prova_sem_rastro.sh
 
+      - name: A prova do apt com prazo (todo job com apt grava o prazo antes e tem timeout-minutes)
+        run: bash tests/prova_do_apt_com_prazo.sh
+
+      # O apt do runner espera o espelho sem prazo: em 07/10/2026 (corrida 37697457630) o «Dependências» do windows
+      # ficou 1889 s baixando a ~120 kB/s até ser cancelado à mão (o normal é 9 a 43 s), e o job não tinha prazo
+      # (o padrão do GitHub é 360 min). Cada job com apt grava o prazo antes do primeiro apt (vale também para o apt
+      # de um script) e tem timeout-minutes no job e no passo do apt; tests/prova_do_apt_com_prazo.sh reprova o
+      # job que esquecer.
+      - name: O apt com prazo (três tentativas, e 30 s sem resposta do espelho é falha)
+        run: printf 'Acquire::Retries "3";\nAcquire::http::Timeout "30";\n' | sudo tee /etc/apt/apt.conf.d/80-prazo
+
       - name: Dependências (o SDL carrega X11, Wayland e o som em tempo de execução)
+        timeout-minutes: 8
         run: |
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends \
@@ -121,12 +134,17 @@ jobs:
   windows:
     name: Windows — o módulo (mingw-w64)
     runs-on: ubuntu-24.04
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
           fetch-depth: 0
 
+      - name: O apt com prazo (três tentativas, e 30 s sem resposta do espelho é falha)
+        run: printf 'Acquire::Retries "3";\nAcquire::http::Timeout "30";\n' | sudo tee /etc/apt/apt.conf.d/80-prazo
+
       - name: Dependências
+        timeout-minutes: 8
         run: |
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends cmake ninja-build mingw-w64
@@ -163,6 +181,7 @@ jobs:
   exportar:
     name: Exportação — o binário Linux e o .exe, e a Prova de Fogo nos dois
     runs-on: ubuntu-24.04
+    timeout-minutes: 20
     needs: [linux, windows]
     env:
       # O Wine do .exe: o do GE-Proton, fixo pela versão e pelo sha256 do pacote (o que a página da release mostra).
@@ -171,6 +190,16 @@ jobs:
       GE_PROTON_SHA256: "c5448b76a230384e2d7bc6beb5ccb97bafb7e2c3b6c527cb03a1a546bbcb00a0"
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+
+      - name: O apt com prazo (três tentativas, e 30 s sem resposta do espelho é falha)
+        run: printf 'Acquire::Retries "3";\nAcquire::http::Timeout "30";\n' | sudo tee /etc/apt/apt.conf.d/80-prazo
+
+      # O AppImage pede o desktop-file-utils; o wine do Proton usa o FreeType do sistema. Num passo só, com prazo.
+      - name: Dependências
+        timeout-minutes: 8
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends desktop-file-utils libfreetype6
 
       - name: Os dois módulos (os artefatos dos jobs acima)
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
@@ -202,8 +231,6 @@ jobs:
 
       - name: Exportar o jogo (o binário Linux, o .exe e o AppImage)
         run: |
-          sudo apt-get update
-          sudo apt-get install -y --no-install-recommends desktop-file-utils
           scripts/exportar.sh tudo
           scripts/exportar.sh appimage
 
@@ -217,9 +244,7 @@ jobs:
           mkdir -p "$proton"
           tar -xzf "$pacote" -C "$proton" --strip-components=1
           rm -f "$pacote"
-          # O wine do Proton usa o FreeType do sistema e, fora do script do Proton, não acha o vkd3d sozinho.
-          sudo apt-get update
-          sudo apt-get install -y --no-install-recommends libfreetype6
+          # Fora do script do Proton, o wine não acha o vkd3d sozinho (o FreeType vem do passo «Dependências»).
           {
             echo "WINE=$proton/files/bin/wine"
             echo "WINESERVER=$proton/files/bin/wineserver"
@@ -258,6 +283,7 @@ jobs:
   telas:
     name: As telas — as fotos do jogo contra as da versão anterior
     runs-on: ubuntu-24.04
+    timeout-minutes: 40
     needs: [linux]
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
@@ -285,7 +311,11 @@ jobs:
       - name: O Godot (baixado pelo scripts/baixar_engine.sh, que confere o sha512; com o cache, só mostra a versão)
         run: bash scripts/baixar_engine.sh
 
+      - name: O apt com prazo (três tentativas, e 30 s sem resposta do espelho é falha)
+        run: printf 'Acquire::Retries "3";\nAcquire::http::Timeout "30";\n' | sudo tee /etc/apt/apt.conf.d/80-prazo
+
       - name: A tela virtual e o OpenGL por software
+        timeout-minutes: 8
         run: |
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends xvfb libgl1-mesa-dri libegl1 libxkbcommon0
