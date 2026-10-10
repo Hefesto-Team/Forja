@@ -259,9 +259,12 @@ Marcar G11 como **feito** no [quadro](README.md), com o gasto. Commit sugerido:
 
 ## O que foi feito (leva 1, as-telas)
 
-- **A placa:** `Desenho.placa` (raio 14, borda de 3 px na cor da tela, a sombra `SOMBRA` deslocada) no lugar da
-  moldura nas telas que a usavam; a etiqueta e o J-card da fita (`Desenho`) para a pausa, o selo e a fita da tela de
-  virar. As dicas desenham os ícones do Kenney.
+- **A placa:** `Desenho.moldura` passou a desenhar a placa (a sombra deslocada (4, 6), raio 14, borda de 3 px), e
+  assim toda tela que chamava a moldura ganhou a placa sem mudar a chamada. A borda fina de hoje vira `CASCO_ALTO`; a
+  de 3 px ou mais fica na cor pedida (veja «a validar por ela» abaixo). A tela de virar desenha as peças do cassete
+  (o deck, o berço, a tampa, o cassete e a janela) com `Desenho.caixa`, porque não são placas e não podiam ganhar
+  sombra e raio 14; a tela de virar não estava em «Arquivos que mudam». O selo usa a `caixa`. As dicas desenham o
+  glifo de 52 px e a frase de 34 px pela `dica`.
 - **A pausa da fita:** `pausa.gd` vira o J-card que entra pela direita em 500 ms, com quatro linhas fora da bancada
   (Continuar, Opções, Voltar ao salão ou ao lobby, Sair), a tela desbotada pelo pós, a barra de pausa subindo a cada
   2 s (com os flashes ligados) e o `fx_stop` ao abrir. A música abafa enquanto ela está aberta; os gatilhos vão a
