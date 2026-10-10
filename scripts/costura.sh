@@ -99,9 +99,16 @@ echo "costura: costurado, topo $TOPO; agora os portões e as provas"
 LOG="$(mktemp)"
 trap 'rm -f "$LOG"' EXIT
 roda() {
+  local rc
   echo "==> $1"
-  if ! (cd "$INT" && bash -c "$1") > "$LOG" 2>&1; then
+  (cd "$INT" && bash -c "$1") > "$LOG" 2>&1
+  rc=$?
+  if [ "$rc" -ne 0 ]; then
     tail -n 15 "$LOG" | sed 's/^/  | /'
+    if [ "${2:-}" = pesadas ] && [ "$rc" -eq 2 ]; then
+      echo "costura: as pesadas não rodaram (o ci-local saiu 2); topo $TOPO, antes da costura $ANTES." >&2
+      exit 4
+    fi
     echo "costura: VERMELHO em «$1»; parei aqui (topo $TOPO, antes da costura $ANTES)." >&2
     echo "costura: para desfazer a costura: git -C $INT reset --keep $ANTES" >&2
     exit 1
@@ -110,7 +117,7 @@ roda() {
 }
 for p in "${PROVAS[@]}"; do roda "$p"; done
 if [ "$PESADAS" -eq 1 ]; then
-  roda "${VEZ:+$VEZ }bash scripts/ci-local.sh --rapido"
+  roda "${VEZ:+$VEZ }bash scripts/ci-local.sh --rapido" pesadas
 fi
 
 if [ -n "$REGISTRO" ]; then
