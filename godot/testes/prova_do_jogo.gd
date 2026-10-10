@@ -355,6 +355,8 @@ func _prova_do_percurso() -> void:
 			if jogo.lobby.etapa[l] == TelaLobby.FORJADO and float(Forja.som_virtual(l).get("falante", 0.0)) > 0.05:
 				pio_f[l] = true
 	_esperar(jogo.estado == "salao", "com os quatro forjados, o salão (%d quadros, %d ms)" % [nq_f, Time.get_ticks_msec() - t_forja])
+	await _quadros(2)
+	_confere_o_hud("no salão")
 	_esperar(nq_f / 60.0 <= 90.0, "a montagem do robô, com o nome, fecha em 90 s de jogo ou menos (%.1f s)" % (nq_f / 60.0))
 	_esperar(jogo.jogadores[0].nome == "Dona Brasa", "o robô escreveu «Dona Brasa» no lugar 1, letra a letra (%s)" % jogo.jogadores[0].nome)
 	for l in range(1, 4):
@@ -527,6 +529,7 @@ func _prova_do_percurso() -> void:
 			e2.combo = 4
 			centelha._perdeu(1, centelha.jogador(1))
 			_esperar(int(e2.combo) == 4 and not Itens.escudo_inteiro(1), "Centelha: a runa perdida com o Escudo passa sem zerar o combo")
+		await _prova_do_julgamento(centelha)
 		await _termina_a_sala(centelha, ["botoes", "analogicos", "gatilhos_analogicos"])
 		for l in 2:
 			Itens.escolhido[l] = jogo.jogadores[l].item_i
@@ -772,6 +775,9 @@ func _prova_do_kit() -> void:
 	while Time.get_ticks_usec() - fora < 800000:
 		await _quadros(1)
 	_esperar(is_instance_valid(mg) and mg.fase == "jogo", "kit: sem o P3, o minigame seguiu")
+	# G04: sem o cabo, o cartão do P3 fica no canto dele e diz «Sem controle»
+	_esperar(not bool(Forja.lugar(2).get("conectado", true)) and jogo.hud.retangulos().has(HudJogo.cartao(2, jogo.hud.size)),
+		"G04: sem o cabo, o cartão do P3 continua no canto dele, «Sem controle»")
 	# com o cabo, o nó de áudio do controle some: a placa refeita agora fica sem
 	# o P3, e só a volta do controle (Main._ao_mudar_os_controles) o devolve
 	Forja.som_preparar(Forja.PAPEL_ALTO_FALANTE)
@@ -3142,3 +3148,80 @@ func _prova_das_cores_da_pergunta() -> void:
 			_esperar((d < 0.15) == (k == SalaProva.COR_PARECIDA[e]),
 				"pergunta: o %s %s a luz da %s (ΔE %.3f)" % [SalaProva.CORES[k].nome,
 				"lembra" if k == SalaProva.COR_PARECIDA[e] else "não lembra", SalaProva.NOME_EQUIPE[e], d])
+
+
+## G04: o HUD nas duas escalas e nas duas línguas: nada encosta e tudo cabe (06).
+func _confere_o_hud(onde: String) -> void:
+	var escala_antes := Tema.escala_texto
+	var idioma_antes := Traducoes.idioma
+	var tela := Rect2(Vector2.ZERO, jogo.hud.size).grow(-0.5)
+	for idioma in ["pt_BR", "en"]:
+		for escala in Opcoes.ESCALA_DO_TEXTO:
+			Tema.escala_texto = escala
+			Traducoes.idioma = idioma
+			var caixas: Array = jogo.hud.retangulos() + jogo.painel.retangulos()
+			var ruins: Array = []
+			for i in caixas.size():
+				var a: Rect2 = caixas[i]
+				if not tela.grow(0.5).encloses(a):
+					ruins.append("fora %s" % a)
+				for k in range(i + 1, caixas.size()):
+					if a.intersects(caixas[k]):
+						ruins.append("%s × %s" % [a, caixas[k]])
+			_esperar(ruins.is_empty(), "HUD %s, %s, %.2f: nada encosta e tudo cabe %s" % [onde, idioma, escala, ruins])
+	Tema.escala_texto = escala_antes
+	Traducoes.idioma = idioma_antes
+	for l in 4:
+		var r := HudJogo.cartao(l, jogo.hud.size)
+		_esperar(r.position.x >= Tema.MARGEM_X - 0.5 and r.end.x <= jogo.hud.size.x - Tema.MARGEM_X + 0.5
+			and r.position.y >= Tema.MARGEM_Y - 0.5 and r.end.y <= jogo.hud.size.y - Tema.MARGEM_Y + 0.5,
+			"%s: o cartão do P%d no canto, dentro da área segura" % [onde, l + 1])
+
+
+## G04: n'A Centelha, o julgamento bate o carimbo acima do cavaleiro, com a nota do lugar na TV e na mão; cinco
+## «Ressonância!» seguidas batem «EM CHAMAS»; os quatro no tempo 1, «ACORDE MAIOR!»; a vez e a fala.
+func _prova_do_julgamento(centelha) -> void:
+	_confere_o_hud("n'A Centelha")
+	_esperar(jogo.hud.retangulos().size() >= 6, "Centelha: os quatro cartões, a etiqueta e o deck (%d caixas)" % jogo.hud.retangulos().size())
+	_esperar(jogo.hud.etiqueta.get("titulo", "") == centelha.nome and str(jogo.hud.etiqueta.get("impresso", "")).begins_with("LADO "),
+		"Centelha: a etiqueta da faixa diz a sala e o lado (%s)" % [jogo.hud.etiqueta])
+	_esperar(Som.arquivo("jul_ressonancia_p4") != null and Som.arquivo("car_em_chamas") != null, "o jul_* e o car_* estão em assets/sons")
+	# o julgamento: o carimbo, o som e a vibração do P4, sem o controle na mão
+	centelha.julgar(3, 3)
+	var sentiu := false
+	var nota := 0.0
+	var carimbo: Array = jogo.visor.do_lugar(3).filter(func(c): return c.vaga == 0 and c.palavra == "Ressonância!")
+	for q in 6:
+		await _quadros(1)
+		var pc := _perc(3)
+		sentiu = sentiu or (is_equal_approx(float(pc.get("forte", 0.0)), 0.5) and is_equal_approx(float(pc.get("fraco", 0.0)), 0.8))
+		nota = maxf(nota, float(Forja.som_virtual(3).get("falante", 0.0)))
+	_esperar(not carimbo.is_empty(), "o carimbo «Ressonância!» acima do P4")
+	_esperar(sentiu, "a mão do P4 sente o perfeito (0,5/0,8)")
+	_esperar(nota > 0.0, "a nota do P4 sai no alto-falante dele (%.2f)" % nota)
+	await get_tree().create_timer(0.6).timeout
+	_esperar(not carimbo.is_empty() and not jogo.visor.vivos.any(func(c): return is_same(c, carimbo[0])),
+		"o carimbo do julgamento some em meio segundo")
+	# EM CHAMAS: o 5º seguido
+	for k in 5:
+		centelha.julgar(3, 3)
+	_esperar(jogo.visor.do_lugar(3).any(func(c): return c.id == "car_em_chamas"), "cinco seguidas: EM CHAMAS acima do P4")
+	# o erro não desenha
+	centelha.julgar(0, 0)
+	_esperar(not jogo.visor.do_lugar(0).any(func(c): return c.vaga == 0), "o erro não tem palavra")
+	# o cavaleiro na borda da tela não leva o carimbo para fora da área segura (a prova visual achou -49 px)
+	var seguro := Rect2(Vector2(1920, 1080) * Tema.AREA_SEGURA, Vector2(1920, 1080) * (1.0 - 2.0 * Tema.AREA_SEGURA))
+	for ponta in [Vector2(40, 512), Vector2(1900, 512), Vector2(960, 20), Vector2(960, 1070)]:
+		var cc := Visor.na_area_segura(ponta, "Resonance!", 64, Vector2(1920, 1080))
+		_esperar(seguro.encloses(Desenho.caixa_do_carimbo(cc, "Resonance!", 64)),
+			"o carimbo com o cavaleiro em %s fica dentro da área segura (%s)" % [ponta, cc])
+	_esperar(Visor.na_area_segura(Vector2(960, 540), "Afinado", 64, Vector2(1920, 1080)) == Vector2(960, 540),
+		"o carimbo no meio da tela fica onde está")
+	# o acorde: os quatro no mesmo tempo 1
+	for l in 4:
+		centelha.julgar(l, 3, "", true)
+	_esperar(jogo.visor.vivos.any(func(c): return c.id == "car_acorde"), "os quatro no tempo 1: ACORDE MAIOR!")
+	# a vez: um carimbo de ordem mais baixa não sai com dois vivos
+	_esperar(not jogo.visor.bater(0, "car_liga"), "a vez: no máximo dois carimbos na tela")
+	# a fala não divide a vaga com o carimbo
+	_esperar(not jogo.visor.fala(3, "Deixa comigo o refrão!", 2.0), "a fala não aparece com o carimbo vivo do P4")

@@ -611,3 +611,8 @@ func com_poucos() -> String:
 	match jogadores.size():
 		1: return "Só você na arena"
 	return ""
+
+
+## O combo do lugar, para o cartão do HUD (G04).
+func combo(l: int) -> int:
+	return int(j[l].combo) if j.has(l) else 0

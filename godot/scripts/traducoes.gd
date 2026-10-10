@@ -327,6 +327,16 @@ const EN := {
 	# o teclado do nome (G09): o nome da pessoa não passa pela tabela
 	"Escrever": "Write",
 	"Apagar": "Erase",
+	# o cartão, a etiqueta e os carimbos (G04)
+	"O Salão": "The Hall",
+	"Quase": "Close",
+	"Afinado": "In tune",
+	"Ressonância!": "Resonance!",
+	"EM CHAMAS": "ON FIRE",
+	"ACORDE MAIOR!": "MAJOR CHORD!",
+	"VIRADA!": "COMEBACK!",
+	"POR UM FIO": "BY A HAIR",
+	"LIGA!": "ALLOY!",
 }
 
 ## Os textos com número: [padrão, substituição] (a substituição usa $1, $2…).
@@ -406,6 +416,9 @@ const EN_PADROES := [
 	["^Era (.+) \\((.+)\\)$", "It was $1 ($2)"],
 	["^Não — o jogo acendeu (\\d+)$", "No — the game lit $1"],
 	["^Não — o jogo mandou (.+)$", "No — the game sent $1"],
+	# a etiqueta da faixa e a do salão (G04)
+	["^LADO ([AB]) · FAIXA (\\d\\d)$", "SIDE $1 · TRACK $2"],
+	["^A FORJA · LADO ([AB])$", "THE FORGE · SIDE $1"],
 ]
 
 

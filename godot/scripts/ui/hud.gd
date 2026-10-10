@@ -1,10 +1,10 @@
 class_name HudJogo
 extends Control
-## A HUD do salão e das salas, mínima: o que decide o próximo segundo. Em cima,
-## os lugares (P1..P4, sempre na mesma ordem) com a conexão e a bateria; perto
-## de um portão, a dica presa à cabeça de quem chegou; nas salas, o nome e a ação
-## numa linha. O salão conta a noite (G06): o contador n/9, os chips com os nomes e
-## a dica presa. Os avisos do módulo aparecem no alto e somem sozinhos.
+## A HUD do salão e das salas (G04): nas salas, o cartão de cada jogador no canto dele (a tira do console: P#,
+## lâmpadas, nome, pontos, item, VU e combo), a etiqueta da faixa e o deck no alto, que é o relógio; perto de um
+## portão, a dica presa à cabeça de quem chegou. O salão conta a noite (G06): a etiqueta «O Salão», o contador n/9,
+## os chips com os nomes e a dica presa. Os avisos do módulo aparecem no meio e somem sozinhos. Um cálculo só
+## (`retangulos()`) serve ao desenho e à prova.
 
 ## As seções acesas de 9 (os 8 portões e A Prova); -1 fora do salão (não desenha o contador).
 var vencidas := -1
@@ -17,13 +17,26 @@ var camera: Camera3D
 var nomes := ["", "", "", ""]
 ## A sala em curso: {nome, acao} ou vazio.
 var sala := {}
-## Uma linha por lugar, dita pela sala (vida, pontos, o que falta).
+## Uma linha por lugar, dita pela sala (vida, pontos, o que falta). G04: o cartão não a mostra mais (o 06: «Nada
+## mais»); o que a sala diz por lugar está na dica presa à raia. O main ainda a escreve.
 var status_da_sala := ["", "", "", ""]
 ## false numa sala que usa o Create (a runa d'A Centelha): o rodapé não o oferece
 var create_livre := true
+## A SalaJogo em curso (o main põe): a fase, o relógio do deck e o treino.
+var da_sala: Node = null
+## O combo de cada lugar e o maior da sala (o pico do VU); o main põe o combo a cada quadro e zera o maior ao entrar.
+var combo := [0, 0, 0, 0]
+var combo_max := [0, 0, 0, 0]
+## Os pontos de cada lugar; -1: não mostra.
+var pontos := [-1, -1, -1, -1]
+## O lado da fita (a partida, G12), para a etiqueta do salão.
+var lado := "A"
+## A etiqueta da faixa: {titulo, impresso, tinta, inclinacao, lado_b}; vazia, nenhuma.
+var etiqueta := {}
 
 var _avisos: Array = []  # [texto, restante]
 var _rets: Array[Rect2] = []   ## o que o salão desenhou neste quadro (a prova confere que cabe na tela)
+var _giro := 0.0  ## o giro dos carretéis do deck (para no apito)
 
 const LARG_CHIP := 340.0
 
@@ -37,7 +50,7 @@ func _ready() -> void:
 func mostrar_aviso(texto: String) -> void:
 	if texto == "":
 		return
-	_avisos.append([texto, 3.5])
+	_avisos.append([texto, maxf(2.0, 0.06 * texto.length())])  # 06: o texto que some
 	if _avisos.size() > 3:
 		_avisos.pop_front()
 
@@ -46,6 +59,10 @@ func _process(dt: float) -> void:
 	for a in _avisos:
 		a[1] -= dt
 	_avisos = _avisos.filter(func(a): return a[1] > 0.0)
+	for l in 4:
+		combo_max[l] = maxi(int(combo_max[l]), int(combo[l]))
+	if _com_cartoes() and str(da_sala.fase) == "jogo" and not da_sala.treinando:
+		_giro = TAU * Ritmo.batida() / 2.0
 	queue_redraw()
 
 
@@ -55,55 +72,39 @@ func _draw() -> void:
 	# a tarja de cima, leve
 	for i in 20:
 		draw_rect(Rect2(0, i * 7, w, 7), Color(Tema.FITA, 0.55 * (1.0 - i / 20.0)))
-
+	var cx := _caixas()
 	if sala.is_empty():
-		# o cabeçalho na placa: o céu do salão é claro e «Tech Demo» sozinho passa raso do contraste
-		var lado := 60.0
-		var tam_c := maxi(int(lado * 0.36), Tema.LETRA_MINIMA)
-		var larg_c := lado + 18.0 + maxf(Desenho.largura("Hefesto", Tema.bungee(), tam_c), Desenho.largura("Tech Demo", Tema.archivo(700), tam_c))
-		Desenho.moldura(self, Rect2(Vector2(Tema.MARGEM_X - 20.0, Tema.MARGEM_Y - 16.0), Vector2(larg_c + 40.0, lado + 32.0)),
-			Color(Tema.CASCO, 0.9), Tema.GRAFITE, 2, 12)
-		Desenho.cabecalho(self, Vector2(Tema.MARGEM_X, Tema.MARGEM_Y), lado)
-	else:
-		# o nome e a ação num quadro: a arena é clara e o texto não pode sumir nela
-		var qd := quadro_da_sala(str(sala.get("nome", "")), str(sala.get("acao", "")), w)
-		var q: Rect2 = qd["rect"]
-		Desenho.moldura(self, q, Color(Tema.CASCO, 0.94), Tema.GRAFITE, 2, Tema.RAIO_QUADRO)
-		Desenho.texto(self, q.position + Vector2(28, 56), qd["nome"], Tema.archivo(700), Tema.T_SUBTITULO, Tema.ETIQUETA)
-		Desenho.paragrafo(self, q.position + Vector2(28, 96), qd["acao"], Tema.archivo(500), Tema.T_ROTULO, Tema.ETIQUETA,
-			q.size.x - 56.0 + 1.0, LINHAS_DA_ACAO)
-
-	_lugares(Vector2(w - Tema.MARGEM_X, 40))
+		_etiqueta(ETIQUETA_DO_SALAO, "O Salão", "A FORJA · LADO %s" % lado, Tema.SECAO[0], INCLINACAO_DO_SALAO, false, 56)
+		var pares := [["create", "Diagnóstico"], ["options", "Pausa"]] if create_livre and Forja.bancada else [["options", "Pausa"]]
+		Desenho.dicas_a_direita(self, Vector2(w - Tema.MARGEM_X, TOPO_DAS_DICAS + _lado_da_dica() * 0.82), pares, Tema.T_SELO)
+	elif cx.has("cartao0"):
+		for l in 4:
+			_cartao(l, cx["cartao%d" % l])
+		if not etiqueta.is_empty():
+			_etiqueta(ETIQUETA_DA_SALA, str(etiqueta.get("titulo", "")), str(etiqueta.get("impresso", "")),
+				etiqueta.get("tinta", Tema.SECAO[0]), float(etiqueta.get("inclinacao", 0.0)), bool(etiqueta.get("lado_b", false)), 52)
+		_deck(cx["deck"])
 
 	_rets.clear()
 	if vencidas >= 0:
 		_salao(w, h)
 
-	# as dicas de baixo
-	var pares := [["create", "Diagnóstico"], ["options", "Pausa"]] if create_livre and Forja.bancada else [["options", "Pausa"]]
-	Desenho.dicas_a_direita(self, Vector2(w - Tema.MARGEM_X, h - Tema.MARGEM_Y), pares, Tema.T_SELO, not sala.is_empty())
-
-	# os avisos
-	# o texto que some sozinho é grande e curto: 46 px, até duas linhas
-	var y := 190.0
-	for a in _avisos:
+	# os avisos: centrados a partir de y 352, até 1100 px, duas linhas
+	for i in _avisos.size():
+		var a: Array = _avisos[i]
+		var r2: Rect2 = cx["aviso%d" % i]
 		var alfa := clampf(a[1] / 0.4, 0.0, 1.0)
 		var f := Tema.archivo(500)
-		var larg_max := 1100.0
-		var s := Desenho.caber(a[0], f, Tema.T_AVISO, larg_max, 2)
-		var tw := minf(Desenho.largura(s, f, Tema.T_AVISO), larg_max)
-		var th := Desenho.altura_paragrafo(s, f, Tema.T_AVISO, larg_max)
-		var r2 := Rect2(Vector2((w - tw) * 0.5 - 32, y), Vector2(tw + 64, th + 28))
+		var s := Desenho.caber(a[0], f, Tema.T_AVISO, LARG_AVISO, 2)
 		Desenho.moldura(self, r2, Color(Tema.CASCO_ALTO, 0.95 * alfa), Color(Tema.GRAFITE, alfa), 2, 12)
-		Desenho.paragrafo(self, Vector2(r2.position.x + 32, y + 14 + f.get_ascent(Tema.t(Tema.T_AVISO))), s, f,
-			Tema.T_AVISO, Color(Tema.ETIQUETA, alfa), larg_max + 1.0, 2)
-		y += r2.size.y + 12.0
+		Desenho.paragrafo(self, Vector2(r2.position.x + 32, r2.position.y + 14 + f.get_ascent(Tema.t(Tema.T_AVISO))), s, f,
+			Tema.T_AVISO, Color(Tema.ETIQUETA, alfa), LARG_AVISO + 1.0, 2)
 
 
 ## O que o salão põe na tela: o contador, «Salas vencidas», os chips e a dica presa.
 func _salao(w: float, h: float) -> void:
-	# o contador fica logo abaixo dos lugares (a faixa de cima é deles)
-	var topo := 40.0 + 92.0 + 16.0
+	# o contador fica no alto à direita (G04: os chips de lugar saíram do alto; as dicas vêm abaixo dele)
+	var topo := float(Tema.MARGEM_Y)
 	var c := Desenho.contador(self, Vector2(w - Tema.MARGEM_X - 121.0, topo), "%d/9" % vencidas, 64)
 	_rets.append(c)
 	var f := Tema.archivo(500)
@@ -163,9 +164,13 @@ func _dica_presa(w: float, h: float) -> void:
 	_rets.append(r)
 
 
-## Os retângulos do salão neste quadro (o contador, o rótulo, os chips, a dica presa).
-func retangulos() -> Array[Rect2]:
-	return _rets
+## As caixas que o HUD ocupa agora (cartões, etiqueta, deck, avisos, dicas de baixo e, no salão, o contador, o
+## rótulo, os chips e a dica presa do último quadro): o _draw desenha nelas e a prova confere que nenhuma encosta.
+func retangulos() -> Array:
+	var r: Array = _caixas().values()
+	if sala.is_empty():
+		r.append_array(_rets)
+	return r
 
 
 ## O quadro do nome e da ação da sala: do recuo da margem até antes do primeiro
@@ -194,37 +199,167 @@ static func linha_do_status(linha: String) -> String:
 	return Desenho.caber(linha, Tema.archivo(500), Tema.T_SELO, LARG_CHIP - 40.0, 1)
 
 
-## Os lugares, da direita para a esquerda a partir de `fim` (P4 mais à direita).
-func _lugares(fim: Vector2) -> void:
-	var larg := LARG_CHIP
-	var alt := 92.0
-	var x := fim.x - (larg * 4 + 16 * 3)
-	for l in 4:
-		var r := Rect2(Vector2(x + l * (larg + 16), fim.y), Vector2(larg, alt))
-		var info: Dictionary = Forja.lugar(l)
-		var cor_id := Tema.tom_para_a_borda(Forja.cor_do_lugar(l))
-		if not info.get("ocupado", false):
-			Desenho.moldura(self, r, Color(Tema.CASCO, 0.7), Tema.GRAFITE, 2, 12)
-			Desenho.texto(self, r.position + Vector2(20, 40), "P%d  ·  —" % (l + 1), Tema.archivo(600), Tema.T_SELO, Tema.MUDO)
-			continue
-		var conectado: bool = info.get("conectado", false)
-		Desenho.moldura(self, r, Color(Tema.CASCO, 0.9), cor_id if conectado else Tema.SECAO[3], 3, 12)
-		Desenho.texto(self, r.position + Vector2(20, 44), "P%d" % (l + 1), Tema.bungee(), Tema.T_PSHARP, cor_id)
-		if not conectado:
-			Desenho.texto(self, r.position + Vector2(92, 40), "Sem controle", Tema.archivo(600), Tema.T_SELO, Tema.SECAO[3])
-			continue
-		var p: Dictionary = Forja.pad(int(info.get("pad", -1)))
-		Desenho.texto(self, r.position + Vector2(92, 40), str(p.get("conexao_curta", "")), Tema.archivo(600), Tema.T_SELO, Tema.ETIQUETA)
-		var pct: int = p.get("bateria", -1)
-		if pct >= 0:
-			var s := "%d%%" % pct
-			var fm := Tema.vt()
-			Desenho.texto(self, Vector2(r.end.x - 20 - Desenho.largura(s, fm, Tema.T_SELO), r.position.y + 40), s, fm, Tema.T_SELO, Tema.ETIQUETA)
-		var linha: String = status_da_sala[l]
-		if linha != "":
-			# a linha encolhe até caber (cortada, "4 bala" viraria "4 bal")
-			# a letra não encolhe (nada abaixo de 30 px): a linha que não cabe fecha com «…»
-			Desenho.texto(self, r.position + Vector2(20, 76), linha_do_status(linha), Tema.archivo(500), Tema.T_SELO,
-				Tema.ETIQUETA_SOMBRA, HORIZONTAL_ALIGNMENT_LEFT, larg - 40)
-		else:
-			Desenho.leds(self, r.position + Vector2(20, 60), int(info.get("leds", 0)), 10.0)
+# ------------------------------------------------------------- o cartão, a etiqueta e o deck (G04) --
+
+const CARTAO := Vector2(420, 132)
+const ETIQUETA_DA_SALA := Rect2(548, 60, 430, 136)
+const DECK := Rect2(996, 60, 376, 116)
+const ETIQUETA_DO_SALAO := Rect2(96, 60, 520, 150)
+const INCLINACAO_DO_SALAO := -0.6
+const TOPO_DAS_DICAS := 150.0
+const LARG_AVISO := 1100.0
+const TOPO_DOS_AVISOS := 352.0
+
+
+## O retângulo do cartão do lugar: o canto dele, 96 px das laterais e 60 do alto ou de baixo.
+## A largura não cresce com o texto grande (senão o P1 encosta na etiqueta); a altura, sim.
+static func cartao(l: int, tela: Vector2) -> Rect2:
+	var tam := Vector2(CARTAO.x, CARTAO.y * Tema.escala_texto)
+	var x: float = float(Tema.MARGEM_X) if l % 2 == 0 else tela.x - Tema.MARGEM_X - tam.x
+	var y: float = float(Tema.MARGEM_Y) if l < 2 else tela.y - Tema.MARGEM_Y - tam.y
+	return Rect2(Vector2(x, y), tam)
+
+
+## A inclinação da etiqueta da faixa (graus): sorteada pela semente da partida e pela seção; nunca se anima.
+static func inclinacao_da_faixa(semente: int, n: int) -> float:
+	return lerpf(-1.5, 1.5, float(absi(hash([semente, n])) % 1000) / 999.0)
+
+
+## Troca a etiqueta da faixa (06). A animação (a velha descola, a nova cola, a caneta escreve) é da G04b; aqui a
+## nova entra no lugar.
+func trocar_etiqueta(titulo: String, impresso: String, tinta: Color, inclinacao: float, lado_b: bool) -> void:
+	etiqueta = {"titulo": titulo, "impresso": impresso, "tinta": tinta, "inclinacao": inclinacao, "lado_b": lado_b}
+
+
+## A sala mostra cartões, etiqueta e deck: uma SalaJogo com HUD, na fase de jogo.
+func _com_cartoes() -> bool:
+	return not sala.is_empty() and da_sala != null and is_instance_valid(da_sala) and da_sala is SalaJogo \
+		and bool(da_sala.com_hud) and str(da_sala.fase) == "jogo"
+
+
+func _lado_da_dica() -> float:
+	return Tema.t(Tema.T_SELO) * 1.25
+
+
+## Um cálculo só para o desenho e para a prova: o nome da caixa -> o retângulo.
+func _caixas() -> Dictionary:
+	var d := {}
+	var w := size.x
+	if sala.is_empty():
+		d["etiqueta"] = _caixa_girada(ETIQUETA_DO_SALAO, INCLINACAO_DO_SALAO)
+		var pares := [["create", "Diagnóstico"], ["options", "Pausa"]] if create_livre and Forja.bancada else [["options", "Pausa"]]
+		var total := 40.0 * (pares.size() - 1)
+		for i in pares.size():
+			total += Glifo.largura_dica(pares[i][0], pares[i][1], Tema.T_SELO, i == 0)
+		d["dicas"] = Rect2(Vector2(w - Tema.MARGEM_X - total, TOPO_DAS_DICAS), Vector2(total, _lado_da_dica()))
+	elif _com_cartoes():
+		for l in 4:
+			d["cartao%d" % l] = cartao(l, size)
+		if not etiqueta.is_empty():
+			d["etiqueta"] = _caixa_girada(ETIQUETA_DA_SALA, float(etiqueta.get("inclinacao", 0.0)))
+		d["deck"] = DECK
+	var y := TOPO_DOS_AVISOS
+	var f := Tema.archivo(500)
+	for i in _avisos.size():
+		var s := Desenho.caber(_avisos[i][0], f, Tema.T_AVISO, LARG_AVISO, 2)
+		var tw := minf(Desenho.largura(s, f, Tema.T_AVISO), LARG_AVISO)
+		var th := Desenho.altura_paragrafo(s, f, Tema.T_AVISO, LARG_AVISO)
+		var r := Rect2(Vector2((w - tw) * 0.5 - 32, y), Vector2(tw + 64, th + 28))
+		d["aviso%d" % i] = r
+		y += r.size.y + 12.0
+	return d
+
+
+## A caixa de um papel girado `graus` em volta do centro (o retângulo que o contém).
+static func _caixa_girada(r: Rect2, graus: float) -> Rect2:
+	var a := deg_to_rad(absf(graus))
+	var meio := Vector2(r.size.x * cos(a) + r.size.y * sin(a), r.size.x * sin(a) + r.size.y * cos(a)) * 0.5
+	return Rect2(r.get_center() - meio, meio * 2.0)
+
+
+## O cartão do lugar, nos três estados: jogando, sem controle, lugar vazio.
+func _cartao(l: int, r: Rect2) -> void:
+	var e := Tema.escala_texto
+	var info: Dictionary = Forja.lugar(l)
+	var ocupado: bool = info.get("ocupado", false)
+	var conectado: bool = info.get("conectado", false)
+	var cor: Color = Tema.JOGADOR[l]
+	var o := r.position
+	if ocupado:
+		Desenho.caixa(self, Rect2(o + Vector2(0, 6), r.size), Tema.SOMBRA, 10)
+		Desenho.caixa(self, r, Color(Tema.CASCO, 0.94), 10)
+	else:
+		Desenho.caixa(self, r, Color(Tema.CASCO, 0.5), 10)
+	draw_rect(Rect2(o + Vector2(10, 0), Vector2(400, 5)), cor if ocupado and conectado else Tema.GRAFITE)
+	Desenho.texto(self, o + Vector2(18, 52 * e), "P%d" % (l + 1), Tema.bungee(), Tema.T_PSHARP, cor if ocupado else Tema.MUDO)
+	if not ocupado:
+		Desenho.dica(self, o + Vector2(132, 62 * e), "cruz", "Entrar")
+		return
+	Desenho.lampadas(self, o + Vector2(20, 66 * e), l, not conectado)
+	var fv := Tema.vt()
+	var pts := "%04d" % int(pontos[l]) if int(pontos[l]) >= 0 else ""
+	var lp := Desenho.largura(pts, fv, Tema.T_PONTOS) if pts != "" else 0.0
+	if pts != "":
+		Desenho.texto(self, o + Vector2(402.0 - lp, 54 * e), pts, fv, Tema.T_PONTOS, Tema.ETIQUETA)
+	var larg_nome := 402.0 - lp - 16.0 - 112.0
+	var fn := Tema.archivo(600)
+	if conectado:
+		Desenho.nome(self, o + Vector2(112, 48 * e), Desenho.nome_que_cabe(str(nomes[l]), fn, Tema.T_NOME, larg_nome), fn,
+			Tema.T_NOME, Tema.ETIQUETA)
+	else:
+		Desenho.texto(self, o + Vector2(112, 48 * e), Desenho.caber("Sem controle", fn, Tema.T_NOME, larg_nome, 1), fn,
+			Tema.T_NOME, Tema.ETIQUETA)
+	# o item: em liga, a cor do dono; o Escudo quebrado, mudo e riscado; mãos livres, nada
+	var item := Itens.do_lugar(l)
+	var icone := str(ForjaPlayer.ITENS[item].icone)
+	if icone != "":
+		var ri := Rect2(o + Vector2(132, 58 * e), Vector2(36, 36))
+		var quebrado := item == Itens.ESCUDO and not Itens.escudo_inteiro(l)
+		Glifo.desenhar(self, icone, ri, Tema.MUDO if quebrado else (cor if Itens.em_liga[l] else Tema.ETIQUETA))
+		if quebrado:
+			draw_line(Vector2(ri.position.x, ri.end.y), Vector2(ri.end.x, ri.position.y), Tema.MUDO, 3.0, true)
+	# o VU: o combo aceso na cor do dono, o pico da sala em papel
+	var c := int(combo[l])
+	var cm := int(combo_max[l])
+	Desenho.vu(self, Rect2(o + Vector2(18, 98 * e), Vector2(302, 18)), 14, mini(c, 14), cor, mini(cm, 14) - 1 if cm > c else -1)
+	if c >= 2:
+		var s := "×%d" % c
+		Desenho.texto(self, o + Vector2(402.0 - Desenho.largura(s, fv, 40), 124 * e), s, fv, 40, Tema.ETIQUETA)
+
+
+## Uma etiqueta de papel com o título a caneta e a linha impressa, no giro do papel.
+func _etiqueta(r: Rect2, titulo: String, impresso: String, tinta: Color, graus: float, lado_b: bool, tam_titulo: int) -> void:
+	var papel := r
+	Desenho.etiqueta(self, papel, tinta, graus, lado_b)
+	var fm := Tema.marcador()
+	var dito := Desenho.caber(titulo, fm, tam_titulo, papel.size.x - 48.0, 1)
+	var base_impresso := papel.size.y - 12.0
+	_texto_girado(papel.get_center(), graus, Vector2(24, 80) - papel.size * 0.5, dito, fm, tam_titulo, Tema.TINTA)
+	_texto_girado(papel.get_center(), graus, Vector2(24, base_impresso) - papel.size * 0.5, impresso, Tema.vt(), 34, Tema.TINTA_SUAVE)
+
+
+## Um texto no giro de um papel: desenhado girado, anotado (F09) sem o giro, no mesmo lugar.
+func _texto_girado(centro: Vector2, graus: float, pos: Vector2, s: String, f: Font, tam: int, cor: Color) -> void:
+	var dito := Desenho.t(s)
+	draw_set_transform(centro, deg_to_rad(graus), Vector2.ONE)
+	draw_string(f, pos, dito, HORIZONTAL_ALIGNMENT_LEFT, -1, Tema.t(tam), cor)
+	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+	if Desenho.coletar_retangulos:
+		Desenho.anotar(self, centro + pos, dito, f, Tema.t(tam), cor)
+
+
+## O deck é o relógio da faixa: os segundos que faltam, ou o tempo jogado numa sala sem relógio; no treino, parado.
+func _deck(r: Rect2) -> void:
+	var d := float(da_sala.duracao)
+	var digitos := ""
+	var esq := 0.5
+	if bool(da_sala.treinando):
+		digitos = "%03d" % ceili(maxf(d, 0.0))
+		esq = 1.0 if d > 0.0 else 0.5
+	elif d > 0.0:
+		var resta := maxf(0.0, d - float(da_sala.t_jogo))
+		digitos = "%03d" % ceili(resta)
+		esq = resta / d
+	else:
+		digitos = "%03d" % int(da_sala.t_jogo)
+	Desenho.deck(self, r, esq, 1.0 - esq if d > 0.0 else 0.5, digitos, _giro)

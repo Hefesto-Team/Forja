@@ -337,6 +337,7 @@ FICHA; redeclarar `RAIAS` na filha é erro de análise; o minigame **não tem**
 | o fechamento | na fase `fim`: apito, resultado com `vencedor()`, jingle, volta em 6 s (F03) |
 | o registro | `minigame`, `nota`, `toque` |
 | a câmera | pelo modo da ficha (G05): o kit põe `camera_modo` pela chave `"camera"` (`fixa`, `dupla`, `grupo`, `corrida`); a ficha pode trazer `"camera_lente"` (mm), `"camera_distancia": Vector2(min, max)` e, na corrida, `"camera_frente"`; os eventos tremem com `tremer(Sala.TREMOR_GOLPE)`, `TREMOR_ESTRONDO` ou `TREMOR_CATASTROFE` (`TREMOR_EXPLOSAO` é o estrondo) |
+| o julgamento (G04) | `julgar(l, j, palavra, no_tempo_1)` em `SalaJogo`: o `jul_*` do lugar na TV e na mão, a vibração e o carimbo (`julgou`); o erro só depois de `errou(l)`; `combo(l) -> int` em `SalaJogo` (0; as salas com combo devolvem o delas, para o cartão do HUD) |
 
 **Os ganchos** que o minigame implementa:
 

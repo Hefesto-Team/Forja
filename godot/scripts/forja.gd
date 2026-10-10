@@ -166,6 +166,8 @@ func aplicar_opcoes() -> void:
 	Traducoes.idioma = Opcoes.IDIOMAS[Opcoes.idioma]
 	if OS.get_environment("FORJA_IDIOMA") != "":
 		Traducoes.idioma = OS.get_environment("FORJA_IDIOMA")
+	if OS.get_environment("FORJA_TEXTO") == "grande":
+		Tema.escala_texto = Opcoes.ESCALA_DO_TEXTO[1]
 	if DisplayServer.get_name() != "headless" and not robo:
 		var modo := DisplayServer.WINDOW_MODE_FULLSCREEN if Opcoes.tela_cheia else DisplayServer.WINDOW_MODE_WINDOWED
 		if DisplayServer.window_get_mode() != modo:

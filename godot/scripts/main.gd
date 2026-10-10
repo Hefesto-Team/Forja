@@ -32,6 +32,7 @@ var ui: Control
 var titulo: TelaTitulo
 var lobby: TelaLobby
 var hud: HudJogo
+var visor: Visor  ## o carimbo e a fala acima de cada cavaleiro (G04), uma camada acima do HUD
 var painel: PainelSala
 var resultado: TelaResultado
 var diagnostico: Diagnostico
@@ -173,6 +174,11 @@ func _interface() -> void:
 	tela_virar = TelaVirar.new()
 	for c in [titulo, lobby, hud, painel, resultado, diagnostico, livro, tela_virar, pausa, escolha, placar, tela_opcoes, creditos, intro]:
 		ui.add_child(c)
+	visor = Visor.new()
+	visor.jogadores = jogadores
+	visor.hud = hud
+	ui.add_child(visor)
+	ui.move_child(visor, hud.get_index() + 1)
 	cortina = ColorRect.new()
 	cortina.color = Color(Tema.FITA, 0.0)
 	cortina.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -415,6 +421,8 @@ func _ir_para_o_salao(com_cortina := true) -> void:
 		hud.vencidas = Colecao.secoes_acesas()
 		hud.sala = {}
 		hud.status_da_sala = ["", "", "", ""]
+		hud.lado = partida.lado() if partida else "A"
+		hud.da_sala = null
 	if com_cortina:
 		_trocar(feito)
 	else:
@@ -458,6 +466,16 @@ func _entrar_na_sala(id: String, com_cortina := true, pronta: Sala = null) -> vo
 		PosFita.rasgo_curto()
 		hud.sala = {"nome": sala.nome, "acao": sala.acao}
 		hud.dica_presa = {}
+		# G04: o cartão, a etiqueta e o deck leem a sala; o visor carimba o julgamento e os carimbos do jogo
+		hud.da_sala = sala
+		hud.combo_max = [0, 0, 0, 0]
+		var n := Musica.SALA_DA_SECAO.find(Catalogo.apelido(str(sala.id)))
+		var lado_da_fita := partida.lado() if partida else "A"
+		hud.trocar_etiqueta(str(sala.nome), "LADO %s · FAIXA %02d" % [lado_da_fita, partida.passo + 1 if partida else maxi(n, 1)],
+			Tema.tinta_da_secao(maxi(n, 0)), HudJogo.inclinacao_da_faixa(partida.semente if partida else 0, n), lado_da_fita == "B")
+		sala.julgou.connect(visor.julgamento)
+		sala.carimbou.connect(func(l: int, id_do_carimbo: String) -> void: visor.bater(l, id_do_carimbo))
+		sala.falou.connect(visor.fala)
 	if com_cortina:
 		_trocar(feito)
 	else:
@@ -815,6 +833,8 @@ func _sair_do_podio() -> void:
 
 func _sair_da_sala() -> void:
 	painel.sala = null
+	hud.da_sala = null
+	visor.vivos = []
 	resultado.fechar()
 	hud.create_livre = true
 	if sala:
@@ -848,6 +868,9 @@ func _process(dt: float) -> void:
 	if sala:
 		for l in 4:
 			hud.status_da_sala[l] = sala.status(l) if Forja.ocupado(l) else ""
+	for l in 4:
+		hud.combo[l] = sala.combo(l) if sala is SalaJogo and Forja.ocupado(l) else 0
+		hud.pontos[l] = int(sala.pontos[l]) if sala is SalaJogo else -1
 	if estado == "sala" and sala and sala.camera_modo == "corrida":
 		sala.puxar_os_de_tras()
 	_mover_camera(dt)

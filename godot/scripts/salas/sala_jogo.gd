@@ -589,3 +589,52 @@ func com_poucos() -> String:
 ## O padrão é 0; o kit de minigames (H04) soma os `julgar` e a sala que erra sobrescreve.
 func erros_do_grupo() -> int:
 	return 0
+
+
+# ---------------------------------------------------------------- o julgamento (G04) --
+
+## A numeração do Ritmo (13): ERRO 0, BOM 1, OTIMO 2, PERFEITO 3.
+const PALAVRA := ["", "Quase", "Afinado", "Ressonância!"]
+const JUL := ["erro", "quase", "afinado", "ressonancia"]
+## A vibração de cada nota pela tabela de sensações: erro 0,7/0,3/160, acerto 0,3/0,6/80, perfeito 0,5/0,8/100.
+const SENSACAO_DO_JULGAMENTO := ["erro", "acerto", "acerto", "perfeito"]
+var _ressonancias := [0, 0, 0, 0]  ## «Ressonância!» seguidas, por lugar
+var _acorde := [-1, -1, -1, -1]  ## o compasso da última «Ressonância!» no tempo 1
+
+
+## O julgamento de um toque: o som do lugar na TV e na mão, a vibração e o carimbo.
+## `palavra` vazia usa PALAVRA[j] (a G07 passa «Cedo»/«Tarde» no treino).
+## O kit (H04) chama; o erro chega aqui só se `errou(l)` (G03) devolveu false.
+func julgar(l: int, j: int, palavra := "", no_tempo_1 := false) -> void:
+	if l < 0 or l > 3 or j < 0 or j > 3:
+		return
+	var id := "jul_%s_p%d" % [JUL[j], l + 1]
+	var p := jogador(l)
+	Som.tocar(id, p.global_position + Vector3(0, 1.2, 0) if p else null, -12.0)
+	Som.no_controle(l, id, 0.85)
+	Forja.sentir(l, SENSACAO_DO_JULGAMENTO[j])
+	julgou.emit(l, j, palavra if palavra != "" or j == 0 else PALAVRA[j])
+	if treinando:
+		return
+	_ressonancias[l] = _ressonancias[l] + 1 if j == 3 else 0
+	if _ressonancias[l] >= 5:
+		_ressonancias[l] = 0
+		carimbou.emit(l, "car_em_chamas")
+	if j != 3:
+		_acorde[l] = -1
+		return
+	if not no_tempo_1:
+		return
+	_acorde[l] = roundi(Ritmo.batida() / 4.0)
+	var quem: Array = []
+	for k in 4:
+		if jogando[k]:
+			quem.append(k)
+	if quem.size() >= 3 and quem.all(func(k): return _acorde[k] == _acorde[l]):
+		_acorde = [-1, -1, -1, -1]
+		carimbou.emit(-1, "car_acorde")
+
+
+## O combo do lugar, para o cartão. As salas com combo devolvem o delas.
+func combo(_l: int) -> int:
+	return 0

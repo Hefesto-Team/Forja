@@ -168,6 +168,15 @@ func _dicas() -> void:
 		r.position.y = clampf(r.position.y, 12.0, size.y - 140.0)
 		pilulas.append([l, partes, r])
 	_afastar(pilulas, FOLGA_PILULA)
+	# G04: a pílula que cruza um cartão do HUD sai dele (em cima, para baixo do cartão; embaixo, para cima)
+	if bool(sala.com_hud):
+		for it in pilulas:
+			var rp: Rect2 = it[2]
+			for k in 4:
+				var c := HudJogo.cartao(k, size)
+				if rp.intersects(c):
+					rp.position.y = c.end.y + 8.0 if k < 2 else c.position.y - rp.size.y - 8.0
+			it[2] = rp
 	# a dica que cairia em cima do «Valendo!» espera ele sumir (1,4 s)
 	var valendo := _rect_valendo()
 	if valendo.size.x > 0.0:
@@ -314,34 +323,42 @@ func _pergunta(l: int, q: Dictionary, r: Rect2) -> void:
 func _tempo() -> void:
 	_dicas()
 	_treino_e_valendo()
-	# as faixas descem para baixo do quadro da HUD (que cresce com a ação em duas linhas)
-	var topo_das_faixas: float = (HudJogo.quadro_da_sala(str(sala.nome), str(sala.acao), size.x)["rect"] as Rect2).end.y + 8.0
-	var d: float = sala.duracao
-	if d <= 0.0:
-		# sem relógio: a linha de progresso da sala, no mesmo lugar
-		var linha := str(sala.progresso())
-		if linha != "":
-			var fp := Tema.archivo(500)
-			var lw := Desenho.largura(linha, fp, Tema.T_SELO)
-			var q := Rect2(Vector2(Tema.MARGEM_X - 28, topo_das_faixas), Vector2(lw + 56, 52))
-			Desenho.moldura(self, q, Color(Tema.CASCO, 0.9), Tema.GRAFITE, 2, 12)
-			Desenho.texto(self, q.position + Vector2(28, 34), linha, fp, Tema.T_SELO, Tema.ETIQUETA_SOMBRA)
-		return
-	# o tempo que resta, logo abaixo do nome da sala (o quadro da HUD)
-	if sala.treinando:
-		return  # o treino não gasta o relógio: a barra só aparece valendo
-	var resta := maxf(0.0, d - float(sala.t_jogo))
-	var larg := 480.0
-	var p := Vector2(Tema.MARGEM_X - 28, topo_das_faixas + 22.0)
-	var cor := Tema.SECAO[3] if resta < 15.0 else Tema.ETIQUETA
-	var r := Rect2(p - Vector2(0, 22), Vector2(larg + 110, 52))
-	Desenho.moldura(self, r, Color(Tema.CASCO, 0.9), Tema.GRAFITE, 2, 12)
-	var trilho := Rect2(p + Vector2(20, 0), Vector2(larg, 8))
-	draw_rect(trilho, Tema.GRAFITE)
-	draw_rect(Rect2(trilho.position, Vector2(larg * resta / d, 8)), cor)
-	var s := "%d s" % int(ceil(resta))
-	var f := Tema.vt()
-	Desenho.texto(self, Vector2(trilho.end.x + 18, p.y + 12), s, f, Tema.T_SELO, cor)
+	# G04: o deck do HUD é o relógio da faixa; aqui fica só a linha de progresso da sala sem relógio
+	var q := _rect_progresso()
+	if q.size.x > 0.0:
+		Desenho.placa(self, q)
+		Desenho.texto(self, q.position + Vector2(28, 36), str(sala.progresso()), Tema.archivo(500), Tema.T_SELO, Tema.ETIQUETA)
+
+
+## A linha de progresso (sala sem relógio): uma placa centrada em y 214, de 52 de altura. Vazia sem linha.
+func _rect_progresso() -> Rect2:
+	if sala == null or not is_instance_valid(sala) or not sala is SalaJogo or float(sala.duracao) > 0.0:
+		return Rect2()
+	var linha := str(sala.progresso())
+	if linha == "":
+		return Rect2()
+	var lw := Desenho.largura(linha, Tema.archivo(500), Tema.T_SELO) + 56.0
+	return Rect2(Vector2((size.x - lw) * 0.5, 214.0), Vector2(lw, 52.0))
+
+
+## O selo do treino: uma placa centrada em y 282, de 56 de altura. Vazia fora do treino.
+func _rect_selo() -> Rect2:
+	if sala == null or not is_instance_valid(sala) or not sala is SalaJogo or not sala.treinando:
+		return Rect2()
+	var w := Desenho.largura("Treino — não vale ponto", Tema.archivo(600), Tema.T_ROTULO) + 56.0
+	return Rect2(Vector2((size.x - w) * 0.5, 282.0), Vector2(w, 56.0))
+
+
+## As caixas que o painel ocupa na fase de jogo (a linha de progresso e o selo, quando aparecem): a prova
+## confere, com as do HUD, que nenhuma encosta.
+func retangulos() -> Array:
+	var r: Array = []
+	if sala == null or not is_instance_valid(sala) or not sala is SalaJogo or str(sala.fase) != "jogo":
+		return r
+	for q in [_rect_progresso(), _rect_selo()]:
+		if q.size.x > 0.0:
+			r.append(q)
+	return r
 
 
 ## O selo do treino no alto, e o "Valendo!" grande quando ele acaba.
@@ -349,9 +366,8 @@ func _treino_e_valendo() -> void:
 	if sala.treinando:
 		var s := "Treino — não vale ponto"
 		var f := Tema.archivo(600)
-		var w := Desenho.largura(s, f, Tema.T_ROTULO) + 56
-		var r := Rect2(Vector2((size.x - w) * 0.5, 176), Vector2(w, 56))
-		Desenho.moldura(self, r, Color(Tema.CASCO, 0.94), Tema.ETIQUETA, 3, 14)
+		var r := _rect_selo()
+		Desenho.placa(self, r)
 		Desenho.texto(self, r.position + Vector2(28, 38), s, f, Tema.T_ROTULO, Tema.ETIQUETA)
 	elif float(sala.valendo_t) > 0.0:
 		var k: float = 1.4 - float(sala.valendo_t)

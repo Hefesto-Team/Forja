@@ -5,6 +5,9 @@ extends Node3D
 ## saídas pelo lugar (0..3) e devolve os lugares ao repouso quando sai.
 
 signal terminou
+signal julgou(l: int, j: int, palavra: String)  ## o carimbo do julgamento (o Visor desenha; G04)
+signal carimbou(l: int, id: String)  ## um carimbo do jogo (arte/09; G04)
+signal falou(l: int, texto: String, segundos: float)  ## a fala do cavaleiro (G07)
 
 ## A seção de cada sala na noite (arte/01, a luz das cinco tintas): a tinta e a luz saem do número.
 const SECAO_DE := {

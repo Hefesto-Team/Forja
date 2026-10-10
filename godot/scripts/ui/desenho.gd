@@ -347,3 +347,111 @@ static func chip(ci: CanvasItem, r: Rect2, lugar: int, pronto: bool, palavra := 
 			nome(ci, Vector2(x, base), nm, f5, 32, Tema.ETIQUETA)
 		else:
 			texto(ci, Vector2(x, base), caber(palavra, f5, 32, cabe, 1), f5, 32, Tema.SECAO[3])
+
+
+# ------------------------------------------------ a placa, a etiqueta, o deck (G04, com as assinaturas da G11) --
+## A placa de casco (arte/06): a sombra deslocada, o casco de raio 14 e a borda de 3 px; com `foco`, o casco
+## em foco e a borda na cor dele.
+static func placa(ci: CanvasItem, r: Rect2, foco := Color(0, 0, 0, 0)) -> void:
+	caixa(ci, Rect2(r.position + Vector2(4, 6), r.size), Tema.SOMBRA, Tema.RAIO_CARTAO)
+	var com_foco := foco.a > 0.0
+	caixa(ci, r, Tema.CASCO_ALTO if com_foco else Tema.CASCO, Tema.RAIO_CARTAO, foco if com_foco else Tema.CASCO_ALTO, 3)
+
+
+## A etiqueta de papel (arte/06): a sombra, o papel, a tarja da seção (duas no lado B) e as duas linhas pautadas,
+## tudo girado por `inclinacao` graus em volta do centro. O texto é de quem chama, no mesmo giro.
+static func etiqueta(ci: CanvasItem, r: Rect2, tinta: Color, inclinacao := 0.0, lado_b := false) -> void:
+	ci.draw_set_transform(r.get_center(), deg_to_rad(inclinacao), Vector2.ONE)
+	var rr := Rect2(-r.size * 0.5, r.size)
+	caixa(ci, Rect2(rr.position + Vector2(5, 7), rr.size), Tema.SOMBRA, 8)
+	caixa(ci, rr, Tema.ETIQUETA, 8)
+	if lado_b:
+		ci.draw_rect(Rect2(rr.position + Vector2(0, 14), Vector2(rr.size.x, 7)), tinta)
+		ci.draw_rect(Rect2(rr.position + Vector2(0, 25), Vector2(rr.size.x, 7)), tinta)
+	else:
+		ci.draw_rect(Rect2(rr.position + Vector2(0, 14), Vector2(rr.size.x, 12)), tinta)
+	for i in 2:
+		var y := rr.end.y - 22.0 - i * 46.0
+		ci.draw_line(Vector2(rr.position.x + 22, y), Vector2(rr.end.x - 22, y), Tema.ETIQUETA_SOMBRA, 2.0)
+	ci.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+
+
+## As cinco lâmpadas do lugar, no padrão do LED de jogador do controle: 15 × 8 com vão de 5, acesas na cor do dono.
+static func lampadas(ci: CanvasItem, pos: Vector2, lugar: int, apagadas := false) -> void:
+	var l := clampi(lugar, 0, 3)
+	for i in 5:
+		var aceso := not apagadas and (int(Forja.LEDS_DO_LUGAR[l]) >> i) & 1 == 1
+		ci.draw_rect(Rect2(pos + Vector2(i * 20.0, 0), Vector2(15, 8)), Tema.JOGADOR[l] if aceso else Tema.GRAFITE)
+
+
+## Uma dica de botão: o glifo num quadrado de 52 px e a frase em Archivo 600 de 34, 12 px depois; `ETIQUETA` sobre
+## o casco, `TINTA` sobre a etiqueta. `pos` é o canto de cima do glifo. Devolve a largura.
+static func dica(ci: CanvasItem, pos: Vector2, glifo_nome: String, frase: String, sobre_etiqueta := false) -> float:
+	var cor := Tema.TINTA if sobre_etiqueta else Tema.ETIQUETA
+	Glifo.desenhar(ci, glifo_nome, Rect2(pos, Vector2(52, 52)), cor)
+	var f := Tema.archivo(600)
+	var dito := t(frase)
+	texto(ci, Vector2(pos.x + 64.0, pos.y + 26.0 + f.get_ascent(Tema.t(34)) * 0.36 + 2.0), frase, f, 34, cor)
+	return 64.0 + f.get_string_size(dito, HORIZONTAL_ALIGNMENT_LEFT, -1, Tema.t(34)).x
+
+
+## O VU (arte/06): `n` segmentos com vão de 4, os `aceso` primeiros na cor, o do pico em papel, o resto em grafite.
+static func vu(ci: CanvasItem, r: Rect2, n: int, aceso: int, cor: Color, pico := -1) -> void:
+	var gap := 4.0
+	var w := (r.size.x - gap * (n - 1)) / n
+	for i in n:
+		var cel := Rect2(r.position + Vector2(i * (w + gap), 0), Vector2(w, r.size.y))
+		var c := Tema.GRAFITE
+		if i < aceso:
+			c = cor.darkened(0.25 * (1.0 - float(i) / n))
+		if i == pico:
+			c = Tema.ETIQUETA
+		ci.draw_rect(cel, c)
+
+
+## O deck: a janela do cassete (dois carretéis e a fita entre eles) e o contador de fita ao lado, numa placa só.
+## `giro` gira os raios dos cubos.
+static func deck(ci: CanvasItem, r: Rect2, esquerda: float, direita: float, digitos: String, giro := 0.0) -> void:
+	caixa(ci, Rect2(r.position + Vector2(4, 6), r.size), Tema.SOMBRA, 14)
+	caixa(ci, r, Tema.CASCO, 14, Tema.CASCO_ALTO, 3)
+	var jan := Rect2(r.position + Vector2(16, 14), Vector2(196, r.size.y - 28))
+	caixa(ci, jan, Tema.JANELA, 10)
+	var c1 := jan.position + Vector2(48, jan.size.y * 0.5)
+	var c2 := jan.position + Vector2(jan.size.x - 48, jan.size.y * 0.5)
+	var raio := jan.size.y * 0.5 - 6
+	ci.draw_line(c1 + Vector2(0, lerpf(raio * 0.42, raio, esquerda)), c2 + Vector2(0, lerpf(raio * 0.42, raio, direita)), Tema.OXIDO, 3.0, true)
+	carretel(ci, c1, raio, esquerda, Tema.ETIQUETA, giro)
+	carretel(ci, c2, raio, direita, Tema.ETIQUETA, giro)
+	var tam := 64
+	contador(ci, Vector2(jan.end.x + 16, r.position.y + (r.size.y - tam * 0.95 - 12) * 0.5), digitos, tam)
+
+
+## O carimbo (arte/07): a chapa `FITA` atrás deslocada (d, d), o contorno `FITA` de 6 px sobre a cena 3D e a letra
+## na cor, tudo girado por `graus` e na `escala` em volta do `centro`. A palavra passa por `t()` (traduz e coleta).
+static func carimbo(ci: CanvasItem, centro: Vector2, palavra: String, cor: Color, tam: int, graus := 0.0, escala := 1.0,
+		alfa := 1.0, sobre_3d := true) -> void:
+	if palavra == "" or alfa <= 0.0:
+		return
+	var f := Tema.bungee()
+	var px := Tema.t(tam)
+	var dito := t(palavra)
+	var sz := f.get_string_size(dito, HORIZONTAL_ALIGNMENT_LEFT, -1, px)
+	var d := float(maxi(3, roundi(0.08 * tam)))
+	var base := Vector2(-sz.x * 0.5, f.get_ascent(px) * 0.5 - f.get_descent(px) * 0.25)
+	ci.draw_set_transform(centro, deg_to_rad(graus), Vector2(escala, escala))
+	var chapa := Color(Tema.FITA, alfa)
+	ci.draw_string(f, base + Vector2(d, d), dito, HORIZONTAL_ALIGNMENT_LEFT, -1, px, chapa)
+	if sobre_3d:
+		ci.draw_string_outline(f, base, dito, HORIZONTAL_ALIGNMENT_LEFT, -1, px, 6, chapa)
+	ci.draw_string(f, base, dito, HORIZONTAL_ALIGNMENT_LEFT, -1, px, Color(cor, alfa))
+	ci.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+	if coletar_retangulos:
+		anotar(ci, centro + base, dito, f, px, Color(cor, alfa))
+
+
+## A caixa que o carimbo ocupa na tela (sem o giro): a prova e a vez leem.
+static func caixa_do_carimbo(centro: Vector2, palavra: String, tam: int) -> Rect2:
+	var f := Tema.bungee()
+	var px := Tema.t(tam)
+	var sz := f.get_string_size(t(palavra), HORIZONTAL_ALIGNMENT_LEFT, -1, px)
+	return Rect2(centro - Vector2(sz.x * 0.5, px * 0.5), Vector2(sz.x, px))

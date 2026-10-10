@@ -282,7 +282,7 @@ func _jogar(l: int, p: ForjaPlayer, dt: float) -> void:
 		if pedido >= 0 and not errou(l):
 			e.combo = 0
 			e.tremor = 0.6
-			Som.tocar("falha", p.global_position + Vector3(0, 1.5, -2), -10.0)
+			julgar(l, 0)  # G04: a nota do cavaleiro sai desafinada, na TV e na mão
 	if r == null:
 		return
 	e.t += dt
@@ -349,9 +349,9 @@ func _acertou(l: int, p: ForjaPlayer, base: int) -> void:
 	Efeitos.anel(self, runas[l].raiz.global_position, Forja.cor_do_lugar(l), 0.7, Vector3.BACK, l)
 	Som.tocar("bigorna_aguda" if r != null and r.tipo == "botao" else "bigorna", bigorna_topo, -2.0)
 	Som.tocar("martelo", bigorna_topo, -6.0)
-	Som.no_controle(l, "martelo", 0.55)  # o martelo soa na mão de quem martelou
+	# G04: o julgamento toma o lugar do martelo na mão e da sensação: a nota do cavaleiro, a vibração e o carimbo
+	julgar(l, (3 if rapidez >= 0.66 else (2 if rapidez >= 0.33 else 1)) if r != null and r.tipo == "botao" else 2)
 	p.gesto("attack-melee-right", 0.45)
-	Forja.sentir(l, "acerto")
 	if r != null and r.tipo == "botao" and e.janela > JANELA_MINIMA * ritmo_nivel:
 		e.janela -= 0.08
 	_proxima(l)
@@ -373,7 +373,7 @@ func _perdeu(l: int, p: ForjaPlayer) -> void:
 		return
 	e.combo = 0
 	e.tremor = 1.0
-	Som.tocar("falha", runas[l].raiz.global_position, -4.0)
+	julgar(l, 0)  # G04: a nota do cavaleiro sai desafinada, na TV e na mão
 	p.gesto("emote-no", 0.6)
 	r.tentativas = int(r.tentativas) + 1
 	if r.tentativas < MAX_TENTATIVAS:
@@ -446,3 +446,8 @@ func robo(l: int, dt: float) -> void:
 				alvo = 1.0
 			e.robo_gatilho = move_toward(e.robo_gatilho, alvo, dt * 4.0)
 			Forja.robo_eixo(l, Forja.R2 if r.alvo == 1 else Forja.L2, e.robo_gatilho, 0.06)
+
+
+## O combo do lugar, para o cartão do HUD (G04).
+func combo(l: int) -> int:
+	return int(j[l].combo) if j.has(l) else 0
