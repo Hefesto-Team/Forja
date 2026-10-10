@@ -10,6 +10,14 @@
 # De propósito: a mesma prova troca o gênero da FICHA por um que não existe.
 ^ERROR: minigame [^ ]+: «genero_que_nao_existe» não vale em genero$
 
+# De propósito: a prova da luz (godot/testes/prova_do_jogo.gd, _prova_da_luz,
+# a G15) pede brilho de 9,0 a cada dono e o néon de um lugar noutra cor, para
+# ver o Tema cortar no teto e trocar a cor, e o Tema acusa com push_error. A
+# chamada pelo Kit.material sai com o kit.gd como quem chamou. Só a energia
+# 9,00 e a cor que a prova pede: o brilho acima do teto no jogo ainda reprova.
+^ERROR: Tema: energia 9\.00 acima do teto [0-9.]+ do dono [^ ]+ em (prova_do_jogo|kit)\.gd:[0-9]+$
+^ERROR: Tema: a cor do dono 1 é ff3ea5; ffd9a8 ignorada em prova_do_jogo\.gd:[0-9]+$
+
 # Na saída, só na prova do jogo (e no gauntlet, que roda a mesma prova): o
 # motor acusa o que ficou vivo no fim do processo. Não é som tocando (o
 # _calar_o_som_antes_de_sair cala os tocadores antes do quit, e a prova de

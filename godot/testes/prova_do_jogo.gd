@@ -2533,7 +2533,7 @@ func _prova_da_luz() -> void:
 	var ml := Tema.emissivo(StandardMaterial3D.new(), 9.0, 2)
 	_esperar(is_equal_approx(ml.emission_energy_multiplier, 3.0) and ml.emission == Tema.JOGADOR[2], "brilho: o lugar para em 3,0 e brilha na cor dele")
 	_esperar(Tema.emissivo(StandardMaterial3D.new(), 0.0, "mundo").emission_enabled == false, "brilho: a energia 0 desliga")
-	_esperar(is_equal_approx(Kit.material(Tema.VIOLETA, 3.0).emission_energy_multiplier, 1.2), "brilho: o Kit.material leva o dono (o mundo, 1,2)")
+	_esperar(is_equal_approx(Kit.material(Tema.VIOLETA, 9.0).emission_energy_multiplier, 1.2), "brilho: o Kit.material leva o dono (o mundo, 1,2)")
 	var nm := Tema.neon(Tema.TUNGSTENIO, 9.0, 1)
 	_esperar(nm.get_shader_parameter("cor") == Tema.JOGADOR[1] and is_equal_approx(nm.get_shader_parameter("energia"), 3.0), "brilho: o néon de um lugar tem a cor dele, no teto")
 	var cm := Tema.contorno(Tema.JOGADOR[0], 0.012, 2.4, 0)

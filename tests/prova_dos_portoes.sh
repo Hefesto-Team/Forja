@@ -323,7 +323,7 @@ pasta_tree() { # <pasta> <rc do Godot de mentira>
   cp "$RAIZ/tests/prova_do_jogo.sh" "$RAIZ/tests/caixa.sh" "$RAIZ/tests/erros_esperados.txt" "$1/tests/"
   cp "$RAIZ/scripts/engine.sh" "$1/scripts/"
   printf 'import sys\nsys.exit(0)\n' > "$1/scripts/check_texto_de_tela.py"
-  cp "$1/scripts/check_texto_de_tela.py" "$1/scripts/conferir_ost.py"
+  for s in conferir_ost conferir_bonecos; do cp "$1/scripts/check_texto_de_tela.py" "$1/scripts/$s.py"; done   # a trilha (H05) e os bonecos (G08)
   printf '#!/usr/bin/env bash\nexit %s\n' "$2" > "$1/godot-de-mentira"
   chmod +x "$1/godot-de-mentira"
   # o módulo de mentira com a soma da fonte desta árvore: sem ele a caixa sai 2 (a WQ03)
