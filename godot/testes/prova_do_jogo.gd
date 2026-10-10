@@ -3001,7 +3001,6 @@ func _prova_das_decisoes() -> void:
 	mg.ficha["genero"] = "coop"
 	mg.coop = true
 	mg.coop_venceu = false
-	# com colocação: o -1 tem de vir do kit, não da sala sem ninguém
 	mg.colocacao = [2, 0, 1, 3]
 	_esperar(int(mg.campos_do_fim().get("vencedor", 0)) == -1 and mg.frase_do_resultado() == "A forja apagou.",
 		"coop: o vencedor é -1, e a tela diz que a forja apagou")
@@ -3035,8 +3034,6 @@ func _joga_o_minigame(id: String, limite_s := 60.0, a_cada_quadro := Callable())
 	_esperar(v >= 0 or (mg.coop and v == -1), "%s: fechou com vencedor (%d%s)" % [nome, v, ", coop" if mg.coop else ""])
 	if str(mg.ficha.get("fim", "")) == "tempo" and mg.duracao > 0.0 and valendo > 0:
 		var parede := (Time.get_ticks_usec() - valendo) / 1e6
-		# o relógio do fim é o da música em todo caso; e o fim antes da duração
-		# só vale quando todos acabaram (a regra do minigame, que o kit não muda)
 		var jogado: float = mg.tempo_jogado()
 		_esperar(absf(parede - jogado) <= jogado * 0.1 + 1.0,
 			"%s: %.1f s de música em %.1f s de parede (o fim conta em tempo de música)" % [nome, jogado, parede])
@@ -3047,8 +3044,6 @@ func _joga_o_minigame(id: String, limite_s := 60.0, a_cada_quadro := Callable())
 
 
 func _prova_da_ficha(slot: String) -> void:
-	# a ficha joga sozinha, fora da noite que a prova deixou aberta: como o
-	# «voltar ao salão» da pausa, sem partida e sem Prova de Fogo
 	jogo.fogo = -1
 	jogo.partida = null
 	_esperar(Catalogo.existe(slot), "SALA=%s: está no catálogo" % slot)
