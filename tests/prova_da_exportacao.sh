@@ -198,8 +198,90 @@ for f in "$DIST/forja-linux-x86_64/LICENCAS.txt" "$DIST/forja-windows-x86_64/LIC
       || falha "$(basename "$(dirname "$f")"): LICENCAS.txt sem o Godot, o SDL ou as fontes"
   fi
 done
-[ -s "$DIST/forja-linux-x86_64/forja.png" ] && grep -q "^Exec=forja.x86_64" "$DIST/forja-linux-x86_64/forja.desktop" \
-  || falha "o Linux sem o ícone ou sem o .desktop"
+[ -s "$DIST/forja-linux-x86_64/forja.png" ] && [ -x "$DIST/forja-linux-x86_64/instalar-atalho.sh" ] \
+  || falha "o Linux sem o ícone ou sem o instalar-atalho.sh"
+
+# O atalho do menu (a WU08): o instalar-atalho.sh escreve a entrada numa casa de
+# mentira, com o caminho absoluto. Ela tem de passar no desktop-file-validate, e
+# o Exec (desfeito como a especificação manda) e o Icon têm de apontar para o
+# jogo e o ícone que existem. Duas vezes: na pasta do pacote e numa pasta com
+# espaço, aspas, cifrão e porcento no nome (o jogo nela é um atalho do de verdade).
+# $1 = a pasta, $2 = a casa
+atalho() {
+  env -u XDG_DATA_HOME HOME="$2" sh "$1/instalar-atalho.sh" > "$2.log" 2>&1 || { cat "$2.log"; return 1; }
+  local d="$2/.local/share/applications/forja.desktop"
+  if ! command -v desktop-file-validate > /dev/null; then
+    echo "    sem o desktop-file-validate (desktop-file-utils): só o caminho foi conferido"
+  elif ! desktop-file-validate "$d"; then
+    return 1
+  fi
+  python3 - "$d" "$1" <<'PY'
+import os, sys
+arq, pasta = sys.argv[1:3]
+campos = {}
+for l in open(arq, encoding="utf-8"):
+    if "=" in l and not l.startswith("["):
+        k, v = l.rstrip("\n").split("=", 1)
+        campos[k] = v
+def geral(v):  # o escape de todo valor de texto
+    tr = {"s": " ", "n": "\n", "t": "\t", "r": "\r", "\\": "\\"}
+    out, i = "", 0
+    while i < len(v):
+        if v[i] == "\\" and i + 1 < len(v):
+            out += tr.get(v[i + 1], v[i + 1]); i += 2
+        else:
+            out += v[i]; i += 1
+    return out
+def exec_args(v):  # as aspas do Exec: \" \` \$ \\ dentro das aspas, e %% vira %
+    args, cur, i, dentro, tem = [], "", 0, False, False
+    while i < len(v):
+        c = v[i]
+        if dentro and c == "\\" and i + 1 < len(v) and v[i + 1] in '"`$\\':
+            cur += v[i + 1]; i += 2; continue
+        if c == '"':
+            dentro, tem = not dentro, True
+        elif c == " " and not dentro:
+            if cur or tem: args.append(cur)
+            cur, tem = "", False
+        elif c == "%" and v[i + 1:i + 2] == "%":
+            cur += "%"; i += 1
+        else:
+            cur += c
+        i += 1
+    if cur or tem: args.append(cur)
+    return args
+args = exec_args(geral(campos.get("Exec", "")))
+icone = geral(campos.get("Icon", ""))
+erros = []
+if not args or not os.path.isabs(args[0]) or not os.access(args[0], os.X_OK):
+    erros.append(f"o Exec não aponta para um executável: {args}")
+elif os.path.realpath(args[0]) != os.path.realpath(os.path.join(pasta, "forja.x86_64")):
+    erros.append(f"o Exec aponta para outro lugar: {args[0]}")
+if not os.path.isabs(icone) or not os.path.isfile(icone):
+    erros.append(f"o Icon não aponta para um arquivo: {icone}")
+for e in erros:
+    print("    " + e)
+sys.exit(1 if erros else 0)
+PY
+}
+echo "==> o atalho do menu no Linux: o instalar-atalho.sh, numa casa de mentira"
+mkdir -p "$TMP/casa" "$TMP/casa-esquisita"
+atalho "$DIST/forja-linux-x86_64" "$TMP/casa" || falha "o atalho do menu não abre o jogo da pasta do pacote"
+ESQUISITA="$TMP/a pasta \"do\" \$jogo 100%"
+mkdir -p "$ESQUISITA"
+for f in forja.x86_64 forja.png instalar-atalho.sh; do ln -s "$DIST/forja-linux-x86_64/$f" "$ESQUISITA/$f"; done
+atalho "$ESQUISITA" "$TMP/casa-esquisita" || falha "o atalho do menu se perde numa pasta com espaço, aspas e cifrão"
+
+# O que o LEIA-ME de cada sistema ensina (a WU08): o Steam Input nos dois, e o
+# .exe aberto direto no do Windows.
+echo "==> os LEIA-ME: o Steam Input, e o forja.exe aberto direto"
+grep -q "Steam Input" "$DIST/forja-linux-x86_64/LEIA-ME.txt" || falha "o LEIA-ME do Linux não fala do Steam Input"
+if [ -f "$WINDOWS" ]; then
+  L="$DIST/forja-windows-x86_64/LEIA-ME.txt"
+  grep -q "Steam Input" "$L" || falha "o LEIA-ME do Windows não fala do Steam Input"
+  grep -q "^Abrindo o forja.exe" "$L" && grep -q "cabo" "$L" && grep -q "remapeiam" "$L" \
+    && grep -q "não é assinado" "$L" || falha "o LEIA-ME do Windows sem a seção do forja.exe aberto direto"
+fi
 
 # O módulo que vai no pacote pede no máximo a glibc do Godot (a WU01): acima
 # disso, o Godot abre num Ubuntu 22.04 ou num Debian 12 e o módulo não carrega.
