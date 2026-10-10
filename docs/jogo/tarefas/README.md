@@ -225,13 +225,15 @@ São base: vão de **a fazer** direto para **em voo**, um trilho por grupo, na o
 
 | ficha | título | tamanho | depende de | estado |
 | --- | --- | --- | --- | --- |
-| [WE01](WE01-a-caixa-unica.md) | A caixa única das provas | M | — | a fazer |
-| [WQ02](WQ02-o-x-do-robo-nao-cai-na-tela-seguinte.md) | O ✕ do robô não cai na tela seguinte | P | — | a fazer |
-| [WQ01](WQ01-os-erros-do-motor-reprovam.md) | Os erros do motor reprovam a prova | M | WE01 | a fazer |
-| [WQ04](WQ04-o-registro-fica-quando-a-prova-reprova.md) | O registro fica quando a prova reprova | P | WE01 | a fazer |
-| [WQ03](WQ03-a-prova-recusa-o-modulo-de-outra-fonte.md) | A prova recusa o módulo de outra fonte | P | WE01 | a fazer |
-| [WE02](WE02-o-kit-no-relogio-do-quadro.md) | A prova do kit no relógio do quadro | M | — | a fazer |
-| [WT03](WT03-os-portoes-falam-curto.md) | Os portões falam curto | P | — | a fazer |
+| [WE01](WE01-a-caixa-unica.md) | A caixa única das provas | M | — | feito |
+| [WQ02](WQ02-o-x-do-robo-nao-cai-na-tela-seguinte.md) | O ✕ do robô não cai na tela seguinte | P | — | feito |
+| [WQ01](WQ01-os-erros-do-motor-reprovam.md) | Os erros do motor reprovam a prova | M | WE01 | feito |
+| [WQ04](WQ04-o-registro-fica-quando-a-prova-reprova.md) | O registro fica quando a prova reprova | P | WE01 | feito |
+| [WQ03](WQ03-a-prova-recusa-o-modulo-de-outra-fonte.md) | A prova recusa o módulo de outra fonte | P | WE01 | feito |
+| [WE02](WE02-o-kit-no-relogio-do-quadro.md) | A prova do kit no relógio do quadro | M | — | feito |
+| [WT03](WT03-os-portoes-falam-curto.md) | Os portões falam curto | P | — | feito |
+| [WQ05](WQ05-a-prova-do-jogo-sai-limpa.md) | A prova do jogo sai limpa | M | WQ01 | a fazer |
+| [WE06](WE06-a-linha-do-tempo-de-parede-com-prova.md) | A linha do tempo de parede volta a ter prova | P | WE02 | a fazer |
 
 **a-entrega**: o pacote em qualquer Linux e o CI de casa.
 
