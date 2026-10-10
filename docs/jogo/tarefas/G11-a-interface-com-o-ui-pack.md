@@ -256,3 +256,29 @@ arquivo do UI Pack entrou no jogo.
 
 Marcar G11 como **feito** no [quadro](README.md), com o gasto. Commit sugerido:
 `feat(interface): a placa, a etiqueta e o J-card da fita, a pausa que desbota, o som dos menus e os ícones do touchpad`.
+
+## O que foi feito (leva 1, as-telas)
+
+- **A placa:** `Desenho.placa` (raio 14, borda de 3 px na cor da tela, a sombra `SOMBRA` deslocada) no lugar da
+  moldura nas telas que a usavam; a etiqueta e o J-card da fita (`Desenho`) para a pausa, o selo e a fita da tela de
+  virar. As dicas desenham os ícones do Kenney.
+- **A pausa da fita:** `pausa.gd` vira o J-card que entra pela direita em 500 ms, com quatro linhas fora da bancada
+  (Continuar, Opções, Voltar ao salão ou ao lobby, Sair), a tela desbotada pelo pós, a barra de pausa subindo a cada
+  2 s (com os flashes ligados) e o `fx_stop` ao abrir. A música abafa enquanto ela está aberta; os gatilhos vão a
+  Off e voltam como estavam ao fechar (`Forja.gatilhos_pausar` e `gatilhos_devolver`).
+- **O som dos menus:** `Som.ui` toca `ui_tique`, `ui_confirma` e `ui_volta`, e o main dá o toque só em quem apertou.
+  O clique antigo da navegação dos overlays saiu.
+- **Os ícones:** `scripts/glifos_do_kenney.py` gera `mudo` e os cinco gestos do touchpad (128×128, brancos) a partir
+  do Input Prompts; nenhum arquivo do UI Pack entrou no jogo (a licença no `LICENCAS-DE-TERCEIROS.md`).
+- **Medida antes:** a pausa era uma caixa de 620 px sobre o fundo a 82 %, os menus não soavam e não havia o mudo nem
+  os gestos do touchpad. **Depois:** a prova da pausa mede as quatro linhas, o `fx_stop`, a música abafada, os
+  gatilhos Off e de volta, o som e o toque de quem navega e nenhum toque em quem não apertou.
+- **As provas:** `_prova_da_pausa_da_fita()` em `prova_do_jogo.gd`; `python3 scripts/glifos_do_kenney.py --conferir`
+  passa; os portões passam.
+  Na prova do jogo (as duas passadas, rodada junto com a G07), toda checagem desta ficha passa; o que reprova na
+  rodada são as checagens do robô do kit, que reprovam igual na base de outras frentes com a máquina carregada.
+- **A prancha da pausa** (o robô que pausa uma vez por sala e as pranchas das telas com placa) ficou na
+  [G11b](G11b-a-pausa-na-prancha-da-noite.md), porque mexe na prova visual.
+- **A mordida:** a cópia com as curas tiradas (o `gatilhos_devolver` ao fechar, o toque de quem navega, o
+  `Musica.abafar`) está montada; o semáforo das provas ficou ocupado a sessão inteira e ela não rodou. Falta rodar e
+  ver reprovar «ao fechar, o L2 do P2 volta firme», «navegar vibra em quem apertou» e «a música abafa».
