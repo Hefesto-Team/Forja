@@ -94,12 +94,20 @@ func _etiqueta(t: TelaLobby, jogador) -> void:
 
 func _vus(t: TelaLobby) -> void:
 	var st: Array = t.corpo[lugar].get("stats", [0, 0, 0, 0])
+	var f := Tema.vt()
+	var tam := Tema.t(Tema.T_MONO)
+	var rotulo := 0.0
+	for nome in Cavaleiro.NOME_ST:
+		rotulo = maxf(rotulo, f.get_string_size(Desenho.t(nome), HORIZONTAL_ALIGNMENT_LEFT, -1, tam).x)
+	var numero := f.get_string_size("5", HORIZONTAL_ALIGNMENT_LEFT, -1, tam).x
+	var celula := (LARGURA - 24.0 - 8.0) * 0.5
 	for k in 4:
-		var y := 852.0 + 26.0 * k
-		Desenho.texto(self, Vector2(X0 + 12, y + 23), Cavaleiro.NOME_ST[k], Tema.vt(), Tema.T_MONO, Tema.MUDO)
-		var r := Rect2(X0 + 136, y + 3, LARGURA - 190, 20)
+		var x := X0 + 12.0 + (celula + 8.0) * (k % 2)
+		var y := 852.0 + (tam + 6.0) * (1 if k >= 2 else 0)
+		Desenho.texto(self, Vector2(x, y + tam - 7), Cavaleiro.NOME_ST[k], f, Tema.T_MONO, Tema.MUDO)
+		var r := Rect2(x + rotulo + 8.0, y + (tam - 20) * 0.5 - 2.0, celula - rotulo - 16.0 - numero, 20)
 		Desenho.vu(self, r, 5, int(st[k]), Tema.JOGADOR[lugar])
-		Desenho.texto(self, Vector2(r.end.x + 12, y + 23), str(st[k]), Tema.vt(), Tema.T_MONO, Tema.ETIQUETA)
+		Desenho.texto(self, Vector2(r.end.x + 8.0, y + tam - 7), str(st[k]), f, Tema.T_MONO, Tema.ETIQUETA)
 
 
 func _linha(t: TelaLobby, jogador, k: int, r: Rect2, etapa: int, cor_luz: Color) -> void:

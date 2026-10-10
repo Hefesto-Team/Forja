@@ -717,7 +717,7 @@ func _bater_a_batida(l: int) -> void:
 	if Cavaleiro.no_corpo(id, c.stats) == "liga" and not bool(antes.get("liga", false)):
 		ligou[l] += 1
 		if visor:
-			visor.bater(l, "car_liga", cartoes[l].position + Vector2(CartaoJogador.X0 + CartaoJogador.LARGURA * 0.5, 630.0))
+			visor.bater(l, "car_liga", cartoes[l].position + Vector2(CartaoJogador.X0 + CartaoJogador.LARGURA * 0.5, 568.0))
 		else:
 			Som.tocar("car_liga", null, -9.0)
 			Forja.sentir(l, "acerto")
