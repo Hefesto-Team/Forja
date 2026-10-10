@@ -731,6 +731,22 @@ func _servir_o_encaixe(l: int) -> void:
 		_bater_a_batida(l)
 
 
+## A junta da parte `k` do cavaleiro `l`, no mundo: a altura de JUNTA acima do anel; a do item é o punho
+## do osso que o segura (`Montar.mao`), e a altura fixa só quando o superior ou o item não estão no esqueleto.
+func junta(l: int, k: int) -> Vector3:
+	var p: ForjaPlayer = jogadores[l]
+	var fixa := p.global_position + Vector3(0, JUNTA[k], 0)
+	if k != ITEM or p.modelo == null:
+		return fixa
+	var esq: Skeleton3D = p.modelo.find_child("Skeleton3D", true, false)
+	if esq == null or esq.get_node_or_null("body-sup") == null:
+		return fixa
+	var presa := esq.get_node_or_null("Item") as BoneAttachment3D
+	if presa == null or esq.find_bone(presa.bone_name) < 0:
+		return fixa
+	return esq.global_transform * Montar.mao(esq, presa.bone_name)
+
+
 ## O encaixe: a peça troca, o ui_peca no tom da parte, o metal na mão, as faíscas na junta, o acento sobe.
 func _encaixar(l: int, k: int, e: Dictionary) -> void:
 	var p: ForjaPlayer = jogadores[l]
@@ -752,7 +768,7 @@ func _encaixar(l: int, k: int, e: Dictionary) -> void:
 		_ajustar_o_item(l)
 	corpo[l] = Cavaleiro.corpo(p.pecas)
 	if salao:
-		Efeitos.faiscas(salao, p.global_position + Vector3(0, JUNTA[k], 0), Tema.JOGADOR[l], 4 if bool(e.roleta) else 8, 2.4)
+		Efeitos.faiscas(salao, junta(l, k), Tema.JOGADOR[l], 4 if bool(e.roleta) else 8, 2.4)
 	_pose[l] = Ritmo.t_musica() + ROLETA_S
 	_pose_linha[l] = k
 	_na_batida[l]["t"] = Ritmo.t_da_batida(floorf(Ritmo.batida()) + 1.0)
@@ -825,7 +841,7 @@ func _acender_a_parte(l: int, n: int) -> void:
 		luz.omni_range = 1.2
 		luz.shadow_enabled = false
 		salao.add_child(luz)
-		luz.global_position = p.global_position + Vector3(0, JUNTA[k], 0.3)
+		luz.global_position = junta(l, k) + Vector3(0, 0, 0.3)
 		var tw := luz.create_tween().set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
 		tw.tween_property(luz, "light_energy", 0.0, 0.25)
 		tw.tween_callback(luz.queue_free)

@@ -17,8 +17,33 @@ func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 
 
-func _process(_dt: float) -> void:
+## O VU anda um segmento a cada 30 ms até o stat do corpo (G13, o encaixe): os segmentos mostrados agora.
+const VU_PASSO := 0.03
+var vu_mostrado := [0, 0, 0, 0]
+var _vu_tempo := 0.0
+
+
+func _process(dt: float) -> void:
+	_andar_os_vus(dt)
 	queue_redraw()
+
+
+func _andar_os_vus(dt: float) -> void:
+	var t := get_parent() as TelaLobby
+	if t == null or lugar >= t.corpo.size():
+		return
+	var st: Array = t.corpo[lugar].get("stats", [0, 0, 0, 0])
+	var parado := true
+	for k in 4:
+		parado = parado and int(vu_mostrado[k]) == int(st[k])
+	if parado:
+		_vu_tempo = 0.0
+		return
+	_vu_tempo += dt
+	while _vu_tempo >= VU_PASSO:
+		_vu_tempo -= VU_PASSO
+		for k in 4:
+			vu_mostrado[k] = int(vu_mostrado[k]) + signi(int(st[k]) - int(vu_mostrado[k]))
 
 
 func _draw() -> void:
@@ -106,8 +131,7 @@ func _etiqueta(t: TelaLobby, jogador) -> void:
 
 ## Os quatro VUs do corpo, em duas colunas de duas linhas (de 852 a 924): o rótulo do stat, os cinco segmentos na cor
 ## do lugar e o número. Quatro linhas de 26 px encavalavam o texto de 30 px, e quatro de 30 px esbarram nas dicas.
-func _vus(t: TelaLobby) -> void:
-	var st: Array = t.corpo[lugar].get("stats", [0, 0, 0, 0])
+func _vus(_t: TelaLobby) -> void:
 	var f := Tema.vt()
 	var tam := Tema.t(Tema.T_MONO)
 	var rotulo := 0.0
@@ -120,8 +144,8 @@ func _vus(t: TelaLobby) -> void:
 		var y := 852.0 + (tam + 6.0) * (1 if k >= 2 else 0)
 		Desenho.texto(self, Vector2(x, y + tam - 7), Cavaleiro.NOME_ST[k], f, Tema.T_MONO, Tema.MUDO)
 		var r := Rect2(x + rotulo + 8.0, y + (tam - 20) * 0.5 - 2.0, celula - rotulo - 16.0 - numero, 20)
-		Desenho.vu(self, r, 5, int(st[k]), Tema.JOGADOR[lugar])
-		Desenho.texto(self, Vector2(r.end.x + 8.0, y + tam - 7), str(st[k]), f, Tema.T_MONO, Tema.ETIQUETA)
+		Desenho.vu(self, r, 5, int(vu_mostrado[k]), Tema.JOGADOR[lugar])
+		Desenho.texto(self, Vector2(r.end.x + 8.0, y + tam - 7), str(vu_mostrado[k]), f, Tema.T_MONO, Tema.ETIQUETA)
 
 
 func _linha(t: TelaLobby, jogador, k: int, r: Rect2, etapa: int, cor_luz: Color) -> void:

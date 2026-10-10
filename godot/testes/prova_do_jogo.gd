@@ -3224,9 +3224,13 @@ func _prova_do_julgamento(centelha) -> void:
 	await get_tree().create_timer(0.6).timeout
 	_esperar(not carimbo.is_empty() and not jogo.visor.vivos.any(func(c): return is_same(c, carimbo[0])),
 		"o carimbo do julgamento some em meio segundo")
-	# EM CHAMAS: o 5º seguido
-	for k in 5:
+	# EM CHAMAS: o 5º seguido, e nem um antes (a conta parte do zero e o visor do P4 vazio)
+	centelha._ressonancias[3] = 0
+	jogo.visor.vivos = jogo.visor.vivos.filter(func(c): return c.l != 3)
+	for k in 4:
 		centelha.julgar(3, 3)
+	_esperar(not jogo.visor.do_lugar(3).any(func(c): return c.id == "car_em_chamas"), "quatro seguidas: ainda sem EM CHAMAS")
+	centelha.julgar(3, 3)
 	_esperar(jogo.visor.do_lugar(3).any(func(c): return c.id == "car_em_chamas"), "cinco seguidas: EM CHAMAS acima do P4")
 	# o erro não desenha
 	centelha.julgar(0, 0)
@@ -3365,6 +3369,10 @@ func _prova_do_encaixe() -> void:
 	_esperar(not e.is_empty() and float(e.agora) >= float(e.t) and int(e.quadro) > int(e.quadro_do_toque)
 		and float(e.t) - float(e.toque) <= 0.25 * 60.0 / maxf(Ritmo.bpm, 1.0) + 0.001,
 		"a cabeça do P2 encaixa na semicolcheia seguinte ao toque, nunca antes nem no quadro do toque (%s)" % [e])
+	# a conta pelo relógio, fora do registro: o t do encaixe cai na grade de semicolcheias e não antes do toque
+	var dezesseis := (float(e.get("t", 0.0)) - Ritmo.primeiro_tempo) * Ritmo.bpm / 60.0 * 4.0
+	_esperar(not e.is_empty() and absf(dezesseis - roundf(dezesseis)) < 0.001 and float(e.t) >= float(e.toque) - 0.0001,
+		"o encaixe do P2 cai na grade de semicolcheias (%.4f semicolcheias) e não antes do toque (%s)" % [dezesseis, e])
 	_esperar(str(p2.pecas[0]) != cab2 and str(p1.pecas[0]) == cab1, "◀▶ na Cabeça do P2 muda a cabeça do P2 (%s → %s), e a do P1 fica" % [cab2, p2.pecas[0]])
 	_esperar(jogo.lobby.corpo[1].valido and p2.modelo_i == ForjaPlayer.indice_do_personagem(str(p2.pecas[0])),
 		"o corpo do P2 continua válido e o pio é o da cabeça nova")
@@ -3391,3 +3399,26 @@ func _prova_do_encaixe() -> void:
 	var stats := textos.filter(func(r): return Cavaleiro.NOME_ST.map(func(n): return Desenho.t(n)).has(str(r.frase)))
 	_esperar(stats.size() == 4 and encostados.is_empty(),
 		"a coluna do P2: os quatro VUs aparecem e nenhum texto encosta em outro (%d VUs; %s)" % [stats.size(), encostados])
+	# o VU anda um segmento a cada 30 ms até o stat do corpo, sem pular
+	var cj: CartaoJogador = jogo.lobby.cartoes[1]
+	var alvo: Array = jogo.lobby.corpo[1].get("stats", [0, 0, 0, 0])
+	cj.vu_mostrado = [0, 0, 0, 0]
+	cj._vu_tempo = 0.0
+	cj._andar_os_vus(0.031)
+	var um_passo: Array = cj.vu_mostrado.duplicate()
+	var passos := 0
+	while cj.vu_mostrado != alvo.map(func(v): return int(v)) and passos < 10:
+		cj._andar_os_vus(0.03)
+		passos += 1
+	_esperar(um_passo.all(func(v): return int(v) <= 1) and um_passo.any(func(v): return int(v) == 1)
+		and cj.vu_mostrado == alvo.map(func(v): return int(v)) and passos == alvo.map(func(v): return int(v)).max() - 1,
+		"o VU do P2 anda um segmento a cada 30 ms até o corpo (%s depois de 31 ms; %s em mais %d passos)" % [um_passo, alvo, passos])
+	# a junta do item é o punho do osso que o segura (Montar.mao), não uma altura fixa
+	var presa := esq2.get_node_or_null("Item") as BoneAttachment3D
+	if presa != null:
+		var punho: Vector3 = esq2.global_transform * Montar.mao(esq2, presa.bone_name)
+		var j_item: Vector3 = jogo.lobby.junta(1, TelaLobby.ITEM)
+		_esperar(j_item.is_equal_approx(punho) and not j_item.is_equal_approx(p2.global_position + Vector3(0, TelaLobby.JUNTA[TelaLobby.ITEM], 0)),
+			"as faíscas do item do P2 saem do punho do %s (%s), não da altura fixa" % [presa.bone_name, j_item])
+	else:
+		_esperar(false, "o P2 segura um item num BoneAttachment3D «Item»")
