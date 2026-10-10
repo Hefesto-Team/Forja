@@ -1,0 +1,7 @@
+id,nome,stat_a,stat_b,raro,o_que_e
+muralha,Muralha,peso,folego,nao,não sai do lugar e levanta logo
+torre,Torre,peso,faro,nao,não sai do lugar e vê o golpe chegando
+corrente,Corrente,passo,folego,nao,corre e levanta logo
+relampago,Relâmpago,passo,faro,nao,corre e vê o caminho antes
+ariete,Aríete,peso,passo,sim,pesado e rápido; só sai pelas peças secundárias
+eco,Eco,folego,faro,sim,aguenta e escuta; só sai pelas peças secundárias

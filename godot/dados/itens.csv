@@ -1,0 +1,7 @@
+id,nome,tipo,onde,pede_peso,pede_passo,pede_folego,pede_faro,liga_peso,liga_passo,liga_folego,liga_faro,o_que_faz,a_troca,em_liga,canto,estado
+martelo,Martelo,arma,mão direita,4,0,0,0,5,0,0,0,o perfeito no tempo forte vale o dobro,o acerto fora do tempo forte vale 85 %,o acerto fora do tempo forte vale 100 %,Muralha e Torre,proposta
+ancora,Âncora,arma,mão direita,3,0,3,0,4,0,4,0,sofre metade do empurrão (0.5),anda 10 % mais devagar na corrida,anda na velocidade normal na corrida,Muralha,proposta
+escudo,Escudo,arma,braço esquerdo,0,3,0,3,0,4,0,4,absorve o primeiro erro de cada minigame,começa cada minigame com o combo em zero,começa com o bônus de entrada do combo,Relâmpago,proposta
+fole,Fole,amuleto,peito,0,0,4,0,0,0,5,0,depois de um erro o combo volta na metade dos acertos,o combo máximo é 3/4 do normal,o combo máximo é o normal,Muralha e Corrente,proposta
+lanterna,Lanterna,amuleto,peito,0,0,0,4,0,0,0,5,a pista chega meio tempo antes,a janela perfeito encolhe 10 ms (5 de cada lado),a janela perfeito não encolhe,Torre e Relâmpago,proposta
+diapasao,Diapasão,amuleto,peito,0,4,0,0,0,5,0,0,a nota soa 1.3 vez mais alta e o perfeito puxa o combo da equipe (2v2 e coop),no todos contra todos não dá bônus nenhum,no todos contra todos a nota soa 1.3 vez mais alta,Relâmpago e Corrente,proposta

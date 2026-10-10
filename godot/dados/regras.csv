@@ -1,0 +1,16 @@
+chave,valor,o_que_e,estado
+stat_base,1,cada stat começa em 1 antes das peças,proposta
+stat_teto,5,nenhum stat passa de 5; o ponto que passaria se perde,proposta
+pontos_por_peca,3,cada peça dá +2 no stat principal e +1 no secundário,proposta
+opostos,peso:passo;folego:faro,duas peças com principais opostos não convivem no mesmo cavaleiro,proposta
+cabeca_unica_na_mesa,sim,duas pessoas na mesa não usam a mesma cabeça,proposta
+item_unico_na_mesa,nao,com sim o item que um pegou some da lista dos outros (a noite pode testar),proposta
+desempate_arquetipo,principais;peso;passo;folego;faro,no empate de stats vence o que tem mais peças principais e depois a ordem,proposta
+nome_minimo,2,letras do nome,proposta
+nome_maximo,12,letras do nome,proposta
+nome_unico_na_mesa,sim,dois lugares não têm o mesmo nome,proposta
+gaveta_maximo,12,cavaleiros guardados por máquina entre noites,proposta
+riscos_por_grupo,5,os riscos de faixas vencidas se agrupam de cinco na etiqueta,proposta
+cadeiras,wheelchair;wheelchair-deluxe;wheelchair-power;wheelchair-power-deluxe,trocam as pernas sem mudar stat; o stat é o da peça inferior escolhida,proposta
+auxilios,aid-glasses;aid-sunglasses;aid_hearing;aid-cane,livres desde a primeira noite e sem stat,proposta
+stats_no_relampago,nao,no modo Relâmpago (microjogos) nenhum stat nem item age,proposta

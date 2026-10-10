@@ -1,0 +1,8 @@
+stat,nome,emblema,eixo,oposto,gancho,o_que_muda,unidade,neutro,por_ponto,valor_1,valor_2,valor_3,valor_4,valor_5,estado
+peso,Peso,Bigorna,corpo,passo,empurrao,"o empurrão que o cavaleiro sofre: golpe, coice do próprio erro, estouro, vento de fantasma, balanço do chão",multiplicador da distância,1,-0.08,1.16,1.08,1,0.92,0.84,proposta
+peso,Peso,Bigorna,corpo,passo,tranco,"o empurrão que o cavaleiro dá: a onda do grito, a trombada, o vento que ele sopra como fantasma",multiplicador da distância,1,0.08,0.84,0.92,1,1.08,1.16,proposta
+peso,Peso,Bigorna,corpo,passo,ruido,o alcance do barulho dos passos dele nos minigames de terror,multiplicador do raio,1,0.1,0.8,0.9,1,1.1,1.2,proposta
+passo,Passo,Mola,corpo,peso,velocidade,"a velocidade de andar, correr, patinar, subir e sair de baixo",multiplicador da velocidade,1,0.03,0.94,0.97,1,1.03,1.06,proposta
+folego,Fôlego,Brasa,espirito,faro,levantar,"a duração da queda: caído, congelado, atordoado, arma travada, peça perdida","multiplicador da duração (arredondada à semicolcheia, no mínimo uma)",1,-0.125,1.25,1.125,1,0.875,0.75,proposta
+faro,Faro,Lume,espirito,folego,pista,"a antecedência do aviso antes da nota (a luz que acende, o tremor, o bipe, a textura); a nota cai no mesmo tempo",milissegundos somados ao aviso,0,20,-40,-20,0,20,40,proposta
+faro,Faro,Lume,espirito,folego,raio,o quanto se vê e se ouve no escuro e na neblina,multiplicador do raio,1,0.1,0.8,0.9,1,1.1,1.2,proposta
