@@ -3310,8 +3310,14 @@ func _joga_o_minigame(id: String, limite_s := 60.0, a_cada_quadro := Callable())
 	_esperar(v >= 0 or (mg.coop and v == -1), "%s: fechou com vencedor (%d%s)" % [nome, v, ", coop" if mg.coop else ""])
 	if str(mg.ficha.get("fim", "")) == "tempo" and mg.duracao > 0.0 and valendo > 0:
 		var parede := (Time.get_ticks_usec() - valendo) / 1e6
-		_esperar(absf(parede - mg.duracao) <= mg.duracao * 0.1 + 1.0,
-			"%s: %.0f s de música em %.1f s de parede (o fim conta em tempo de música)" % [nome, mg.duracao, parede])
+		# o relógio do fim é o da música em todo caso; e o fim antes da duração
+		# só vale quando todos acabaram (a regra do minigame, que o kit não muda)
+		var jogado: float = mg.tempo_jogado()
+		_esperar(absf(parede - jogado) <= jogado * 0.1 + 1.0,
+			"%s: %.1f s de música em %.1f s de parede (o fim conta em tempo de música)" % [nome, jogado, parede])
+		var todos_acabaram: bool = mg.presentes().all(func(l: int) -> bool: return mg.acabou[l])
+		_esperar(jogado >= mg.duracao - 0.5 or todos_acabaram,
+			"%s: acabou pelo tempo (%.1f de %.0f s de música) ou porque todos acabaram (%s)" % [nome, jogado, mg.duracao, todos_acabaram])
 	return mg
 
 
@@ -3319,6 +3325,10 @@ func _joga_o_minigame(id: String, limite_s := 60.0, a_cada_quadro := Callable())
 ## minigame acrescenta a sua linha no match, com a checagem dela; sem linha,
 ## o jogo inteiro com as checagens de todo minigame.
 func _prova_da_ficha(slot: String) -> void:
+	# a ficha joga sozinha, fora da noite que a prova deixou aberta: como o
+	# «voltar ao salão» da pausa, sem partida e sem Prova de Fogo
+	jogo.fogo = -1
+	jogo.partida = null
 	_esperar(Catalogo.existe(slot), "SALA=%s: está no catálogo" % slot)
 	if not Catalogo.existe(slot):
 		return
