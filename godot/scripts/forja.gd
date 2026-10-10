@@ -571,7 +571,7 @@ const PISO_DA_LUZ := 0.3
 const PISCAR_MAX_S := 0.5
 var _piscar_ate := [0.0, 0.0, 0.0, 0.0]  ## o _agora em que o piscar acaba (0: sem piscar)
 ## A última cor que o jogo pediu a cada lugar; alfa 0 = a cor do lugar.
-var _cor_pedida := [Color(0, 0, 0, 0), Color(0, 0, 0, 0), Color(0, 0, 0, 0), Color(0, 0, 0, 0)]
+var _cor_pedida := [Color.TRANSPARENT, Color.TRANSPARENT, Color.TRANSPARENT, Color.TRANSPARENT]
 
 
 ## A barra de luz do lugar numa cor (com o piso de brilho). Durante um
@@ -586,7 +586,7 @@ func luz(l: int, cor: Color) -> bool:
 
 
 func luz_do_lugar(l: int) -> bool:
-	_cor_pedida[l] = Color(0, 0, 0, 0)
+	_cor_pedida[l] = Color.TRANSPARENT
 	_piscar_ate[l] = 0.0
 	return ctl.luz_do_lugar(l) if modulo else false
 
@@ -651,7 +651,7 @@ func leds_jogador(l: int, mascara: int) -> bool:
 
 ## O lugar volta ao repouso: motores parados, gatilhos soltos, a luz e os LEDs do lugar.
 func silencio(l: int) -> void:
-	_cor_pedida[l] = Color(0, 0, 0, 0)
+	_cor_pedida[l] = Color.TRANSPARENT
 	_piscar_ate[l] = 0.0
 	if modulo:
 		ctl.silencio(l)
@@ -659,7 +659,7 @@ func silencio(l: int) -> void:
 
 func silencio_todos() -> void:
 	for l in 4:
-		_cor_pedida[l] = Color(0, 0, 0, 0)
+		_cor_pedida[l] = Color.TRANSPARENT
 		_piscar_ate[l] = 0.0
 	if modulo:
 		ctl.silencio_todos()
