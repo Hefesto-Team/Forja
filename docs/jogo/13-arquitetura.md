@@ -753,7 +753,7 @@ brilho depois" à mão.
   terceiro entra como **o Aprendiz**, pela tabela fixa de
   [Q](tarefas/Q-a-prova.md); com 1, joga contra o robô de treino.
 - `coop` sai do gênero da FICHA; ninguém põe `coop = true` à mão.
-- No 2v2, `marcar_equipe` dá os pontos aos dois da dupla, e o `destaque()`
+- No 2v2, `marcar_equipe` dá os pontos aos dois da dupla (o acerto, só a quem tocou), e o `destaque()`
   sai dos **acertos individuais** (`acertos[l]`), não dos pontos — assim ele
   separa quem jogou melhor dentro da equipe.
 - Na Prova com `--bancada`, as perguntas vêm depois do apito: elas não

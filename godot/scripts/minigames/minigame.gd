@@ -630,11 +630,15 @@ func pontos_da_equipe(e: int) -> int:
 
 
 ## Pontos para a equipe inteira: vão para os dois da dupla (o item de quem
-## tocou vale uma vez para a equipe). Equipe só de Aprendizes: fica nela.
+## tocou vale uma vez para a equipe). O acerto (o destaque, a dica aprendida)
+## é só de quem tocou: o parceiro leva os pontos, não o acerto. Equipe só de
+## Aprendizes: fica nela.
 func marcar_equipe(e: int, n: int) -> void:
+	var quem := -1
 	for l in 4:
 		if equipe[l] == e and _julgando[l] > Ritmo.ERRO and n > 0:
 			n = Itens.pontos_do_acerto(l, n, _julgando[l], _tempo_forte[l])
+			quem = l
 			break
 	var lista := da_equipe(e)
 	if lista.is_empty():
@@ -642,7 +646,10 @@ func marcar_equipe(e: int, n: int) -> void:
 			_pontos_sem_lugar[e] += n
 		return
 	for l in lista:
-		super.marcar(l, n)
+		if quem < 0 or l == quem:
+			super.marcar(l, n)
+		elif not treinando:
+			pontos[l] += n
 
 
 ## A equipe que venceu (BRASA ou MARE); -1 no empate.
