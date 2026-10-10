@@ -171,6 +171,14 @@ done
 [ -s "$DIST/forja-linux-x86_64/forja.png" ] && grep -q "^Exec=forja.x86_64" "$DIST/forja-linux-x86_64/forja.desktop" \
   || falha "o Linux sem o ícone ou sem o .desktop"
 
+echo "==> o módulo do pacote cabe no piso de glibc do Godot"
+if piso="$(bash "$RAIZ/scripts/compilar.sh" piso "$DIST/forja-linux-x86_64/libforja.linux.x86_64.so" 2>&1)"; then
+  echo "$piso" | sed "s|$DIST/||; s/^/    /"
+else
+  echo "$piso" | sed "s|$DIST/||; s/^/    /"
+  falha "o módulo do pacote pede uma glibc mais nova que a do Godot"
+fi
+
 APPIMAGE="$DIST/FORJA-x86_64.AppImage"
 if [ -f "$APPIMAGE" ]; then
   echo "==> o AppImage: a mesma Prova de Fogo"

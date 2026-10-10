@@ -47,6 +47,8 @@ reprova se ela subir de piso. O `compilar.sh linux` de quem desenvolve segue igu
 
 1. Escolher o piso: 2.28 (o do Godot; uma imagem `manylinux_2_28`) ou 2.31 (o SDK do ambiente da loja). Anotar a
    escolha aqui.
+   **A escolha (leva 1):** 2.28, o do Godot, na imagem `quay.io/pypa/manylinux_2_28_x86_64` (AlmaLinux 8, gcc 14
+   do gcc-toolset), presa por data e soma. Com 2.31 o pacote ainda cairia onde o Godot abre.
 2. O job `linux` do CI compila o SDL, o godot-cpp e o módulo dentro de um contêiner com esse piso (`container:` no
    job). O SDL reconfigurado lá usa as próprias versões de `strlcpy` e `arc4random`.
 3. O portão: um passo depois do `compilar.sh linux` que reprova se o maior `GLIBC_` passar do piso. O mesmo portão
@@ -90,3 +92,32 @@ relatório traz a linha do módulo.
 
 Marcar WU01 como **feito** no [quadro](README.md), com o piso escolhido, o commit e o gasto. Commit sugerido:
 `build(ci): o módulo Linux sai no piso de glibc do Godot, com portão`.
+
+## O que foi feito (leva 1, a-entrega)
+
+- **O CI:** um job novo, `modulo-linux`, compila o SDL, o godot-cpp e o módulo dentro do contêiner
+  `manylinux_2_28` (glibc 2.28) e passa a `.so` adiante como artefato. O job `linux` (ubuntu-24.04, com bwrap,
+  xvfb e Godot) só baixa esse artefato e prova fora do contêiner, e a exportação herda a mesma `.so`. O cache do
+  SDL leva o nome da imagem na chave. O EL8 não tem libdecor e o PipeWire dele (0.3.6) é velho para o SDL:
+  no pacote, o som do SDL sai pelo PulseAudio (o pipewire-pulse nas distros novas). O hidapi pelo libusb, o udev
+  e o D-Bus seguem ligados, como na compilação de casa.
+- **O portão:** `scripts/compilar.sh piso [so]` sai 0 quando o maior `GLIBC_` cabe em 2.28, 1 quando passa (e
+  lista os símbolos acima do piso, por versão) e 2 sem arquivo ou sem objdump. Roda no job `modulo-linux`, logo
+  depois do `compilar.sh linux`, e na `tests/prova_da_exportacao.sh`, sobre a `.so` da pasta exportada. O
+  `compilar.sh linux` de casa só avisa no fim («este módulo pede glibc X; o pacote pede no máximo 2.28»).
+- **O `scripts/ci-local.sh`** conhece o job novo (`ROLA|modulo-linux|rapido`).
+- **A medida:**
+  - antes: a `.so` de casa pede `GLIBC_2.38`; no `debian:12` (glibc 2.36), o `ldd` dá «version `GLIBC_2.38' not
+    found», e o jogo com `--simular=4` registra «FORJA sem o módulo nativo: só o teclado»;
+  - depois: a `.so` do contêiner pede no máximo `GLIBC_2.27` (`compilar.sh piso` dá «pede glibc 2.27; o piso do
+    pacote é 2.28: cabe», rc 0); no `debian:12`, o `ldd` fica limpo e o mesmo jogo, com `--simular=4 --robo
+    --partida=3 --sair-no-fim`, termina com rc 0 e o relatório traz «SDL 3.4.14» e os quatro controles simulados.
+    Essa rodada foi num contêiner sem rede, sem capacidades e sem nenhum nó de controle no `/dev`.
+- **A mordida:** o portão reprova a `.so` de casa (rc 1, lista 2.29 a 2.38), aprova o binário do Godot 4.7.2
+  (2.28, rc 0) e sai 2 sem arquivo.
+- **Fica para ela:**
+  - na máquina dela, a `tests/prova_da_exportacao.sh` agora reprova a exportação feita com o módulo de casa: isso
+    é o portão funcionando. A exportação que vale é a do CI;
+  - a primeira rodada do job novo no GitHub.
+- **Fica para o André:** o passo da seção «Para o André», num Ubuntu 22.04 ou Debian 12 com o pacote do CI, e o
+  alto-falante do controle tocando pelo PulseAudio.

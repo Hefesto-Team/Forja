@@ -13,6 +13,8 @@ GODOT_CPP_COMMIT="507ed9d840c01a3c5b2a39af8bb4000bfac30bf5"
 GODOT_CPP_URL="https://github.com/godotengine/godot-cpp.git"
 GODOT_CPP_API="${GODOT_CPP_API:-4.7}"
 
+GLIBC_PISO="2.28"
+
 CACHE="${FORJA_CACHE:-$RAIZ/.cache}"
 JOBS="${JOBS:-$(getconf _NPROCESSORS_ONLN 2>/dev/null || echo 2)}"
 TIPO="${FORJA_BUILD_TIPO:-Release}"
@@ -37,6 +39,33 @@ soma_da_fonte() {
 gravar_a_fonte() {
   soma_da_fonte > "$RAIZ/godot/bin/$1.fonte"
   diga "a fonte do módulo: godot/bin/$1.fonte"
+}
+
+glibc_pedida() {
+  objdump -T "$1" | grep -oE 'GLIBC_[0-9.]+' | sed 's/^GLIBC_//' | sort -Vu | tail -n 1
+}
+
+cabe_no_piso() {
+  [[ "$(printf '%s\n%s\n' "$1" "$GLIBC_PISO" | sort -V | tail -n 1)" == "$GLIBC_PISO" ]]
+}
+
+conferir_piso() {
+  local so="$1" pede v
+  [[ -f "$so" ]] || { echo "falta $so" >&2; return 2; }
+  command -v objdump > /dev/null || { echo "falta o objdump (binutils) para ler $so" >&2; return 2; }
+  pede="$(glibc_pedida "$so")"
+  [[ -n "$pede" ]] || { echo "nenhuma versão de glibc em $so" >&2; return 2; }
+  if cabe_no_piso "$pede"; then
+    echo "$so pede glibc $pede; o piso do pacote é $GLIBC_PISO: cabe"
+    return 0
+  fi
+  echo "$so pede glibc $pede, acima do piso $GLIBC_PISO do pacote (o do Godot):" >&2
+  for v in $(objdump -T "$so" | grep -oE 'GLIBC_[0-9.]+' | sed 's/^GLIBC_//' | sort -Vu); do
+    cabe_no_piso "$v" && continue
+    printf '  GLIBC_%s: %s\n' "$v" \
+      "$(objdump -T "$so" | awk -v v="(GLIBC_$v)" 'index($0, v) { print $NF }' | sort -u | tr '\n' ' ')" >&2
+  done
+  return 1
 }
 
 baixar_sdl() {
@@ -134,6 +163,9 @@ compilar() {
     linux) gravar_a_fonte libforja.linux.x86_64.so ;;
     windows) gravar_a_fonte libforja.windows.x86_64.dll ;;
   esac
+  if [[ "$alvo" == linux ]] && command -v objdump > /dev/null; then
+    diga "este módulo pede glibc $(glibc_pedida "$RAIZ/godot/bin/libforja.linux.x86_64.so"); o pacote pede no máximo $GLIBC_PISO"
+  fi
   if [[ "$alvo" == testes ]]; then
     diga "provas da lógica"
     ctest --test-dir "$build" --output-on-failure
@@ -155,8 +187,9 @@ case "${1:-linux}" in
     preparar_godot_cpp >/dev/null
     ;;
   soma) soma_da_fonte ;;
+  piso) conferir_piso "${2:-$RAIZ/godot/bin/libforja.linux.x86_64.so}" ;;
   *)
-    echo "uso: scripts/compilar.sh [linux|windows|testes|tudo|deps|soma]" >&2
+    echo "uso: scripts/compilar.sh [linux|windows|testes|tudo|deps|soma|piso [biblioteca]]" >&2
     exit 64
     ;;
 esac
