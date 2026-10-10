@@ -3339,20 +3339,55 @@ func _prova_do_encaixe() -> void:
 	var esq2: Skeleton3D = p2.modelo.find_child("Skeleton3D", true, false)
 	var malha_antes: Mesh = (esq2.get_node("head") as MeshInstance3D).mesh
 	jogo.lobby.ultimo_encaixe[1] = {}
-	Forja.ctl.simulador_botao(1, Forja.DIREITA, true)
-	await _quadros(2)
-	Forja.ctl.simulador_botao(1, Forja.DIREITA, false)
-	# o relógio da música anda na parede: o encaixe pode sair já no quadro seguinte. A prova lê o registro do servido.
-	for q in 60:
-		if (esq2.get_node("head") as MeshInstance3D).mesh != malha_antes:
+	var antes_do_toque := "etapa %d, linha %d, overlay «%s», estado %s" % [jogo.lobby.etapa[1], jogo.lobby.linha[1], jogo.overlay, jogo.estado]
+	# um aperto que a tela ainda não lia (a saída de uma camada por cima) se repete, como o robô do placar; a medida da
+	# semicolcheia é a do toque que valeu, guardada no registro do encaixe servido
+	var toques := 0
+	for vez in 3:
+		toques += 1
+		Forja.ctl.simulador_botao(1, Forja.DIREITA, true)
+		await _quadros(2)
+		Forja.ctl.simulador_botao(1, Forja.DIREITA, false)
+		# o relógio da música anda na parede: o encaixe pode sair já no quadro seguinte. A prova lê o registro do servido.
+		for q in 60:
+			if (esq2.get_node("head") as MeshInstance3D).mesh != malha_antes:
+				break
+			if q >= 4 and jogo.lobby._encaixe[1].is_empty() and jogo.lobby.ultimo_encaixe[1].is_empty():
+				break   # nenhum pedido: o aperto não chegou
+			await _quadros(1)
+		if not jogo.lobby.ultimo_encaixe[1].is_empty():
 			break
-		await _quadros(1)
+	if toques > 1:
+		print("aviso: o ◀▶ do P2 valeu no %dº aperto (antes do toque: %s)" % [toques, antes_do_toque])
 	var e: Dictionary = jogo.lobby.ultimo_encaixe[1]
 	_esperar(not e.is_empty() and int(e.linha) == TelaLobby.CABECA and (esq2.get_node("head") as MeshInstance3D).mesh != malha_antes,
-		"◀▶ na Cabeça do P2 pede um encaixe, e a malha da cabeça troca (%s)" % [e])
+		"◀▶ na Cabeça do P2 pede um encaixe, e a malha da cabeça troca (%s; antes do toque: %s)" % [e, antes_do_toque])
 	_esperar(not e.is_empty() and float(e.agora) >= float(e.t) and int(e.quadro) > int(e.quadro_do_toque)
 		and float(e.t) - float(e.toque) <= 0.25 * 60.0 / maxf(Ritmo.bpm, 1.0) + 0.001,
 		"a cabeça do P2 encaixa na semicolcheia seguinte ao toque, nunca antes nem no quadro do toque (%s)" % [e])
 	_esperar(str(p2.pecas[0]) != cab2 and str(p1.pecas[0]) == cab1, "◀▶ na Cabeça do P2 muda a cabeça do P2 (%s → %s), e a do P1 fica" % [cab2, p2.pecas[0]])
 	_esperar(jogo.lobby.corpo[1].valido and p2.modelo_i == ForjaPlayer.indice_do_personagem(str(p2.pecas[0])),
 		"o corpo do P2 continua válido e o pio é o da cabeça nova")
+	# a coluna do P2 com o corpo montado: nenhum texto encosta em outro (os quatro VUs, a etiqueta, as cinco linhas)
+	var cartao: Control = jogo.lobby.cartoes[1]
+	Desenho.retangulos.clear()
+	Desenho.coletar_retangulos = true
+	cartao.queue_redraw()
+	await _quadros(2)
+	Desenho.coletar_retangulos = false
+	var no := cartao.get_instance_id()
+	var textos: Array = Desenho.retangulos.filter(func(r): return int(r.no) == no)
+	var ultimo := 0
+	for r in textos:
+		ultimo = maxi(ultimo, int(r.quadro))
+	textos = textos.filter(func(r): return int(r.quadro) == ultimo)
+	Desenho.retangulos.clear()
+	var encostados: Array = []
+	for i in textos.size():
+		for j in range(i + 1, textos.size()):
+			var a: Rect2 = textos[i].rect
+			if a.intersects(textos[j].rect) and a.intersection(textos[j].rect).get_area() > 1.0:
+				encostados.append("%s / %s" % [textos[i].frase, textos[j].frase])
+	var stats := textos.filter(func(r): return Cavaleiro.NOME_ST.map(func(n): return Desenho.t(n)).has(str(r.frase)))
+	_esperar(stats.size() == 4 and encostados.is_empty(),
+		"a coluna do P2: os quatro VUs aparecem e nenhum texto encosta em outro (%d VUs; %s)" % [stats.size(), encostados])

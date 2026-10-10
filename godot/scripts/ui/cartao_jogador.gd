@@ -81,7 +81,7 @@ func _draw() -> void:
 	# a etiqueta do arquétipo (G13): «nome · arquétipo» em Permanent Marker, a tira do lugar à esquerda
 	if jogador != null and jogador.pecas.size() == 3:
 		_etiqueta(t, jogador)
-	# as cinco linhas (660 a 848) e os quatro VUs (852 a 956)
+	# as cinco linhas (660 a 848) e os quatro VUs (852 a 924, em duas colunas)
 	if jogador != null:
 		for k in TelaLobby.LINHAS.size():
 			_linha(t, jogador, k, Rect2(X0, 660 + 38 * k, LARGURA, 36), etapa, cor_luz)
@@ -104,15 +104,24 @@ func _etiqueta(t: TelaLobby, jogador) -> void:
 		f, Tema.T_ROTULO, Tema.TINTA, HORIZONTAL_ALIGNMENT_CENTER, et.size.x - 24)
 
 
-## Os quatro VUs do corpo: o rótulo do stat, os cinco segmentos na cor do lugar e o número.
+## Os quatro VUs do corpo, em duas colunas de duas linhas (de 852 a 924): o rótulo do stat, os cinco segmentos na cor
+## do lugar e o número. Quatro linhas de 26 px encavalavam o texto de 30 px, e quatro de 30 px esbarram nas dicas.
 func _vus(t: TelaLobby) -> void:
 	var st: Array = t.corpo[lugar].get("stats", [0, 0, 0, 0])
+	var f := Tema.vt()
+	var tam := Tema.t(Tema.T_MONO)
+	var rotulo := 0.0
+	for nome in Cavaleiro.NOME_ST:
+		rotulo = maxf(rotulo, f.get_string_size(Desenho.t(nome), HORIZONTAL_ALIGNMENT_LEFT, -1, tam).x)
+	var numero := f.get_string_size("5", HORIZONTAL_ALIGNMENT_LEFT, -1, tam).x
+	var celula := (LARGURA - 24.0 - 8.0) * 0.5
 	for k in 4:
-		var y := 852.0 + 26.0 * k
-		Desenho.texto(self, Vector2(X0 + 12, y + 23), Cavaleiro.NOME_ST[k], Tema.vt(), Tema.T_MONO, Tema.MUDO)
-		var r := Rect2(X0 + 136, y + 3, LARGURA - 190, 20)
+		var x := X0 + 12.0 + (celula + 8.0) * (k % 2)
+		var y := 852.0 + (tam + 6.0) * (1 if k >= 2 else 0)
+		Desenho.texto(self, Vector2(x, y + tam - 7), Cavaleiro.NOME_ST[k], f, Tema.T_MONO, Tema.MUDO)
+		var r := Rect2(x + rotulo + 8.0, y + (tam - 20) * 0.5 - 2.0, celula - rotulo - 16.0 - numero, 20)
 		Desenho.vu(self, r, 5, int(st[k]), Tema.JOGADOR[lugar])
-		Desenho.texto(self, Vector2(r.end.x + 12, y + 23), str(st[k]), Tema.vt(), Tema.T_MONO, Tema.ETIQUETA)
+		Desenho.texto(self, Vector2(r.end.x + 8.0, y + tam - 7), str(st[k]), f, Tema.T_MONO, Tema.ETIQUETA)
 
 
 func _linha(t: TelaLobby, jogador, k: int, r: Rect2, etapa: int, cor_luz: Color) -> void:
