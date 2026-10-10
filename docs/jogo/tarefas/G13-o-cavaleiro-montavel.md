@@ -761,3 +761,95 @@ No [quadro](README.md), G13 **feito** com o commit e o gasto. Commit sugerido
 ```
 feat(montagem): o cavaleiro montado com três peças, o encaixe na batida e os stats dos dados
 ```
+
+## O que foi feito (leva 1, as-telas)
+
+**A medida antes:** cada lugar escolhia um de dois bonecos inteiros (o Humano e o Orc), pintados por cima com a cor
+do lugar; a linha `BONECO` trocava o corpo todo. Os 12 do Mini Characters não estavam no jogo como peças, e nada lia
+os CSV do designer de sistemas.
+
+**A ficha cresceu além de um bloco:** entrou o miolo do «Pronto quando» (três personagens, a peça na cor dela, a troca
+na semicolcheia com o som, o pulso, as faíscas e a pose, os VUs e o arquétipo que mudam, a forja parte por parte). A
+cena em volta virou a [G13b](G13b-a-montagem-em-cena.md): a câmera de 50 mm, os anéis, as luzes, o plano dos
+prontos, o giro, a roleta do △, a trava do □, os emblemas, as chaves, a fita das 12, as marcas do item, os sublinhados,
+a cadeira e a raça. Sem a G13b, a tela ainda não bate com `10_montagem.jpg`.
+
+**O que entrou:**
+
+- **Os dados:** `scripts/dados_do_cavaleiro.py` copia as seis tabelas de `docs/jogo/sistemas/` para `godot/dados/`
+  (com `.csv.import` em `keep`). O `conferir.py` bate: 756 válidos, perdidos `{0: 432, 1: 216, 2: 108}`, Torre 176,
+  Muralha 176, Relâmpago 170, Corrente 170, Aríete 38, Eco 26, itens por corpo `{1: 96, 2: 380, 3: 280}`, build boa 432,
+  sorteáveis 270.
+- **O corte:** `godot/testes/cortar_pecas.gd` grava as 60 peças (3 malhas e 2 peles × 12) em
+  `assets/kenney/mini-characters/pecas/`; a tabela de contagem sai com misturados 0 nos 12 e no orc.
+- **`Montar`** (`mundo/montar.gd`): `trocar`, `parte` e `mao`. **`Cavaleiro`** (`cavaleiro.gd`): `corpo`, `no_corpo`,
+  `coerente`, `build_boa`, `chaves`, `alcancaveis`, `troca_da_liga`, `gancho` e `pre_montado`, só com números dos CSV.
+- **O boneco** (`player.gd`, só acréscimos): os 12 em `BONECOS` depois do Orc, `pecas`, `vestir_pecas`, `trocar_peca`,
+  `acender_parte`, `indice_do_personagem`; `Pintura.juntar_medidas` tira o friso do superior e a costura do inferior e
+  reaplica os 8 %.
+- **A montagem** (`tela_lobby.gd`, `cartao_jogador.gd`): as cinco linhas (Cabeça, Superior, Inferior, Arma ou amuleto,
+  Nome); o pré-montado ao entrar; ◀▶ pede o encaixe na semicolcheia seguinte (pulando os riscados e as cabeças de
+  outro lugar); o encaixe toca `ui_peca` no tom da parte, sente `"metal"`, solta 8 faíscas (4 na roleta) e sobe o
+  acento; a pose 250 ms depois; na batida seguinte, `fx_caneta` se o arquétipo mudou, «LIGA!» pelo `Visor` da G04
+  logo acima da etiqueta da coluna se o item entrou em liga, `fx_caneta` se a build ficou boa; as 8 marteladas acendem
+  cabeça, superior, inferior e item, com a luz de tungstênio na junta; a forja grava `Cavaleiro.stats`,
+  `Itens.em_liga` e o evento com `stats`, `arquetipo`, `liga`, `boa` e `perdidos`. A coluna: a etiqueta «nome ·
+  arquétipo», as cinco linhas com o nome da peça e os quatro VUs. O robô do P1 faz a troca do pré-montado antes de
+  forjar.
+- **O texto:** os 36 nomes de peça, as partes, os stats e os arquétipos em inglês. **O 13:** a linha `cavaleiro` do
+  registro com os campos novos.
+
+**As provas:** `cortar_pecas.gd` (misturados 0); `conferir.py` (os números acima); `bash tests/prova_do_jogo.sh` com
+`_prova_do_cavaleiro` (a conta do `conferir.py` pelo jogo, os quatro pré-montados válidos e distintos em menos de 2 s, o
+boneco de três peças, os 8 %, o friso e a costura de cada peça, `trocar_peca` só na cabeça, `acender_parte`),
+`_prova_do_encaixe` (o registro do encaixe servido: depois do quadro do toque e na semicolcheia seguinte), o percurso
+da G02 nas linhas novas, o guardado antigo que vira o pré-montado, o robô que faz a troca e bate o «LIGA!», os stats
+gravados na forja e a G08 `_prova_da_peca` sobre os quatro montados. Os únicos FAIL foram o do kit («kit P2: otimo em N
+de 12 notas», conhecido) e, numa das duas passadas do servidor, «longe do portão, nenhuma dica» (o salão, que esta
+ficha não toca; passou na outra). Os portões verdes.
+
+**As mordidas:** com o encaixe servido no quadro do toque, «a cabeça do P2 encaixa na semicolcheia seguinte ao toque,
+nunca antes» reprova (agora 2,607 < t 2,625); com o `juntar_medidas` tirando tudo do superior, «o friso vem do superior
+e a costura e a perna, do inferior» reprova. Os dois restaurados e verdes.
+
+**Escolhas a validar por ela** (a ficha não decidia):
+
+- O Humano e o Orc continuam em `BONECOS` 0 e 1 (os 12 começam em `PRIMEIRO_PERSONAGEM` 2), e `montar()` ainda os põe
+  até a montagem vestir as peças.
+- Um cavaleiro guardado no formato antigo (`boneco`) vira o pré-montado do lugar, mantendo o item e o nome.
+- O item que o corpo novo não alcança passa ao próximo que alcança (a ficha), e o robô volta ao item do pré-montado
+  pela linha do item, como uma pessoa faria.
+- Os 36 nomes de peça em inglês (Black bun, Bermuda shorts…).
+- O △ de hoje é um sorteio válido e instantâneo; a roleta de 6 trocas é da G13b.
+- `Itens.em_liga` passa a ser escrito na forja: as salas que leem a liga (G03) veem o valor da montagem.
+- Sem campo `raca` no evento até a G08 parte B; `cadeira` vai vazio.
+- Os quatro VUs em duas colunas de duas linhas (a ficha e a foto pedem quatro linhas, que não cabem com texto de 30 px
+  acima das dicas), e «LIGA!» logo acima da etiqueta, não no centro dela.
+
+**A prova visual** (`PASSADAS=fixa PARTIDAS="1 6"`, a 6 com o texto grande): a prancha da montagem mostra a etiqueta,
+as cinco linhas com o nome da peça e os VUs; a câmera ainda é a da G02 (G13b). A régua achou dois defeitos desta ficha,
+curados no mesmo bloco:
+
+- **Os quatro VUs encavalavam** («Peso» com «Passo», «3» com «2», 36 e 110 vezes): a tabela da ficha punha texto de
+  30 px em linhas de 26 px. Quatro linhas de 30 px esbarram nas dicas (o quadrado começa em y 963), e no texto grande
+  ficariam com 34 px. Os VUs passaram para duas colunas de duas linhas, de 852 a 924, que cabem nas duas escalas. A
+  prova nova «a coluna do P2: os quatro VUs aparecem e nenhum texto encosta em outro» reprova com as quatro linhas de
+  26 px.
+- **«LIGA!» cobria a etiqueta** («Rebite · Muralha» com «LIGA!»): o carimbo saía no centro da etiqueta, como a ficha
+  pedia, e escondia o arquétipo que acabou de mudar. Agora sai logo acima dela (y 568).
+
+Depois da cura, a mesma passada: a partida 1 caiu de 234 achados para 10, e a 6, de 288 para 26, nenhum deles da
+montagem; as duas pranchas da montagem mostram os VUs em duas colunas, nas duas escalas.
+
+As outras reprovações das duas partidas não são da montagem e já têm ficha: o título, o cartão do resultado, o placar e
+o contraste dos carimbos do julgamento («Ressonância!», «Afinado», e o «LIGA!» com 1,3:1 sobre a etiqueta, que agora
+sai sobre a cena) na [G04c](G04c-o-texto-grande-fora-do-hud.md); a tela parada na F09b e na F09d. «Pronto» com 2,1:1
+(00:33, só na primeira passada) é a tecla apagada do teclado do nome (G09), em `MUDO` sobre `CASCO`, e fica anotado
+para a F09b. Sem o
+carimbo fora da área segura na partida 6: o empurrão da G04 vale.
+
+**A prova do encaixe** aperta ◀▶ de novo quando o primeiro aperto não pede nenhum encaixe (aconteceu uma vez na
+passada do servidor «antes»), e imprime um aviso com o estado da tela; a medida da semicolcheia é a do toque que valeu.
+
+**Para o André (local):** os quatro itens de «Para o André» acima. A roleta (item 2) só fica completa com a G13b;
+hoje, ◀▶ rápido já faz só o encaixe com 4 faíscas.
