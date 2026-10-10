@@ -2,8 +2,8 @@ class_name CartaoJogador
 extends Control
 ## A coluna do lugar na construção do cavaleiro (432 px da tela de 1920 × 1080):
 ## a placa em cima (P#, o nome do cavaleiro, as lâmpadas do lugar e se está
-## forjado), o cavaleiro em 3D no meio (nada desenhado) e embaixo as três
-## linhas e as oito marteladas. A borda na cor do lugar diz QUAL. O que o
+## forjado), o cavaleiro em 3D no meio (nada desenhado), a etiqueta do
+## arquétipo, as cinco linhas e os quatro VUs do corpo (G13). A borda na cor do lugar diz QUAL. O que o
 ## aparelho é por dentro (VID:PID, a origem, a bateria) é do Modo bancada.
 ## Lugar vazio: placa de borda sutil e «Entrar». Tudo em _draw(), sem Label.
 
@@ -78,16 +78,41 @@ func _draw() -> void:
 		teclado.desenhar(self, 0.0, Tema.JOGADOR[lugar])
 		return
 
-	# as três linhas
+	# a etiqueta do arquétipo (G13): «nome · arquétipo» em Permanent Marker, a tira do lugar à esquerda
+	if jogador != null and jogador.pecas.size() == 3:
+		_etiqueta(t, jogador)
+	# as cinco linhas (660 a 848) e os quatro VUs (852 a 956)
 	if jogador != null:
-		for k in 3:
-			_linha(t, jogador, k, Rect2(X0, 660 + 40 * k, LARGURA, 38), etapa, cor_luz)
+		for k in TelaLobby.LINHAS.size():
+			_linha(t, jogador, k, Rect2(X0, 660 + 38 * k, LARGURA, 36), etapa, cor_luz)
+		if jogador.pecas.size() == 3:
+			_vus(t)
 
-	# as oito marteladas
-	var feitas: int = t.golpes[lugar].size() if etapa == TelaLobby.FORJANDO \
-		else (TelaLobby.MARTELADAS if etapa >= TelaLobby.FORJADO else 0)
-	for k in TelaLobby.MARTELADAS:
-		draw_rect(Rect2(X0 + 75 + k * 34, 880, 24, 24), cor_luz if k < feitas else Tema.GRAFITE)
+
+## A etiqueta de 44 px em y 608: o nome da pessoa não passa pela tabela; o arquétipo, sim.
+func _etiqueta(t: TelaLobby, jogador) -> void:
+	var et := Rect2(X0 + 26, 608, LARGURA - 52, 44)
+	Desenho.caixa(self, Rect2(et.position + Vector2(4, 5), et.size), Tema.SOMBRA, 6)
+	Desenho.caixa(self, et, Tema.ETIQUETA, 6)
+	draw_rect(Rect2(et.position + Vector2(0, 6), Vector2(8, et.size.y - 12)), Tema.JOGADOR[lugar])
+	var arq: Dictionary = t.corpo[lugar].get("arquetipo", {})
+	var titulo := str(jogador.nome)
+	if not arq.is_empty():
+		titulo += " · " + Traducoes.traduzir(str(arq.nome))
+	var f := Tema.marcador()
+	Desenho.nome(self, Vector2(et.position.x + 12, et.position.y + 33), Desenho.nome_que_cabe(titulo, f, Tema.T_ROTULO, et.size.x - 24),
+		f, Tema.T_ROTULO, Tema.TINTA, HORIZONTAL_ALIGNMENT_CENTER, et.size.x - 24)
+
+
+## Os quatro VUs do corpo: o rótulo do stat, os cinco segmentos na cor do lugar e o número.
+func _vus(t: TelaLobby) -> void:
+	var st: Array = t.corpo[lugar].get("stats", [0, 0, 0, 0])
+	for k in 4:
+		var y := 852.0 + 26.0 * k
+		Desenho.texto(self, Vector2(X0 + 12, y + 23), Cavaleiro.NOME_ST[k], Tema.vt(), Tema.T_MONO, Tema.MUDO)
+		var r := Rect2(X0 + 136, y + 3, LARGURA - 190, 20)
+		Desenho.vu(self, r, 5, int(st[k]), Tema.JOGADOR[lugar])
+		Desenho.texto(self, Vector2(r.end.x + 12, y + 23), str(st[k]), Tema.vt(), Tema.T_MONO, Tema.ETIQUETA)
 
 
 func _linha(t: TelaLobby, jogador, k: int, r: Rect2, etapa: int, cor_luz: Color) -> void:
@@ -96,23 +121,27 @@ func _linha(t: TelaLobby, jogador, k: int, r: Rect2, etapa: int, cor_luz: Color)
 		Desenho.moldura(self, r, Tema.CASCO_ALTO, cor_luz, 3, 6)
 	else:
 		Desenho.moldura(self, r, Color(Tema.CASCO, 0.78), Tema.GRAFITE, 2, 6)
-	Desenho.texto(self, Vector2(X0 + 12, r.position.y + 30), TelaLobby.ROTULO_CURTO[k], Tema.archivo(600), Tema.T_ROTULO,
-		Tema.ETIQUETA if escolhida else Tema.ETIQUETA_SOMBRA)
+	Desenho.texto(self, Vector2(X0 + 12, r.position.y + 28), TelaLobby.ROTULO_CURTO[k], Tema.archivo(600), Tema.T_ROTULO,
+		Tema.ETIQUETA if escolhida else Tema.MUDO)
 	# o valor: ◀ à esquerda, ▶ à direita, o valor no meio
 	var area := Rect2(X0 + 136, r.position.y, LARGURA - 136 - 12, r.size.y)
-	Glifo.desenhar(self, "esquerda", Rect2(area.position.x, r.position.y + 4, 30, 30), Tema.MUDO)
-	Glifo.desenhar(self, "direita", Rect2(area.end.x - 30, r.position.y + 4, 30, 30), Tema.MUDO)
+	Glifo.desenhar(self, "esquerda", Rect2(area.position.x, r.position.y + 3, 30, 30), Tema.MUDO)
+	Glifo.desenhar(self, "direita", Rect2(area.end.x - 30, r.position.y + 3, 30, 30), Tema.MUDO)
 	var f := Tema.archivo(500)
-	var base := r.position.y + 30
+	var base := r.position.y + 28
+	var x_valor := X0 + 158.0
+	var largura_valor := LARGURA - 34.0 - 158.0
 	match k:
-		TelaLobby.BONECO:
-			var valor := ForjaPlayer.nome_do_boneco(jogador.modelo_i)
-			Desenho.texto(self, Vector2(area.position.x, base), Desenho.caber(valor, f, 30, 220, 1), f, 30, Tema.ETIQUETA,
-				HORIZONTAL_ALIGNMENT_CENTER, area.size.x)
+		TelaLobby.CABECA, TelaLobby.SUPERIOR, TelaLobby.INFERIOR:
+			var valor := ""
+			if jogador.pecas.size() == 3:
+				valor = str(Cavaleiro.peca(Cavaleiro.PARTES[k], str(jogador.pecas[k])).get("nome", ""))
+			Desenho.texto(self, Vector2(x_valor, base), Desenho.caber(valor, f, 30, largura_valor, 1), f, 30, Tema.ETIQUETA,
+				HORIZONTAL_ALIGNMENT_CENTER, largura_valor)
 		TelaLobby.ITEM:
 			var item: Dictionary = ForjaPlayer.ITENS[jogador.item_i]
 			if str(item.icone) != "":
-				Glifo.desenhar(self, str(item.icone), Rect2(X0 + 160, r.position.y + 3, 32, 32), Tema.ETIQUETA)
+				Glifo.desenhar(self, str(item.icone), Rect2(X0 + 160, r.position.y + 2, 32, 32), Tema.ETIQUETA)
 			var x_nome := X0 + 160 + 32 + 8.0
 			var largura := area.end.x - 30 - x_nome - 4.0
 			Desenho.texto(self, Vector2(x_nome, base), Desenho.caber(str(item.nome), f, 30, largura, 1), f, 30, Tema.ETIQUETA,

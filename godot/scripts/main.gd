@@ -179,6 +179,7 @@ func _interface() -> void:
 	visor.hud = hud
 	ui.add_child(visor)
 	ui.move_child(visor, hud.get_index() + 1)
+	lobby.visor = visor  # G13: o «LIGA!» do item na etiqueta da coluna
 	cortina = ColorRect.new()
 	cortina.color = Color(Tema.FITA, 0.0)
 	cortina.mouse_filter = Control.MOUSE_FILTER_IGNORE

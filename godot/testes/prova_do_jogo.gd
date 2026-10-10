@@ -299,29 +299,34 @@ func _prova_do_percurso() -> void:
 	# a construção: ◀▶ e ▼ mexem só no próprio lugar; o robô forja os quatro na batida
 	var visuais := {}
 	var nomes0 := {}
+	var arqs0 := {}
 	for l in 4:
-		visuais["%d-%d" % [jogo.jogadores[l].modelo_i, jogo.jogadores[l].item_i]] = true
+		visuais[str(jogo.jogadores[l].pecas[0]) if jogo.jogadores[l].pecas.size() == 3 else ""] = true
+		arqs0[str(jogo.lobby.corpo[l].get("arquetipo", {}).get("id", ""))] = true
 		nomes0[jogo.jogadores[l].nome] = true
-	_esperar(visuais.size() == 4, "os quatro lugares nascem com visuais diferentes")
+	_esperar(visuais.size() == 4 and not visuais.has(""), "os quatro nascem com cabeças diferentes (%s)" % [visuais.keys()])
+	_esperar(arqs0.size() == 4 and not arqs0.has(""), "e com arquétipos diferentes (%s)" % [arqs0.keys()])
 	_esperar(nomes0.size() == 4 and not nomes0.has(""), "os quatro nascem com nomes diferentes (%s)" % [nomes0.keys()])
 	_esperar(Ritmo.slot == "MUS_TELA_CONSTRUCAO" and absf(Ritmo.bpm - 120.0) < 0.001, "a construção roda na faixa dela, a 120 BPM (%s, %.1f)" % [Ritmo.slot, Ritmo.bpm])
-	var m1: int = jogo.jogadores[0].modelo_i
-	var m2: int = jogo.jogadores[1].modelo_i
-	await _aperta(1, Forja.DIREITA)
-	_esperar(jogo.jogadores[1].modelo_i != m2, "◀▶ troca o boneco do P2")
-	_esperar(jogo.jogadores[0].modelo_i == m1, "e o do P1 fica como estava")
+	await _prova_do_encaixe()
 	await _aperta(2, Forja.BAIXO)
-	_esperar(jogo.lobby.linha[2] == TelaLobby.ITEM and jogo.lobby.linha[0] == TelaLobby.BONECO, "▼ leva o P3 à linha do item, e só o P3")
+	await _aperta(2, Forja.BAIXO)
+	await _aperta(2, Forja.BAIXO)
+	_esperar(jogo.lobby.linha[2] == TelaLobby.ITEM and jogo.lobby.linha[0] == TelaLobby.CABECA, "▼▼▼ leva o P3 à linha do item, e só o P3")
 	var i3: int = jogo.jogadores[2].item_i
+	var alcanca3: Array = Cavaleiro.alcancaveis(jogo.lobby.corpo[2].stats)
 	await _aperta(2, Forja.DIREITA)
-	_esperar(jogo.jogadores[2].item_i != i3 and jogo.jogadores[2].item_i >= 1, "◀▶ troca o item do P3, entre os seis")
+	await _espera_o_encaixe(2)
+	_esperar((jogo.jogadores[2].item_i != i3 or alcanca3.size() == 1) and jogo.jogadores[2].item_i >= 1,
+		"◀▶ troca o item do P3, entre os que o corpo alcança (%s)" % [alcanca3])
 	for vez in 7:
 		await _aperta(2, Forja.DIREITA)
-		_esperar(jogo.jogadores[2].item_i >= 1, "◀▶ nunca chega às mãos livres (%d)" % jogo.jogadores[2].item_i)
+		await _espera_o_encaixe(2)
+		var id3 := str(ForjaPlayer.ITENS[jogo.jogadores[2].item_i].id)
+		_esperar(jogo.jogadores[2].item_i >= 1 and id3 in alcanca3, "◀▶ nunca chega às mãos livres nem a um item fora do alcance (%s)" % id3)
 	var n1: String = jogo.jogadores[0].nome
-	await _aperta(0, Forja.BAIXO)
-	await _aperta(0, Forja.BAIXO)
-	await _aperta(0, Forja.BAIXO)
+	for vez in 5:
+		await _aperta(0, Forja.BAIXO)
 	_esperar(jogo.lobby.linha[0] == TelaLobby.NOME, "▼ para na última linha (Nome)")
 	await _aperta(0, Forja.DIREITA)
 	var n1b: String = jogo.jogadores[0].nome
@@ -332,11 +337,15 @@ func _prova_do_percurso() -> void:
 	var nomes4 := [jogo.jogadores[0].nome, jogo.jogadores[1].nome, jogo.jogadores[2].nome]
 	_esperar(item4 >= 1 and not (jogo.jogadores[3].nome in nomes4) and jogo.jogadores[3].nome in TelaLobby.NOMES,
 		"△ sorteia boneco, item e um nome livre (%s)" % jogo.jogadores[3].nome)
+	var c4: Dictionary = Cavaleiro.corpo(jogo.jogadores[3].pecas)
+	_esperar(c4.valido and Cavaleiro.no_corpo(str(ForjaPlayer.ITENS[item4].id), c4.stats) != "fora",
+		"△ sorteia um corpo válido e um item que ele alcança (%s)" % [jogo.jogadores[3].pecas])
 	await _aperta(0, Forja.CIRCULO)
-	_esperar(jogo.lobby.linha[0] == TelaLobby.BONECO and Forja.ocupado(0), "○ numa linha de baixo volta à primeira, sem sair do lugar")
+	_esperar(jogo.lobby.linha[0] == TelaLobby.CABECA and Forja.ocupado(0), "○ numa linha de baixo volta à primeira, sem sair do lugar")
 	await _prova_do_teclado_na_mesa()
 	# o cavaleiro guarda-se como dado: ida e volta pelo arquivo, e o acabamento só muda a luz
 	_prova_do_cavaleiro_guardado()
+	_prova_do_cavaleiro()
 	# o robô forja os quatro, só apertando botões: ✕ para forjar e as oito marteladas na batida
 	Forja.robo_confirma = true
 	var perfeito := [false, false, false, false]
@@ -359,6 +368,14 @@ func _prova_do_percurso() -> void:
 	_confere_o_hud("no salão")
 	_esperar(nq_f / 60.0 <= 90.0, "a montagem do robô, com o nome, fecha em 90 s de jogo ou menos (%.1f s)" % (nq_f / 60.0))
 	_esperar(jogo.jogadores[0].nome == "Dona Brasa", "o robô escreveu «Dona Brasa» no lugar 1, letra a letra (%s)" % jogo.jogadores[0].nome)
+	# o robô do P1 fez a troca do pré-montado (G13): o item entra em liga, e a forja guarda os stats
+	var troca0: Dictionary = jogo.lobby._troca_do_pre[0]
+	_esperar(troca0.is_empty() or (str(jogo.jogadores[0].pecas[int(troca0.parte)]) == str(troca0.personagem) and Itens.em_liga[0]),
+		"o robô do P1 fez a troca do pré-montado e o item ficou em liga (%s, %s)" % [troca0, jogo.jogadores[0].pecas])
+	_esperar(troca0.is_empty() or int(jogo.lobby.ligou[0]) > 0, "a troca do P1 bateu o «LIGA!» pelo visor (%d)" % int(jogo.lobby.ligou[0]))
+	_esperar(jogo.lobby.visor == jogo.visor, "o lobby carimba pelo visor do jogo")
+	for l in 4:
+		_esperar(Cavaleiro.stats[l] == Cavaleiro.corpo(jogo.jogadores[l].pecas).stats, "P%d: a forja guardou os stats do corpo (%s)" % [l + 1, Cavaleiro.stats[l]])
 	for l in range(1, 4):
 		_esperar(jogo.jogadores[l].nome in TelaLobby.NOMES and jogo.lobby.nome_escrito[l] == false,
 			"P%d: △ e ✕ deram um nome sorteado (%s)" % [l + 1, jogo.jogadores[l].nome])
@@ -961,14 +978,14 @@ func _prova_do_cavaleiro_guardado() -> void:
 	var p := ForjaPlayer.new()
 	add_child(p)
 	p.montar(0)
-	var c := {"boneco": 1, "item": "escudo", "nome": "Cromo", "acabamento": 1}
+	var c := {"cabeca": "male-c", "superior": "female-f", "inferior": "male-a", "cadeira": "", "item": "escudo", "nome": "Cromo", "acabamento": 1}
 	p.vestir(c)
 	_esperar(p.cavaleiro() == c, "o cavaleiro: vestir e cavaleiro() são inversos (%s)" % [p.cavaleiro()])
 	var m: ShaderMaterial = p._mats_corpo[0]
 	var tex_antes = m.get_shader_parameter("textura_cima")
 	_esperar(is_equal_approx(float(m.get_shader_parameter("rugoso_cima")), 0.45) and is_equal_approx(float(m.get_shader_parameter("rugoso_baixo")), 0.45)
 		and is_equal_approx(float(m.get_shader_parameter("metal")), 0.2), "o acabamento Polido mexe na rugosidade e no metal")
-	p.vestir({"boneco": 1, "item": "escudo", "nome": "Cromo", "acabamento": 0})
+	p.vestir({"cabeca": "male-c", "superior": "female-f", "inferior": "male-a", "cadeira": "", "item": "escudo", "nome": "Cromo", "acabamento": 0})
 	var m0: ShaderMaterial = p._mats_corpo[0]
 	_esperar(is_equal_approx(float(m0.get_shader_parameter("rugoso_cima")), ForjaPlayer.RUGOSO_CIMA)
 		and is_equal_approx(float(m0.get_shader_parameter("rugoso_baixo")), ForjaPlayer.RUGOSO_BAIXO)
@@ -988,6 +1005,11 @@ func _prova_do_cavaleiro_guardado() -> void:
 	Colecao.trofeus = colecao_antes[2]
 	Colecao.desbloqueados = colecao_antes[3]
 	_esperar(ForjaPlayer.ITENS.size() == 7 and ForjaPlayer.ITENS[0].id == "" and ForjaPlayer.ITENS[1].id == "martelo", "os sete itens, o 0 de mãos livres")
+	# o dicionário antigo da G02 (com "boneco") vira o pré-montado, com o item e o nome que tinha (G13)
+	p.vestir({"boneco": 1, "item": "escudo", "nome": "Cromo", "acabamento": 0})
+	var velho := p.cavaleiro()
+	_esperar(p.pecas.size() == 3 and Cavaleiro.corpo(p.pecas).valido and velho.get("item", "") == "escudo" and velho.get("nome", "") == "Cromo",
+		"o cavaleiro antigo, com boneco, vira o pré-montado de três peças (%s)" % [velho])
 	remove_child(p)
 	p.free()
 	var guardados_antes: Array = Opcoes.cavaleiro.duplicate(true)
@@ -2271,9 +2293,9 @@ func _prova_do_teclado_na_mesa() -> void:
 	# a repetição do direcional anda no relógio do jogo aqui: com a máquina carregada, dois quadros podiam passar de 0,40 s
 	l0.relogio_do_teclado = func() -> int: return int(Engine.get_process_frames() * 1000 / 60)
 	var original: String = jogo.jogadores[0].nome
-	await _aperta(0, Forja.BAIXO)
-	await _aperta(0, Forja.BAIXO)
-	_esperar(l0.linha[0] == TelaLobby.NOME, "teclado: ▼ ▼ leva o P1 à linha Nome")
+	for vez in TelaLobby.NOME - TelaLobby.CABECA:
+		await _aperta(0, Forja.BAIXO)
+	_esperar(l0.linha[0] == TelaLobby.NOME, "teclado: ▼ ▼ ▼ ▼ leva o P1 à linha Nome")
 	_janela_do_teclado.x = _linha_do_tempo().size()
 	await _aperta(0, Forja.R1)
 	_esperar(l0.teclados[0] != null and l0.teclados[1] == null and l0.teclados[2] == null and l0.teclados[3] == null,
@@ -2330,7 +2352,7 @@ func _prova_do_teclado_na_mesa() -> void:
 	jogo.jogadores[0].nome = original   # o robô refaz o nome do P1 pelo teclado, depois
 	l0.nome_escrito[0] = false
 	l0.t_nome_ms[0] = 0
-	l0.linha[0] = TelaLobby.BONECO
+	l0.linha[0] = TelaLobby.CABECA
 	l0._robo_teclado[0] = 0   # o robô escreve o nome do P1 do começo
 
 
@@ -3225,3 +3247,112 @@ func _prova_do_julgamento(centelha) -> void:
 	_esperar(not jogo.visor.bater(0, "car_liga"), "a vez: no máximo dois carimbos na tela")
 	# a fala não divide a vaga com o carimbo
 	_esperar(not jogo.visor.fala(3, "Deixa comigo o refrão!", 2.0), "a fala não aparece com o carimbo vivo do P4")
+
+
+## O cavaleiro montável (G13): as contas do conferir.py pelo jogo, o pré-montado
+## e o boneco de três peças.
+func _prova_do_cavaleiro() -> void:
+	# a mesma conta do conferir.py, pelo jogo
+	var validos := 0
+	var arq := {}
+	var P := ["female-a", "female-b", "female-c", "female-d", "female-e", "female-f",
+		"male-a", "male-b", "male-c", "male-d", "male-e", "male-f"]
+	for a in P:
+		for b in P:
+			for c in P:
+				var k := Cavaleiro.corpo([a, b, c])
+				if not k.valido:
+					continue
+				validos += 1
+				arq[k.arquetipo.nome] = arq.get(k.arquetipo.nome, 0) + 1
+	_esperar(validos == 756, "756 corpos válidos (%d)" % validos)
+	_esperar(arq.get("Torre", 0) == 176 and arq.get("Muralha", 0) == 176 and arq.get("Relâmpago", 0) == 170
+		and arq.get("Corrente", 0) == 170 and arq.get("Aríete", 0) == 38 and arq.get("Eco", 0) == 26, "os arquétipos (%s)" % [arq])
+	var k := Cavaleiro.corpo(["male-c", "female-f", "male-a"])
+	_esperar(k.stats == [4, 2, 5, 2] and k.arquetipo.nome == "Muralha", "male-c, female-f, male-a: Muralha [4, 2, 5, 2]")
+	_esperar(Cavaleiro.no_corpo("martelo", k.stats) == "alcanca", "o Martelo alcança, fora da liga, nesse corpo")
+	_esperar(is_equal_approx(Cavaleiro.gancho(0, "empurrao"), 1.0), "sem forja, o gancho é o neutro")
+	# o pré-montado: válido, sem ponto perdido, cabeças e arquétipos diferentes na mesa, o item ao alcance
+	var ocupados := {}
+	var cabecas := {}
+	var arqs := {}
+	var t0 := Time.get_ticks_msec()
+	for l in 4:
+		var pm := Cavaleiro.pre_montado(l, ocupados)
+		var co := Cavaleiro.corpo(pm.pecas)
+		_esperar(co.valido and int(co.perdidos) == 0 and Cavaleiro.no_corpo(str(pm.item), co.stats) != "fora",
+			"P%d: o pré-montado é válido, sem ponto perdido, e alcança o item (%s)" % [l + 1, pm])
+		cabecas[pm.pecas[0]] = true
+		arqs[str(co.arquetipo.get("id", ""))] = true
+		ocupados[l] = {"cabeca": pm.pecas[0], "superior": pm.pecas[1], "inferior": pm.pecas[2], "nome": pm.nome}
+	_esperar(cabecas.size() == 4 and arqs.size() == 4, "os quatro pré-montados: cabeças e arquétipos diferentes (%s)" % [ocupados])
+	_esperar(Time.get_ticks_msec() - t0 < 2000, "os quatro pré-montados em menos de 2 s (%d ms)" % (Time.get_ticks_msec() - t0))
+	# o boneco de três peças: as três malhas no esqueleto do superior, a troca de uma só
+	var p := ForjaPlayer.new()
+	add_child(p)
+	p.montar(0)
+	p.vestir_pecas(["male-c", "female-f", "male-a"], 1)
+	var esq: Skeleton3D = p.modelo.find_child("Skeleton3D", true, false)
+	_esperar(esq.get_node_or_null("head") != null and esq.get_node_or_null("body-sup") != null and esq.get_node_or_null("body-inf") != null
+		and p.modelo.find_child("body-mesh", true, false) == null, "três peças: head, body-sup e body-inf, sem a body-mesh inteira")
+	_esperar(p.modelo_i == ForjaPlayer.indice_do_personagem("male-c") and ForjaPlayer.BONECOS[p.modelo_i].intervalo == "quarta",
+		"o modelo_i é o da cabeça, e o pio dela é a quarta")
+	var area: float = 2.0 * float(p._medidas.friso_alto) * p._medidas.largura_torso + 2.0 * float(p._medidas.costura_larg) * p._medidas.altura_perna
+	_esperar(area <= 0.0801 * (p._medidas.frente_cima + p._medidas.frente_baixo), "o acento de duas peças em até 8 % da frente")
+	var m_sup := Pintura.medidas_da(esq.get_node("body-sup") as MeshInstance3D)
+	var m_inf := Pintura.medidas_da(esq.get_node("body-inf") as MeshInstance3D)
+	_esperar(not m_sup.is_empty() and not m_inf.is_empty() and is_equal_approx(float(p._medidas.friso_y0), float(m_sup.friso_y0))
+		and is_equal_approx(float(p._medidas.costura_x), float(m_inf.costura_x)) and is_equal_approx(float(p._medidas.altura_perna), float(m_inf.altura_perna)),
+		"o friso vem do superior (female-f) e a costura e a perna, do inferior (male-a)")
+	var cabeca_antes: Mesh = (esq.get_node("head") as MeshInstance3D).mesh
+	var sup_antes: Mesh = (esq.get_node("body-sup") as MeshInstance3D).mesh
+	p.trocar_peca(0, "female-b")
+	_esperar(p.modelo.find_child("Skeleton3D", true, false) == esq and (esq.get_node("head") as MeshInstance3D).mesh != cabeca_antes
+		and (esq.get_node("body-sup") as MeshInstance3D).mesh == sup_antes and p.pecas == ["female-b", "female-f", "male-a"],
+		"trocar_peca troca só a cabeça, no mesmo esqueleto")
+	p.acender(0.0)
+	p.acender_parte("superior", 1.0)
+	var mat_sup := (esq.get_node("body-sup") as MeshInstance3D).get_surface_override_material(0) as ShaderMaterial
+	var mat_inf := (esq.get_node("body-inf") as MeshInstance3D).get_surface_override_material(0) as ShaderMaterial
+	_esperar(is_equal_approx(float(mat_sup.get_shader_parameter("acesa")), 1.0) and is_zero_approx(float(mat_inf.get_shader_parameter("acesa"))),
+		"acender_parte acende o superior e deixa o inferior apagado")
+	p.acender(1.0)
+	remove_child(p)
+	p.free()
+
+
+## Espera a troca pedida do lugar encaixar (a semicolcheia seguinte), até 60 quadros.
+func _espera_o_encaixe(l: int) -> void:
+	for q in 60:
+		if jogo.lobby._encaixe[l].is_empty():
+			return
+		await _quadros(1)
+
+
+## O encaixe (G13): ◀▶ na linha Cabeça do P2 muda só a cabeça do P2, e a malha
+## "head" muda no quadro em que Ritmo.t_musica() passa da semicolcheia seguinte, não antes.
+func _prova_do_encaixe() -> void:
+	var p1: ForjaPlayer = jogo.jogadores[0]
+	var p2: ForjaPlayer = jogo.jogadores[1]
+	var cab1 := str(p1.pecas[0])
+	var cab2 := str(p2.pecas[0])
+	var esq2: Skeleton3D = p2.modelo.find_child("Skeleton3D", true, false)
+	var malha_antes: Mesh = (esq2.get_node("head") as MeshInstance3D).mesh
+	jogo.lobby.ultimo_encaixe[1] = {}
+	Forja.ctl.simulador_botao(1, Forja.DIREITA, true)
+	await _quadros(2)
+	Forja.ctl.simulador_botao(1, Forja.DIREITA, false)
+	# o relógio da música anda na parede: o encaixe pode sair já no quadro seguinte. A prova lê o registro do servido.
+	for q in 60:
+		if (esq2.get_node("head") as MeshInstance3D).mesh != malha_antes:
+			break
+		await _quadros(1)
+	var e: Dictionary = jogo.lobby.ultimo_encaixe[1]
+	_esperar(not e.is_empty() and int(e.linha) == TelaLobby.CABECA and (esq2.get_node("head") as MeshInstance3D).mesh != malha_antes,
+		"◀▶ na Cabeça do P2 pede um encaixe, e a malha da cabeça troca (%s)" % [e])
+	_esperar(not e.is_empty() and float(e.agora) >= float(e.t) and int(e.quadro) > int(e.quadro_do_toque)
+		and float(e.t) - float(e.toque) <= 0.25 * 60.0 / maxf(Ritmo.bpm, 1.0) + 0.001,
+		"a cabeça do P2 encaixa na semicolcheia seguinte ao toque, nunca antes nem no quadro do toque (%s)" % [e])
+	_esperar(str(p2.pecas[0]) != cab2 and str(p1.pecas[0]) == cab1, "◀▶ na Cabeça do P2 muda a cabeça do P2 (%s → %s), e a do P1 fica" % [cab2, p2.pecas[0]])
+	_esperar(jogo.lobby.corpo[1].valido and p2.modelo_i == ForjaPlayer.indice_do_personagem(str(p2.pecas[0])),
+		"o corpo do P2 continua válido e o pio é o da cabeça nova")

@@ -301,3 +301,28 @@ static func medianas(boneco: Node3D) -> Dictionary:
 					usadas[c] = true
 	return {"cabeca": _mediana(luz.cabeca), "superior": _mediana(luz.superior),
 		"inferior": _mediana(luz.inferior), "cores": usadas.keys()}
+
+
+## As medidas que `preparar` gravou para a malha de `mi` (vazio se ainda não preparada).
+static func medidas_da(mi: MeshInstance3D) -> Dictionary:
+	return _medidas_de.get(mi.mesh, {})
+
+
+## O cavaleiro de duas peças (G13): o friso, a largura do torso e a frente de
+## cima vêm do superior; a costura, a altura da perna e a frente de baixo, do
+## inferior. Depois reaplica o teto de 8 % da frente (a regra da G08).
+static func juntar_medidas(sup: Dictionary, inf: Dictionary) -> Dictionary:
+	if sup.is_empty() or inf.is_empty():
+		return sup if inf.is_empty() else inf
+	var m := {
+		"friso_y0": sup.friso_y0, "friso_y1": sup.friso_y1, "friso_alto": float(sup.friso_alto),
+		"largura_torso": sup.largura_torso, "frente_cima": sup.frente_cima,
+		"costura_x": inf.costura_x, "costura_larg": float(inf.costura_larg),
+		"altura_perna": inf.altura_perna, "frente_baixo": inf.frente_baixo,
+	}
+	var area: float = 2.0 * m.friso_alto * float(m.largura_torso) + 2.0 * m.costura_larg * float(m.altura_perna)
+	var teto: float = 0.08 * (float(m.frente_cima) + float(m.frente_baixo))
+	if area > teto and area > 0.0:
+		m.friso_alto *= teto / area
+		m.costura_larg *= teto / area
+	return m
