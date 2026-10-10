@@ -245,13 +245,18 @@ desinstalar() {
   fi
 
   titulo "A regra do udev"
-  local arq tirou=0
+  local arq tirou=0 ficou=()
   if [[ -s "$REGISTRO_ARQUIVOS" ]]; then
     while read -r arq; do
       [[ -n "$arq" && -f "$arq" ]] || continue
-      como_raiz rm -f "$arq" && ok "tirei $arq" && tirou=1
+      # o que não saiu (o sudo recusado) fica anotado, para o próximo desinstalar
+      if como_raiz rm -f "$arq"; then
+        ok "tirei $arq"; tirou=1
+      else
+        falta "não consegui tirar $arq"; ficou+=("$arq")
+      fi
     done <"$REGISTRO_ARQUIVOS"
-    rm -f "$REGISTRO_ARQUIVOS"
+    if (( ${#ficou[@]} )); then printf '%s\n' "${ficou[@]}" >"$REGISTRO_ARQUIVOS"; else rm -f "$REGISTRO_ARQUIVOS"; fi
   fi
   if (( tirou )); then
     [[ -n "$DESTDIR" ]] || sudo udevadm control --reload-rules

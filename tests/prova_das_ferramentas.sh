@@ -168,6 +168,26 @@ if pedida instalar; then
     confere "e o udev recarrega as regras e reaplica no hidraw" \
       grep -q "^sudo udevadm trigger --subsystem-match=hidraw" "$F/chamadas"
   fi
+  # o Edge no rádio também conta (HID_ID 0005, produto 0DF2), e o Xbox segue fora
+  mkdir -p "$F/sys/class/hidraw/hidraw5/device"
+  echo "HID_ID=0003:0000054C:00000CE6" > "$F/sys/class/hidraw/hidraw3/device/uevent"
+  echo "HID_ID=0005:0000054C:00000DF2" > "$F/sys/class/hidraw/hidraw5/device/uevent"
+  : > "$F/dev/hidraw5"; chmod 0444 "$F/dev/hidraw3" "$F/dev/hidraw5"
+  if [ "$(id -u)" -ne 0 ]; then
+    inst conferir > "$F/conferir.log" 2>&1
+    confere "o conferir conta o DualSense no cabo e o Edge no rádio, e não o Xbox" \
+      grep -q "falta a regra do udev (os efeitos do controle): 2 DualSense" "$F/conferir.log"
+    # o que o desinstalar não conseguiu tirar fica anotado para a próxima vez
+    rm -f "$F/oficina/arquivos-do-sistema.txt"
+    env DESTDIR="$F/destino" PATH="$F/bin:$PATH" FORJA_OFICINA="$F/oficina" bash "$F/raiz/scripts/instalar.sh" sistema \
+      > "$F/sistema.log" 2>&1
+    chmod 0555 "$F/destino/etc/udev/rules.d"
+    env DESTDIR="$F/destino" PATH="$F/bin:$PATH" FORJA_OFICINA="$F/oficina" bash "$F/raiz/scripts/instalar.sh" desinstalar \
+      > "$F/desinstalar.log" 2>&1
+    chmod 0755 "$F/destino/etc/udev/rules.d"
+    confere "a regra que o desinstalar não tirou segue anotada" \
+      grep -qx "$F/destino/etc/udev/rules.d/70-forja-dualsense.rules" "$F/oficina/arquivos-do-sistema.txt"
+  fi
 fi
 
 echo

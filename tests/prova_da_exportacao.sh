@@ -211,7 +211,7 @@ atalho() {
   env -u XDG_DATA_HOME HOME="$2" sh "$1/instalar-atalho.sh" > "$2.log" 2>&1 || { cat "$2.log"; return 1; }
   local d="$2/.local/share/applications/forja.desktop"
   if ! command -v desktop-file-validate > /dev/null; then
-    echo "    sem o desktop-file-validate (desktop-file-utils): só o caminho foi conferido"
+    echo "    sem o desktop-file-validate: só o caminho foi conferido"
   elif ! desktop-file-validate "$d"; then
     return 1
   fi
@@ -265,6 +265,9 @@ sys.exit(1 if erros else 0)
 PY
 }
 echo "==> o atalho do menu no Linux: o instalar-atalho.sh, numa casa de mentira"
+# não validado não é verde: sem o validador, a prova diz e reprova (o CI instala o desktop-file-utils)
+command -v desktop-file-validate > /dev/null \
+  || falha "sem o desktop-file-validate (o pacote desktop-file-utils): o atalho do menu não foi validado"
 mkdir -p "$TMP/casa" "$TMP/casa-esquisita"
 atalho "$DIST/forja-linux-x86_64" "$TMP/casa" || falha "o atalho do menu não abre o jogo da pasta do pacote"
 ESQUISITA="$TMP/a pasta \"do\" \$jogo 100%"
