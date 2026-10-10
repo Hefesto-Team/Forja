@@ -10,6 +10,7 @@
 #include <string.h>
 
 #if defined(__linux__)
+#include <dirent.h>
 #include <limits.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -110,6 +111,38 @@ static int fatos_hidraw(const char *nome, OrigemFatos *f) {
   return 1;
 }
 
+static void conferir_hidraw_irmao(const char *dispositivo, OrigemFatos *f) {
+  char atual[PATH_MAX];
+  char raiz[PATH_MAX];
+  if (!realpath(dispositivo, atual) || !realpath(origem_raiz_sysfs(), raiz))
+    return;
+  size_t n_raiz = strlen(raiz);
+  for (int nivel = 0; nivel < 4; nivel++) {
+    char pasta[PATH_MAX + 16];
+    snprintf(pasta, sizeof(pasta), "%s/hidraw", atual);
+    DIR *d = opendir(pasta);
+    if (d) {
+      struct dirent *e;
+      while ((e = readdir(d)) != NULL) {
+        if (strncmp(e->d_name, "hidraw", 6) != 0)
+          continue;
+        char no[PATH_MAX + 300];
+        snprintf(no, sizeof(no), "%s/%s", origem_raiz_dev(), e->d_name);
+        if (access(no, F_OK) == 0 && access(no, R_OK | W_OK) != 0)
+          f->hidraw_sem_permissao = 1;
+      }
+      closedir(d);
+      return;
+    }
+    char *barra = strrchr(atual, '/');
+    if (!barra || barra == atual)
+      return;
+    *barra = '\0';
+    if (strlen(atual) <= n_raiz)
+      return;
+  }
+}
+
 static int fatos_evdev(const char *nome, OrigemFatos *f) {
   char dispositivo[PATH_MAX];
   snprintf(dispositivo, sizeof(dispositivo), "%s/class/input/%s/device", origem_raiz_sysfs(), nome);
@@ -130,6 +163,8 @@ static int fatos_evdev(const char *nome, OrigemFatos *f) {
   caminho_real(dispositivo, f->caminho_real, sizeof(f->caminho_real));
   if (origem_usb_de(dispositivo, f->usb_pai, sizeof(f->usb_pai)) != 0)
     f->usb_pai[0] = '\0';
+  if (f->vid == 0x054c)
+    conferir_hidraw_irmao(dispositivo, f);
   f->tem_sysfs = 1;
   return 1;
 }

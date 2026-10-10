@@ -47,7 +47,10 @@ typedef struct RelControle {
   double acel_declarado_hz, acel_medido_hz;
   RelSom alto_falante, microfone, haptica;
   int reconexoes;
+  int hidraw_sem_permissao;
 } RelControle;
+
+#define REL_CAUSA_HIDRAW "sem permissão no hidraw: os efeitos não chegam"
 
 typedef struct RelItem {
   int jogador;

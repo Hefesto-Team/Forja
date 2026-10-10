@@ -5,6 +5,12 @@ RAIZ="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 LISTA="$RAIZ/scripts/requisitos-sistema.txt"
 OFICINA="${FORJA_OFICINA:-$RAIZ/oficina}"
 REGISTRO="$OFICINA/pacotes-do-sistema.txt"
+REGISTRO_ARQUIVOS="$OFICINA/arquivos-do-sistema.txt"
+REGRA_UDEV="$RAIZ/udev/70-forja-dualsense.rules"
+DESTDIR="${DESTDIR:-}"
+PASTA_UDEV="$DESTDIR/etc/udev/rules.d"
+SYSFS="${FORJA_SYSFS:-/sys}"
+DEV="${FORJA_DEV:-/dev}"
 
 if [[ -t 1 ]]; then
   N=$'\e[0m'; B=$'\e[1m'; VERDE=$'\e[38;5;114m'; AMARELO=$'\e[38;5;222m'; CINZA=$'\e[38;5;245m'
@@ -54,6 +60,9 @@ conferir() {
     fi
   fi
 
+  titulo "O controle"
+  conferir_regra_udev
+
   titulo "O jogo"
   if [[ -f "$RAIZ/godot/bin/libforja.linux.x86_64.so" ]]; then
     ok "o módulo nativo está compilado"
@@ -87,8 +96,70 @@ conferir() {
   echo "  ./run.sh"
 }
 
+hidraw_dos_dualsense() {
+  local ev
+  for ev in "$SYSFS"/class/hidraw/hidraw*/device/uevent; do
+    [[ -f "$ev" ]] || continue
+    grep -qiE '^HID_ID=[0-9a-f]+:0000054C:00000(CE6|DF2)$' "$ev" && basename "$(dirname "$(dirname "$ev")")"
+  done
+}
+
+conferir_regra_udev() {
+  local n no sem=() com=()
+  while read -r n; do
+    [[ -z "$n" ]] && continue
+    no="$DEV/$n"
+    [[ -e "$no" ]] || continue
+    if [[ -r "$no" && -w "$no" ]]; then com+=("$n"); else sem+=("$n"); fi
+  done < <(hidraw_dos_dualsense)
+  if (( ${#sem[@]} )); then
+    falta "a regra do udev (os efeitos do controle): ${#sem[@]} DualSense sem gatilho, luz e luzinhas"
+    echo "        scripts/instalar.sh sistema, e religue o controle"
+  elif (( ${#com[@]} )); then
+    ok "${#com[@]} DualSense com os efeitos (gatilho, luz e luzinhas)"
+  elif [[ -f "$PASTA_UDEV/$(basename "$REGRA_UDEV")" ]]; then
+    ok "a regra do udev está instalada (nenhum DualSense ligado agora)"
+  else
+    falta "a regra do udev (os efeitos do controle); com um DualSense ligado, o conferir mede"
+    echo "        scripts/instalar.sh sistema"
+  fi
+}
+
+como_raiz() {
+  if [[ -n "$DESTDIR" ]]; then "$@"; else sudo "$@"; fi
+}
+
+regra_udev_instalar() {
+  local alvo; alvo="$PASTA_UDEV/$(basename "$REGRA_UDEV")"
+  if [[ -f "$alvo" ]] && cmp -s "$REGRA_UDEV" "$alvo"; then
+    ok "a regra do udev já está em $alvo"
+  else
+    echo "Vou pôr a regra do udev do DualSense em $PASTA_UDEV."
+    [[ -n "$DESTDIR" ]] || echo "${CINZA}O sudo vai pedir a sua senha. Ela não fica gravada em lugar nenhum.${N}"
+    como_raiz mkdir -p "$PASTA_UDEV" && como_raiz install -m 0644 "$REGRA_UDEV" "$alvo" || return 1
+    ok "a regra do udev: $alvo"
+  fi
+  if [[ -f "$PASTA_UDEV/99-forja-dualsense.rules" ]]; then
+    como_raiz rm -f "$PASTA_UDEV/99-forja-dualsense.rules" && ok "a regra antiga (99-forja-dualsense.rules) saiu"
+  fi
+  mkdir -p "$OFICINA"
+  { echo "$alvo"; cat "$REGISTRO_ARQUIVOS" 2>/dev/null; } | sort -u >"$REGISTRO_ARQUIVOS.novo"
+  mv "$REGISTRO_ARQUIVOS.novo" "$REGISTRO_ARQUIVOS"
+  if [[ -z "$DESTDIR" ]]; then
+    sudo udevadm control --reload-rules && sudo udevadm trigger --subsystem-match=hidraw
+    echo "  religue o controle (ou o cabo) para a regra valer nele"
+  fi
+}
+
 sistema() {
-  tem_apt || { echo "esta máquina não usa apt. Instale à mão o que está em $LISTA"; exit 1; }
+  local rc=0
+  sistema_pacotes || rc=1
+  regra_udev_instalar || rc=1
+  return $rc
+}
+
+sistema_pacotes() {
+  tem_apt || { echo "esta máquina não usa apt. Instale à mão o que está em $LISTA"; return 1; }
   local faltam; faltam="$(pacotes_que_faltam | grep -v '^$' || true)"
   if [[ -z "$faltam" ]]; then
     ok "nada a instalar: os pacotes já estão aqui"
@@ -136,6 +207,21 @@ desinstalar() {
     bash "$RAIZ/scripts/trilha_ambiente.sh" desinstalar
   else
     ok "nada da trilha nesta máquina"
+  fi
+
+  titulo "A regra do udev"
+  local arq tirou=0
+  if [[ -s "$REGISTRO_ARQUIVOS" ]]; then
+    while read -r arq; do
+      [[ -n "$arq" && -f "$arq" ]] || continue
+      como_raiz rm -f "$arq" && ok "tirei $arq" && tirou=1
+    done <"$REGISTRO_ARQUIVOS"
+    rm -f "$REGISTRO_ARQUIVOS"
+  fi
+  if (( tirou )); then
+    [[ -n "$DESTDIR" ]] || sudo udevadm control --reload-rules
+  else
+    ok "a Forja não pôs regra do udev nesta máquina"
   fi
 
   titulo "O sistema"

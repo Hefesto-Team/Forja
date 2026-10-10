@@ -43,6 +43,7 @@ typedef struct OrigemFatos {
   int conexao_sdl;
   int windows;
   int wine;
+  int hidraw_sem_permissao;
 } OrigemFatos;
 
 typedef struct Origem {
@@ -50,6 +51,7 @@ typedef struct Origem {
   Conexao conexao;
   int inferida;
   char evidencia[160];
+  int hidraw_sem_permissao;
 } Origem;
 
 void origem_classificar(const OrigemFatos *f, Origem *out);
@@ -61,6 +63,7 @@ int origem_eh_virtual(OrigemTipo t);
 int origem_aceitar_na_sessao(int so_virtuais, int virtual_do_sdl);
 
 const char *origem_raiz_sysfs(void);
+const char *origem_raiz_dev(void);
 
 int origem_fatos_linux(const char *caminho_sdl, OrigemFatos *f);
 
