@@ -3,7 +3,8 @@
 #
 # O defeito medido (07/10/2026, corrida 37697457630, primeira tentativa): o passo «Dependências» do job
 # windows ficou 1889 s no `apt-get install`, baixando do espelho a ~120 kB/s, até ser cancelado à mão; o
-# normal é 9 a 43 s. Sem `timeout-minutes`, o GitHub espera 360 min.
+# normal é de 8 a 43 s, e o mais lento que ainda terminou verde levou 288 s (corrida 37705393614, job linux,
+# 83 kB/s). Sem `timeout-minutes`, o GitHub espera 360 min.
 #
 # Lê cada workflow de .github/workflows/ e, em todo job que chama o apt (`apt-get` ou `apt update|install`),
 # reprova:
@@ -11,7 +12,8 @@
 #   - o passo do apt sem `timeout-minutes`;
 #   - a falta de um passo ANTERIOR ao primeiro apt que grave em /etc/apt/apt.conf.d/ o
 #     `Acquire::Retries` e o `Acquire::http::Timeout` (vale para todo apt do job, inclusive o de um script).
-# Linha de comentário e o `name:` do passo não contam como chamada do apt.
+# Linha de comentário e o `name:` do passo não contam como chamada do apt. A indentação é lida do arquivo, e
+# o apt fora de um passo que a régua leia reprova.
 #
 # Depois da varredura, a prova MORDE a si mesma: tira de uma cópia do forja.yml cada pedaço do prazo e
 # confere que a régua reprova, e monta workflows de mentira para a ordem e para o que deve passar.
@@ -24,11 +26,19 @@ RAIZ="$(cd "$(dirname "$0")/.." && pwd)"
 
 ## conferir <workflow.yml>: uma linha por defeito na saída; rc 0 limpo, 1 com defeito.
 ## Na saída de erro, «apt-jobs N»: quantos jobs chamam o apt (a guarda contra a régua cega).
+## A indentação não é fixa: a dos jobs, a das chaves do job, a do traço dos passos e a das chaves do passo
+## são lidas do próprio arquivo (o YAML aceita `steps:` com o traço na mesma coluna da chave, ou recuado).
+## Uma chamada do apt que não caia dentro de um passo lido reprova: a régua não passa o que não soube ler.
 conferir() {
   awk -v ARQ="${1#"$RAIZ"/}" '
     function fecha_job(   s, conf, primeiro) {
-      if (job == "" || napt == 0) { job = ""; return }
+      if (job == "" || (napt == 0 && nfora == 0)) { job = ""; return }
       apt_jobs++
+      for (s = 1; s <= nfora; s++) {
+        print ARQ ": job " job ": o apt (linha " fora_linha[s] ") fora de um passo que a régua leia"
+        erros++
+      }
+      if (napt == 0) { job = ""; return }
       primeiro = apt_linha[1]
       if (!job_prazo) { print ARQ ": job " job ": chama o apt e não tem timeout-minutes"; erros++ }
       conf = 0
@@ -47,33 +57,59 @@ conferir() {
       if (p_apt) { napt++; apt_linha[napt] = p_apt; apt_passo_prazo[napt] = p_prazo }
       em_passo = 0
     }
-    BEGIN { erros = 0; apt_jobs = 0; em_jobs = 0; job = "" }
-    /^jobs:[ \t]*$/ { em_jobs = 1; next }
+    function chama_apt(l) {
+      return l ~ /(^|[^A-Za-z0-9_.\/-])apt-get[ \t]/ || \
+             l ~ /(^|[^A-Za-z0-9_.\/-])apt[ \t]+(update|install|upgrade|full-upgrade|dist-upgrade)/
+    }
+    BEGIN { erros = 0; apt_jobs = 0; em_jobs = 0; job = ""; job_ind = -1 }
+    /^[ \t]*$/ { next }
+    /^jobs:[ \t]*(#.*)?$/ { em_jobs = 1; next }
     em_jobs && /^[^ \t#]/ { fecha_passo(); fecha_job(); em_jobs = 0 }
     !em_jobs { next }
-    /^  [A-Za-z0-9_-]+:[ \t]*$/ {
+    /^[ \t]*#/ { next }
+    { match($0, /^ */); ind = RLENGTH }
+    job_ind < 0 { job_ind = ind }
+    ind <= job_ind {
       fecha_passo(); fecha_job()
-      job = $1; sub(/:$/, "", job)
-      job_prazo = 0; napt = 0; nconf = 0; em_passo = 0
+      job = substr($0, ind + 1); sub(/:.*$/, "", job)
+      job_prazo = 0; napt = 0; nconf = 0; nfora = 0; em_passo = 0; em_steps = 0; chave_ind = -1; traco_ind = -1
       next
     }
     job == "" { next }
-    /^    timeout-minutes:[ \t]*[0-9]/ { job_prazo = 1; next }
-    /^      - / {
+    chave_ind < 0 { chave_ind = ind }
+    # uma chave do job (runs-on, timeout-minutes, steps, needs…): fecha o passo em curso. O traço de um passo
+    # pode estar na mesma coluna da chave `steps:`, e então não é chave do job.
+    ind < chave_ind || (ind == chave_ind && !(em_steps && $0 ~ /^ *-([ \t]|$)/)) {
       fecha_passo()
-      em_passo = 1; p_inicio = NR; p_apt = 0; p_prazo = 0; p_conf = 0; p_retries = 0; p_timeout = 0
+      em_steps = ($0 ~ /^ *steps:[ \t]*(#.*)?$/)
+      if ($0 ~ /^ *timeout-minutes:[ \t]*[0-9]/) job_prazo = 1
+      if (chama_apt($0)) fora_linha[++nfora] = NR
+      next
     }
-    !em_passo { next }
-    /^        timeout-minutes:[ \t]*[0-9]/ { p_prazo = 1 }
-    /^[ \t]*#/ { next }
-    /^[ \t]*(- )?name:/ { next }
+    em_steps && traco_ind < 0 && $0 ~ /^ *-([ \t]|$)/ { traco_ind = ind }
+    # o traço abre um passo; a chave do passo é o que vem depois do traço, ou a linha na coluna das chaves dele
+    {
+      chave = ""
+      if (em_steps && ind == traco_ind && $0 ~ /^ *-([ \t]|$)/) {
+        fecha_passo()
+        em_passo = 1; p_inicio = NR; p_apt = 0; p_prazo = 0; p_conf = 0; p_retries = 0; p_timeout = 0
+        chave = substr($0, ind + 2); match(chave, /^[ \t]*/); passo_ind = ind + 1 + RLENGTH
+        chave = substr(chave, RLENGTH + 1)
+      } else if (em_passo && ind == passo_ind) {
+        chave = substr($0, ind + 1)
+      }
+    }
+    !em_passo {
+      if (chama_apt($0)) fora_linha[++nfora] = NR
+      next
+    }
+    chave ~ /^timeout-minutes:[ \t]*[0-9]/ { p_prazo = 1 }
+    chave ~ /^name:/ { next }
     {
       if (index($0, "/etc/apt/apt.conf.d/")) p_conf = 1
       if (index($0, "Acquire::Retries")) p_retries = 1
       if (index($0, "Acquire::http::Timeout")) p_timeout = 1
-      if (!p_apt && ($0 ~ /(^|[^A-Za-z0-9_.\/-])apt-get[ \t]/ || \
-                     $0 ~ /(^|[^A-Za-z0-9_.\/-])apt[ \t]+(update|install|upgrade|full-upgrade|dist-upgrade)/))
-        p_apt = NR
+      if (!p_apt && chama_apt($0)) p_apt = NR
     }
     END {
       fecha_passo(); fecha_job()
@@ -147,7 +183,7 @@ morde_tirando() {
 
 morde_tirando "o job windows sem o Acquire::Retries"        windows  'Acquire::Retries'
 morde_tirando "o job linux sem o Acquire::http::Timeout"    linux    'Acquire::http::Timeout'
-morde_tirando "o job exportar sem gravar o apt.conf.d"      exportar '/etc/apt/apt\.conf\.d/'
+morde_tirando "o job exportar sem gravar o apt.conf.d"      exportar '/etc/apt/apt[.]conf[.]d/'
 morde_tirando "o job telas sem o timeout-minutes do job"    telas    '^    timeout-minutes:'
 morde_tirando "o job windows sem o timeout-minutes do apt"  windows  '^        timeout-minutes:.*'
 
@@ -209,6 +245,59 @@ jobs:
           sudo apt-get install -y cmake
 FIM
 morde "o job sem apt, o apt no comentário e no nome, e o job certo" passa "$TMP/passa.yml"
+
+# o traço dos passos na coluna da chave `steps:` (YAML válido): a régua lê a indentação do arquivo
+cat > "$TMP/recuo.yml" <<'FIM'
+jobs:
+    cru:
+        runs-on: ubuntu-24.04
+        steps:
+        - name: Dependências
+          run: sudo apt-get install -y cmake
+FIM
+morde "o apt sem prazo com o traço na coluna de steps:" reprova "$TMP/recuo.yml"
+cat > "$TMP/recuo-certo.yml" <<'FIM'
+jobs:
+    certo:
+        runs-on: ubuntu-24.04
+        steps:
+        -   name: O prazo do apt
+            run: printf 'Acquire::Retries "3";\nAcquire::http::Timeout "30";\n' | sudo tee /etc/apt/apt.conf.d/80-prazo
+        -   name: Dependências
+            run: |
+              sudo apt-get update
+              sudo apt-get install -y cmake
+            timeout-minutes: 8
+        timeout-minutes: 10
+FIM
+morde "o job certo com outra indentação e o prazo do job depois dos passos" passa "$TMP/recuo-certo.yml"
+cat > "$TMP/recuo-prazo-fundo.yml" <<'FIM'
+jobs:
+    fundo:
+        runs-on: ubuntu-24.04
+        timeout-minutes: 10
+        steps:
+        -   name: O prazo do apt
+            run: printf 'Acquire::Retries "3";\nAcquire::http::Timeout "30";\n' | sudo tee /etc/apt/apt.conf.d/80-prazo
+        -   name: Dependências
+            run: |
+              sudo apt-get install -y cmake
+              # timeout-minutes: 8 aqui é texto do script, não o prazo do passo
+            with:
+              timeout-minutes: 8
+FIM
+morde "o timeout-minutes fora da coluna das chaves do passo" reprova "$TMP/recuo-prazo-fundo.yml"
+cat > "$TMP/fora.yml" <<'FIM'
+jobs:
+  fora:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    env:
+      DEPENDENCIAS: sudo apt-get install -y cmake
+    steps:
+      - run: eval "$DEPENDENCIAS"
+FIM
+morde "o apt fora de um passo que a régua leia" reprova "$TMP/fora.yml"
 
 if [ "$FALHAS" -eq 0 ]; then
   echo "prova do apt com prazo ok — todo apt do CI tem prazo, e a régua reprova cada pedaço tirado"
