@@ -304,6 +304,17 @@ São base: vão de **a fazer** direto para **em voo**, um trilho por grupo, na o
 | [WU07](WU07-os-controles-sem-o-modulo.md) | Os controles sem o módulo | G | WR01 | a fazer |
 | [WF01](WF01-o-modulo-para-mac-e-arm.md) | O módulo também para macOS e para ARM | G | WU01 | a fazer |
 
+## Y — Vindas do Hefesto
+
+O que o plano do Hefesto pedia da Forja (13/10/2026) e agora mora aqui. Nada se executa antes da hora: a Y01 espera o
+aceite do André; a Y02 e a Y03 andam na janela da reescrita da história, nessa ordem.
+
+| ficha | título | tamanho | depende de | estado |
+| --- | --- | --- | --- | --- |
+| [Y01](Y01-o-jogo-como-banco-de-prova.md) | O Forja como banco de prova: a mão de fora e o registro que o banco lê | G | F01, F06, F08 | a fazer |
+| [Y02](Y02-a-historia-sem-rastro.md) | A história sem rastro: os ramos, a reescrita e o chamado | M | — (a janela do Hefesto) | a fazer |
+| [Y03](Y03-o-repositorio-nasce-vivo.md) | O repositório nasce vivo: a chamada do `aplicar.py` na Forja | P | Y02 | a fazer |
+
 ## A soma
 
 O gasto se mede por leva, não por ficha: a esteira o registra no ANDAMENTO de quem coordena a cada seção fechada
