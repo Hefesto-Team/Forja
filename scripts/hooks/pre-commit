@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+set -uo pipefail
+RAIZ="$(git rev-parse --show-toplevel)"
+bash "$RAIZ/scripts/portoes/rodar.sh" --so texto
+rc=$?
+[ "$rc" -eq 0 ] || echo "pre-commit: os portões do texto reprovaram (rc=$rc). O conserto: python3 scripts/tirar_os_comentarios.py --aplicar ARQ" >&2
+exit "$rc"

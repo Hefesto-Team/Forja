@@ -5,7 +5,7 @@ Os portões são as conferências que nenhuma pessoa precisa lembrar de fazer: r
 
 ```
 bash scripts/portoes/rodar.sh                 # todos
-bash scripts/portoes/rodar.sh --so base       # só a base (ou --so arte, --so som)
+bash scripts/portoes/rodar.sh --so base       # só a base (ou --so texto, --so arte, --so som)
 bash scripts/portoes/rodar.sh --desde main    # e os avisos dos arquivos mudados desde o main
 bash scripts/portoes/rodar.sh --tudo          # a saída inteira de cada portão na tela (o CI usa)
 bash scripts/ci-local.sh --portoes            # o mesmo, mais a prova dos portões
@@ -30,6 +30,8 @@ nem acento: `texto-de-tela.log`), para ler depois. Os avisos antigos da arte e d
 | **teste mudo** | reprova | o Godot aberto pelo `xvfb-run` (foto, prova visual, estudo) sem `--audio-driver Dummy` nem `--write-movie`: o som do teste sairia na TV | `teste_mudo.py` |
 | **caixa** | reprova | a chamada do Godot em `tests/` ou `scripts/` que abre cena ou jogo (`res://`, `.tscn`, `--simular`, `--robo`) fora do `caixa` de `tests/caixa.sh`: o jogo veria o DualSense ligado na máquina. O `--import`, o `--export-*` e o `-s <script>.gd` ficam de fora | `caixa.py` |
 | **ficha pronta** | reprova | ficha «pronta» no quadro sem uma das partes de `docs/jogo/o-time/ficha-pronta.md`, com parte vazia, ou com o «Ler antes» fora de um a três links que existem | `ficha_pronta.py` |
+| **código sem comentário** | reprova | o comentário em `.py`, `.sh`, `.gd`, `.c`, `.h`, `.cpp`, `.gdshader`, `.js`, `.html` (e no arquivo sem extensão que abre com `#!`), lido pelo analisador de cada linguagem; só a diretiva nua fica (`--diretivas`). Catraca: o número de cada arquivo só desce (`codigo_sem_comentario.json`) | `codigo_sem_comentario.py` |
+| **texto enxuto** | reprova | a docstring do Python acima de 10 linhas que cresceu (catraca em `texto_enxuto.json`). O `--mudados` mostra o comentário e a docstring longa dos arquivos mudados desde o `main` | `texto_enxuto.py` |
 | **arte** | aviso | cor escrita fora de `tema.gd` (`Color("#…")`, `Color8`, `Color(0.x, …)`, `Color.WHITE`), cor do tema que a bíblia não tem, fonte fora das quatro da bíblia (no código e na pasta), texto abaixo de 30 px, cor de jogador fora do jogador ou pedida por índice fixo | `arte.py` + `arte.json` |
 | **som** | aviso | id tocado que o mapa do áudio não tem (ou tem com outra caixa), id numa variável que não se lê, arquivo do mapa que não existe, WAV com duração fora da do mapa, pico acima do mapa ou do teto, clique no começo ou no fim | `som.py` + `som.json` |
 
@@ -56,3 +58,22 @@ Para ver a régua valendo sem virar: `python3 scripts/portoes/arte.py --modo rep
 
 `bash tests/prova_dos_portoes.sh` monta, numa pasta temporária, cada defeito que um portão pega e confere que ele
 reprova (e que o certo passa, e que o modo aviso não reprova). Portão novo entra com o caso dele nessa prova.
+
+## O texto: o código sem comentário (ADR-010)
+
+O porquê que vale guardar mora em [docs/o-porque-dos-modulos.md](../../docs/o-porque-dos-modulos.md); o resto o git
+guarda. O conserto é por script, e só grava o arquivo que prova não ter mudado o programa:
+
+```
+python3 scripts/tirar_os_comentarios.py                  # a conta por tipo
+python3 scripts/tirar_os_comentarios.py --aplicar ARQ    # tira e grava, com a prova de cada linguagem
+python3 scripts/portoes/codigo_sem_comentario.py --catraca --aceitar   # grava o piso que desceu
+```
+
+Um ramo antigo que volta com comentário passa pelo `--aplicar` antes da costura.
+
+## O pre-commit
+
+`bash scripts/hooks/ligar.sh` liga uma vez por clone (vale para toda worktree): o `.git/hooks/pre-commit` passa a
+chamar o `scripts/hooks/pre-commit` da árvore, que roda `rodar.sh --so texto` (meio segundo). `--conferir` diz se
+está ligado. Nunca `--no-verify`.

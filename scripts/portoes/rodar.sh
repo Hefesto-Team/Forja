@@ -23,6 +23,19 @@
 # arquivos mudados desde REF também aparecem (no mesmo corte). Com --tudo, a saída inteira vai para a tela,
 # como antes (o CI usa).
 set -uo pipefail
+uso() {
+  cat <<'EOF'
+Os portões por script, numa chamada só: o CI (job `portoes`) e o pre-commit chamam este.
+
+Uso: bash scripts/portoes/rodar.sh [--so base|texto|arte|som] [--raiz DIR] [--desde REF] [--tudo]
+  --so GRUPO   só um grupo: base, texto (código sem comentário e texto enxuto), arte ou som
+  --desde REF  mostra também os avisos dos arquivos mudados desde REF
+  --tudo       a saída inteira de cada portão na tela (o CI usa)
+
+Sai 0 quando nenhum portão em modo reprova achou nada, 1 quando algum achou, 2 quando um não conferiu.
+A saída inteira de cada portão fica em .cache/portoes/<nome>.log. O que cada um pega: scripts/portoes/LEIA-ME.md.
+EOF
+}
 AQUI="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 RAIZ="$(cd "$AQUI/../.." && pwd)"
 SO=""
@@ -34,7 +47,7 @@ while [ $# -gt 0 ]; do
     --raiz) shift; RAIZ="$(cd "${1:-.}" && pwd)" ;;
     --desde) shift; DESDE="${1:-}" ;;
     --tudo) TUDO=1 ;;
-    -h|--ajuda) awk 'NR > 1 && /^#/ {sub(/^# ?/, ""); print} /^set -uo/ {exit}' "${BASH_SOURCE[0]}"; exit 0 ;;
+    -h|--ajuda) uso; exit 0 ;;
     *) echo "portões: argumento desconhecido: $1" >&2; exit 2 ;;
   esac
   shift
@@ -80,6 +93,8 @@ roda base "mensagens de commit" python3 "$AQUI/mensagens_de_commit.py" --raiz "$
 roda base "ficha pronta" python3 "$AQUI/ficha_pronta.py" --raiz "$RAIZ"
 roda base "teste mudo" python3 "$AQUI/teste_mudo.py" --raiz "$RAIZ"
 roda base "caixa" python3 "$AQUI/caixa.py" --raiz "$RAIZ"
+roda texto "código sem comentário" python3 "$AQUI/codigo_sem_comentario.py" --raiz "$RAIZ" --catraca
+roda texto "texto enxuto" python3 "$AQUI/texto_enxuto.py" --raiz "$RAIZ" --catraca
 roda arte "arte" python3 "$AQUI/arte.py" --raiz "$RAIZ"
 roda som "som" python3 "$AQUI/som.py" --raiz "$RAIZ"
 

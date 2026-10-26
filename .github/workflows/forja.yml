@@ -107,7 +107,7 @@ jobs:
           if-no-files-found: error
 
   portoes:
-    name: Os portões — texto de tela, sem rastro, mensagens, ficha pronta; a arte e o som em aviso
+    name: Os portões — texto de tela, sem rastro, mensagens, ficha pronta, código sem comentário; a arte e o som em aviso
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
@@ -115,7 +115,7 @@ jobs:
           fetch-depth: 0 # o portão das mensagens confere os commits novos, e precisa do histórico
 
       # A BASE reprova desde já: o texto de tela, o sem rastro, as mensagens de commit sem símbolo e a ficha
-      # «pronta» com todas as partes. A ARTE e o SOM entram em AVISO (escrevem o achado e não reprovam) até a
+      # «pronta» com todas as partes. O TEXTO também: o comentário e a docstring longa só descem (ADR-010). A ARTE e o SOM entram em AVISO (escrevem o achado e não reprovam) até a
       # bíblia entrar no jogo. VIRAR PARA REPROVAR: em scripts/portoes/arte.json e scripts/portoes/som.json,
       # trocar "modo": "aviso" por "modo": "reprova" (a ficha V08). Este passo não muda.
       - name: Os portões

@@ -636,18 +636,21 @@ def ler_piso(raiz: Path) -> dict[str, int]:
     try:
         return dict(json.loads((raiz / CADERNO).read_text(encoding="utf-8"))["piso"])
     except (OSError, ValueError, KeyError) as erro:
-        raise SystemExit(f"codigo sem comentario: não li o piso em {CADERNO}: {erro}") from None
+        raise RuntimeError(f"não li o piso em {CADERNO}: {erro}") from None
 
 
 def catraca(raiz: Path, aceitar: bool) -> int:
     """O número de comentários de cada arquivo só desce; o arquivo fora do piso tem piso zero."""
     agora = por_arquivo(varrer(raiz))
-    piso = ler_piso(raiz)
+    primeiro = aceitar and not (raiz / CADERNO).exists()
+    piso = agora if primeiro else ler_piso(raiz)
     subiram = sorted((f, n, piso.get(f, 0)) for f, n in agora.items() if n > piso.get(f, 0))
-    total, total_piso = sum(agora.values()), sum(piso.values())
+    total, total_piso = sum(agora.values()), (0 if primeiro else sum(piso.values()))
     if subiram:
-        for f, n, p in subiram:
+        for f, n, p in subiram[:TETO_DA_SAIDA]:
             print(f"FAIL codigo sem comentario: {f}: {p} -> {n} comentário(s)")
+        if len(subiram) > TETO_DA_SAIDA:
+            print(f"(e mais {len(subiram) - TETO_DA_SAIDA})")
         print(f"codigo sem comentario: o volume subiu em {len(subiram)} arquivo(s). Rode "
               "`python3 scripts/tirar_os_comentarios.py --aplicar ARQ` (ADR-010)")
         return 1
@@ -677,6 +680,14 @@ def main(argv: list[str] | None = None) -> int:
         for d in DIRETIVAS:
             print(f"{d.nome}: {d.forma.pattern}  [{', '.join(d.tipos)}]  lida por {d.leitor}")
         return 0
+    try:
+        return _conferir(a, raiz)
+    except RuntimeError as erro:
+        print(f"ERRO codigo sem comentario: {erro}")
+        return 2
+
+
+def _conferir(a: argparse.Namespace, raiz: Path) -> int:
     if a.catraca:
         return catraca(raiz, a.aceitar)
     pedidos = None

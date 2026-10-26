@@ -386,12 +386,53 @@ espera 0 "caixa_fonte: num repositório, o módulo da fonte versionada passa" mo
 printf 'int novo(void) { return 1; }\n' > "$A/nativo/src/novo.c"
 espera 2 "caixa_fonte: o .c novo, ainda sem git add, também conta" monta "$A"
 
+sem_comentario_tree() {
+  mkdir -p "$1/scripts/portoes" "$1/godot" "$1/nativo"
+  cp "$P/codigo_sem_comentario.py" "$P/texto_enxuto.py" "$1/scripts/portoes/"
+  cp "$RAIZ/scripts/tirar_os_comentarios.py" "$1/scripts/"
+  printf 'extends Node\nvar a = "x # y"\n' > "$1/godot/limpo.gd"
+  printf '#!/usr/bin/env python3\nimport os  # noqa: E402\n' > "$1/limpo.py"
+  printf 'int x = 1;\nconst char *s = "a // b";\n' > "$1/nativo/limpo.c"
+  git -C "$1" init -q -b main; git -C "$1" config user.name prova; git -C "$1" config user.email prova@forja.invalid
+  git -C "$1" config commit.gpgsign false; git -C "$1" config core.hooksPath /dev/null
+  git -C "$1" add -A; git -C "$1" commit -q -m "a base"
+}
+csc() { python3 "$1/scripts/portoes/codigo_sem_comentario.py" --raiz "$1" "${@:2}"; }
+A="$(arvore sem-comentario)"; sem_comentario_tree "$A"
+espera 0 "código sem comentário: a string com # e //, e a diretiva nua, passam" csc "$A"
+printf 'extends Node\n# o porquê\nvar a = 1\n' > "$A/godot/ruim.gd"; git -C "$A" add godot/ruim.gd
+espera 1 "código sem comentário: reprova o # do GDScript" csc "$A"
+espera 0 "código sem comentário: a reprovação diz o arquivo e a linha" bash -c 'grep -q "godot/ruim.gd:2:" <(python3 "$1/scripts/portoes/codigo_sem_comentario.py" --raiz "$1")' _ "$A"
+git -C "$A" rm -q --cached godot/ruim.gd; rm "$A/godot/ruim.gd"
+printf '#!/usr/bin/env python3\nimport os  # noqa: E402 porque sim\n' > "$A/limpo.py"
+espera 1 "código sem comentário: a diretiva com explicação reprova" csc "$A"
+git -C "$A" checkout -q -- limpo.py
+printf 'int x = 1; /* o porquê */\n' > "$A/nativo/ruim.c"; git -C "$A" add nativo/ruim.c
+espera 1 "código sem comentário: reprova o /* */ do C" csc "$A"
+espera 2 "código sem comentário: --catraca sem o caderno dá 2" csc "$A" --catraca
+printf '{"piso": {"nativo/ruim.c": 1}}\n' > "$A/scripts/portoes/codigo_sem_comentario.json"
+espera 0 "código sem comentário: --catraca deixa o que já estava no piso" csc "$A" --catraca
+printf 'int x = 1; /* um */ /* dois */\n' > "$A/nativo/ruim.c"
+espera 1 "código sem comentário: --catraca reprova o arquivo que subiu" csc "$A" --catraca
+espera 0 "tirar os comentários: --aplicar tira o comentário, guarda o código, e o portão passa" \
+  bash -c 'python3 "$1/scripts/tirar_os_comentarios.py" --raiz "$1" --aplicar "$1/nativo/ruim.c" > /dev/null \
+    && [ "$(cat "$1/nativo/ruim.c")" = "int x = 1;" ] && python3 "$1/scripts/portoes/codigo_sem_comentario.py" --raiz "$1"' _ "$A"
+printf 'def f():\n    """%s"""\n' "$(printf 'linha\n%.0s' 1 2 3 4 5 6 7 8 9 10 11 12)" > "$A/longa.py"; git -C "$A" add longa.py
+printf '{"piso": {}}\n' > "$A/scripts/portoes/texto_enxuto.json"
+espera 1 "texto enxuto: --catraca reprova a docstring nova de mais de 10 linhas" \
+  python3 "$A/scripts/portoes/texto_enxuto.py" --raiz "$A" --catraca
+printf 'extends Node\n# o porquê\n' > "$A/godot/mudado.gd"
+espera 1 "texto enxuto: --aplicar aponta o comentário do arquivo dado" \
+  bash -c 'python3 "$1/scripts/portoes/texto_enxuto.py" --raiz "$1" --aplicar "$1/godot/mudado.gd" | grep -q "godot/mudado.gd:2 \[comentário\]" && exit 1' _ "$A"
+espera 1 "texto enxuto: --mudados acha o arquivo novo com comentário" \
+  python3 "$A/scripts/portoes/texto_enxuto.py" --raiz "$A" --mudados
+
 # --- a tela curta do rodar.sh (WT03): uma árvore com o rodar.sh de verdade e portões de mentira ---------------
 curto_tree() { # <pasta> <rc do portão barulhento>
   mkdir -p "$1/scripts/portoes" "$1/tests"
   cp "$P/rodar.sh" "$1/scripts/portoes/"
   local quieto='print("quieto: 0 achados")'
-  for g in mensagens_de_commit ficha_pronta teste_mudo caixa arte; do echo "$quieto" > "$1/scripts/portoes/$g.py"; done
+  for g in mensagens_de_commit ficha_pronta teste_mudo caixa arte codigo_sem_comentario texto_enxuto; do echo "$quieto" > "$1/scripts/portoes/$g.py"; done
   echo "$quieto" > "$1/scripts/check_texto_de_tela.py"
   printf '#!/usr/bin/env bash\necho "ok   sem rastro"\n' > "$1/tests/prova_sem_rastro.sh"
   printf 'import sys\nfor i in range(500):\n    print(f"AVISO som: docs/x{i}.md: um aviso velho")\nprint("FAIL som: docs/novo.md: o achado novo")\nprint("som: 501 achados")\nsys.exit(%s)\n' "$2" \

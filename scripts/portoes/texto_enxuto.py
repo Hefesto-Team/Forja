@@ -24,7 +24,7 @@ AQUI = Path(__file__).resolve().parent
 RAIZ = AQUI.parents[1]
 LIMITE = 10
 CADERNO = Path("scripts/portoes/texto_enxuto.json")
-REFS_DA_BASE = ("main", "origin/main")
+REFS_DA_BASE = ("origin/main", "main")
 TETO_DA_SAIDA = 40
 AJUDA = {
     "comentário": "o código não tem comentário (ADR-010): o porquê vai a docs/o-porque-dos-modulos.md, a diretiva "
@@ -56,7 +56,7 @@ class Achado:
     conserto: str
 
     def __str__(self) -> str:
-        return f"{self.arquivo}:{self.linha} [{self.regua}] {self.conserto}"
+        return f"{self.arquivo}:{self.linha} [{self.regua}]" + ("" if self.regua == "comentário" else f" {self.conserto}")
 
 
 def docstrings_longas(fonte: str) -> list[tuple[str, int, int]]:
@@ -108,7 +108,7 @@ def mudados(raiz: Path) -> list[str]:
         if base.returncode == 0 and base.stdout.strip():
             break
     else:
-        raise SemBase("sem base: nem `main` nem `origin/main` alcançável deste HEAD (no CI, `fetch-depth: 0`)")
+        raise SemBase("sem base: nem `origin/main` nem `main` alcançável deste HEAD (no CI, `fetch-depth: 0`)")
     feito = _git(raiz, "diff", "--name-only", "--diff-filter=ACMR", "-z", base.stdout.strip())
     novos = _git(raiz, "ls-files", "-z", "--others", "--exclude-standard")
     return sorted({r for r in (feito.stdout + novos.stdout).split("\0") if r})
@@ -150,6 +150,8 @@ def rodar(g: ModuleType, raiz: Path, arquivos: list[str], aplicar: bool) -> int:
         print(a)
     if len(achados) > TETO_DA_SAIDA:
         print(f"(e mais {len(achados) - TETO_DA_SAIDA})")
+    if any(a.regua == "comentário" for a in achados):
+        print(f"[comentário] {AJUDA['comentário']}")
     return 1
 
 
@@ -167,12 +169,13 @@ def volume(g: ModuleType, raiz: Path) -> dict[str, int]:
 def catraca(g: ModuleType, raiz: Path, aceitar: bool) -> int:
     agora = volume(g, raiz)
     try:
-        piso = dict(json.loads((raiz / CADERNO).read_text(encoding="utf-8"))["piso"])
+        primeiro = aceitar and not (raiz / CADERNO).exists()
+        piso = agora if primeiro else dict(json.loads((raiz / CADERNO).read_text(encoding="utf-8"))["piso"])
     except (OSError, ValueError, KeyError) as erro:
         raise SemBase(f"não li o piso em {CADERNO}: {erro}") from None
     subiram = sorted((f, n, piso.get(f, 0)) for f, n in agora.items() if n > piso.get(f, 0))
     total, total_piso = sum(agora.values()), sum(piso.values())
-    for f, n, p in subiram:
+    for f, n, p in subiram[:TETO_DA_SAIDA]:
         print(f"FAIL texto enxuto: {f}: {p} -> {n} linha(s) de docstring acima de {LIMITE} linhas")
     if subiram:
         print(f"texto enxuto: a docstring longa cresceu em {len(subiram)} arquivo(s): corte o que repete o código")

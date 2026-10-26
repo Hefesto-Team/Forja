@@ -1,0 +1,26 @@
+{
+ "piso": {
+  "godot/estudos/direcao/som/gerar_sons.py": 16,
+  "scripts/bancada_tui.py": 18,
+  "scripts/conferir_ost.py": 12,
+  "scripts/descrever_trilha.py": 21,
+  "scripts/esteira.py": 54,
+  "scripts/ficha_codigo.py": 29,
+  "scripts/gerar_trilha.py": 18,
+  "scripts/icone_do_exe.py": 11,
+  "scripts/importar_kenney.py": 14,
+  "scripts/kenney.py": 19,
+  "scripts/ler_antes.py": 18,
+  "scripts/mapa_de_batidas.py": 12,
+  "scripts/modelos_de_exportacao.py": 13,
+  "scripts/portoes/arte.py": 28,
+  "scripts/portoes/caixa.py": 16,
+  "scripts/portoes/comum.py": 13,
+  "scripts/portoes/ficha_pronta.py": 23,
+  "scripts/portoes/mensagens_de_commit.py": 15,
+  "scripts/portoes/som.py": 22,
+  "scripts/portoes/teste_mudo.py": 14,
+  "scripts/trilha_fichas.py": 14,
+  "scripts/trilha_tui.py": 21
+ }
+}
