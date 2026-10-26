@@ -288,6 +288,33 @@ espera 0 "costura --marcar: troca só a última coluna da linha da ficha" \
     && [ \"\$(diff '$TMP/quadro-antes.md' '$E/docs/jogo/tarefas/README.md' | grep -c '^[<>]')\" = 2 ] \
     && grep -qx '| \[F01\](F01.md) | .* | espera o André (a parte A) |' '$E/docs/jogo/tarefas/README.md'"
 
+AV="$TMP/apagar"
+git init -q -b main "$AV"
+for k in user.name=prova user.email=prova@forja.invalid commit.gpgsign=false core.hooksPath=/dev/null; do
+  git -C "$AV" config "${k%%=*}" "${k#*=}"
+done
+gv() { git -C "$AV" "$@" > /dev/null; }
+echo a > "$AV/a"; gv add a; gv commit -qm "a base"
+gv switch -qc voo/feito; echo b > "$AV/b"; gv add b; gv commit -qm "feat: um"
+gv switch -q main; gv cherry-pick voo/feito
+gv switch -qc voo/costurado; echo c > "$AV/c"; gv add c; gv commit -qm "feat: dois"
+gv switch -q main; echo outro > "$AV/c"; gv add c; gv commit -qm "feat: dois"
+gv switch -qc voo/aberto; echo d > "$AV/d"; gv add d; gv commit -qm "feat: tres"
+gv switch -q main; gv branch voo/sujo
+gv worktree add -q "$TMP/apagar-feito" voo/feito; gv worktree add -q "$TMP/apagar-sujo" voo/sujo
+echo rascunho > "$TMP/apagar-sujo/rascunho"
+apagar() { (cd "$AV" && bash "$RAIZ/scripts/apagar_voo.sh" --base main "$@"); }
+espera 1 "apagar_voo: sem --sim, diz o que sairia e o que fica, e sai 1 porque algo fica" apagar --velhos
+espera 0 "apagar_voo: sem --sim, nada sai" bash -c "git -C '$AV' rev-parse -q --verify voo/feito && [ -d '$TMP/apagar-feito' ]"
+espera 1 "apagar_voo: --velhos --sim apaga o que está na base e diz o que ficou" apagar --velhos --sim
+espera 0 "apagar_voo: o voo costurado sai, com a worktree, e deixa o bundle" \
+  bash -c "! git -C '$AV' rev-parse -q --verify voo/feito && [ ! -d '$TMP/apagar-feito' ] && ls '$AV'/.git/voo-apagados/voo_feito-*.bundle"
+espera 0 "apagar_voo: o voo costurado com outro hash (o mesmo assunto) também sai" \
+  bash -c "! git -C '$AV' rev-parse -q --verify voo/costurado"
+espera 0 "apagar_voo: o voo aberto e o voo com rascunho ficam" \
+  bash -c "git -C '$AV' rev-parse -q --verify voo/aberto && git -C '$AV' rev-parse -q --verify voo/sujo && [ -f '$TMP/apagar-sujo/rascunho' ]"
+espera 2 "apagar_voo: o ramo que não existe sai 2" apagar voo/nenhum
+
 echo
 if [ "$FALHAS" -eq 0 ]; then
   echo "prova da esteira ok — $CASOS casos: a esteira lê o quadro e segura o que deve, a costura para no conflito e no vermelho"

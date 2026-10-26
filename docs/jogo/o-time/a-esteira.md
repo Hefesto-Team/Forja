@@ -39,7 +39,8 @@ provas, parando no conflito e no primeiro vermelho). A prova dos dois é o `test
 3. Monta o conjunto da seção: uma worktree, as fichas na ordem, e confere que nenhum outro conjunto em voo mexe nos
    mesmos arquivos.
 4. Despacha: implementador, conferente, jogador.
-5. Quando volta: a costura por script, os portões, as provas, o quadro, o push com tudo verde.
+5. Quando volta: a costura por script, os portões, as provas, o quadro, o push com tudo verde, e o voo
+   apagado da máquina (`scripts/apagar_voo.sh`).
 6. Avisa no celular dela: a seção está pronta para jogar.
 7. Volta ao passo 1.
 
@@ -55,6 +56,10 @@ A costura, em detalhe (`bash scripts/costura.sh --ajuda` dá as opções e os c�
 - Com `--pesadas`, o `scripts/ci-local.sh --rapido` roda depois, pela fila da máquina (a variável `VEZ`): é ele que
   compila o módulo e roda a prova do jogo. Sem `--pesadas`, o verde é só dos portões e das provas de ferramenta.
   Antes de marcar **feito**, a costura roda com `--pesadas`.
+
+O voo que entrou no `main` sai da máquina: depois do push, `bash scripts/apagar_voo.sh voo/<conjunto> --sim` tira a
+worktree e o ramo local; `--velhos --sim` faz o mesmo com todo voo antigo. Só sai o voo com todo commit no
+`origin/main` e a worktree limpa; o ramo vai antes para um bundle em `.git/voo-apagados/`, e o do GitHub fica.
 
 ## Os limites
 
