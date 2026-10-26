@@ -306,7 +306,7 @@ O que muda do `impacto.gd` de hoje, na ordem do arquivo:
 
 | hoje | no Cerco |
 | --- | --- |
-| `class_name SalaImpacto`, `extends SalaJogo`, o cabeçalho | `extends Minigame`, sem `class_name`, o cabeçalho de «A ficha de dados» |
+| `class_name SalaImpacto`, `extends SalaJogo`, o cabeçalho | `extends Minigame`, sem `class_name`, sem cabeçalho de comentário (ADR-010) |
 | `const F`, `RAIAS`, `Z_JOGADOR`, `POR_LADO`, `ONDAS`, `JANELA`, `GOLPE_MS`, `DANO`, `VIDA_MIN` | saem |
 | `enum { PAUSA, GOLPE, VOANDO, PERGUNTA, RESPOSTA, ACABOU }` | `enum { JOGO, PERGUNTA, RESPOSTA }` em `estado_bancada` (só a bancada sai de `JOGO`) |
 | `plano`, `i_plano`, `fim_onda`, `onda`, `atual`, `resposta`, `respondido` | `_notas := [[], [], [], []]`, `_gerado := 1`, `_fora := [false, false, false, false]`, `_ultima := [{}, {}, {}, {}]`, `_ultima_b := [0, 0, 0, 0]`, `_meio := [-1.0, -1.0, -1.0, -1.0]`, `_lanternas := [[], [], [], []]`, `_cenario := {}` |

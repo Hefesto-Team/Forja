@@ -22,8 +22,8 @@ aparelho», a garantia mais forte: a voz do P1 sai no controle do P3.
 - `nativo/nucleo/achar_som.c:165-175`, `achar_casar`: «quantos com o mesmo nome vieram antes na lista do jogo», e o
   k-ésimo de mesmo nome na lista do sistema.
 - `nativo/som/som_controle.c:141-163`, `listar`, na ordem que `SDL_GetAudioPlaybackDevices` e
-  `SDL_GetAudioRecordingDevices` devolvem; `nativo/som/som_controle_windows.c:93-102` diz no comentário «as duas
-  listas andam na mesma ordem».
+  `SDL_GetAudioRecordingDevices` devolvem; `nativo/som/som_controle_windows.c:93-102` supõe que «as duas
+  listas andam na mesma ordem» (o contrato está no `docs/o-porque-dos-modulos.md`, seção `nativo/som`).
 - No SDL 3.4.14 (libsdl-org/SDL, zlib, `.cache/src/SDL3-3.4.14/src`):
   - `audio/SDL_audio.c:1492-1504`: a lista sai de `SDL_IterateHashTable` sobre `device_hash_physical`;
   - `audio/SDL_audio.c:942-947`: a chave é o id deslocado 2 bits; `:358-366`: o id é um contador que cresce a cada

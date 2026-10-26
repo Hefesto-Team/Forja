@@ -50,14 +50,14 @@ O fluxo de cada controle abre com um período curto, de 256 quadros (5,3 ms) ou,
 
 ## Passos
 
-1. No `abrir_audio`, `SDL_SetHint(SDL_HINT_AUDIO_DEVICE_SAMPLE_FRAMES, "256")`, com o comentário do porquê.
+1. No `abrir_audio`, `SDL_SetHint(SDL_HINT_AUDIO_DEVICE_SAMPLE_FRAMES, "256")`; o porquê vai ao [`docs/o-porque-dos-modulos.md`](../../o-porque-dos-modulos.md) (seção `nativo/som`), não a um comentário.
 2. Na abertura de cada saída (`:112`), ler `SDL_GetAudioDeviceFormat(SDL_GetAudioStreamDevice(s->fluxo), &spec,
    &quadros)` e escrever no registro «som: <saída> · período de N quadros». É a medida que a bancada e a prova leem.
 3. A prova, sem aparelho: a prova do jogo ganha um passo que roda com `SDL_AUDIO_DRIVER=dummy` no ambiente do módulo
    e aponta o alto-falante do lugar 0 para a saída do driver falso pelo caminho que a pessoa já usa
    (`Forja.som_trocar`, `godot/scripts/forja.gd:879`). O registro tem de dizer no máximo 480 quadros; hoje diz 1024.
 4. Na bancada com ela, ouvir e sentir: sem estalo no alto-falante e na háptica com quatro controles e a máquina
-   carregada. Com estalo, subir para 480 e registrar o porquê no comentário.
+   carregada. Com estalo, subir para 480 e registrar o porquê no `docs/o-porque-dos-modulos.md`.
 
 ## Armadilhas
 

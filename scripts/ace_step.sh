@@ -1,13 +1,4 @@
 #!/usr/bin/env bash
-# O ACE-Step 1.5, o motor da trilha (ficha H09; docs/DESENVOLVER.md "A trilha").
-#
-#   scripts/ace_step.sh instalar      baixa o projeto e as dependências em oficina/ace-step/
-#   scripts/ace_step.sh servir        sobe o servidor de API na porta 8001 (deixe rodando)
-#   scripts/ace_step.sh estado        diz o que já está instalado e se o servidor responde
-#   scripts/ace_step.sh desinstalar   apaga a pasta, o ambiente e os pesos baixados
-#
-# Nada aqui depende da máquina de alguém: tudo sai da raiz do repositório e do
-# $HOME. A pasta oficina/ está no .gitignore — nada disto entra no git.
 set -euo pipefail
 
 RAIZ="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -102,10 +93,23 @@ desinstalar() {
   echo "apagado. As faixas já escolhidas em godot/assets/ost/ ficaram onde estavam."
 }
 
+uso() {
+  cat <<'EOF'
+O ACE-Step 1.5, o motor da trilha (docs/DESENVOLVER.md, «A trilha»).
+
+  scripts/ace_step.sh instalar      baixa o projeto e as dependências em oficina/ace-step/
+  scripts/ace_step.sh servir        sobe o servidor de API na porta 8001 (deixe rodando)
+  scripts/ace_step.sh estado        diz o que já está instalado e se o servidor responde
+  scripts/ace_step.sh desinstalar   apaga a pasta, o ambiente e os pesos baixados
+
+Sem comando, ou com outro, mostra esta ajuda e sai 1.
+EOF
+}
+
 case "${1:-}" in
   instalar) instalar ;;
   servir) servir ;;
   estado) estado ;;
   desinstalar) desinstalar ;;
-  *) sed -n '2,10p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'; exit 1 ;;
+  *) uso; exit 1 ;;
 esac

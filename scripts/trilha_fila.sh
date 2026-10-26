@@ -1,22 +1,4 @@
 #!/usr/bin/env bash
-# A fila da trilha: gera as candidatas de cada faixa, uma faixa por vez, em
-# segundo plano, sem travar a máquina de quem está usando.
-#
-#   scripts/trilha_fila.sh ligar [SLOT...]   começa (sem SLOT: toda faixa MUS_ com menos de N candidatas)
-#   scripts/trilha_fila.sh estado            a faixa da vez, quantas faltam, a placa e o fim do registro
-#   scripts/trilha_fila.sh desligar          para a fila e devolve a placa
-#
-# O que segura a máquina:
-#   - roda como serviço do usuário (systemd-run), fora do terminal: fechar o
-#     terminal não para a fila, e a fila não leva o terminal junto;
-#   - teto de memória (TRILHA_RAM, padrão 6G) e prioridade baixa de CPU e disco;
-#     se a memória acabar, quem morre é a fila (OOMScoreAdjust alto), não a tela;
-#   - a placa: a faixa só começa com a placa quase vazia (TRILHA_PLACA_MIB usados
-#     por outros, padrão 2500) e sem jogo aberto; se um jogo abre ou a placa
-#     enche no meio, a fila mata o gerador, solta o modelo e espera. A faixa
-#     interrompida volta para a fila.
-#
-# A escolha da candidata é de quem escuta: scripts/gerar_trilha.py ouvir e escolher.
 set -uo pipefail
 
 RAIZ="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -137,6 +119,23 @@ rodar() {
   diz "fila terminou. Escute: python3 scripts/gerar_trilha.py ouvir"
 }
 
+uso() {
+  cat <<'EOF'
+A fila da trilha: as candidatas de cada faixa, uma faixa por vez, em segundo plano.
+
+  scripts/trilha_fila.sh ligar [SLOT...]   começa (sem SLOT: toda faixa MUS_ com menos de N candidatas)
+  scripts/trilha_fila.sh estado            a faixa da vez, quantas faltam, a placa e o fim do registro (o padrão)
+  scripts/trilha_fila.sh desligar          para a fila e devolve a placa
+
+  TRILHA_N=4             as candidatas de cada faixa
+  TRILHA_RAM=6G          o teto de memória da fila
+  TRILHA_PLACA_MIB=2500  a faixa só começa com no máximo isto da placa usado por outros
+
+A escolha da candidata é de quem escuta: scripts/gerar_trilha.py ouvir e escolher.
+Com outro comando, mostra esta ajuda e sai 1.
+EOF
+}
+
 case "${1:-estado}" in
   ligar)
     shift
@@ -166,5 +165,5 @@ case "${1:-estado}" in
     [[ -f "$REGISTRO" ]] && grep -E '^[0-9]{2}:' "$REGISTRO" | tail -5
     true
     ;;
-  *) sed -n '2,19p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'; exit 1 ;;
+  *) uso; exit 1 ;;
 esac

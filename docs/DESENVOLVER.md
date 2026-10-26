@@ -33,7 +33,11 @@ scripts/compilar.sh linux      # godot/bin/libforja.linux.x86_64.so
 scripts/compilar.sh windows    # godot/bin/libforja.windows.x86_64.dll (mingw-w64, sem DLL do mingw)
 scripts/compilar.sh testes     # as provas da lógica, sem SDL e sem Godot
 scripts/compilar.sh tudo       # os três
+scripts/compilar.sh deps       # só baixa e confere o SDL3 e o godot-cpp
 ```
+
+`GODOT_CPP_DIR` aponta uma árvore do godot-cpp que já existe (conferida pelo mesmo commit). Quem troca a versão do
+Godot por `FORJA_GODOT_VER` troca a soma junto, por `FORJA_GODOT_SHA512` (`scripts/engine.sh`).
 
 Rodando do código, os relatórios vão para `relatorios/`, na raiz.
 
@@ -99,6 +103,9 @@ Depois de `--`, na linha de comando (e em **Opções de inicialização**, na St
 ./forja.x86_64 -- --sala=galeria           # direto numa sala, com todo controle dentro
 ./forja.x86_64 -- --semente=42             # o mesmo sorteio, para comparar sessões
 ./forja.x86_64 -- --simular=4 --robo       # sem controle: quatro de mentira, e o robô joga
+./forja.x86_64 -- --simular --robo=ruim    # o robô que erra e demora (bom, medio, ruim)
+./forja.x86_64 -- --simular --defeitos=um-dedo,engasga   # defeitos de mentira nos simulados
+./forja.x86_64 -- --sem-modulo             # finge que o módulo não existe: só o teclado, sem saída a controle
 ./forja.x86_64 -- --experimento=quatro-mics  # a bancada do experimental/
 ./forja.x86_64 -- --relatorios=/uma/pasta
 ```
@@ -154,6 +161,24 @@ do alto-falante ao microfone, os quatro microfones, o eco, o gatilho pelo
 report cru e a háptica pelo nome. O que precisa de aparelho diz que não mediu,
 com o porquê; o que o simulador alcança, mede.
 
+### A caixa das provas
+
+Toda prova que abre o Godot passa pelo `tests/caixa.sh`: dentro do `bwrap`, o jogo não vê hidraw, input nem o
+alto-falante do controle ligado na máquina (o `--headless` cala a TV, não o módulo). O portão `caixa.py` reprova a
+chamada do Godot fora dela. Uma prova nova faz:
+
+```sh
+source "$RAIZ/tests/caixa.sh"
+caixa_pasta prova-nova; TMP="$CAIXA_PASTA"   # no vermelho, a pasta fica em .cache/provas/
+caixa_montar "$TMP"                          # sai 2 sem o bwrap, ou com o módulo de outra fonte
+timeout 600 caixa "$GODOT" ...               # o comando dentro da caixa
+caixa_julgar "$TMP/registro.log"             # 1 se houver ERROR: fora de tests/erros_esperados.txt
+```
+
+- `CAIXA_LIGAR="/dev/dri ..."`: os aparelhos que entram na caixa (a placa de vídeo, no `NA_TELA=1`).
+- `CAIXA_SEM_GUARDAR="wine ..."`: as subpastas pesadas que o vermelho não copia.
+- Sem o `bwrap`, só o CI roda direto (a variável `CI`); fora dele a prova não roda.
+
 
 ## A prova visual
 
@@ -191,6 +216,23 @@ bash tests/telas.sh comparar antes/ depois/ saida/   # a diferença de cada tela
 FORJA_IDIOMA=en bash tests/telas.sh fotos pasta/     # as mesmas telas em inglês
 scripts/trailer.sh                      # o trailer, gravado pelo Movie Maker do Godot (dist/trailer.avi)
 ```
+
+As fotos saem de `godot/testes/captura_jogo.tscn`: a cena principal com quatro DualSense simulados, passando pelas
+telas com os botões deles (o caminho inteiro do módulo roda, sem aparelho).
+
+```sh
+godot --fixed-fps 60 --path godot --resolution 1920x1080 res://testes/captura_jogo.tscn -- --simular=4 --robo --semente=7
+```
+
+- `--fixed-fps 60` é obrigatório: o roteiro espera pelo relógio do jogo, e sem ele as fotos saem nos momentos errados.
+- `SAIDA=<pasta>` diz onde gravar os PNG; `FOTOS=titulo,lobby,...` escolhe quais.
+- `ROTEIRO=salas` passa pelas salas que medem (aviso, jogo e veredito de cada uma, com o robô jogando);
+  `SALAS=impacto,galeria` escolhe quais. `SEM_TREMOR=1` desliga o tremor da câmera.
+- `ROTEIRO=bancada`, com `-- --experimento=ID`, fotografa a bancada do `experimental/`.
+- `ROTEIRO=partida` joga uma partida curta: a placa da bigorna, a escolha, o placar entre as salas e o pódio.
+- O diagnóstico e o livro só aparecem com `-- --bancada`.
+- `RAPIDO=1` roda numa janela pequena entre as fotos e volta ao tamanho cheio só para cada foto: num renderizador por
+  software, é o que cabe no tempo.
 
 O clarão d'A Voz tem medida própria (o estudo 02 pede menos de 20% da tela):
 as fotos `voz_antes_do_susto` e `voz_clarao` saem do roteiro das salas com o

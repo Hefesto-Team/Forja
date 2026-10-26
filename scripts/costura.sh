@@ -1,34 +1,25 @@
 #!/usr/bin/env bash
-# A costura: leva os commits de um ramo de conjunto para a árvore de integração e confere, parando no primeiro
-# vermelho. É o passo 5 de docs/jogo/o-time/a-esteira.md, por script.
-#
-#   1. A integração tem que estar limpa (nada fora de commit) e num ramo que não é o do conjunto.
-#   2. Só os commits que faltam: o `git cherry` (por patch-id) dá os «+», na ordem do ramo. Nunca o `rev-list`:
-#      o cherry-pick cria hash novo, e o commit já costurado não pode voltar duas vezes.
-#   3. Um cherry-pick só, com todos: no conflito, ele é ABORTADO (a integração volta ao topo de antes, limpa) e
-#      o script diz o commit e os arquivos. Quem coordena resolve à mão.
-#   4. Na integração, os portões (`scripts/portoes/rodar.sh`) e as provas rápidas, na ordem; o primeiro vermelho
-#      para tudo, diz qual foi e o topo de antes da costura (para desfazer: `git reset --keep <topo de antes>`).
-#   5. Com --pesadas, depois das rápidas, o `scripts/ci-local.sh --rapido` pelo semáforo da máquina (a variável
-#      VEZ, um comando que faz fila; sem ela, roda direto): é ele que compila o módulo e roda a prova do jogo.
-#      Sem --pesadas, o verde é só dos portões e das provas de ferramenta, e a última linha diz isso. Antes de
-#      marcar «feito» no quadro, a costura roda com --pesadas.
-#
-# As provas rápidas são as do repositório (a lista PROVAS abaixo); `--prova "<comando>"` (repetível) troca a lista
-# inteira pelo que for pedido. Toda prova roda na raiz da integração.
-#
-# Uso: bash scripts/costura.sh <ramo> [--integracao DIR] [--base REF] [--prova CMD]... [--pesadas] [--registro ARQ]
-#      bash scripts/costura.sh --marcar <ficha> <estado> [--integracao DIR]
-#   --marcar      só troca o estado da ficha no quadro da integração (a última coluna da linha), pelo
-#                 `scripts/esteira.py --marcar`; recusa o estado fora da lista de docs/jogo/o-time/a-esteira.md
-#                 («Os estados de uma ficha») e não costura nada
-#   --integracao  a árvore de integração (padrão: a árvore onde este script está)
-#   --base        o ponto de onde o ramo nasceu, para o `git cherry` (padrão: o merge-base)
-#   --registro    um arquivo .md onde a costura que deu verde ganha uma linha (hora, ramo, commits, topo)
-#
-# rc: 0 costurado e verde (ou nada faltava) · 1 uma prova ou um portão vermelho · 3 conflito (abortado)
-#     · 2 não começou (argumento, integração suja, ramo que não existe, prova que não existe).
 set -uo pipefail
+
+uso() {
+  cat <<'EOF'
+A costura: leva os commits de um ramo de conjunto para a integração e confere (docs/jogo/o-time/a-esteira.md).
+
+  bash scripts/costura.sh <ramo> [--integracao DIR] [--base REF] [--prova CMD]... [--pesadas] [--registro ARQ]
+  bash scripts/costura.sh --marcar <ficha> <estado> [--integracao DIR]
+
+  --integracao  a árvore de integração (padrão: a árvore onde este script está)
+  --base        o ponto de onde o ramo nasceu, para o git cherry (padrão: o merge-base)
+  --prova       troca a lista de provas rápidas por este comando (repetível)
+  --pesadas     depois das rápidas, o scripts/ci-local.sh --rapido pelo semáforo VEZ
+  --registro    um .md onde a costura verde ganha uma linha (hora, ramo, commits, topo)
+  --marcar      só troca o estado da ficha no quadro (scripts/esteira.py --marcar); não costura nada
+
+rc: 0 costurado e verde (ou nada faltava) · 1 uma prova ou um portão vermelho · 3 conflito (abortado)
+    · 2 não começou (argumento, integração suja, ramo que não existe, prova que não existe).
+EOF
+}
+
 AQUI="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 INT="$(cd "$AQUI/.." && pwd)"
 RAMO="" BASE="" REGISTRO="" PESADAS=0
@@ -49,7 +40,7 @@ while [ $# -gt 0 ]; do
     --registro) shift; REGISTRO="${1:-}" ;;
     --marcar) [ $# -ge 3 ] || { echo "uso: bash scripts/costura.sh --marcar <ficha> <estado>" >&2; exit 2; }
       MARCAR=("$2" "$3"); shift 2 ;;
-    -h|--ajuda) awk 'NR > 1 && /^#/ {sub(/^# ?/, ""); print} /^set -uo/ {exit}' "${BASH_SOURCE[0]}"; exit 0 ;;
+    -h|--ajuda) uso; exit 0 ;;
     -*) echo "costura: opção desconhecida: $1" >&2; exit 2 ;;
     *) [ -n "$RAMO" ] && { echo "costura: um ramo só (já veio $RAMO)" >&2; exit 2; }; RAMO="$1" ;;
   esac

@@ -245,7 +245,7 @@ Todo minigame aguenta, sem mudar a regra:
 
 - **1, 2, 3 e 4 jogadores.** Tudo passa por `jogadores` e `presentes()`;
   nada supõe quatro. O `2v2` com três ou menos usa `aprendizes[e]` (o kit
-  já montou as equipes pela regra de Q) e diz no cabeçalho o que muda (e a
+  já montou as equipes pela regra de Q) e a ficha dele diz o que muda (e a
   `com_poucos()` da `SalaJogo` diz em poucas palavras para o aviso).
 - **Um controle que cai no meio** (o cabo que sai; na prova,
   `Forja.ctl.simulador_cabo(sim, false)`): a nota de quem está sem controle

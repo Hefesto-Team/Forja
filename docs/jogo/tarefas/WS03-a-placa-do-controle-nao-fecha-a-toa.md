@@ -42,7 +42,7 @@ que manda o mixer à rampa, antes de a rampa tocar.
   - `godot/scripts/salas/sala_jogo.gd:114` e `:117` (entrar numa sala de som) e `:128` (sair dela);
   - `main.gd:474` (o pódio, só se a placa não está aberta) e as salas `bancada.gd:112/120` e `prova.gd:107`.
 - A troca de saída pela pessoa (`somc_trocar`, `som_controle.c:318-352`) já sabe religar só um lugar sem
-  fechar os outros: o comentário dela diz que as saídas sem uso fecham quando a sala sai.
+  fechar os outros, e as saídas sem uso fecham quando a sala sai.
 - A prova de hoje (`godot/testes/prova_do_jogo.gd:159-169`) faz cada simulado entrar com 20 quadros de distância e
   mede o pio de quem entrou: com essa folga, o corte nunca aparece.
 

@@ -43,7 +43,7 @@ de uma cópia.
 3. O Godot do gauntlet passa pela caixa da WE01.
 4. O job `gauntlet` no `forja.yml`: `needs: linux`, baixa o artefato da `.so`, o Godot pelo passo único da V01, e uma
    matriz de quatro pernas (a limpa com cinco defeitos e três pernas de cinco). Cada perna sobe o log de quem falhou.
-5. A linha `ROLA|gauntlet|completo` na `TABELA` do `ci-local`, com a medida do tempo de uma perna no comentário.
+5. A linha `ROLA|gauntlet|completo` na `TABELA` do `ci-local`; a medida do tempo de uma perna vai ao [`docs/o-porque-dos-modulos.md`](../../o-porque-dos-modulos.md) (seção do `ci-local.sh`).
 6. Trocar o «fica com o André» do CONTRIBUTING, do modelo de PR e do `COMO-CONTRIBUIR.md` por «o CI roda o
    gauntlet».
 

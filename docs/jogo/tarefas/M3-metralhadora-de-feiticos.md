@@ -151,8 +151,7 @@ Todo começo e todo fim julgados gravam
 
 ### A ficha de dados
 
-O cabeçalho do script `godot/scripts/minigames/s05/metralhadora_de_feiticos.gd` é um comentário `#` com estas
-linhas:
+A ficha do minigame, em linhas (fica aqui: o script não leva comentário, [ADR-010](../../adr/010-o-codigo-nao-tem-comentario.md); o porquê que custar caro redescobrir vai ao [`docs/o-porque-dos-modulos.md`](../../o-porque-dos-modulos.md), ou não vai):
 - **o jogo:** a frota pirata no céu, os quatro no chão. Cada batida tem um dono; na batida dele, aperte o R2 e
   segure até a batida seguinte, e a metralhadora treme no dedo (Vibration) em semicolcheias. Começo e fim no tempo
   tiram madeira da frota. No pico, a nau capitânia e o canhão;

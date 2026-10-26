@@ -1,19 +1,4 @@
 #!/usr/bin/env bash
-# O ambiente da Forja, numa máquina nova (Debian, Ubuntu ou Pop!_OS).
-#
-#   scripts/instalar.sh conferir   diz o que falta e não instala nada
-#   scripts/instalar.sh sistema    os pacotes de scripts/requisitos-sistema.txt (pede senha)
-#   scripts/instalar.sh modulo     compila o módulo nativo e baixa a engine
-#   scripts/instalar.sh trilha     o gerador de música (placa de vídeo; uns 20 GB)
-#   scripts/instalar.sh tudo       os três, nesta ordem
-#   scripts/instalar.sh desinstalar  tira o que a Forja trouxe (pede senha)
-#
-# Nada aqui conhece a máquina de ninguém: tudo sai da raiz do repositório e do
-# $HOME de quem roda. A senha, quando é pedida, é a do próprio sudo e não fica
-# gravada em lugar nenhum.
-#
-# Quem só quer jogar e mexer no jogo precisa de «sistema» e «modulo». A
-# «trilha» só interessa a quem vai gerar música, e pede placa de vídeo.
 set -uo pipefail
 
 RAIZ="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -179,6 +164,22 @@ desinstalar() {
   sudo apt-get remove -y $(echo "$meus" | tr '\n' ' ') && rm -f "$REGISTRO"
 }
 
+uso() {
+  cat <<'EOF'
+O ambiente da Forja, numa máquina nova (Debian, Ubuntu ou Pop!_OS).
+
+  scripts/instalar.sh conferir     diz o que falta e não instala nada (o padrão)
+  scripts/instalar.sh sistema      os pacotes de scripts/requisitos-sistema.txt (pede senha)
+  scripts/instalar.sh modulo       compila o módulo nativo e baixa a engine
+  scripts/instalar.sh trilha       o gerador de música (placa de vídeo; uns 20 GB)
+  scripts/instalar.sh tudo         os três, nesta ordem
+  scripts/instalar.sh desinstalar  tira o que a Forja trouxe (pede senha)
+
+Quem só quer jogar e mexer no jogo precisa de «sistema» e «modulo».
+Com outro comando, mostra esta ajuda e sai 1.
+EOF
+}
+
 case "${1:-conferir}" in
   conferir) conferir ;;
   sistema)  sistema ;;
@@ -186,5 +187,5 @@ case "${1:-conferir}" in
   trilha)   trilha ;;
   tudo)     sistema && modulo && trilha && conferir ;;
   desinstalar) desinstalar ;;
-  *) sed -n '2,16p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'; exit 1 ;;
+  *) uso; exit 1 ;;
 esac

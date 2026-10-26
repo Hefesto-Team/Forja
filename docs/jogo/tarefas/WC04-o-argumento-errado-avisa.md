@@ -56,8 +56,8 @@ saem. O `_entrar_na_sala` com id desconhecido faz `push_error` em vez de voltar 
 1. Conferir os argumentos no começo do `_abrir_pelos_args`, antes do `_todos_entram()`: a sala pelo
    `Catalogo.existe`, a partida pelo `Partida.TAMANHOS`.
 2. Recusa: `push_error("--sala=%s: não há sala com esse id (ids: ...)" % ...)` e `get_tree().quit(2)`.
-3. Tirar o `--tela=` (o `match` inteiro e a condição dele em `:165`) e o `giro`. O comentário de `:148-151` perde o
-   `--tela=`.
+3. Tirar o `--tela=` (o `match` inteiro e a condição dele em `:165`) e o `giro`. O comentário de `:148-151` sai com o ADR-010; nada a
+   escrever nele.
 4. `_entrar_na_sala` com id desconhecido: `push_error` com o id.
 5. Duas rodadas curtas em `tests/prova_do_jogo.sh`: `--sala=nao-existe` e `--partida=4`, cada uma saindo com 2 e
    com o valor no log.

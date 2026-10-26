@@ -43,6 +43,19 @@ provas, parando no conflito e no primeiro vermelho). A prova dos dois é o `test
 6. Avisa no celular dela: a seção está pronta para jogar.
 7. Volta ao passo 1.
 
+A costura, em detalhe (`bash scripts/costura.sh --ajuda` dá as opções e os códigos de saída):
+
+- A integração tem que estar limpa e num ramo que não é o do conjunto.
+- Só os commits que faltam: o `git cherry` (por patch-id), na ordem do ramo. Nunca o `rev-list`: o cherry-pick cria
+  hash novo, e o commit já costurado voltaria duas vezes.
+- Um cherry-pick só, com todos. No conflito ele é abortado (a integração volta limpa ao topo de antes) e o script diz
+  o commit e os arquivos; quem coordena resolve à mão.
+- Depois, os portões e as provas rápidas, na ordem. O primeiro vermelho para tudo e diz o topo de antes da costura,
+  para desfazer com `git reset --keep <topo>`.
+- Com `--pesadas`, o `scripts/ci-local.sh --rapido` roda depois, pela fila da máquina (a variável `VEZ`): é ele que
+  compila o módulo e roda a prova do jogo. Sem `--pesadas`, o verde é só dos portões e das provas de ferramenta.
+  Antes de marcar **feito**, a costura roda com `--pesadas`.
+
 ## Os limites
 
 - **Conjuntos juntos:** até quatro, com arquivos disjuntos. O semáforo da máquina

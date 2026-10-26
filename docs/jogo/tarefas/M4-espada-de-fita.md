@@ -144,7 +144,7 @@ Toda puxada e toda soltura julgadas gravam
 
 ### A ficha de dados
 
-O cabeçalho do script `godot/scripts/minigames/s05/espada_de_fita.gd` é um comentário `#` com estas linhas:
+A ficha do minigame, em linhas (fica aqui: o script não leva comentário, [ADR-010](../../adr/010-o-codigo-nao-tem-comentario.md); o porquê que custar caro redescobrir vai ao [`docs/o-porque-dos-modulos.md`](../../o-porque-dos-modulos.md), ou não vai):
 - **o jogo:** duas duplas frente a frente, cada um com uma espada de fita. A cada compasso, todos puxam o R2 no
   tempo 1; o peso sobe um degrau por batida (Feedback 2, 4, 6) e a fita zune no topo (Vibration). Soltem no
   tempo 4. A dupla que puxou e soltou mais no tempo corta a outra;

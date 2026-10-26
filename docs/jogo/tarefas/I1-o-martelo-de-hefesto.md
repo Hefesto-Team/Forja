@@ -306,8 +306,8 @@ sozinho: o gatilho desce ao repouso e o analógico ao centro.)
 ### O código
 
 O arquivo `godot/scripts/minigames/s01/martelo_de_hefesto.gd`, inteiro, na
-ordem: o cabeçalho, as constantes, a FICHA (acima), o estado, os ganchos, o
-que se vê, o robô (acima).
+ordem: as constantes, a FICHA (acima), o estado, os ganchos, o que se vê, o
+robô (acima). Os comentários do bloco saem pelo removedor ao gravar (ADR-010).
 
 ```gdscript arquivo=godot/scripts/minigames/s01/martelo_de_hefesto.gd
 extends Minigame
@@ -1519,7 +1519,7 @@ quatro, a racha pode não chegar a 3.)
 `./run-local.sh -- --sala=centelha` com quatro controles: a runa acende no
 tempo de cada um, a bigorna soa a nota de cada um, o R2 pesa no meio do fole,
 o pico no meio se sente, e as espadas aparecem na estante. As três perguntas
-da régua, respondidas no cabeçalho, conferidas jogando.
+da régua, respondidas nesta ficha, conferidas jogando.
 
 - na contagem, os quatro martelos batem no ar em ordem, P1, P2, P3, P4, e o
   pulso chega ao controle de cada um na sua colcheia;

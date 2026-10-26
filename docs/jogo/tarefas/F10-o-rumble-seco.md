@@ -74,8 +74,8 @@ sente o seco mais forte **e** prefere o seco para "golpe" e "explosão".
    > pacote volta sem os dois bits, e a háptica por áudio volta a viver.
    > Medido em `experimental/RESULTADOS.md` (data).
 
-2. `include/forja_dualsense.h`: o comentário da linha 126 passa a citar a
-   emenda; `FORJA_BITS1_PROIBIDOS` continua proibindo os dois bits **na
+2. `include/forja_dualsense.h`: a emenda vai ao `docs/o-porque-dos-modulos.md`
+   (seção `include/`), não a um comentário; `FORJA_BITS1_PROIBIDOS` continua proibindo os dois bits **na
    sombra**; uma função nova é o único caminho:
 
    ```c

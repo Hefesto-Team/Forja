@@ -71,3 +71,15 @@ motivo no «O que foi feito».
 - `bash scripts/portoes/rodar.sh` e `bash tests/prova_dos_portoes.sh` verdes.
 - A mordida: um comentário devolvido a um `.gd` e o portão reprova pelo nome; tirado, passa.
 - As provas do jogo, do som e da bancada verdes depois da remoção.
+
+## Estado (26/10/2026, worktree `forja-voo/sem-comentario`, ramo `voo/sem-comentario`)
+
+Feito: o portão, o removedor, as catracas (5824 comentários, 421 linhas de docstring), o pre-commit
+(`scripts/hooks/ligar.sh`, ligado na mesa), 102 casos na prova dos portões, a mordida do pre-commit. A proposta do
+gancho do editor está em `~/.local/state/hefesto-travas/proposta` (14 baterias verdes), à espera do «sim» dela.
+
+Falta, nesta ordem:
+1. Conferir o `docs/o-porque-dos-modulos.md` e as ajudas dos scripts de shell (o agente da triagem).
+2. `tirar_os_comentarios.py --aplicar`, recalcular os mapas das citações e reapontar `caminho:linha` nos versionados.
+3. `codigo_sem_comentario.py --catraca --aceitar`; a bateria inteira; devolver os `.import` que a Godot regrava.
+4. `docs/COMO-CONTRIBUIR.md` com as regras; o estado no quadro; integrar em `integra/forja`.

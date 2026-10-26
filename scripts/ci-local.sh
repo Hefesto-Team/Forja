@@ -1,36 +1,27 @@
 #!/usr/bin/env bash
-# ci-local.sh — o CI do GitHub da FORJA, rodado em casa pelo PRÓPRIO YAML (`.github/workflows/forja.yml`).
-#
-# O `act` (nektos/act) lê o workflow e roda cada job num container do runner. Aqui NÃO há uma função por
-# job: o que o YAML manda, roda; o que o YAML muda, muda aqui junto. O que esta casa decide mora na tabela
-# `TABELA`, logo abaixo: TODO job do workflow aparece nela, ou como `ROLA` (roda no `act`) ou como
-# `FORA-DE-CASA|job|motivo` (o motivo é medida, não suposição); job novo sem linha, ou linha de job que o
-# YAML não tem, reprova (rc=2) antes de rodar qualquer coisa.
-#
-# É o mesmo motor do `scripts/ci-local.sh` do Hefesto (cópia de 06/10/2026: os dois repositórios são
-# separados, e cada um carrega o seu); o que difere é só a tabela e a imagem (aqui a `catthehacker/ubuntu:act-24.04`
-# pura, sem o Dockerfile do Hefesto).
-#
-# USO:
-#     bash scripts/ci-local.sh --rapido          # o que roda em minutos
-#     bash scripts/ci-local.sh --completo        # tudo o que roda em casa
-#     bash scripts/ci-local.sh --job NOME[,NOME] # só estes, para triar (o `PULA-NO-RAPIDO` não vale)
-#     bash scripts/ci-local.sh --listar          # o que roda, o que fica fora e por quê
-#     bash scripts/ci-local.sh --conferir        # diz o que rodaria e sai 1 se rodaria alguma coisa
-#     bash scripts/ci-local.sh --portoes         # os portões, a prova deles e a da esteira direto na árvore, sem act nem docker
-#   para triar, com --job:  --sem-passo 'job|nome do passo' (repetível) tira um passo da cópia do YAML
-#
-# O QUE RODA: a ÁRVORE DO ÍNDICE (`git checkout-index`, só arquivo versionado), exportada para uma pasta de
-# /tmp: é o que o runner do GitHub vê depois do `actions/checkout`. O log de cada job vai para
-# `$CASA/ci-local/<data>/<job>.log`; o resumo é UMA linha (a última). NÃO RODADO NÃO É VERDE: job que devia
-# rodar e não rodou (sem o `act`, sem o docker, sem a imagem, ou a REDE caída no meio) sai rc=2.
-#
-# O `act` vem de `$CASA/bin/act` (baixado da release oficial, com o sha256 conferido) ou do PATH; sem ele o script
-# diz «não há act» e sai 2, nunca verde. O servidor de artefato e o de cache dele ficam em 127.0.0.1.
-#
-# rc: 0 tudo verde · 1 algum vermelho (ou, no --conferir, algo a rodar) · 2 não rodou
-# (sem act, sem docker, rede, tabela fora do YAML, argumento ruim).
 set -uo pipefail
+
+uso() {
+  cat <<'EOF'
+ci-local.sh: o CI do GitHub da Forja, rodado em casa pelo próprio YAML (.github/workflows/), no act.
+
+  bash scripts/ci-local.sh --rapido           o que roda em minutos
+  bash scripts/ci-local.sh --completo         tudo o que roda em casa
+  bash scripts/ci-local.sh --job NOME[,NOME]  só estes, para triar (o PULA-NO-RAPIDO não vale)
+  bash scripts/ci-local.sh --listar           o que roda, o que fica fora e por quê
+  bash scripts/ci-local.sh --conferir         diz o que rodaria e sai 1 se rodaria alguma coisa
+  bash scripts/ci-local.sh --portoes          os portões, a prova deles e a da esteira, na árvore, sem act nem docker
+
+  com --job:  --sem-passo 'job|nome do passo'  tira um passo da cópia do YAML (repetível)
+              --perna RÓTULO                    só esta perna da matriz de runners
+
+O log de cada job vai para $HEFESTO_CASA/ci-local/<data>/<job>.log (padrão: ~/.local/state/hefesto-casa);
+o resumo é a última linha.
+
+rc: 0 tudo verde · 1 algum vermelho (ou, no --conferir, algo a rodar) · 2 não rodou
+    (sem act, sem docker, rede, tabela fora do YAML, argumento ruim).
+EOF
+}
 
 # --- a tabela ---------------------------------------------------------------------
 #   ROLA|job|rapido|imagem        roda no act. `rapido` entra no --rapido e no --completo, `completo` só no --completo
@@ -91,7 +82,7 @@ while [ $# -gt 0 ]; do
     --listar) listar=1 ;;
     --conferir) conferir=1 ;;
     --portoes) modo=portoes ;;
-    -h|--ajuda) awk 'NR > 1 && /^#/ {sub(/^# ?/, ""); print} /^set -uo/ {exit}' "${BASH_SOURCE[0]}"; exit 0 ;;
+    -h|--ajuda) uso; exit 0 ;;
     *) echo "ci-local: argumento desconhecido: $1" >&2; exit 2 ;;
   esac
   shift

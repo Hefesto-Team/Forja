@@ -47,8 +47,8 @@ tela em inglês, e passa verde. E a tabela é um arquivo só que 31 fichas edita
 
 ## Passos
 
-1. Dividir `const EN` pelos comentários de área que já existem nele (`# o título, os créditos, o lobby` e os
-   seguintes), sem mudar uma frase.
+1. Dividir `const EN` pelas áreas, na ordem das chaves (o título, os créditos, o lobby e as seguintes; os comentários
+   de área que as marcavam saem com o ADR-010), sem mudar uma frase.
 2. `Traducoes` junta as tabelas na primeira chamada de `traduzir`.
 3. Dar entrada em inglês às onze frases medidas e subir a primeira letra das três com minúscula.
 4. O portão ganha a varredura das chamadas de desenho e a lista de exceções.

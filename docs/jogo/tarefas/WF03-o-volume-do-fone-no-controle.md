@@ -68,7 +68,7 @@ fixo. Nenhuma tela muda.
   `ForjaDs5Effect`); a prova lê pelo campo, não por um índice solto, para não errar por um.
 - **O volume da Sony vai de 0 a 0x7F** no fone; o `0x50` é o de referência da pesquisa. Ouvir com ela antes de
   fechar: se ficar alto, baixar e registrar o porquê.
-- **O núcleo do Linux** também escreve volume e pré-amp quando o fone sai (`forja_som.cpp:95-102`, o comentário):
+- **O núcleo do Linux** também escreve volume e pré-amp quando o fone sai (`forja_som.cpp:95-102`):
   esta ficha não muda o caminho do alto-falante.
 
 ## Não fazer

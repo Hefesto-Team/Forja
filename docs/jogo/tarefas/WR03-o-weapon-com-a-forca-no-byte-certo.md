@@ -37,8 +37,8 @@ O byte 3 fica sempre em `00`; a força vai parar no byte 5.
 
 As duas referências põem força − 1 direto no byte 3, um campo só, e zeram o resto:
 
-- o gerador de efeitos de John «Nielk1» Klein (gist `6d54cc2c00d2201ccb8c2720ad7538db`, MIT, a mesma fonte que o
-  comentário de `src/forja_dualsense.c:3` cita): Weapon(3,6,8) = `25 48 00 07 00 00 00 00 00 00 00`;
+- o gerador de efeitos de John «Nielk1» Klein (gist `6d54cc2c00d2201ccb8c2720ad7538db`, MIT, a mesma fonte do
+  empacotamento de `src/forja_dualsense.c`): Weapon(3,6,8) = `25 48 00 07 00 00 00 00 00 00 00`;
 - boykopovar/AnyPS5 (GPL-2.0, só leitura), `core/libs/prx/libScePad/src/PadState.cpp:207-215`: as zonas nos bytes
   1-2 e `effect[3] = força − 1`.
 

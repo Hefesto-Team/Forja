@@ -13,7 +13,7 @@ sorteio da semente, que existe para o empate de verdade, nunca chega a decidir.
 
 ## Ler antes
 
-- `godot/scripts/partida.gd` (o comentário do topo diz a regra do desempate)
+- `godot/scripts/partida.gd` (a regra do desempate está em [SALAS.md](../../SALAS.md#a-partida--o-placar-e-o-pódio))
 - [X02 — O pacote do placar](X02-o-pacote-do-placar.md) (o que vem depois desta)
 
 ## O estado de hoje (medido em 09/10/2026)

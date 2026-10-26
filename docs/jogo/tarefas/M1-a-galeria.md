@@ -140,7 +140,7 @@ O carretel do HUD nas últimas 16 batidas é do kit.
 
 ### A ficha de dados
 
-O cabeçalho do script `godot/scripts/minigames/s05/a_galeria.gd` é um comentário `#` com estas linhas:
+A ficha do minigame, em linhas (fica aqui: o script não leva comentário, [ADR-010](../../adr/010-o-codigo-nao-tem-comentario.md); o porquê que custar caro redescobrir vai ao [`docs/o-porque-dos-modulos.md`](../../o-porque-dos-modulos.md), ou não vai):
 - **o jogo:** na batida do dono, um alvo sobe numa das três colunas do muro dele, uma batida antes. Mire com o
   analógico esquerdo e atire com R2 na batida; a pistola (Weapon) só dispara quando o dedo passa do clique. São
   seis balas no tambor; vazio, o R2 fica solto e a próxima nota dele é a recarga (□ no tempo). Nas últimas 16
@@ -602,7 +602,7 @@ trouxer `tremer(forca)`, o `impacto` passa a chamá-la, e as fichas não mudam.
 
 ### O cenário comum (`godot/scripts/minigames/s05/cenario_da_galeria.gd`)
 
-O cabeçalho é um comentário `#`: «O cenário comum d'A Galeria (S5): o estande, a luz ameixa, a faixa de cada
+O que o arquivo é (sem cabeçalho de comentário no script, ADR-010): «O cenário comum d'A Galeria (S5): o estande, a luz ameixa, a faixa de cada
 raia, o alvo, as armas, o muro, o curso do R2, o momento, a reta, o aviso, os ganchos do cavaleiro e o impacto.
 As cinco fichas M usam isto.»
 

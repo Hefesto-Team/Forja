@@ -71,8 +71,8 @@ as prensas) e usa do kit a raia (`raia(l)`, `acender_raia(l, forca)`,
 
 Cinco verbos com a mesma feature: defender, revezar, passar, atacar e
 esquivar. A régua de cada um (as três perguntas de
-[10](../10-a-regua-astro-bot.md#a-pergunta-de-aprovação)) está no cabeçalho
-do script dele.
+[10](../10-a-regua-astro-bot.md#a-pergunta-de-aprovação)) está na ficha
+dele (L1 a L5).
 
 ## O que o registro mede
 

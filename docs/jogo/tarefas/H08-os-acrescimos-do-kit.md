@@ -949,7 +949,7 @@ static func titulo(slot: String) -> String:
 
 ### `godot/scripts/partida.gd`
 
-- `NA_ORDEM` (`:22-25`), e o comentário acima dele:
+- `NA_ORDEM` (`:22-25`) (o comentário do bloco sai pelo removedor, ADR-010):
 
   ```gdscript
   ## As partidas na ordem, por seção (o apelido). A de cinco tem O Canto (o
@@ -962,8 +962,8 @@ static func titulo(slot: String) -> String:
   ```
 
 - as variáveis: `var secoes: Array = []  ## os apelidos das seções, na ordem (o roteiro)`
-  e o comentário de `salas` vira
-  `## o que se abre, na ordem: o slot sorteado de cada seção (o apelido, se a seção ainda não tem minigame)`;
+  e `salas` passa a guardar o que se abre, na ordem: o slot sorteado de cada seção (o apelido, se a seção ainda
+  não tem minigame), sem comentário (ADR-010);
 - `nova()` inteira:
 
   ```gdscript

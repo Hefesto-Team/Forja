@@ -443,7 +443,7 @@ O que muda do `voz.gd` de hoje, na ordem do arquivo:
 
 | hoje | na Voz nova |
 | --- | --- |
-| `class_name SalaVoz`, `extends SalaJogo`, o cabeçalho | `extends Minigame`, sem `class_name`, o cabeçalho de «A ficha de dados» |
+| `class_name SalaVoz`, `extends SalaJogo`, o cabeçalho | `extends Minigame`, sem `class_name`, sem cabeçalho de comentário (ADR-010) |
 | as constantes e os `enum` das linhas 21 a 41 | as de «A ficha de dados» |
 | `estado`, `t_estado`, `vez`, `ordem`, `i_vez`, `olhos`, `grito`, `flash`, `g` | as variáveis do esqueleto abaixo |
 | `_init()` | sai (a FICHA; a câmera vai para o `montar`) |

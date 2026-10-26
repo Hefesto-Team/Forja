@@ -46,6 +46,16 @@ Cada uma nasceu de um defeito real.
   provar: [docs/DESENVOLVER.md](DESENVOLVER.md).
 - As regras de execução: [jogo/o-time/regras.md](jogo/o-time/regras.md).
 
+## Como escrever
+
+- **O código não tem comentário**, só a diretiva nua que uma ferramenta lê (`#!`, `noqa`, `shellcheck`…)
+  ([ADR-010](adr/010-o-codigo-nao-tem-comentario.md)). O porquê caro de redescobrir vai a
+  [o-porque-dos-modulos.md](o-porque-dos-modulos.md). Comentário que entrou sai com
+  `python3 scripts/tirar_os_comentarios.py --aplicar ARQ`.
+- **Fato errado se substitui em todos os lugares**, e não se guarda ao lado do certo.
+- **Texto curto**, também na mensagem de commit.
+- O pre-commit que confere isto liga com `bash scripts/hooks/ligar.sh`.
+
 ## Os comandos
 
 - **Jogar do código:** `./run-local.sh`; os argumentos do jogo vêm depois de
@@ -64,5 +74,5 @@ Cada uma nasceu de um defeito real.
   `PASSADAS=fixa` na sessão; na máquina com placa de vídeo, `NA_TELA=1` (a
   janela abre na tela) e as duas passadas.
   Ficha de tela, arte, câmera, HUD ou minigame só fecha com a prancha olhada.
-- **As fotos das telas** (de divulgação): `godot/testes/captura_jogo.gd` (o cabeçalho diz como),
-  sempre com `--fixed-fps 60`.
+- **As fotos das telas** (de divulgação): `godot/testes/captura_jogo.gd`, sempre com `--fixed-fps 60`; o
+  roteiro e as variáveis estão em [DESENVOLVER.md](DESENVOLVER.md#as-fotos-e-o-trailer).

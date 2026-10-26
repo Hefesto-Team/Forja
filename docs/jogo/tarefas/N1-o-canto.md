@@ -349,7 +349,7 @@ O que muda do `canto.gd` de hoje, na ordem do arquivo:
 
 | hoje | n'O Canto |
 | --- | --- |
-| `class_name SalaCanto`, `extends SalaJogo`, o cabeçalho | `extends Minigame`, sem `class_name`, o cabeçalho de «A ficha de dados» |
+| `class_name SalaCanto`, `extends SalaJogo`, o cabeçalho | `extends Minigame`, sem `class_name`, sem cabeçalho de comentário (ADR-010) |
 | `const F`, `RAIAS`, `Z_JOGADOR`, `REPETE_MAX`, `FOLGA_RITMO`, `SINO_TV`, `PERFIL` | saem (os dois últimos vão para `CenarioDoCanto`) |
 | `enum { PREPARO, CANTO, PERGUNTA, REVELA, REPETE, ACABOU }` | `enum { JOGO, CANTO, PERGUNTA, REVELA }` em `estado_bancada` (só a bancada sai de `JOGO`) |
 | `estado`, `t_estado`, `relogio`, `plano`, `rodada`, `fonte`, `ritmo`, `notas_tocadas` | ficam, só para a bancada |

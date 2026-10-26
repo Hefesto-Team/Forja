@@ -1,14 +1,4 @@
 #!/usr/bin/env bash
-# O ambiente da trilha: tudo o que a geração da OST precisa, numa pasta só.
-#
-#   scripts/trilha_ambiente.sh instalar      o ACE-Step, o Ollama e a tela do terminal
-#   scripts/trilha_ambiente.sh estado        o que está instalado, e a memória da placa agora
-#   scripts/trilha_ambiente.sh soltar        descarrega os modelos e devolve a memória da placa
-#   scripts/trilha_ambiente.sh desinstalar   apaga tudo o que o instalar trouxe
-#
-# Nada pede senha: o Ollama entra como um arquivo em oficina/ollama/, não como
-# serviço do sistema. Nada depende da máquina de alguém: tudo sai da raiz do
-# repositório. A pasta oficina/ está no .gitignore.
 set -euo pipefail
 
 RAIZ="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -135,6 +125,21 @@ desinstalar() {
   bash "$RAIZ/scripts/ace_step.sh" desinstalar
 }
 
+uso() {
+  cat <<'EOF'
+O ambiente da trilha: tudo o que a geração da OST precisa, em oficina/.
+
+  scripts/trilha_ambiente.sh instalar      o ACE-Step, o Ollama e a tela do terminal
+  scripts/trilha_ambiente.sh modelo        o modelo de texto do Ollama
+  scripts/trilha_ambiente.sh tela          a bancada da trilha
+  scripts/trilha_ambiente.sh estado        o que está instalado, e a memória da placa agora
+  scripts/trilha_ambiente.sh soltar        descarrega os modelos e devolve a memória da placa
+  scripts/trilha_ambiente.sh desinstalar   apaga tudo o que o instalar trouxe
+
+Sem comando, ou com outro, mostra esta ajuda e sai 1.
+EOF
+}
+
 case "${1:-}" in
   instalar) instalar ;;
   modelo) modelo ;;
@@ -142,5 +147,5 @@ case "${1:-}" in
   estado) estado ;;
   soltar) soltar ;;
   desinstalar) desinstalar ;;
-  *) sed -n '2,9p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'; exit 1 ;;
+  *) uso; exit 1 ;;
 esac

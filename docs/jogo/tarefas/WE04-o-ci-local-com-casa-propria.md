@@ -11,14 +11,14 @@ pisa no do Hefesto.
 
 ## Ler antes
 
-- [scripts/ci-local.sh](../../../scripts/ci-local.sh) (o cabeçalho e a parte do `act`)
+- [scripts/ci-local.sh](../../../scripts/ci-local.sh) (o `uso()` e a parte do `act`)
 - [scripts/costura.sh](../../../scripts/costura.sh) (o `roda` e o `--pesadas`)
 
 ## O estado de hoje
 
 - `scripts/ci-local.sh:63`: `CASA="${HEFESTO_CASA:-$HOME/.local/state/hefesto-casa}"`.
 - `scripts/ci-local.sh:218-221` procura o `act` em `$CASA/bin/act` e no PATH; sem ele, sai 2 («não há act»). O
-  cabeçalho (`:28`) diz que ele é «baixado da release oficial, com o sha256 conferido», mas nenhum script da Forja o
+  cabeçalho antigo (que saiu com o ADR-010) dizia que ele é «baixado da release oficial, com o sha256 conferido», mas nenhum script da Forja o
   baixa (`git grep -n 'bin/act'` só acha o próprio `ci-local`). Hoje ele existe só em
   `~/.local/state/hefesto-casa/bin/act`, e o `which act` não acha nada.
 - O recibo vai para `$CASA/ci-local/ultimo-$modo.txt` (`:507-510`), o mesmo caminho do `ci-local` do Hefesto
@@ -40,10 +40,10 @@ pelo próprio script, o recibo diz de que repositório é, e «não rodou» nunc
 2. O `act`: versão fixa e sha256 no script (o mesmo molde do SDL em `scripts/compilar.sh:50-57`). Quando não há
    `act` em `$CASA/bin` nem no PATH, o script baixa da release oficial para `$CASA/bin/act`, confere a soma e só
    então segue. Soma que não bate apaga o arquivo e sai 2.
-3. As imagens viram `forja-ci-local`. O trecho do `EM-TAG` sai, junto com a linha da regra no comentário da tabela
-   (`:39` e `:106`). Se um dia a Forja tiver workflow em tag, ele volta lendo a versão de onde a Forja a guarda.
+3. As imagens viram `forja-ci-local`. O trecho do `EM-TAG` sai (a regra dele, no comentário da tabela, já sai com o
+   ADR-010). Se um dia a Forja tiver workflow em tag, ele volta lendo a versão de onde a Forja a guarda.
 4. Na `costura.sh`, o passo das pesadas distingue o 2: «costura: as pesadas não rodaram (o ci-local saiu 2)», com um
-   rc próprio (4), escrito no cabeçalho junto dos outros.
+   rc próprio (4), escrito no `uso()` junto dos outros.
 5. Os casos na `tests/prova_da_esteira.sh`: a costura com um `ci-local` de mentira que sai 2 diz «não rodaram» e sai
    4; com um que sai 1, diz «VERMELHO» e sai 1.
 
@@ -51,7 +51,7 @@ pelo próprio script, o recibo diz de que repositório é, e «não rodou» nunc
 
 - O `ci-local` do Hefesto continua lendo `HEFESTO_CASA`. Não mexer nele nem no que está em
   `~/.local/state/hefesto-casa`.
-- O cabeçalho do `ci-local` diz que ele é «o mesmo motor» do Hefesto. Escrever ali o que agora difere (a casa, o
+- O `ci-local` nasceu do mesmo motor do Hefesto. Escrever no [`docs/o-porque-dos-modulos.md`](../../o-porque-dos-modulos.md) (seção do `ci-local.sh`) o que agora difere (a casa, o
   `act` baixado, as imagens), para quem copiar de volta não desfazer.
 - O download do `act` precisa de rede: sem rede, o rc é 2 (não rodou), nunca 1.
 

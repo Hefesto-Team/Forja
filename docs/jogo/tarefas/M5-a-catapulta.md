@@ -143,7 +143,7 @@ Todo lançamento grava `anotar("jogo", -1, {"o": "lancamento", "dupla": d, "dano
 
 ### A ficha de dados
 
-O cabeçalho do script `godot/scripts/minigames/s05/a_catapulta.gd` é um comentário `#` com estas linhas:
+A ficha do minigame, em linhas (fica aqui: o script não leva comentário, [ADR-010](../../adr/010-o-codigo-nao-tem-comentario.md); o porquê que custar caro redescobrir vai ao [`docs/o-porque-dos-modulos.md`](../../o-porque-dos-modulos.md), ou não vai):
 - **o jogo:** cada dupla tem uma catapulta e um castelo. O puxador puxa a corda no tempo 1 (Feedback que pesa a cada
   meia batida) e solta no tempo 3; o travador aperta até o clique no contratempo (Weapon), recebe o peso da corda e
   lança no tempo 4. A cada 8 compassos, os dois trocam de posto;

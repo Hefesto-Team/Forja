@@ -137,7 +137,7 @@ Na puxada, o `curso_max` é o próprio `curso`.
 
 ### A ficha de dados
 
-O cabeçalho do script `godot/scripts/minigames/s05/arco_de_neon.gd` é um comentário `#` com estas linhas:
+A ficha do minigame, em linhas (fica aqui: o script não leva comentário, [ADR-010](../../adr/010-o-codigo-nao-tem-comentario.md); o porquê que custar caro redescobrir vai ao [`docs/o-porque-dos-modulos.md`](../../o-porque-dos-modulos.md), ou não vai):
 - **o jogo:** cada flecha é uma nota longa. Na batida do dono, puxe o R2; o arco resiste (Feedback) e endurece em
   4, 6 e 8 pela nota; solte quando o ponteiro do alvo volta às 12 h. No pico, o arco vira Weapon: passar do
   clique do fundo solta a flecha de fogo, que queima o alvo do vizinho por 2 s;

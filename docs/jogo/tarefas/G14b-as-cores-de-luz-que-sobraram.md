@@ -15,8 +15,8 @@ Sobram cerca de 29 linhas que a regra de palavras 3D do portão de arte não cob
 - Cenário e luz de sala: `atmosfera(Color(...))` em `caminhos`, `canto`, `centelha`, `galeria`, `impacto`, `molde`,
   `prova`, `viga`, `voz`; `sino` em `canto`; `Kit.chapado` em `viga:238`; `cor_metal` em `molde:342`; `faiscas` e
   `_tingir` em `prova`.
-- **Conflito:** as cores das perguntas «ciano» e «âmbar» agora são as mesmas dos lugares P1 (ciano) e P4 (âmbar). O
-  comentário diz «longe das cores dos lugares», e o `COR_PARECIDA` e a pergunta «Brasa ou Maré» dependem disso.
+- **Conflito:** as cores das perguntas «ciano» e «âmbar» agora são as mesmas dos lugares P1 (ciano) e P4 (âmbar). Elas
+  foram escolhidas «longe das cores dos lugares», e o `COR_PARECIDA` e a pergunta «Brasa ou Maré» dependem disso.
 
 ## O que fazer
 

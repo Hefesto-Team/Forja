@@ -193,8 +193,8 @@ func cor_do_lugar(l: int) -> Color
 
 **Depende de:** nada (o SDL3 entra estático no binário, como hoje).
 
-**O acoplamento a soltar:** `forja.gd` mistura onze partes (os comentários de seção em `:229`, `:293`, `:353`, `:449`,
-`:514`, `:587`, `:658`, `:692`, `:731`, `:823`, `:877`). O pacote leva **os lugares, a entrada, as saídas e o som de
+**O acoplamento a soltar:** `forja.gd` mistura onze partes (o teclado, os lugares, a entrada, as saídas, o relatório,
+as medidas, A Prova, as provas às cegas, o som de cada controle, a bancada e o robô). O pacote leva **os lugares, a entrada, as saídas e o som de
 cada controle**. Ficam no jogo: os argumentos (`--robo`, `--bancada`), o relatório e os vereditos, as medidas, A Prova
 (a carga), as provas às cegas e a bancada, que são o diagnóstico do Forja e não do controle. O `aplicar_opcoes`
 (`:131`) lê `Opcoes`, `Tema` e `Traducoes`: vira o jogo chamando `ForjaControle.cores = …` e

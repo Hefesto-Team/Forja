@@ -21,7 +21,7 @@ o `scripts/exportar.sh` têm cada um a própria cópia, e sem esta ficha ficaria
   `bash -uc 'source scripts/engine.sh; echo "$GODOT_URL"'` responde «GODOT_URL: variável não associada», rc 127.
   Numa máquina sem o `tools/`, o primeiro `./run-local.sh` morre antes de baixar.
 - `scripts/exportar.sh:48-60` (`garantir_godot`) tem outra cópia do mesmo download, que funciona e não confere soma.
-- O cabeçalho do `run-local.sh:2` diz «Godot 4.4», e `docs/DESENVOLVER.md:28` diz «baixa o Godot 4.4.1 na primeira
+- O cabeçalho do `run-local.sh:2` (que sai com o ADR-010) diz «Godot 4.4», e `docs/DESENVOLVER.md:28` diz «baixa o Godot 4.4.1 na primeira
   vez». A versão é a do `engine.sh`: `4.7.2-stable`.
 - O `scripts/instalar.sh:139` e o `scripts/preparar_sessao.sh:47` já usam o `forja_baixar_engine` e não têm o defeito.
 
@@ -33,7 +33,7 @@ Um download só, o do `engine.sh`, com a soma da V01: o `run-local.sh` e o `expo
 
 1. No `run-local.sh`, trocar o bloco `:31-39` por `forja_baixar_engine || exit 1`.
 2. No `exportar.sh`, o `garantir_godot` vira `forja_baixar_engine`, e a `GODOT_URL` de `:28` sai.
-3. O cabeçalho do `run-local.sh` e o `docs/DESENVOLVER.md` (`:7`, `:12`, `:28`) deixam de dizer a versão
+3. O `docs/DESENVOLVER.md` (`:7`, `:12`, `:28`) deixa de dizer a versão
    com todas as letras e apontam para o `engine.sh`.
 
 ## Armadilhas
