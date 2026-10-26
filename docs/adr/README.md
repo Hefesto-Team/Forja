@@ -10,5 +10,7 @@
 | [006](006-o-som-se-acha-como-um-jogo-acha.md) | O som de cada controle se acha como um jogo acha |
 | [007](007-o-jogo-e-o-3d-em-godot.md) | O jogo é o 3D em Godot, com o SDL3 dentro dele (substitui em parte o 004) |
 | [008](008-a-metodologia-astro-bot.md) | A metodologia Astro Bot, e o repertório inteiro do controle em toda sala |
+| [009](009-a-godot-4-7-e-o-godot-cpp-do-master.md) | A Godot 4.7, e o módulo contra o master da godot-cpp |
+| [010](010-o-codigo-nao-tem-comentario.md) | O código não tem comentário |
 
 A lei de cima continua sendo o [CONTRATO.md](../../CONTRATO.md).
