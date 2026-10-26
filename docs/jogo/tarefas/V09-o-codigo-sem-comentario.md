@@ -82,6 +82,7 @@ motivo no «O que foi feito».
 - 998 citações `arquivo:linha` reapontadas em 122 arquivos. Ficaram como estavam as que já apontavam fora do arquivo
   antes do corte (5) e as de `hud.gd` sem pasta nas fichas F07 e G04 (3).
 - O pre-commit (`scripts/hooks/ligar.sh`) e o CI rodam o grupo `texto`; a prova dos portões tem 102 casos.
-- O gancho do editor que aponta o comentário no mesmo turno está em proposta, à espera dela.
+- O gancho do editor (`texto-enxuto`, nível `forja`) aponta o comentário no mesmo turno, na mesa e em `forja-voo/`;
+  promovido em 26/10/2026, mordida ao vivo feita.
 - As provas: compilar linux e testes, `make all`, as ferramentas, o jogo, poucos, a bancada, o som, os portões e a
   esteira, todas verdes, nos mesmos tempos de antes.
