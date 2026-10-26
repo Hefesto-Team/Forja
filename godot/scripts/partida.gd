@@ -1,24 +1,8 @@
 class_name Partida
 extends RefCounted
-## A partida de festa: uma sequência de salas, e no fim um vencedor.
-##
-## Cada sala conta pontos na régua dela (uma runa d'A Centelha não vale o mesmo
-## que um molde d'O Molde), então a partida não soma os pontos crus: soma a
-## colocação em cada sala. O primeiro da sala leva 4 pontos da noite, o segundo
-## 3, o terceiro 2, o quarto 1; quem empata divide a colocação de cima. No fim,
-## o pódio — e alguém sempre ganha: mais pontos da noite; no empate, mais
-## salas vencidas; depois, quem foi melhor na última sala (e na anterior, e
-## assim para trás); e, se ainda empatar, o sorteio da semente decide.
-##
-## Tudo aqui é lógica pura (sem nó, sem controle): a prova do jogo confere as
-## contas sem abrir uma sala.
 
-## Os tamanhos que o jogo oferece.
 const TAMANHOS := [3, 5, 9]
-## Os pontos da noite pela colocação na sala (1º, 2º, 3º, 4º).
 const PELA_COLOCACAO := [4, 3, 2, 1]
-## As partidas na ordem: as salas que jogam em qualquer sala de estar (nenhuma
-## pede o som do controle), e A Prova sempre no fim. A de nove é o percurso.
 const NA_ORDEM := {
 	3: ["centelha", "galeria", "prova"],
 	5: ["centelha", "viga", "impacto", "galeria", "prova"],
@@ -29,21 +13,16 @@ const NOMES := {
 	"prova": "A Prova",
 }
 
-var salas: Array = []  ## os ids, na ordem em que se jogam
-var semente := 0  ## o sorteio do último desempate
+var salas: Array = []
+var semente := 0
 var sorteada := false
-var passo := 0  ## a sala em curso (índice em `salas`)
-var total := [0, 0, 0, 0]  ## os pontos da noite de cada lugar
-var vitorias := [0, 0, 0, 0]  ## as salas em que cada lugar ficou em primeiro
-## Uma entrada por sala jogada: {sala, nome, pontos: [4], colocacao: [4], ganhos: [4]}.
-## Quem não jogou a sala tem colocação 0 e ganho 0.
+var passo := 0
+var total := [0, 0, 0, 0]
+var vitorias := [0, 0, 0, 0]
 var historico: Array = []
-var virou := false  ## a fita já virou nesta noite (o intervalo já aconteceu)
+var virou := false
 
 
-## As salas de uma partida de `n` salas. Na ordem: as de NA_ORDEM, ou o
-## percurso inteiro. Sorteada: `n - 1` salas do percurso, embaralhadas pela
-## semente, e A Prova fechando.
 static func roteiro(n: int, sortear: bool, semente: int, percurso: Array) -> Array:
 	if not sortear:
 		if NA_ORDEM.has(n):
@@ -52,7 +31,6 @@ static func roteiro(n: int, sortear: bool, semente: int, percurso: Array) -> Arr
 	var outras: Array = percurso.filter(func(s): return s != "prova")
 	var rng := RandomNumberGenerator.new()
 	rng.seed = semente * 977 + n
-	# Fisher–Yates com o gerador da semente: o mesmo sorteio em toda máquina
 	for i in range(outras.size() - 1, 0, -1):
 		var k := rng.randi_range(0, i)
 		var tmp = outras[i]
@@ -71,8 +49,6 @@ static func nova(n: int, sortear: bool, semente: int, percurso: Array) -> Partid
 	return p
 
 
-## A colocação de cada lugar presente pelos pontos da sala: 1 + quantos fizeram
-## mais (o empate divide a de cima). Quem não está presente fica com 0.
 static func colocacoes(pontos: Array, presentes: Array) -> Array:
 	var c := [0, 0, 0, 0]
 	for l in presentes:
@@ -92,22 +68,18 @@ func acabou() -> bool:
 	return passo >= salas.size()
 
 
-## As faixas do lado A: depois de `ceil(n / 2)` faixas a fita vira (2 de 3, 3 de 5, 5 de 9).
 func metade() -> int:
 	return ceili(salas.size() / 2.0)
 
 
-## "A" até a metade da noite; "B" daí até o pódio.
 func lado() -> String:
 	return "B" if passo >= metade() else "A"
 
 
-## "Partida · sala 2 de 5".
 func rotulo() -> String:
 	return "Partida · sala %d de %d" % [mini(passo + 1, salas.size()), salas.size()]
 
 
-## A sala em curso acabou com estes pontos: soma a colocação e anda um passo.
 func registrar(id: String, pontos: Array, presentes: Array) -> Dictionary:
 	var col := colocacoes(pontos, presentes)
 	var ganhos := [0, 0, 0, 0]
@@ -123,9 +95,6 @@ func registrar(id: String, pontos: Array, presentes: Array) -> Dictionary:
 	return entrada
 
 
-## O pódio: [{lugar, total, vitorias, degrau, criterio}], do primeiro ao
-## último, sem degrau dividido. `criterio` diz o que separou o lugar do de
-## baixo: "" (os pontos), "salas vencidas", "a última sala" ou "o sorteio".
 func podio(presentes: Array) -> Array:
 	var lista: Array = []
 	for l in presentes:
@@ -137,7 +106,6 @@ func podio(presentes: Array) -> Array:
 	return lista
 
 
-## A ordem da noite entre dois lugares: true se `a` fica acima de `b`.
 func _acima(a: int, b: int) -> bool:
 	if total[a] != total[b]:
 		return total[a] > total[b]
@@ -151,7 +119,6 @@ func _acima(a: int, b: int) -> bool:
 	return _sorteio(a) > _sorteio(b)
 
 
-## O que separou `a` de `b` (o de baixo).
 func _criterio(a: int, b: int) -> String:
 	if total[a] != total[b]:
 		return ""
@@ -165,14 +132,12 @@ func _criterio(a: int, b: int) -> String:
 	return "o sorteio"
 
 
-## O número do sorteio de um lugar: fixo pela semente, diferente por lugar.
 func _sorteio(l: int) -> int:
 	var rng := RandomNumberGenerator.new()
 	rng.seed = semente * 7919 + 104729 * (l + 1)
 	return rng.randi()
 
 
-## Quem joga agora: os lugares que jogaram alguma sala da partida.
 func presentes() -> Array:
 	var r: Array = []
 	for l in 4:

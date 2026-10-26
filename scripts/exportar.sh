@@ -1,28 +1,10 @@
 #!/usr/bin/env bash
-# A exportação do FORJA: o jogo inteiro, pronto para rodar sem o editor.
-#
-#   scripts/exportar.sh linux     dist/forja-linux-x86_64/    forja.x86_64, forja.pck e o módulo
-#   scripts/exportar.sh windows   dist/forja-windows-x86_64/  forja.exe, forja.pck e a DLL
-#   scripts/exportar.sh tudo      os dois
-#   scripts/exportar.sh appimage  dist/FORJA-x86_64.AppImage (depois do linux)
-#
-# Cada pasta sai também empacotada ao lado (o .tar.gz do Linux guarda o bit de
-# executável; o .zip do Windows é o que se abre no Windows e no Proton).
-#
-# Precisa do módulo da plataforma em godot/bin/ (scripts/compilar.sh linux ou
-# windows; no CI, o artefato do job que compilou). O Godot é o mesmo do
-# run-local.sh; GODOT=<binário> usa outro da mesma versão.
-#
-# Os modelos de exportação do Godot (os executáveis sem o editor) entram por
-# versão E por sha256, como o SDL no compilar.sh: só os dois que o FORJA usa,
-# tirados por pedaços do pacote oficial (scripts/modelos_de_exportacao.py), e
-# guardados em .cache/, sem tocar na pasta de dados do Godot da máquina.
 set -euo pipefail
 
 RAIZ="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$RAIZ"
 
-source "$RAIZ/scripts/engine.sh"   # a versão da engine mora lá (ADR-009)
+source "$RAIZ/scripts/engine.sh"
 GODOT_VER="$FORJA_GODOT_VER"
 GODOT_BIN="$FORJA_GODOT"
 MODELOS_URL="https://github.com/godotengine/godot/releases/download/${GODOT_VER}/Godot_v${GODOT_VER}_export_templates.tpz"
@@ -30,26 +12,21 @@ MODELO_LINUX="linux_release.x86_64"
 MODELO_LINUX_SHA256="d9f79ab89b5ae369aeed11c6052d402e8218cd503bf85b4a235f9c30c46a7c63"
 MODELO_WINDOWS="windows_release_x86_64.exe"
 MODELO_WINDOWS_SHA256="d34d36f3be1a6c49c56525ae86469b92e4f417ddf0b43cf00dd80c385c4b0562"
-# O AppImage: o appimagetool por versão E por sha256; o runtime sai do começo
-# dele mesmo (um AppImage é o runtime seguido do squashfs), e fica fixo junto.
 APPIMAGETOOL_URL="https://github.com/AppImage/appimagetool/releases/download/1.9.0/appimagetool-x86_64.AppImage"
 APPIMAGETOOL_SHA256="46fdd785094c7f6e545b61afcfb0f3d98d8eab243f644b4b17698c01d06083d1"
 
 CACHE="${FORJA_CACHE:-$RAIZ/.cache}"
-# O Godot procura os modelos em $XDG_DATA_HOME/godot/export_templates/<versão>:
-# a exportação roda com o XDG_DATA_HOME apontando para o cache.
 DADOS="$CACHE/godot-dados"
 MODELOS="$DADOS/godot/export_templates/${GODOT_VER/-/.}"
 DIST="$RAIZ/dist"
 
 diga() { printf '==> %s\n' "$*"; }
 
-# O download e a conferência do sha512 moram no engine.sh, num lugar só.
 garantir_godot() {
   forja_baixar_engine || exit 1
 }
 
-confere() { # $1 = arquivo, $2 = sha256
+confere() {
   [[ -f "$1" ]] && [[ "$(sha256sum "$1" | cut -d' ' -f1)" == "$2" ]]
 }
 
@@ -68,7 +45,7 @@ godot() {
   XDG_DATA_HOME="$DADOS" "$GODOT_BIN" --headless --path "$RAIZ/godot" "$@"
 }
 
-leia_me() { # $1 = linux | windows
+leia_me() {
   local exe="./forja.x86_64"
   [[ "$1" == windows ]] && exe="forja.exe"
   cat <<TEXTO
@@ -117,8 +94,6 @@ TEXTO
   fi
 }
 
-# Os avisos de licença que vão com o jogo: os do repositório e os do Godot (e
-# do que ele embute), tirados do próprio binário.
 licencas() {
   cat "$RAIZ/LICENCAS-DE-TERCEIROS.md"
   local tmp
@@ -129,7 +104,6 @@ licencas() {
   rm -f "$tmp"
 }
 
-# A entrada do menu no Linux (e a do AppImage).
 desktop() {
   cat <<'TEXTO'
 [Desktop Entry]
@@ -144,7 +118,6 @@ Categories=Game;
 TEXTO
 }
 
-# O AppImage, a partir da pasta do Linux já exportada.
 appimage() {
   local pasta="$DIST/forja-linux-x86_64"
   [[ -x "$pasta/forja.x86_64" ]] || { echo "exporte o linux antes (scripts/exportar.sh linux)" >&2; exit 1; }
@@ -181,7 +154,6 @@ TEXTO
   diga "dist/FORJA-x86_64.AppImage"
 }
 
-# $1 = linux | windows
 exportar() {
   local qual="$1" preset nome exe modulo
   case "$qual" in
@@ -217,7 +189,6 @@ exportar() {
     tar -C "$DIST" -czf "$DIST/$nome.tar.gz" "$nome"
     diga "dist/$nome.tar.gz"
   else
-    # o ícone e a versão do FORJA no .exe (o Godot 4.4 pediria o rcedit)
     local versao
     versao="$(sed -n 's/^config\/version="\(.*\)"/\1/p' "$RAIZ/godot/project.godot")"
     python3 "$RAIZ/scripts/icone_do_exe.py" "$saida/$exe" "$RAIZ/scripts/forja.ico" "$versao"

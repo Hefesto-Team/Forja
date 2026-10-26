@@ -17,14 +17,14 @@ O do Windows só ensina o Proton: nada para quem abre o `forja.exe` direto.
 
 ## O estado de hoje
 
-- `scripts/exportar.sh:143-155`, a entrada de menu, sem caminho:
+- `scripts/exportar.sh:117-128`, a entrada de menu, sem caminho:
   ```
   Exec=forja.x86_64
   Icon=forja
   ```
   A especificação das entradas de menu procura o `Exec` no `PATH` e o ícone no tema, não na pasta do arquivo. Ela vai
   para o AppImage (`:178`, onde o `AppRun` resolve) e também para a pasta solta (`:226`), onde não resolve.
-- `scripts/exportar.sh:104-111`: o LEIA-ME do Linux explica a regra do udev e para aí. O passo «desative o Steam Input
+- `scripts/exportar.sh:81-88`: o LEIA-ME do Linux explica a regra do udev e para aí. O passo «desative o Steam Input
   para este jogo» existe só no ramo do Windows (`:122`), dentro de «Pelo Proton, na Steam» (`:114`).
 - O LEIA-ME do Windows (o mesmo `:113-124`) não tem uma seção para o `forja.exe` aberto direto: o cabo para som,
   háptica e microfone; fechar programas que seguram o controle (os que remapeiam o DualSense ou o escondem); a Steam

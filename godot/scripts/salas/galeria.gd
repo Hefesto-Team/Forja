@@ -1,21 +1,5 @@
 class_name SalaGaleria
 extends SalaJogo
-## A Galeria — armas com gatilho adaptativo.
-##
-## O padrão dos jogos de tiro do PS5: cada arma tem o seu gatilho. A pistola
-## tem parede e clique (Weapon), a metralhadora treme (Vibration), o arco pesa
-## (Feedback); sem arma, o gatilho fica solto (Off). A munição fica na tela (no
-## Modo bancada, nas cinco luzinhas brancas embaixo do touchpad, os LEDs de
-## jogador; fora dele, as luzinhas são o número do lugar) e, quando acaba, o
-## gatilho solta — "clique seco" — até recarregar. Só os quatro modos oficiais
-## entram (CONTRATO.md).
-##
-## E é uma prova às cegas (cegas.h): a arma chega no baú fechado. A pessoa
-## aperta R2, sente, e diz qual é (✕ pistola, ○ metralhadora, □ arco, △ sem
-## arma) antes de ver; o baú abre e ela atira. No fim de cada rodada (no Modo
-## bancada), o armeiro recarrega sem ninguém ver, e a pessoa diz quantas balas
-## tem contando as luzinhas do controle — a tela não mostra. Cada arma aparece duas vezes, em
-## ordem sorteada, e a que ficar no meio do caminho ganha rodada de desempate.
 
 const F := preload("res://scripts/forja.gd")
 const RAIAS := [-6.0, -2.0, 2.0, 6.0]
@@ -28,7 +12,7 @@ const IDENTIFICA_MAX := 14.0
 const REVELA := 1.0
 const ATIRA := 5.5
 const MUNICAO_MAX := 9.0
-const N_ALVOS := 3  ## na variante 1, um a mais
+const N_ALVOS := 3
 var n_alvos := N_ALVOS
 const BALAS := 5
 const BALAS_MG := 30
@@ -44,8 +28,8 @@ const SENTE := ["parede e clique", "o tremor", "o peso", "solto"]
 const BOTAO_OPCAO := [F.CRUZ, F.CIRCULO, F.QUADRADO, F.TRIANGULO]
 const GLIFO_OPCAO := ["cross", "circle", "square", "triangle"]
 
-var j := {}  ## lugar -> o estado do jogador
-var n := {}  ## lugar -> os nós da raia
+var j := {}
+var n := {}
 
 
 func _init() -> void:
@@ -67,7 +51,6 @@ func _init() -> void:
 func montar() -> void:
 	n_alvos = N_ALVOS + variante
 	Kit.arena(self, 5, 3)
-	# o estande: o synthwave inteiro — poeira roxa e neon ciano
 	atmosfera(Color("#c28bff"), Tema.VIOLETA, false, 50)
 	luzes([Vector3(-9, 2.6, -5), Vector3(9, 2.6, -5), Vector3(0, 3.0, 5)])
 	for p in jogadores:
@@ -92,10 +75,8 @@ func _novo_jogador() -> Dictionary:
 func _montar_raia(l: int, p: ForjaPlayer) -> Dictionary:
 	var x: float = RAIAS[l]
 	var cor: Color = Forja.cor_do_lugar(l)
-	# a raia: a faixa no chão na cor do lugar, do jogador até o muro dos alvos
 	Kit.caixa(self, Vector3(1.5, 0.02, Z_JOGADOR - Z_ALVOS + 0.6), Vector3(x, 0.02, (Z_JOGADOR + Z_ALVOS) * 0.5),
 		Kit.material(cor.darkened(0.6), 0.25, 0.8, l))
-	# o baú do armeiro, numa mesa baixa na frente do jogador
 	Kit.caixa(self, Vector3(1.3, 0.5, 0.9), Vector3(x, 0.25, Z_BAU), Kit.material(Tema.GRAFITE, 0.0, 0.9))
 	var bau := Kit.peca(self, "chest", Vector3(x, 0.5, Z_BAU - 0.1), 0.0, 1.9)
 	var interroga := Label3D.new()
@@ -109,15 +90,12 @@ func _montar_raia(l: int, p: ForjaPlayer) -> Dictionary:
 	interroga.outline_modulate = Color(Tema.FITA, 0.9)
 	interroga.position = Vector3(x, 1.75, Z_BAU)
 	add_child(interroga)
-	# a arma revelada, flutuando sobre o baú
 	var vitrine := Node3D.new()
 	vitrine.position = Vector3(x, 1.45, Z_BAU)
 	add_child(vitrine)
-	# os alvos no muro do fundo
 	var alvos: Array = []
 	for k in n_alvos:
 		alvos.append(_alvo_no())
-	# a mira, no plano dos alvos
 	var mira := Node3D.new()
 	add_child(mira)
 	var tinta := Kit.chapado(Tema.tom_para_a_borda(cor), true)
@@ -135,13 +113,12 @@ func _montar_raia(l: int, p: ForjaPlayer) -> Dictionary:
 	mira.visible = false
 	p.position = Vector3(x, 0.05, Z_JOGADOR)
 	p.rotation.y = PI
-	p.preso = true  # a sala escolhe a pose (a mira com a arma)
+	p.preso = true
 	maos_livres(p)
 	return {"bau": bau, "interroga": interroga, "vitrine": vitrine, "alvos": alvos, "mira": mira,
 		"arma_mao": null, "aberto": false}
 
 
-## Um alvo: três discos (branco, vermelho, branco) de frente para o jogador.
 func _alvo_no() -> Node3D:
 	var a := Node3D.new()
 	add_child(a)
@@ -152,7 +129,6 @@ func _alvo_no() -> Node3D:
 	return a
 
 
-## As armas, em blocos como as peças do kit: a pega na origem, o cano para +x.
 static func _arma(pai: Node, qual: int) -> Node3D:
 	var a := Node3D.new()
 	pai.add_child(a)
@@ -175,7 +151,6 @@ static func _arma(pai: Node, qual: int) -> Node3D:
 			pega.rotation.z = 0.25
 			Kit.caixa(a, Vector3(0.2, 0.1, 0.07), Vector3(-0.18, 0.06, 0), madeira)
 		ARCO:
-			# o arco em nove pedaços, e a corda
 			for k in 9:
 				var ang := lerpf(-1.05, 1.05, k / 8.0)
 				var pedaco := Kit.caixa(a, Vector3(0.05, 0.13, 0.05), Vector3(cos(ang) * 0.42 - 0.3, sin(ang) * 0.42, 0), madeira)
@@ -202,7 +177,7 @@ func _gatilho(l: int, arma: int) -> void:
 
 func _leds(l: int, quantos: int) -> void:
 	if not Forja.bancada:
-		return  # as luzinhas são o número do lugar; só a bancada as usa de munição
+		return
 	var mascara := (1 << clampi(quantos, 0, 5)) - 1
 	if Forja.leds_jogador(l, mascara):
 		j[l].leds_ok = true
@@ -211,8 +186,6 @@ func _leds(l: int, quantos: int) -> void:
 static func _luzes_da_mg(balas: int) -> int:
 	return (balas + 5) / 6
 
-
-# ------------------------------------------------------------------ o jogo --
 
 func _sortear_alvos(e: Dictionary) -> void:
 	var alvos: Array = []
@@ -232,14 +205,14 @@ func _nova_rodada(l: int) -> void:
 	e.robo_passo = 0
 	e.robo_t = 0.0
 	_gatilho(l, e.arma)
-	Forja.leds_do_lugar(l)  # na identificação, as luzinhas não contam nada
+	Forja.leds_do_lugar(l)
 	_fechar_bau(l)
 	Forja.evento("jogo", l + 1, {"sala": id, "o": "arma_no_escuro", "arma": NOME_ARMA[e.arma]})
 	if not Forja.bancada:
 		if e.arma == NENHUMA:
-			_proxima_rodada(l)  # sem pergunta, a rodada sem arma não tem jogo
+			_proxima_rodada(l)
 			return
-		e.passo = REVELANDO  # o baú abre na hora; REVELANDO leva a ATIRAR
+		e.passo = REVELANDO
 		e.t = 0.0
 		_abrir_bau(l, e.arma)
 		return
@@ -318,7 +291,6 @@ func _jogar(l: int, p: ForjaPlayer, e: Dictionary, dt: float) -> void:
 			else:
 				match int(e.arma):
 					PISTOLA:
-						# dispara ao passar do clique; rearma ao soltar
 						if e.armado and r2 >= 0.62:
 							e.armado = false
 							_atirar(l, p, e)
@@ -330,7 +302,6 @@ func _jogar(l: int, p: ForjaPlayer, e: Dictionary, dt: float) -> void:
 							e.cadencia = 0.09
 							_atirar(l, p, e)
 					ARCO:
-						# puxar contra a resistência, soltar para disparar
 						if r2 >= 0.15:
 							e.corda = maxf(float(e.corda), r2)
 						elif e.corda > 0.55:
@@ -391,7 +362,6 @@ func _atirar(l: int, p: ForjaPlayer, e: Dictionary) -> void:
 	p.gesto("holding-right-shoot", 0.2)
 	_rastro(l, p, _no_muro(l, m))
 	Som.tocar("bigorna_aguda" if acertou else "tique", _no_muro(l, m), -6.0 if acertou else -12.0)
-	# a arma já foi revelada: o tiro soa na mão (a metralhadora só no gatilho)
 	if e.arma != METRALHADORA:
 		Som.tocar("tiro", p.global_position + Vector3(0, 1.2, 0), -10.0)
 		Som.no_controle(l, "tiro", 0.45)
@@ -402,7 +372,7 @@ func _atirar(l: int, p: ForjaPlayer, e: Dictionary) -> void:
 		if agora != antes:
 			_leds(l, agora)
 		if e.balas_mg <= 0:
-			_gatilho(l, NENHUMA)  # sem munição, o gatilho solta
+			_gatilho(l, NENHUMA)
 	else:
 		e.balas -= 1
 		_leds(l, int(e.balas))
@@ -410,12 +380,10 @@ func _atirar(l: int, p: ForjaPlayer, e: Dictionary) -> void:
 			_gatilho(l, NENHUMA)
 
 
-## O ponto do muro dos alvos para uma posição da mira (x e y de 0 a 1).
 func _no_muro(l: int, m: Vector2) -> Vector3:
 	return Vector3(RAIAS[l] + (m.x - 0.5) * MIRA_LARG, lerpf(MIRA_Y1, MIRA_Y0, m.y), Z_ALVOS + 0.12)
 
 
-## O risco do tiro, da mão até o muro.
 func _rastro(l: int, p: ForjaPlayer, ate: Vector3) -> void:
 	var de := p.global_position + Vector3(0.25, 1.05, -0.4)
 	var risco := MeshInstance3D.new()
@@ -460,7 +428,6 @@ func _responder_arma(l: int, p: ForjaPlayer, r: int) -> void:
 
 
 func _perguntar_municao(l: int) -> void:
-	# o armeiro recarregou no escuro: quantas balas há agora?
 	var e: Dictionary = j[l]
 	if not Forja.bancada:
 		_guardar_arma(l)
@@ -497,7 +464,6 @@ func _proxima_rodada(l: int) -> void:
 	e.rodada += 1
 	var plano: Array = e.plano
 	if e.rodada >= plano.size():
-		# desempate: a arma que ficou no meio do caminho ganha mais uma rodada
 		for k in [PISTOLA, METRALHADORA, ARCO]:
 			if e.extras < MAX_EXTRAS and not Forja.cega_decidida("arma", e.cegas[k]) and Cega.total(e.cegas[k]) > 0 \
 					and (plano.is_empty() or int(plano[plano.size() - 1]) != k):
@@ -526,8 +492,6 @@ func dar_vereditos(l: int) -> Array:
 	]
 	return lista.filter(func(v): return not v.is_empty())
 
-
-# ------------------------------------------------------------------ o baú e a arma --
 
 func _fechar_bau(l: int) -> void:
 	var nos: Dictionary = n[l]
@@ -581,8 +545,6 @@ func _arma_na_mao(l: int, p: ForjaPlayer, arma: int) -> void:
 	nos.arma_mao = presa
 
 
-# ------------------------------------------------------------------ o que se vê --
-
 func _process(dt: float) -> void:
 	super(dt)
 	for p in jogadores:
@@ -615,13 +577,10 @@ func _mostrar(l: int, p: ForjaPlayer) -> void:
 		p.animar("idle")
 
 
-# ------------------------------------------------------------------ a HUD --
-
 func status(lugar: int) -> String:
 	if fase == "jogo" and j.has(lugar) and not acabou[lugar]:
 		var e: Dictionary = j[lugar]
 		if int(e.passo) == ATIRAR and not Forja.bancada:
-			# na bancada a munição é contada nas luzinhas, às cegas: a tela não mostra
 			var balas := int(e.balas_mg) if int(e.arma) == METRALHADORA else int(e.balas)
 			return "1 bala" if balas == 1 else "%d balas" % balas
 		return "Rodada %d de %d · %d ✓" % [int(e.rodada) + 1, e.plano.size(), e.acertos]
@@ -640,7 +599,7 @@ func dica(lugar: int) -> Dictionary:
 
 func pergunta(lugar: int) -> Dictionary:
 	if not Forja.bancada:
-		return {}  # a pergunta às cegas é do Modo bancada
+		return {}
 	if not j.has(lugar) or fase != "jogo":
 		return {}
 	var e: Dictionary = j[lugar]
@@ -680,11 +639,6 @@ func pergunta(lugar: int) -> Dictionary:
 				"escolhida": e.leds_resposta, "certa": certa2, "rodape": rodape2, "pos": pos}
 	return {}
 
-
-# ------------------------------------------------------------------ o robô --
-# Sente o gatilho, vê a galeria e conta as luzinhas, como quem segura o
-# controle simulado: aperta R2, sente o modo que chegou ao dedo, responde;
-# mira nos alvos e atira do jeito de cada arma; conta os LEDs acesos.
 
 func _robo(l: int, e: Dictionary, dt: float) -> void:
 	var pc := Forja.percepcao(l)
@@ -742,7 +696,6 @@ func _robo(l: int, e: Dictionary, dt: float) -> void:
 	Forja.robo_eixo(l, F.R2, float(e.robo_r2), 0.06)
 
 
-## A arma pelo que chegou ao dedo: o primeiro byte do efeito do R2.
 static func _arma_sentida(modo_hid: int) -> int:
 	match modo_hid:
 		0x25:

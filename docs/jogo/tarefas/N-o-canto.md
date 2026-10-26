@@ -48,7 +48,7 @@ outras quatro o usam:
 | função / constante | o que é |
 | --- | --- |
 | `montar(sala, escuro := 1.0) -> Dictionary` | `Kit.arena(sala, 5, 3)`; `sala.atmosfera(Color("#b88cff"), Tema.ROXO, false, 36, 22, −7,8, 0,2 × escuro)`; o enchimento `#8a80c8` (0,55 × escuro) em (0, 8, 4); duas tochas `#ffb070` em (±9,5, 2,6, −4,5) (1,1 × escuro); o pórtico de madeira e o **sino grande** em `SINO_TV`. Devolve o sino grande. `escuro` 0,4 é o terror do Eco do Abismo |
-| `sino(pai, pos, escala, cor) -> Dictionary` | o sino de hoje (`canto.gd:105-152`) com **8 lados** (não 28), `metallic` 0,15 (não 0,75) e o badalo em caixa: `{pivo, mat, badalo}` |
+| `sino(pai, pos, escala, cor) -> Dictionary` | o sino de hoje (`canto.gd:84-130`) com **8 lados** (não 28), `metallic` 0,15 (não 0,75) e o badalo em caixa: `{pivo, mat, badalo}` |
 | `balancar(s, forca)` | o sino balança pela batida: `s.pivo.rotation.z = sin(TAU * Ritmo.batida()) * 0.3 * forca` |
 | `tempo_forte()` | o sino grande no começo de cada compasso, na TV, baixo (`Som.tocar("sino", SINO_TV, -16.0)`): o compasso se ouve mesmo sem faixa |
 | `falante(sala, l, som, ganho := 0.9) -> bool` | o som no alto-falante do lugar; sem alto-falante, na TV na raia dele (`NA_TV`), a −10 dB. Devolve se foi no controle |
@@ -67,7 +67,7 @@ que dá o compasso na sala. Com a faixa, ele continua, baixo, como sino da capel
 
 **O robô da seção** ouve o alto-falante do controle simulado dele
 (`Forja.som_virtual(l)["falante"]`, o nível de 0 a 1) e acha o ataque de
-cada nota pela lógica de hoje (`canto.gd:565-573`: o nível subindo mais de
+cada nota pela lógica de hoje (`canto.gd:525-532`: o nível subindo mais de
 0,10 acima do vale deixado pela anterior), com o "desde" medido em tempo de
 música. No ataque, o `Forja.som_virtual(l)` dá também o nome do último som
 (H08): o robô **só responde o que ouviu chegar** (se o som não chegou, ele

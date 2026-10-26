@@ -17,7 +17,7 @@ Quatro DualSense com háptica, gatilho, luz, alto-falante e microfone, num jogo 
   (`:449`), o relatório (`:514`), as medidas (`:587`), A Prova (`:658`), as cegas (`:692`), o som de cada controle
   (`:731`), a bancada (`:823`) e o robô (`:877`); `aplicar_opcoes` (`:131`) lê `Opcoes`, `Tema` e `Traducoes`.
 - O nativo: `godot/forja.gdextension` (entrada `forja_iniciar_biblioteca`, libs em `res://bin/`), `ForjaControles`
-  com 123 métodos (`nativo/godot/forja_controles.cpp:593`); compilado por `scripts/compilar.sh`.
+  com 123 métodos (`nativo/godot/forja_controles.cpp:569`); compilado por `scripts/compilar.sh`.
 
 ## Arquivos que mudam
 

@@ -71,7 +71,7 @@ voltando ao salão (a noite segue).
 
 **Quem é quem** (`SalaJogo`, puras, a prova chama):
 
-A ordem é `vencedor()` (`sala_jogo.gd:364`: os lugares de `jogando`, do
+A ordem é `vencedor()` (`sala_jogo.gd:292`: os lugares de `jogando`, do
 maior ponto ao menor, empate pelo menor lugar), chamada na hora; nunca o
 `colocacao` guardado, que só existe depois do `terminar()` (a prova chama
 numa `SalaJogo` solta).
@@ -142,7 +142,7 @@ com `r` o retângulo do placar (`_retangulo()`, extraído do `_draw`).
 
   Quem venceu a faixa: o lugar `l` com `e.colocacao[l] == 1` e
   `e.pontos[l] > 0` (`colocacao` é um Array de 4, 0 para quem não jogou:
-  `Partida.colocacoes`, `partida.gd:75`). Dois ou mais com
+  `Partida.colocacoes`, `partida.gd:52`). Dois ou mais com
   `e.colocacao[l] == 1` e pontos: «Empate» em `TINTA`, sem P#. Ninguém com
   pontos: «Ninguém» em `TINTA_SUAVE`, sem P#.
 - **A caneta:** quando o painel tem a borda esquerda em x ≤ 1200, o nome de
@@ -212,7 +212,7 @@ ganha `arquivo` = `godot/assets/sons/<id>.wav` e `estado` = `no jogo`.
   no andamento certo. Hoje `tocar("creditos")` cai no salão.
 - O `fx_virar` é da G16 (o virar da fita). Os `jul_*`, `car_em_chamas` e
   `car_acorde` são da G04.
-- O `Som.tocar("sucesso")` do `_celebrar()` (`sala_jogo.gd:383`) fica só no
+- O `Som.tocar("sucesso")` do `_celebrar()` (`sala_jogo.gd:311`) fica só no
   coop vencido e no empate.
 
 ## O controle
@@ -317,9 +317,9 @@ caneta e o contador para em `1:47:12`. **Como se confere:**
   salão» (208-210).
 - `godot/scripts/ui/tela_creditos.gd` (42 linhas): o logo e «Hefesto Team».
   Não há encarte nem fim da fita.
-- `godot/scripts/musica.gd:11-23`, `FAIXAS`: sem `"creditos"`;
+- `godot/scripts/musica.gd:3-15`, `FAIXAS`: sem `"creditos"`;
   `TELAS.creditos` (179) aponta para `MUS_TELA_CREDITOS`.
-- `godot/scripts/partida.gd:100-112`: `historico` guarda `sala`, `nome`,
+- `godot/scripts/partida.gd:75-84`: `historico` guarda `sala`, `nome`,
   `pontos`, `colocacao`, `ganhos` de cada faixa.
 - Ninguém toca `fx_vitoria_p*`, `fx_derrota` nem `fx_autostop`
   (`grep -rn "fx_vitoria\|fx_derrota\|autostop" godot/scripts`); no mapa,

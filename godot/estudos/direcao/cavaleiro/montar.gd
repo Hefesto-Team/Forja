@@ -1,8 +1,4 @@
 extends RefCounted
-## A montagem do cavaleiro (04): três peças de personagens diferentes no mesmo
-## esqueleto, cada uma com a pele de onde veio (o esqueleto e as poses de
-## descanso são os mesmos nos 12, então qualquer cabeça encaixa em qualquer
-## tronco), a cadeira de rodas no lugar das pernas e o item no corpo.
 
 const Fita := preload("res://estudos/direcao/fita.gd")
 const Mundo := preload("res://estudos/direcao/mundo.gd")
@@ -11,19 +7,10 @@ const Corpo := preload("res://estudos/direcao/cavaleiro/corpo.gd")
 const Acento := preload("res://estudos/direcao/cavaleiro/acento.gd")
 const Racas := preload("res://estudos/direcao/cavaleiro/racas.gd")
 
-## Onde cada item fica (04, a arma ou o amuleto).
 const OSSO_DO_ITEM := {"martelo": "arm-right", "ancora": "arm-right", "escudo": "arm-left",
 	"fole": "torso", "lanterna": "torso", "diapasao": "torso"}
 
 
-## Um cavaleiro montado. `pecas` = [cabeça, superior, inferior] pelo
-## personagem ("male-c"); `opcoes` vai para o Mundo.vestir, e mais:
-##   raca: "humana" (padrão), "orc", "automato", "golem" ou "raposa"
-##   item: o id do itens.csv ("" para nenhum)
-##   cadeira: "" (pernas) ou o nome da cadeira ("wheelchair-deluxe")
-##   anim, t_anim: a pose
-##   so: "cabeca", "superior" ou "inferior" para mostrar só uma parte
-##   acento: false tira o friso, a costura e a runa; acento_energia (1,6)
 static func cavaleiro(pai: Node3D, lugar: int, pos: Vector3, pecas: Array, opcoes := {}) -> Node3D:
 	var cor: Color = Fita.JOGADOR[lugar]
 	var raiz := Node3D.new()
@@ -40,7 +27,6 @@ static func cavaleiro(pai: Node3D, lugar: int, pos: Vector3, pecas: Array, opcoe
 		ap.play(anim)
 		ap.seek(float(opcoes.get("t_anim", 0.3)), true)
 		ap.pause()
-	# a raça: a proporção primeiro, depois a cabeça, as mãos e a cauda
 	var raca := String(opcoes.get("raca", "humana"))
 	var contorno: bool = opcoes.get("contorno", true)
 	Racas.preparar(esq, raca)
@@ -52,7 +38,6 @@ static func cavaleiro(pai: Node3D, lugar: int, pos: Vector3, pecas: Array, opcoe
 	var energia := float(opcoes.get("acento_energia", Acento.ENERGIA))
 	if opcoes.get("acento", true):
 		Acento.vestir(esq, cor, energia)
-	# só uma parte (a prancha das peças)
 	var so := String(opcoes.get("so", ""))
 	if so != "":
 		var fica: Array = {"cabeca": ["head", "raca-cabeca"], "superior": ["body-sup", "acento-friso", "raca-arm-left", "raca-arm-right"],
@@ -75,12 +60,6 @@ static func cavaleiro(pai: Node3D, lugar: int, pos: Vector3, pecas: Array, opcoe
 	return raiz
 
 
-# ------------------------------------------------------------- os itens --
-## O item preso ao osso dele, com o contorno na cor do dono. A pose já está
-## aplicada quando ele entra: o item é posto em pé no espaço do cavaleiro (o
-## cabo para cima, saindo do punho; o escudo de frente; o medalhão no peito)
-## e só então preso ao osso, para acompanhar a animação dali em diante.
-## Medidas nas unidades do personagem (0,79 de altura).
 static func por_item(esq: Skeleton3D, item: String, cor: Color, energia := Acento.ENERGIA) -> Node3D:
 	var presa := BoneAttachment3D.new()
 	presa.bone_name = OSSO_DO_ITEM[item]
@@ -97,7 +76,6 @@ static func por_item(esq: Skeleton3D, item: String, cor: Color, energia := Acent
 			alvo = Transform3D(Basis(Vector3.BACK, lado * deg_to_rad(-12)).scaled(Vector3.ONE * 1.8), punho + Vector3(0, -0.07, 0.02))
 		"ancora":
 			n = _malha(presa, ancora())
-			# empunhada pela haste, as unhas para cima, como arma
 			alvo = Transform3D(Basis(Vector3.BACK, PI + lado * deg_to_rad(-12)).scaled(Vector3.ONE * 2.0), punho + Vector3(0, 0.07, 0.03))
 		"escudo":
 			n = Mundo.peca(presa, "mini-dungeon/shield-round", Vector3.ZERO, 0.0, 1.0)
@@ -115,9 +93,6 @@ static func por_item(esq: Skeleton3D, item: String, cor: Color, energia := Acent
 	return n
 
 
-## A runa do item (04, a peça se distingue): no amuleto, o anel aceso num vão
-## JANELA em volta do emblema; nas armas, o fio: a ponta da cabeça do martelo,
-## as unhas da âncora, o aro do escudo. Em néon do dono, sem contorno.
 static func por_runa(n: Node3D, item: String, cor: Color, energia := Acento.ENERGIA) -> void:
 	var dados := runa(item)
 	if dados.has("janela"):
@@ -129,13 +104,11 @@ static func por_runa(n: Node3D, item: String, cor: Color, energia := Acento.ENER
 	a.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 
 
-## A malha da runa, no espaço do item (as medidas de cada malha).
 static func runa(item: String) -> Dictionary:
 	var acento := []
 	var janela := []
 	match item:
 		"martelo":
-			# as duas pontas da cabeça (x ±0,045, y 0,081 a 0,153 no tool-hammer)
 			for s in [-1.0, 1.0]:
 				var b := BoxMesh.new()
 				b.size = Vector3(0.008, 0.074, 0.042)
@@ -147,7 +120,6 @@ static func runa(item: String) -> Dictionary:
 				var au := deg_to_rad(-90.0 + lado * 78.0)
 				acento.append([unha, Transform3D(Basis(Vector3.FORWARD, au + PI * 0.5 + lado * 0.6), Vector3(cos(au) * 0.064, -0.035 + sin(au) * 0.064, 0))])
 		"escudo":
-			# o aro do shield-round (raio 0,19, a face em z 0,053)
 			var t := TorusMesh.new()
 			t.inner_radius = 0.172
 			t.outer_radius = 0.188
@@ -173,10 +145,6 @@ static func runa(item: String) -> Dictionary:
 	return out
 
 
-## O punho, no espaço do esqueleto e na pose de agora: o meio do quarto mais
-## distante do ombro entre os vértices do tronco que o osso do braço move. O
-## eixo dos ossos dos Mini Characters não corre ao longo do braço, por isso
-## o punho sai da malha, não do osso.
 static func mao(esq: Skeleton3D, osso: String) -> Vector3:
 	var mi: MeshInstance3D = esq.get_node("body-sup")
 	var skin: Skin = mi.skin
@@ -218,7 +186,6 @@ static func _malha(pai: Node3D, malha: Mesh) -> MeshInstance3D:
 	return mi
 
 
-## O metal do item: a cor sai do papel "objeto" do recolorir, metallic 0,2.
 static func metal(base: Color, rugoso := 0.62) -> StandardMaterial3D:
 	var m := StandardMaterial3D.new()
 	m.albedo_color = Fita.graduar(base, "objeto")
@@ -228,7 +195,6 @@ static func metal(base: Color, rugoso := 0.62) -> StandardMaterial3D:
 	return m
 
 
-## Junta primitivas numa ArrayMesh só, com normais chapadas por face.
 static func juntar(partes_: Array, mat: Material) -> ArrayMesh:
 	var st := SurfaceTool.new()
 	st.begin(Mesh.PRIMITIVE_TRIANGLES)
@@ -243,8 +209,6 @@ static func juntar(partes_: Array, mat: Material) -> ArrayMesh:
 	return st.commit()
 
 
-## A âncora (arma, mão direita): a haste, o cepo, o anel e os dois braços
-## curvos com as unhas. 0,17 de altura, nas unidades do personagem.
 static func ancora() -> ArrayMesh:
 	var p := []
 	var haste := BoxMesh.new()
@@ -259,7 +223,6 @@ static func ancora() -> ArrayMesh:
 	anel.rings = 8
 	anel.ring_segments = 4
 	p.append([anel, Transform3D(Basis(Vector3.RIGHT, PI * 0.5), Vector3(0, 0.092, 0))])
-	# os braços: cinco gomos num arco de 130°, de cada lado
 	for lado in [-1.0, 1.0]:
 		for i in 5:
 			var a := deg_to_rad(-90.0 + lado * (10.0 + i * 15.0))
@@ -274,9 +237,6 @@ static func ancora() -> ArrayMesh:
 	return juntar(p, metal(Color("#c9ced8"), 0.5))
 
 
-## O medalhão do amuleto (peito): um disco de 12 cm (0,05 nas unidades do
-## personagem) com o emblema em relevo. Fole: o fole de duas tábuas; Lanterna:
-## a gaiola com a chama; Diapasão: o garfo de dois dentes.
 static func medalhao(item: String) -> ArrayMesh:
 	var p := []
 	var disco := CylinderMesh.new()
@@ -315,7 +275,6 @@ static func medalhao(item: String) -> ArrayMesh:
 			var cabo := BoxMesh.new()
 			cabo.size = Vector3(0.005, 0.014, 0.006)
 			p.append([cabo, Transform3D(Basis(), Vector3(0, -0.015, z))])
-	# o disco em cerâmica esmaltada (L 0,77, rugosidade 0,35) e o emblema em latão
 	var ceramica := Fita.fosco(Fita.CERAMICA, 0.35)
 	var m := juntar([[disco, Transform3D(Basis(Vector3.RIGHT, PI * 0.5), Vector3.ZERO)]], ceramica)
 	var latao := juntar(p, metal(Color("#f0cf78"), 0.45))

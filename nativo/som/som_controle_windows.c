@@ -1,18 +1,3 @@
-/* O som de cada controle, no Windows — e no .exe sob Proton.
- *
- * O caminho dos jogos que casam o áudio pelo container (ValveSoftware/Proton
- * #5900 cita Ghostwire: Tokyo e Deathloop): o HID do controle tem um
- * ContainerId (o CfgMgr32 lê do nó do dispositivo), cada endpoint de áudio
- * tem o dele (o WASAPI lê do repositório de propriedades), e o endpoint do
- * MESMO container é o do controle. Sob Proton, o Wine tira os dois do mesmo
- * pai USB no Linux — o do HID pelo winebus; o do endpoint pelo mmdevapi, a
- * partir do sysfs.path que o winepulse entrega (wine!359 e wine!7238) —, e é
- * por isso que o caminho funciona lá também, no cabo. Depende da versão do
- * Proton: com o winepipewire no lugar do winepulse, o container pode não vir
- * (proton-cachyos#296); aí sobra o caminho pelo nome.
- *
- * O SDL mostra o endpoint pelo FriendlyName; é por ele que o que o WASAPI
- * disse volta para a lista do jogo. */
 #include "som_controle.h"
 
 #if defined(_WIN32)
@@ -22,7 +7,6 @@
 #include <initguid.h>
 #include <windows.h>
 
-/* a ordem importa: o mmdeviceapi traz o PROPERTYKEY que os outros usam */
 #include <mmdeviceapi.h>
 #include <functiondiscoverykeys_devpkey.h>
 #include <devpkey.h>
@@ -33,7 +17,6 @@
 
 #include <stdio.h>
 
-/* PKEY_Device_ContainerId: o mesmo GUID do DEVPKEY_Device_ContainerId. */
 DEFINE_PROPERTYKEY(FORJA_PKEY_ContainerId, 0x8c7ed206, 0x3f8a, 0x4827, 0xb3, 0xab, 0xae, 0x9e, 0x1f, 0xae, 0xfc, 0x6c, 2);
 
 static void guid_texto(const GUID *g, char *out, size_t tam) {
@@ -89,8 +72,6 @@ void somc_plataforma_nos(SomControles *sc, char *rotulo, size_t tam) {
     IMMDevice_Release(dev);
     if (!nome[0] || !container[0])
       continue;
-    /* volta para a lista do jogo pelo nome; entre nomes repetidos, o próximo
-     * que ainda não tem container (as duas listas andam na mesma ordem) */
     for (int k = 0; k < sc->n; k++) {
       NoSom *no = &sc->nos[k];
       if (no->gravacao == (fluxo == eCapture) && !no->container[0] && !SDL_strcmp(no->nome, nome)) {
@@ -109,8 +90,6 @@ fim:
     CoUninitialize();
 }
 
-/* "\\?\HID#VID_054C&PID_0CE6&MI_03#8&...&0000#{4d1e55b2-...}" vira o ID de
- * instância "HID\VID_054C&PID_0CE6&MI_03\8&...&0000". */
 static bool instancia_do_caminho(const char *caminho, char *out, size_t tam) {
   const char *p = caminho;
   if (!SDL_strncmp(p, "\\\\?\\", 4) || !SDL_strncmp(p, "\\\\.\\", 4))

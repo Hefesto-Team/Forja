@@ -1,9 +1,3 @@
-/* O som de cada controle, do lado do módulo (som/som_controle.h): o
- * alto-falante, os dois atuadores e o microfone de cada jogador, achados como
- * um jogo os acha e tocados pelo SDL — paralelos ao som da TV, que é do
- * Godot. Os sons que vão ao controle são os da forja, sintetizados aqui
- * (som/sons_salas.h), pelo nome. O veredito do microfone e do botão do mudo
- * sai da régua do núcleo (medidas.h). */
 #include <map>
 #include <string>
 #include <cstdlib>
@@ -31,16 +25,11 @@ bool papel_ok(int papel) { return papel >= 0 && papel < PAPEL_TOTAL; }
 bool sim(const Dictionary &d, const char *k, bool padrao) { return d.has(k) ? (bool)d[k] : padrao; }
 float real(const Dictionary &d, const char *k) { return d.has(k) ? (float)(double)d[k] : 0.0f; }
 
-/* Os sons gravados que o jogo registrou (os efeitos CC0 de assets/sons),
- * pelo nome; ficam até o fim do processo. Os sons que as salas medem (os
- * passos, as notas, o sino e o pulso de teste) seguem sintetizados. */
 std::map<std::string, Som> &registrados() {
   static std::map<std::string, Som> m;
   return m;
 }
 
-/* O som pelo nome ("sino", "passo:2:1", "tiro_0"...); vazio é nenhum. Um
- * registrado com o mesmo nome de um sintetizado não o substitui. */
 const Som *som_do_nome(const String &nome) {
   if (nome.is_empty())
     return nullptr;
@@ -52,18 +41,17 @@ const Som *som_do_nome(const String &nome) {
   return it != registrados().end() ? &it->second : nullptr;
 }
 
-} // namespace
+}
 
 bool ForjaControles::som_registrar(const String &nome, const PackedByteArray &pcm16, int taxa) {
   if (nome.is_empty() || pcm16.size() < 4 || taxa < 8000)
     return false;
   CharString c = nome.utf8();
   if (sons_salas_por_nome(c.get_data()))
-    return false; /* os sintetizados das salas não se trocam */
+    return false;
   auto &m = registrados();
   if (m.count(c.get_data()))
     return true;
-  /* 16 bits mono na taxa dada → float na MIX_TAXA (interpolação linear) */
   int n_ent = (int)(pcm16.size() / 2);
   const uint8_t *b = pcm16.ptr();
   int n = (int)((int64_t)n_ent * MIX_TAXA / taxa);
@@ -91,9 +79,6 @@ void ForjaControles::som_preparar(int papel) {
     return;
   sons_salas();
   somc_preparar(FORJA);
-  /* o alto-falante do DualSense no cabo precisa da rota: o canal R para o
-   * alto-falante interno, o volume e o pré-amplificador (o que o
-   * hid-playstation também escreve quando o fone sai) */
   if (papel != PAPEL_HAPTICA)
     for (int s = 0; s < MAX_JOGADORES; s++) {
       Pad *p = pads_do_slot(FORJA, s);
@@ -150,7 +135,6 @@ int ForjaControles::som_falante(int lugar, const String &som, float ganho) {
 int ForjaControles::som_haptica(int lugar, const String &esq, const String &dir, float ganho) {
   if (!aberto_)
     return -1;
-  /* o nome no registro: o do lado que toca, ou "esquerdo|direito" quando são dois */
   String quais = esq.is_empty() ? dir : (dir.is_empty() || dir == esq ? esq : esq + String("|") + dir);
   CharString nome = quais.utf8();
   return somc_haptica(FORJA, lugar, som_do_nome(esq), som_do_nome(dir), ganho, nome.get_data());
@@ -194,10 +178,6 @@ int ForjaControles::chao_do_envelope(const PackedFloat32Array &env) const {
   return chao_pelo_envelope(env.ptr(), (int)env.size());
 }
 
-/* O microfone e o botão do mudo, pelo que a sala mediu:
- *   {tem, piso, viu_piso, voz, mudo, viu_mudo, apertou_mudo, pediu_mudo,
- *    quadros, mexeu}
- * (os níveis na escala da tela: 0 = -54 dB, 1 = 0 dB). */
 Dictionary ForjaControles::mic_veredito(int lugar, const String &chave, const Dictionary &d) {
   Dictionary r;
   if (!aberto_)
@@ -224,7 +204,6 @@ Dictionary ForjaControles::mic_veredito(int lugar, const String &chave, const Di
   } else {
     return r;
   }
-  /* sem microfone achado, o degrau fica em "nenhum": não se mediu nada */
   int nivel = (int)v.nivel;
   veredito(lugar, f, (int)v.resultado, nivel, txt(v.pedido), txt(v.medido), txt(v.obs));
   r["feature"] = chave;

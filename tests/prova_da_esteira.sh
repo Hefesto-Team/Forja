@@ -1,9 +1,4 @@
 #!/usr/bin/env bash
-# A prova da esteira: o scripts/esteira.py lê um quadro de mentira e diz o que despachar, o que segura e por quê;
-# o scripts/costura.sh costura um ramo limpo, para no conflito (abortado, integração limpa) e para no primeiro
-# vermelho. Tudo numa pasta temporária, com repositórios git de mentira: não toca o repositório de verdade.
-#
-# Não precisa de Godot, e roda em segundos. Uso: bash tests/prova_da_esteira.sh
 set -u
 RAIZ="$(cd "$(dirname "$0")/.." && pwd)"
 TMP="$(mktemp -d /tmp/forja-prova-da-esteira-XXXXXX)"
@@ -11,7 +6,6 @@ trap 'rm -rf "$TMP"' EXIT
 FALHAS=0
 CASOS=0
 
-## espera <rc esperado> <o que> <comando...>
 espera() {
   local quer="$1" oque="$2"; shift 2
   CASOS=$((CASOS + 1))
@@ -26,7 +20,6 @@ espera() {
   fi
 }
 
-## confere <o que> <expressão python sobre d, o JSON da esteira em $TMP/esteira.json>
 confere() {
   local oque="$1" expr="$2"
   CASOS=$((CASOS + 1))
@@ -40,10 +33,9 @@ confere() {
   fi
 }
 
-# --- a esteira ---------------------------------------------------------------------------------------------------
 Q="$TMP/quadro"
 mkdir -p "$Q/docs/jogo/tarefas" "$Q/docs/jogo/o-time"
-ficha() { # <código> <arquivos em crase, separados por espaço; vazio = sem a parte> [texto do resto]
+ficha() {
   local f="$Q/docs/jogo/tarefas/$1.md"
   printf '# %s\n\n## Por quê\n\nPorque.\n\n## Ler antes\n\n- `docs/jogo/nao-conta.md`\n' "$1" > "$f"
   if [ -n "$2" ]; then
@@ -122,7 +114,7 @@ cat > "$Q/docs/jogo/o-time/ESPERA-ELA.md" <<'EOF'
 | --- | --- | --- |
 | 08/10/2026 | aprovar a bíblia | o enriquecimento inteiro |
 EOF
-ficha F00 ""; ficha F01 "" 'O `godot/scripts/main.gd:12` faz.'; ficha F02 "godot/scripts/forja.gd"
+ficha F00 ""; ficha F01 "" 'O `godot/scripts/main.gd:2` faz.'; ficha F02 "godot/scripts/forja.gd"
 ficha G01 "godot/scripts/telas.gd"; ficha G02 "godot/scripts/ui/"; ficha H01 "godot/scripts/relogio.gd"
 ficha I1 "godot/scripts/salas/canto.gd"; ficha J1 "godot/scripts/salas/"; ficha K1 "godot/scripts/salas/molde.gd"
 ficha L1 "godot/scripts/salas/impacto.gd"; ficha M1 "godot/scripts/galeria.gd"; ficha N1 "godot/scripts/telas.gd"
@@ -165,11 +157,10 @@ espera 2 "esteira: sem quadro, não diz nada (rc 2)" python3 "$RAIZ/scripts/este
 espera 0 "esteira: o quadro do repositório se lê" \
   bash -c "python3 '$RAIZ/scripts/esteira.py' | python3 -c 'import json, sys; json.load(sys.stdin)'"
 
-# --- a costura ---------------------------------------------------------------------------------------------------
 R="$TMP/repo"
 git init -q -b main "$R"
 mkdir -p "$TMP/sem-ganchos"
-git -C "$R" config core.hooksPath "$TMP/sem-ganchos"   # os ganchos globais da máquina não entram na prova
+git -C "$R" config core.hooksPath "$TMP/sem-ganchos"
 gr() { git -C "$R" -c user.name=prova -c user.email=prova@exemplo.invalid -c commit.gpgsign=false "$@"; }
 printf 'um\n' > "$R/a.txt"; printf 'ok\n' > "$R/estado.txt"
 printf '#!/usr/bin/env bash\n! grep -q VERMELHO estado.txt && echo "a prova olhou o estado"\n' > "$R/olha.sh"
@@ -231,8 +222,6 @@ espera 2 "costura: a prova que não existe não começa (rc 2)" bash "$C" voo/li
 gr switch -q voo/limpo
 espera 2 "costura: a integração no próprio ramo não começa (rc 2)" bash "$C" voo/limpo --integracao "$R" --prova "bash olha.sh"
 
-# --- as regras de execução (WT04) ---------------------------------------------------------------------------------
-## regras <raiz>: o regras.md existe, tem no máximo 60 linhas, e o 12, o COMO-CONTRIBUIR e a a-esteira apontam para ele.
 regras() {
   local r="$1" f="$1/docs/jogo/o-time/regras.md" ok=0
   [ -f "$f" ] || { echo "falta o docs/jogo/o-time/regras.md"; return 1; }
@@ -260,8 +249,6 @@ cp "$RAIZ/docs/COMO-CONTRIBUIR.md" "$G/docs/"
 sed -i 's|](regras.md|](outro.md|' "$G/docs/jogo/o-time/a-esteira.md"
 espera 1 "regras: a a-esteira sem o link, reprova" regras "$G"
 
-# --- os estados de uma ficha (WT05) -------------------------------------------------------------------------------
-## estados_iguais <raiz>: a lista da a-esteira («Os estados de uma ficha», os itens em negrito) é a ESTADOS do script.
 estados_iguais() {
   python3 - "$1/docs/jogo/o-time/a-esteira.md" "$RAIZ/scripts" <<'PY'
 import re, sys

@@ -1,9 +1,5 @@
 class_name Diagnostico
 extends Control
-## O diagnóstico ao vivo: uma coluna por lugar, com o mapa do controle e os
-## números — o que o controle manda ao jogo (entrada) e o que o jogo manda a
-## ele (saída), com as últimas saídas por extenso. Serve para quem valida ver,
-## antes de qualquer sala, que cada coisa chega e sai no controle certo.
 
 const MODOS := ["solto", "resistência", "arma", "vibração"]
 const LED_MIC := ["apagado", "aceso", "piscando", "piscando lento"]
@@ -15,8 +11,8 @@ const COLUNA := 408.0
 const CALHA := 32.0
 const TOPO := 150.0
 const ALTURA_MAPA := 150.0
-const LIN := 38.0  ## o passo de uma linha de número (letra de 30 px)
-const ROT := 132.0  ## onde começa o valor, depois do rótulo
+const LIN := 38.0
+const ROT := 132.0
 
 
 func _ready() -> void:
@@ -59,7 +55,6 @@ func _draw() -> void:
 	Desenho.dicas_a_direita(self, Vector2(size.x - Tema.MARGEM_X, 102), [["circulo", "Fechar"]], Tema.T_SELO)
 
 
-## Um número sem o "-0" do zero negativo.
 func _n(v: float, casas := 2) -> String:
 	if absf(v) < 0.5 * pow(10.0, -casas):
 		v = 0.0
@@ -79,7 +74,6 @@ func _barra(pos: Vector2, v: float, cor: Color, larg := 200.0) -> void:
 	draw_rect(Rect2(pos + Vector2(0, -12), Vector2(larg * clampf(v, 0, 1), 8)), cor)
 
 
-## O analógico como no app: o anel, a cruz do centro e o ponto claro onde ele está.
 func _analogico(centro: Vector2, v: Vector2, apertado: bool) -> void:
 	var raio := 30.0
 	draw_arc(centro, raio, 0, TAU, 40, Tema.ETIQUETA if apertado else Tema.GRAFITE, 2.0, true)
@@ -88,7 +82,6 @@ func _analogico(centro: Vector2, v: Vector2, apertado: bool) -> void:
 	draw_circle(centro + v.limit_length(1.0) * (raio - 5), 6.0, Tema.ETIQUETA)
 
 
-## O gatilho analógico: o trilho em pé, cheio até o curso.
 func _gatilho(pos: Vector2, v: float, nome: String) -> void:
 	var h := 60.0
 	draw_rect(Rect2(pos, Vector2(12, h)), Tema.GRAFITE)
@@ -118,7 +111,6 @@ func _coluna(l: int, o: Vector2) -> void:
 	var x := o.x + 24.0
 	var y := o.y + 64.0 + ALTURA_MAPA + 36.0
 	Desenho.texto(self, Vector2(x, y), "Entrada", Tema.archivo(600), Tema.T_SELO, Tema.ETIQUETA)
-	# os dois analógicos e os dois gatilhos, desenhados
 	var lv := Vector2(Forja.eixo(l, Forja.LX), Forja.eixo(l, Forja.LY))
 	var rv := Vector2(Forja.eixo(l, Forja.RX), Forja.eixo(l, Forja.RY))
 	_analogico(Vector2(x + 34, y + 52), lv, Forja.segura(l, Forja.L3))
@@ -179,7 +171,6 @@ func _coluna(l: int, o: Vector2) -> void:
 	_rotulo(Vector2(x, y), "Mudo")
 	Desenho.texto(self, Vector2(x + ROT, y), LED_MIC[clampi(mic, 0, 3)], Tema.archivo(500), Tema.T_ROTULO,
 		Tema.SECAO[3] if mic else Tema.ETIQUETA_SOMBRA, HORIZONTAL_ALIGNMENT_LEFT, COLUNA - 48 - ROT)
-	# a última saída, por extenso (sem o tempo: é a mais nova)
 	var ult: PackedStringArray = Forja.saidas(l)
 	if ult.size() > 0:
 		y += LIN

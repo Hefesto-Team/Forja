@@ -1,26 +1,16 @@
 #!/usr/bin/env bash
-# A prova da bancada, sem aparelho: os sete experimentos do experimental/,
-# headless, com quatro DualSense simulados e o robô. O que precisa de aparelho
-# de verdade (o microfone, o report cru) tem de sair "não medido", com o
-# porquê; o que o simulador alcança (os quatro microfones, a háptica pelo nó)
-# tem de sair medido — e, com os atuadores trocados, a háptica tem de falhar.
-#
-# Precisa do módulo compilado (scripts/compilar.sh linux).
-# Uso: bash tests/prova_da_bancada.sh        (GODOT=<binário> para outro Godot)
 set -u
 RAIZ="$(cd "$(dirname "$0")/.." && pwd)"
-source "$RAIZ/scripts/engine.sh"   # a versão da engine mora lá (ADR-009)
+source "$RAIZ/scripts/engine.sh"
 GODOT="$FORJA_GODOT"
 [ -x "$GODOT" ] || { echo "sem Godot: rode ./run-local.sh uma vez, ou GODOT=<binário>"; exit 2; }
-# A caixa (tests/caixa.sh): sem ela, o P1 vira o DualSense ligado na máquina
-# e os experimentos tocam o alto-falante, a háptica e os gatilhos dele.
 source "$RAIZ/tests/caixa.sh"
-caixa_pasta prova-da-bancada; TMP="$CAIXA_PASTA"   # no vermelho, a pasta fica em .cache/provas/ (WQ04)
+caixa_pasta prova-da-bancada; TMP="$CAIXA_PASTA"
 caixa_montar "$TMP"
 caixa "$GODOT" --headless --path "$RAIZ/godot" --import > "$TMP/import.log" 2>&1
 
 FALHAS=0
-rodar() {  # $1 experimento, $2 nome da rodada, depois os argumentos a mais
+rodar() {
   local exp="$1" nome="$2"
   shift 2
   mkdir -p "$TMP/$nome"
@@ -32,10 +22,9 @@ rodar() {  # $1 experimento, $2 nome da rodada, depois os argumentos a mais
     echo "FAIL $nome: o jogo saiu com erro (rc=$rc)"
     FALHAS=$((FALHAS + 1))
   fi
-  # o erro do motor que não está em tests/erros_esperados.txt reprova (WQ01)
   caixa_julgar "$TMP/$nome.log" || FALHAS=$((FALHAS + 1))
 }
-esperar() {  # $1 rodada, $2 quantas linhas, $3 o padrão
+esperar() {
   local n
   n=$(grep -c -- "$3" "$TMP/$1.linhas")
   if [ "$n" -eq "$2" ]; then
@@ -61,8 +50,6 @@ esperar haptica-nomeada 4 "medido: «placa virtual do controle simulado», simul
 rodar haptica-nomeada haptica-trocada --defeitos=haptica-trocada
 esperar haptica-trocada 4 "falhou: .*lado certo 0 de 4"
 
-# a conta sai da tabela SENSACOES do forja.gd: uma sensação nova entra sozinha.
-# Com os motores trocados, só falha a que tem forte diferente de fraco.
 SENSACOES=$(awk '/^const SENSACOES/{d=1;next} d&&/^}/{exit} d&&/^\t"/' "$RAIZ/godot/scripts/forja.gd")
 N_SENS=$(printf '%s\n' "$SENSACOES" | grep -c .)
 N_ASSIM=$(printf '%s\n' "$SENSACOES" | sed 's/.*\[\([^]]*\)\].*/\1/' | LC_ALL=C awk -F, '$1+0 != $2+0' | grep -c .)
@@ -71,7 +58,6 @@ esperar haptico $((4 * N_SENS)) "medido: "
 rodar haptico motores-trocados --defeitos=motores-trocados
 esperar motores-trocados $((4 * N_ASSIM)) "falhou: "
 
-# a força (F10): o jogo obedece ao arquivo de comandos do roteiro do rumble seco
 printf '0 0.5 80\n1 1.0 80\n2 0.25 80\nparar 0\nfim\n' > "$TMP/forca.cmd"
 rodar forca forca --comando="$TMP/forca.cmd"
 esperar forca 3 "medido: força"

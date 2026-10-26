@@ -19,7 +19,7 @@ saída para o controle decide se o pulso cai no tempo.
 
 ## O risco no Linux
 
-1. **A latência de saída.** O módulo abre o fluxo com `SDL_OpenAudioDeviceStream` (`nativo/som/som_controle.c:94`),
+1. **A latência de saída.** O módulo abre o fluxo com `SDL_OpenAudioDeviceStream` (`nativo/som/som_controle.c:85`),
    sem hint de tamanho. O SDL3 escolhe 1024 quadros a 48 kHz, 21,3 ms (`SDL_GetDefaultSampleFramesFromFreq`,
    `SDL_audio.c:151`). O quantum padrão do PipeWire também é 1024 a 48000, mais 21,3 ms (o manual do `pipewire(1)`).
    Somados: **pelo menos 42,7 ms** antes do USB, mais o intervalo do áudio USB (`bInterval` 4, 1 ms em alta

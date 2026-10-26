@@ -1,4 +1,3 @@
-/* Os sons das salas de som. Ver sons_salas.h. */
 #include "sons_salas.h"
 
 #include "sintese.h"
@@ -9,8 +8,6 @@
 static SonsSalas g_sons;
 static bool g_prontos;
 
-/* O buffer da síntese é do malloc da libc; o mixer libera com SDL_free.
- * Copia para um buffer do SDL e devolve o original. */
 static void som_de_onda(Som *dst, Onda *o) {
   dst->amostras = SDL_malloc(sizeof(float) * (size_t)(o->n > 0 ? o->n : 1));
   dst->n = 0;
@@ -48,19 +45,17 @@ const SonsSalas *sons_salas(void) {
       sint_passo(&o, c, (uint32_t)(100 + c * 10 + v));
       som_de_onda(&g_sons.passo[c][v], &o);
     }
-  /* o pio de cada boneco: uma escala pentatônica a partir do dó 5 */
   static const float PIO_HZ[SONS_PIOS] = {523.25f, 587.33f, 659.25f, 783.99f, 880.0f, 1046.5f,
                                           554.37f, 622.25f, 739.99f, 830.61f, 932.33f, 1108.7f};
   for (int k = 0; k < SONS_PIOS; k++) {
     sint_pio(&o, PIO_HZ[k], k % 2, 40u + (uint32_t)k);
     som_de_onda(&g_sons.pio[k], &o);
   }
-  /* a nota de cada lugar (o hoqueto: dó, ré, fá, sol) e a mesma, quebrada */
   static const float NOTA_HZ[4] = {523.25f, 587.33f, 698.46f, 783.99f};
   for (int l = 0; l < 4; l++) {
     sint_bigorna(&o, NOTA_HZ[l], 0.42f, 1.1f, 50u + (uint32_t)l);
     som_de_onda(&g_sons.nota_lugar[l], &o);
-    sint_bigorna(&o, NOTA_HZ[l] * 0.9659f, 0.2f, 0.4f, 60u + (uint32_t)l); /* 60 cents abaixo, curta e baça */
+    sint_bigorna(&o, NOTA_HZ[l] * 0.9659f, 0.2f, 0.4f, 60u + (uint32_t)l);
     som_de_onda(&g_sons.nota_quebrada[l], &o);
   }
   sint_pulso(&o, 2637.0f, 0.03f, 2, 0.06f);
@@ -87,7 +82,6 @@ const Som *sons_salas_por_nome(const char *nome) {
       var = -var;
     return &s->passo[chao][var % SONS_PASSOS_VARIANTES];
   }
-  /* os que levam um número ou um nome depois dos dois pontos (H07) */
   if (!SDL_strncmp(nome, "pio:", 4)) {
     long k = strtol(nome + 4, NULL, 10);
     return k >= 0 && k < SONS_PIOS ? &s->pio[k] : NULL;

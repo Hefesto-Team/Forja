@@ -1,20 +1,12 @@
 extends Node
-## O pós da fita: o desgaste da fita sobre o jogo inteiro, em duas passadas.
-## A de baixo (camada 5, entre o 3D e a `Interface`) leva o desgaste, o rasgo e a
-## aberração; a de cima (camada 20, por cima de tudo) leva só a varredura e o grão
-## e, nos rasgos, uma sombra do que a de baixo faz. O desgaste cresce com a faixa
-## da partida (`gastar`); o rasgo só vem na entrada da sala, na volta da pausa e na
-## Dissonância (`rasgo_curto`) e nunca sem os Flashes ligados.
 
 const SHADER := preload("res://shaders/pos_fita.gdshader")
 const CAMADA_DE_BAIXO := 5
 const CAMADA_DE_CIMA := 20
-## A passada de cima, fixa: varredura e grão; o rasgo é 1/3 do de baixo e a aberração para em 2,0.
 const CIMA := {"varredura": 0.06, "grao": 0.02, "vinheta": 0.0, "desbota": 0.0}
 const ABERRACAO_DE_CIMA := 2.0
 const RASGO_VALOR := 0.35
 const RASGO_ABERRACAO := 2.2
-## Quadros do rasgo: sobe, fica, desce.
 const RASGO_SUBIDA := 2
 const RASGO_PLATO := 2
 const RASGO_DESCIDA := 6
@@ -23,10 +15,10 @@ const RASGOS_POR_SEGUNDO := 3
 var _baixo: ShaderMaterial
 var _cima: ShaderMaterial
 var _faixa := 1
-var _desgaste := {}  ## o que a faixa de agora manda no grão, no desbota, na varredura e na vinheta
+var _desgaste := {}
 var _tweens := {}
-var _rasgo_q := -1  ## o quadro do rasgo em curso (-1: nenhum)
-var _rasgos: Array[int] = []  ## quando (ms) começaram os últimos rasgos
+var _rasgo_q := -1
+var _rasgos: Array[int] = []
 
 
 func _ready() -> void:
@@ -54,8 +46,6 @@ func _passada(camada: int) -> ShaderMaterial:
 	return m
 
 
-## O desgaste da faixa `faixa` (1 a 12 na partida; 1 fora dela): o grão, a varredura e a
-## vinheta sobem de leve, o desbotar também, cada um até o teto. Virar a fita não zera.
 func gastar(faixa: int) -> void:
 	_faixa = maxi(1, faixa)
 	var k := float(_faixa - 1)
@@ -74,7 +64,6 @@ func faixa() -> int:
 	return _faixa
 
 
-## O valor de agora de um parâmetro da passada de baixo.
 func valor(nome: String) -> float:
 	if _baixo == null:
 		return 0.0
@@ -82,7 +71,6 @@ func valor(nome: String) -> float:
 	return float(v) if v != null else 0.0
 
 
-## Leva um parâmetro da passada de baixo ao `valor`, em `ms` (0: de uma vez).
 func ajustar(nome: String, valor_: float, ms := 0) -> void:
 	if _tweens.has(nome):
 		var antigo: Tween = _tweens[nome]
@@ -100,13 +88,10 @@ func ajustar(nome: String, valor_: float, ms := 0) -> void:
 			_tweens.erase(nome))
 
 
-## Devolve um parâmetro ao valor do desgaste da faixa (0 no rasgo e na aberração).
 func soltar(nome: String, ms := 0) -> void:
 	ajustar(nome, float(_desgaste.get(nome, 0.0)), ms)
 
 
-## O rasgo curto da fita enroscada: sobe em 2 quadros, fica 2, desce em 6; a semente muda a cada 2
-## quadros enquanto dura. No máximo 3 por segundo (o quarto é ignorado); sem os Flashes, nenhum.
 func rasgo_curto() -> void:
 	if not Opcoes.flashes:
 		_por("rasgo", 0.0)
@@ -146,8 +131,6 @@ func _quadro_do_rasgo() -> void:
 	_por("aberracao", RASGO_ABERRACAO * k)
 
 
-## Escreve um parâmetro na passada de baixo e o que ele vale na de cima. Sem os Flashes, o rasgo e a
-## aberração ficam em 0.
 func _por(nome: String, v: float) -> void:
 	if nome in ["rasgo", "aberracao"] and not Opcoes.flashes:
 		v = 0.0
@@ -161,7 +144,6 @@ func _por(nome: String, v: float) -> void:
 			_cima.set_shader_parameter("semente", v)
 
 
-## O tamanho da tela em pixels, que o grão e a varredura medem.
 func _medir() -> void:
 	var t := Vector2(get_window().size)
 	if t.x < 1.0 or t.y < 1.0:

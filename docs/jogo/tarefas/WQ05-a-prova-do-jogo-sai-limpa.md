@@ -35,9 +35,9 @@ volta a tocar no `quit`, por exemplo) passa verde.
   `scripts/mundo/kit.gd`, `scripts/traducoes.gd`, `scripts/opcoes.gd`, `scripts/partida.gd`,
   `scripts/ui/glifo.gd`), as duas fontes e os `.glb` do kit Kenney.
 - `print_orphan_nodes()` logo antes do `quit` não lista nenhum nó: não é nó tirado da árvore sem `free`.
-- Os caches estáticos: `Kit._cenas` (`scripts/mundo/kit.gd:8`), `Tema._fontes`, `_tema` e `_borda`
-  (`scripts/tema.gd:57-152`), `MapaDoControle._texturas`, `_camadas` e `_pecas` (`scripts/ui/mapa_controle.gd:27-29`),
-  `Desenho._glifos`, `_coletados`, `_desenhos` e `_cabe` (`scripts/ui/desenho.gd:20-152`).
+- Os caches estáticos: `Kit._cenas` (`scripts/mundo/kit.gd:6`), `Tema._fontes`, `_tema` e `_borda`
+  (`scripts/tema.gd:42-125`), `MapaDoControle._texturas`, `_camadas` e `_pecas` (`scripts/ui/mapa_controle.gd:17-19`),
+  `Desenho._glifos`, `_coletados`, `_desenhos` e `_cabe` (`scripts/ui/desenho.gd:16-124`).
 - A prova de poucos, que também abre o `main.tscn`, sai sem nenhum `ERROR:` depois que cala os tocadores.
 
 ## O alvo

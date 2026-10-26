@@ -379,7 +379,7 @@ entra, as 4 piscam juntas a 100 % por 0,1 s: a sala vê que bateu junto.
 | `mini-dungeon-personagens/character-orc` | `FERREIRO = (0, 0, −3.4)`, de frente para a câmera | **o ferreiro**: não é lugar; tingido de `Tema.OXIDO_BRILHO` |
 
 O ferreiro: o modelo vem de `Kit.caminho("mini-dungeon-personagens/character-orc")`, tingido pelo `_tingir` copiado
-de `prova.gd:200-210` (um `StandardMaterial3D` por superfície, `albedo_color` `Tema.OXIDO_BRILHO` e `roughness` 0,9).
+de `prova.gd:164-174` (um `StandardMaterial3D` por superfície, `albedo_color` `Tema.OXIDO_BRILHO` e `roughness` 0,9).
 O martelo vai no osso `arm-right`, como o `martelo_na_mao` da `SalaJogo`, copiado para o nó dele:
 
 ```gdscript

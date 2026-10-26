@@ -1,9 +1,5 @@
 class_name Glifo
 extends RefCounted
-## Os glifos dos botões, na geometria do app Hefesto (assets/glyphs: grade de
-## 32, traço 2, pontas redondas, só contorno; as setas cheias). Desenhados com
-## a API 2D do Godot: qualquer tamanho, qualquer cor. O logo da PlayStation é
-## marca da Sony e não entra.
 
 const BOTAO := {
 	0: "cruz", 1: "circulo", 2: "quadrado", 3: "triangulo", 4: "create", 6: "options",
@@ -12,7 +8,6 @@ const BOTAO := {
 }
 
 
-## Desenha o glifo `nome` dentro de `r` (quadrado), na cor `cor`.
 static func desenhar(ci: CanvasItem, nome: String, r: Rect2, cor: Color, peso := 1.0) -> void:
 	var k := minf(r.size.x, r.size.y) / 32.0
 	var o := r.position + (r.size - Vector2(32, 32) * k) * 0.5
@@ -116,13 +111,10 @@ static func _retangulo_arred(ci: CanvasItem, r: Rect2, raio: float, cor: Color, 
 	ci.draw_style_box(s, r)
 
 
-## O texto de uma dica de botão: "(Iniciar)", entre parênteses.
 static func _acao(texto: String) -> String:
 	return "(%s)" % Desenho.t(texto)
 
 
-## Largura de uma dica "Botão [glifo] (ação)" no tamanho `tam`. `com_botao` é
-## falso na segunda dica em diante de uma fileira: só a primeira diz "Botão".
 static func largura_dica(glifo: String, texto: String, tam: int, com_botao := true) -> float:
 	var f := Tema.archivo(600)
 	tam = Tema.t(tam)
@@ -133,7 +125,6 @@ static func largura_dica(glifo: String, texto: String, tam: int, com_botao := tr
 	return w
 
 
-## Uma dica: "Botão ✕ (Iniciar)", na linha de base `pos` (canto esquerdo).
 static func dica(ci: CanvasItem, pos: Vector2, glifo: String, texto: String, tam: int, cor_glifo: Color,
 		cor_texto: Color, com_botao := true) -> float:
 	tam = Tema.t(tam)

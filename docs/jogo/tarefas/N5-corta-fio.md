@@ -532,7 +532,7 @@ O cavaleiro da montagem (G13), de frente, com a bomba no peito e o alicate na m�
 aparecem como estão; a parte de cima fica meio coberta pela bomba (0,30 m no peito). Ele pode ser de outra raça
 (G08, parte B; a montagem é da G13): esta ficha usa o esqueleto comum de 7 ossos (a bomba e o confete vão no `torso`, o alicate no `arm-right`) e
 as animações `idle`, `emote-no`, `sit` e `interact-right`. O conferidor da G08 não exige o `sit`: num corpo sem ele, o
-`gesto("sit", ...)` não faz nada (`player.gd:185`) e o cavaleiro fica de pé no confete o tempo do sentado. Isso é
+`gesto("sit", ...)` não faz nada (`player.gd:158`) e o cavaleiro fica de pé no confete o tempo do sentado. Isso é
 aceito; o corte segue parado pelo `_sentado_ate`.
 
 | stat | gancho | o que muda no Corta-Fio | stat 1 | stat 3 | stat 5 |

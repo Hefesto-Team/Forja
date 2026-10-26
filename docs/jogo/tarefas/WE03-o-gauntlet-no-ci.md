@@ -23,9 +23,9 @@ vai dividi-la em partes. Se uma mudança deixa um defeito passar, hoje ninguém 
   `docs/COMO-CONTRIBUIR.md:56`.
 - [F01](F01-o-modo-bancada.md), linha 348: «`scripts/gauntlet.sh` e `bash tests/prova_de_poucos.sh` ficam com o
   André». [F08](F08-a-paridade.md), linhas 94 e 152: «Fica para a mão dela ou do André». As duas estão como feitas.
-- A lista do gauntlet (`scripts/gauntlet.sh:24-26`) tem os mesmos 20 defeitos de `nativo/nucleo/simulador.c:54-63`,
+- A lista do gauntlet (`scripts/gauntlet.sh:11-13`) tem os mesmos 20 defeitos de `nativo/nucleo/simulador.c:53-62`,
   escritos de novo à mão.
-- `scripts/gauntlet.sh:40` engole a falha do import: `"$GODOT" --headless --path "$RAIZ/godot" --import >/dev/null 2>&1 || true`.
+- `scripts/gauntlet.sh:24` engole a falha do import: `"$GODOT" --headless --path "$RAIZ/godot" --import >/dev/null 2>&1 || true`.
 - Cada perna roda a prova inteira, em série: são 21 rodadas da prova do jogo, cada uma com até 600 s (`:36`).
 
 ## O alvo

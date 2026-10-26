@@ -1,14 +1,10 @@
 extends RefCounted
-## A Centelha na fita: a mesma arena, a mesma câmera e as mesmas raias da sala
-## de hoje (godot/scripts/salas/centelha.gd), com os modelos da Kenney
-## recoloridos, a luz do estúdio e os néons só nos jogadores.
 
 const Fita := preload("res://estudos/direcao/fita.gd")
 const Mundo := preload("res://estudos/direcao/mundo.gd")
 const RAIAS := [-6.0, -2.0, 2.0, 6.0]
 const CAMERA_POS := Vector3(0, 7.2, 12.4)
 const CAMERA_OLHAR := Vector3(0, 1.2, -0.2)
-## A runa de cada um: o glifo, o quanto o anel já fechou (1 aberto) e o pulso.
 const RUNAS := [
 	{"glifo": "dpad_left", "anel": 0.82},
 	{"glifo": "cross", "anel": 0.55},
@@ -26,7 +22,6 @@ static func cavaleiro_de(l: int) -> Vector3:
 	return Vector3(RAIAS[l] - 1.05, 0.05, 1.15)
 
 
-## `apagada` (0 a 1): a Dissonância tira a luz da sala e deixa os jogadores.
 static func montar(raiz: Node3D, e, apagada := 0.0) -> void:
 	e.olhar(CAMERA_POS, CAMERA_OLHAR, 40.0)
 	Mundo.ambiente(raiz, {"ambiente": Color("#2a2738"), "ambiente_energia": lerpf(0.55, 0.18, apagada),
@@ -44,17 +39,14 @@ static func montar(raiz: Node3D, e, apagada := 0.0) -> void:
 	sol.shadow_normal_bias = 2.0
 	for l in 4:
 		var cor: Color = Fita.JOGADOR[l]
-		# a bigorna: o objeto do jogo, num foco de lâmpada (a estação de cada um)
 		var b := Mundo.peca(raiz, "survival-kit/workbench-anvil", bigorna_de(l), -PI * 0.5, 3.4)
 		var martelo_da_mesa := b.find_child("hammer", true, false)
 		if martelo_da_mesa:
 			martelo_da_mesa.visible = false
 		Mundo.foco(raiz, bigorna_de(l) + Vector3(0, 6.5, 1.2), bigorna_de(l), Fita.TUNGSTENIO,
 			lerpf(4.0, 1.2, apagada), 21.0, 12.0, false)
-		# o cavaleiro e a luz de dono que pinta o chão em volta dele
 		var pos := cavaleiro_de(l)
 		var d := bigorna_de(l) - pos
-		# virado para a bigorna, mas abrindo para a câmera: o rosto aparece
 		var para_camera := CAMERA_POS - pos
 		var yaw := lerp_angle(atan2(d.x, d.z), atan2(para_camera.x, para_camera.z), 0.55)
 		Mundo.cavaleiro(raiz, l, pos, yaw, POSE[l][0], POSE[l][1], "", {"martelo": true})
@@ -81,15 +73,11 @@ static func _arena(raiz: Node3D) -> void:
 		Mundo.peca(raiz, "mini-dungeon/wall", Vector3(12.0, 0, j * 2.0))
 
 
-## O estúdio dentro da forja: o tubo violeta da arquitetura no alto da parede
-## do fundo (o único néon que não é de jogador, e que pulsa na batida), as
-## caixas de som nos cantos e os cabos no chão.
 static func _estudio(raiz: Node3D, apagada: float) -> void:
 	var energia := lerpf(1.25, 0.25, apagada)
 	for lado in [-1.0, 1.0]:
 		Mundo.tubo(raiz, Vector3(7.2, 0.07, 0.07), Vector3(lado * 6.6, 2.32, -6.92), Fita.VIOLETA, energia)
 		Mundo.luz(raiz, Vector3(lado * 6.6, 1.9, -6.2), Fita.VIOLETA, lerpf(1.4, 0.3, apagada), 5.5)
-	# as caixas de som: dois caixotes da Kenney, um em cima do outro, com o cone
 	for lado in [-1.0, 1.0]:
 		var x: float = lado * 10.2
 		var base := Mundo.peca(raiz, "survival-kit/box-large", Vector3(x, 0, -6.4), lado * -0.35)
@@ -132,7 +120,6 @@ static func _runa(raiz: Node3D, l: int) -> void:
 	g.modulate = Fita.ETIQUETA
 	g.texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
 	no.add_child(g)
-	# o anel de oito lados que fecha; e o rastro do tamanho cheio, apagado
 	for k in 2:
 		var a := MeshInstance3D.new()
 		var t := TorusMesh.new()
@@ -169,7 +156,6 @@ static func _runa(raiz: Node3D, l: int) -> void:
 		g.scale = Vector3.ONE * 1.15
 
 
-## As faíscas do acerto, na cor de quem acertou (o brilho tem dono).
 static func _faiscas(raiz: Node3D, c: Vector3, cor: Color) -> void:
 	var rng := RandomNumberGenerator.new()
 	rng.seed = 5

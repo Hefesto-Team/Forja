@@ -1,5 +1,3 @@
-/* Achar o som de cada controle: ler a lista do sistema, reconhecer os nós,
- * casar com a lista do jogo e escolher um dispositivo por jogador. */
 #include "prova.h"
 
 #include "achar_som.h"
@@ -59,7 +57,6 @@ static NoSom no(const char *nome, int canais, bool gravacao, const char *usb) {
 }
 
 void provas_achar_som(void) {
-  /* ---- a lista do sistema ---- */
   NoSistema sis[SOM_MAX_NOS];
   int n = achar_ler_pactl(SAIDAS, false, sis, SOM_MAX_NOS);
   espera(n == 4, "quatro saídas lidas");
@@ -74,7 +71,6 @@ void provas_achar_som(void) {
   espera(achar_ler_pactl("", false, sis, SOM_MAX_NOS) == 0, "nada, nada");
   espera(achar_ler_pactl(SAIDAS, false, sis, 2) == 2, "respeita o máximo");
 
-  /* ---- os nomes ---- */
   espera(achar_tipo("DualSense Wireless Controller Analog Surround 4.0", false) == NO_DUALSENSE_SAIDA, "a placa");
   espera(achar_tipo("Alto-falante (Wireless Controller)", false) == NO_DUALSENSE_SAIDA, "o nome do Windows");
   espera(achar_tipo("DualSense Wireless Controller Mono", true) == NO_DUALSENSE_ENTRADA, "o microfone");
@@ -92,7 +88,6 @@ void provas_achar_som(void) {
   espera(achar_numero("DualSense Wireless Controller") == 0, "sem número");
   espera(achar_numero("controle x") == 0, "controle sem dígito");
 
-  /* ---- casar a lista do jogo com a do sistema, com nomes repetidos ---- */
   NoSom jogo[4] = {no("DualSense Wireless Controller Analog Surround 4.0", 4, false, NULL),
                    no("Áudio interno Estéreo analógico", 2, false, NULL),
                    no("DualSense Wireless Controller Analog Surround 4.0", 4, false, NULL),
@@ -102,7 +97,6 @@ void provas_achar_som(void) {
   espera(jogo[0].no_sistema == 0 && jogo[2].no_sistema == 2, "repetidos: o primeiro com o primeiro, o segundo com o segundo");
   espera(jogo[1].no_sistema == 1 && jogo[3].no_sistema == 3, "os únicos");
 
-  /* ---- a escolha ---- */
   snprintf(jogo[0].usb, sizeof(jogo[0].usb), "/usb3/3-4");
   snprintf(jogo[2].usb, sizeof(jogo[2].usb), "/usb3/3-5");
   ComoAchou como;
@@ -127,7 +121,6 @@ void provas_achar_som(void) {
   i = achar_para(&cont, 1, PAPEL_ALTO_FALANTE, NULL, "{00000000-1111-2222-3333-444444444444}", 1, NULL, &como);
   espera(i == 0 && como == ACHOU_APARELHO, "pelo ContainerId, como no Windows");
 
-  /* ---- os canais ---- */
   int a, b;
   achar_canais(&jogo[0], PAPEL_ALTO_FALANTE, &a, &b);
   espera(a == 1 && b == -1, "na placa de 4 canais, o alto-falante é o canal 1 (front-right)");

@@ -1,22 +1,5 @@
 class_name SalaVoz
 extends SalaJogo
-## A Voz — a voz, o silêncio e o susto.
-##
-## O padrão é o dos jogos de terror que escutam quem joga: o guardião que ouve
-## pelo microfone do controle, o botão de mudo que salva, a luz laranja que diz
-## que o microfone está fechado — e o susto que sai da mão: a vibração forte e
-## o grito no alto-falante do controle, enquanto a TV bate. A sala mede:
-##
-##   - o microfone: o silêncio de todos (o piso) e a voz de cada um, na vez
-##     dele, chamando o guardião — a chama do braseiro sobe com a voz;
-##   - o mudo: o botão do microfone (MISC1 no SDL) e, falando baixinho já
-##     mudo, se o sistema também cortou o som ou se o mudo ficou com o jogo;
-##   - o LED do microfone, às cegas: o jogo apaga, acende ou faz piscar a luz,
-##     a tela não mostra, e a pessoa diz como está.
-##
-## O som do ar é de todos: quando um fala, os microfones dos outros também
-## ouvem. Por isso a voz é medida em turnos, e o silêncio de todos junto. O
-## microfone de cada um é o do próprio controle, achado como um jogo acha.
 
 const F := preload("res://scripts/forja.gd")
 const RAIAS := [-6.0, -2.0, 2.0, 6.0]
@@ -25,13 +8,13 @@ const SILENCIO_S := 4.0
 const CHAMADO_MAX := 5.0
 const MUDO_MAX := 8.0
 const SUSSURRO_S := 3.0
-const LUZ_ESPERA := 1.0  ## a luz muda e a pessoa olha, antes de valer a resposta
+const LUZ_ESPERA := 1.0
 const LUZ_MAX := 7.0
 const LUZ_REVELA := 0.8
 const LUZ_RODADAS := 5
 const ESPERA_S := 2.2
 const SUSTO_S := 1.9
-const VOZ_ACIMA := 0.25 + 0.05  ## a voz acima do silêncio (MED_VOZ_ACIMA, com folga)
+const VOZ_ACIMA := 0.25 + 0.05
 const NOME_LUZ := ["apagada", "acesa", "piscando"]
 const BOTAO_LUZ := [F.CRUZ, F.CIRCULO, F.QUADRADO]
 const GLIFO_LUZ := ["cross", "circle", "square"]
@@ -42,16 +25,16 @@ enum { OLHAR, REVELA_LUZ, FIM_LUZ }
 
 var estado := SILENCIO
 var t_estado := 0.0
-var _luz_do_susto := false  ## o vermelho do susto ainda está aceso (a cor do lugar volta aos 0,4 s)
-var vez := -1  ## no chamado: o lugar que fala
-var ordem: Array = []  ## os lugares, na ordem do chamado
+var _luz_do_susto := false
+var vez := -1
+var ordem: Array = []
 var i_vez := 0
-var olhos := 0.0  ## 0 fechados .. 1 abertos e acesos
-var grito := 0.0  ## a boca do guardião, no susto
+var olhos := 0.0
+var grito := 0.0
 var flash := 0.0
-var j := {}  ## lugar -> o estado do jogador
-var n := {}  ## lugar -> os nós da raia
-var g := {}  ## os nós do guardião
+var j := {}
+var n := {}
+var g := {}
 
 
 func _init() -> void:
@@ -62,9 +45,6 @@ func _init() -> void:
 	objetivo = "O guardião da cripta escuta pelo microfone do controle. Primeiro, todos em silêncio. Depois, cada um na sua vez chama o guardião falando alto — os outros, quietos. Quando ele acordar, fiquem mudos com o botão do microfone; e digam, olhando o controle, como está a luz dele: ✕ apagada, ○ acesa, □ piscando. Confira o seu microfone aqui embaixo: fale e a barra sobe; ◀ ▶ troca."
 	features = ["microfone", "microfone_mudo", "led_microfone"]
 	cega = true
-	# Sem o Modo bancada não há a luz para dizer: o chamado e o mudo são uma vez
-	# só por pessoa, nunca os três acertos do treino. Com treino, eles cairiam
-	# nele e não somariam — a sala acabaria sempre em zero a zero.
 	com_treino = Forja.bancada
 	papel_som = F.PAPEL_MICROFONE
 	botoes_pedidos = F.mascara([F.MICROFONE, F.CRUZ, F.CIRCULO, F.QUADRADO])
@@ -75,14 +55,12 @@ func _init() -> void:
 
 func montar() -> void:
 	Kit.arena(self, 5, 3)
-	# a cripta: brasas frias, fantasmas, e o neon verde
 	atmosfera(Color("#7fe8ff"), Tema.VIOLETA, true, 40, 22.0, -7.8, 0.15)
 	var frio := OmniLight3D.new()
 	frio.position = Vector3(0, 8.0, 4.0)
 	frio.light_energy = 0.35
 	frio.omni_range = 26.0
 	add_child(enchimento(frio))
-	# as velas do fundo
 	for x in [-8.5, -5.0, 5.0, 8.5]:
 		var base := Vector3(x, 0.0, -4.6)
 		Kit.cilindro(self, 0.1, 0.5, base + Vector3(0, 0.25, 0), Kit.material(Tema.OXIDO_BRILHO, 0.0, 0.9))
@@ -109,8 +87,6 @@ func _novo_jogador() -> Dictionary:
 		"robo_espera": -1.0, "robo_falou": false}
 
 
-## O guardião: a máscara de pedra em blocos na parede do fundo. Os olhos abrem
-## e acendem com as vozes; a boca abre, em degraus, com os dentes, no susto.
 func _montar_guardiao() -> Dictionary:
 	var pivo := Node3D.new()
 	pivo.position = GUARDIAO
@@ -118,17 +94,14 @@ func _montar_guardiao() -> Dictionary:
 	add_child(pivo)
 	var pedra := Kit.material(Tema.GRAFITE, 0.0, 0.95)
 	var escuro := Kit.material(Tema.CASCO, 0.0, 0.9)
-	# a cabeça: testa, face e queixo
 	Kit.caixa(pivo, Vector3(2.6, 0.9, 1.0), Vector3(0, 0.95, 0), pedra)
 	Kit.caixa(pivo, Vector3(2.9, 1.0, 1.1), Vector3(0, 0.1, 0), pedra)
 	Kit.caixa(pivo, Vector3(2.2, 0.8, 1.0), Vector3(0, -0.8, 0), pedra)
-	# a testa franzida e o nariz
 	for lado in [-1.0, 1.0]:
 		var sob := Kit.caixa(pivo, Vector3(0.75, 0.13, 0.2), Vector3(lado * 0.45, 0.55, 0.5), escuro)
 		sob.rotation.z = lado * -0.32
 	var nariz := Kit.caixa(pivo, Vector3(0.35, 0.7, 0.35), Vector3(0, 0.05, 0.62), pedra)
 	nariz.rotation.x = -0.25
-	# os olhos, com a pálpebra de pedra por cima
 	var palpebras: Array = []
 	var mat_olho := Kit.material(Tema.TUNGSTENIO, 0.0)
 	Tema.emissivo(mat_olho, 0.0, "forja")
@@ -136,7 +109,6 @@ func _montar_guardiao() -> Dictionary:
 		Kit.caixa(pivo, Vector3(0.34, 0.22, 0.12), Vector3(lado * 0.55, 0.3, 0.56), mat_olho)
 		var pa := Kit.caixa(pivo, Vector3(0.5, 0.44, 0.12), Vector3(lado * 0.55, 0.28, 0.62), pedra)
 		palpebras.append(pa)
-	# a boca e os dentes
 	var boca := Node3D.new()
 	boca.position = Vector3(0, -0.78, 0.56)
 	pivo.add_child(boca)
@@ -168,7 +140,6 @@ func _montar_guardiao() -> Dictionary:
 
 func _montar_raia(l: int, p: ForjaPlayer) -> Dictionary:
 	var x: float = RAIAS[l]
-	# o chão da raia: a laje de pedra com a borda na cor do lugar
 	Kit.cilindro(self, 1.4, 0.06, Vector3(x, 0.03, Z_JOGADOR), Kit.material(Tema.CASCO, 0.0, 0.95))
 	var borda := MeshInstance3D.new()
 	var tor := TorusMesh.new()
@@ -184,8 +155,6 @@ func _montar_raia(l: int, p: ForjaPlayer) -> Dictionary:
 	Tema.emissivo(mat_borda, 0.1, l)
 	borda.material_override = mat_borda
 	add_child(borda)
-	# o braseiro da voz, à frente do boneco: a chama sobe com o que o microfone
-	# ouve (e apaga no mudo)
 	var bras := Vector3(x, 0.0, Z_JOGADOR - 1.05)
 	var pedra := Kit.material(Tema.GRAFITE, 0.0, 0.9)
 	Kit.cilindro(self, 0.18, 0.55, bras + Vector3(0, 0.27, 0), pedra)
@@ -200,7 +169,6 @@ func _montar_raia(l: int, p: ForjaPlayer) -> Dictionary:
 	luz.light_energy = 0.4
 	luz.omni_range = 3.2
 	add_child(luz)
-	# o foco de quem tem a vez de chamar
 	var foco := SpotLight3D.new()
 	foco.position = Vector3(x, 5.5, Z_JOGADOR + 1.6)
 	foco.look_at_from_position(foco.position, Vector3(x, 0.8, Z_JOGADOR))
@@ -215,8 +183,6 @@ func _montar_raia(l: int, p: ForjaPlayer) -> Dictionary:
 	maos_livres(p)
 	return {"mat_borda": mat_borda, "chama": chama, "brasa": brasa, "luz": luz, "foco": foco, "bras": bras}
 
-
-# ------------------------------------------------------------------ o jogo --
 
 func iniciar_jogo() -> void:
 	ordem.clear()
@@ -234,8 +200,6 @@ func iniciar_jogo() -> void:
 	t_estado = 0.0
 
 
-## No silêncio, nem o ambiente chegou: o microfone está mudo no sistema. A
-## sala segue sem a voz dele (a vez passa) e o veredito fica "não medido".
 func _mudo_no_sistema(e: Dictionary) -> bool:
 	return e.tem and e.viu_piso and float(e.piso) <= 0.001
 
@@ -244,7 +208,6 @@ func _conectado(l: int) -> bool:
 	return Forja.lugar(l).get("conectado", false)
 
 
-## A próxima vez no chamado, pulando quem não tem controle ou microfone.
 func _proxima_vez() -> int:
 	while i_vez < ordem.size():
 		var l: int = ordem[i_vez]
@@ -266,7 +229,7 @@ func _luz_rodada(l: int, e: Dictionary) -> void:
 		e.luz_ok = true
 		Forja.evento("jogo", l + 1, {"sala": id, "o": "pergunta", "qual": "luz_mic"})
 	else:
-		e.fase = FIM_LUZ  # o que o SDL não manda não se pergunta
+		e.fase = FIM_LUZ
 
 
 func _comecar_luz() -> void:
@@ -293,7 +256,6 @@ func _susto() -> void:
 		p.gesto("emote-no", 1.2)
 	Som.tocar("grito", GUARDIAO, 0.0)
 	Som.tocar("martelo", GUARDIAO, 2.0)
-	# o clarão do susto; com os flashes desligados nas opções, só um brilho
 	flash = 1.0 if Opcoes.flashes else 0.2
 	Forja.evento("jogo", 0, {"sala": id, "o": "susto"})
 
@@ -309,7 +271,7 @@ func _medir(dt: float) -> void:
 			continue
 		match estado:
 			SILENCIO:
-				if t_estado >= 1.0:  # o primeiro segundo é de quem ainda está calando
+				if t_estado >= 1.0:
 					e.soma_piso = float(e.soma_piso) + nivel
 					e.n_piso = int(e.n_piso) + 1
 					e.piso = float(e.soma_piso) / float(e.n_piso)
@@ -388,7 +350,7 @@ func jogar(dt: float) -> void:
 				e.chamou = true
 				Som.tocar("bigorna", GUARDIAO, -4.0)
 				marcar(vez, 150)
-				t_estado = maxf(t_estado, CHAMADO_MAX - 0.8)  # ainda um instante de chama acesa
+				t_estado = maxf(t_estado, CHAMADO_MAX - 0.8)
 			if t_estado >= CHAMADO_MAX or not _conectado(vez):
 				Forja.evento("jogo", vez + 1, {"sala": id, "o": "chamado", "voz": snappedf(float(e.voz), 0.01)})
 				t_estado = 0.0
@@ -408,7 +370,6 @@ func jogar(dt: float) -> void:
 					e.apertou_mudo = true
 					e.mudo = true
 					e.mexeu = true
-					# o jogo fica mudo: a luz laranja acende, como no console
 					if Forja.led_mic(l, 1):
 						e.luz_ok = true
 					Som.tocar("tique", p.global_position + Vector3(0, 1, 0), -4.0)
@@ -422,7 +383,7 @@ func jogar(dt: float) -> void:
 					j[l].robo_falou = false
 		SUSSURRO:
 			if t_estado >= SUSSURRO_S:
-				if Forja.bancada:  # a pergunta da luz do microfone é do Modo bancada
+				if Forja.bancada:
 					_comecar_luz()
 				else:
 					estado = ESPERA
@@ -447,7 +408,6 @@ func jogar(dt: float) -> void:
 				t_estado = 0.0
 				_susto()
 		SUSTO:
-			# o vermelho do susto dura 0,4 s; a cor do lugar nunca fica de fora
 			if t_estado >= 0.4 and _luz_do_susto:
 				_luz_do_susto = false
 				for l in j:
@@ -484,11 +444,8 @@ func dar_vereditos(l: int) -> Array:
 	return lista.filter(func(v): return not v.is_empty())
 
 
-# ------------------------------------------------------------------ o que se vê --
-
 func _process(dt: float) -> void:
 	super(dt)
-	# os olhos do guardião: fechados no silêncio, abrindo com as vozes
 	var alvo_olhos := 0.0
 	if fase == "jogo":
 		match estado:
@@ -541,8 +498,6 @@ func _mostrar(l: int, dt: float) -> void:
 	if p:
 		p.animar("interact-right" if da_vez and float(e.chama) > 0.35 else "idle", 1.0)
 
-
-# ------------------------------------------------------------------ a HUD --
 
 func status(lugar: int) -> String:
 	if fase != "jogo" or not j.has(lugar):
@@ -608,7 +563,7 @@ func dica(lugar: int) -> Dictionary:
 
 func pergunta(lugar: int) -> Dictionary:
 	if not Forja.bancada:
-		return {}  # a pergunta às cegas é do Modo bancada
+		return {}
 	if not j.has(lugar) or fase != "jogo" or estado != LUZ:
 		return {}
 	var e: Dictionary = j[lugar]
@@ -633,11 +588,6 @@ func pergunta(lugar: int) -> Dictionary:
 		"rodape": rodape, "pos": Vector3(RAIAS[lugar], 0.0, 3.9)}
 
 
-# ------------------------------------------------------------------ o robô --
-# Fala na vez dele, fica mudo, sussurra, e olha a luz do microfone do
-# controle simulado dele (o defeito de mentira fica no caminho, como no
-# aparelho).
-
 func _robo(l: int, e: Dictionary, dt: float) -> void:
 	match estado:
 		CHAMADO:
@@ -651,7 +601,7 @@ func _robo(l: int, e: Dictionary, dt: float) -> void:
 				e.robo_espera = float(e.robo_espera) - dt
 				if float(e.robo_espera) <= 0.0:
 					Forja.robo_apertar(l, F.MICROFONE, 0.08)
-					e.robo_espera = 1.5  # se não chegou, tenta de novo
+					e.robo_espera = 1.5
 		SUSSURRO:
 			if not e.robo_falou and t_estado > 0.5:
 				Forja.robo_falar(l, 0.35, 1.5)

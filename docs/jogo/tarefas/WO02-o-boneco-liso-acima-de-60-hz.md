@@ -21,7 +21,7 @@ física, que está desligada.
 ## O estado de hoje (medido em 09/10/2026, `85f24c3`)
 
 - `godot/project.godot`: nenhuma chave de física; a interpolação fica no padrão (desligada).
-- O andar livre, `godot/scripts/player.gd:211-225`:
+- O andar livre, `godot/scripts/player.gd:177-189`:
   ```gdscript
   func _physics_process(dt: float) -> void:
   	...
@@ -32,14 +32,14 @@ física, que está desligada.
   	...
   	move_and_slide()
   ```
-- Dentro das salas, o boneco é posto pela sala a cada quadro, no `_process`: `godot/scripts/salas/viga.gd:552`
+- Dentro das salas, o boneco é posto pela sala a cada quadro, no `_process`: `godot/scripts/salas/viga.gd:498`
   (`p.position = pos`, chamado do `_process` de `:535`); as outras salas o posicionam na entrada
-  (`molde.gd:122`, `voz.gd:219`, `canto.gd:234`, `impacto.gd:172`, `caminhos.gd:205`,
-  `minigames/s01/martelo_de_hefesto.gd:75`).
-- Os saltos: `godot/scripts/main.gd:316` (a volta ao salão, `p.global_position = volta`), `:219` e `:231` (os
+  (`molde.gd:95`, `voz.gd:186`, `canto.gd:208`, `impacto.gd:150`, `caminhos.gd:175`,
+  `minigames/s01/martelo_de_hefesto.gd:50`).
+- Os saltos: `godot/scripts/main.gd:291` (a volta ao salão, `p.global_position = volta`), `:219` e `:231` (os
   pedestais) e o pódio por tween, `:494`
   (`tw.tween_property(jogadores[l], "global_position", ...)`, no `_process` do tween).
-- A câmera anda no `_process`, `godot/scripts/main.gd:1055-1062`, e no salão enquadra quem joga lendo a posição
+- A câmera anda no `_process`, `godot/scripts/main.gd:959-965`, e no salão enquadra quem joga lendo a posição
   dos bonecos (`_pose_da_camera`, `:1017` em diante).
 
 ## O alvo
@@ -61,7 +61,7 @@ move no `_process` (a câmera, as salas, os tweens) continua como hoje, sem um q
    herda desligado, e nada que se move no `_process` muda de comportamento.
 2. No `player.gd`, o boneco liga o modo `ON` só quando anda pela física (não `preso`) e volta a `OFF` quando a sala
    o prende; a cada troca, `reset_physics_interpolation()`.
-3. Nos saltos (`main.gd:219`, `:231`, `:316`) e no fim do tween do pódio, `reset_physics_interpolation()` no boneco,
+3. Nos saltos (`main.gd:198`, `:231`, `:316`) e no fim do tween do pódio, `reset_physics_interpolation()` no boneco,
    para ele não deslizar da origem ao destino.
 4. A câmera do salão enquadra pela posição interpolada (`get_global_transform_interpolated().origin`), e não pela
    `global_position`, que é a do passo de física.
@@ -85,7 +85,7 @@ move no `_process` (a câmera, as salas, os tweens) continua como hoje, sem um q
 ## Pronto quando
 
 No bench a 144 quadros, a posição desenhada repete em no máximo 5 % dos quadros (hoje, 58 %), e depois do salto de
-`main.gd:316` nenhum quadro desenha o boneco entre a origem e o destino. A 60 quadros, as provas seguem iguais.
+`main.gd:291` nenhum quadro desenha o boneco entre a origem e o destino. A 60 quadros, as provas seguem iguais.
 
 ## Provas
 

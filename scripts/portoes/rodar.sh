@@ -1,27 +1,4 @@
 #!/usr/bin/env bash
-# Os portões por script, numa chamada só: o que o CI roda no job `portoes` e o que se roda antes de commitar.
-#
-#   A BASE (reprova desde já):
-#     texto de tela      toda frase da tabela de traduções começa com maiúscula (scripts/check_texto_de_tela.py)
-#     sem rastro         nenhum termo interno, campo de modelo em ficha, trailer, AGENTS.md (tests/prova_sem_rastro.sh)
-#     mensagens          os commits novos sem símbolo nem trailer (mensagens_de_commit.py)
-#     ficha pronta       ficha «pronta» no quadro tem todas as partes da ficha pronta (ficha_pronta.py)
-#     caixa              prova e script abrem o jogo só pelo `caixa` (tests/caixa.sh), sem ver o controle (caixa.py)
-#   A DIREÇÃO (em AVISO até a bíblia entrar; não reprovam):
-#     arte               cor só por token, só as fontes da bíblia, texto de 30 px ou mais, cor de jogador só no
-#                        jogador (arte.py, regras em arte.json)
-#     som                todo id tocado está no mapa do áudio; duração, pico e clique dos arquivos (som.py, som.json)
-#
-# VIRAR A ARTE E O SOM PARA REPROVAR: em scripts/portoes/arte.json e scripts/portoes/som.json, trocar
-# "modo": "aviso" por "modo": "reprova". Nada muda aqui nem no CI. A ficha V08 diz quando (avisos zerados).
-#
-# Uso: bash scripts/portoes/rodar.sh [--so base|arte|som] [--raiz DIR] [--desde REF] [--tudo]
-# Sai 0 quando nenhum portão em modo reprova achou nada; 1 quando algum achou; 2 quando um não conseguiu conferir.
-#
-# A tela fala curto: o resumo por portão e, de quem não deu ok, as linhas de FAIL e de ERRO (no máximo 12 no
-# total). A saída inteira de cada portão fica em .cache/portoes/<nome>.log. Com --desde REF, os avisos dos
-# arquivos mudados desde REF também aparecem (no mesmo corte). Com --tudo, a saída inteira vai para a tela,
-# como antes (o CI usa).
 set -uo pipefail
 uso() {
   cat <<'EOF'
@@ -59,12 +36,9 @@ LOGS=()
 NAO_OK=()
 CACHE="$RAIZ/.cache/portoes"
 mkdir -p "$CACHE"
-## o nome do portão no arquivo, sem espaço nem acento («texto de tela» vira texto-de-tela)
 arquivo_de() {
   printf '%s' "$1" | iconv -f utf-8 -t ascii//TRANSLIT 2> /dev/null | tr -c 'A-Za-z0-9' '-' | tr 'A-Z' 'a-z'
 }
-## roda <grupo> <nome> <comando...>: guarda a saída inteira em .cache/portoes/<nome>.log, o resumo, e soma o pior
-## código. Com --tudo, a saída também vai para a tela, como antes.
 roda() {
   local grupo="$1" nome="$2"; shift 2
   [ -n "$SO" ] && [ "$SO" != "$grupo" ] && return 0
@@ -103,8 +77,6 @@ echo "os portões:"
 printf '  %s\n' "${RESUMO[@]}"
 [ "$TUDO" -eq 1 ] && exit "$PIOR"
 
-# O que pede leitura, no máximo 12 linhas: o FAIL e o ERRO de quem não deu ok e, com --desde, os avisos dos arquivos
-# mudados desde a referência.
 MUDADOS=()
 if [ -n "$DESDE" ]; then
   git -C "$RAIZ" rev-parse --verify -q "$DESDE^{commit}" > /dev/null ||

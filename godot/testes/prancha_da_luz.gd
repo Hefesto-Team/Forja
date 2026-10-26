@@ -1,20 +1,7 @@
 extends Node
-## A prancha da luz: a Centelha, com os quatro bonecos, nas cinco tintas (linhas) e nos
-## lados A e B (colunas), 960x540 cada, na câmera de 35 mm em plongée de 50 graus, pelo
-## jogo de verdade (a luz de cada seção, o pós, o contorno e o anel). Grava
-## docs/imagens/jogo/luz.jpg, 1920x2700, para ficar ao lado de docs/imagens/direcao/13_luz.jpg.
-## Precisa de janela (o Xvfb, com o OpenGL por software; o --headless não devolve imagem):
-##
-##   env -u WAYLAND_DISPLAY xvfb-run -a -s "-screen 0 960x540x24" godot --display-driver x11 \
-##     --rendering-driver opengl3 --audio-driver Dummy --fixed-fps 60 --resolution 960x540 \
-##     --path godot res://testes/prancha_da_luz.tscn -- --simular=4 [--saida=<arquivo.jpg>]
-##
-## A aparência não se aprova aqui: o renderizador por software não é a placa de vídeo. A
-## olhada final é de quem joga, ao lado do 13_luz.jpg.
 
 const CEL := Vector2i(960, 540)
 const FOLHA := Vector2i(1920, 2700)
-## A tinta de cada linha: o número de uma seção que tem essa tinta, e como a prancha a chama.
 const LINHAS := [
 	{"secao": 1, "nome": "VERMELHÃO", "a": "S1 A Centelha", "b": "S9 A Prova"},
 	{"secao": 2, "nome": "COBALTO", "a": "S2 A Viga", "b": "S6 O Canto"},
@@ -49,7 +36,6 @@ func _ready() -> void:
 		p.visible = true
 	jogo._entrar_na_sala("centelha", false)
 	await _quadros(8)
-	# só a sala e os bonecos: nada de HUD nem de painel
 	jogo.get_node("Interface").visible = false
 	var vistos := 0
 	for p in jogo.jogadores:
@@ -83,7 +69,6 @@ func _quadros(n: int) -> void:
 		await get_tree().process_frame
 
 
-## A câmera de 35 mm em plongée de 50 graus, posta logo antes de cada desenho (por cima do que o jogo faz).
 func _enquadrar() -> void:
 	var cam: Camera3D = jogo.camera
 	if cam == null:

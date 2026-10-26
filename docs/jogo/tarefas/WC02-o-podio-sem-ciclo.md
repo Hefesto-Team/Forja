@@ -18,13 +18,13 @@ sorteio da semente, que existe para o empate de verdade, nunca chega a decidir.
 
 ## O estado de hoje (medido em 09/10/2026)
 
-- `godot/scripts/partida.gd:122` ordena por pares:
+- `godot/scripts/partida.gd:94` ordena por pares:
 
   ```gdscript
   lista.sort_custom(func(a, b): return _acima(int(a.lugar), int(b.lugar)))
   ```
 
-- `godot/scripts/partida.gd:135-139`, o desempate pela história, só nas salas em que os dois estavam:
+- `godot/scripts/partida.gd:104-108`, o desempate pela história, só nas salas em que os dois estavam:
 
   ```gdscript
   for k in range(historico.size() - 1, -1, -1):
@@ -35,14 +35,14 @@ sorteio da semente, que existe para o empate de verdade, nunca chega a decidir.
   ```
 
 - As ausências acontecem no jogo: o `main` registra como presente só quem estava `jogando` naquela sala
-  (`godot/scripts/main.gd:433-437`), e o `jogando` é posto a partir dos jogadores que a sala tinha ao começar
-  (`godot/scripts/salas/sala_jogo.gd:335-336`).
+  (`godot/scripts/main.gd:401-405`), e o `jogando` é posto a partir dos jogadores que a sala tinha ao começar
+  (`godot/scripts/salas/sala_jogo.gd:267-267`).
 - O ciclo, conferido à mão no código: três jogadores e três salas, com os presentes (P1, P3), (P2, P3) e (P1, P2), e
   o vencedor de cada uma P1, P3 e P2. Os totais ficam 7, 7 e 7, as vitórias 1, 1 e 1. P2 fica acima de P1 (a terceira
   sala), P3 acima de P2 (a segunda) e P1 acima de P3 (a primeira). Rodado num rascunho fora da árvore, com a
   `partida.gd` copiada: com os presentes na ordem [0, 1, 2], o pódio sai P3, P1, P2; na ordem [2, 1, 0], sai P1, P2,
   P3.
-- A prova de hoje (`godot/testes/prova_do_jogo.gd:793`, a `_prova_das_contas_da_partida`) só tem partidas com todos
+- A prova de hoje (`godot/testes/prova_do_jogo.gd:722`, a `_prova_das_contas_da_partida`) só tem partidas com todos
   presentes em toda sala.
 
 ## O alvo

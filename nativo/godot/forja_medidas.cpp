@@ -1,9 +1,3 @@
-/* As medidas das salas de entrada, do lado do módulo: o que o jogador fez
- * enquanto jogava vira o veredito de cada feature (medidas.h, a mesma régua
- * provada sem aparelho). A sala 3D só diz o que está pedindo agora (a runa
- * acesa, o círculo, o fole, os dois dedos, a mira, a martelada); o módulo
- * amostra os controles a cada quadro, depois de bombear o SDL, e no fim dá o
- * veredito e o grava no relatório. */
 #include "forja_controles.h"
 #include "forja_interno.h"
 
@@ -29,9 +23,9 @@ namespace {
 
 struct MedidaLugar {
   bool ativa = false;
-  bool mexeu = false;   /* o controle fez alguma coisa na sala */
-  bool repouso = false; /* a sala pede para soltar os analógicos */
-  int pedido = -1;      /* o botão da runa acesa agora */
+  bool mexeu = false;
+  bool repouso = false;
+  int pedido = -1;
   MedBotoes botoes;
   MedAnalogico esq, dir;
   MedGatilho l2, r2;
@@ -39,16 +33,13 @@ struct MedidaLugar {
   MedSensores sensores;
   long giro0 = 0, acel0 = 0;
   int concorda0[2] = {0, 0}, discorda0[2] = {0, 0};
-  /* O controle que cai e volta é outro Pad, com as contagens do zero: o que o
-   * antigo já tinha contado fica guardado aqui, e as bases passam ao novo. */
   SDL_JoystickID pad_id = 0;
   long giro_antes = 0, acel_antes = 0;
   int concorda_antes[2] = {0, 0}, discorda_antes[2] = {0, 0};
   long giro_visto = 0, acel_visto = 0;
   int concorda_visto[2] = {0, 0}, discorda_visto[2] = {0, 0};
-  uint32_t marcados = 0; /* botões cujo primeiro aperto já foi para a linha do tempo */
+  uint32_t marcados = 0;
   bool marcou_toque = false, marcou_dois = false, marcou_clique = false;
-  /* A Prova: a carga (o giroscópio sem buraco, as saídas aceitas) */
   bool carga_ativa = false;
   MedCarga carga{};
   uint64_t carga_giro_ult = 0;
@@ -56,7 +47,6 @@ struct MedidaLugar {
 
 MedidaLugar g_med[MAX_JOGADORES];
 
-/* o nome de cada botão, para o `medido` */
 const char *const *nomes_botoes() {
   static const char *nomes[MED_MAX_BOTOES] = {};
   static bool pronto = false;
@@ -85,7 +75,6 @@ const char *const *nomes_botoes() {
 
 bool lugar_valido(int l) { return l >= 0 && l < MAX_JOGADORES; }
 
-/* um marco de entrada na linha do tempo: a primeira vez que algo chegou */
 void marco(int lugar, const char *o_que, const char *detalhe) {
   if (!FORJA)
     return;
@@ -99,7 +88,7 @@ void marco(int lugar, const char *o_que, const char *detalhe) {
 
 String txt(const char *s) { return String::utf8(s ? s : ""); }
 
-} // namespace
+}
 
 bool ForjaControles::med_comecar(int lugar, int64_t botoes) {
   if (!aberto_ || !lugar_valido(lugar))
@@ -132,8 +121,6 @@ void ForjaControles::med_parar(int lugar) {
     g_med[lugar].ativa = false;
 }
 
-/* Volta a medir o que já vinha medindo (a pausa não zera nada: o que se
- * aperta no menu não conta, o que veio antes fica). */
 void ForjaControles::med_retomar(int lugar) {
   if (lugar_valido(lugar) && aberto_)
     g_med[lugar].ativa = true;
@@ -153,7 +140,6 @@ void ForjaControles::med_repouso(int lugar, bool sim) {
     g_med[lugar].repouso = sim;
 }
 
-/* A sala chegou a pedir: só o que foi pedido pode falhar. */
 void ForjaControles::med_pedir(int lugar, const String &o_que) {
   if (!lugar_valido(lugar))
     return;
@@ -191,7 +177,6 @@ void ForjaControles::med_martelada(int lugar) {
     med_sensores_martelada(&g_med[lugar].sensores);
 }
 
-/* Um quadro de medida: logo depois de o SDL ser bombeado. */
 void ForjaControles::med_quadro() {
   if (!aberto_)
     return;
@@ -203,7 +188,6 @@ void ForjaControles::med_quadro() {
     if (!p)
       continue;
     if (p->id != m.pad_id) {
-      /* o controle voltou ao lugar: guarda o que o de antes contou e rebaseia */
       m.giro_antes += m.giro_visto;
       m.acel_antes += m.acel_visto;
       for (int e = 0; e < 2; e++) {
@@ -268,7 +252,6 @@ void ForjaControles::med_quadro() {
     }
     med_sensores_amostra(&m.sensores, p->giro, p->acel);
     if (m.carga_ativa) {
-      /* as amostras de giroscópio que chegaram neste quadro de partida */
       uint64_t total = p->taxa_giro.total;
       med_carga_quadro(&m.carga, (long)(total - m.carga_giro_ult), FORJA->dt);
       m.carga_giro_ult = total;
@@ -386,8 +369,6 @@ void ForjaControles::med_zerar_tudo() {
     g_med[l] = MedidaLugar();
 }
 
-/* Um som da forja pelo nome da receita, com os parâmetros dela (os que
- * faltarem ficam no padrão). Nenhum arquivo de áudio: tudo sai daqui. */
 PackedFloat32Array ForjaControles::sintetizar(const String &tipo, const Dictionary &p) const {
   PackedFloat32Array saida;
   auto num = [&](const char *k, double padrao) -> float {
@@ -453,10 +434,6 @@ PackedByteArray ForjaControles::sintetizar_pcm16(const String &tipo, const Dicti
   return b;
 }
 
-/* ---------- A Prova: a carga ---------- */
-
-/* A partida começou: daqui em diante, cada quadro conta as amostras de
- * giroscópio que chegaram (o buraco maior, as paradas de mais de 1 s). */
 bool ForjaControles::carga_comecar(int lugar) {
   if (!aberto_ || !lugar_valido(lugar))
     return false;
@@ -473,7 +450,6 @@ void ForjaControles::carga_parar(int lugar) {
     g_med[lugar].carga_ativa = false;
 }
 
-/* Uma saída mandada no meio da carga: o SDL aceitou? */
 void ForjaControles::carga_saida(int lugar, bool ok) {
   if (!lugar_valido(lugar))
     return;
@@ -506,8 +482,6 @@ Dictionary ForjaControles::carga_estado(int lugar) const {
   return d;
 }
 
-/* O veredito de "tudo junto": a carga da partida e a prova final às cegas
- * (as luzinhas e a cor), pela régua de cegas.c. */
 Dictionary ForjaControles::carga_veredito(int lugar, const Dictionary &leds, const Dictionary &cor, bool mexeu) {
   Dictionary d;
   if (!aberto_ || !lugar_valido(lugar))

@@ -1,4 +1,3 @@
-/* Achar o som de cada controle. Ver achar_som.h. */
 #include "achar_som.h"
 
 #include <ctype.h>
@@ -20,8 +19,6 @@ static void sem_fim(char *s) {
   while (n && (s[n - 1] == '\n' || s[n - 1] == '\r' || s[n - 1] == ' ' || s[n - 1] == '"'))
     s[--n] = '\0';
 }
-
-/* ---------- a lista do sistema ---------- */
 
 int achar_ler_pactl(const char *texto, bool gravacao, NoSistema *nos, int max) {
   const char *cabeca = gravacao ? "Source #" : "Sink #";
@@ -91,14 +88,12 @@ int achar_ler_pactl(const char *texto, bool gravacao, NoSistema *nos, int max) {
       }
     }
     if (!fim)
-      p += len; /* a última linha sem '\n': a próxima volta fecha o bloco */
+      p += len;
     else
       p = fim + 1;
   }
   return n;
 }
-
-/* ---------- o nome ---------- */
 
 int achar_numero(const char *nome) {
   char b[256];
@@ -116,9 +111,7 @@ TipoNoSom achar_tipo(const char *nome, bool gravacao) {
   char b[256];
   minusculo(nome, b, sizeof(b));
   if (contem(b, "monitor of") || contem(b, ".monitor"))
-    return NO_OUTRO; /* a saída vista de dentro não é o controle */
-  /* só conta o nó que um jogo reconheceria como DualSense pela palavra da
-   * Sony (CONTRATO.md) — os nós numerados do Hefesto a trazem entre parênteses */
+    return NO_OUTRO;
   bool sony = contem(b, "dualsense") || contem(b, "wireless controller");
   if (!sony)
     return NO_OUTRO;
@@ -151,7 +144,6 @@ static bool numerado(TipoNoSom t) {
   return t == NO_NUMERADO_FALANTE || t == NO_NUMERADO_HAPTICA || t == NO_NUMERADO_MIC;
 }
 
-/* A háptica da placa do controle precisa dos canais dos atuadores. */
 static bool cabe(const NoSom *no, PapelSom papel) {
   if (!achar_serve(no->tipo, papel))
     return false;
@@ -160,12 +152,10 @@ static bool cabe(const NoSom *no, PapelSom papel) {
   return true;
 }
 
-/* ---------- casar as duas listas ---------- */
-
 void achar_casar(NoSom *jogo, int n_jogo, const NoSistema *sis, int n_sis) {
   for (int i = 0; i < n_jogo; i++) {
     jogo[i].no_sistema = -1;
-    int k = 0; /* quantos com o mesmo nome vieram antes na lista do jogo */
+    int k = 0;
     for (int j = 0; j < i; j++)
       if (jogo[j].gravacao == jogo[i].gravacao && !strcmp(jogo[j].nome, jogo[i].nome))
         k++;
@@ -180,13 +170,10 @@ void achar_casar(NoSom *jogo, int n_jogo, const NoSistema *sis, int n_sis) {
   }
 }
 
-/* ---------- a escolha ---------- */
-
 int achar_para(const NoSom *nos, int n, PapelSom papel, const char *usb_do_pad, const char *container_do_pad,
                int numero_na_mesa, const bool *usado, ComoAchou *como) {
   if (como)
     *como = ACHOU_NADA;
-  /* 1. pelo aparelho */
   for (int i = 0; i < n; i++) {
     if ((usado && usado[i]) || !cabe(&nos[i], papel))
       continue;
@@ -199,7 +186,6 @@ int achar_para(const NoSom *nos, int n, PapelSom papel, const char *usb_do_pad, 
       return i;
     }
   }
-  /* 2. pelo número do lugar à mesa */
   for (int i = 0; numero_na_mesa > 0 && i < n; i++) {
     if ((usado && usado[i]) || !cabe(&nos[i], papel) || !numerado(nos[i].tipo))
       continue;
@@ -209,8 +195,6 @@ int achar_para(const NoSom *nos, int n, PapelSom papel, const char *usb_do_pad, 
       return i;
     }
   }
-  /* 3. pelo nome: a placa do controle que ninguém levou e que não é, pelo
-   * aparelho, de outro controle conhecido (quem chama marca isso em `usado`) */
   for (int i = 0; i < n; i++) {
     if ((usado && usado[i]) || !cabe(&nos[i], papel) || numerado(nos[i].tipo))
       continue;
@@ -228,12 +212,12 @@ void achar_canais(const NoSom *no, PapelSom papel, int *a, int *b) {
   switch (no->tipo) {
   case NO_DUALSENSE_SAIDA:
     if (papel == PAPEL_ALTO_FALANTE && no->canais >= 2) {
-      *a = 1; /* front-right: o alto-falante sem fone (o front-left é o fone) */
+      *a = 1;
     } else if (papel == PAPEL_ALTO_FALANTE && no->canais == 1) {
       *a = 0;
     } else if (papel == PAPEL_HAPTICA && no->canais >= 4) {
-      *a = 2; /* rear-left: o atuador esquerdo */
-      *b = 3; /* rear-right: o atuador direito */
+      *a = 2;
+      *b = 3;
     }
     break;
   case NO_NUMERADO_FALANTE:
@@ -243,8 +227,6 @@ void achar_canais(const NoSom *no, PapelSom papel, int *a, int *b) {
     break;
   case NO_NUMERADO_HAPTICA:
     if (no->canais >= 4) {
-      /* o «Háptica do Controle N» do Hefesto tem 4 canais, FL FR RL RR, como a
-       * placa: os atuadores são os traseiros (o mesmo 2 e 3 da placa acima) */
       *a = 2;
       *b = 3;
     } else {

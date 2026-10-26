@@ -1,12 +1,8 @@
 class_name Desenho
 extends RefCounted
-## As peças de desenho da interface, no padrão do app Hefesto: moldura chapada
-## com borda, selo cheio em mono, as cinco lâmpadas do LED de jogador, a barra
-## de bateria, o texto com alinhamento. Tudo em cima da API 2D do Godot.
 
 const LOGO := preload("res://assets/forja-logo.png")
 
-## O glifo de cada feature do relatório (os de assets/glifos, do app Hefesto).
 const GLIFO_DA_FEATURE := {
 	"botoes": "cross", "analogicos": "stick_l", "gatilhos_analogicos": "l2",
 	"giroscopio": "giroscopio", "acelerometro": "acelerometro",
@@ -20,7 +16,6 @@ const GLIFO_DA_FEATURE := {
 static var _glifos := {}
 
 
-## Um glifo de feature (branco, para tingir), com mipmaps.
 static func glifo(nome: String) -> Texture2D:
 	if nome == "":
 		return null
@@ -49,23 +44,16 @@ static func moldura(ci: CanvasItem, r: Rect2, fundo: Color, borda: Color, largur
 	ci.draw_style_box(s, r)
 
 
-## A borda tracejada: o "pendente" do app (laranja) ou o lugar sem controle.
 static func tracejado(ci: CanvasItem, r: Rect2, cor: Color, largura := 2.0, traco := 12.0) -> void:
 	var cantos := [r.position, Vector2(r.end.x, r.position.y), r.end, Vector2(r.position.x, r.end.y)]
 	for i in 4:
 		ci.draw_dashed_line(cantos[i], cantos[(i + 1) % 4], cor, largura, traco, true)
 
 
-## A língua das telas: todo texto passa por aqui (e pelo Glifo) e sai
-## traduzido pela tabela do idioma escolhido (scripts/traducoes.gd); o que
-## não tem tradução sai como está. Com FORJA_COLETAR_TEXTOS=<arquivo>, anota
-## cada texto desenhado (para montar a tabela). Com FORJA_COLETAR_TEXTOS=memoria
-## (ou `_coletar = "memoria"`, como a prova faz), só guarda em `_coletados`.
 static var _coletar := ""
 static var _coletados := {}
 
 
-## A frase com a primeira letra em maiúscula (o nome solto, em lista ou botão).
 static func maiusc(s: String) -> String:
 	return s.substr(0, 1).to_upper() + s.substr(1)
 
@@ -78,7 +66,7 @@ static func t(s: String) -> String:
 	if _coletar != "-" and not _coletados.has(s):
 		_coletados[s] = true
 		if _coletar == "memoria":
-			return Traducoes.traduzir(s)  # só na memória: a prova lê `_coletados`
+			return Traducoes.traduzir(s)
 		var f := FileAccess.open(_coletar, FileAccess.READ_WRITE if FileAccess.file_exists(_coletar) else FileAccess.WRITE)
 		if f:
 			f.seek_end()
@@ -87,27 +75,13 @@ static func t(s: String) -> String:
 	return Traducoes.traduzir(s)
 
 
-## A coleta dos retângulos (F09): com `coletar_retangulos` ligado, cada texto
-## desenhado guarda a frase, o retângulo que ocupa na tela (em pixels do jogo,
-## 1920×1080), o tamanho da letra e a cor. A prova visual liga, força um
-## redesenho, lê e esvazia; fora dela, ninguém liga e nada custa.
 static var coletar_retangulos := false
 static var retangulos: Array = []
-## Qual desenho do nó guardou o texto, contado pelo sinal `draw` do próprio nó. O
-## número do quadro não basta: sem `--fixed-fps`, o mesmo nó se desenha mais de uma
-## vez num quadro (um a cada passo de física), e o cartão que desliza sairia
-## «encavalado com ele mesmo».
 static var _desenhos := {}
 
 
-## Guarda um texto já traduzido que acaba de ser desenhado em `pos` (a linha de
-## base, no espaço do `ci`). `largura` > 0 é a caixa em que ele se alinha.
 static func anotar(ci: CanvasItem, pos: Vector2, traduzido: String, f: Font, px: int, cor: Color,
 		alinhamento := HORIZONTAL_ALIGNMENT_LEFT, largura := -1.0, max_linhas := 0) -> void:
-	# a caixa da TINTA, não a da linha: do alto das letras altas (0,78 do corpo acima da
-	# linha de base) à ponta das descendentes (0,22 abaixo). A caixa da linha traz o
-	# espaço do acento e do entrelinha, e dois títulos de entrelinha justa «encavalariam»
-	# sem que nenhuma letra se tocasse.
 	var tam: Vector2
 	var folga_linha := maxf(0.0, f.get_height(px) - float(px))
 	if max_linhas == 0:
@@ -138,8 +112,6 @@ static func texto(ci: CanvasItem, pos: Vector2, s: String, f: Font, tam: int, co
 		anotar(ci, pos, dito, f, Tema.t(tam), cor, alinhamento, largura)
 
 
-## Um parágrafo que quebra a linha na `largura` (`pos` é a base da primeira
-## linha). Devolve a altura que ele ocupou.
 static func paragrafo(ci: CanvasItem, pos: Vector2, s: String, f: Font, tam: int, cor: Color, largura: float,
 		max_linhas := -1) -> float:
 	var dito := t(s)
@@ -152,10 +124,7 @@ static func paragrafo(ci: CanvasItem, pos: Vector2, s: String, f: Font, tam: int
 static var _cabe := {}
 
 
-## O texto que cabe em `linhas` linhas da `largura`: se não cabe, corta numa
-## palavra e fecha com reticências.
 static func caber(s: String, f: Font, tam: int, largura: float, linhas: int) -> String:
-	# corta o texto já traduzido (cortado em português, a tradução não o acharia)
 	s = t(s)
 	var chave := "%s|%d|%d|%d" % [s, Tema.t(tam), int(largura), linhas]
 	if _cabe.has(chave):
@@ -181,7 +150,6 @@ static func largura(s: String, f: Font, tam: int) -> float:
 	return f.get_string_size(Traducoes.traduzir(s), HORIZONTAL_ALIGNMENT_LEFT, -1, Tema.t(tam)).x
 
 
-## O selo: VT323 em fundo cheio, texto em TINTA (texto sobre cor é TINTA, 02 «Texto sobre a cor»).
 static func selo(ci: CanvasItem, pos: Vector2, s: String, cor: Color, tam := Tema.T_SELO) -> float:
 	var f := Tema.vt()
 	var w := largura(s, f, tam) + tam * 0.9
@@ -195,7 +163,6 @@ static func selo(ci: CanvasItem, pos: Vector2, s: String, cor: Color, tam := Tem
 	return w
 
 
-## As cinco lâmpadas do indicador de jogador: 1 | vão | 3 | vão | 1.
 static func leds(ci: CanvasItem, pos: Vector2, mascara: int, lado := 12.0) -> float:
 	var x := pos.x
 	var vao := lado * 0.5
@@ -211,7 +178,6 @@ static func leds(ci: CanvasItem, pos: Vector2, mascara: int, lado := 12.0) -> fl
 	return x - pos.x
 
 
-## A bateria: trilho, preenchimento claro e o número em mono.
 static func bateria(ci: CanvasItem, pos: Vector2, pct: int, carregando: bool, largura_trilho := 90.0) -> float:
 	var h := 8.0
 	ci.draw_rect(Rect2(pos + Vector2(0, -h - 6), Vector2(largura_trilho, h)), Tema.GRAFITE)
@@ -225,7 +191,6 @@ static func bateria(ci: CanvasItem, pos: Vector2, pct: int, carregando: bool, la
 	return largura_trilho + 12 + largura(s, f, Tema.T_MONO)
 
 
-## O cabeçalho do app: logo e o nome em duas linhas — "Hefesto" em Bungee, "Tech Demo" na etiqueta sombra.
 static func cabecalho(ci: CanvasItem, pos: Vector2, lado := 88.0) -> void:
 	ci.draw_texture_rect(LOGO, Rect2(pos, Vector2(lado, lado)), false)
 	var tam := maxi(int(lado * 0.36), Tema.LETRA_MINIMA)
@@ -233,8 +198,6 @@ static func cabecalho(ci: CanvasItem, pos: Vector2, lado := 88.0) -> void:
 	texto(ci, pos + Vector2(lado + 18, lado * 0.46 + tam * 1.12), "Tech Demo", Tema.archivo(700), tam, Tema.ETIQUETA)
 
 
-## Uma fileira de dicas "[glifo] palavra", da direita para a esquerda a partir de `fim`.
-## Com `placa`, uma placa escura atrás de toda a fileira (as dicas sobre a arena clara).
 static func dicas_a_direita(ci: CanvasItem, fim: Vector2, pares: Array, tam := Tema.T_ROTULO, placa := false) -> void:
 	if placa and not pares.is_empty():
 		var total := 40.0 * (pares.size() - 1)
@@ -260,8 +223,6 @@ static func dicas_a_esquerda(ci: CanvasItem, inicio: Vector2, pares: Array, tam 
 		x += 40.0
 
 
-# ------------------------------------------------------------- o cassete --
-## A caixa chapada do cassete: fundo, raio e, se pedir, a borda (a placa, a etiqueta, o botão).
 static func caixa(ci: CanvasItem, r: Rect2, fundo: Color, raio := 10, borda := Color(Tema.FITA, 0.0), largura := 0) -> void:
 	var s := StyleBoxFlat.new()
 	s.bg_color = fundo
@@ -274,10 +235,9 @@ static func caixa(ci: CanvasItem, r: Rect2, fundo: Color, raio := 10, borda := C
 	ci.draw_style_box(s, r)
 
 
-## Um carretel: o cubo com seis dentes e a fita enrolada (0 a 1).
 static func carretel(ci: CanvasItem, c: Vector2, raio: float, fita: float, cor_cubo := Tema.ETIQUETA, giro := 0.0) -> void:
 	var r_fita := lerpf(raio * 0.42, raio, fita)
-	ci.draw_circle(c, r_fita, Tema.OXIDO)  # a fita magnética
+	ci.draw_circle(c, r_fita, Tema.OXIDO)
 	ci.draw_arc(c, r_fita - 1.5, PI * 1.05, PI * 1.45, 18, Tema.OXIDO_BRILHO, 2.0, true)
 	ci.draw_circle(c, raio * 0.42, cor_cubo)
 	ci.draw_circle(c, raio * 0.2, Tema.CASCO)
@@ -287,8 +247,6 @@ static func carretel(ci: CanvasItem, c: Vector2, raio: float, fita: float, cor_c
 		ci.draw_line(c + d * raio * 0.2, c + d * raio * 0.33, Tema.CASCO, 3.0, true)
 
 
-## O contador de fita: rodas de número numa janela preta. `pos` é o canto de cima
-## à esquerda; devolve o retângulo que ocupou.
 static func contador(ci: CanvasItem, pos: Vector2, digitos: String, tam := 60) -> Rect2:
 	var f := Tema.vt()
 	var w_d := f.get_string_size("0", HORIZONTAL_ALIGNMENT_LEFT, -1, tam).x + 10.0
@@ -299,14 +257,10 @@ static func contador(ci: CanvasItem, pos: Vector2, digitos: String, tam := 60) -
 		caixa(ci, cel, Tema.CASCO, 3)
 		var base := Vector2(cel.position.x, cel.position.y - tam * 0.1 + f.get_ascent(tam))
 		texto(ci, base, digitos[i], f, tam, Tema.ETIQUETA, HORIZONTAL_ALIGNMENT_CENTER, cel.size.x)
-		# a dobra da roda: a linha do meio
 		ci.draw_line(Vector2(cel.position.x, cel.get_center().y), Vector2(cel.end.x, cel.get_center().y), Color(Tema.JANELA, 0.55), 2.0)
 	return r
 
 
-# ------------------------------------------------------------- o nome --
-## O nome do cavaleiro é da pessoa: não passa pela tabela de traduções (G09). O mesmo desenho de
-## `texto`, `caber` e `largura`, sem o `t()`.
 static func nome(ci: CanvasItem, pos: Vector2, s: String, f: Font, tam: int, cor: Color,
 		alinhamento := HORIZONTAL_ALIGNMENT_LEFT, largura_da_caixa := -1.0) -> void:
 	ci.draw_string(f, pos, s, alinhamento, largura_da_caixa, Tema.t(tam), cor)
@@ -314,7 +268,6 @@ static func nome(ci: CanvasItem, pos: Vector2, s: String, f: Font, tam: int, cor
 		anotar(ci, pos, s, f, Tema.t(tam), cor, alinhamento, largura_da_caixa)
 
 
-## O nome que cabe na `largura` em uma linha: corta o fim e fecha com reticências.
 static func nome_que_cabe(s: String, f: Font, tam: int, largura_da_caixa: float) -> String:
 	var r := s
 	while r.length() > 1 and f.get_string_size(r, HORIZONTAL_ALIGNMENT_LEFT, -1, Tema.t(tam)).x > largura_da_caixa:
@@ -327,10 +280,6 @@ static func largura_do_nome(s: String, f: Font, tam: int) -> float:
 	return f.get_string_size(s, HORIZONTAL_ALIGNMENT_LEFT, -1, Tema.t(tam)).x
 
 
-# ----------------------------------------------------------------- o chip --
-## O chip de um lugar no salão (400 x 64): a faixa da cor do dono, «P#» na cor dele e
-## `palavra` (o nome do cavaleiro, ou «Sem controle»). Com controle o chip é de quem está
-## pronto; sem, fica apagado. A cor nunca sozinha: o «P#» e a palavra vão escritos.
 static func chip(ci: CanvasItem, r: Rect2, lugar: int, pronto: bool, palavra := "") -> void:
 	var cor: Color = Tema.JOGADOR[clampi(lugar, 0, 3)]
 	caixa(ci, r, Tema.CASCO, 10, cor if pronto else Tema.GRAFITE, 3)

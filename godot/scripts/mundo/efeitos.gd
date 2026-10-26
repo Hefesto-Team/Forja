@@ -1,7 +1,5 @@
 class_name Efeitos
 extends RefCounted
-## Os efeitos que dizem "acertou" sem uma palavra: faíscas da forja e um anel
-## que se abre. Cada um se desfaz sozinho.
 
 
 static func _material_brilho() -> StandardMaterial3D:
@@ -13,7 +11,6 @@ static func _material_brilho() -> StandardMaterial3D:
 	return m
 
 
-## Faíscas: um estouro de `n` fagulhas em `pos`.
 static func faiscas(pai: Node, pos: Vector3, cor: Color, n := 24, forca := 1.0) -> void:
 	var p := GPUParticles3D.new()
 	p.one_shot = true
@@ -45,7 +42,6 @@ static func faiscas(pai: Node, pos: Vector3, cor: Color, n := 24, forca := 1.0) 
 	p.finished.connect(p.queue_free)
 
 
-## Brasas que sobem devagar de uma área (a lava, o fogo da forja), sem parar.
 static func brasas(pai: Node, centro: Vector3, tamanho: Vector3, cor: Color, n := 48) -> GPUParticles3D:
 	var p := GPUParticles3D.new()
 	p.amount = n
@@ -79,8 +75,6 @@ static func brasas(pai: Node, centro: Vector3, tamanho: Vector3, cor: Color, n :
 	return p
 
 
-## Um anel que se abre e some: o "pegou" de uma runa, de um sino, de um carimbo. `dono`: o lugar (0 a 3) de quem
-## o causou, ou "forja" (o brilho sem dono; `cor` é então TUNGSTENIO) — ver Tema.neon.
 static func anel(pai: Node, pos: Vector3, cor: Color, raio := 0.6, virado_para := Vector3.BACK, dono: Variant = "forja") -> void:
 	var a := MeshInstance3D.new()
 	var t := TorusMesh.new()
@@ -93,7 +87,6 @@ static func anel(pai: Node, pos: Vector3, cor: Color, raio := 0.6, virado_para :
 	a.material_override = m
 	pai.add_child(a)
 	a.global_position = pos
-	# o toro nasce deitado (no plano XZ): de pé, virado para a câmera
 	if virado_para != Vector3.UP:
 		a.rotation.x = PI * 0.5
 	var tw := a.create_tween().set_parallel(true)
@@ -102,7 +95,6 @@ static func anel(pai: Node, pos: Vector3, cor: Color, raio := 0.6, virado_para :
 	tw.chain().tween_callback(a.queue_free)
 
 
-## A poeira no ar: pontos de luz que flutuam devagar, sem cair (o clima da sala).
 static func poeira(pai: Node, centro: Vector3, tamanho: Vector3, cor: Color, n := 40) -> GPUParticles3D:
 	var p := GPUParticles3D.new()
 	p.amount = n

@@ -1,25 +1,4 @@
 #!/usr/bin/env bash
-# A prova da exportação: o jogo exportado (scripts/exportar.sh), sem o editor,
-# joga a Prova de Fogo inteira — as nove salas, na ordem — com quatro DualSense
-# simulados e o robô. O binário Linux roda direto; o .exe roda pelo Wine, a
-# base do Proton (sem o Wine, essa metade diz que não rodou e falha, a não ser
-# com SO_LINUX=1).
-#
-# Cada um tem de fechar sozinho no fim (--sair-no-fim), com o relatório dos
-# quatro lugares gravado, a sessão encerrada, a Prova de Fogo terminada na
-# linha do tempo e nenhum "falhou"; e os dois têm de medir a mesma matriz.
-#
-# O Wine é o de WINE e WINESERVER (o padrão é o do PATH); o CI usa o do
-# GE-Proton, fixo por versão e sha256. O Wine 9.0 do Ubuntu 24.04 NÃO serve:
-# o patch do Debian fixes/virtual-protect.patch faz o VirtualProtect do
-# kernelbase.dll ler *old_prot sem conferir nulo, e o Godot 4.6+ passa nulo
-# no construtor do OS_Windows (o gancho do dinput8, os_windows.cpp:2862 na tag
-# 4.7.2-stable), antes do main do jogo: o .exe cai com 5, com ou sem a dll.
-# O .exe roda com WINEDEBUG=+seh,+loaddll; se cair, a prova diz em que dll
-# caiu e guarda os logs em dist/o-exe-no-wine/.
-#
-# Uso: bash tests/prova_da_exportacao.sh      (depois de scripts/exportar.sh tudo)
-#      WINE=<wine> WINESERVER=<wineserver> bash tests/prova_da_exportacao.sh
 set -u
 RAIZ="$(cd "$(dirname "$0")/.." && pwd)"
 DIST="$RAIZ/dist"
@@ -29,20 +8,16 @@ WINE="${WINE:-wine}"
 WINESERVER="${WINESERVER:-wineserver}"
 [ -x "$LINUX" ] || { echo "sem $LINUX: rode scripts/exportar.sh linux"; exit 2; }
 
-# Numa prova o jogo não tem de achar controle de verdade: a caixa (tests/caixa.sh).
 source "$RAIZ/tests/caixa.sh"
-caixa_pasta prova-da-exportacao; TMP="$CAIXA_PASTA"   # no vermelho, a pasta fica em .cache/provas/ (WQ04)
-# o prefixo do Wine (centenas de MB) não vai para o .cache: os logs do .exe já vão para dist/o-exe-no-wine/
+caixa_pasta prova-da-exportacao; TMP="$CAIXA_PASTA"
 CAIXA_SEM_GUARDAR="wine"
 caixa_montar "$TMP"
-# o .exe leva o módulo do Windows: com o .exe exportado, a fonte dele também confere (tests/caixa.sh, a WQ03)
 if [ -f "$WINDOWS" ]; then caixa_fonte libforja.windows.x86_64.dll; fi
 ARGS=(--headless --fixed-fps 60 -- --simular=4 --robo --semente=7 --prova-de-fogo --sair-no-fim)
 
 FALHAS=0
 falha() { echo "FAIL $*"; FALHAS=$((FALHAS + 1)); }
 
-# $1 = nome, $2 = a pasta dos relatórios, $3 = a plataforma que o relatório tem de dizer
 conferir() {
   python3 - "$@" <<'PY'
 import glob, json, sys
@@ -93,9 +68,6 @@ print(f"    {nome}: {s['plataforma']}, versão {s['versao_do_jogo']}, SDL {s['sd
 PY
 }
 
-# $1 = nome, $2 = a pasta dos relatórios: a partida de 3 jogada pelo robô só
-# pelo controle simulado (o ✕ do aviso e do placar) até o pódio. A linha do
-# tempo diz as três salas, os três placares e o fim da partida (F08).
 conferir_partida() {
   python3 - "$@" <<'PY'
 import glob, json, sys
@@ -121,8 +93,6 @@ print(f"    {nome}: a partida de 3 foi do aviso ao pódio, só pelo controle sim
 PY
 }
 
-# $1 = o log do .exe com +seh,+loaddll: diz o endereço da queda, a dll em que
-# ele mora e as últimas dll carregadas antes dela.
 onde_caiu() {
   python3 - "$1" <<'PY'
 import re, sys
@@ -236,7 +206,6 @@ if ! command -v "$WINE" > /dev/null; then
 elif [ ! -f "$WINDOWS" ]; then
   falha "sem $WINDOWS: rode scripts/exportar.sh windows"
 else
-  # Os logs de uma queda velha não ficam ao lado de uma corrida nova.
   GUARDA="$DIST/o-exe-no-wine"
   rm -rf "$GUARDA"
   export WINEPREFIX="$TMP/wine" WINEDEBUG=-all WINEDLLOVERRIDES="mscoree,mshtml="

@@ -72,7 +72,7 @@ def blocos(texto: str):
             achou.append(Bloco(i, j, m.group(1), m.group(2) or "", linhas[i + 1:j]))
             i = j + 1
             continue
-        if FECHA.match(linhas[i]):   # cerca sem língua: pula o bloco inteiro
+        if FECHA.match(linhas[i]):
             j = i + 1
             while j < len(linhas) and not FECHA.match(linhas[j]):
                 j += 1
@@ -91,7 +91,7 @@ def arquivos(ficha: Path):
             grupos.setdefault(b.arquivo, []).append(b)
     saida = []
     for caminho, lista in grupos.items():
-        lista.sort(key=lambda b: b.parte)   # estável: a ordem da ficha desempata
+        lista.sort(key=lambda b: b.parte)
         partes = [b.parte for b in lista]
         if len(set(partes)) != len(partes):
             erros.append(f"{ficha.name}: arquivo={caminho} tem a mesma parte em dois blocos ({partes})")
@@ -130,7 +130,7 @@ def proposta(linhas, bloco: Bloco):
         if len(achados) == 1:
             return achados[0]
         if len(achados) > 1:
-            return None      # dois caminhos na mesma linha: não é claro
+            return None
     return None
 
 

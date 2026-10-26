@@ -21,7 +21,7 @@ metades falham.
 
 ## O estado de hoje
 
-A assinatura é o modelo, o tipo de origem e o nome, `nativo/nucleo/pads.c:162-164`:
+A assinatura é o modelo, o tipo de origem e o nome, `nativo/nucleo/pads.c:148-150`:
 
 ```c
 static void assinatura(const Pad *p, char *out, size_t tam) {
@@ -32,7 +32,7 @@ static void assinatura(const Pad *p, char *out, size_t tam) {
 No cabo, o SDL dá a todo DualSense o mesmo nome («DualSense Wireless Controller»), o mesmo `054c:0ce6` e a mesma
 origem: as quatro assinaturas são a mesma cadeia.
 
-Na conexão, o lugar só volta com um candidato, `nativo/nucleo/pads.c:373-400`:
+Na conexão, o lugar só volta com um candidato, `nativo/nucleo/pads.c:347-373`:
 
 ```c
   /* A volta: um slot desconectado com a mesma assinatura, e só um, retoma. */
@@ -45,10 +45,10 @@ Na conexão, o lugar só volta com um candidato, `nativo/nucleo/pads.c:373-400`:
 
 Com dois lugares caídos de assinatura igual, `candidatos` vale 2: nenhum volta, e o controle vai para a reserva de um
 lugar livre (ou para o player index -1, se a mesa está cheia). Fora do lobby não há outro caminho de volta:
-`Forja.entrar` só é chamado em `godot/scripts/main.gd:202` (o `_todos_entram` dos argumentos de prova) e
+`Forja.entrar` só é chamado em `godot/scripts/main.gd:182` (o `_todos_entram` dos argumentos de prova) e
 `:670` (o ✕ do lobby).
 
-No lobby, `nativo/nucleo/pads.c:615-620` dá o **primeiro** lugar caído de assinatura igual, sem contar candidatos:
+No lobby, `nativo/nucleo/pads.c:577-581` dá o **primeiro** lugar caído de assinatura igual, sem contar candidatos:
 
 ```c
   /* primeiro, um lugar de quem caiu com a mesma assinatura */
@@ -58,12 +58,12 @@ No lobby, `nativo/nucleo/pads.c:615-620` dá o **primeiro** lugar caído de assi
 ```
 
 O controle já guarda um dado que distingue um aparelho do outro e não é MAC: `p->usb_pai`, o caminho do
-`usb_device` no sysfs, que termina na porta física (`…/usb3/3-2/3-2.1`), copiado em `nativo/nucleo/pads.c:322`. O som
-do controle já casa pelo aparelho com ele (`nativo/som/som_controle_linux.c:76-83`). A volta não o usa, e o `Slot`
-não o guarda (`nativo/nucleo/pads.h:95-103`).
+`usb_device` no sysfs, que termina na porta física (`…/usb3/3-2/3-2.1`), copiado em `nativo/nucleo/pads.c:296`. O som
+do controle já casa pelo aparelho com ele (`nativo/som/som_controle_linux.c:68-75`). A volta não o usa, e o `Slot`
+não o guarda (`nativo/nucleo/pads.h:77-85`).
 
-Nenhuma prova vê isto: o simulador dá nomes diferentes aos quatro (`nativo/nucleo/simulador.c:210-211`, «DualSense
-simulado 1..4»), a `godot/testes/prova_de_poucos.gd:141` tira só o cabo do P2 e a `godot/testes/prova_do_jogo.gd:495`
+Nenhuma prova vê isto: o simulador dá nomes diferentes aos quatro (`nativo/nucleo/simulador.c:200-201`, «DualSense
+simulado 1..4»), a `godot/testes/prova_de_poucos.gd:126` tira só o cabo do P2 e a `godot/testes/prova_do_jogo.gd:456`
 só confere a volta do P3. E a regra mora dentro de `conectou` e de `pads_entrar`, que falam com o SDL: a prova nativa
 (`nativo/testes/forja-testes`, ligada só ao `forja_nucleo` em `nativo/CMakeLists.txt:90`) não a alcança.
 
@@ -83,9 +83,9 @@ que case, nada se devolve no escuro.
    `int volta_escolher(const VoltaLugar *caidos, int n, const char *assinatura, const char *porta)`: dos lugares
    caídos de assinatura igual, se um só, ele; se mais de um, o de porta igual (e só se for um); senão, -1. Entra no
    `forja_nucleo` (`nativo/CMakeLists.txt:51-68`).
-3. **A conexão usa a função** (`nativo/nucleo/pads.c:373-400`). O registro diz por que voltou («pela assinatura» ou
+3. **A conexão usa a função** (`nativo/nucleo/pads.c:347-373`). O registro diz por que voltou («pela assinatura» ou
    «pela porta 3-2.1») e, quando há empate sem porta, diz que o lugar espera o ✕ no lobby.
-4. **O lobby usa a mesma função** (`nativo/nucleo/pads.c:615-620`), no lugar do «primeiro caído». Sem candidato
+4. **O lobby usa a mesma função** (`nativo/nucleo/pads.c:577-581`), no lugar do «primeiro caído». Sem candidato
    único, o controle segue para a reserva ou o lugar livre, como hoje, e nunca herda o lugar de quem caiu.
 5. **O simulador fala como o aparelho.** Um modo em que os quatro têm o mesmo nome e cada um uma porta falsa (por
    exemplo um nome novo na lista do `--defeitos`, `nomes-iguais`, em `nativo/nucleo/simulador.c` e `simulador.h`),
@@ -105,10 +105,10 @@ que case, nada se devolve no escuro.
 - **O caminho inteiro do `usb_pai` muda de comprimento** (512 bytes): guardar só o nome final no `Slot`, não o caminho.
 - **O rádio e a ponte.** No Bluetooth o `usb_pai` é vazio e o jogo é só de entrada; pela ponte, os controles chegam
   com nomes distintos («… (P{N})»), e a assinatura já os separa. Os dois casos seguem a regra de hoje: não quebrar.
-- **O espelho** (`nativo/nucleo/pads.c:593-612`) roda antes da volta no lobby e não muda.
+- **O espelho** (`nativo/nucleo/pads.c:560-574`) roda antes da volta no lobby e não muda.
 - **Os arquivos da WC01.** A WC01 (o toque no instante do aperto) também mexe em `pads.c`, `pads.h`, `simulador.c` e
   `simulador.h`: as duas não voam juntas, ou voam no mesmo conjunto.
-- **O simulado não abre o sysfs** (`nativo/nucleo/pads.c:308-309`): a porta falsa entra pelo simulador, não pelo
+- **O simulado não abre o sysfs** (`nativo/nucleo/pads.c:282-283`): a porta falsa entra pelo simulador, não pelo
   `origem_fatos_linux`.
 
 ## Não fazer

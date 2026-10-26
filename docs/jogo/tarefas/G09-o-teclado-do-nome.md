@@ -16,7 +16,7 @@ escreve no próprio controle, os quatro ao mesmo tempo, sem teclado de computado
 ## O estado de hoje
 
 - O lobby de hoje (`godot/scripts/ui/tela_lobby.gd`, 113 linhas) não tem nome: o seletor tem só o boneco e o item.
-  O nome sai de `NOMES` em `godot/scripts/partida.gd:26`.
+  O nome sai de `NOMES` em `godot/scripts/partida.gd:10`.
 - A G13 troca o lobby pela tela de montagem: quatro colunas de 432 px (x = 96 + 432·i), as cinco linhas (Cabeça,
   Superior, Inferior, Arma ou amuleto, Nome) em y 660 a 860 e os VUs em 870 a 1010. Na linha Nome, ◀ ▶ troca o
   nome sorteado. Esta ficha começa depois dela: meça de novo o arquivo e a função que a G13 deixou.

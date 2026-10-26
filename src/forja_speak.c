@@ -1,25 +1,3 @@
-/* forja-speak — um SFX no alto-falante de UM DualSense, achado como um jogo acha.
- *
- *   forja-speak --list
- *   forja-speak --player 2 [--hz 1300] [--ms 400]        pelo APARELHO (o 3º da mesa)
- *   forja-speak --nome "Controle 2" [--hz 1300]          pelo NOME que o jogo mostra
- *   forja-speak --player 0 --hz 60 --ms 400 --vcm        nos dois atuadores
- *   forja-speak --player 0 --canal 0                     a mordida: o fone, não o plástico
- *
- * Por que um binário, e não o motor: o AudioServer do Godot tem UM device para
- * o processo inteiro, e numa mesa de quatro DualSense "o tiro do P3 sai no
- * alto-falante do P3" é impossível dentro dele. Este é o irmão do forja-send:
- * um processo curto por SFX.
- *
- * Lê `LC_ALL=C pactl list sinks` (o pactl traduz, e um leitor cego responde
- * "não há" sobre aparelho de pé) e empurra PCM cru por `pw-cat`, sem shell.
- *
- * PROIBIDO aqui, como em todo este repo: socket IPC, uniq, MAC, 0x31.
- *
- * rc: 0 tocou · 1 o tocador falhou · 2 não achou alto-falante · 4 o alto-falante
- *     achado não tem o canal pedido · 64 uso errado. "Não achei" nunca se lê
- *     como "toquei e nada saiu".
- */
 #define _XOPEN_SOURCE 700
 
 #include "forja_alto_falante.h"
@@ -163,7 +141,7 @@ int main(int argc, char **argv) {
     uso();
     return 64;
   }
-  signal(SIGPIPE, SIG_IGN); /* o tocador que morre vira rc, não um sinal */
+  signal(SIGPIPE, SIG_IGN);
 
   char *texto = ler_pactl();
   ForjaNoDeSom nos[MAX_NOS];

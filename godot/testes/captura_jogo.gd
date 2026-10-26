@@ -1,23 +1,4 @@
 extends Node
-## As fotos do jogo para a revisão de cada marco: abre a cena principal com
-## quatro DualSense simulados e passa pelas telas apertando os botões DELES
-## (o caminho inteiro do módulo roda). Nada de aparelho, nada de janela real:
-##
-##   godot --fixed-fps 60 --path godot --resolution 1920x1080 res://testes/captura_jogo.tscn -- --simular=4 --robo --semente=7
-##
-## O --fixed-fps 60 é obrigatório: o roteiro espera pelo relógio do jogo, e sem
-## ele as fotos saem nos momentos errados.
-##
-## SAIDA=<pasta> diz onde gravar os PNG; FOTOS=titulo,lobby,... escolhe quais.
-## ROTEIRO=salas passa pelas salas que medem (aviso, jogo e veredito de cada
-## uma, com o robô jogando); SALAS=impacto,galeria escolhe quais. SEM_TREMOR=1
-## desliga o tremor da câmera (para medir o clarão d'A Voz).
-## O diagnóstico e o livro, só com `-- --bancada` (sem ele o jogo não os tem).
-## ROTEIRO=bancada, com -- --experimento=ID, fotografa a bancada do
-## experimental/. ROTEIRO=partida joga uma partida curta: a placa da bigorna,
-## a escolha, o placar entre as salas e o pódio. RAPIDO=1 roda numa janela pequena entre as fotos e volta ao
-## tamanho cheio só para cada foto (num renderizador por software, é o que
-## cabe no tempo).
 
 var jogo: Node
 var q := 0
@@ -25,7 +6,7 @@ var pasta := ""
 var roteiro: Array = []
 var _passo := 0
 var _espera := 0
-var _rodando := false  ## um passo com espera dentro não deixa o próximo começar
+var _rodando := false
 var _rapido := false
 
 
@@ -37,8 +18,6 @@ func _ready() -> void:
 	add_child(jogo)
 	var pedidas := OS.get_environment("FOTOS")
 	_rapido = OS.get_environment("RAPIDO") == "1"
-	# a medida do clarão d'A Voz (scripts/medir_clarao.gd) compara dois quadros
-	# parados: sem o tremor da câmera, o que muda é a luz
 	if OS.get_environment("SEM_TREMOR") == "1":
 		Opcoes.movimento = 1
 	if _rapido:
@@ -69,8 +48,7 @@ func _roteiro_das_telas() -> Array:
 		["aperta", 0, Forja.CRUZ], ["espera", 60], ["foto", "play"],
 		["ate", func() -> bool: return jogo.estado == "intro" and jogo.intro.t >= 9.5], ["foto", "introducao"],
 		["ate", func() -> bool: return jogo.estado == "intro" and jogo.intro.t >= 18.0], ["foto", "introducao_armaduras"],
-		["aperta", 0, Forja.CRUZ], ["espera", 40],   # o ✕ que pula a introdução
-		# a construção: o P1 já se sentou no título; ✕ do P2 e do P3 dão o lugar a eles
+		["aperta", 0, Forja.CRUZ], ["espera", 40],
 		["aperta", 1, Forja.CRUZ], ["aperta", 2, Forja.CRUZ], ["espera", 40],
 		["aperta", 1, Forja.DIREITA], ["aperta", 2, Forja.BAIXO],
 		["espera", 30], ["foto", "construcao"],
@@ -104,8 +82,6 @@ func _roteiro_das_telas() -> Array:
 	]
 
 
-## As salas que medem, jogadas pelo robô: o aviso (quem já está pronto), o
-## jogo em dois momentos e o veredito.
 func _roteiro_das_salas() -> Array:
 	var no_salao := func() -> bool:
 		return jogo.estado == "salao" and not jogo._trocando
@@ -118,7 +94,6 @@ func _roteiro_das_salas() -> Array:
 	var na_sala := func(cond: Callable) -> Callable:
 		return func() -> bool:
 			return jogo.sala is SalaJogo and jogo.sala.fase == "jogo" and cond.call(jogo.sala)
-	# os momentos de cada sala: [a foto, quando]
 	var momentos := {
 		"centelha": [
 			["centelha_jogo", fase.call("jogo", 7.0)],
@@ -191,7 +166,7 @@ func _roteiro_das_salas() -> Array:
 		],
 	}
 	var roteiro_salas: Array = [
-		["ate", no_salao],  # o robô do fluxo (main.gd _robo) passa do título à construção
+		["ate", no_salao],
 	]
 	var pedidas := OS.get_environment("SALAS")
 	var salas: Array = Array(pedidas.split(",")) if pedidas != "" else ["centelha", "viga", "molde"]
@@ -202,14 +177,11 @@ func _roteiro_das_salas() -> Array:
 		roteiro_salas.append_array([["ate", fase.call("fim", 1.4)], ["foto", id + "_fim"], ["ate", no_salao]])
 	roteiro_salas.append_array([["foto", "salao_depois"]])
 	if "prova" in salas:
-		# a placa da bigorna: ✕ A Prova, △ a Prova de Fogo
 		roteiro_salas.append_array([["posiciona", 0, Vector3(0.0, 0.05, 2.1), PI], ["espera", 40], ["foto", "salao_bigorna"]])
 	roteiro_salas.append_array([["fim"]])
 	return roteiro_salas
 
 
-## A partida curta: a bigorna, a escolha (na ordem e sorteada), cada sala um
-## pouco jogada pelo robô, o placar depois de cada uma e o pódio no fim.
 func _roteiro_da_partida() -> Array:
 	var no_salao := func() -> bool:
 		return jogo.estado == "salao" and not jogo._trocando
@@ -222,7 +194,7 @@ func _roteiro_da_partida() -> Array:
 	var no_podio := func() -> bool:
 		return jogo.estado == "podio" and not jogo._trocando and jogo.placar._t > 2.0
 	var r: Array = [
-		["ate", no_salao],  # o robô do fluxo (main.gd _robo) passa do título à construção
+		["ate", no_salao],
 		["posiciona", 0, Vector3(0.0, 0.05, 2.1), PI], ["espera", 40], ["foto", "partida_bigorna"],
 		["aperta", 0, Forja.QUADRADO], ["espera", 20], ["foto", "partida_escolha"],
 		["aperta", 0, Forja.DIREITA], ["espera", 10], ["aperta", 0, Forja.BAIXO], ["espera", 6], ["aperta", 0, Forja.DIREITA], ["espera", 6],
@@ -243,10 +215,6 @@ func _roteiro_da_partida() -> Array:
 	return r
 
 
-## O trailer de 60 s (scripts/trailer.sh grava com o --write-movie): o título,
-## o lobby, as salas com o robô jogando — A Galeria, O Impacto, A Viga, O
-## Molde, A Prova —, o pódio e os créditos. Os tempos são em quadros (60 por
-## segundo).
 func _roteiro_do_trailer() -> Array:
 	var r: Array = [
 		["espera", 200],
@@ -256,30 +224,26 @@ func _roteiro_do_trailer() -> Array:
 		["ate", func() -> bool: return jogo.estado == "salao" and not jogo._trocando],
 		["espera", 150],
 	]
-	# cada sala: o aviso com o gesto, e o jogo andando (o robô joga)
 	for s in [["galeria", 520], ["impacto", 520], ["viga", 460], ["molde", 400], ["prova", 700]]:
 		r.append_array([["sala_cortina", s[0]], ["espera", 110 + int(s[1])]])
 	r.append_array([["podio_de_mentira"], ["espera", 300], ["creditos"], ["espera", 200], ["fim"]])
 	return r
 
 
-## O título com os créditos, e as opções pelo lobby (△ de quem não está pronto).
 func _roteiro_dos_extras() -> Array:
 	return [
 		["espera", 70], ["foto", "titulo"],
 		["aperta", 0, Forja.TRIANGULO], ["espera", 70], ["foto", "creditos"],
 		["aperta", 0, Forja.CIRCULO], ["espera", 20],
-		["aperta", 0, Forja.CRUZ], ["ate", func() -> bool: return jogo.estado == "intro" and jogo.intro.t > 1.0], ["aperta", 0, Forja.CRUZ], ["espera", 40],  # o PLAY, e o ✕ que pula a introdução
+		["aperta", 0, Forja.CRUZ], ["ate", func() -> bool: return jogo.estado == "intro" and jogo.intro.t > 1.0], ["aperta", 0, Forja.CRUZ], ["espera", 40],
 		["aperta", 1, Forja.CRUZ], ["espera", 30],
 		["foto", "lobby"],
-		# a pausa do lobby é Continuar, Opções, Voltar ao lobby, Sair: ▼ e ✕ abrem as opções
 		["aperta", 1, Forja.OPTIONS], ["espera", 10], ["aperta", 1, Forja.BAIXO], ["espera", 6], ["aperta", 1, Forja.CRUZ], ["espera", 10],
 		["aperta", 1, Forja.BAIXO], ["espera", 6],
 		["aperta", 1, Forja.ESQUERDA], ["espera", 20], ["foto", "opcoes"], ["fim"],
 	]
 
 
-## A bancada (--experimento=CHAVE): no meio da medida e no fim.
 func _roteiro_da_bancada() -> Array:
 	var na_bancada := func(cond: Callable) -> Callable:
 		return func() -> bool:
@@ -291,7 +255,6 @@ func _roteiro_da_bancada() -> Array:
 	]
 
 
-## Cheia para a foto; pequena (e o 3D pela metade) para andar depressa.
 func _janela(cheia: bool) -> void:
 	get_window().size = Vector2i(1920, 1080) if cheia else Vector2i(480, 270)
 	get_viewport().scaling_3d_scale = 1.0 if cheia else 0.5
@@ -330,7 +293,6 @@ func _rodar() -> void:
 				if _rapido:
 					_janela(false)
 			"ate_pronto":
-				# sem robô: ✕ no simulado até o lugar forjar (fora do tempo também conta)
 				var n := 0
 				while not jogo.lobby.prontos[p[1]] and n < 40:
 					Forja.ctl.simulador_botao(p[1], Forja.CRUZ, true)
@@ -386,7 +348,6 @@ func _rodar() -> void:
 			"sala_cortina":
 				jogo._entrar_na_sala(p[1], true)
 			"podio_de_mentira":
-				# uma noite de três salas, para o pódio do trailer
 				var pa := Partida.nova(3, false, 7, jogo.ORDEM_DO_FOGO)
 				pa.registrar("galeria", [40, 90, 60, 20], [0, 1, 2, 3])
 				pa.registrar("impacto", [70, 80, 30, 50], [0, 1, 2, 3])

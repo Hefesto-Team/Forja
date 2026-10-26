@@ -67,7 +67,6 @@ if [ -e "$(g rev-parse --git-path CHERRY_PICK_HEAD)" ] || [ -d "$(g rev-parse --
   echo "costura: há um cherry-pick pela metade em $INT; termine ou aborte antes" >&2; exit 2
 fi
 for p in "${PROVAS[@]}"; do
-  # o arquivo do comando (o segundo campo de «bash x.sh» ou «python3 x.py») tem que existir na integração
   arq="$(awk '{print ($1 == "bash" || $1 == "python3" || $1 == "sh") ? $2 : ""}' <<< "$p")"
   if [ -n "$arq" ] && [ ! -f "$INT/$arq" ] && [ ! -f "$arq" ]; then
     echo "costura: a prova «$p» não existe em $INT; nada foi costurado" >&2; exit 2
@@ -75,7 +74,6 @@ for p in "${PROVAS[@]}"; do
 done
 
 [ -n "$BASE" ] || BASE="$(g merge-base HEAD "$RAMO")" || { echo "costura: $RAMO não tem base comum com $NA_INT" >&2; exit 2; }
-# A saída vai para uma variável antes do awk: o cherry que FALHA não pode ler-se como «nada falta».
 CHERRY="$(g cherry HEAD "$RAMO" "$BASE")" || { echo "costura: o git cherry de $RAMO falhou; nada foi costurado" >&2; exit 2; }
 mapfile -t FALTAM < <(awk '$1 == "+" {print $2}' <<< "$CHERRY")
 ANTES="$(g rev-parse --short HEAD)"
@@ -122,6 +120,5 @@ fi
 if [ "$PESADAS" -eq 1 ]; then
   echo "costura: verde — ${#FALTAM[@]} commit(s) de $RAMO, topo $TOPO"
 else
-  # sem --pesadas, o jogo não rodou: o verde é dos portões e das provas de ferramenta, não da prova do jogo
   echo "costura: verde sem as pesadas — ${#FALTAM[@]} commit(s) de $RAMO, topo $TOPO; a prova do jogo não rodou (--pesadas)"
 fi

@@ -22,9 +22,9 @@ cenário. Esta ficha põe tudo isso no jogo, um pacote por pasta, por um script 
   dizia «o André compra o pacote»: não precisa.
 - Os 30 `.glb` do Mini Dungeon estão soltos em `godot/assets/kenney/`, com `Textures/colormap.png` e
   `KENNEY-LICENSE.txt`. Quatro lugares montam o caminho à mão (`"res://assets/kenney/%s.glb"`):
-  `godot/scripts/mundo/kit.gd:6` (`CAMINHO`, lido em `Kit.peca`, linha 13), `godot/scripts/mundo/salao.gd:11`
-  (`KIT`, linha 60), `godot/scripts/player.gd:114` (o boneco, por `MODELOS`, linha 14:
-  `["character-human", "character-orc"]`) e `:147` (o item), e `godot/scripts/salas/prova.gd:175`, que carrega
+  `godot/scripts/mundo/kit.gd:5` (`CAMINHO`, lido em `Kit.peca`, linha 13), `godot/scripts/mundo/salao.gd:5`
+  (`KIT`, linha 60), `godot/scripts/player.gd:90` (o boneco, por `MODELOS`, linha 14:
+  `["character-human", "character-orc"]`) e `:147` (o item), e `godot/scripts/salas/prova.gd:140`, que carrega
   `"res://assets/kenney/character-orc.glb"` escrito por inteiro. Meça de novo antes de mudar.
 - **Os personagens, medidos nos `.glb` da 3.7.0** (nós, pele e animações):
 
@@ -62,8 +62,8 @@ godot/assets/kenney/
 - O orc e o humano ficam numa pasta à parte, como no estudo (`godot/estudos/direcao/kenney/mini-dungeon-personagens/`):
   o papel é por pasta, e o papel deles é `personagem`, o do resto do Mini Dungeon é `cenario`.
 - `Kit.caminho(nome) -> String` numa função só: sem barra, `res://assets/kenney/mini-dungeon/<nome>.glb`; com
-  barra, `res://assets/kenney/<pasta>/<peça>.glb`. Os quatro lugares de hoje chamam `Kit.caminho`. O `player.gd:114`
-  passa a pedir `Kit.caminho("mini-dungeon-personagens/" + MODELOS[modelo_i])`; o `prova.gd:175`,
+  barra, `res://assets/kenney/<pasta>/<peça>.glb`. Os quatro lugares de hoje chamam `Kit.caminho`. O `player.gd:90`
+  passa a pedir `Kit.caminho("mini-dungeon-personagens/" + MODELOS[modelo_i])`; o `prova.gd:140`,
   `Kit.caminho("mini-dungeon-personagens/character-orc")`.
 - `const ESCALA_DO_PACOTE := {"castle-kit": 1.4, "survival-kit": 1.4, "factory-kit": 0.5, "building-kit": 0.35,
   "pirate-kit": 0.4, "cube-pets": 0.4, "blaster-kit": 0.3, "modular-dungeon-kit": 0.25, "modular-cave-kit": 0.25,

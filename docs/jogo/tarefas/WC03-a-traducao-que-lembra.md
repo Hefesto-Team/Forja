@@ -18,7 +18,7 @@ quadro anterior. Em português o custo é zero; em inglês, ele come o quadro qu
 
 ## O estado de hoje (medido em 09/10/2026)
 
-- `godot/scripts/traducoes.gd:364-393`, o `traduzir`: a tabela exata, a forma com a inicial maiúscula e, sem
+- `godot/scripts/traducoes.gd:338-367`, o `traduzir`: a tabela exata, a forma com a inicial maiúscula e, sem
   achar, o laço por todos os padrões, com recursão em cada grupo. Nada fica guardado entre uma chamada e outra:
 
   ```gdscript
@@ -30,9 +30,9 @@ quadro anterior. Em português o custo é zero; em inglês, ele come o quadro qu
   		saida = saida.replace("$%d" % g, traduzir(m.get_string(g)))
   ```
 
-- O `Desenho.t` (`godot/scripts/ui/desenho.gd:73-87`) chama o `traduzir` em cada `texto` e `paragrafo`.
-- A HUD (`godot/scripts/ui/hud.gd:34-38`), o placar (`godot/scripts/ui/placar.gd:86`) e o lobby
-  (`godot/scripts/ui/tela_lobby.gd:44`) fazem `queue_redraw()` a cada quadro.
+- O `Desenho.t` (`godot/scripts/ui/desenho.gd:61-75`) chama o `traduzir` em cada `texto` e `paragrafo`.
+- A HUD (`godot/scripts/ui/hud.gd:21-25`), o placar (`godot/scripts/ui/placar.gd:75`) e o lobby
+  (`godot/scripts/ui/tela_lobby.gd:36`) fazem `queue_redraw()` a cada quadro.
 - O custo, medido pela auditoria com o Godot 4.7.2 sem janela, num rascunho fora da árvore: «Começar» (na tabela)
   0,5 µs; «3 salas» 71,5 µs; «1 247» 41,7 µs; «P2 · 14 pts» 42,5 µs; «Não — era do P3» 81,3 µs; uma frase sem
   entrada nenhuma, 42,6 µs.
@@ -54,7 +54,7 @@ muda e quando passa de um teto de entradas. A saída de cada frase continua a me
    numa lista no teste).
 2. A memória no `traduzir`: olha antes de tudo; grava a saída no fim, inclusive a frase que volta igual (a que não
    casou com nada, que é a mais cara).
-3. O idioma muda por `Forja.aplicar_opcoes` (`godot/scripts/forja.gd:167-169`): o `Traducoes` passa a ter um
+3. O idioma muda por `Forja.aplicar_opcoes` (`godot/scripts/forja.gd:121-123`): o `Traducoes` passa a ter um
    `definir_idioma(i)` que limpa a memória quando o idioma muda de fato (o `aplicar_opcoes` roda a cada opção
    mexida), e o `Forja` chama ele em vez de escrever no `idioma` direto.
 4. O teto: com mais de 4096 frases, a memória se esvazia inteira (o placar com número muda toda hora e não pode
@@ -67,7 +67,7 @@ muda e quando passa de um teto de entradas. A saída de cada frase continua a me
   `traduzir`: a memória não pode ficar no caminho dela.
 - A recursão dos grupos chama o `traduzir` de dentro do `traduzir`: o grupo também entra na memória, e isso está
   certo (é a mesma frase, a mesma saída).
-- Quem escreve no `Traducoes.idioma` direto (o `FORJA_IDIOMA` em `forja.gd:169` e qualquer prova) deixa a memória
+- Quem escreve no `Traducoes.idioma` direto (o `FORJA_IDIOMA` em `forja.gd:123` e qualquer prova) deixa a memória
   velha: o `git grep -n 'Traducoes.idioma ='` tem de achar só o `definir_idioma`.
 - Se a V03 mudar a junção das tabelas para a primeira chamada, a memória se esvazia junto com essa junção.
 

@@ -19,7 +19,7 @@ lugar.
 
 ## O estado de hoje
 
-- **O jogo vibra pelo SDL:** `pad_rumble` em `nativo/nucleo/pads.c:622`
+- **O jogo vibra pelo SDL:** `pad_rumble` em `nativo/nucleo/pads.c:583`
   chama `SDL_RumbleGamepad(p->gp, baixo, alto, dur)` (`:634`). O SDL escolhe o
   modo: firmware ≥ 2.24 (ou Edge) → o suave (byte 38 `0x04`), em escala
   cheia; firmware antigo → o seco (byte 0 `0x01`) **dividido por dois**; nos
@@ -27,16 +27,16 @@ lugar.
   (lido em `SDL_hidapi_ps5.c` do SDL 3.4.14).
 - **O jogo nunca liga os bits de vibração no próprio pacote**, e isso é regra
   escrita em três lugares:
-  - `include/forja_dualsense.h:126` — "FORJA_FX_RUMBLE / FORJA_FX_HAPTICS_SELECT:
+  - `include/forja_dualsense.h:105` — "FORJA_FX_RUMBLE / FORJA_FX_HAPTICS_SELECT:
     a vibração é do SDL";
-  - `include/forja_dualsense.h:156` —
+  - `include/forja_dualsense.h:126` —
     `#define FORJA_BITS1_PROIBIDOS (FORJA_FX_RUMBLE | FORJA_FX_HAPTICS_SELECT)`,
-    que `forja_fx_da_sombra` apaga de todo pacote (`src/forja_dualsense.c:156`);
-  - `nativo/testes/prova_efeitos.c:68` — a prova "HAPTICS_SELECT e rumble
+    que `forja_fx_da_sombra` apaga de todo pacote (`src/forja_dualsense.c:153`);
+  - `nativo/testes/prova_efeitos.c:63` — a prova "HAPTICS_SELECT e rumble
     nunca saem do payload (a háptica por áudio vive)".
 - **A ferramenta de bancada já manda o seco:** `forja-send` (cabo, USB `0x02`)
   monta o pacote com `fx->enable1 |= FORJA_FX_RUMBLE | FORJA_FX_HAPTICS_SELECT`
-  (`src/forja_dualsense.c:104`). É ela que mede o seco sem mudar o jogo.
+  (`src/forja_dualsense.c:101`). É ela que mede o seco sem mudar o jogo.
 - A F05 registra o firmware de cada controle na conexão e o
   `rumble_escala_cheia` (se o SDL manda sem o corte pela metade).
 
@@ -91,7 +91,7 @@ sente o seco mais forte **e** prefere o seco para "golpe" e "explosão".
    (senão o reenvio de 2 s do SDL sobrescreve), monta o pacote pela função
    nova e manda por `enviar()`; o prazo (`rumble_ate_ms`) para o motor pelo
    mesmo caminho. O evento `saida` ganha `"modo": "seco"` ou `"suave"`.
-4. `nativo/testes/prova_efeitos.c:68`: a prova continua valendo para a
+4. `nativo/testes/prova_efeitos.c:63`: a prova continua valendo para a
    sombra; uma prova nova confere que só `forja_fx_rumble_seco` liga os dois
    bits, que o motor vai sem corte, e que o pacote de parar sai sem eles.
 5. `godot/scripts/opcoes.gd` e `godot/scripts/ui/tela_opcoes.gd`: a opção do

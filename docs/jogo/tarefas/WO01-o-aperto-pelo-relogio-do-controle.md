@@ -26,14 +26,14 @@ isso ([dualsense.md:321](../pesquisa/dualsense.md), «usar o carimbo do sensor�
 
 ## O estado de hoje (medido em 09/10/2026, `85f24c3`)
 
-- O módulo guarda o carimbo do evento do botão, `nativo/nucleo/pads.c:449-452`:
+- O módulo guarda o carimbo do evento do botão, `nativo/nucleo/pads.c:420-423`:
   ```c
   p->b[e->gbutton.button] = e->gbutton.down;
   if (e->gbutton.down) {
     g_apertou[i][e->gbutton.button] = true;
     p->b_quando[e->gbutton.button] = e->gbutton.timestamp;
   ```
-- O sensor já chega, `nativo/nucleo/pads.c:330-338` (`SDL_SetGamepadSensorEnabled(gp, SDL_SENSOR_GYRO, true)` e o
+- O sensor já chega, `nativo/nucleo/pads.c:304-312` (`SDL_SetGamepadSensorEnabled(gp, SDL_SENSOR_GYRO, true)` e o
   mesmo para o acelerômetro) e `:479-485` (o `SDL_EVENT_GAMEPAD_SENSOR_UPDATE`, que hoje usa só o
   `e->gsensor.timestamp`, o carimbo da leitura, e joga fora o `sensor_timestamp`).
 - No SDL 3.4.14 que o módulo compila (libsdl-org/SDL, licença zlib; `src/joystick/hidapi/SDL_hidapi_ps5.c`):
@@ -47,7 +47,7 @@ isso ([dualsense.md:321](../pesquisa/dualsense.md), «usar o carimbo do sensor�
   - `:1404-1410`, o mesmo `timestamp` da leitura vai no botão (`:1182-1185`) e no sensor, e o sensor leva também o
     `sensor_timestamp`.
   - `src/joystick/SDL_joystick.c:3830-3866`: um evento de sensor por relatório, com `event.gsensor.sensor_timestamp`.
-- O minigame julga pelo quadro, `godot/scripts/minigames/minigame.gd:227-230` (`var t_toque := Ritmo.t_musica()`).
+- O minigame julga pelo quadro, `godot/scripts/minigames/minigame.gd:175-177` (`var t_toque := Ritmo.t_musica()`).
 
 ## O alvo
 
@@ -86,7 +86,7 @@ leitura do último. A API da WC01 não muda: `idade_do_aperto_us(lugar, botao)` 
   pela ordem, para não depender dela.
 - **O controle parado sem sensor ligado.** Se um dia o giro for desligado fora das salas que o usam, o par some e a
   idade volta à da WC01, sem erro. A prova cobre o caso sem sensor.
-- **O espelho** (`pads.c:595-606`) compara `b_quando` entre dois caminhos: não troque o que ele guarda; a idade nova
+- **O espelho** (`pads.c:561-568`) compara `b_quando` entre dois caminhos: não troque o que ele guarda; a idade nova
   é um campo à parte.
 - **O rádio antes da WR02** não tem sensor: a idade segue a da WC01 ali, e isso é esperado.
 

@@ -539,7 +539,7 @@ alto-falante simulado, ele não pisa (e tropeça). No médio (66 % de acerto), e
 O cavaleiro da montagem (G13), de costas, subindo. A cabeça, a parte de cima e a de baixo aparecem como estão; as
 mãos ficam livres (`posicionar`), e o efeito do item vale. Ele pode ser de outra raça (G08, parte B; a montagem é da G13):
 esta ficha não supõe corpo humano; usa o esqueleto comum de 7 ossos e as animações `walk`, `fall`, `sit` e `emote-no`.
-O conferidor da G08 não exige o `sit`: num corpo sem ele, o `gesto("sit", ...)` não faz nada (`player.gd:185`) e o
+O conferidor da G08 não exige o `sit`: num corpo sem ele, o `gesto("sit", ...)` não faz nada (`player.gd:158`) e o
 cavaleiro fica de pé o tempo do sentado. Isso é aceito; o passo segue tirado pelo `_sentado_ate`.
 
 | stat | gancho | o que muda no Eco | stat 1 | stat 3 | stat 5 |

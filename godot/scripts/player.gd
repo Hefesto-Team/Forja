@@ -1,35 +1,20 @@
 class_name ForjaPlayer
 extends CharacterBody3D
-## Um jogador no mundo: o boneco do kit Mini Dungeon (Kenney, CC0) com a roupa
-## sem tom no corpo; o dono é o contorno de néon, o anel no chão e a luz, os três
-## na cor de luz do lugar, e o "P1" em cima. Anda
-## pelo analógico esquerdo do controle do lugar (o d-pad também serve).
-##
-## O visual é do jogador: o boneco (humano ou orc) e o que ele leva nas mãos,
-## escolhidos no lobby. A cor não se escolhe — é a do lugar, a mesma da
-## lightbar do controle.
 
 const VELOCIDADE := 4.6
 const CORRIDA := 6.8
 const ESCALA := 2.0
 const CONTORNO_LARGURA := 0.012
-## Os bonecos registrados: o arquivo e o intervalo do pio (arte/03). A G10
-## acrescenta os 12 do Mini Characters; a G13 troca por peças.
 const BONECOS := [
 	{"nome": "Humano", "arquivo": "character-human", "intervalo": "segunda"},
 	{"nome": "Orc", "arquivo": "character-orc", "intervalo": "quinta_baixo"},
 ]
-## Os shaders do cavaleiro (arte/04): a roupa por faixa de valor, o contorno e o néon.
 const SH_CAVALEIRO := preload("res://shaders/cavaleiro.gdshader")
-## O contorno: 1,6 na montagem, 2,4 no resto (arte/07).
 const CONTORNO_MONTAGEM := 1.6
 const CONTORNO_JOGO := 2.4
-## A rugosidade de cada parte (A cena da G08); o acabamento Fosco as deixa como estão.
 const RUGOSO_CIMA := 0.85
 const RUGOSO_BAIXO := 0.70
 const RUGOSO_CABECA := 0.90
-## O item: o índice é o de Itens (G03). "id" é o de docs/jogo/sistemas/itens.csv.
-## O corpo leva o item que o _segurar() monta; a regra é a da classe Itens.
 const ITENS := [
 	{"id": "", "nome": "Mãos livres", "icone": ""},
 	{"id": "martelo", "nome": "Martelo", "icone": "item_martelo"},
@@ -39,10 +24,7 @@ const ITENS := [
 	{"id": "diapasao", "nome": "Diapasão", "icone": "item_diapasao"},
 	{"id": "ancora", "nome": "Âncora", "icone": "item_ancora"},
 ]
-## Cada lugar nasce com um visual diferente dos outros: [boneco, item].
 const VISUAL_DO_LUGAR := [[0, 1], [1, 2], [0, 3], [1, 4]]
-## O acabamento muda como a luz bate, nunca a cor: o corpo não se tinge
-## (arte/04). "livre": false até a coleção (G06). metallic nunca passa de 0,2.
 const ACABAMENTOS := [
 	{"nome": "Fosco", "rugoso": 0.95, "metal": 0.0},
 	{"nome": "Polido", "rugoso": 0.45, "metal": 0.2},
@@ -51,15 +33,12 @@ const ACABAMENTOS := [
 	{"nome": "Cromado", "rugoso": 0.25, "metal": 0.2, "claro": 0.0, "livre": false},
 	{"nome": "Néon", "rugoso": 0.6, "metal": 0.0, "claro": 0.0, "acento": 2.4, "livre": false},
 ]
-## A energia de repouso do acento do corpo (G08: 1,6); o Néon sobe a 2,4. Teto 3,0.
 const ACENTO_REPOUSO := 1.6
 const ACENTO_TETO := 3.0
-## As malhas da Kenney dos itens que as têm (o martelo e o escudo, por pasta de pacote).
 const MALHA_DO_ITEM := {
 	"martelo": "res://assets/kenney/survival-kit/tool-hammer.glb",
 	"escudo": "res://assets/kenney/mini-dungeon/shield-round.glb",
 }
-## O emblema em relevo de cada amuleto no disco do medalhão (G03): [tamanho x y, posição x y].
 const EMBLEMA := {
 	"fole": [[Vector2(0.022, 0.026), Vector2(0, 0.002)], [Vector2(0.006, 0.010), Vector2(0, -0.016)]],
 	"lanterna": [[Vector2(0.016, 0.022), Vector2(0, -0.002)], [Vector2(0.012, 0.003), Vector2(0, 0.012)]],
@@ -68,17 +47,14 @@ const EMBLEMA := {
 }
 
 var lugar := 0
-var cor: Color  ## a cor do lugar (Forja.cor_do_lugar), posta em `montar`
+var cor: Color
 var hp := 100.0
 var cooldown := 0.0
-## false: parado pelo jogo (lobby, transição); a entrada não mexe nele
 var controlavel := true:
 	set(v):
 		controlavel = v
 		if luz_de_dono:
 			luz_de_dono.visible = v
-## true: a sala posiciona e anima o boneco (na viga, caindo na lava); a física
-## e a escolha da animação ficam paradas
 var preso := false
 var modelo: Node3D
 var modelo_i := 0
@@ -86,20 +62,20 @@ var item_i := 0
 var acabamento_i := 0
 var nome := ""
 var anim: AnimationPlayer
-var aro: Node3D   ## o anel de 8 lados no chão e as lâmpadas do lugar (Kit.anel_do_dono)
-var luz_de_dono: OmniLight3D  ## a luz do lugar no chão em volta de quem se mexe (só com `controlavel`)
+var aro: Node3D
+var luz_de_dono: OmniLight3D
 var etiqueta: Label3D
 var _anim_atual := ""
-var _mats_corpo: Array[ShaderMaterial] = []    ## os do body*, para o acento, o acabamento e o acender
-var _mats_cabeca: Array[ShaderMaterial] = []   ## os do head*, para o acender
-var _contornos: Array[ShaderMaterial] = []     ## o casco de cada malha, na cor do dono
-var _medidas := {}                             ## o que Pintura.preparar mediu no corpo (a área do acento)
+var _mats_corpo: Array[ShaderMaterial] = []
+var _mats_cabeca: Array[ShaderMaterial] = []
+var _contornos: Array[ShaderMaterial] = []
+var _medidas := {}
 var _brilho_do_contorno := CONTORNO_JOGO
-var _arquivo := ""                             ## o .glb do modelo vestido (o colormap mora ao lado)
-var _mats_runa: Array[Material] = []  ## a linha da runa do item, para acender e o encaixe
-var _area_runa := 0.0   ## a área de frente das linhas da runa
-var _area_item := 0.0   ## a área de frente do item (o AABB das malhas)
-var _acesa := 1.0       ## o último acender(k): o item que se troca nasce com a mesma luz
+var _arquivo := ""
+var _mats_runa: Array[Material] = []
+var _area_runa := 0.0
+var _area_item := 0.0
+var _acesa := 1.0
 var _yaw := PI
 var _gesto := 0.0
 
@@ -144,7 +120,6 @@ func montar(l: int) -> void:
 	_animar("idle")
 
 
-## Troca o boneco e o que ele leva. A animação recomeça do "parado".
 func visual(m: int, item: int) -> void:
 	var trocou_modelo := modelo == null or wrapi(m, 0, BONECOS.size()) != modelo_i
 	modelo_i = wrapi(m, 0, BONECOS.size())
@@ -173,8 +148,6 @@ func visual(m: int, item: int) -> void:
 	contornar(_brilho_do_contorno)
 
 
-## Os índices de ACABAMENTOS que já são do jogador: os livres e os que a coleção da
-## noite desbloqueou (Dourado, Cromado, Néon).
 static func acabamentos_disponiveis() -> Array:
 	var v: Array = []
 	for i in ACABAMENTOS.size():
@@ -183,13 +156,10 @@ static func acabamentos_disponiveis() -> Array:
 	return v
 
 
-## O que se guarda do cavaleiro (Opcoes.cavaleiro e o registro): o boneco, o
-## item (pelo id), o nome e o acabamento.
 func cavaleiro() -> Dictionary:
 	return {"boneco": modelo_i, "item": ITENS[item_i].id, "nome": nome, "acabamento": acabamento_i}
 
 
-## O inverso de cavaleiro(): acha o item pelo id e veste o corpo.
 func vestir(c: Dictionary) -> void:
 	var item := 0
 	for i in ITENS.size():
@@ -200,10 +170,6 @@ func vestir(c: Dictionary) -> void:
 	visual(int(c.get("boneco", 0)), item)
 
 
-## O acabamento nos materiais do corpo: só a rugosidade e o metal, nunca a cor.
-## O Fosco (o 0, o de todo mundo) deixa cada parte como a tabela dela (A cena da
-## G08); os outros põem a rugosidade e o metal do acabamento no superior e no
-## inferior.
 func _aplicar_acabamento() -> void:
 	var a: Dictionary = ACABAMENTOS[clampi(acabamento_i, 0, ACABAMENTOS.size() - 1)]
 	var padrao := acabamento_i == 0
@@ -214,13 +180,11 @@ func _aplicar_acabamento() -> void:
 		m.set_shader_parameter("acento", _acento_de_repouso())
 
 
-## A energia de repouso do acento do acabamento de agora (o Néon sobe; o resto, 1,6).
 func _acento_de_repouso() -> float:
 	var a: Dictionary = ACABAMENTOS[clampi(acabamento_i, 0, ACABAMENTOS.size() - 1)]
 	return minf(float(a.get("acento", ACENTO_REPOUSO)), ACENTO_TETO)
 
 
-## O nome de um boneco, na língua do jogo.
 static func nome_do_boneco(i: int) -> String:
 	return Traducoes.traduzir(BONECOS[wrapi(i, 0, BONECOS.size())].nome)
 
@@ -229,9 +193,6 @@ func descricao_do_visual() -> String:
 	return "%s · %s" % [str(BONECOS[modelo_i].nome).to_lower(), ITENS[item_i].nome]
 
 
-## O contorno de néon do lugar em todas as superfícies do boneco e do que ele leva
-## (`next_pass`, o casco que cresce pela normal suavizada): 2,4 no jogo, 1,6 na
-## montagem. Chamar de novo troca a energia.
 func contornar(energia: float) -> void:
 	_brilho_do_contorno = energia
 	if modelo == null:
@@ -262,22 +223,16 @@ func _contornar_em(n: Node) -> void:
 		_contornar_em(filho)
 
 
-## O corpo e a cabeça já levam o contorno da roupa (_vestir); o que já tem contorno só troca a energia.
 func _ja_contornado(m: Material) -> bool:
 	return m != null and m.next_pass is ShaderMaterial and _contornos.has(m.next_pass)
 
 
-## O casco de néon do lugar, na energia de agora; entra na lista que `acender` e `contornar` regulam.
 func _novo_contorno() -> ShaderMaterial:
 	var c := Tema.contorno(cor, CONTORNO_LARGURA, _brilho_do_contorno * _acesa, lugar)
 	_contornos.append(c)
 	return c
 
 
-## Devolve as superfícies ao material do kit antes de o nó sair: um material
-## duplicado com `next_pass` que morre na fila de deleção deixa o servidor de
-## desenho pedindo um material nulo ("Parameter material is null") no quadro em
-## que outro boneco nasce. Chamar antes de todo `queue_free` de quem tem contorno.
 func _soltar_contorno(n: Node) -> void:
 	if n is MeshInstance3D:
 		var mi := n as MeshInstance3D
@@ -288,9 +243,6 @@ func _soltar_contorno(n: Node) -> void:
 		_soltar_contorno(filho)
 
 
-## A normal suavizada (a soma das normais dos vértices no mesmo ponto) gravada no
-## TANGENT: os blocos do kit têm a normal partida em cada face, e sem isto o casco
-## do contorno abriria nos cantos. Uma vez por malha (o resultado fica em cache).
 static var _malhas_suaves := {}
 
 
@@ -328,10 +280,6 @@ static func _suavizar(mi: MeshInstance3D) -> void:
 	mi.mesh = nova
 
 
-## Prende o item escolhido num BoneAttachment3D "Item" (G03): o Martelo na mão
-## direita, a Âncora na mão direita, o Escudo no braço esquerdo, os três amuletos
-## num medalhão no peito. Apaga só o "Item" anterior. A runa é o acento do
-## item, no néon do dono.
 func _segurar() -> void:
 	var esqueleto: Skeleton3D = modelo.find_child("Skeleton3D", true, false)
 	if esqueleto == null:
@@ -365,7 +313,6 @@ func _segurar() -> void:
 			var r := maxf(c.size.x, c.size.y) * 0.5
 			var centro := Vector2(c.position.x + c.size.x * 0.5, c.position.y + c.size.y * 0.5)
 			_medir_o_item(presa)
-			# o aro: um octógono regular de 8 caixas, de vértice a 0,975 r do centro
 			var apotema := 0.975 * r * cos(deg_to_rad(22.5))
 			for i in 8:
 				var giro := deg_to_rad(45.0 * i)
@@ -411,14 +358,11 @@ func _segurar() -> void:
 			for par in EMBLEMA[id]:
 				Kit.caixa(raiz, Vector3(par[0].x, par[0].y, 0.004), Vector3(par[1].x, par[1].y, 0.006), latao)
 			_medir_o_item(presa)
-			# o quadro em volta do emblema: quatro linhas de 0,002, um quadrado de 0,030 de lado
 			for lado in [-1.0, 1.0]:
 				_runa(raiz, Vector3(0.030, 0.002, 0.004), Vector3(0, lado * 0.014, 0.006))
 				_runa(raiz, Vector3(0.002, 0.030, 0.004), Vector3(lado * 0.014, 0, 0.006))
 
 
-## A malha da Kenney do item, presa e com o material do jogo (rugosidade 0,55 e
-## metal 0,2 no máximo: arte/02, a arma em metal batido).
 func _malha_do_item(presa: Node3D, id: String, pos: Vector3, rot_graus: Vector3, escala: float) -> Node3D:
 	var item: Node3D = load(MALHA_DO_ITEM[id]).instantiate()
 	item.position = pos
@@ -436,14 +380,12 @@ func _malha_do_item(presa: Node3D, id: String, pos: Vector3, rot_graus: Vector3,
 				var peca: StandardMaterial3D = base.duplicate()
 				peca.roughness = 0.55
 				peca.metallic = 0.2
-				if peca.albedo_texture != null:   # o colormap do item, na faixa dos objetos (G08)
+				if peca.albedo_texture != null:
 					peca.albedo_texture = Pintura.textura(String(MALHA_DO_ITEM[id]).get_base_dir() + "/Textures/colormap.png", "objeto")
 				mi.set_surface_override_material(s, peca)
 	return item
 
 
-## O AABB das malhas de `no` (e dele mesmo) no espaço de `ate`, só pelas
-## transformações locais: o jogador pode ainda não estar na árvore.
 static func _caixa_em(no: Node3D, ate: Node3D) -> AABB:
 	var uniao := AABB()
 	var primeiro := true
@@ -463,15 +405,11 @@ static func _caixa_em(no: Node3D, ate: Node3D) -> AABB:
 	return uniao
 
 
-## A área de frente do item (x × y do AABB das malhas, no espaço do "Item").
 func _medir_o_item(presa: Node3D) -> void:
 	var c := _caixa_em(presa, presa)
 	_area_item = c.size.x * c.size.y
 
 
-## A runa: o vão em Tema.JANELA (1,5 vez a linha) 0,001 atrás e a linha no néon
-## do dono a 1,6. `eixo` é a normal da face (0 x, 1 y, 2 z); `giro_z` gira as
-## duas caixas em z (o aro do escudo).
 func _runa(pai: Node3D, tamanho: Vector3, pos: Vector3, giro_z := 0.0, eixo := 2) -> void:
 	var normal := Vector3.ZERO
 	normal[eixo] = 1.0
@@ -484,8 +422,6 @@ func _runa(pai: Node3D, tamanho: Vector3, pos: Vector3, giro_z := 0.0, eixo := 2
 	fundo.rotation.z = giro_z
 	linha.rotation.z = giro_z
 	_mats_runa.append(mat)
-	# a área no espaço do "Item", o mesmo de _area_item: a malha do Kenney leva a
-	# escala dela (2,3 no martelo, 0,9 no escudo) e a runa, filha dela, também
 	var k := 1.0
 	var no: Node = pai
 	while no != null and not (no is BoneAttachment3D):
@@ -494,11 +430,6 @@ func _runa(pai: Node3D, tamanho: Vector3, pos: Vector3, giro_z := 0.0, eixo := 2
 	_area_runa += tamanho.x * tamanho.y * k * k
 
 
-## A roupa (arte/04): cada parte na sua faixa de valor, o néon do dono só no
-## acento (o friso e a costura), no contorno e no aro. O corpo nunca é tingido.
-## O colormap fica ao lado do .glb; num boneco do Mini Characters a pele fica
-## com a graduação da cabeça (pp = "personagem"), nos outros o colormap inteiro
-## vai pelo papel da parte.
 func _vestir(n: Node) -> void:
 	var esqueleto: Skeleton3D = n.find_child("Skeleton3D", true, false)
 	var colormap := _arquivo.get_base_dir() + "/Textures/colormap.png"
@@ -542,9 +473,6 @@ func _vestir(n: Node) -> void:
 			(_mats_corpo if corpo else _mats_cabeca).append(m)
 
 
-## O encaixe de uma peça (a G13 chama; a G03 chama ao trocar o item): o acento do
-## corpo e a runa do item sobem a 2,6 e voltam a 1,6 em 0,25 s (SAI). É luz, não
-## movimento: vale também com o movimento reduzido.
 func acender_acento() -> void:
 	if not is_inside_tree():
 		return
@@ -560,8 +488,6 @@ func _acento_em(v: float) -> void:
 		Tema.emissivo(m, v * _acesa, lugar)
 
 
-## A armadura apagada (0: o corpo em Tema.GRAFITE, sem acento, sem aro, sem
-## contorno) ou acesa (1: como o _vestir deixou).
 func acender(k: float) -> void:
 	k = clampf(k, 0.0, 1.0)
 	_acesa = k
@@ -577,7 +503,6 @@ func acender(k: float) -> void:
 		aro.visible = k >= 0.5
 
 
-## Mostra ou esconde a cabeça (a malha "head-mesh" do boneco).
 func cabeca(visivel: bool) -> void:
 	var c := modelo.find_child("head-mesh", true, false) if modelo else null
 	if c is Node3D:
@@ -593,13 +518,11 @@ func _animar(nome: String, velocidade := 1.0) -> void:
 	anim.speed_scale = velocidade
 
 
-## A animação de base, pedida pela sala (um gesto em curso tem a vez).
 func animar(nome: String, velocidade := 1.0) -> void:
 	if _gesto <= 0.0:
 		_animar(nome, velocidade)
 
 
-## Um gesto que roda uma vez (comemorar, levar dano, cair).
 func gesto(nome: String, duracao := 1.0) -> void:
 	if anim == null or not anim.has_animation(nome):
 		return
@@ -612,7 +535,6 @@ func _ready() -> void:
 	_notification(NOTIFICATION_VISIBILITY_CHANGED)
 
 
-## Lugar vazio: o boneco some e deixa de ocupar espaço (não trava quem anda).
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_VISIBILITY_CHANGED:
 		collision_layer = 1 if visible else 0

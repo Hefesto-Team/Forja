@@ -4,8 +4,6 @@ set -uo pipefail
 RAIZ="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 LISTA="$RAIZ/scripts/requisitos-sistema.txt"
 OFICINA="${FORJA_OFICINA:-$RAIZ/oficina}"
-# Os pacotes que a Forja instalou nesta máquina, um por linha. O que já estava
-# aqui antes não entra, e por isso o desinstalar nunca tira o que era seu.
 REGISTRO="$OFICINA/pacotes-do-sistema.txt"
 
 if [[ -t 1 ]]; then
@@ -41,8 +39,6 @@ placa() {
     echo ""
   fi
 }
-
-# ---------------------------------------------------------------- conferir --
 
 conferir() {
   titulo "O sistema"
@@ -91,8 +87,6 @@ conferir() {
   echo "  ./run.sh"
 }
 
-# ---------------------------------------------------------------- instalar --
-
 sistema() {
   tem_apt || { echo "esta máquina não usa apt. Instale à mão o que está em $LISTA"; exit 1; }
   local faltam; faltam="$(pacotes_que_faltam | grep -v '^$' || true)"
@@ -120,7 +114,6 @@ modulo() {
   echo "==> compilando o módulo nativo (a primeira vez baixa o SDL3 e a godot-cpp)"
   bash "$RAIZ/scripts/compilar.sh" linux || return 1
   echo "==> a engine"
-  # quem baixa a engine é o run-local.sh; aqui só a parte que não abre o jogo
   bash "$RAIZ/scripts/baixar_engine.sh" || return 1
   ok "o jogo está pronto: ./run.sh"
 }
@@ -136,8 +129,6 @@ trilha() {
   bash "$RAIZ/scripts/trilha_ambiente.sh" modelo || return 1
   ok "a trilha está pronta: ./run.sh trilha"
 }
-
-# ------------------------------------------------------------- desinstalar --
 
 desinstalar() {
   titulo "A trilha"

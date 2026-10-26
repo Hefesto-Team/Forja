@@ -20,7 +20,7 @@ que mostra os quatro julgamentos saindo do `Ritmo`.
 
 ## O estado de hoje
 
-- **A lista de salas** é um `const` em `godot/scripts/main.gd:13-24`:
+- **A lista de salas** é um `const` em `godot/scripts/main.gd:3-13`:
 
   ```gdscript
   const SALAS := {
@@ -30,24 +30,24 @@ que mostra os quatro julgamentos saindo do `Ritmo`.
   }
   ```
 
-  Usada em `main.gd:186` (`--sala=`), `main.gd:299` e `main.gd:306`
+  Usada em `main.gd:170` (`--sala=`), `main.gd:275` e `main.gd:281`
   (`_entrar_na_sala`: `sala = SALAS[id].new()`). O `sala_id` do `main.gd` é o
-  id pedido, e é ele que a música (`main.gd:214`), o salão
-  (`main.gd:281`, `salao.saida_do_portao(sala_id, ...)`) e a partida
-  (`partida.gd:22-30`, `NA_ORDEM` e `NOMES` por id) usam. Mas a partida
-  registra o `sala.id`, não o `sala_id` (`main.gd:400` e `main.gd:405`).
+  id pedido, e é ele que a música (`main.gd:194`), o salão
+  (`main.gd:258`, `salao.saida_do_portao(sala_id, ...)`) e a partida
+  (`partida.gd:6-14`, `NA_ORDEM` e `NOMES` por id) usam. Mas a partida
+  registra o `sala.id`, não o `sala_id` (`main.gd:368` e `main.gd:373`).
 - **As fases** são da `SalaJogo` (`godot/scripts/salas/sala_jogo.gd`):
   `entrar` (79-97), `sair` (100-108), `congelar` (189-199), `_process`
   (202-223, chama `jogar(dt)` na fase `jogo`), `comecar` (282-293, chama
   `iniciar_jogo()`), `terminar` (317-333), `marcar` (402-414). Os ganchos que
   já existem: `montar()` (da `Sala`), `iniciar_jogo()`, `jogar(dt)`.
 - **O que as salas repetem**: `const RAIAS := [-6.0, -2.0, 2.0, 6.0]` em sete
-  salas (`caminhos.gd:24`, `canto.gd:22`, `centelha.gd:25`, `galeria.gd:20`,
-  `impacto.gd:19`, `viga.gd:25`, `voz.gd:22`; o Molde tem outras,
-  `molde.gd:24`), o `Z_JOGADOR` em cinco, `_conectado(l)` idêntico em cinco
-  (`caminhos.gd:240`, `canto.gd:268`, `impacto.gd:211`, `prova.gd:306`,
-  `voz.gd:244`), a montagem da raia (laje, borda na cor do lugar, luz) em
-  `canto.gd:181-236`, `impacto.gd:108-160`, `voz.gd:167-215`, e o robô
+  salas (`caminhos.gd:5`, `canto.gd:5`, `centelha.gd:25`, `galeria.gd:4`,
+  `impacto.gd:5`, `viga.gd:5`, `voz.gd:5`; o Molde tem outras,
+  `molde.gd:5`), o `Z_JOGADOR` em cinco, `_conectado(l)` idêntico em cinco
+  (`caminhos.gd:203`, `canto.gd:238`, `impacto.gd:185`, `prova.gd:263`,
+  `voz.gd:208`), a montagem da raia (laje, borda na cor do lugar, luz) em
+  `canto.gd:158-210`, `impacto.gd:91-139`, `voz.gd:139-183`, e o robô
   chamado de dentro do `jogar` (`if Forja.robo: _robo(l, dt)`,
   `centelha.gd:245-246`). São umas 30 a 60 linhas por sala — a economia
   maior do kit é o que **ainda não existe** em sala nenhuma: o relógio, o
@@ -56,10 +56,10 @@ que mostra os quatro julgamentos saindo do `Ritmo`.
   tem repetição: não monta raia, não tem `_conectado`, não tem `dica`. O
   `_init()` (37-47) diz id, nome, ação, gesto, features, botões e duração; o
   resto é a regra dela.
-- **Os ids nas provas**: `godot/testes/prova_do_jogo.gd:292`
+- **Os ids nas provas**: `godot/testes/prova_do_jogo.gd:263`
   (`sala.id == id`), `:346` (`sala.id == "centelha"`), `:495` e `:499`
-  (`jogo.sala.id != ids[i]`); `godot/testes/prova_de_poucos.gd:69`
-  (`sala.id != id`); `godot/testes/captura_jogo.gd:116`
+  (`jogo.sala.id != ids[i]`); `godot/testes/prova_de_poucos.gd:59`
+  (`sala.id != id`); `godot/testes/captura_jogo.gd:92`
   (`SalaCentelha._contar(...)`, o `class_name` que vai sumir).
 - **Medido nesta preparação** (Godot 4.4.1, projeto de rascunho):
   - `const FICHA := {"entradas": [Forja.CRUZ, Forja.CIRCULO]}` funciona: a
@@ -678,7 +678,7 @@ func _proxima(l: int) -> void:
 ### `godot/scripts/main.gd`
 
 - apague o `const SALAS := {...}` (linhas 13-24);
-- `main.gd:186`: `if sala_pedida != "" and Catalogo.existe(sala_pedida):`;
+- `main.gd:170`: `if sala_pedida != "" and Catalogo.existe(sala_pedida):`;
 - `_entrar_na_sala` ganha a sala pronta (é como a prova abre o minigame de
   prova, pelo mesmo caminho do jogo):
 
@@ -692,7 +692,7 @@ func _proxima(l: int) -> void:
   		sala = pronta if pronta != null else Catalogo.criar(id)
   ```
 
-- `main.gd:400` e `main.gd:405`: `sala_id` no lugar de `sj.id` (a partida e
+- `main.gd:368` e `main.gd:373`: `sala_id` no lugar de `sj.id` (a partida e
   o placar falam pelo apelido: `NOMES` da `Partida` é por apelido).
 
 ## Passos
@@ -729,9 +729,9 @@ marcado com **(prova)**. Se reprovar, conserte antes de seguir.
    - `godot/testes/prova_do_jogo.gd`: acrescente `_e_a_sala(sala, id)` (em
      "Provas") e use-a nas quatro comparações de `sala.id` (linhas 292,
      346, 495 e 499 de hoje);
-   - `godot/testes/prova_de_poucos.gd:69`:
+   - `godot/testes/prova_de_poucos.gd:59`:
      `if not sala is SalaJogo or (sala.id != id and Catalogo.apelido(sala.id) != id):`;
-   - `godot/testes/captura_jogo.gd:116`: `SalaCentelha._contar(...)` vira
+   - `godot/testes/captura_jogo.gd:92`: `SalaCentelha._contar(...)` vira
      `sala._contar(...)` (a função estática se chama pela instância).
    **(prova)** — a Centelha tem de sair com os três vereditos como antes
    (as linhas agora dizem `S01_J01 P1: botoes → passou`).
@@ -779,7 +779,7 @@ marcado com **(prova)**. Se reprovar, conserte antes de seguir.
   diz quem tem controle agora. A nota de quem está sem controle não vira
   erro, e quando o controle volta, a nota da vez é a próxima que ainda não
   passou (veja `_fora` no minigame de prova). A `SalaJogo` já não espera
-  quem está sem controle para acabar (`sala_jogo.gd:218`).
+  quem está sem controle para acabar (`sala_jogo.gd:155`).
 - **1, 2, 3 e 4 jogadores.** Nada no kit supõe quatro: tudo passa por
   `jogadores` e `presentes()`. A prova de poucos
   (`bash tests/prova_de_poucos.sh`, do André) roda A Centelha com dois e

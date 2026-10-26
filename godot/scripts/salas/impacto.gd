@@ -1,33 +1,18 @@
 class_name SalaImpacto
 extends SalaJogo
-## O Impacto — dano direcional e a vida na luz.
-##
-## O padrão dos jogos de ação do PS5: o golpe da esquerda treme SÓ o motor da
-## esquerda, a barra de luz pisca vermelho no golpe e apaga conforme a vida
-## cai. (A barra de luz do DualSense é uma cor só: o lado vem do motor.)
-##
-## E é uma prova às cegas (cegas.h), porque saída o jogo não mede: no escuro,
-## os golpes vêm um de cada vez, para um controle só, e a tela não diz de que
-## lado — o aviso "!" não tem lado e o som sai no meio. Quem sente levanta o
-## escudo daquele lado (L1 esquerda, R1 direita); só depois da resposta a tela
-## mostra a sentinela que atirou e o golpe batendo no escudo ou no boneco. Quem
-## levanta o escudo com o golpe indo para OUTRO controle sentiu uma vibração
-## que não era dele: é o isolamento. No fim de cada onda, cada controle acende
-## uma cor sorteada, e a pessoa diz qual é olhando o plástico.
 
 const F := preload("res://scripts/forja.gd")
 const RAIAS := [-6.0, -2.0, 2.0, 6.0]
 const Z_JOGADOR := 1.4
 const POR_LADO := 5
 const ONDAS := 3
-const JANELA := 1.3  ## s para levantar o escudo depois do golpe
-const MOSTRA := 0.5  ## s do golpe voando, depois da resposta
+const JANELA := 1.3
+const MOSTRA := 0.5
 const GOLPE_MS := 260
 const DANO := 0.14
 const VIDA_MIN := 0.12
 const PERGUNTA_MAX := 9.0
 const MAX_PERGUNTAS := 5
-## longe das cores dos lugares (azul, vermelho, verde, rosa), para não confundir
 const CORES := [
 	{"nome": "âmbar", "cor": Color(1.0, 0.59, 0.0)},
 	{"nome": "ciano", "cor": Color(0.0, 0.82, 1.0)},
@@ -43,15 +28,15 @@ enum { PAUSA, GOLPE, VOANDO, PERGUNTA, RESPOSTA, ACABOU }
 var estado := PAUSA
 var t_estado := 0.0
 var espera := 1.2
-var plano: Array = []  ## Vector2i(lugar, lado); lado 0 = esquerda (o motor forte)
+var plano: Array = []
 var i_plano := 0
 var fim_onda := [0, 0, 0]
 var onda := 0
 var atual := Vector2i(-1, 0)
 var resposta := -1
 var respondido := false
-var j := {}  ## lugar -> o estado do jogador
-var n := {}  ## lugar -> os nós da raia
+var j := {}
+var n := {}
 
 
 func _init() -> void:
@@ -71,9 +56,7 @@ func _init() -> void:
 
 func montar() -> void:
 	Kit.arena(self, 5, 3)
-	# no escuro: só uma poeira fria e o neon azul, o preenchimento fraco
 	atmosfera(Color("#6fa8ff"), Tema.VIOLETA, false, 30, 22.0, -7.8, 0.1)
-	# no escuro: um enchimento frio e fraco; a luz de cada raia é a lanterna dele
 	var frio := OmniLight3D.new()
 	frio.position = Vector3(0, 8.0, 3.0)
 	frio.light_energy = 0.45
@@ -109,7 +92,6 @@ static func _sentinela_pos(l: int, lado: int) -> Vector3:
 func _montar_raia(l: int, p: ForjaPlayer) -> Dictionary:
 	var x: float = RAIAS[l]
 	var alvo := Vector3(x, 0, Z_JOGADOR)
-	# o chão da raia: um círculo de pedra escura com a borda que pulsa no golpe
 	Kit.cilindro(self, 1.55, 0.04, Vector3(x, 0.02, Z_JOGADOR - 0.3), Kit.material(Tema.CASCO, 0.0, 0.95))
 	var borda := MeshInstance3D.new()
 	var tor := TorusMesh.new()
@@ -123,7 +105,6 @@ func _montar_raia(l: int, p: ForjaPlayer) -> Dictionary:
 	var mat_borda := Kit.material(Tema.GRAFITE, 0.0, 0.8)
 	borda.material_override = mat_borda
 	add_child(borda)
-	# as sentinelas de pedra, à frente e dos dois lados, com o olho que acende
 	var sentinelas: Array = []
 	var olhos: Array = []
 	for lado in [0, 1]:
@@ -134,14 +115,12 @@ func _montar_raia(l: int, p: ForjaPlayer) -> Dictionary:
 		var olho := Kit.esfera(self, 0.09, pos + Vector3(0, 1.28, 0) + d.normalized() * 0.3, Kit.material(Tema.TUNGSTENIO, 1.2, 0.8, "forja"))
 		sentinelas.append(s)
 		olhos.append(olho)
-	# os dois escudos, um de cada lado do boneco (aparecem quando levantados)
 	var escudos: Array = []
 	for lado in [0, 1]:
 		var e := Kit.peca(self, "shield-round", Vector3(x + (-0.62 if lado == 0 else 0.62), 0.95, Z_JOGADOR - 0.2), 0.0, 2.4)
 		e.rotation.y = -2.36 if lado == 0 else 2.36
 		e.scale = Vector3.ONE * 0.001
 		escudos.append(e)
-	# o aviso sem lado e a dúvida do escudo à toa
 	var aviso := Label3D.new()
 	aviso.text = "!"
 	aviso.font = Tema.archivo(700)
@@ -161,7 +140,6 @@ func _montar_raia(l: int, p: ForjaPlayer) -> Dictionary:
 	duvida.modulate = Tema.ETIQUETA
 	duvida.position = Vector3(x + 0.55, 2.3, Z_JOGADOR)
 	add_child(duvida)
-	# a lanterna da raia: a luz do controle, apagando com a vida (neutra na pergunta)
 	var poste := Vector3(x + 1.25, 0, Z_JOGADOR + 0.45)
 	Kit.cilindro(self, 0.04, 1.3, poste + Vector3(0, 0.65, 0), Kit.material(Tema.GRAFITE, 0.0, 0.5))
 	var chama := Kit.esfera(self, 0.13, poste + Vector3(0, 1.42, 0), Kit.material(Forja.cor_do_lugar(l), 2.5, 0.8, l))
@@ -177,8 +155,6 @@ func _montar_raia(l: int, p: ForjaPlayer) -> Dictionary:
 		"aviso": aviso, "duvida": duvida, "chama": chama, "luz": luz}
 
 
-# ------------------------------------------------------------------ as saídas --
-
 func _cor_da_vida(l: int) -> Color:
 	var k := 0.3 + 0.7 * clampf(float(j[l].vida), 0.0, 1.0)
 	return Forja.cor_do_lugar(l) * k
@@ -192,8 +168,6 @@ func _luz(l: int, cor: Color) -> void:
 func _luz_da_vida(l: int) -> void:
 	_luz(l, _cor_da_vida(l))
 
-
-# ------------------------------------------------------------------ o jogo --
 
 func iniciar_jogo() -> void:
 	var lugares: Array = []
@@ -215,7 +189,6 @@ func _conectado(l: int) -> bool:
 
 
 func _iniciar_golpe() -> void:
-	# o próximo alvo com controle; quem caiu da mesa perde o golpe (não conta)
 	while i_plano < plano.size() and not _conectado(plano[i_plano].x):
 		i_plano += 1
 	if i_plano >= plano.size():
@@ -233,7 +206,6 @@ func _iniciar_golpe() -> void:
 		if jogando[p.lugar] and p.lugar != l and _conectado(p.lugar):
 			j[p.lugar].chances += 1
 	Forja.evento("jogo", l + 1, {"sala": id, "o": "golpe", "lado": "esquerda" if atual.y == 0 else "direita"})
-	# no meio: o som não entrega o lado
 	Som.tocar("sopro", null, -6.0)
 
 
@@ -250,7 +222,6 @@ func _resolver(r: int) -> void:
 		e.combo += 1
 		marcar(l, 100 + (50 if t_estado < 0.6 else 0) + 10 * (int(e.combo) - 1))
 		res = "certo"
-		# depois da resposta: o escudo segurou, e se ouve na mão
 		Som.tocar("escudo", jogador(l).global_position + Vector3(0, 1.2, 0), -2.0)
 		Som.no_controle(l, "escudo", 0.7)
 	else:
@@ -273,8 +244,6 @@ func _resolver(r: int) -> void:
 	t_estado = 0.0
 
 
-## Depois da resposta, a tela conta: a sentinela do lado acende e atira, e o
-## golpe bate no escudo (faíscas douradas) ou no boneco (vermelho).
 func _mostrar_golpe(l: int, lado: int, bloqueou: bool) -> void:
 	var nos: Dictionary = n[l]
 	var p := jogador(l)
@@ -367,7 +336,6 @@ func _acabar() -> void:
 
 
 func jogar(dt: float) -> void:
-	# o pisca vermelho: vermelho, escuro, vermelho, e volta à cor da vida
 	for l in j:
 		var e: Dictionary = j[l]
 		if e.pisca <= 0.0 or estado == PERGUNTA or estado == RESPOSTA:
@@ -390,7 +358,7 @@ func jogar(dt: float) -> void:
 				return
 			if onda < ONDAS and i_plano >= fim_onda[onda]:
 				onda += 1
-				if Forja.bancada:  # a pergunta da cor é do Modo bancada
+				if Forja.bancada:
 					_iniciar_pergunta()
 					if not _alguem_pergunta():
 						estado = PAUSA
@@ -418,7 +386,6 @@ func jogar(dt: float) -> void:
 						_resolver(0 if l1 else 1)
 						break
 				else:
-					# o escudo à toa: este controle sentiu um golpe que não era dele?
 					e.fantasmas += 1
 					e.interroga = 1.0
 					marcar(l, -20)
@@ -473,8 +440,6 @@ func dar_vereditos(l: int) -> Array:
 	return lista.filter(func(v): return not v.is_empty())
 
 
-# ------------------------------------------------------------------ o que se vê --
-
 func _process(dt: float) -> void:
 	super(dt)
 	for p in jogadores:
@@ -491,7 +456,6 @@ func _mostrar(l: int, dt: float) -> void:
 	var aviso: Label3D = nos.aviso
 	aviso.visible = alvo
 	aviso.scale = Vector3.ONE * (1.0 + 0.12 * sin(t * 18.0))
-	# a borda pulsa sem lado: o aviso é do golpe, não de onde ele vem
 	var mb: StandardMaterial3D = nos.mat_borda
 	if alvo:
 		Tema.emissivo(mb, 1.0 + 1.2 * (0.5 + 0.5 * sin(t * 18.0)), "forja")
@@ -504,7 +468,6 @@ func _mostrar(l: int, dt: float) -> void:
 		var esc: Node3D = nos.escudos[lado]
 		var k: float = e.escudo if int(e.escudo_lado) == lado else 0.0
 		esc.scale = Vector3.ONE * maxf(0.001, 2.4 * minf(1.0, k * 1.6))
-	# a lanterna: a luz do controle; na pergunta da cor, neutra (a tela não sopra)
 	var perguntando: bool = (estado == PERGUNTA or estado == RESPOSTA) and e.cor_pedida >= 0
 	var cor := NEUTRO if perguntando else _cor_da_vida(l)
 	if e.pisca > 0.0 and not perguntando:
@@ -516,8 +479,6 @@ func _mostrar(l: int, dt: float) -> void:
 	luz.light_color = cor
 	luz.light_energy = 0.6 + 1.2 * (1.0 if perguntando else float(e.vida))
 
-
-# ------------------------------------------------------------------ a HUD --
 
 func status(lugar: int) -> String:
 	if fase == "jogo" and j.has(lugar):
@@ -539,7 +500,7 @@ func dica(lugar: int) -> Dictionary:
 
 func pergunta(lugar: int) -> Dictionary:
 	if not Forja.bancada:
-		return {}  # a pergunta às cegas é do Modo bancada
+		return {}
 	if not j.has(lugar):
 		return {}
 	var e: Dictionary = j[lugar]
@@ -561,11 +522,6 @@ func pergunta(lugar: int) -> Dictionary:
 	return {"titulo": "Que cor está a sua luz?", "opcoes": opcoes, "escolhida": e.cor_resposta,
 		"certa": certa, "rodape": rodape, "pos": Vector3(RAIAS[lugar], 0.0, 3.8)}
 
-
-# ------------------------------------------------------------------ o robô --
-# Sente o motor e vê a própria luz, como quem segura o controle: levanta o
-# escudo do lado que tremeu, e diz a cor mais parecida com a que o controle
-# simulado acendeu (o defeito de mentira fica no caminho, como no aparelho).
 
 func _robo(l: int, e: Dictionary, dt: float) -> void:
 	var pc := Forja.percepcao(l)

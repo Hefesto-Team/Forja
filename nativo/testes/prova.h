@@ -1,9 +1,3 @@
-/* As provas da lógica da Tech Demo — sem SDL, sem som, sem aparelho.
- *
- * Mesmo desenho das provas do forja-send: uma função `espera(cond, msg)` que
- * conta falhas, e cada arquivo prova_*.c registra as suas funções. O que se
- * prova aqui é o que o jogo DECIDE (máscara, relatório, origem, payload,
- * sorteio, taxa, estações); o que o aparelho FAZ é da mesa, com o roteiro. */
 #ifndef DEMO_PROVA_H
 #define DEMO_PROVA_H
 

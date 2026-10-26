@@ -1,5 +1,3 @@
-/* As provas às cegas: o plano dos golpes e das armas, e a estatística que
- * decide cada veredito de saída. */
 #include "prova.h"
 
 #include "cegas.h"
@@ -19,7 +17,6 @@ static Cega cega(int certos, int errados, int perdidos, int disse) {
 void provas_cegas(void) {
   Sorteio s;
 
-  /* ---- o plano dos golpes ---- */
   int slots[4] = {0, 1, 2, 3};
   Tiro t[64];
   sorteio_semear(&s, 42);
@@ -52,7 +49,6 @@ void provas_cegas(void) {
   espera(n == 10 && esq == 5, "sozinho: dez golpes, cinco de cada lado");
   espera(cegas_plano_tiros(&s, slots, 4, 5, t, 12) == 12, "respeita o tamanho do buffer");
 
-  /* ---- o plano das armas ---- */
   Arma armas[16];
   sorteio_semear(&s, 5);
   n = cegas_plano_armas(&s, 2, armas, 16);
@@ -65,7 +61,6 @@ void provas_cegas(void) {
   espera(n == 8 && conta[0] == 2 && conta[1] == 2 && conta[2] == 2 && conta[3] == 2, "cada arma duas vezes");
   espera(repetidas <= 1, "quase nunca a mesma arma em seguida");
 
-  /* ---- o plano genérico ---- */
   int fontes[3] = {0, 2, 9}, vezes[3] = {2, 2, 3}, plano[16];
   sorteio_semear(&s, 11);
   n = cegas_plano_fontes(&s, fontes, vezes, 3, plano, 16);
@@ -78,7 +73,6 @@ void provas_cegas(void) {
   espera(n == 7 && c9 == 3 && c0 == 2, "cada fonte nas vezes pedidas");
   espera(rep <= 1, "quase nunca a mesma fonte em seguida");
 
-  /* ---- o motor ---- */
   Cega c = cega(5, 0, 0, -1);
   Veredito v = cega_motor_veredito(&c, LADO_ESQ, true, true);
   espera(v.resultado == RES_PASSOU && v.nivel == NIVEL_OBEDECEU, "cinco de cinco: passou, obedeceu");
@@ -99,7 +93,6 @@ void provas_cegas(void) {
   c = cega(0, 0, 5, -1);
   espera(cega_motor_veredito(&c, LADO_ESQ, true, false).resultado == RES_NAO_MEDIDO, "ninguém jogou: não medido");
 
-  /* ---- o isolamento ---- */
   Cega meus = cega(9, 0, 1, -1);
   espera(cega_isolamento_veredito(0, 30, 0, &meus).resultado == RES_NAO_MEDIDO, "sozinho: não medido");
   espera(cega_isolamento_veredito(0, 30, 3, &meus).resultado == RES_PASSOU, "nenhum fantasma: passou");
@@ -110,7 +103,6 @@ void provas_cegas(void) {
   v = cega_isolamento_veredito(0, 30, 3, &surdo);
   espera(v.resultado == RES_FALHOU && strstr(v.obs, "não chegaram") != NULL, "os golpes dele foram para outro");
 
-  /* ---- a cor ---- */
   c = cega(3, 0, 0, -1);
   espera(cega_cor_decidida(&c) && cega_cor_veredito(&c, true).resultado == RES_PASSOU, "três cores certas: passou");
   c = cega(1, 2, 0, 1);
@@ -120,7 +112,6 @@ void provas_cegas(void) {
   c = cega(0, 0, 3, -1);
   espera(cega_cor_veredito(&c, true).resultado == RES_NAO_MEDIDO, "sem resposta: não medido");
 
-  /* ---- a arma ---- */
   Cega off = cega(2, 0, 0, -1);
   c = cega(2, 0, 0, -1);
   espera(cega_arma_decidida(&c) && cega_arma_veredito(ARMA_PISTOLA, &c, &off, true).resultado == RES_PASSOU,
@@ -141,7 +132,6 @@ void provas_cegas(void) {
   espera(strstr(v.obs, "não solta") != NULL, "sem arma que parece arco: o gatilho não solta");
   espera(strcmp(cegas_nome_arma(ARMA_METRALHADORA), "metralhadora") == 0, "os nomes");
 
-  /* ---- os LEDs ---- */
   c = cega(6, 1, 1, -1);
   v = cega_leds_veredito(&c, true);
   espera(v.resultado == RES_PASSOU, "seis de oito, um errado: passou");
@@ -153,7 +143,6 @@ void provas_cegas(void) {
   c = cega(3, 3, 0, -1);
   espera(cega_leds_veredito(&c, true).resultado == RES_NAO_MEDIDO, "meio a meio: inconclusivo");
 
-  /* ---- A Prova: tudo junto ---- */
   {
     MedCarga m;
     med_carga_zerar(&m, true);

@@ -1,8 +1,4 @@
 extends Node3D
-## Quadro 12 — A prancha das reações (09; PRODUCAO, item 3): os oito
-## adesivos nas quatro cores a 112 px sobre o casco, uma linha deles a 144 px
-## sobre a arena da Centelha, a roda de 240 px aberta num cartão e os seis
-## carimbos do jogo no tamanho da tela. Tudo desenhado por reacoes.gd.
 
 const Fita := preload("res://estudos/direcao/fita.gd")
 const Hud := preload("res://estudos/direcao/hud.gd")
@@ -16,25 +12,20 @@ var arquivo := "12_reacoes"
 var folha: SubViewport
 const LARGURA := 1920
 const ALTURA := 1960
-## A grade dos 32: uma linha por dono, uma coluna por adesivo.
 const GRADE_X := 196.0
 const GRADE_Y := 266.0
 const PASSO_X := 146.0
 const PASSO_Y := 130.0
-## A faixa da arena: a câmera da Centelha, o meio da tela de 1080 cortado.
 const ARENA := Rect2(0, 860, 1920, 600)
-## Os carimbos: duas linhas.
 const CARIMBO_Y := [1580.0, 1810.0]
 const DIRECOES := ["↑", "↗", "→", "↘", "↓", "↙", "←", "↖"]
 
 
-## O estudo pede olhar(); a célula da arena responde pela câmera dela.
 class Olho:
 	var cam: Camera3D
 	func olhar(pos: Vector3, alvo: Vector3, fov: float) -> void:
 		cam.position = pos
 		cam.look_at(alvo)
-		# a faixa é o meio da tela: o fov vertical encolhe na mesma razão
 		cam.fov = rad_to_deg(2.0 * atan(tan(deg_to_rad(fov * 0.5)) * ARENA.size.y / 1080.0))
 
 
@@ -79,8 +70,6 @@ func _grade(ci: CanvasItem) -> void:
 			Reacoes.adesivo(ci, Vector2(GRADE_X + j * PASSO_X, y), 112.0, Reacoes.ADESIVOS[j], i)
 
 
-## A roda: centrada na borda de dentro do cartão do dono (o cartão de baixo,
-## então a borda de cima), 240 px, oito adesivos de 64 px, o ↑ primeiro.
 func _roda(ci: CanvasItem) -> void:
 	var lugar := 2
 	var cor: Color = Fita.JOGADOR[lugar]
@@ -97,7 +86,6 @@ func _roda(ci: CanvasItem) -> void:
 	ci.draw_circle(c, 120.0, Fita.CASCO_ALTO)
 	ci.draw_arc(c, 120.0, 0.0, TAU, 48, cor, 3.0, true)
 	ci.draw_circle(c, 18.0, Fita.GRAFITE)
-	# o dedo apontando o ↘ (o Riso): o gomo escolhido acende
 	var escolhido := 3
 	for j in 8:
 		var a := -PI * 0.5 + TAU * j / 8.0
@@ -108,7 +96,6 @@ func _roda(ci: CanvasItem) -> void:
 		Reacoes.adesivo(ci, p, 64.0, Reacoes.ADESIVOS[j], lugar)
 
 
-## A linha a 144 px sobre a arena: cada dono no ponto alto da faixa.
 func _arena(ci: CanvasItem) -> void:
 	Hud.texto(ci, Fita.archivo(600), 30, Vector2(56, ARENA.position.y - 48), "Uma linha a 144 px sobre a arena da Centelha (a faixa do meio da tela)", Fita.ETIQUETA)
 	for j in 8:

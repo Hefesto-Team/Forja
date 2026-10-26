@@ -30,9 +30,9 @@ CERCA = re.compile(r"^\s*(```|~~~)")
 
 def ancora(titulo: str) -> str:
     """A âncora que o GitHub dá a um título (sem o sufixo de repetição)."""
-    texto = re.sub(r"\[([^\]]*)\]\([^)]*\)", r"\1", titulo)   # o link vale pelo texto
+    texto = re.sub(r"\[([^\]]*)\]\([^)]*\)", r"\1", titulo)
     texto = texto.strip().lower()
-    texto = re.sub(r"[^\w\- ]", "", texto)                   # \w do Python já guarda o acento
+    texto = re.sub(r"[^\w\- ]", "", texto)
     return texto.replace(" ", "-")
 
 

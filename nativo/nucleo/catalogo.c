@@ -1,4 +1,3 @@
-/* O catálogo das salas e das features. Ver catalogo.h. */
 #include "catalogo.h"
 
 #include <string.h>
@@ -60,7 +59,6 @@ const InfoFeature *catalogo_feature(Feature f) {
   return &FEATURES[f];
 }
 
-/* O nome antigo da Viga no jogo (`giro`) ainda abre a Viga. */
 static const struct {
   const char *antigo;
   Sala sala;

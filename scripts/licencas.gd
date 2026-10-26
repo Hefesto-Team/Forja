@@ -1,9 +1,4 @@
 extends SceneTree
-## Os avisos de licença do Godot e de tudo o que ele embute (FreeType, HarfBuzz,
-## e o resto), tirados do próprio binário: a exportação junta este texto ao
-## LICENCAS-DE-TERCEIROS.md e o põe ao lado do jogo.
-##
-##   godot --headless -s scripts/licencas.gd -- <arquivo de saída>
 
 
 func _init() -> void:

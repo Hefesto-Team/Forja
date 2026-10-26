@@ -1,10 +1,4 @@
 extends Node3D
-## Quadro 17 — A forja na batida (PRODUCAO, item 10). Em cima, as quatro
-## fases de uma martelada (05): antecipação, impacto, parada e recuperação,
-## com a escala do corpo de cada uma e a pose do golpe no contato medido
-## (dados/contatos.csv: attack-melee-right acerta aos 0,208 s). Embaixo, as
-## 8 marteladas da forja (04), cada uma acendendo em tungstênio a parte da
-## tabela; o número de cada quadro em batidas e em ms a 120 BPM.
 
 const Fita := preload("res://estudos/direcao/fita.gd")
 const Hud := preload("res://estudos/direcao/hud.gd")
@@ -18,14 +12,12 @@ var arquivo := "17_forja"
 var folha: SubViewport
 const PECAS := ["male-c", "female-f", "male-a"]
 const CONTATO := 0.208
-## As fases: o nome, o instante da animação, a escala do corpo, o tempo.
 const FASES := [
 	{"nome": "Antecipação", "t": 0.11, "escala": Vector3(1.0, 0.96, 1.0), "batida": "−0,5 batida", "ms": "−250 ms", "nota": "Y 0,96, o braço recua 10°, ENTRA"},
 	{"nome": "Impacto", "t": CONTATO, "escala": Vector3(1.12, 0.80, 1.12), "batida": "0 (o tempo)", "ms": "0 ms", "nota": "Y 0,80, X e Z 1,12, 3 quadros"},
 	{"nome": "Parada", "t": CONTATO, "escala": Vector3(1.12, 0.80, 1.12), "batida": "+0,1 batida", "ms": "+50 ms", "nota": "congela 2 quadros (Ressonância!)"},
 	{"nome": "Recuperação", "t": 0.27, "escala": Vector3(0.97, 1.06, 0.97), "batida": "+0,17 batida", "ms": "+83 ms", "nota": "Y 1,06, X e Z 0,97, volta em MOLA"},
 ]
-## A forja: o que cada martelada acende.
 const ACENDE := ["a cabeça", "a cabeça", "o superior", "o superior", "o inferior", "o inferior", "a arma", "o nome"]
 const CEL_A := Vector2i(440, 440)
 const CEL_B := Vector2i(214, 300)
@@ -94,14 +86,10 @@ func _fase(vp: SubViewport, f: Dictionary, faiscas: bool) -> void:
 	Mundo.pos(vp, 5, {"grao": 0.02})
 
 
-## A martelada n: as partes já forjadas acesas (contorno de lâmpada), as que
-## faltam em grafite, e na oitava a chave inteira em tungstênio.
 func _martelada(vp: SubViewport, n: int) -> void:
 	var raiz := Node3D.new()
 	vp.add_child(raiz)
 	var feito := n == 8
-	## A chave é sempre tungstênio: o violeta pintava a peça que entra. O que falta
-	## fica em GRAFITE; a peça desta martelada ganha o contorno de lâmpada.
 	_palco(raiz, Fita.TUNGSTENIO, 5.0 if feito else 3.5)
 	var c := Montar.cavaleiro(raiz, 0, Vector3.ZERO, PECAS, {"item": "martelo", "anim": "holding-right", "t_anim": 0.1, "anel": false})
 	var esq: Skeleton3D = c.find_child("Skeleton3D", true, false)
@@ -130,7 +118,6 @@ func _acender(mi: MeshInstance3D, acesa: bool, agora: bool) -> void:
 		return
 	if not agora:
 		return
-	# o acento (friso, costura, runa) já é néon, com material próprio: fica
 	if mi.material_override != null:
 		return
 	for s in mi.mesh.get_surface_count():
@@ -159,7 +146,6 @@ func _texto(ci: CanvasItem) -> void:
 	for k in 8:
 		var x := _xb(k)
 		ci.draw_rect(Rect2(x, Y_B, CEL_B.x, CEL_B.y), Fita.TUNGSTENIO if k == 7 else Fita.GRAFITE, false, 2.0)
-		# a etiqueta da coluna: o nome sai na oitava, a caneta
 		var et := Rect2(x + 14, Y_B + CEL_B.y - 52, CEL_B.x - 28, 40)
 		Hud.caixa(ci, et, Fita.ETIQUETA, 5)
 		if k == 7:

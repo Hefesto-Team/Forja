@@ -1,5 +1,3 @@
-/* As salas de som: a síntese dos passos contra o reconhecedor de chão, e as
- * réguas do alto-falante, da háptica, do microfone, do mudo e do LED. */
 #include "prova.h"
 
 #include "cegas.h"
@@ -10,8 +8,6 @@
 
 #include <math.h>
 
-/* O envelope que o robô sentiria: o RMS de cada quadro de 1/60 s, com um
- * pouco de silêncio antes e depois. */
 static int envelope(const Onda *o, float *env, int max) {
   const int bloco = SINT_TAXA / 60;
   int n = 0;
@@ -29,7 +25,6 @@ static int envelope(const Onda *o, float *env, int max) {
   return n;
 }
 
-/* Uma prova com as erradas ditas como `resposta`. */
 static Cega cega_disse(int certos, int errados, int resposta, int perdidos) {
   Cega c;
   cega_zerar(&c);
@@ -55,7 +50,6 @@ static Cega cega(int certos, int errados, int perdidos) {
 }
 
 void provas_som(void) {
-  /* ---- cada chão se sente diferente, com qualquer semente ---- */
   int certos = 0, total = 0;
   for (int chao = 0; chao < CHAO_TOTAL; chao++)
     for (uint32_t sem = 1; sem <= 12; sem++) {
@@ -81,18 +75,15 @@ void provas_som(void) {
   espera(onda_pico(&g) > 0.9f && onda_pico(&g) <= 0.951f, "e grita alto, sem estourar");
   onda_liberar(&g);
 
-  /* ---- a trilha ---- */
   for (int en = 0; en <= 2; en++) {
     Onda t = {0};
     espera(sint_trilha(&t, 57, 100, en, 5) == 0, "a trilha sintetiza");
-    /* oito compassos a 100 bpm: 19,2 s */
     espera(t.n == (int)(0.6f * SINT_TAXA) * 32, "a trilha tem oito compassos");
     espera(onda_pico(&t) <= 0.801f && onda_rms(&t) > 0.05f, "a trilha soa, sem estourar");
     espera(onda_emenda(&t) < 0.25f, "o laço da trilha fecha sem estalo");
     onda_liberar(&t);
   }
 
-  /* ---- o microfone ---- */
   MedMic m;
   med_mic_iniciar(&m, false);
   espera(med_mic_veredito(&m, true).resultado == RES_NAO_MEDIDO, "sem microfone achado: não medido");
@@ -114,7 +105,6 @@ void provas_som(void) {
   m.quadros = 0;
   espera(med_mic_veredito(&m, true).resultado == RES_FALHOU, "abriu e não chegou nada: falhou");
 
-  /* ---- o mudo ---- */
   med_mic_iniciar(&m, true);
   espera(med_mudo_veredito(&m, true).resultado == RES_NAO_MEDIDO, "a sala não pediu o mudo: não medido");
   m.pediu_mudo = true;
@@ -133,7 +123,6 @@ void provas_som(void) {
   v = med_mudo_veredito(&m, true);
   espera(v.resultado == RES_PASSOU && strstr(v.obs, "do jogo") != NULL, "o botão chegou; o mudo ficou com o jogo");
 
-  /* ---- o alto-falante ---- */
   Cega meus = cega(3, 0, 0);
   espera(cega_alto_falante_veredito(&meus, 0, 9, false).resultado == RES_NAO_MEDIDO, "sem alto-falante: não medido");
   v = cega_alto_falante_veredito(&meus, 0, 9, true);
@@ -147,12 +136,11 @@ void provas_som(void) {
   meus = cega(2, 1, 0);
   espera(cega_alto_falante_veredito(&meus, 1, 9, true).resultado == RES_PASSOU, "dois de três com um fantasma: passou");
 
-  /* ---- a háptica ---- */
   Cega chao = cega(7, 1, 0), le = cega(3, 0, 0), ld = cega(2, 0, 0);
   espera(cega_haptica_veredito(&chao, &le, &ld, false).resultado == RES_NAO_MEDIDO, "sem os canais: não medido");
   v = cega_haptica_veredito(&chao, &le, &ld, true);
   espera(v.resultado == RES_PASSOU && v.nivel == NIVEL_OBEDECEU, "sete de oito chãos, lados certos: passou");
-  le = cega_disse(0, 3, 1, 0); /* o tropeço da esquerda, dito "direita" */
+  le = cega_disse(0, 3, 1, 0);
   ld = cega_disse(0, 2, 0, 0);
   v = cega_haptica_veredito(&chao, &le, &ld, true);
   espera(v.resultado == RES_FALHOU && strstr(v.obs, "trocados") != NULL, "lados trocados: falhou");
@@ -188,7 +176,6 @@ void provas_som(void) {
   v = cega_haptica_veredito(&chao, &le, &ld, true);
   espera(v.resultado == RES_FALHOU && strstr(v.obs, "não se distinguem") != NULL, "chãos confundidos: falhou");
 
-  /* ---- o LED do microfone ---- */
   Cega led = cega(3, 0, 0);
   v = cega_led_mic_veredito(&led, true);
   espera(v.resultado == RES_PASSOU && strstr(v.medido, "3 respostas certas") != NULL, "três de três: passou");
@@ -197,14 +184,12 @@ void provas_som(void) {
   espera(v.resultado == RES_FALHOU && strstr(v.obs, "luz do microfone") != NULL, "duas erradas: falhou");
   espera(cega_led_mic_decidida(&led), "e está decidido");
 
-  /* ---- o pio de cada boneco (H07) ---- */
   for (int k = 0; k < 12; k++) {
     Onda p = {0};
     espera(sint_pio(&p, 523.25f * powf(2.0f, k / 12.0f), k % 2, 40u + (uint32_t)k) == 0 && p.n > 0, "o pio sintetiza");
     espera(onda_pico(&p) > 0.5f && onda_pico(&p) <= 0.81f, "o pio soa, sem estourar");
     onda_liberar(&p);
   }
-  /* ---- a háptica por material (H07) ---- */
   for (int m = 0; m < MATERIAL_TOTAL; m++) {
     Onda h = {0};
     espera(sint_material(&h, (MaterialHaptico)m, 5) == 0 && h.n > 0, "o material sintetiza");
@@ -213,7 +198,6 @@ void provas_som(void) {
     onda_liberar(&h);
   }
   espera(material_por_nome("plasma") == MATERIAL_LAMA && material_por_nome("vidro") == -1, "plasma é lama; vidro não existe");
-  /* ---- as rampas (H07) ---- */
   float passo = rampa_passo(48000, RAMPA_SAIDA_MS);
   float ganho = 1.0f;
   int amostras = 0;

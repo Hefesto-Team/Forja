@@ -1,10 +1,4 @@
 extends Node3D
-## Quadro 14 — O storyboard da noite (01; PRODUCAO, item 5): os 18 planos,
-## de quem liga o jogo a quem desliga, cada um uma miniatura de 448×252
-## renderizada com a lente, a altura e a luz do plano. Onde o plano já tem
-## quadro no estudo, a miniatura é esse quadro (a mesma cena montada numa
-## célula); os outros são montados aqui. Os planos 2D (a entrada, o placar,
-## os créditos) são o HUD em miniatura.
 
 const Fita := preload("res://estudos/direcao/fita.gd")
 const Hud := preload("res://estudos/direcao/hud.gd")
@@ -22,8 +16,6 @@ const MINI := Vector2i(448, 252)
 const PASSO := Vector2(470, 297)
 const X0 := 22.0
 const Y0 := 14.0
-## Os 18 planos: o número, o momento, a lente e a duração, e de onde sai a
-## miniatura (um quadro do estudo, ou uma função daqui).
 const PLANOS := [
 	[1, "Título", "85 mm", "até o ✕", "q:07_titulo"],
 	[2, "PLAY", "85 mm", "4 batidas", "f:_play"],
@@ -46,7 +38,6 @@ const PLANOS := [
 ]
 
 
-## O estudo de mentira de cada célula: a câmera dela e o olhar().
 class Olho:
 	var camera: Camera3D
 	func olhar(pos: Vector3, alvo: Vector3, fov := 40.0) -> void:
@@ -90,12 +81,10 @@ func _legendas(ci: CanvasItem) -> void:
 		ci.draw_rect(Rect2(p, Vector2(MINI)), Fita.GRAFITE, false, 2.0)
 		Hud.texto(ci, Fita.archivo(600), 30, p + Vector2(0, MINI.y + 2), "%d · %s" % [pl[0], pl[1]], Fita.ETIQUETA)
 		Hud.texto(ci, Fita.vt(), 30, p + Vector2(0, MINI.y + 2), "%s · %s" % [pl[2], pl[3]], Fita.MUDO, HORIZONTAL_ALIGNMENT_RIGHT, MINI.x)
-	# o canto que sobra: a legenda da prancha
 	var p := _pos(18)
 	Hud.etiqueta(ci, Rect2(p + Vector2(40, 40), Vector2(820, 150)), "O storyboard da noite", "PRANCHA  ·  ITEM 5  ·  18 PLANOS", Fita.SECAO[0], 50, -0.01)
 
 
-# --------------------------------------------------- os planos daqui --
 func _fundo(raiz: Node3D, chave: Color, energia: float, chao := true) -> void:
 	Mundo.ambiente(raiz, {"ambiente": Color("#2a2738"), "ambiente_energia": 0.35, "nevoa_densidade": 0.02, "glow_intensidade": 0.6})
 	if chao:
@@ -124,7 +113,6 @@ func _virar(raiz: Node3D, olho) -> void:
 	_deck(raiz, olho, "0:52:30", "LADO B", "LADO B")
 
 
-## 3: a bigorna sozinha no foco, a 35 mm, baixo; os pedestais no escuro.
 func _introducao(raiz: Node3D, olho) -> void:
 	_fundo(raiz, Fita.TUNGSTENIO, 6.0)
 	var b := MeshInstance3D.new()
@@ -138,7 +126,6 @@ func _introducao(raiz: Node3D, olho) -> void:
 	Mundo.pos(raiz, 5, {"grao": 0.03})
 
 
-## 7: o lugar da seção, a 24 mm, alto e aberto; o nome da seção.
 func _estabelecimento(raiz: Node3D, olho) -> void:
 	Cena.montar(raiz, olho)
 	olho.olhar(Vector3(-9.0, 9.0, 14.0), Vector3(0, 0.6, -1.0), 53.1)
@@ -146,13 +133,11 @@ func _estabelecimento(raiz: Node3D, olho) -> void:
 	Hud.camada(raiz, func(ci): Hud.etiqueta(ci, Rect2(620, 420, 680, 170), "A Centelha", "LADO A  ·  FAIXA 01", Fita.SECAO[0], 64, -0.012), 10)
 
 
-## 11: o apito, o último quadro congelado, sem texto.
 func _apito(raiz: Node3D, olho) -> void:
 	Cena.montar(raiz, olho)
 	Mundo.pos(raiz, 5, {"grao": 0.03, "varredura": 0.12, "desbota": 0.35})
 
 
-## 12: o vencedor a 50 mm, o nome dele carimbado na cor dele.
 func _resultado(raiz: Node3D, olho) -> void:
 	_fundo(raiz, Fita.TUNGSTENIO, 5.5)
 	Montar.cavaleiro(raiz, 1, Vector3.ZERO, ["male-b", "female-c", "male-e"], {"item": "martelo", "anim": "emote-yes", "t_anim": 0.3})
@@ -162,7 +147,6 @@ func _resultado(raiz: Node3D, olho) -> void:
 	Hud.camada(raiz, func(ci): Hud.julgamento(ci, Vector2(960, 150), "OBSIDIANA", Fita.JOGADOR[1], 150, -0.03), 10)
 
 
-## 13: o último colocado, a 85 mm, e o emburrado em cima dele.
 func _inserto(raiz: Node3D, olho) -> void:
 	_fundo(raiz, Color("#8a7cff"), 2.2)
 	Montar.cavaleiro(raiz, 3, Vector3.ZERO, ["female-a", "male-d", "female-d"], {"item": "escudo", "anim": "idle", "t_anim": 0.6})
@@ -172,7 +156,6 @@ func _inserto(raiz: Node3D, olho) -> void:
 	Hud.camada(raiz, func(ci): Reacoes.carimbo(ci, Vector2(960, 140), "car_emburrado", 3), 10)
 
 
-## 14: o placar, 2D: a etiqueta com os pontos e o VU de cada um.
 func _placar(raiz: Node3D, _olho) -> void:
 	Mundo.ambiente(raiz, {"fundo": Fita.FITA})
 	Hud.camada(raiz, func(ci):
@@ -193,7 +176,6 @@ func _placar(raiz: Node3D, _olho) -> void:
 		Reacoes.carimbo(ci, Vector2(1480, 470), "car_virada", 1), 10)
 
 
-## 17: os créditos, o encarte da noite: as faixas e quem venceu cada uma.
 func _creditos(raiz: Node3D, _olho) -> void:
 	Mundo.ambiente(raiz, {"fundo": Fita.FITA})
 	Hud.camada(raiz, func(ci):

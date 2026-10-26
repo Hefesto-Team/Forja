@@ -17,7 +17,7 @@ suspeitas fica registrado para o André decidir o resto com o controle na mão.
 
 ## O estado de hoje
 
-**A saída:** `godot/scripts/forja.gd:447-449`:
+**A saída:** `godot/scripts/forja.gd:377-379`:
 
 ```gdscript
 func vibrar(l: int, forte: float, fraco: float, ms: int) -> bool:
@@ -25,49 +25,49 @@ func vibrar(l: int, forte: float, fraco: float, ms: int) -> bool:
 	return ctl.vibrar(l, forte * k, fraco * k, ms) if modulo else false
 ```
 
-`som_haptica()` (`forja.gd:784-786`) toca nos atuadores sem saber se o motor
+`som_haptica()` (`forja.gd:669-671`) toca nos atuadores sem saber se o motor
 do mesmo lugar está vibrando (suspeita **e**).
 
 **As 17 chamadas com números soltos** (fora do `forja.gd`):
 
 | arquivo:linha | hoje (forte, fraco, ms) | o que é | a sensação |
 | --- | --- | --- | --- |
-| `main.gd:459` | 0,4 · 0,6 · 400 | quem venceu a noite, no pódio | `"perfeito"`, 400 |
-| `main.gd:613` | 0 · 0,25 · 40 | trocar o visual no lobby | `"toque"` |
-| `main.gd:617` | 0 · 0,5 · 90 | ficar pronto no lobby | `"acerto"` |
-| `main.gd:677` | 0,2 · 0 · 60 | ✕ num portão fechado | `"erro"` |
-| `ui/tela_opcoes.gd:48` | 0,6 · 0,6 · 160 | provar a escala nova | `"golpe"` |
-| `salas/sala_jogo.gd:239` | 0 · 0,3 · 60 | pronto no aviso | `"toque"` |
+| `main.gd:427` | 0,4 · 0,6 · 400 | quem venceu a noite, no pódio | `"perfeito"`, 400 |
+| `main.gd:563` | 0 · 0,25 · 40 | trocar o visual no lobby | `"toque"` |
+| `main.gd:567` | 0 · 0,5 · 90 | ficar pronto no lobby | `"acerto"` |
+| `main.gd:623` | 0,2 · 0 · 60 | ✕ num portão fechado | `"erro"` |
+| `ui/tela_opcoes.gd:38` | 0,6 · 0,6 · 160 | provar a escala nova | `"golpe"` |
+| `salas/sala_jogo.gd:174` | 0 · 0,3 · 60 | pronto no aviso | `"toque"` |
 | `salas/centelha.gd:338` | 0 · 0,2 · 50 | a martelada na runa | `"acerto"` |
-| `salas/molde.gd:291` | 0,5 · 0,3 · 90 | o carimbo no ponto | `"perfeito"` |
-| `salas/viga.gd:356` | 0,6 · 0,2 · 180 | cair da viga | `"golpe"` |
-| `salas/viga.gd:421` | 0 · 0,35 · 70 | o sino acertado | `"acerto"` |
-| `salas/viga.gd:458` | 0,8 · 0,4 · 120 | a martelada na pedra | `"perfeito"` |
-| `salas/impacto.gd:228` | 1/0 · 0/1 · `GOLPE_MS` | o golpe de um lado (a prova às cegas) | `"golpe_esq"`/`"golpe_dir"`, `GOLPE_MS` |
-| `salas/prova.gd:345` | 1/0 · 0/1 · 220 | o tiro recebido, do lado dele | `"golpe_esq"`/`"golpe_dir"` |
-| `salas/prova.gd:373` | 0,6 · 0,6 · 150 | soltar a martelada | `"perfeito"` |
-| `salas/prova.gd:383` | 1 · 1 · 380 | pego pela martelada | `"explosao"` |
-| `salas/prova.gd:445` | 0 · 0,35 · 60 | atirar | `"toque"` |
-| `salas/voz.gd:289` | 1 · 1 · 700 | o susto | `"explosao"`, 700 |
+| `salas/molde.gd:254` | 0,5 · 0,3 · 90 | o carimbo no ponto | `"perfeito"` |
+| `salas/viga.gd:308` | 0,6 · 0,2 · 180 | cair da viga | `"golpe"` |
+| `salas/viga.gd:370` | 0 · 0,35 · 70 | o sino acertado | `"acerto"` |
+| `salas/viga.gd:407` | 0,8 · 0,4 · 120 | a martelada na pedra | `"perfeito"` |
+| `salas/impacto.gd:201` | 1/0 · 0/1 · `GOLPE_MS` | o golpe de um lado (a prova às cegas) | `"golpe_esq"`/`"golpe_dir"`, `GOLPE_MS` |
+| `salas/prova.gd:300` | 1/0 · 0/1 · 220 | o tiro recebido, do lado dele | `"golpe_esq"`/`"golpe_dir"` |
+| `salas/prova.gd:327` | 0,6 · 0,6 · 150 | soltar a martelada | `"perfeito"` |
+| `salas/prova.gd:337` | 1 · 1 · 380 | pego pela martelada | `"explosao"` |
+| `salas/prova.gd:397` | 0 · 0,35 · 60 | atirar | `"toque"` |
+| `salas/voz.gd:252` | 1 · 1 · 700 | o susto | `"explosao"`, 700 |
 
 Nenhum script chama `Input.start_joy_vibration`. O `ctl.intensidade(v)`
-(`forja_controles.cpp:146`, multiplica o motor em `pads.c:625`) existe mas
+(`forja_controles.cpp:139`, multiplica o motor em `pads.c:586`) existe mas
 ninguém chama.
 
-**O firmware** já é lido na conexão (`pads.c:229`, `p->fw = SDL_GetGamepadFirmwareVersion(gp)`)
-e decide o corte pela metade da sombra (`pads.c:280`,
+**O firmware** já é lido na conexão (`pads.c:208`, `p->fw = SDL_GetGamepadFirmwareVersion(gp)`)
+e decide o corte pela metade da sombra (`pads.c:255`,
 `p->rumble_escala_cheia = p->pid == 0x0DF2 || p->fw == 0 || p->fw >= 0x0224;`),
 mas não vai para a linha do tempo (o evento `conexao` de `:283-294` não tem
-`firmware`) nem para o GDScript (`info_do_pad`, `forja_controles.cpp:57-86`).
-O relatório tem (`pads.c:165-166`).
+`firmware`) nem para o GDScript (`info_do_pad`, `forja_controles.cpp:55-84`).
+O relatório tem (`pads.c:151-152`).
 
-**A escala do lugar** (`opcoes.gd:97-98`, `escala_vibracao`) fica salva em
+**A escala do lugar** (`opcoes.gd:78-79`, `escala_vibracao`) fica salva em
 `user://opcoes.cfg` e não vai para o registro (suspeita **f**).
 
-**A bancada** (`salas/bancada.gd:17-28`, `EXPERIMENTOS`) tem cinco
+**A bancada** (`salas/bancada.gd:5-16`, `EXPERIMENTOS`) tem cinco
 experimentos; `tests/prova_da_bancada.sh:75-112` roda cada um com
 `--simular=4 --robo` e confere as linhas `experimento <chave> · P<n> · <resultado>: <texto>`
-do registro (o formato de `forja_bancada.cpp:95-96`).
+do registro (o formato de `forja_bancada.cpp:86-87`).
 
 ## O alvo
 
@@ -136,8 +136,8 @@ func sentir(l: int, nome: String, ms := -1) -> bool
 2. **As 17 chamadas**: trocar cada uma pela sensação da tabela de "O estado de
    hoje". Onde o retorno é usado, o `sentir` devolve o mesmo `bool`:
    `if Forja.sentir(l, "golpe_esq" if atual.y == 0 else "golpe_dir", GOLPE_MS): j[l].rumble_ok = true`
-   (`impacto.gd:228`); `_saida(alvo.lugar, Forja.sentir(alvo.lugar, "golpe_esq" if da_esquerda else "golpe_dir"))`
-   (`prova.gd:345`).
+   (`impacto.gd:201`); `_saida(alvo.lugar, Forja.sentir(alvo.lugar, "golpe_esq" if da_esquerda else "golpe_dir"))`
+   (`prova.gd:300`).
 3. **As opções no registro**, em `forja.gd`:
    ```gdscript
    func registrar_opcoes() -> void:
@@ -173,7 +173,7 @@ func sentir(l: int, nome: String, ms := -1) -> bool
        senão `falhou`; o texto: `"%s: forte %.2f · fraco %.2f · %d ms (chegou %.2f · %.2f) · firmware %s · escala %.2f"`;
      - aparelho: esperar até 2 s por ✕ (`medido`, "senti") ou ○ (`falhou`,
        "não senti") no controle do lugar; sem resposta, `nao_medido`.
-   - Acrescentar `haptico` a `experimental/rodar.sh:28` (a lista padrão) e uma
+   - Acrescentar `haptico` a `experimental/rodar.sh:19` (a lista padrão) e uma
      seção em `experimental/README.md` ("### `haptico` — o háptico forte").
 6. **`tests/prova_da_bancada.sh`**, antes do resumo:
    ```bash
@@ -199,21 +199,21 @@ func sentir(l: int, nome: String, ms := -1) -> bool
 
 - **Não implementar o modo seco**, nem por experimento: montar o
   `FORJA_FX_RUMBLE` no bloco de 47 bytes fere o CONTRATO ("o que a sombra
-  NUNCA liga", `include/forja_dualsense.h:124-129`). Sem emenda escrita, não entra.
+  NUNCA liga", `include/forja_dualsense.h:105-105`). Sem emenda escrita, não entra.
 - **O relógio de `_motor_ate`** é o do jogo (`_agora`, a soma dos quadros), não
   `Time.get_ticks_msec()`: a prova roda com `--fixed-fps 60` mais rápido que o
-  tempo real, e o motor simulado para pelo relógio do jogo (`pads.c:437-443`).
+  tempo real, e o motor simulado para pelo relógio do jogo (`pads.c:408-414`).
 - **A Galeria às cegas e o Impacto** dependem de **um motor só** no golpe: o
   `golpe_esq` tem de ser `[1.0, 0.0, …]` exato. A prova do Impacto
-  (`prova_do_jogo.gd:148-153`) confere `fraco == 0.0`.
-- **O robô do Impacto** (`impacto.gd:567-583`) reage à subida de `forte`/`fraco`
+  (`prova_do_jogo.gd:131-135`) confere `fraco == 0.0`.
+- **O robô do Impacto** (`impacto.gd:525-539`) reage à subida de `forte`/`fraco`
   acima de 0,3: todos os valores da tabela passam disso, exceto o `toque`
   (forte 0). Nenhuma sensação nova deve ter os dois motores entre 0 e 0,3.
-- **A Prova** manda passos na háptica o tempo todo (`prova.gd:465`): com a
+- **A Prova** manda passos na háptica o tempo todo (`prova.gd:416`): com a
   regra do motor que vence, alguns passos não tocam durante o golpe. É o
   esperado; o `tudo_junto` não mede passo.
 - **Arrays na linha do tempo:** o `Forja.evento` de hoje grava `Array` como
-  texto (`forja_controles.cpp:501-503`); a F06 conserta. A checagem lê os
+  texto (`forja_controles.cpp:482-484`); a F06 conserta. A checagem lê os
   valores de `saida`, que já são números.
 - **Nada de `Forja.robo` novo.** O experimento não tem robô: no simulado, ele
   mede sozinho pelo que chegou ao motor (`Forja.percepcao`), sem perguntar.
@@ -349,7 +349,7 @@ de `_prova_do_percurso()` e `_prova_das_sensacoes()` no fim de `_ready()`.)
 (`haptico` 36 de 36 medidos; com `motores-trocados`, 32 de 36 falham, só a `explosao` passa).
 Mordidas medidas: tirar a regra do motor reprova «com o motor do P1 vibrando, a háptica dele não toca»;
 uma `Forja.vibrar` solta na Viga reprova «nenhuma vibração fora da tabela de sensações» (e aponta o
-`viga.gd:357`). A prova tinha um erro de tipo (`var vibra_fora :=` sem tipo) que o primeiro rodar pegou.
+`viga.gd:309`). A prova tinha um erro de tipo (`var vibra_fora :=` sem tipo) que o primeiro rodar pegou.
 
 **Para o André (local):** o que está em «Para o André (local)» acima, em especial o experimento
 `haptico` no cabo e no rádio e a decisão do modo seco, que agora tem a [F10](F10-o-rumble-seco.md).

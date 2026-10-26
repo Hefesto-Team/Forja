@@ -38,7 +38,6 @@ COR_NOMEADA = re.compile(r"\bColor\.([A-Z][A-Z_]+)\b")
 HEX = re.compile(r"#([0-9a-fA-F]{8}|[0-9a-fA-F]{6})\b")
 EMISSAO = re.compile(r"\bemission_enabled\b|\bemission_energy_multiplier\b|\bemission\s*=(?!=)")
 SHADER_DO_BRILHO = re.compile(r"shaders/(?:neon|contorno)\.gdshader")
-## As três funções do brilho: quantos argumentos pedem e em que lugar mora a energia.
 FUNCOES_DO_BRILHO = {"Tema.neon": (3, 1), "Tema.contorno": (4, 2), "Tema.emissivo": (3, 1)}
 TETO_DO_DONO = {"mundo": 1.2, "forja": 2.4}
 FONTE = re.compile(r"[\w./-]+\.(?:ttf|otf|woff2?)\b")
@@ -69,7 +68,6 @@ def main() -> int:
         texto = comum.sem_comentarios(bruto) if f.suffix == ".gd" else bruto
         e_tokens = rel_f == tokens
 
-        # 1. a cor
         if e_tokens:
             for m in HEX.finditer(texto):
                 h = "#" + m.group(1)[:6].lower()
@@ -87,13 +85,11 @@ def main() -> int:
                     rel.achou(rel_f, comum.linha_de(texto, m.start()),
                               f"a cor do jogador ({hex_jogador[h]}) escrita fora do arquivo de tokens")
 
-        # 2. a fonte
         for m in FONTE.finditer(texto):
             nome = m.group(0).rsplit("/", 1)[-1]
             if nome not in fontes_ok:
                 rel.achou(rel_f, comum.linha_de(texto, m.start()), f"fonte {nome} fora da bíblia")
 
-        # 3. o tamanho
         for nome, indice in chamadas.items():
             for m in chamada_re[nome].finditer(texto):
                 args = comum.args_da_chamada(texto, m.end() - 1)
@@ -113,14 +109,12 @@ def main() -> int:
                 if int(m.group(1)) < minimo:
                     rel.achou(rel_f, comum.linha_de(texto, m.start()), f"tamanho {m.group(1)} no arquivo de tokens (o mínimo é {minimo})")
 
-        # 4. a cor do jogador por índice literal
         if rel_f not in indice_ok:
             for rx in por_indice:
                 for m in rx.finditer(texto):
                     rel.achou(rel_f, comum.linha_de(texto, m.start()),
                               f"a cor de um jogador pedida por índice fixo ({m.group(0)}): só o dono usa a cor dele")
 
-        # 6. o emissivo com dono
         if not e_tokens:
             for m in EMISSAO.finditer(texto):
                 rel.achou(rel_f, comum.linha_de(texto, m.start()),

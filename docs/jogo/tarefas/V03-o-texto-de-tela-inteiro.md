@@ -19,11 +19,11 @@ tela em inglês, e passa verde. E a tabela é um arquivo só que 31 fichas edita
   e confere maiúscula e chave repetida. Não olha as chamadas de desenho.
 - Medido em 08/10/2026 (literal dentro de `Desenho.texto/selo/paragrafo` ou `Glifo.dica`, sem entrada exata nem
   padrão que case), tirando ids de glifo (`cruz`, `triangulo`, `conexao_curta`) e a marca (`Hefesto`, `Tech Demo`):
-  - `godot/scripts/ui/diagnostico.gd:52` «AO VIVO», `:53` «O que cada controle manda ao jogo, e o que o jogo manda
+  - `godot/scripts/ui/diagnostico.gd:48` «AO VIVO», `:53` «O que cada controle manda ao jogo, e o que o jogo manda
     a ele.», `:118` «Entrada», `:153` «Saída»;
-  - `godot/scripts/ui/livro.gd:120` «Não medido.», `:127` «Quem mede é %s.», `:162` «✓ passou», `:164` «✗ falhou»,
+  - `godot/scripts/ui/livro.gd:110` «Não medido.», `:127` «Quem mede é %s.», `:162` «✓ passou», `:164` «✗ falhou»,
     `:168` «não medido» (minúscula);
-  - `godot/scripts/ui/painel_bancada.gd:33` «experimental/ · a bancada dos experimentos» e `:56` «todos» (as duas
+  - `godot/scripts/ui/painel_bancada.gd:29` «experimental/ · a bancada dos experimentos» e `:56` «todos» (as duas
     com minúscula, contra a F07).
 - `godot/scripts/traducoes.gd` tem 387 linhas; `grep -l traducoes.gd docs/jogo/tarefas/*.md | wc -l` dá 33 (31 antes das fichas V e X).
 

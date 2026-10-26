@@ -21,7 +21,7 @@ Um arquivo só, criado pela J1 e usado pelos cinco:
 
 | função | o que faz |
 | --- | --- |
-| `SECAO.montar(sala)` | a caverna d'A Viga de hoje (`godot/scripts/salas/viga.gd:120-180`): as plataformas de pedra em `z = 4, −3, −5`, as paredes, os blocos, **o poço de lava** de `z = −2` a `z = 3` (o shader chapado, que o [11](../11-arte-e-personagens.md#o-que-destoa-hoje) mantém), as três luzes da lava, as brasas, as tochas e `atmosfera(Color("#ff6a3d"), Tema.LARANJA, false, 30, 22.0, -7.8, 0.3)` |
+| `SECAO.montar(sala)` | a caverna d'A Viga de hoje (`godot/scripts/salas/viga.gd:92-148`): as plataformas de pedra em `z = 4, −3, −5`, as paredes, os blocos, **o poço de lava** de `z = −2` a `z = 3` (o shader chapado, que o [11](../11-arte-e-personagens.md#o-que-destoa-hoje) mantém), as três luzes da lava, as brasas, as tochas e `atmosfera(Color("#ff6a3d"), Tema.LARANJA, false, 30, 22.0, -7.8, 0.3)` |
 | `SECAO.pilar(sala, x, z)` | um pilar de pedra que sai da lava até `y = 0` (onde cada minigame põe o que o lugar pisa) |
 | `SECAO.rolagem(l)`, `SECAO.arfagem(l)` | a inclinação do controle em rad (rolagem: positivo = o lado direito desce; arfagem: positivo = a borda de longe sobe); sem giroscópio, pela gravidade; sem nada, pelo analógico esquerdo × 0,45 |
 | `SECAO.guinada(l)` | a velocidade de giro de volante, rad/s (positivo = para a esquerda); sem giroscópio, o analógico direito × 3 |

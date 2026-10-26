@@ -1,17 +1,5 @@
 class_name SalaBancada
 extends Sala
-## A bancada dos experimentos (experimental/README.md), no lugar do salão.
-##
-## Cada experimento é uma pergunta que o jogo ainda não sabe responder com
-## certeza — sobre o alto-falante, os microfones, a háptica e o gatilho do
-## DualSense — medida no aparelho e gravada inteira: o que funcionou, o que
-## falhou e o que não deu para medir, com o porquê. Nada daqui decide veredito
-## das salas; cada resultado vai para a linha do tempo da sessão
-## (`"tipo": "experimento"`) e para o registro.
-##
-## Abre com `--experimento=CHAVE`, com todos os controles na mesa. No fim, ✕
-## repete e ○ fecha a sessão; com o robô, ela fecha sozinha: é uma rodada de
-## teste.
 
 const F := preload("res://scripts/forja.gd")
 const EXPERIMENTOS := {
@@ -38,41 +26,35 @@ const VOL_PADRAO := 0x64
 const ROTA_FONE := 0
 const ROTA_FALANTE := 3
 const PREAMP_PADRAO := 2
-## os quatro modos de gatilho do contrato: Off, Feedback, Weapon, Vibration
 const MODOS := [[F.GATILHO_OFF, 0, 0, 0], [F.GATILHO_RESISTENCIA, 2, 4, 0], [F.GATILHO_ARMA, 2, 6, 8],
 	[F.GATILHO_VIBRACAO, 0, 7, 30]]
 const NOME_MODO := ["Off", "Feedback", "Weapon", "Vibration"]
 const NOME_RES := ["medido", "falhou", "não medido"]
 
 var chave := ""
-var linhas: Array = []  ## [lugar (-1 a mesa), resultado, texto]
+var linhas: Array = []
 var agora := ""
 var acabou := false
-var ordem: Array = []  ## os lugares com controle, na ordem
+var ordem: Array = []
 var painel: PainelBancada
 var _etapa := 0
 var _vez := 0
 var _k := 0
 var _te := 0.0
 var _rng := RandomNumberGenerator.new()
-# o laço
 var _lat: Array = []
 var _pico_db := -90.0
-# quatro microfones
-var _nivel: Array = []  ## 16: [mic * 4 + quem fala]
+var _nivel: Array = []
 var _soma := [0.0, 0.0, 0.0, 0.0]
 var _amostras := 0
 var _quadros_ini := [0, 0, 0, 0]
 var _quadros := 0
-# o eco
 var _eco_db := [-90.0, -90.0, -90.0]
-# o gatilho cru
 var _min: Array = []
 var _max: Array = []
 var _solto_min: Array = []
 var _solto_max: Array = []
 var _viu_solto := [false, false, false, false]
-# a háptica nomeada
 var _plano := {}
 var _perg := {}
 var _resp := {}
@@ -85,7 +67,7 @@ func _init() -> void:
 	id = "bancada"
 	nome = "A bancada"
 	acao = "experimental/ · a bancada dos experimentos"
-	com_hud = false  # o painel da bancada tem o cabeçalho, os lugares e as dicas dele
+	com_hud = false
 	camera_pos = Vector3(0, 6.5, 9.5)
 	camera_olhar = Vector3(0, 1.0, 0.0)
 
@@ -96,7 +78,6 @@ func montar() -> void:
 	_rng.seed = int(Forja.semente) * 977 + hash(chave)
 	Kit.arena(self, 4, 3)
 	luzes([Vector3(-6, 2.5, -3), Vector3(6, 2.5, -3)])
-	# a bancada: a mesa no meio, a bigorna em cima, os quatro em volta
 	Kit.peca(self, "table", Vector3(0, 0, 0), 0.0, 2.6)
 	Kit.bigorna(self, Vector3(0, 1.6, 0), 0.35)
 	var lugares_em_volta := [Vector3(-2.6, 0.05, 1.2), Vector3(-0.9, 0.05, 2.3), Vector3(0.9, 0.05, 2.3), Vector3(2.6, 0.05, 1.2)]
@@ -149,7 +130,6 @@ func _process(dt: float) -> void:
 			_comecar()
 			return
 		if acabou and Forja.apertou(l, F.CIRCULO):
-			# a bancada é a sessão inteira: ○ grava e fecha (o rodar.sh segue)
 			Forja.gravar_relatorio()
 			get_tree().quit()
 			return
@@ -184,19 +164,12 @@ func _process(dt: float) -> void:
 		Som.tocar("sucesso", null, -6.0)
 
 
-## O robô do fim: a bancada é uma rodada de teste, e o robô a fecha como uma
-## pessoa, apertando ○ no controle simulado depois de ler o resultado (o ○ grava
-## e fecha). Aperta de novo a cada 2 s, se o toque não chegou (F08).
 func _robo_do_fim(dt: float) -> void:
 	_te += dt
 	if _te > 2.0 and not ordem.is_empty():
 		_te = 0.0
 		Forja.robo_apertar(int(ordem[0]), F.CIRCULO, 0.09)
 
-
-# ------------------------------------------------------------ 1. o laço --
-# alto-falante → microfone do mesmo controle: cinco cliques, a mediana da
-# latência; depois três pulsos nos atuadores — o microfone os ouve?
 
 func _laco(dt: float) -> bool:
 	_te += dt
@@ -216,7 +189,6 @@ func _laco(dt: float) -> bool:
 	var haptica := _k >= TENTATIVAS
 	var total := TENTATIVAS + 3
 	if _etapa == 1 and _te >= 0.35:
-		# dispara: o microfone limpo, e o som sai agora
 		Forja.som_escutar(l, 0.8)
 		if haptica:
 			Forja.som_haptica(l, "pulso", "pulso", 1.0)
@@ -265,10 +237,6 @@ func _proximo() -> void:
 	_te = 0.0
 
 
-# ------------------------------------------------------------ 2. quatro microfones --
-# todos abertos; dois segundos de silêncio; depois cada um fala, na sua vez.
-# A matriz (microfone × quem fala) diz se cada microfone é o do controle certo.
-
 static func _linear(nivel: float) -> float:
 	return pow(10.0, (nivel * 54.0 - 54.0) / 20.0)
 
@@ -292,7 +260,7 @@ func _quatro_mics(dt: float) -> bool:
 		_nivel.fill(0.0)
 		_etapa = 1
 		_te = 0.0
-		_vez = -1  # -1: o silêncio de todos
+		_vez = -1
 		_amostras = 0
 		_soma = [0.0, 0.0, 0.0, 0.0]
 	_quadros += 1
@@ -332,9 +300,6 @@ func _quatro_mics(dt: float) -> bool:
 			return true
 	return false
 
-
-# ------------------------------------------------------------ 3. o eco --
-# o silêncio; um tom de 1 kHz no alto-falante; o mesmo tom com a rota no fone.
 
 func _eco(dt: float) -> bool:
 	_te += dt
@@ -377,10 +342,6 @@ func _eco(dt: float) -> bool:
 			_proximo()
 	return false
 
-
-# ------------------------------------------------------------ 4. os bytes do gatilho --
-# só no cabo, com o report cru: quatro segundos em cada modo, com a pessoa
-# apertando o R2 devagar até o fundo e soltando.
 
 func _gatilho_cru(dt: float) -> bool:
 	_te += dt
@@ -459,10 +420,6 @@ func _modo(l: int, m: int) -> void:
 	Forja.gatilho(l, 1, md[0], md[1], md[2], md[3])
 
 
-# ------------------------------------------------------------ 5. a háptica nomeada --
-# todos ao mesmo tempo: quatro pulsos, dois de cada lado em ordem sorteada; a
-# pessoa diz o lado (L1, R1, o touchpad é "não senti").
-
 func _haptica_nomeada(dt: float) -> bool:
 	if _etapa == 0:
 		for l in ordem:
@@ -488,7 +445,6 @@ func _haptica_nomeada(dt: float) -> bool:
 		_tj[l] = t0 + dt
 		var tj := float(_tj[l])
 		if t0 < 0.6 and tj >= 0.6:
-			# o pulso, num lado só (num nó mono, nos dois)
 			var estereo := Forja.som_estereo(l, F.PAPEL_HAPTICA)
 			Forja.som_haptica(l, "tropeco" if lado == 0 or not estereo else "", "tropeco" if lado == 1 and estereo else "")
 		if tj >= 0.9 and int(_resp[l]) < 0:
@@ -498,7 +454,6 @@ func _haptica_nomeada(dt: float) -> bool:
 				_resp[l] = 1
 			elif Forja.apertou(l, F.TOUCHPAD):
 				_resp[l] = 2
-		# o robô sente os atuadores do controle dele na hora do pulso
 		if Forja.robo:
 			if tj >= 0.62 and tj < 0.9:
 				var v := Forja.som_virtual(l)
@@ -525,11 +480,6 @@ func _haptica_nomeada(dt: float) -> bool:
 					Forja.som_nome(l, F.PAPEL_HAPTICA), Forja.som_como(l, F.PAPEL_HAPTICA), int(c.certos), int(c.como[2]), int(c.perdidos)])
 	return todos
 
-
-# ------------------------------------------------------------ 6. o háptico forte --
-# um lugar de cada vez, cada sensação da tabela (Forja.SENSACOES), 1,5 s entre
-# uma e outra. No simulado, a bancada mede sozinha o que chegou ao motor; no
-# aparelho, pergunta: ✕ senti · ○ não senti (quem sente não sabe qual é).
 
 const HAPTICO_ENTRE_S := 1.5
 const HAPTICO_RESPOSTA_S := 2.0
@@ -589,17 +539,8 @@ func _haptico_proxima(n: int) -> void:
 		_proximo()
 
 
-# ------------------------------------------------------------ 7. a força do rumble --
-# O roteiro às cegas do rumble seco (experimental/rumble_seco.sh, F10): o jogo
-# vibra o lado «suave» (o do SDL) na força pedida, e o roteiro manda o «seco»
-# pelo forja-send. O jogo obedece a um arquivo de comandos (--comando=ARQUIVO),
-# uma linha por comando, e responde no ARQUIVO.ok, uma linha por comando:
-#   «LUGAR FORCA MS»  vibra os dois motores na força (0 a 1) por MS
-#   «parar LUGAR»     pára o motor do lugar
-#   «fim»             grava o relatório e fecha
-
 var _fila: Array = []
-var _forca_atual: Array = []  ## [lugar, força, ms]
+var _forca_atual: Array = []
 
 
 func _forca(dt: float) -> bool:
@@ -645,7 +586,7 @@ func _forca(dt: float) -> bool:
 		var pc := Forja.percepcao(l)
 		var chegou := "aparelho"
 		if not pc.is_empty():
-			var esperado := float(_forca_atual[1])  # sem a escala das opções (Forja.sentir_forca)
+			var esperado := float(_forca_atual[1])
 			var certo := absf(float(pc.get("forte", 0.0)) - esperado) < 0.03 and absf(float(pc.get("fraco", 0.0)) - esperado) < 0.03
 			chegou = "chegou %.2f %.2f" % [float(pc.get("forte", 0.0)), float(pc.get("fraco", 0.0))]
 			_resultado(l, "forca", 0 if certo else 1, "força %.2f por %d ms (%s) · firmware %s" % [

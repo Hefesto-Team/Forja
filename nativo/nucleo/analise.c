@@ -1,4 +1,3 @@
-/* A análise dos experimentos. Ver analise.h. */
 #include "analise.h"
 
 #include <math.h>
@@ -23,7 +22,6 @@ int exp_ataque(const float *a, int n, float vezes, float minimo) {
   float limiar = fundo * vezes > minimo ? fundo * vezes : minimo;
   for (int i = fundo_n; i + janela <= n; i += janela / 4)
     if (exp_rms(a, i, janela) > limiar) {
-      /* afina: a primeira amostra da janela que passa do limiar */
       for (int k = i; k < i + janela; k++)
         if (fabsf(a[k]) > limiar)
           return k;

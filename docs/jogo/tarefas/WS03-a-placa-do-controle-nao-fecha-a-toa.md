@@ -20,7 +20,7 @@ que manda o mixer à rampa, antes de a rampa tocar.
 
 ## O estado de hoje
 
-- `nativo/som/som_controle.c:299-301`, o começo do `somc_preparar`:
+- `nativo/som/som_controle.c:280-282`, o começo do `somc_preparar`:
 
   ```c
   void somc_preparar(Forja *a) {
@@ -31,19 +31,19 @@ que manda o mixer à rampa, antes de a rampa tocar.
   e o `somc_encerrar` (`:282-292`) passa `fechar_saida` em todas as saídas, e o `fechar_saida` (`:68-76`) faz
   `SDL_DestroyAudioStream(s->fluxo)` e zera a saída. A placa virtual dos controles simulados também é zerada e
   recriada vazia.
-- `nativo/godot/forja_som.cpp:105-111`, o `som_encerrar`: `somc_parar_tudo` em cada lugar e, na linha seguinte,
-  `somc_encerrar`. O `parar_tudo` só põe a rampa de 20 ms como alvo (`nativo/som/mixer.c:77-82`); a saída é destruída
+- `nativo/godot/forja_som.cpp:90-96`, o `som_encerrar`: `somc_parar_tudo` em cada lugar e, na linha seguinte,
+  `somc_encerrar`. O `parar_tudo` só põe a rampa de 20 ms como alvo (`nativo/som/mixer.c:74-79`); a saída é destruída
   antes de o mixer misturar uma amostra dela.
 - Quem chama o `som_preparar`:
-  - `godot/scripts/main.gd:237` (fim do `_sincronizar_jogadores`) e `:260-275` (`_abrir_o_som`): a cada entrada ou
+  - `godot/scripts/main.gd:216` (fim do `_sincronizar_jogadores`) e `:260-275` (`_abrir_o_som`): a cada entrada ou
     saída de lugar no lobby, e logo depois toca o pio de quem entrou (`:275`). O pio dura uns 0,18 s
-    (`sint_pio`, `nativo/som/sintese.c:515-517`): se a segunda pessoa entra antes disso, o pio da primeira some;
-  - `main.gd:253` (`_abrir_o_som(true)`): quando um controle que caiu volta, no meio de qualquer sala;
-  - `godot/scripts/salas/sala_jogo.gd:114` e `:117` (entrar numa sala de som) e `:128` (sair dela);
-  - `main.gd:474` (o pódio, só se a placa não está aberta) e as salas `bancada.gd:112/120` e `prova.gd:107`.
-- A troca de saída pela pessoa (`somc_trocar`, `som_controle.c:318-352`) já sabe religar só um lugar sem
+    (`sint_pio`, `nativo/som/sintese.c:485-487`): se a segunda pessoa entra antes disso, o pio da primeira some;
+  - `main.gd:232` (`_abrir_o_som(true)`): quando um controle que caiu volta, no meio de qualquer sala;
+  - `godot/scripts/salas/sala_jogo.gd:65` e `:117` (entrar numa sala de som) e `:128` (sair dela);
+  - `main.gd:439` (o pódio, só se a placa não está aberta) e as salas `bancada.gd:93/120` e `prova.gd:80`.
+- A troca de saída pela pessoa (`somc_trocar`, `som_controle.c:299-329`) já sabe religar só um lugar sem
   fechar os outros, e as saídas sem uso fecham quando a sala sai.
-- A prova de hoje (`godot/testes/prova_do_jogo.gd:159-169`) faz cada simulado entrar com 20 quadros de distância e
+- A prova de hoje (`godot/testes/prova_do_jogo.gd:141-148`) faz cada simulado entrar com 20 quadros de distância e
   mede o pio de quem entrou: com essa folga, o corte nunca aparece.
 
 ## O alvo
@@ -67,11 +67,11 @@ esvaziou. O `som_encerrar` (o fim do jogo) segue o mesmo caminho adiado, com um 
 
 ## Armadilhas
 
-- `alimentar` (`som_controle.c:55-65`) roda no fio de áudio com o ponteiro da saída: destruir o fluxo primeiro e só
+- `alimentar` (`som_controle.c:46-56`) roda no fio de áudio com o ponteiro da saída: destruir o fluxo primeiro e só
   depois liberar o mixer, como o `fechar_saida` já faz.
 - O índice `no` da saída aponta para a lista de antes do `listar`; comparar pelo dispositivo, nunca pelo índice.
 - Com o rádio (sem placa), nada abre: o caminho novo não pode passar a abrir o que hoje não abre.
-- A rota do alto-falante (`pad_alto_falante`, `forja_som.cpp:97-102`) é mandada a cada `som_preparar`; mandar de novo
+- A rota do alto-falante (`pad_alto_falante`, `forja_som.cpp:82-87`) é mandada a cada `som_preparar`; mandar de novo
   é inofensivo, mas não deve cortar o som que está tocando.
 
 ## Não fazer

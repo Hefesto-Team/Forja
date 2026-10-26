@@ -1,22 +1,5 @@
 class_name SalaCanto
 extends SalaJogo
-## O Canto — o ritmo no alto-falante do controle.
-##
-## O padrão é o do alto-falante do DualSense nos jogos: o som que sai DA MÃO,
-## paralelo ao som da TV — a espada que zune no controle enquanto a música toca
-## na sala. Aqui a bigorna canta um ritmo curto, e a pergunta é a das salas de
-## saída, às cegas:
-##
-##   - o canto sai no alto-falante de UM controle, ou na TV (a prova de
-##     controle: nessas vezes ninguém deveria dizer "foi no meu");
-##   - todos respondem: ✕ "cantou no meu controle", ○ "não foi no meu";
-##   - a tela revela de onde saiu, e o dono do canto repete o ritmo com ✕.
-##
-## O som anda no ar, e todo mundo ouve todo canto: a pergunta não é "ouviu?",
-## é "saiu da sua mão?". Quem diz "foi no meu" com o canto saindo em outro
-## lugar ouviu o próprio controle cantar o canto de outro — o som não ficou
-## no alto-falante certo. Enquanto canta, o sino grande balança e as notas
-## sobem do meio: a tela não aponta ninguém.
 
 const F := preload("res://scripts/forja.gd")
 const RAIAS := [-6.0, -2.0, 2.0, 6.0]
@@ -27,10 +10,8 @@ const INTERVALOS := [0.24, 0.36, 0.52]
 const PERGUNTA_MAX := 5.0
 const REPETE_MAX := 5.0
 const REVELA_S := 1.4
-const FOLGA_RITMO := 0.12  ## s de folga em cada intervalo repetido
+const FOLGA_RITMO := 0.12
 const SINO_TV := Vector3(0.0, 3.9, -4.3)
-## O perfil do sino (raio, altura), da coroa à boca: a silhueta da sala 2D,
-## girada em volta do eixo.
 const PERFIL := [
 	Vector2(0.0, 1.0), Vector2(0.18, 0.98), Vector2(0.34, 0.89), Vector2(0.43, 0.73), Vector2(0.48, 0.5),
 	Vector2(0.5, 0.23), Vector2(0.55, -0.05), Vector2(0.64, -0.32), Vector2(0.77, -0.55), Vector2(0.93, -0.7),
@@ -41,18 +22,18 @@ enum { PREPARO, CANTO, PERGUNTA, REVELA, REPETE, ACABOU }
 
 var estado := PREPARO
 var t_estado := 0.0
-var relogio := 0.0  ## desde o começo do jogo; não volta a zero (os ataques do robô)
+var relogio := 0.0
 var plano: PackedInt32Array = PackedInt32Array()
 var rodada := 0
 var fonte := -1
-var ritmo: Array = [0.0, 0.0, 0.0, 0.0]  ## os instantes das notas, desde o começo do canto
+var ritmo: Array = [0.0, 0.0, 0.0, 0.0]
 var notas_tocadas := 0
-var j := {}  ## lugar -> o estado do jogador
-var n := {}  ## lugar -> os nós da raia
+var j := {}
+var n := {}
 var sino_tv: Node3D
 var brilho_tv: OmniLight3D
 var _mat_tv: StandardMaterial3D
-var _notas_no_ar: Array = []  ## [Label3D, idade, lado]
+var _notas_no_ar: Array = []
 
 
 func _init() -> void:
@@ -72,7 +53,6 @@ func _init() -> void:
 
 func montar() -> void:
 	Kit.arena(self, 5, 3)
-	# a capela: poeira violeta, e o neon roxo
 	atmosfera(Color("#b88cff"), Tema.VIOLETA, false, 36, 22.0, -7.8, 0.2)
 	var frio := OmniLight3D.new()
 	frio.position = Vector3(0, 8.0, 4.0)
@@ -101,8 +81,6 @@ func _novo_jogador() -> Dictionary:
 		"robo_espera": -1.0, "robo_toque": 0}
 
 
-## O sino: o perfil girado em volta do eixo (uma malha), pendurado pela coroa
-## num pivô — é o pivô que balança. O badalo balança atrasado, por dentro.
 static func sino(pai: Node3D, pos: Vector3, escala: float, cor: Color) -> Dictionary:
 	var pivo := Node3D.new()
 	pivo.position = pos
@@ -154,7 +132,6 @@ static func sino(pai: Node3D, pos: Vector3, escala: float, cor: Color) -> Dictio
 
 
 func _montar_torre() -> void:
-	# o sino grande da TV, num pórtico de madeira no fundo
 	var madeira := Kit.material(Tema.OXIDO_BRILHO, 0.0, 0.85)
 	for x in [-2.1, 2.1]:
 		Kit.caixa(self, Vector3(0.36, 5.2, 0.36), Vector3(x, 2.6, SINO_TV.z), madeira)
@@ -182,7 +159,6 @@ func _montar_torre() -> void:
 func _montar_raia(l: int, p: ForjaPlayer) -> Dictionary:
 	var x: float = RAIAS[l]
 	var cor_l := Forja.cor_do_lugar(l)
-	# o chão da raia: um tablado de madeira com a borda na cor do lugar
 	Kit.cilindro(self, 1.45, 0.08, Vector3(x, 0.04, Z_JOGADOR), Kit.material(Tema.OXIDO, 0.0, 0.9))
 	var borda := MeshInstance3D.new()
 	var tor := TorusMesh.new()
@@ -197,7 +173,6 @@ func _montar_raia(l: int, p: ForjaPlayer) -> Dictionary:
 	Tema.emissivo(mat_borda, 0.0, l)
 	borda.material_override = mat_borda
 	add_child(borda)
-	# o sino pequeno do jogador, num suporte ao lado: o alto-falante na mão
 	var base := Vector3(x + 1.05, 0.0, Z_JOGADOR - 0.35)
 	var madeira := Kit.material(Tema.OXIDO_BRILHO, 0.0, 0.85)
 	Kit.caixa(self, Vector3(0.12, 1.9, 0.12), base + Vector3(0, 0.95, 0), madeira)
@@ -209,7 +184,6 @@ func _montar_raia(l: int, p: ForjaPlayer) -> Dictionary:
 	luz.light_energy = 0.0
 	luz.omni_range = 3.0
 	add_child(luz)
-	# a partitura do ritmo: as quatro notas (ouro) e os toques de quem repete
 	var partitura := Node3D.new()
 	partitura.position = Vector3(x, 2.75, Z_JOGADOR)
 	partitura.visible = false
@@ -239,8 +213,6 @@ func _montar_raia(l: int, p: ForjaPlayer) -> Dictionary:
 		"partitura": partitura, "pontos": pontos, "toques": toques}
 
 
-# ------------------------------------------------------------------ o jogo --
-
 func iniciar_jogo() -> void:
 	var fontes: Array = []
 	var vezes: Array = []
@@ -253,8 +225,6 @@ func iniciar_jogo() -> void:
 		if not jogando[p.lugar]:
 			continue
 		if not Forja.som_tem(p.lugar, F.PAPEL_ALTO_FALANTE):
-			# sem alto-falante achado, o controle não canta: ele só responde, e o
-			# veredito dele fica "não medido"
 			Forja.registrar("O Canto: sem alto-falante achado no P%d; ele só responde" % (p.lugar + 1))
 			continue
 		fontes.append(p.lugar)
@@ -298,7 +268,6 @@ func _tocar_nota(k: int) -> void:
 		Som.tocar(qual, SINO_TV, -2.0)
 	else:
 		Forja.som_falante(fonte, qual, 0.9)
-	# a nota sobe do meio, sem apontar ninguém
 	var nota := Label3D.new()
 	nota.text = "♪" if k % 2 == 0 else "♫"
 	nota.font = Tema.archivo(700)
@@ -347,8 +316,6 @@ func _fechar_pergunta() -> void:
 	_revelar()
 
 
-## O canto se revela: o sino na TV ou as faíscas de quem era a fonte. Depois da
-## pergunta (Modo bancada) ou direto do canto (o jogo).
 func _revelar() -> void:
 	estado = REVELA
 	t_estado = 0.0
@@ -412,7 +379,7 @@ func jogar(dt: float) -> void:
 				_tocar_nota(notas_tocadas)
 				notas_tocadas += 1
 			if t_estado >= float(ritmo[NOTAS - 1]) + 0.5:
-				if Forja.bancada:  # a pergunta às cegas é do Modo bancada
+				if Forja.bancada:
 					estado = PERGUNTA
 					t_estado = 0.0
 					Forja.evento("jogo", 0, {"sala": id, "o": "pergunta", "qual": "canto"})
@@ -461,12 +428,8 @@ func dar_vereditos(l: int) -> Array:
 	return [] if v.is_empty() else [v]
 
 
-# ------------------------------------------------------------------ o que se vê --
-
 func _process(dt: float) -> void:
 	super(dt)
-	# o sino grande balança enquanto canta (qualquer que seja a fonte: a tela
-	# não aponta) e na revelação, quando o canto era da TV
 	var canta := fase == "jogo" and estado == CANTO
 	var revela_tv := fase == "jogo" and estado == REVELA and fonte == TV
 	var amp := 0.22 if revela_tv else (0.12 if canta else 0.0)
@@ -502,7 +465,6 @@ func _mostrar(l: int, dt: float) -> void:
 	luz.light_energy = lerpf(luz.light_energy, 2.2 if dono else 0.0, minf(1.0, dt * 6.0))
 	var mb: StandardMaterial3D = nos.mat_borda
 	Tema.emissivo(mb, lerpf(Tema.brilho_de(mb), 1.6 if dono else 0.15, minf(1.0, dt * 6.0)), l)
-	# a partitura: só na vez do dono repetir
 	var part: Node3D = nos.partitura
 	part.visible = fase == "jogo" and estado == REPETE and fonte == l
 	if part.visible:
@@ -518,8 +480,6 @@ func _mostrar(l: int, dt: float) -> void:
 				var tk := float(toques[k]) - float(toques[0])
 				anel.position = Vector3(-1.1 + 2.2 * minf(tk / total, 1.0), 0, 0.02)
 
-
-# ------------------------------------------------------------------ a HUD --
 
 func status(lugar: int) -> String:
 	if fase == "jogo" and j.has(lugar):
@@ -546,7 +506,7 @@ func dica(lugar: int) -> Dictionary:
 
 func pergunta(lugar: int) -> Dictionary:
 	if not Forja.bancada:
-		return {}  # a pergunta às cegas é do Modo bancada
+		return {}
 	if not j.has(lugar) or fase != "jogo" or not (estado == PERGUNTA or estado == REVELA):
 		return {}
 	var e: Dictionary = j[lugar]
@@ -569,11 +529,6 @@ func pergunta(lugar: int) -> Dictionary:
 	return {"titulo": "O canto saiu do seu controle?", "opcoes": [["cross", null, "Foi no meu"], ["circle", null, "Não foi"]],
 		"escolhida": escolhida, "certa": certa, "rodape": rodape, "pos": Vector3(RAIAS[lugar], 0.0, 3.9)}
 
-
-# ------------------------------------------------------------------ o robô --
-# Ouve o alto-falante do controle dele (a placa virtual): o ataque de cada
-# nota é o nível subindo acima do vale deixado pela anterior. Diz "foi no meu"
-# quando ouviu o canto na mão, e repete os intervalos que ouviu.
 
 func _robo(l: int, e: Dictionary, dt: float) -> void:
 	var nivel := float(Forja.som_virtual(l).get("falante", 0.0))
@@ -598,7 +553,6 @@ func _robo(l: int, e: Dictionary, dt: float) -> void:
 			Forja.robo_apertar(l, F.CRUZ if e.robo_ouviu else F.CIRCULO, 0.08)
 			e.robo_espera = 99.0
 	if estado == REPETE and fonte == l and onsets.size() >= 2:
-		# repete os intervalos que ouviu, a partir de 0,6 s
 		var k: int = e.robo_toque
 		if k < onsets.size() and k < NOTAS:
 			var quando := 0.6 + (float(onsets[k]) - float(onsets[0]))

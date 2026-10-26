@@ -26,13 +26,13 @@ chamada vira API pública de um pacote. E a G14, que repinta o tema, gastaria tr
   - `:851` `som_encerrar()` (a [H07](H07-o-som-em-todo-evento.md) tirou as chamadas de propósito: devolvê-lo ao
     pódio reprovou «○ no pódio, a placa continua aberta»)
   - `:874` `som_plataforma()`
-- `godot/scripts/player.gd:42-43`: `var hp := 100.0` não tem leitor; `var cooldown := 0.0` só é descontado
+- `godot/scripts/player.gd:27-27`: `var hp := 100.0` não tem leitor; `var cooldown := 0.0` só é descontado
   (`:212-213`) e nunca recebe valor.
-- `godot/scripts/tema.gd:91` `tema()`, com o `_variante` (`:117`), o `quadro` (`:125`) e o `rotulo` (`:184`): o
-  único consumidor é `godot/scripts/main.gd:114`, `ui.theme = Tema.tema()`, e não há `Label`, `Panel` nem outro
+- `godot/scripts/tema.gd:73` `tema()`, com o `_variante` (`:117`), o `quadro` (`:125`) e o `rotulo` (`:184`): o
+  único consumidor é `godot/scripts/main.gd:100`, `ui.theme = Tema.tema()`, e não há `Label`, `Panel` nem outro
   `Control` com texto debaixo da `ui` (toda letra sai pelo `Desenho`, com a fonte passada na mão). O `rotulo` não tem
   chamada; o `quadro` só é usado pelo `tema()`. O `escala_texto` das opções nem chega até essas variantes.
-- `godot/scripts/main.gd:849`: `get_tree().paused = false` no fim do `_abrir_overlay`, e nada no jogo põe a árvore em
+- `godot/scripts/main.gd:778`: `get_tree().paused = false` no fim do `_abrir_overlay`, e nada no jogo põe a árvore em
   pausa (a pausa é do `Ritmo` e de cada sala).
 
 O `soltou` do `forja.gd` também não tem chamada hoje, mas fica: a M4, a K2 e a K4 vão usar.

@@ -1,4 +1,3 @@
-/* A análise dos experimentos (experimental/src/analise.c). */
 #include "prova.h"
 
 #include "analise.h"
@@ -7,7 +6,6 @@
 #include <stdlib.h>
 
 void provas_experimentos(void) {
-  /* um clique a 2400 amostras (50 ms), com ruído de fundo baixo */
   enum { N = 9600 };
   static float a[N];
   unsigned lcg = 7;
@@ -33,6 +31,6 @@ void provas_experimentos(void) {
   float m[4][4] = {{0.5f, 0.1f, 0.05f, 0.02f}, {0.1f, 0.4f, 0.1f, 0.05f}, {0.02f, 0.1f, 0.6f, 0.1f}, {0.01f, 0.02f, 0.1f, 0.3f}};
   float margem;
   espera(exp_diagonal(m, 4, &margem) == 4 && margem > 9, "cada microfone é o mais alto com o próprio jogador");
-  m[0][0] = 0.05f; /* o microfone do P1 quase não ouve o P1: é de outro controle */
+  m[0][0] = 0.05f;
   espera(exp_diagonal(m, 4, &margem) == 3 && margem < 0, "um microfone trocado aparece");
 }

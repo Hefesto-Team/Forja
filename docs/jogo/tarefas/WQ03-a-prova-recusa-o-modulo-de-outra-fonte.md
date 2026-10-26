@@ -17,14 +17,14 @@ provas em árvores diferentes, é um verde falso esperando acontecer.
 
 ## O estado de hoje (medido em 09/10/2026, `85f24c3`)
 
-- `scripts/gauntlet.sh:22`, a única conferência:
+- `scripts/gauntlet.sh:9`, a única conferência:
   ```bash
   [[ -f "$RAIZ/godot/bin/libforja.linux.x86_64.so" ]] || { echo "sem o módulo: scripts/compilar.sh linux" >&2; exit 2; }
   ```
   `tests/prova_do_jogo.sh` e `tests/prova_de_poucos.sh` não conferem nem isso.
 - A versão gravada no módulo, `nativo/CMakeLists.txt:34-44`: `git describe --always --dirty`, que diz o commit e
   se havia mudança em qualquer lugar da árvore, não de que fonte do `nativo/` o `.so` saiu.
-- `scripts/compilar.sh:137-139` compila e não deixa nada ao lado do `.so`.
+- `scripts/compilar.sh:101-103` compila e não deixa nada ao lado do `.so`.
 - `ls -la godot/bin/` na auditoria: `libforja.linux.x86_64.so` de `out 2 23:21`; o último commit em `nativo/` é de
   09/10 (`2ce88e5`).
 

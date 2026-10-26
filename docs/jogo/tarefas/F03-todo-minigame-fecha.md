@@ -29,14 +29,14 @@ volta sozinha, para todo mundo.
   ```
 - `ui/painel_sala.gd` `_fim()` (`:356-415`): com a bancada, a tabela de
   veredito; sem ela, o quadro provisório de pontos que a F01 pôs.
-- Não há som de apito: `godot/scripts/som.gd:17-35` (`RECEITAS`) tem `"falha"`
+- Não há som de apito: `godot/scripts/som.gd:3-19` (`RECEITAS`) tem `"falha"`
   (`["tom", {"freq": 150.0, "dur": 0.22, "rampa": 0.02}]`), `"sucesso"`,
-  `"confirma"`… A música para com `Musica.calar()` (`musica.gd:85-86`).
+  `"confirma"`… A música para com `Musica.calar()` (`musica.gd:71-72`).
 - A colocação existe como conta pura: `Partida.colocacoes(pontos, presentes)`
-  (`partida.gd:75`) devolve 1..4 por lugar, com o empate dividindo a de cima.
+  (`partida.gd:52`) devolve 1..4 por lugar, com o empate dividindo a de cima.
 
 **O relógio do treino:** `_quadro_treino()` (`:418-430`) devolve o tempo do
-treino ao relógio da sala, e a barra do painel (`painel_sala.gd:342`,
+treino ao relógio da sala, e a barra do painel (`painel_sala.gd:299`,
 `var resta := maxf(0.0, d - float(sala.t_fase))`) volta a encher:
 
 ```gdscript
@@ -44,21 +44,21 @@ treino ao relógio da sala, e a barra do painel (`painel_sala.gd:342`,
 			duracao += t_fase  # o tempo do treino volta para o relógio
 ```
 
-O fim por tempo é `sala_jogo.gd:220`: `if todos or (duracao > 0.0 and t_fase >= duracao):`.
+O fim por tempo é `sala_jogo.gd:157`: `if todos or (duracao > 0.0 and t_fase >= duracao):`.
 
 **O aviso** (`_quadro_aviso()`, `:226-246`) só começa quando todo lugar
 conectado apertou ✕ (`n_prontos == presentes`). Lugar sem controle já não
 segura (o `continue` de `:231-232`). Não há tempo máximo.
 
-**A bancada** (`salas/bancada.gd:141-176`): quando o experimento acaba,
+**A bancada** (`salas/bancada.gd:122-156`): quando o experimento acaba,
 `acabou = true`; ✕ repete, ○ grava e fecha, e com o robô ela fecha sozinha em
 2 s. Ela nunca emite `terminou`.
 
-**A volta:** `main.gd:340-365` `_ao_terminar_a_sala()` leva ao placar (na
+**A volta:** `main.gd:313-334` `_ao_terminar_a_sala()` leva ao placar (na
 partida), à sala seguinte (na Prova de Fogo) ou ao salão.
 
 **A linha do tempo** já recebe `{"sala": id, "evento": "jogo_comecou"}` e
-`"jogo_terminou"` (`sala_jogo.gd:291`, `:328`), mas não o tipo `minigame` do 13.
+`"jogo_terminou"` (`sala_jogo.gd:226`, `:328`), mas não o tipo `minigame` do 13.
 
 ## O alvo
 
@@ -187,22 +187,22 @@ func fechar() -> void
 
 - **Nada de atalho do robô** (13, paridade, regras 1, 2 e 7). Não ponha
   `if Forja.robo` em lugar nenhum desta ficha, nem um avanço de 3 s "para a
-  prova". O atalho do aviso (`sala_jogo.gd:237`) é da F08: não mexa.
+  prova". O atalho do aviso (`sala_jogo.gd:173`) é da F08: não mexa.
 - **Os tempos da prova crescem.** Cada sala agora gasta 6 s de jogo no fim. As
   esperas de `godot/testes/prova_do_jogo.gd` estão em quadros: `_termina_a_sala`
   espera a volta ao salão até 600 quadros (`:328-330`, 10 s) — cabe; a
   partida espera o placar até 600 (`:511-513`) — cabe; não diminua nenhuma.
   O `timeout 1200` do `tests/prova_do_jogo.sh` sobra.
-- **A partida:** o placar (`main.gd:395-406`) abre por cima depois do
+- **A partida:** o placar (`main.gd:363-374`) abre por cima depois do
   `terminou`; o `resultado.fechar()` de `_abrir_overlay` tira a tela de
   resultado da frente.
-- **A pausa no fim:** `congelar()` (`sala_jogo.gd:189-199`) para o `t_fase`;
+- **A pausa no fim:** `congelar()` (`sala_jogo.gd:126-136`) para o `t_fase`;
   ao fechar, o `_quadro_sala` reabre o resultado.
 - **`vencedor()` com ninguém jogando** (a sala terminou antes do jogo):
   `colocacao` vazia; a `TelaResultado` desenha só o título, e o evento grava
   `"vencedor": -1`.
 - **Arrays na linha do tempo:** o `Forja.evento` de hoje grava um `Array`
-  como texto (`"[10, 40, 30, 20]"`, `forja_controles.cpp:501-503`). A F06
+  como texto (`"[10, 40, 30, 20]"`, `forja_controles.cpp:482-484`). A F06
   faz virar array de verdade; aqui, aceite o texto.
 - **`--prova-de-fogo`** liga a bancada (F01): a tabela aparece embaixo do
   resultado nessa rodada. É o esperado.

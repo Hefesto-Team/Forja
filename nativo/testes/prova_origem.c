@@ -1,4 +1,3 @@
-/* A origem do controle: a regra, e a coleta num sysfs de mentira. */
 #if defined(__linux__)
 #define _XOPEN_SOURCE 700
 #endif
@@ -68,7 +67,6 @@ static void provas_da_regra(void) {
   espera(o.tipo == ORIGEM_DUALSENSE_VIRTUAL_UINPUT, "DualSense por uinput é só evdev");
   espera(!origem_eh_dualsense(o.tipo), "e não fala os efeitos do DualSense");
 
-  /* Windows: sem sysfs, inferido */
   memset(&f, 0, sizeof(f));
   f.windows = 1;
   f.wine = 1;
@@ -106,8 +104,6 @@ static void escreve(const char *caminho, const char *texto) {
 }
 
 static void provas_do_sysfs(void) {
-  /* a pasta temporária do sistema, ou a pasta onde a prova roda: nenhum caminho
-   * escrito aqui (os symlinks pedem caminho absoluto) */
   char aqui[900], raiz[1024];
   const char *base = getenv("TMPDIR");
   if (!base || !*base)
@@ -118,7 +114,6 @@ static void provas_do_sysfs(void) {
     return;
   }
   char c[1200], d[1400];
-  /* um DualSense no cabo */
   snprintf(c, sizeof(c), "%s/devices/usb3/3-4/3-4:1.3/0003:054C:0CE6.0001", raiz);
   mkdir_p(c);
   snprintf(d, sizeof(d), "%s/devices/usb3/3-4/busnum", raiz);
@@ -134,7 +129,6 @@ static void provas_do_sysfs(void) {
   snprintf(d, sizeof(d), "%s/class/hidraw/hidraw3/device", raiz);
   espera(symlink(c, d) == 0, "symlink do hidraw3");
 
-  /* um Edge virtual por uhid */
   snprintf(c, sizeof(c), "%s/devices/virtual/misc/uhid/0003:054C:0DF2.000A", raiz);
   mkdir_p(c);
   snprintf(d, sizeof(d), "%s/uevent", c);
@@ -145,7 +139,6 @@ static void provas_do_sysfs(void) {
   snprintf(d, sizeof(d), "%s/class/hidraw/hidraw7/device", raiz);
   espera(symlink(c, d) == 0, "symlink do hidraw7");
 
-  /* um Xbox por uinput */
   snprintf(c, sizeof(c), "%s/devices/virtual/input/input42", raiz);
   mkdir_p(c);
   snprintf(d, sizeof(d), "%s/id", c);

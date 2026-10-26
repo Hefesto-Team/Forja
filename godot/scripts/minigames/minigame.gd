@@ -1,51 +1,28 @@
 class_name Minigame
 extends SalaJogo
-## O kit do minigame (docs/jogo/13-arquitetura.md#o-kit-do-minigame--h04): o
-## que todo minigame tem e nenhum repete — a ficha de dados, as raias, quem
-## está conectado, o relógio da faixa, o julgamento do toque, o registro da
-## nota e do toque, as falas e a colocação. O minigame escreve a FICHA (um
-## const no próprio script: docs/jogo/tarefas/molde-de-minigame.md) e os
-## ganchos: montar, iniciar_jogo, jogar, toque, falha, vencedor e robo.
-##
-## O kit não sabe de robô: chama robo(l, dt) de todo lugar em jogo, a cada
-## quadro, e só o gancho do minigame olha Forja.robo (docs/jogo/13, a
-## paridade entre a prova e o jogo).
-##
-## Os eventos `minigame` e `desempenho` têm um dono só: a SalaJogo. A
-## colocação é a `var colocacao` dela, preenchida pelo `vencedor()` (por
-## padrão, pelos pontos); o kit não declara `func colocacao()`.
 
-## As chaves que toda FICHA tem.
 const CHAVES := ["slot", "titulo", "verbo", "genero", "icone", "entradas", "camera", "faixa", "duracao",
 	"fim", "sensacoes", "material", "microjogo"]
 const GENEROS := ["tct", "2v2", "coop", "corrida", "sobrevivencia", "terror", "sabotagem"]
 const FINS := ["tempo", "ultimo_em_pe", "primeiro_a_chegar", "meta_coletiva"]
 const CAMERAS := ["fixa", "grupo", "corrida"]
 const MATERIAIS := ["metal", "pedra", "areia", "gelo", "grama", "lama", "plasma", "madeira"]
-## A FICHA.icone pode dizer a parte do controle; o aviso desenha o glifo dela
-## (assets/glifos/). Um nome de glifo passa como está.
 const ICONE_DA_PARTE := {"botoes": "cross", "analogicos": "stick_l", "gatilhos": "l2", "gatilho_adaptativo": "r2",
 	"vibracao": "rumble_esquerdo", "haptica": "rumble_direito", "alto_falante": "alto-falante", "microfone": "mic",
 	"barra_de_luz": "lightbar"}
 
-## As quatro raias: o x de cada lugar, e onde o boneco fica nela.
 const RAIAS := [-6.0, -2.0, 2.0, 6.0]
 const Z_JOGADOR := 1.4
-## A nota de cada lugar na TV (o hoqueto, docs/jogo/02#3): dó, ré, fá e sol
-## sobre o som "nota".
 const TOM_DO_LUGAR := [1.0, 1.1225, 1.3348, 1.4983]
-## Uma fala por lugar a cada FALA_S segundos, no máximo (G07).
 const FALA_S := 20.0
 
-var ficha := {}  ## a FICHA do script do minigame (lida no _init)
-var _raias := {}  ## lugar -> {raiz, mat_borda, luz}
+var ficha := {}
+var _raias := {}
 var _ultima_fala := [-FALA_S, -FALA_S, -FALA_S, -FALA_S]
-const COMBO := 8  ## quantos perfeitos seguidos fazem a música brilhar (H07)
+const COMBO := 8
 var _perfeitos_seguidos := [0, 0, 0, 0]
 
 
-## Lê a FICHA do script do minigame. O minigame não escreve _init(); se
-## escrever, a primeira linha é super().
 func _init() -> void:
 	var achada = get_script().get_script_constant_map().get("FICHA", {})
 	ficha = (achada as Dictionary).duplicate(true)
@@ -55,7 +32,6 @@ func _init() -> void:
 	duracao = float(ficha.get("duracao", 90.0))
 	var parte := str(ficha.get("icone", ""))
 	icone = str(ICONE_DA_PARTE.get(parte, parte))
-	# as chaves opcionais (o molde): o que a bancada mede, o gesto do aviso, o treino
 	features = Array(ficha.get("features", []))
 	botoes_pedidos = Forja.mascara(Array(ficha.get("botoes_medidos", [])))
 	gesto_do_aviso = str(ficha.get("gesto", ""))
@@ -67,7 +43,6 @@ func entrar(js: Array) -> void:
 	super(js)
 
 
-## Falta chave, ou um valor fora da lista? Falha alto (push_error) e diz qual.
 func conferir_a_ficha() -> bool:
 	var ok := true
 	for k in CHAVES:
@@ -83,9 +58,6 @@ func conferir_a_ficha() -> bool:
 	return ok
 
 
-# ---------------------------------------------------------------- as fases --
-
-## A fase jogo: a faixa da ficha começa do zero, e o relógio parte dela.
 func comecar() -> void:
 	var faixa := str(ficha.get("faixa", ""))
 	var mapa := Musica.mapa(faixa)
@@ -95,8 +67,6 @@ func comecar() -> void:
 	super()
 
 
-## O fim: o relógio solta a faixa. O registro (`minigame` `terminou` com o
-## vencedor, `desempenho`) é da SalaJogo.
 func terminar() -> void:
 	if fase == "fim":
 		return
@@ -112,13 +82,11 @@ func sair() -> void:
 	super()
 
 
-## A pausa por cima: o jogo e o relógio da música param juntos.
 func congelar(sim: bool) -> void:
 	super(sim)
 	Ritmo.pausar(sim)
 
 
-## O kit chama robo(l, dt) de quem ainda joga, antes do jogar(dt) da SalaJogo.
 func _process(dt: float) -> void:
 	if not congelada and fase == "jogo":
 		for p in jogadores:
@@ -128,34 +96,22 @@ func _process(dt: float) -> void:
 	super(dt)
 
 
-# ---------------------------------------------------------------- os ganchos --
-# montar(), iniciar_jogo(), jogar(dt) e vencedor() são da Sala e da SalaJogo; o
-# minigame os escreve. Estes três são do kit.
-
-## A consequência de um toque julgado BOM, OTIMO ou PERFEITO (o ERRO vai para falha).
 func toque(_l: int, _julgamento: int) -> void:
 	pass
 
 
-## A falha física: o toque ERRO, ou a nota que passou sem toque.
 func falha(_l: int) -> void:
 	pass
 
 
-## Como o robô joga o lugar neste quadro, pelo controle simulado
-## (Forja.robo_apertar, robo_eixo...). É o único lugar do minigame que olha
-## Forja.robo: a primeira linha é `if not Forja.robo: return`.
 func robo(_l: int, _dt: float) -> void:
 	pass
 
-
-# ---------------------------------------------------------------- o kit --
 
 func conectado(l: int) -> bool:
 	return bool(Forja.lugar(l).get("conectado", false))
 
 
-## Os lugares que estão jogando este minigame.
 func presentes() -> Array:
 	var r: Array = []
 	for p in jogadores:
@@ -164,12 +120,10 @@ func presentes() -> Array:
 	return r
 
 
-## O lugar está jogando agora (em jogo, e com controle)? A guarda da dica e do status.
 func na_raia(l: int) -> bool:
 	return fase == "jogo" and bool(jogando[l]) and conectado(l)
 
 
-## A raia do lugar: a laje, a borda na cor do lugar e a luz da vez (apagada).
 func raia(l: int) -> Node3D:
 	var cor := Forja.cor_do_lugar(l)
 	var raiz := Node3D.new()
@@ -199,7 +153,6 @@ func raia(l: int) -> Node3D:
 	return raiz
 
 
-## Acende a raia do lugar (0 apagada, 1 a vez dele).
 func acender_raia(l: int, forca: float) -> void:
 	if not _raias.has(l):
 		return
@@ -208,7 +161,6 @@ func acender_raia(l: int, forca: float) -> void:
 	(r.luz as OmniLight3D).light_energy = 1.6 * forca
 
 
-## O boneco do lugar no meio da raia, de frente, de mãos livres.
 func posicionar(l: int) -> void:
 	var p := jogador(l)
 	if p == null:
@@ -218,15 +170,10 @@ func posicionar(l: int) -> void:
 	maos_livres(p)
 
 
-## Julga o toque do lugar agora contra a nota em t_alvo (tempo de música) e
-## faz o que todo toque julgado faz: a folga de quem está em último (só se a
-## nota é um perigo físico), o registro, a ajuda, a sensação e o som da nota
-## na TV — e chama toque() nos acertos ou falha() no erro. Devolve o julgamento.
 func julgar_toque(l: int, t_alvo: float, n := -1, perigo := false) -> int:
 	var t_toque := Ritmo.t_musica()
 	var folga := Ritmo.folga_para(l, pontos, presentes()) if perigo else 0.0
 	var j := Ritmo.julgar(l, t_toque, t_alvo, folga)
-	# G03: o item entra aqui (Itens.ajustar_julgamento e o Escudo, Itens.absorve_erro)
 	Ritmo.registrar_toque(l, n, j, Ritmo.desvio_ms(l, t_toque, t_alvo))
 	Ritmo.contar_para_ajuda(l, j)
 	_reagir(l, j)
@@ -237,7 +184,6 @@ func julgar_toque(l: int, t_alvo: float, n := -1, perigo := false) -> int:
 	return j
 
 
-## A nota n do lugar passou sem toque: é erro, com a falha física.
 func nota_perdida(l: int, n: int) -> void:
 	Ritmo.registrar_toque(l, n, Ritmo.ERRO)
 	Ritmo.contar_para_ajuda(l, Ritmo.ERRO)
@@ -245,13 +191,10 @@ func nota_perdida(l: int, n: int) -> void:
 	falha(l)
 
 
-## Uma nota nova do lugar, no registro (a G03 põe a Lanterna aqui).
 func nova_nota(l: int, n: int, t_alvo: float) -> void:
 	Ritmo.registrar_nota(l, n, t_alvo)
 
 
-## Uma fala do cavaleiro do lugar, no máximo uma a cada FALA_S s. Devolve se
-## falou. A G07 põe a fala de verdade aqui.
 func falar(l: int, _evento: String) -> bool:
 	if t - float(_ultima_fala[l]) < FALA_S:
 		return false
@@ -270,7 +213,6 @@ func _reagir(l: int, j: int) -> void:
 		Musica.reagir("erro")
 		return
 	var perfeito := j == Ritmo.PERFEITO
-	# a textura do material na mão (no cabo) ou a sensação pelo rumble (no rádio)
 	Forja.tocar_material(l, str(ficha.material), "perfeito" if perfeito else "acerto", 1.0 if perfeito else 0.7)
 	Som.tocar("nota", pos, -4.0 if perfeito else -9.0, TOM_DO_LUGAR[l])
 	if perfeito:
@@ -285,15 +227,9 @@ func _reagir(l: int, j: int) -> void:
 		_perfeitos_seguidos[l] = 0
 
 
-# ---------------------------------------------------------------- a contagem de entrada (H06) --
-
-## A primeira nota de um minigame vem neste tempo ou depois: os quatro
-## primeiros são a contagem de entrada (JIN_ENTRADA, H06).
 const BATIDA_DA_PRIMEIRA_NOTA := 4
 
 
-## A contagem de entrada no tempo da faixa: tique nos tempos 0, 1 e 2 e o
-## "vai" no 3 (no lugar do "confirma" solto da SalaJogo).
 func _som_do_comeco() -> void:
 	if not Ritmo.batida_cheia.is_connected(_contar_a_entrada):
 		Ritmo.batida_cheia.connect(_contar_a_entrada)

@@ -1,29 +1,17 @@
 extends SceneTree
-## A prancha dos corpos (G10): os 12 do Mini Characters, o orc, o humano, a cauda da raposa e
-## três monstros do Graveyard, um por célula, de frente, com o nome do arquivo embaixo. Grava
-## duas folhas de 1920×1080 em docs/imagens/kenney/: `corpos.jpg` (a luz do salão, o
-## colormap original) e `corpos_silhueta.jpg` (cada malha chapada em FITA sobre ETIQUETA).
-##
-##   xvfb-run -a -s "-screen 0 1920x1080x24" godot --rendering-driver opengl3 --audio-driver Dummy \
-##     --path godot --resolution 1920x1080 --script res://testes/prancha_dos_corpos.gd
-##
-## SAIDA=<pasta> muda onde gravar. A câmera é a de 50 mm (FOV vertical 2·atan(12/50) = 27,0°),
-## de frente, a 2,2 m, na altura de 0,45 m, e o quadro é o de 0,5 s do `idle`.
 
 const COLUNAS := 6
 const LINHAS := 3
 const CELULA := Vector2i(320, 360)
-const FAIXA := 64               ## a faixa do nome, embaixo de cada célula
+const FAIXA := 64
 const FOV := 27.0
 const DISTANCIA := 2.2
 const ALTURA := 0.45
 const QUADRO := 0.5
-const ESCALA_DA_CAUDA := 0.33   ## a escala em que a G13 a põe no cavaleiro
-## A névoa e o preenchimento do salão (arte/02). Ainda não é token do Tema.
+const ESCALA_DA_CAUDA := 0.33
 const VIOLETA_FUNDO := Color("#1d1638")
 const KENNEY := "res://assets/kenney/%s.glb"
 
-## [pasta/arquivo, o papel escrito na faixa]
 const CORPOS := [
 	["mini-characters/character-female-a", "humana"], ["mini-characters/character-female-b", "humana"],
 	["mini-characters/character-female-c", "humana"], ["mini-characters/character-female-d", "humana"],
@@ -36,7 +24,7 @@ const CORPOS := [
 	["graveyard-kit/character-zombie", "monstro"], ["graveyard-kit/character-vampire", "monstro"],
 ]
 
-var _celulas: Array = []        ## cada uma: {"vp", "modelo", "caixa"}
+var _celulas: Array = []
 var _folha: Control
 
 
@@ -103,7 +91,6 @@ func _montar(i: int) -> Dictionary:
 		ap.play("idle")
 		ap.seek(QUADRO, true)
 		ap.pause()
-	# a faixa do nome
 	var faixa := ColorRect.new()
 	faixa.color = Tema.CASCO
 	faixa.position = origem + Vector2(0, area.y)
@@ -123,8 +110,6 @@ func _montar(i: int) -> Dictionary:
 	return {"vp": vp, "modelo": modelo, "amb": amb, "luz": luz, "cont": cont}
 
 
-## O Cube Pets é rígido: a cauda é o nó `tail`, filho do `body`. Tira a malha de tudo o que não é
-## ela (sem esconder o nó, que esconderia os filhos) e leva a cauda para o meio da célula.
 func _so_a_cauda(modelo: Node3D) -> void:
 	var cauda := modelo.find_child("tail", true, false) as MeshInstance3D
 	if cauda == null:
@@ -133,7 +118,6 @@ func _so_a_cauda(modelo: Node3D) -> void:
 	for m in modelo.find_children("*", "MeshInstance3D", true, false):
 		if m != cauda:
 			(m as MeshInstance3D).mesh = null
-	# a posição da cauda no modelo, de pai em filho (o nó ainda não tem transformada global)
 	var no: Node3D = cauda
 	var origem := Vector3.ZERO
 	while no != modelo:
@@ -166,7 +150,6 @@ func _gravar(arquivo: String) -> void:
 	print("%s: %s (%d×%d)" % [arquivo, "ok" if rc == OK else "erro %d" % rc, img.get_width(), img.get_height()])
 
 
-## Cada malha chapada em FITA sobre ETIQUETA: só a silhueta.
 func _silhueta() -> void:
 	var chapa := StandardMaterial3D.new()
 	chapa.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED

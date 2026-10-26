@@ -1,13 +1,4 @@
 #!/usr/bin/env bash
-# A prova dos portões: cada portão de scripts/portoes/ REPROVA o defeito que diz pegar, e deixa passar o
-# caso limpo. Portão que passa com o defeito dentro não mede nada.
-#
-# Cada caso monta uma árvore de mentira numa pasta temporária, com o defeito, e roda o portão nela com
-# `--raiz` (e `--modo reprova`, para a arte e o som, que no repositório estão em aviso). O texto de tela acha
-# a raiz pelo próprio caminho: a prova copia o script para a árvore de mentira. A prova sem rastro morde a si
-# mesma: aqui ela só é chamada inteira.
-#
-# Não precisa de Godot nem de módulo, e roda em segundos. Uso: bash tests/prova_dos_portoes.sh
 set -u
 RAIZ="$(cd "$(dirname "$0")/.." && pwd)"
 P="$RAIZ/scripts/portoes"
@@ -16,7 +7,6 @@ trap 'rm -rf "$TMP"' EXIT
 FALHAS=0
 CASOS=0
 
-## espera <rc esperado> <o que> <comando...>
 espera() {
   local quer="$1" oque="$2"; shift 2
   CASOS=$((CASOS + 1))
@@ -31,11 +21,9 @@ espera() {
   fi
 }
 
-## arvore <nome>: uma pasta nova para um caso
 arvore() { rm -rf "$TMP/$1"; mkdir -p "$TMP/$1"; echo "$TMP/$1"; }
 
-# --- o texto de tela ---------------------------------------------------------------------------------------------
-traducoes() { # <pasta> <chave> <valor>
+traducoes() {
   mkdir -p "$1/scripts" "$1/godot/scripts"
   cp "$RAIZ/scripts/check_texto_de_tela.py" "$1/scripts/"
   printf 'class_name Traducoes\nconst EN := {\n\t"%s": "%s",\n}\nconst EN_PADROES := [\n\t["^Canto (\\\\d+)$", "Song $1"],\n]\n' \
@@ -46,11 +34,9 @@ espera 1 "texto de tela: reprova a frase com minúscula" python3 "$A/scripts/che
 A="$(arvore texto-bom)"; traducoes "$A" "Começar" "Start"
 espera 0 "texto de tela: deixa passar a frase com maiúscula" python3 "$A/scripts/check_texto_de_tela.py"
 
-# --- sem rastro -------------------------------------------------------------------------------------------------
 espera 0 "sem rastro: a prova inteira (ela monta cada defeito e confere que reprova)" bash "$RAIZ/tests/prova_sem_rastro.sh"
 
-# --- as mensagens de commit -------------------------------------------------------------------------------------
-repo() { # <pasta>: um repositório com main e um ramo
+repo() {
   git -C "$1" init -q -b main
   git -C "$1" config user.name prova; git -C "$1" config user.email prova@forja.invalid
   git -C "$1" config commit.gpgsign false; git -C "$1" config core.hooksPath /dev/null
@@ -76,8 +62,7 @@ espera 1 "mensagens: no push, ANTES..HEAD é o intervalo" \
 espera 2 "mensagens: um intervalo que não existe não conta como verde" \
   python3 "$P/mensagens_de_commit.py" --raiz "$A" --intervalo nada..HEAD
 
-# --- a ficha pronta ---------------------------------------------------------------------------------------------
-ficha_tree() { # <pasta> <estado> <ficha (texto)>
+ficha_tree() {
   mkdir -p "$1/docs/jogo/o-time" "$1/docs/jogo/tarefas"
   cp "$RAIZ/docs/jogo/o-time/ficha-pronta.md" "$1/docs/jogo/o-time/"
   printf '# O quadro\n\n| ficha | título | tamanho | depende de | estado |\n| --- | --- | --- | --- | --- |\n| [Z1](Z1.md) | A de prova | P | — | %s |\n' \
@@ -85,7 +70,7 @@ ficha_tree() { # <pasta> <estado> <ficha (texto)>
   printf '%s\n' "$3" > "$1/docs/jogo/tarefas/Z1.md"
   echo "# o 13" > "$1/docs/jogo/13.md"
 }
-ficha_inteira() { # [ler antes] [sem a parte]
+ficha_inteira() {
   local ler="${1:-- [13](../13.md)}" sem="${2:-}" p
   echo "# Z1"
   while IFS= read -r p; do
@@ -114,9 +99,7 @@ espera 0 "ficha pronta: deixa passar a ficha com todas as partes" python3 "$P/fi
 A="$(arvore ficha-a-fazer)"; ficha_tree "$A" "a fazer" "# Z1"
 espera 0 "ficha pronta: não confere a ficha que não está pronta" python3 "$P/ficha_pronta.py" --raiz "$A"
 
-# o «Ler antes» pela âncora (WT01): o 13 de mentira tem 30 KB, um título com acento e travessão, e um título de
-# mentira dentro de um bloco de código (que não é título)
-grande_tree() { # <pasta> <ler antes>
+grande_tree() {
   ficha_tree "$1" "pronta" "$(ficha_inteira "$2")"
   { echo "# O 13"; echo; echo "## As decisões comuns — H08"; echo; echo "texto"; echo; echo '```gdscript'
     echo "## Só no código"; echo '```'; echo; echo "## Outra"; echo; seq 1 6000; } > "$1/docs/jogo/13.md"
@@ -141,8 +124,7 @@ A="$(arvore ler-o-que-muda)"; grande_tree "$A" '- [13](../13.md)'
 sed -i 's|^Não se aplica: a ficha de prova.$|- `docs/jogo/13.md`|' "$A/docs/jogo/tarefas/Z1.md"
 espera 0 "ficha pronta: o arquivo grande que a ficha muda se lê inteiro" python3 "$P/ficha_pronta.py" --raiz "$A"
 
-# --- a arte -----------------------------------------------------------------------------------------------------
-arte_tree() { # <pasta> <linha de gdscript>
+arte_tree() {
   mkdir -p "$1/godot/scripts/ui" "$1/godot/scenes" "$1/godot/assets/fontes"
   printf 'class_name Tema\nconst ETIQUETA := Color("#efe4c8")\nconst JOGADOR := [Color("#29e6ff"), Color("#ff3ea5"), Color("#d4ff4a"), Color("#ee9a1e")]\nconst T_ROTULO := 30\nconst _VOZ := "res://assets/fontes/ArchivoNarrow-wght.ttf"\n' \
     > "$1/godot/scripts/tema.gd"
@@ -184,8 +166,7 @@ A="$(arvore arte-brilho-bom)"; arte_tree "$A" 'var m := Tema.neon(Tema.VIOLETA, 
 espera 0 "arte: deixa passar o brilho com dono, no teto" arte "$A"
 espera 0 "arte: no modo aviso, o defeito não reprova" python3 "$P/arte.py" --raiz "$TMP/arte-hex" --modo aviso
 
-# --- o som ------------------------------------------------------------------------------------------------------
-wav() { # <arquivo> <ms> <amplitude 0..1> <estala: 0|1>
+wav() {
   python3 - "$@" <<'EOF'
 import math, struct, sys, wave
 caminho, ms, amp, estala = sys.argv[1], float(sys.argv[2]), float(sys.argv[3]), sys.argv[4] == "1"
@@ -202,7 +183,7 @@ with wave.open(caminho, "wb") as w:
     w.writeframes(struct.pack("<%dh" % n, *amostras))
 EOF
 }
-som_tree() { # <pasta> <linha de gdscript> [linhas do mapa...]
+som_tree() {
   local A="$1" linha="$2"; shift 2
   mkdir -p "$A/godot/scripts" "$A/godot/assets/sons" "$A/docs/jogo/audio"
   printf 'extends Node\nfunc _ready() -> void:\n\t%s\n' "$linha" > "$A/godot/scripts/sala.gd"
@@ -231,8 +212,7 @@ A="$(arvore som-bom)"; som_tree "$A" 'Som.tocar("martelo") # Som.tocar("trombeta
 espera 0 "som: deixa passar o id do mapa e o arquivo que bate" som "$A"
 espera 0 "som: no modo aviso, o defeito não reprova" python3 "$P/som.py" --raiz "$TMP/som-fora" --modo aviso
 
-# --- o teste mudo -----------------------------------------------------------------------------------------------
-mudo_tree() { # <pasta> <linhas do script>
+mudo_tree() {
   mkdir -p "$1/tests"; printf '%s\n' "$2" > "$1/tests/foto.sh"
 }
 A="$(arvore mudo-toca)"; mudo_tree "$A" 'xvfb-run -a \
@@ -244,10 +224,7 @@ xvfb-run -a "$GODOT" --write-movie f.avi --path godot
 # xvfb-run "$GODOT" num comentário'
 espera 0 "teste mudo: deixa passar o driver mudo, o filme, o headless e o comentário" python3 "$P/teste_mudo.py" --raiz "$A"
 
-# --- o código da ficha (WT02) -----------------------------------------------------------------------------------
-# a ficha de mentira traz o corpo com tabulação e linha em branco no fim, a parte 2 noutro bloco, e um trecho sem
-# a marca, que o script não toca
-codigo_ficha() { # <arquivo> <caminho do arquivo=>
+codigo_ficha() {
   printf '# Z9\n\nO `%s` inteiro:\n\n```gdscript arquivo=%s\nextends Node\n\nfunc _ready() -> void:\n\tprint("ação")\n\n```\n\nUm trecho:\n\n```gdscript\nfunc trecho() -> void:\n\tpass\n```\n\nO robô:\n\n```gdscript arquivo=%s parte=2\nfunc robo(l: int, dt: float) -> void:\n\tpass\n```\n' "$2" "$2" "$2" > "$1"
 }
 A="$(arvore codigo)"; codigo_ficha "$A/Z9.md" "godot/scripts/z9.gd"
@@ -268,9 +245,7 @@ done
 A="$(arvore codigo-pasta)"; codigo_ficha "$A/Z9.md" "docs/z9.gd"
 espera 1 "ficha código: recusa arquivo= fora de godot/, scripts/ e tests/" \
   python3 "$RAIZ/scripts/ficha_codigo.py" "$A/Z9.md" --escrever --raiz "$A/arv"
-# a ficha que diz «O arquivo se monta à mão» acima do corpo (WT02b): o --marcar --sim não lhe põe a marca; sem a
-# linha, o mesmo corpo leva a marca (a prova de que o caso morde)
-mao_ficha() { # <arquivo> <com a linha: 1 ou 0>
+mao_ficha() {
   { printf '# Z8\n\nO `godot/scripts/z8.gd`:\n\n'
     [ "$2" = 1 ] && printf '**O arquivo se monta à mão:** os blocos daqui são pedaços dele.\n\n'
     printf '```gdscript\nextends Node\n'; for i in $(seq 1 85); do printf 'var v%d := %d\n' "$i" "$i"; done
@@ -283,8 +258,7 @@ A="$(arvore codigo-sem-mao)"; mao_ficha "$A/Z8.md" 0
 espera 0 "ficha código: --marcar --sim marca o mesmo corpo sem a linha" \
   bash -c "python3 '$RAIZ/scripts/ficha_codigo.py' '$A/Z8.md' --marcar --sim >/dev/null && grep -q '^\`\`\`gdscript arquivo=godot/scripts/z8.gd\$' '$A/Z8.md'"
 
-# --- a caixa ---------------------------------------------------------------------------------------------------
-caixa_tree() { # <pasta> <linhas do script>
+caixa_tree() {
   mkdir -p "$1/tests" "$1/scripts"; printf '%s\n' "$2" > "$1/scripts/prova.sh"
 }
 A="$(arvore caixa-solta)"; caixa_tree "$A" 'timeout 600 "$GODOT" --headless --fixed-fps 60 --path godot \
@@ -300,7 +274,6 @@ godot --export-release "Linux" dist/forja.x86_64
 # "$GODOT" --path godot -- --simular=4 num comentário'
 espera 0 "caixa: deixa passar a chamada pela caixa, o --import, o -s, o --export e o comentário" python3 "$P/caixa.py" --raiz "$A"
 
-# --- o erro do motor (tests/caixa.sh, caixa_julgar, com a lista de verdade) -----------------------------------
 julga() { bash -c 'source "$1"; caixa_julgar "$2"' _ "$RAIZ/tests/caixa.sh" "$1" | tee "$1.juizo"; return "${PIPESTATUS[0]}"; }
 A="$(arvore julgar)"
 printf '%s\n' 'ok   a sala acabou' 'ERROR: Lambda capture at index 0 was freed. Passed "null" instead.' \
@@ -317,16 +290,14 @@ printf '%s\n' 'ERROR: minigame res://scripts/minigames/s01/martelo_de_hefesto.gd
   'prova do jogo ok' > "$A/esperado.log"
 espera 0 "erro do motor: os de propósito da lista, o WARNING e o «erro» do meio da linha passam" julga "$A/esperado.log"
 
-# --- o registro da prova vermelha (tests/caixa.sh, caixa_pasta: WQ04), na prova do jogo com um Godot de mentira -
-pasta_tree() { # <pasta> <rc do Godot de mentira>
+pasta_tree() {
   mkdir -p "$1/tests" "$1/scripts" "$1/godot"
   cp "$RAIZ/tests/prova_do_jogo.sh" "$RAIZ/tests/caixa.sh" "$RAIZ/tests/erros_esperados.txt" "$1/tests/"
   cp "$RAIZ/scripts/engine.sh" "$1/scripts/"
   printf 'import sys\nsys.exit(0)\n' > "$1/scripts/check_texto_de_tela.py"
-  for s in conferir_ost conferir_bonecos; do cp "$1/scripts/check_texto_de_tela.py" "$1/scripts/$s.py"; done   # a trilha (H05) e os bonecos (G08)
+  for s in conferir_ost conferir_bonecos; do cp "$1/scripts/check_texto_de_tela.py" "$1/scripts/$s.py"; done
   printf '#!/usr/bin/env bash\nexit %s\n' "$2" > "$1/godot-de-mentira"
   chmod +x "$1/godot-de-mentira"
-  # o módulo de mentira com a soma da fonte desta árvore: sem ele a caixa sai 2 (a WQ03)
   cp "$RAIZ/scripts/compilar.sh" "$1/scripts/"
   mkdir -p "$1/godot/bin" && : > "$1/godot/bin/libforja.linux.x86_64.so"
   bash "$1/scripts/compilar.sh" soma > "$1/godot/bin/libforja.linux.x86_64.so.fonte"
@@ -346,7 +317,6 @@ A="$(arvore pasta-verde)"; pasta_tree "$A" 0
 espera 0 "caixa_pasta: com o Godot de mentira que sai 0, a prova sai 0" \
   env GODOT="$A/godot-de-mentira" bash "$A/tests/prova_do_jogo.sh"
 espera 0 "caixa_pasta: na prova verde, a pasta não fica" bash -c '[ -z "$(ls -A "$1/.cache/provas" 2> /dev/null)" ]' _ "$A"
-# o que pesa e não é registro (o prefixo do Wine da exportação) fica de fora da cópia
 A="$(arvore pasta-sem-guardar)"; pasta_tree "$A" 0
 bash -c 'source "$1/tests/caixa.sh"; caixa_pasta prova-pesada; CAIXA_SEM_GUARDAR="wine"
   mkdir -p "$CAIXA_PASTA/wine/drive_c"; echo pesado > "$CAIXA_PASTA/wine/drive_c/x.dll"; echo "FAIL a rodada" > "$CAIXA_PASTA/rodada.log"; exit 1' \
@@ -354,8 +324,7 @@ bash -c 'source "$1/tests/caixa.sh"; caixa_pasta prova-pesada; CAIXA_SEM_GUARDAR
 espera 0 "caixa_pasta: no vermelho, o CAIXA_SEM_GUARDAR não vai para o .cache, e o registro vai" \
   bash -c 'ls "$1"/.cache/provas/prova-pesada-2*/rodada.log && ! ls -d "$1"/.cache/provas/prova-pesada-2*/wine' _ "$A"
 
-# --- o módulo de outra fonte (tests/caixa.sh, caixa_fonte: WQ03), numa árvore de mentira ------------------------
-fonte_tree() { # <pasta>: o caixa.sh e o compilar.sh de verdade, um .c e o módulo com a soma da fonte
+fonte_tree() {
   mkdir -p "$1/tests" "$1/scripts" "$1/nativo/src" "$1/godot/bin"
   cp "$RAIZ/tests/caixa.sh" "$1/tests/"
   cp "$RAIZ/scripts/compilar.sh" "$1/scripts/"
@@ -427,8 +396,7 @@ espera 1 "texto enxuto: --aplicar aponta o comentário do arquivo dado" \
 espera 1 "texto enxuto: --mudados acha o arquivo novo com comentário" \
   python3 "$A/scripts/portoes/texto_enxuto.py" --raiz "$A" --mudados
 
-# --- a tela curta do rodar.sh (WT03): uma árvore com o rodar.sh de verdade e portões de mentira ---------------
-curto_tree() { # <pasta> <rc do portão barulhento>
+curto_tree() {
   mkdir -p "$1/scripts/portoes" "$1/tests"
   cp "$P/rodar.sh" "$1/scripts/portoes/"
   local quieto='print("quieto: 0 achados")'
@@ -459,7 +427,6 @@ espera 0 "rodar.sh: com os portões em ok dá 0" bash "$A/scripts/portoes/rodar.
 A="$(arvore curto-erro)"; curto_tree "$A" 2
 espera 2 "rodar.sh: o portão que não conferiu dá 2" bash "$A/scripts/portoes/rodar.sh"
 
-# --- o rodar.sh -------------------------------------------------------------------------------------------------
 espera 0 "rodar.sh: os portões do repositório passam (a arte e o som em aviso)" bash "$P/rodar.sh"
 
 echo

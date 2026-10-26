@@ -1,10 +1,3 @@
-/* As provas às cegas das salas de saída, do lado do módulo (cegas.h). Uma
- * saída — vibração, cor, gatilho, LED, som — o jogo não mede sozinho: a sala
- * esconde a resposta, pergunta, e guarda o que a pessoa disse (as certas, as
- * erradas e o que ela disse nelas, as perdidas). Aqui sai o veredito, pela
- * régua provada sem aparelho, gravado no relatório no degrau que a prova
- * alcançou (montou, saiu ou obedeceu). Os planos — a ordem dos golpes, das
- * armas, das fontes de som — saem do mesmo sorteio do núcleo. */
 #include "forja_controles.h"
 #include "forja_interno.h"
 
@@ -33,7 +26,7 @@ bool sim(const Dictionary &d, const char *k, bool padrao) { return d.has(k) ? (b
 int num(const Dictionary &d, const char *k) { return d.has(k) ? (int)d[k] : 0; }
 String txt(const char *s) { return String::utf8(s ? s : ""); }
 
-} // namespace
+}
 
 Array ForjaControles::cega_plano_tiros(const PackedInt32Array &slots, int por_lado, int64_t semente) const {
   Array saida;
@@ -93,15 +86,6 @@ bool ForjaControles::cega_decidida(const String &tipo, const Dictionary &cega) c
   return true;
 }
 
-/* O veredito de uma feature de saída, pelas respostas guardadas pela sala. Os
- * `dados` de cada uma:
- *   vibracao_forte, vibracao_fraca  {cega, sdl_aceitou, reagiu}
- *   vibracao_isolamento             {fantasmas, chances, vizinhos, proprios}
- *   lightbar, leds_jogador,
- *   led_microfone                   {cega, sdl_aceitou}
- *   gatilho_*                       {cega, nenhuma, sdl_aceitou}
- *   alto_falante                    {cega, fantasmas, chances, tem}
- *   haptica_audio                   {cega (o chão), esq, dir, tem} */
 Dictionary ForjaControles::cega_veredito(int lugar, const String &chave, const Dictionary &d) {
   Dictionary r;
   if (!aberto_ || lugar < 0 || lugar >= MAX_JOGADORES)

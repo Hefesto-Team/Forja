@@ -1,10 +1,5 @@
 class_name Catalogo
 extends RefCounted
-## O catálogo: as nove seções, os minigames de cada uma e as salas de hoje que
-## ainda não viraram minigame (docs/jogo/13-arquitetura.md#o-kit-do-minigame--h04).
-## Substitui o SALAS do main.gd. Os ids antigos (centelha, viga...) continuam
-## valendo em --sala=, na Prova de Fogo e na partida: são os apelidos das
-## seções, e abrem o primeiro minigame da seção quando ele existe.
 
 const SECOES := [
 	{"id": "S01", "nome": "A Centelha", "apelido": "centelha", "minigames": ["S01_J01"]},
@@ -20,8 +15,6 @@ const SECOES := [
 const MINIGAMES := {
 	"S01_J01": preload("res://scripts/minigames/s01/martelo_de_hefesto.gd"),
 }
-## As salas de hoje que ainda não se mudaram para minigames/ (cada ficha de
-## seção tira a sua daqui), e a bancada, que não é seção.
 const SALAS_ANTIGAS := {
 	"viga": preload("res://scripts/salas/viga.gd"),
 	"molde": preload("res://scripts/salas/molde.gd"),
@@ -33,12 +26,9 @@ const SALAS_ANTIGAS := {
 	"prova": preload("res://scripts/salas/prova.gd"),
 	"bancada": preload("res://scripts/salas/bancada.gd"),
 }
-## Os nomes de antes que ainda abrem alguma coisa.
 const NOMES_VELHOS := {"giro": "viga"}
 
 
-## O que o id abre: o apelido de uma seção vira o primeiro minigame dela
-## (quando existe); um slot ou o id de uma sala de hoje fica como está.
 static func resolver(id: String) -> String:
 	var chave: String = NOMES_VELHOS.get(id, id)
 	for s in SECOES:
@@ -52,7 +42,6 @@ static func existe(id: String) -> bool:
 	return MINIGAMES.has(chave) or SALAS_ANTIGAS.has(chave)
 
 
-## Uma sala nova pelo id (o apelido, o slot ou o id de hoje); null se não existe.
 static func criar(id: String) -> Sala:
 	var chave := resolver(id)
 	if MINIGAMES.has(chave):
@@ -62,7 +51,6 @@ static func criar(id: String) -> Sala:
 	return null
 
 
-## O apelido da seção de um slot ("S01_J01" → "centelha"); o próprio id se não é de seção.
 static func apelido(id: String) -> String:
 	for s in SECOES:
 		if id in s.minigames:

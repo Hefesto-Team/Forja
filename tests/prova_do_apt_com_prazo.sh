@@ -1,34 +1,7 @@
 #!/usr/bin/env bash
-# A prova do apt com prazo: nenhum job do CI espera o espelho do apt sem prazo.
-#
-# O defeito medido (07/10/2026, corrida 37697457630, primeira tentativa): o passo «Dependências» do job
-# windows ficou 1889 s no `apt-get install`, baixando do espelho a ~120 kB/s, até ser cancelado à mão; o
-# normal é de 8 a 43 s, e o mais lento que ainda terminou verde levou 288 s (corrida 37705393614, job linux,
-# 83 kB/s). Sem `timeout-minutes`, o GitHub espera 360 min.
-#
-# Lê cada workflow de .github/workflows/ e, em todo job que chama o apt (`apt-get` ou `apt update|install`),
-# reprova:
-#   - o job sem `timeout-minutes`;
-#   - o passo do apt sem `timeout-minutes`;
-#   - a falta de um passo ANTERIOR ao primeiro apt que grave em /etc/apt/apt.conf.d/ o
-#     `Acquire::Retries` e o `Acquire::http::Timeout` (vale para todo apt do job, inclusive o de um script).
-# Linha de comentário e o `name:` do passo não contam como chamada do apt. A indentação é lida do arquivo, e
-# o apt fora de um passo que a régua leia reprova.
-#
-# Depois da varredura, a prova MORDE a si mesma: tira de uma cópia do forja.yml cada pedaço do prazo e
-# confere que a régua reprova, e monta workflows de mentira para a ordem e para o que deve passar.
-#
-# Não precisa de rede, de Godot nem de módulo compilado, e roda em um segundo.
-# Uso: bash tests/prova_do_apt_com_prazo.sh             (varre e morde)
-#      bash tests/prova_do_apt_com_prazo.sh --so-varrer  (sem as mordidas)
 set -u
 RAIZ="$(cd "$(dirname "$0")/.." && pwd)"
 
-## conferir <workflow.yml>: uma linha por defeito na saída; rc 0 limpo, 1 com defeito.
-## Na saída de erro, «apt-jobs N»: quantos jobs chamam o apt (a guarda contra a régua cega).
-## A indentação não é fixa: a dos jobs, a das chaves do job, a do traço dos passos e a das chaves do passo
-## são lidas do próprio arquivo (o YAML aceita `steps:` com o traço na mesma coluna da chave, ou recuado).
-## Uma chamada do apt que não caia dentro de um passo lido reprova: a régua não passa o que não soube ler.
 conferir() {
   awk -v ARQ="${1#"$RAIZ"/}" '
     function fecha_job(   s, conf, primeiro) {
@@ -123,7 +96,6 @@ TMP="$(mktemp -d "${TMPDIR:-/tmp}/forja-apt-prazo-XXXXXX")"
 trap 'rm -rf "$TMP"' EXIT
 FALHAS=0
 
-# ---- a varredura: os workflows da árvore ----
 total_apt=0
 for wf in "$RAIZ"/.github/workflows/*.yml; do
   [ -f "$wf" ] || continue
@@ -137,7 +109,6 @@ for wf in "$RAIZ"/.github/workflows/*.yml; do
   n="$(awk '/^apt-jobs /{print $2}' "$TMP/conta.txt")"
   total_apt=$((total_apt + ${n:-0}))
 done
-# régua que não acha apt nenhum não mede nada: se o apt saiu do CI, esta prova sai junto
 if [ "$total_apt" -eq 0 ]; then
   echo "FAIL nenhum job com apt nos workflows: a régua ficou cega (o apt mudou de forma?)"
   FALHAS=$((FALHAS + 1))
@@ -147,10 +118,8 @@ fi
 
 [ "${1:-}" = "--so-varrer" ] && { [ "$FALHAS" -eq 0 ] && exit 0 || exit 1; }
 
-# ---- as mordidas ----
 REAL="$RAIZ/.github/workflows/forja.yml"
 
-## tirar <job> <padrão ERE> <saída>: a cópia do forja.yml sem a primeira linha do job que casa o padrão.
 tirar() {
   awk -v JOB="$1" -v PAD="$2" '
     /^  [A-Za-z0-9_-]+:[ \t]*$/ { j = $1; sub(/:$/, "", j) }
@@ -159,7 +128,6 @@ tirar() {
   ' "$REAL" > "$3"
 }
 
-## morde <nome> <esperado: reprova|passa> <arquivo>
 morde() {
   local nome="$1" esperado="$2" arquivo="$3" rc
   conferir "$arquivo" > "$TMP/m.txt" 2> /dev/null
@@ -172,7 +140,6 @@ morde() {
   fi
 }
 
-## morde_tirando <nome> <job> <padrão>: tira a linha da cópia, confere que mudou e que a régua reprova.
 morde_tirando() {
   tirar "$2" "$3" "$TMP/w.yml"
   if cmp -s "$REAL" "$TMP/w.yml"; then
@@ -187,7 +154,6 @@ morde_tirando "o job exportar sem gravar o apt.conf.d"      exportar '/etc/apt/a
 morde_tirando "o job telas sem o timeout-minutes do job"    telas    '^    timeout-minutes:'
 morde_tirando "o job windows sem o timeout-minutes do apt"  windows  '^        timeout-minutes:.*'
 
-# o prazo gravado DEPOIS do apt não vale
 cat > "$TMP/ordem.yml" <<'FIM'
 jobs:
   j:
@@ -202,7 +168,6 @@ jobs:
 FIM
 morde "o prazo gravado depois do apt" reprova "$TMP/ordem.yml"
 
-# um job novo com o apt cru, ao lado de um job em ordem, e a forma `apt install`
 cat > "$TMP/novo.yml" <<'FIM'
 jobs:
   certo:
@@ -222,7 +187,6 @@ jobs:
 FIM
 morde "um job novo com o apt sem prazo" reprova "$TMP/novo.yml"
 
-# o que passa: o job sem apt (sem prazo nenhum), o apt num comentário e no nome do passo, o workflow certo
 cat > "$TMP/passa.yml" <<'FIM'
 jobs:
   sem-apt:
@@ -246,7 +210,6 @@ jobs:
 FIM
 morde "o job sem apt, o apt no comentário e no nome, e o job certo" passa "$TMP/passa.yml"
 
-# o traço dos passos na coluna da chave `steps:` (YAML válido): a régua lê a indentação do arquivo
 cat > "$TMP/recuo.yml" <<'FIM'
 jobs:
     cru:

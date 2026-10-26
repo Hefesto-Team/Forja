@@ -19,15 +19,15 @@ rádio vira o ID de instância «HID», e o controle fica sem o seu ContainerId.
 ## O estado de hoje
 
 - Os seis jobs de `.github/workflows/forja.yml` são `ubuntu-24.04` (`:24, :97, :121, :160, :260, :331`).
-- `scripts/compilar.sh:128-132`: o alvo `windows` sai com `-DFORJA_TESTES=OFF`; só o alvo `testes` (`:134-135`, Linux)
+- `scripts/compilar.sh:93-96`: o alvo `windows` sai com `-DFORJA_TESTES=OFF`; só o alvo `testes` (`:134-135`, Linux)
   liga as provas nativas.
 - `tests/prova_da_exportacao.sh` roda o `.exe` pelo Wine com `--simular=4`. Com controle simulado,
-  `somc_plataforma_pad` nunca é chamada (`nativo/som/som_controle.c:228-229`):
+  `somc_plataforma_pad` nunca é chamada (`nativo/som/som_controle.c:215-216`):
   ```c
   if (tem[s] && !pad->simulado)
     somc_plataforma_pad(a, s, usb[s], sizeof(usb[s]), cont[s], sizeof(cont[s]));
   ```
-- `nativo/som/som_controle_windows.c:113-127`, `instancia_do_caminho`, corta no **primeiro** `#{`:
+- `nativo/som/som_controle_windows.c:93-106`, `instancia_do_caminho`, corta no **primeiro** `#{`:
   ```c
   const char *chave = SDL_strstr(p, "#{");
   if (chave)
@@ -37,7 +37,7 @@ rádio vira o ID de instância «HID», e o controle fica sem o seu ContainerId.
   `\\?\hid#vid_054c&pid_0ce6&mi_03#7&2a9d1f0&0&0000#{4d1e55b2-…}` dá `hid\vid_054c&pid_0ce6&mi_03\7&2a9d1f0&0&0000`
   (certo); o de rádio `\\?\HID#{00001124-0000-1000-8000-00805f9b34fb}_VID&0002054c_PID&0ce6#9&2b8e6f3&0&0000#{4d1e55b2-…}`
   dá `HID`, porque o primeiro `#{` é o do perfil HID, não o da classe de interface, que fica no fim.
-- O único teste do caminho Windows é um ContainerId escrito à mão (`nativo/testes/prova_achar_som.c:126`).
+- O único teste do caminho Windows é um ContainerId escrito à mão (`nativo/testes/prova_achar_som.c:120`).
 - O pacote em si está são: a DLL da corrida 37935555661 só importa DLLs do sistema e só exporta
   `forja_iniciar_biblioteca`.
 

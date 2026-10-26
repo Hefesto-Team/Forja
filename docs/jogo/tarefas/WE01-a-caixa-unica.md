@@ -6,7 +6,7 @@
 
 Toda prova que abre o Godot com `--simular` tem de rodar sem enxergar o DualSense ligado na máquina: se enxerga, o
 controle de verdade ganha um lugar, e a prova toca o alto-falante, a háptica e os gatilhos dele (a própria
-`tests/prova_da_bancada.sh:17-18` avisa). Hoje cada prova monta a própria caixa, as cópias divergiram, e em quase
+`tests/prova_da_bancada.sh:7-8` avisa). Hoje cada prova monta a própria caixa, as cópias divergiram, e em quase
 todas a caixa é opcional: sem o `bwrap`, a prova roda solta e não diz nada. O `scripts/gauntlet.sh`, o
 `tests/telas.sh fotos` e o `scripts/trailer.sh` nem caixa têm. O `--headless` não protege: ele cala a TV, não o
 módulo.
@@ -34,7 +34,7 @@ Contagem por arquivo (o `FORJA_SYSFS` vazio, o `pactl` de mentira, o `bwrap`), m
 | `scripts/gauntlet.sh` | 0 | 0 | 0 | nenhuma |
 | `scripts/trailer.sh` | 0 | 0 | 0 | nenhuma |
 
-- A caixa opcional é a mesma em quatro arquivos, por exemplo `tests/prova_do_jogo.sh:47-51`:
+- A caixa opcional é a mesma em quatro arquivos, por exemplo `tests/prova_do_jogo.sh:32-35`:
 
   ```bash
   CAIXA=()
@@ -45,15 +45,15 @@ Contagem por arquivo (o `FORJA_SYSFS` vazio, o `pactl` de mentira, o `bwrap`), m
   ```
 
   Sem o `bwrap` no PATH, `"${CAIXA[@]}" "$GODOT"` vira o Godot solto.
-- `scripts/gauntlet.sh:36` roda a prova inteira 21 vezes sem caixa, com o `pactl` e o sysfs de verdade:
+- `scripts/gauntlet.sh:20` roda a prova inteira 21 vezes sem caixa, com o `pactl` e o sysfs de verdade:
   `timeout 600 "$GODOT" --headless --fixed-fps 60 --path "$RAIZ/godot" res://testes/prova_do_jogo.tscn -- --simular=4 --robo ...`.
-- `tests/telas.sh:30-32` (o `fotos`) e `scripts/trailer.sh:19-21` rodam o jogo com `--simular=4` pelo `xvfb-run`, sem
+- `tests/telas.sh:17-19` (o `fotos`) e `scripts/trailer.sh:10-12` rodam o jogo com `--simular=4` pelo `xvfb-run`, sem
   caixa.
-- `tests/prova_visual.sh:63-64` é a única que recusa: `command -v bwrap > /dev/null || { echo "sem bwrap: ..."; exit 2; }`.
+- `tests/prova_visual.sh:25-25` é a única que recusa: `command -v bwrap > /dev/null || { echo "sem bwrap: ..."; exit 2; }`.
 - Os `pactl` de mentira divergiram: o da prova do jogo lê `$SERVIDOR_DE_MENTIRA` em `list sinks`; o da bancada só sai
   0; a de poucos e a da exportação não têm nenhum.
-- No módulo, o `SDL_Init(SDL_INIT_GAMEPAD | SDL_INIT_EVENTS)` (`nativo/nucleo/forja.c:173`) roda com `--simular`
-  também, e o `conectou` (`nativo/nucleo/pads.c:254-281`) abre todo `GAMEPAD_ADDED`. O controle de verdade só ganha
+- No módulo, o `SDL_Init(SDL_INIT_GAMEPAD | SDL_INIT_EVENTS)` (`nativo/nucleo/forja.c:164`) roda com `--simular`
+  também, e o `conectou` (`nativo/nucleo/pads.c:231-256`) abre todo `GAMEPAD_ADDED`. O controle de verdade só ganha
   `p->simulado = false` (`:281`) e entra no jogo como qualquer outro.
 - `scripts/portoes/teste_mudo.py` confere só o `--audio-driver Dummy` nas chamadas pelo `xvfb-run`; nada confere a
   caixa.
@@ -76,8 +76,8 @@ Um lugar só monta a caixa, e a regra vale até para quem chama o Godot à mão:
 
 ## Passos
 
-1. Escrever `tests/caixa.sh` juntando o que hoje está em `tests/prova_do_jogo.sh:21-51` e
-   `tests/prova_visual.sh:50-64`. A guarda «o `pactl` é o de mentira» vai junto.
+1. Escrever `tests/caixa.sh` juntando o que hoje está em `tests/prova_do_jogo.sh:8-35` e
+   `tests/prova_visual.sh:13-25`. A guarda «o `pactl` é o de mentira» vai junto.
 2. Trocar, em cada arquivo da tabela, o bloco próprio por `source "$RAIZ/tests/caixa.sh"` e o
    `"${CAIXA[@]}" "$GODOT"` (ou o `"$GODOT"` solto) por `caixa "$GODOT"`. A prova do jogo continua dizendo o
    `SERVIDOR_DE_MENTIRA` de cada rodada.
@@ -94,11 +94,11 @@ Um lugar só monta a caixa, e a regra vale até para quem chama o Godot à mão:
 
 ## Armadilhas
 
-- O `forja_simular` (`nativo/nucleo/forja.c:227`) muda o `f->simular` no meio da sessão quando alguém escolhe jogar
+- O `forja_simular` (`nativo/nucleo/forja.c:215`) muda o `f->simular` no meio da sessão quando alguém escolhe jogar
   no teclado. A marca nova não pode seguir o `f->simular`: quem começou sem `--simular` e liga um controle depois
   de entrar no teclado tem de ser aceito.
 - O `bwrap` com `--dev-bind / /` deixa o soquete do servidor de som visível. Hoje isso não pesa (o controle simulado
-  usa a placa virtual, `nativo/som/som_controle.c:189-191`), mas é o `pactl` de mentira que impede o jogo de achar o
+  usa a placa virtual, `nativo/som/som_controle.c:177-178`), mas é o `pactl` de mentira que impede o jogo de achar o
   alto-falante do controle de verdade pelo nome. Ele vai para toda prova, inclusive a da exportação.
 - O `ci-local` roda o YAML num contêiner que define `CI`. Lá dentro não há controle nem `bwrap`, e a regra libera.
   Não use outra variável para isso.
@@ -118,7 +118,7 @@ com um PATH sem o `bwrap` e sem `CI`, toda prova que abre o Godot sai com 2 ante
 
 ## Provas
 
-- Antes da cura, o portão novo reprova `scripts/gauntlet.sh:36`, `tests/telas.sh:30` e `scripts/trailer.sh:19`;
+- Antes da cura, o portão novo reprova `scripts/gauntlet.sh:20`, `tests/telas.sh:17` e `scripts/trailer.sh:10`;
   depois, passa.
 - `env -u CI PATH=<uma pasta com tudo menos o bwrap> bash tests/prova_do_jogo.sh; echo $?` dá 2.
 - `bash tests/prova_dos_portoes.sh` e `bash tests/prova_do_jogo.sh` verdes.
@@ -148,8 +148,8 @@ Pôr a linha da WE01 no [quadro](README.md) como **feito**, com o commit, e cita
   `telas.sh fotos`, `scripts/gauntlet.sh` e `scripts/trailer.sh`. O `--import` também passa pela caixa em todas.
   `git grep -n 'CAIXA=(' tests scripts` não acha nada.
 - **O portão `caixa`** (`scripts/portoes/caixa.py`, modo reprova, no `rodar.sh` e no `LEIA-ME.md`): antes da cura
-  (a árvore de 3d02dff), reprovou 8 lugares, entre eles `scripts/gauntlet.sh:36`, `tests/telas.sh:30` e
-  `scripts/trailer.sh:19`; depois, 0 achados em 8 chamadas. O `--path` sozinho não conta como «abre o jogo» (o
+  (a árvore de 3d02dff), reprovou 8 lugares, entre eles `scripts/gauntlet.sh:20`, `tests/telas.sh:17` e
+  `scripts/trailer.sh:10`; depois, 0 achados em 8 chamadas. O `--path` sozinho não conta como «abre o jogo» (o
   `exportar.sh` usa o `--path` só para exportar).
 - **No módulo:** a marca `so_virtuais` nasce no `forja_abrir` com `--simular` e não segue o `forja_simular`. A regra
   é a função pura `origem_aceitar_na_sessao` (`nativo/nucleo/origem.c`), e o `conectou` (`pads.c`) recusa o controle

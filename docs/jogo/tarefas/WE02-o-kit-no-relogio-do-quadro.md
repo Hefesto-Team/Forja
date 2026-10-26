@@ -20,7 +20,7 @@ máquina carregada, um quadro passa dos 25 ms de folga, e o mesmo toque muda de 
 
 ## O estado de hoje
 
-- O commit `c2ff3cc` trocou, em `godot/testes/prova_do_jogo.gd:486`:
+- O commit `c2ff3cc` trocou, em `godot/testes/prova_do_jogo.gd:448`:
 
   ```gdscript
   -		_esperar(total == mg.NOTAS and certos * 10 >= total * 7,
@@ -28,23 +28,23 @@ máquina carregada, um quadro passa dos 25 ms de folga, e o mesmo toque muda de 
   ```
 
   Com doze notas, `[0, 6, 6, 0]` passa para o ÓTIMO, e `[3, 4, 3, 2]` passa com 4 de 12.
-- O robô mira `MIRA := [0.0, -0.065, -0.115, NUNCA]` (`minigame_de_prova.gd:32`) e aperta no quadro em que
+- O robô mira `MIRA := [0.0, -0.065, -0.115, NUNCA]` (`minigame_de_prova.gd:22`) e aperta no quadro em que
   `Ritmo.t_musica() >= t_da_batida(n) + mira` (`:105`). O toque é julgado no quadro seguinte, com
-  `var t_toque := Ritmo.t_musica()` (`godot/scripts/minigames/minigame.gd:228`). Entre a mira e a borda da janela
+  `var t_toque := Ritmo.t_musica()` (`godot/scripts/minigames/minigame.gd:176`). Entre a mira e a borda da janela
   há 25 ms: o P2 mira −65 e o PERFEITO começa em −40; o P3 mira −115 e o ÓTIMO acaba em −90.
-- O `Ritmo._medir` (`ritmo.gd:133-146`) anda por `Time.get_ticks_usec()` ou pela posição da faixa, que no driver
+- O `Ritmo._medir` (`ritmo.gd:101-112`) anda por `Time.get_ticks_usec()` ou pela posição da faixa, que no driver
   mudo também anda no tempo de parede. Com `--fixed-fps 60` sem janela, o quadro não tem duração fixa: com a
   máquina livre ele leva ~1 ms, e com ela carregada passa dos 25 ms.
 - Os prazos da prova do kit também são de parede: `Time.get_ticks_usec() - t_conta < 5000000` (`:452`, `:455`),
   `< 20000000` (`:460`), `< 40000000` (`:472`).
-- O `--acelerado` já existe para a linha do tempo (`godot/scripts/forja.gd:29` e `:137`, e
-  `nativo/godot/forja_controles.cpp:566`), mas o `Ritmo` não o lê, e nenhuma prova o passa.
+- O `--acelerado` já existe para a linha do tempo (`godot/scripts/forja.gd:2` e `:137`, e
+  `nativo/godot/forja_controles.cpp:546`), mas o `Ritmo` não o lê, e nenhuma prova o passa.
 - A H04 registrou o defeito como «Cuidado conhecido: rode com a máquina calma», sem ficha.
 
 ## O alvo
 
 Na sessão com `--simular` e `--acelerado`, o `Ritmo` mede o tempo do jogo, que o `Forja` já soma a cada quadro
-(`_agora`, `forja.gd:512` e `:245`), nos dois caminhos (com faixa e sem faixa). A prova do kit roda assim, conta os prazos em
+(`_agora`, `forja.gd:437` e `:245`), nos dois caminhos (com faixa e sem faixa). A prova do kit roda assim, conta os prazos em
 quadros, e a régua volta ao piso de 70%, sem empate.
 
 ## Passos
@@ -52,7 +52,7 @@ quadros, e a régua volta ao piso de 70%, sem empate.
 1. No `Ritmo`, um `_agora_us()` único: o tempo do jogo quando o `Forja` diz que a sessão é acelerada, o
    `Time.get_ticks_usec()` quando não. As cinco chamadas de `ritmo.gd` (`:41`, `:79`, `:89`, `:101`, `:136`) passam
    por ele. Com a sessão acelerada, o `_medir` não lê a posição da faixa.
-2. O `Forja` expõe se a sessão é acelerada (a mesma condição de `forja.gd:137`).
+2. O `Forja` expõe se a sessão é acelerada (a mesma condição de `forja.gd:95`).
 3. `tests/prova_do_jogo.sh` passa `--acelerado` na rodada que tem a prova do kit.
 4. Na `_prova_do_kit`, os três prazos viram quadros (5 s = 300 quadros, e assim por diante), e a régua vira uma
    função pura `_julgamento_basta(contagem, esperado) -> bool`: piso de 70% e o esperado maior que cada um dos
@@ -61,7 +61,7 @@ quadros, e a régua volta ao piso de 70%, sem empate.
 
 ## Armadilhas
 
-- A `_prova_do_relogio` (`prova_do_jogo.gd:897`) confere justamente o relógio pela placa. Na rodada acelerada ela
+- A `_prova_do_relogio` (`prova_do_jogo.gd:814`) confere justamente o relógio pela placa. Na rodada acelerada ela
   tem de desligar o modo do jogo enquanto mede, ou rodar só na rodada sem `--acelerado`. Escolher uma das duas e
   escrever qual.
 - O `--acelerado` muda o `t` da linha do tempo para o tempo do jogo. Rodar a prova inteira com ele antes de mexer

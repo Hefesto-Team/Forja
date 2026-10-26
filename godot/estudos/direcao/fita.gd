@@ -1,57 +1,42 @@
 extends RefCounted
-## A direção Fita Magnética, num lugar só (o estudo de direção de arte): a
-## paleta com o trabalho de cada cor, as quatro fontes, a regra que recolore
-## os colormaps da Kenney e os materiais com néon de dono.
-##
-## A regra que manda em tudo: néon é dos jogadores. O cenário tem um violeta
-## próprio, escuro, e nenhuma das quatro cores dos lugares aparece fora do
-## jogador dono dela.
 
-# --- a fita: as superfícies (do mais fundo ao mais claro) ---
-const FITA := Color("#0d0a16")       ## o fundo de tudo: a fita
-const CASCO := Color("#17121f")      ## o casco do cassete: placas do HUD, o plástico
-const CASCO_ALTO := Color("#241c30")  ## o casco iluminado, a borda do plástico
-const GRAFITE := Color("#3a3346")    ## trilho, segmento apagado do VU, linha estrutural
-const JANELA := Color("#07050c")     ## o vidro escuro da janela do cassete, o fundo da célula do leader
-const SOMBRA := Color(0, 0, 0, 0.45)  ## a sombra deslocada de placa, etiqueta e adesivo (nunca traço)
+const FITA := Color("#0d0a16")
+const CASCO := Color("#17121f")
+const CASCO_ALTO := Color("#241c30")
+const GRAFITE := Color("#3a3346")
+const JANELA := Color("#07050c")
+const SOMBRA := Color(0, 0, 0, 0.45)
 
-# --- a etiqueta: o papel e a tinta ---
-const ETIQUETA := Color("#efe4c8")   ## o papel da etiqueta, o texto claro do HUD
-const ETIQUETA_SOMBRA := Color("#cfc2a0")  ## a dobra do papel, a linha pautada
-const TINTA := Color("#1c1626")      ## a caneta sobre a etiqueta
-const TINTA_SUAVE := Color("#5a4f66")  ## o rótulo impresso sobre a etiqueta
-const MUDO := Color("#857a95")       ## o texto secundário sobre o casco (o desligado, a dica)
+const ETIQUETA := Color("#efe4c8")
+const ETIQUETA_SOMBRA := Color("#cfc2a0")
+const TINTA := Color("#1c1626")
+const TINTA_SUAVE := Color("#5a4f66")
+const MUDO := Color("#857a95")
 
-# --- o cenário: o par próprio, escuro, que nunca encosta nos jogadores ---
-const VIOLETA := Color("#4a3aa8")    ## o néon da arquitetura (tubo na parede, beira do palco); nunca acima de L 50
-const VIOLETA_FUNDO := Color("#1d1638")  ## a luz de preenchimento, a névoa
-const TUNGSTENIO := Color("#ffd9a8")  ## a luz quente de lâmpada (pódio, foco da bigorna): luz, nunca traço
-const OXIDO := Color("#3b2a22")      ## a fita magnética em si: o rolo, a tira do confete no escuro
-const OXIDO_BRILHO := Color("#7a5640")  ## o óxido que pega luz: a face da tira que vira, o cabo do martelo
+const VIOLETA := Color("#4a3aa8")
+const VIOLETA_FUNDO := Color("#1d1638")
+const TUNGSTENIO := Color("#ffd9a8")
+const OXIDO := Color("#3b2a22")
+const OXIDO_BRILHO := Color("#7a5640")
 
-# --- os jogadores: os únicos néons saturados da tela ---
 const JOGADOR := [
-	Color("#29e6ff"),  ## P1 ciano
-	Color("#ff3ea5"),  ## P2 magenta
-	Color("#d4ff4a"),  ## P3 limão (mais amarelo que o de partida: separa do ciano na tritanopia)
-	Color("#ee9a1e"),  ## P4 âmbar (mais fundo que o de partida: separa do limão na deuteranopia)
+	Color("#29e6ff"),
+	Color("#ff3ea5"),
+	Color("#d4ff4a"),
+	Color("#ee9a1e"),
 ]
 const NOME_DA_COR := ["ciano", "magenta", "limão", "âmbar"]
-## O padrão do LED de jogador de cada lugar (o LEDS_DO_LUGAR do jogo: as cinco
-## lâmpadas do controle, 1 | 2 | 3 | 4 acesas). A cor nunca sozinha.
 const LEDS := [0x04, 0x0A, 0x15, 0x1B]
 
-# --- as tintas das seções: impressas, nunca néon (a etiqueta de cada lado) ---
 const SECAO := [
-	Color("#c8432f"),  ## 1 a forja: vermelhão
-	Color("#2f55c4"),  ## 2 cobalto
-	Color("#1f8a7e"),  ## 3 verde-petróleo
-	Color("#c79a2a"),  ## 4 mostarda
-	Color("#86409a"),  ## 5 ameixa
+	Color("#c8432f"),
+	Color("#2f55c4"),
+	Color("#1f8a7e"),
+	Color("#c79a2a"),
+	Color("#86409a"),
 ]
 
-# --- o erro ---
-const ERRO_R := Color("#ff2a4a")     ## só no deslocamento de cor da Dissonância
+const ERRO_R := Color("#ff2a4a")
 const ERRO_B := Color("#2a6bff")
 
 const BUNGEE := "res://assets/fontes/Bungee-Regular.ttf"
@@ -93,52 +78,32 @@ static func marcador() -> Font:
 	return fonte(MARCADOR)
 
 
-# ------------------------------------------------------------ o recolorir --
-## A regra de recolorir um pacote da Kenney: cada cor do colormap passa pelo
-## OKLab (a luz que o olho vê). A luz se comprime na faixa do papel, o croma
-## encolhe e um pouco do violeta do cenário entra por cima — em linha reta no
-## plano a/b, nunca girando o matiz (girar leva o laranja ao magenta, que é de
-## um jogador). O degradê de cada bloco (claro em cima, escuro embaixo) fica:
-## é ele que faz o volume.
-##
-##   sat:  quanto do croma fica
-##   tinge: quanto croma de violeta entra (em unidades de OKLab)
-##   l0, l1: a luz nova vai de l0 (o preto da Kenney) a l0 + l1 (o branco)
-## O teto de croma das peças é 0,098: 0,10 menos a folga do sRGB de 8 bits
-## (a 0,100 exato, o arredondamento do PNG dava 0,101).
-const DE_JOGADOR := 0.085      ## a distância mínima da peça até um JOGADOR (0,08 e a folga do sRGB)
+const DE_JOGADOR := 0.085
 const GRADE := {
-	"cenario": {"sat": 0.30, "tinge": 0.024, "l0": 0.16, "l1": 0.28},   ## chão e parede: escuros, frios, foscos
-	"maquina": {"sat": 0.42, "tinge": 0.024, "l0": 0.18, "l1": 0.42},   ## fliperamas e móveis do estúdio
-	"objeto": {"sat": 0.40, "tinge": 0.0, "l0": 0.22, "l1": 0.56},    ## o que se joga (bigorna, martelo): um degrau acima
-	"personagem": {"sat": 0.80, "tinge": 0.006, "l0": 0.06, "l1": 0.86, "teto": 0.098},  ## pele e cabelo quase como vieram
-	"tecido": {"sat": 0.55, "tinge": 0.0, "l0": 0.46, "l1": 0.12, "teto": 0.098},  ## o tronco superior (02, a escada de valor)
-	"couro": {"sat": 0.40, "tinge": 0.0, "l0": 0.22, "l1": 0.14, "teto": 0.098},   ## o tronco inferior: couro e lona
+	"cenario": {"sat": 0.30, "tinge": 0.024, "l0": 0.16, "l1": 0.28},
+	"maquina": {"sat": 0.42, "tinge": 0.024, "l0": 0.18, "l1": 0.42},
+	"objeto": {"sat": 0.40, "tinge": 0.0, "l0": 0.22, "l1": 0.56},
+	"personagem": {"sat": 0.80, "tinge": 0.006, "l0": 0.06, "l1": 0.86, "teto": 0.098},
+	"tecido": {"sat": 0.55, "tinge": 0.0, "l0": 0.46, "l1": 0.12, "teto": 0.098},
+	"couro": {"sat": 0.40, "tinge": 0.0, "l0": 0.22, "l1": 0.14, "teto": 0.098},
 }
 
-## A pele no colormap dos Mini Characters: as três rampas de pele ficam nas
-## colunas de x 336 a 511 e nas linhas de y 380 a 511 (medido nos 12, 09/10).
-## No tecido e no couro, esses pixels ficam com a graduação da cabeça (a mão
-## tem a cor do rosto); numa raça, o shader troca a pele pela pele dela.
 const PELE_UV := Rect2(330.0 / 512.0, 380.0 / 512.0, 182.0 / 512.0, 132.0 / 512.0)
 
-# --- as peles das raças (02, as peles das raças): na faixa do rosto ---
 const PELE_ORC := Color("#89aa77")
 const PELE_LATAO := Color("#bda978")
 const PELE_ESCORIA := Color("#a3958e")
 const PELE_RAPOSA := Color("#cd8d6d")
-## A cerâmica esmaltada do amuleto (L 0,77, croma 0,05).
 const CERAMICA := Color("#c9b08f")
 
-## O papel de cada pacote copiado para o estudo.
 const PAPEL_DO_PACOTE := {
 	"mini-dungeon": "cenario",
 	"mini-arena": "cenario",
 	"mini-arcade": "maquina",
 	"survival-kit": "objeto",
 	"mini-characters": "personagem",
-	"mini-dungeon-personagens": "personagem",  ## o orc: a cabeça de uma raça
-	"cube-pets": "personagem",  ## a cauda da raposa
+	"mini-dungeon-personagens": "personagem",
+	"cube-pets": "personagem",
 }
 
 
@@ -178,13 +143,10 @@ static func graduar(c: Color, papel: String) -> Color:
 	var violeta := para_oklab(VIOLETA)
 	var dir := Vector2(violeta.y, violeta.z).normalized()
 	var ab := Vector2(v.y, v.z) * float(g.sat) + dir * float(g.tinge)
-	# o teto de croma da peça (02: a peça nunca é néon)
 	var teto := float(g.get("teto", 1.0))
 	if ab.length() > teto:
 		ab = ab.normalized() * teto
 	var l := float(g.l0) + v.x * float(g.l1)
-	# a peça nunca fica a menos de ΔE 0,08 de um JOGADOR (02): o croma
-	# desce 10 % por passo até sair de perto (o cabelo ruivo e o âmbar)
 	if g.has("teto"):
 		for passo in 20:
 			var perto := false
@@ -197,8 +159,6 @@ static func graduar(c: Color, papel: String) -> Color:
 	return de_oklab(Vector3(l, ab.x, ab.y), c.a)
 
 
-## `papel_pele`: o papel dos pixels de PELE_UV (o tecido e o couro deixam a
-## pele na graduação da cabeça).
 static func recolorir(img: Image, papel: String, papel_pele := "") -> Image:
 	var out: Image = img.duplicate()
 	out.convert(Image.FORMAT_RGBA8)
@@ -218,8 +178,6 @@ static func recolorir(img: Image, papel: String, papel_pele := "") -> Image:
 	return out
 
 
-## Os pixels verdes (a do OKLab abaixo de `limite`) ganham o matiz e o croma
-## de `pele`, com a luz de cada um.
 static func trocar_matiz(img: Image, pele: Color, limite: float) -> Image:
 	var out: Image = img.duplicate()
 	var alvo := para_oklab(pele)
@@ -235,13 +193,11 @@ static func trocar_matiz(img: Image, pele: Color, limite: float) -> Image:
 	return out
 
 
-# ------------------------------------------------------------ os materiais --
 const SH_CONTORNO := preload("res://estudos/direcao/shaders/contorno.gdshader")
 const SH_CAVALEIRO := preload("res://estudos/direcao/shaders/cavaleiro.gdshader")
 const SH_NEON := preload("res://estudos/direcao/shaders/neon.gdshader")
 
 
-## O contorno de néon (casco invertido), para o que tem dono.
 static func contorno(cor: Color, largura := 0.012, energia := 2.4) -> ShaderMaterial:
 	var m := ShaderMaterial.new()
 	m.shader = SH_CONTORNO
@@ -251,7 +207,6 @@ static func contorno(cor: Color, largura := 0.012, energia := 2.4) -> ShaderMate
 	return m
 
 
-## Um néon que trabalha: chapado, com a energia acima de 1 para o glow pegar.
 static func neon(cor: Color, energia := 2.0) -> ShaderMaterial:
 	var m := ShaderMaterial.new()
 	m.shader = SH_NEON
@@ -260,7 +215,6 @@ static func neon(cor: Color, energia := 2.0) -> ShaderMaterial:
 	return m
 
 
-## Fosco liso (o cenário montado: placas, cones, cabos).
 static func fosco(cor: Color, rugoso := 0.85) -> StandardMaterial3D:
 	var m := StandardMaterial3D.new()
 	m.albedo_color = cor
@@ -269,8 +223,6 @@ static func fosco(cor: Color, rugoso := 0.85) -> StandardMaterial3D:
 	return m
 
 
-## Põe o contorno em todas as malhas de um modelo (o casco invertido vai no
-## next_pass do material de cada superfície).
 static func contornar(n: Node, cor: Color, largura := 0.012, energia := 2.4) -> void:
 	for filho in n.get_children():
 		if filho is MeshInstance3D:

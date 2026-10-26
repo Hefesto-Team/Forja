@@ -31,8 +31,8 @@ antiga desta ficha, porque a moldura de jogo genérica quebra o pilar 1 (tudo é
   `godot/assets/glifos/` (`cross`, `circle`…) são outra coisa: os ícones de feature do relatório.
 - `godot/scripts/ui/pausa.gd` desenha uma caixa de 620 px no meio, sobre `Tema.APP` a 82 %, com as opções Continuar,
   Diagnóstico e O livro da sessão (só na bancada), Opções, Voltar ao salão (na sala), Voltar ao lobby e Sair do jogo.
-  `main.gd:763` congela a sala ao abrir (`SalaJogo.congelar(true)`); `_quadro_overlay` (linha 828) navega.
-- Os menus não soam. O único `Som.tocar("tique", null, -4.0)` da interface (`tela_opcoes.gd:155`) é o metrônomo da
+  `main.gd:701` congela a sala ao abrir (`SalaJogo.congelar(true)`); `_quadro_overlay` (linha 828) navega.
+- Os menus não soam. O único `Som.tocar("tique", null, -4.0)` da interface (`tela_opcoes.gd:141`) é o metrônomo da
   linha Tempo, a calibração, e não a navegação. Os ids `ui_tique`, `ui_confirma`, `ui_volta` e
   `fx_stop` estão no [mapa do áudio](../audio/mapa.csv), com o WAV em `godot/estudos/direcao/som/<id>.wav`.
 - Os 26 glifos de `godot/assets/glifos/` (PNG de 128 px, brancos) não têm o mudo nem os gestos do touchpad.
@@ -151,7 +151,7 @@ sem mudar. A V05 depois troca as tabelas do `Som` pelo mapa.
 | a pausa abre | `fx_stop` (250 ms) | na TV a −6 dB, como o mapa |
 | a música, com a pausa aberta | `Musica.abafar(true)` (novo em `musica.gd`): o tocador ativo cai 18 dB abaixo de `VOLUME_DB` em 67 ms; `abafar(false)` volta em 67 ms | |
 
-O som da navegação fica em `main.gd`, num lugar só. O metrônomo da linha Tempo (`tela_opcoes.gd:155`) e o `"tique"`
+O som da navegação fica em `main.gd`, num lugar só. O metrônomo da linha Tempo (`tela_opcoes.gd:141`) e o `"tique"`
 das salas não mudam.
 
 ## O controle

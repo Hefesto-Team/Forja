@@ -25,12 +25,12 @@ derruba metade de uma sala passa verde.
   [ "$rc" -eq 0 ] || { echo "FAIL a prova com o servidor «$nome» (rc=$rc)"; FALHAS=$((FALHAS + 1)); }
   ```
   O «SCRIPT ERROR» é mostrado, não reprova.
-- `tests/prova_de_poucos.sh:38-39`: o mesmo, só pelo `rc`.
-- `tests/prova_da_bancada.sh:42`: `if [ "$rc" -ne 0 ] || grep -q "SCRIPT ERROR" "$TMP/$nome.log"` (o único que
+- `tests/prova_de_poucos.sh:25-26`: o mesmo, só pelo `rc`.
+- `tests/prova_da_bancada.sh:31`: `if [ "$rc" -ne 0 ] || grep -q "SCRIPT ERROR" "$TMP/$nome.log"` (o único que
   reprova pelo texto).
 - Os registros da rodada de 09/10 (prova do jogo, semente 7, módulo da fonte do topo): 7 «Lambda capture» em cada
   rodada (`forma-a` e `antes`), em grupos de 3 e 4, sem nenhum FAIL a mais.
-- Os erros de propósito: `godot/testes/prova_do_jogo.gd:426-432` (a FICHA sem «faixa» e o gênero
+- Os erros de propósito: `godot/testes/prova_do_jogo.gd:390-395` (a FICHA sem «faixa» e o gênero
   `genero_que_nao_existe`, que o `conferir_a_ficha` acusa).
 
 ## O alvo
@@ -51,7 +51,7 @@ de esperados, cada um com o motivo. As três provas usam o mesmo critério, num 
    não casam com `tests/erros_esperados.txt`, imprime cada uma (com as duas linhas seguintes, que trazem o `at:`) como
    `FAIL erro do motor: …` e devolve 1 se houver alguma.
 2. As três provas e o gauntlet chamam o `caixa_julgar` depois de cada rodada, somando à contagem de falhas.
-3. A lista começa com os erros de propósito de `prova_do_jogo.gd:426-432`, cada um com o motivo. Rodar uma vez com a
+3. A lista começa com os erros de propósito de `prova_do_jogo.gd:390-395`, cada um com o motivo. Rodar uma vez com a
    WQ02 feita: o que mais aparecer é defeito (vira ficha) ou entra na lista com o motivo escrito, nunca sem.
 4. A mordida em `tests/prova_dos_portoes.sh`: um registro de mentira com um `ERROR:` desconhecido reprova; com um da
    lista, passa.

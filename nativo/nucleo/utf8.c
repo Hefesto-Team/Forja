@@ -1,4 +1,3 @@
-/* UTF-8. Ver utf8.h. */
 #include "utf8.h"
 
 uint32_t utf8_proximo(const char **p) {
@@ -72,7 +71,7 @@ void utf8_maiusculas(const char *s, char *out, size_t tam) {
   while (s && (cp = utf8_proximo(&s)) != 0) {
     if (cp >= 'a' && cp <= 'z')
       cp -= 0x20;
-    else if (cp >= 0xE0 && cp <= 0xFE && cp != 0xF7) /* à..þ, menos o ÷ */
+    else if (cp >= 0xE0 && cp <= 0xFE && cp != 0xF7)
       cp -= 0x20;
     char b[4];
     int k = utf8_escrever(cp, b);

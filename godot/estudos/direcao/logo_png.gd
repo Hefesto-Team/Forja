@@ -1,9 +1,4 @@
 extends SceneTree
-## Os PNG do logo refeitos a partir do SVG (o SVG manda): 512 px para o
-## ícone do projeto e o título, 256 px para o resto, sem ferramenta de fora.
-## Também grava a prova de 64 px (os quatro martelos têm de se contar).
-##
-##   godot --headless --path godot -s res://estudos/direcao/logo_png.gd [-- <pasta da prova>]
 
 func _init() -> void:
 	var svg := FileAccess.get_file_as_string("res://assets/forja-logo.svg")

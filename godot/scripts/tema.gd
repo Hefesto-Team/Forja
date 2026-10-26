@@ -1,87 +1,69 @@
 class_name Tema
 extends RefCounted
-## A cor e a letra da Fita Magnética (docs/jogo/arte/02-cor-e-letra.md): um
-## arquivo só de tokens. Código pede `Tema.ETIQUETA`, nunca `Color("#efe4c8")`.
-## Quatro fontes, cada uma com o seu trabalho: Bungee no grito, VT323 no que a
-## máquina mede, Archivo Narrow na voz, Permanent Marker na caneta.
-##
-## Os tamanhos são na tela lógica de 1920×1080, que se joga de longe: nada que
-## se lê fica abaixo de 30 px.
 
-# --- a fita: as superfícies (do mais fundo ao mais claro) ---
-const FITA := Color("#0d0a16")       ## o fundo de tudo, atrás das placas
-const CASCO := Color("#17121f")      ## o plástico do cassete: placa do HUD, cartão
-const CASCO_ALTO := Color("#241c30")  ## a borda iluminada do plástico, o casco em foco
-const GRAFITE := Color("#3a3346")    ## trilho, segmento apagado do VU, linha estrutural (nunca texto)
-const JANELA := Color("#07050c")     ## o vidro escuro da janela do cassete, o fundo da célula do leader
-const SOMBRA := Color(0, 0, 0, 0.45)  ## a sombra deslocada de placa, etiqueta e adesivo (nunca traço)
+const FITA := Color("#0d0a16")
+const CASCO := Color("#17121f")
+const CASCO_ALTO := Color("#241c30")
+const GRAFITE := Color("#3a3346")
+const JANELA := Color("#07050c")
+const SOMBRA := Color(0, 0, 0, 0.45)
 
-# --- a etiqueta: o papel e a caneta ---
-const ETIQUETA := Color("#efe4c8")   ## o papel; o texto claro sobre o casco
-const ETIQUETA_SOMBRA := Color("#cfc2a0")  ## a dobra do papel, a linha pautada
-const TINTA := Color("#1c1626")      ## a caneta sobre a etiqueta
-const TINTA_SUAVE := Color("#5a4f66")  ## o rótulo impresso na etiqueta
-const MUDO := Color("#857a95")       ## o texto secundário sobre o casco (o desligado, a dica)
+const ETIQUETA := Color("#efe4c8")
+const ETIQUETA_SOMBRA := Color("#cfc2a0")
+const TINTA := Color("#1c1626")
+const TINTA_SUAVE := Color("#5a4f66")
+const MUDO := Color("#857a95")
 
-# --- o cenário: o par próprio, escuro, que nunca encosta nos jogadores ---
-const VIOLETA := Color("#4a3aa8")    ## o néon da arquitetura (tubo na parede, beira do palco); L ≤ 0,50
-const VIOLETA_FUNDO := Color("#1d1638")  ## a névoa e o preenchimento do salão
-const TUNGSTENIO := Color("#ffd9a8")  ## a luz de lâmpada (pódio, foco da bigorna): luz, nunca traço nem texto
-const OXIDO := Color("#3b2a22")      ## a fita magnética em si: o rolo, a tira do confete no escuro
-const OXIDO_BRILHO := Color("#7a5640")  ## o óxido que pega luz: a face da tira que vira, o cabo do martelo
-const AMBIENTE_SALAO := Color("#2a2738")  ## o preenchimento do salão, a luz ambiente da casa (arte/01, a luz das cinco tintas)
+const VIOLETA := Color("#4a3aa8")
+const VIOLETA_FUNDO := Color("#1d1638")
+const TUNGSTENIO := Color("#ffd9a8")
+const OXIDO := Color("#3b2a22")
+const OXIDO_BRILHO := Color("#7a5640")
+const AMBIENTE_SALAO := Color("#2a2738")
 
-# --- os jogadores: os únicos néons saturados da tela ---
-## A cor da lightbar do controle segue esta mesma tabela (LUZ_DO_LUGAR, nativo/nucleo/pads.c).
 const JOGADOR := [
-	Color("#29e6ff"),  ## P1 ciano
-	Color("#ff3ea5"),  ## P2 magenta
-	Color("#d4ff4a"),  ## P3 limão
-	Color("#ee9a1e"),  ## P4 âmbar
+	Color("#29e6ff"),
+	Color("#ff3ea5"),
+	Color("#d4ff4a"),
+	Color("#ee9a1e"),
 ]
 
-# --- as tintas das seções: impressas, nunca néon ---
 const SECAO := [
-	Color("#c8432f"),  ## vermelhão: S1, S9
-	Color("#2f55c4"),  ## cobalto: S2, S6
-	Color("#1f8a7e"),  ## petróleo: S3, S7
-	Color("#c79a2a"),  ## mostarda: S4, o pódio
-	Color("#86409a"),  ## ameixa: S5, S8
+	Color("#c8432f"),
+	Color("#2f55c4"),
+	Color("#1f8a7e"),
+	Color("#c79a2a"),
+	Color("#86409a"),
 ]
 
-## A chave de cada tinta (arte/01, a luz das cinco tintas): o tungstênio esquentado pela tinta. É uma
-## constante, não uma conta: `TUNGSTENIO.lerp(tinta, 0.2)` dá `#f4bb90` no vermelhão, e a tabela do 01 diz `#ffc99c`.
 const CHAVE_SECAO := [
-	Color("#ffc99c"),  ## vermelhão
-	Color("#e5d3c6"),  ## cobalto
-	Color("#e5d7ad"),  ## petróleo
-	Color("#f8d096"),  ## mostarda
-	Color("#f8ccba"),  ## ameixa
+	Color("#ffc99c"),
+	Color("#e5d3c6"),
+	Color("#e5d7ad"),
+	Color("#f8d096"),
+	Color("#f8ccba"),
 ]
 
-# --- o erro ---
-const ERRO_R := Color("#ff2a4a")     ## só no deslocamento de cor da Dissonância
+const ERRO_R := Color("#ff2a4a")
 const ERRO_B := Color("#2a6bff")
 
-# --- as peles das raças (o rosto e as mãos) ---
 const PELE_ORC := Color("#89aa77")
 const PELE_LATAO := Color("#bda978")
 const PELE_ESCORIA := Color("#a3958e")
 const PELE_RAPOSA := Color("#cd8d6d")
 
-# --- tamanhos (px na tela lógica de 1920×1080; a escala do 02) ---
-const T_VERBO := 160    ## o verbo da entrada (Bungee)
-const T_DISPLAY := 112  ## o nome do vencedor no pódio (Bungee)
-const T_TITULO := 64    ## o título da tela (Bungee)
-const T_PONTOS := 64    ## os pontos grandes do HUD (VT323)
-const T_ETIQUETA := 56  ## o título da seção na etiqueta (Permanent Marker)
-const T_AVISO := 46     ## o aviso que some sozinho (Archivo Narrow 600)
-const T_CARIMBO := 46   ## o carimbo do julgamento (Bungee)
-const T_SUBTITULO := 44  ## o «como jogar» do J-card
-const T_PSHARP := 40    ## o P# no cartão do HUD (Bungee)
-const T_CORPO := 34     ## o corpo, a frase (Archivo Narrow 500)
-const T_NOME := 32      ## o nome no HUD (Archivo Narrow 600)
-const T_ROTULO := 30    ## o rótulo, a dica, o stat: nada que se lê abaixo de 30 px
+const T_VERBO := 160
+const T_DISPLAY := 112
+const T_TITULO := 64
+const T_PONTOS := 64
+const T_ETIQUETA := 56
+const T_AVISO := 46
+const T_CARIMBO := 46
+const T_SUBTITULO := 44
+const T_PSHARP := 40
+const T_CORPO := 34
+const T_NOME := 32
+const T_ROTULO := 30
 const T_MONO := 30
 const T_SELO := 30
 
@@ -91,9 +73,9 @@ const RAIO_BOTAO := 14
 const RAIO_SELO := 8
 const BORDA := 2
 const MARGEM_X := 96
-const MARGEM_Y := 60  ## a área segura da TV (o estudo 02, item 5: y de 60 a 1020)
-const AREA_SEGURA := 0.05  ## a margem de cada lado da tela: 5% (a régua da prova visual lê o mesmo número)
-const LETRA_MINIMA := 30  ## nada que se lê é desenhado abaixo disto, a escala do texto que for
+const MARGEM_Y := 60
+const AREA_SEGURA := 0.05
+const LETRA_MINIMA := 30
 
 const BUNGEE := "res://assets/fontes/Bungee-Regular.ttf"
 const VT323 := "res://assets/fontes/VT323-Regular.ttf"
@@ -101,8 +83,6 @@ const ARCHIVO := "res://assets/fontes/ArchivoNarrow-wght.ttf"
 const MARCADOR := "res://assets/fontes/PermanentMarker-Regular.ttf"
 
 static var _fontes := {}
-## O tamanho do texto (as opções: normal ou grande): Desenho e Glifo
-## multiplicam todo tamanho por ele.
 static var escala_texto := 1.0
 
 
@@ -111,28 +91,22 @@ static func t(tam: int) -> int:
 static var _tema: Theme
 
 
-## Bungee: o grito (o verbo da entrada, o carimbo, o P#, o vencedor).
 static func bungee() -> Font:
 	return _variacao(BUNGEE, 0)
 
 
-## VT323: o que a máquina mede (pontos, tempo, rótulo de stat).
 static func vt() -> Font:
 	return _variacao(VT323, 0)
 
 
-## Archivo Narrow: a voz. 500 no texto, 600 no nome e no rótulo, 700 no botão.
 static func archivo(peso := 500) -> Font:
 	return _variacao(ARCHIVO, peso)
 
 
-## Permanent Marker: a caneta (o que alguém escreveu na etiqueta).
 static func marcador() -> Font:
 	return _variacao(MARCADOR, 0)
 
 
-## A tinta da seção (1 a 9; 0 é o pódio): S1 e S9 vermelhão, S2 e S6 cobalto,
-## S3 e S7 petróleo, S4 e o pódio mostarda, S5 e S8 ameixa.
 static func tinta_da_secao(numero: int) -> Color:
 	match numero:
 		1, 9:
@@ -146,7 +120,6 @@ static func tinta_da_secao(numero: int) -> Color:
 	return SECAO[3]
 
 
-## Cor <-> OKLab (L, a, b), de godot/estudos/direcao/fita.gd: a conta da luz das seções pensa em luminosidade e croma.
 static func _lin(v: float) -> float:
 	return v / 12.92 if v <= 0.04045 else pow((v + 0.055) / 1.055, 2.4)
 
@@ -177,9 +150,6 @@ static func de_oklab(v: Vector3, a := 1.0) -> Color:
 		_srgb(-0.0041960863 * l - 0.7034186147 * m + 1.7076147010 * s), a)
 
 
-## A luz de uma seção (arte/01, a luz das cinco tintas), tirada da tinta no OKLab: a névoa (L 0,17, croma a 30 %),
-## o preenchimento (L 0,34, croma a 55 %) e a chave (a constante CHAVE_SECAO da tinta). `numero` -1 é o salão.
-## O lado B adensa a névoa (×1,3) e baixa a chave (×0,85).
 static func luz_da_secao(numero: int, lado_b := false) -> Dictionary:
 	var luz := {
 		"densidade": 0.012 * (1.3 if lado_b else 1.0),
@@ -198,10 +168,6 @@ static func luz_da_secao(numero: int, lado_b := false) -> Dictionary:
 	return luz
 
 
-# --- o brilho com dono (arte/07, a tabela do brilho; arte/12, o portão 6) ---
-## Todo material que brilha nasce destas três funções, e cada uma pede o dono: um lugar (0 a 3, a cor dele, teto 3,0),
-## "mundo" (VIOLETA, teto 1,2) ou "forja" (TUNGSTENIO, teto 2,4). Energia acima do teto, ou dono que não existe,
-## dá `push_error` com o arquivo que chamou, e a energia é cortada no teto.
 const TETO_LUGAR := 3.0
 const TETO_MUNDO := 1.2
 const TETO_FORJA := 2.4
@@ -209,7 +175,6 @@ const SHADER_NEON := "res://shaders/neon.gdshader"
 const SHADER_CONTORNO := "res://shaders/contorno.gdshader"
 
 
-## A cor e o teto de um dono: {"cor": Color, "teto": float}; sem dono válido, {"cor": cor_dada, "teto": 1.0}.
 static func dono_do_brilho(dono: Variant, cor_dada := Color.WHITE) -> Dictionary:
 	if typeof(dono) == TYPE_INT and int(dono) >= 0 and int(dono) < JOGADOR.size():
 		return {"cor": JOGADOR[int(dono)], "teto": TETO_LUGAR, "valido": true}
@@ -221,7 +186,6 @@ static func dono_do_brilho(dono: Variant, cor_dada := Color.WHITE) -> Dictionary
 	return {"cor": cor_dada, "teto": 1.0, "valido": false}
 
 
-## Quem chamou (o primeiro quadro fora deste arquivo), para o erro dizer onde.
 static func _quem_chamou() -> String:
 	for q in get_stack():
 		var fonte := str(q.get("source", ""))
@@ -244,7 +208,6 @@ static func _cor_do_dono(cor: Color, d: Dictionary, dono: Variant) -> Color:
 	return d.cor if d.valido else cor
 
 
-## O néon que trabalha: chapado, a energia acima de 1 para o glow pegar (shaders/neon.gdshader).
 static func neon(cor: Color, energia: float, dono: Variant) -> ShaderMaterial:
 	var d := dono_do_brilho(dono, cor)
 	var m := ShaderMaterial.new()
@@ -254,7 +217,6 @@ static func neon(cor: Color, energia: float, dono: Variant) -> ShaderMaterial:
 	return m
 
 
-## O contorno de néon, para o `next_pass` de uma superfície (shaders/contorno.gdshader).
 static func contorno(cor: Color, largura: float, energia: float, dono: Variant) -> ShaderMaterial:
 	var d := dono_do_brilho(dono, cor)
 	var m := ShaderMaterial.new()
@@ -266,12 +228,10 @@ static func contorno(cor: Color, largura: float, energia: float, dono: Variant) 
 	return m
 
 
-## A energia com que um material brilha agora (0 se não brilha): quem anima o brilho lê daqui e escreve por `emissivo`.
 static func brilho_de(material: StandardMaterial3D) -> float:
 	return material.emission_energy_multiplier if material.emission_enabled else 0.0
 
 
-## Liga o brilho de um material do corpo (emissão na cor do dono); energia 0 desliga. Devolve o próprio material.
 static func emissivo(material: StandardMaterial3D, energia: float, dono: Variant) -> StandardMaterial3D:
 	var d := dono_do_brilho(dono, material.albedo_color)
 	var e := _energia_do_dono(energia, d, dono)
@@ -296,7 +256,6 @@ static func _variacao(caminho: String, peso: int) -> Font:
 	return f
 
 
-## O tema dos Controls: aplicado uma vez na raiz de cada camada de interface.
 static func tema() -> Theme:
 	if _tema:
 		return _tema
@@ -330,7 +289,6 @@ static func _variante(t: Theme, nome: String, f: Font, tam: int, cor: Color) -> 
 	t.set_color("font_color", nome, cor)
 
 
-## O quadro: chapado, borda estrutural de 2 px, raio 18.
 static func quadro(fundo := CASCO, borda := GRAFITE, raio := RAIO_QUADRO, folga := 28) -> StyleBoxFlat:
 	var s := StyleBoxFlat.new()
 	s.bg_color = fundo
@@ -342,10 +300,6 @@ static func quadro(fundo := CASCO, borda := GRAFITE, raio := RAIO_QUADRO, folga 
 	return s
 
 
-## A cor de identidade de um controle como borda: a luz do jogador clareada até
-## ter contraste contra o painel (o `tom_para_a_borda` do app) — na visão comum
-## e também na protanopia, na deuteranopia e na tritanopia (Machado 2009): o
-## "P2" vermelho não pode virar um oliva que some no painel.
 static func tom_para_a_borda(c: Color) -> Color:
 	if _borda.has(c):
 		return _borda[c]
@@ -389,7 +343,6 @@ static func contraste(a: Color, b: Color) -> float:
 	return (maxf(la, lb) + 0.05) / (minf(la, lb) + 0.05)
 
 
-## Um Label pronto, na variante pedida.
 static func rotulo(texto: String, variante := "", tam := 0) -> Label:
 	var l := Label.new()
 	l.text = texto

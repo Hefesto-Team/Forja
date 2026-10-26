@@ -22,11 +22,11 @@ corpo do boneco: a cor do dono sai da roupa e fica no contorno, no aro e no acen
   `CIANO`, `AMARELO`, `LED_ACESO`); os tamanhos `T_*` nas linhas 37 a 44 (`T_CORPO` 32); `RAIO_QUADRO` 18; as fontes
   `_SG` (Space Grotesk) e `_MONO` (JetBrains Mono) nas linhas 54 e 55, servidas por `Tema.fonte(peso)` e
   `Tema.mono(peso)` (142 chamadas em `godot/scripts/`). Os nomes antigos aparecem em 30 arquivos.
-- `godot/scripts/forja.gd:73` `COR_DO_LUGAR` = `Color8(0, 72, 255)`, `(255, 24, 8)`, `(0, 255, 64)`,
+- `godot/scripts/forja.gd:43` `COR_DO_LUGAR` = `Color8(0, 72, 255)`, `(255, 24, 8)`, `(0, 255, 64)`,
   `(255, 8, 168)`, para o 2D. A lightbar não lê essa tabela: ela vem do C nativo, `LUZ_DO_LUGAR` em
-  `nativo/nucleo/pads.c:13` (as mesmas quatro), lida em `nativo/godot/forja_controles.cpp:188` e `:370`
+  `nativo/nucleo/pads.c:11` (as mesmas quatro), lida em `nativo/godot/forja_controles.cpp:179` e `:370`
   (`cor_do_lugar`).
-- `godot/scripts/player.gd:156` `_vestir()` (chamado na linha 121) troca o material de toda malha `body*` por um com
+- `godot/scripts/player.gd:131` `_vestir()` (chamado na linha 121) troca o material de toda malha `body*` por um com
   `albedo_color = cor.lerp(Color.WHITE, 0.25)`: o corpo inteiro na cor do lugar, a cabeça fica. É a causa do «neon de
   uma cor só».
 - `godot/project.godot:42` `theme/custom_font` = Space Grotesk; `:47` `default_clear_color` = `#11121a`.
@@ -59,7 +59,7 @@ corpo do boneco: a cor do dono sai da roupa e fica no contorno, no aro e no acen
   `T_VERBO` 160, `T_PONTOS` 64, `T_ETIQUETA` 56, `T_CARIMBO` 46, `T_PSHARP` 40, `T_NOME` 32. Os textos abaixo de 30 px
   sobem a 30; onde a linha deixa de caber (o diagnóstico da bancada), `Desenho.caber` corta com «…».
 - **O jogador:** `forja.gd` `COR_DO_LUGAR` vira `Tema.JOGADOR`. A lightbar segue a mesma tabela, como manda o 02:
-  `LUZ_DO_LUGAR` em `pads.c:13` passa a `{41, 230, 255}`, `{255, 62, 165}`, `{212, 255, 74}`, `{238, 154, 30}` (alfa
+  `LUZ_DO_LUGAR` em `pads.c:11` passa a `{41, 230, 255}`, `{255, 62, 165}`, `{212, 255, 74}`, `{238, 154, 30}` (alfa
   255), e o módulo se recompila com `scripts/compilar.sh linux` e `scripts/compilar.sh testes` (`godot/bin/` fica
   fora do git: quem puxa o commit recompila).
 - **O corpo não se tinge:** `_vestir()` sai de `player.gd`, e a chamada dele também. As malhas ficam com o material do
@@ -104,7 +104,7 @@ Não se aplica: nenhuma regra muda. O que muda é cor, letra e tamanho.
   etiqueta. Nenhum texto abaixo de 30 px.
 - **O boneco:** com o `colormap.png` da Kenney, sem tom; a cabeça, o tronco e as pernas com as cores próprias da
   malha. O que marca o dono, depois desta ficha, é o contorno (G15) e o aro (hoje, emissão 1,4 na cor do lugar, em
-  `player.gd:83` a 85).
+  `player.gd:59` a 85).
 - **A prancha:** as fotos da prova visual ao lado de `docs/imagens/direcao/02_salao.jpg`, `04_cartao.jpg` e
   `07_titulo.jpg` (os quadros do estudo com a mesma tela).
 

@@ -1,9 +1,3 @@
-/* O catálogo: as estações do FORJA 3D e as features que cada uma valida.
- *
- * Uma estação, uma família de features, os quatro jogando juntos; a estação
- * com tudo ligado vem por último. Toda feature aparece no relatório de todo
- * controle que entrou — com o veredito que teve, ou "não medido" quando a
- * estação dela não foi jogada. As chaves são as do `--sala=` do jogo. */
 #ifndef FORJA_CATALOGO_H
 #define FORJA_CATALOGO_H
 
@@ -12,15 +6,15 @@ extern "C" {
 #endif
 
 typedef enum Sala {
-  SALA_CENTELHA = 0, /* botões, analógicos, gatilhos analógicos */
-  SALA_VIGA,         /* giroscópio e acelerômetro */
-  SALA_MOLDE,        /* touchpad: dois dedos e clique */
-  SALA_IMPACTO,      /* dano direcional: motores, isolamento, lightbar */
-  SALA_GALERIA,      /* gatilhos adaptativos, LEDs de jogador */
-  SALA_VOZ,          /* microfone, mudo, LED do microfone */
-  SALA_CAMINHOS,     /* háptica por áudio (canais 3 e 4) */
-  SALA_CANTO,        /* alto-falante do controle */
-  SALA_PROVA,        /* tudo ligado ao mesmo tempo */
+  SALA_CENTELHA = 0,
+  SALA_VIGA,
+  SALA_MOLDE,
+  SALA_IMPACTO,
+  SALA_GALERIA,
+  SALA_VOZ,
+  SALA_CAMINHOS,
+  SALA_CANTO,
+  SALA_PROVA,
   SALA_TOTAL
 } Sala;
 
@@ -52,10 +46,10 @@ typedef enum Feature {
 } Feature;
 
 typedef struct InfoSala {
-  const char *chave;   /* "impacto" — estável, vai para o JSON e para o --sala= */
-  const char *nome;    /* "O Impacto" */
-  const char *padrao;  /* o padrão de jogo que a sala reproduz */
-  const char *acao;    /* a linha única de ação na tela */
+  const char *chave;
+  const char *nome;
+  const char *padrao;
+  const char *acao;
   Familia familia;
 } InfoSala;
 

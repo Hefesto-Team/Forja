@@ -30,13 +30,13 @@ from pathlib import Path
 import comum
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-import ler_antes  # noqa: E402  (o scripts/ler_antes.py: a mesma âncora para o script e o portão)
+import ler_antes  # noqa: E402
 
 REGRA = "docs/jogo/o-time/ficha-pronta.md"
 QUADRO = "docs/jogo/tarefas/README.md"
 LINHA_DO_QUADRO = re.compile(r"^\|\s*\[([^\]]+)\]\(([^)]+)\)\s*\|(.*)\|\s*$")
 LINK = re.compile(r"\[[^\]]*\]\(([^)\s]+)\)")
-LIMITE = 20 * 1024  # bytes: acima disto, o «Ler antes» aponta para a seção
+LIMITE = 20 * 1024
 MOLDES = ("docs/jogo/tarefas/molde-de-minigame.md",)
 
 

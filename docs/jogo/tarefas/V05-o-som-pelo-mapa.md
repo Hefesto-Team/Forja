@@ -15,14 +15,14 @@ em três grafias: o mapa diz uma coisa, o código toca outra, e o portão de som
 
 ## O estado de hoje
 
-- `godot/scripts/som.gd:17-36` `RECEITAS` (id → receita sintetizada e parâmetros) e `:39-46` `GRAVADOS` (id →
+- `godot/scripts/som.gd:3-20` `RECEITAS` (id → receita sintetizada e parâmetros) e `:39-46` `GRAVADOS` (id →
   arquivo em `assets/sons/`), escritas à mão.
 - As grafias: o mapa pede minúsculas (`vitoria_p2`, `mus_s01_j02`); a H06 escreve `JIN_APITO`, `JIN_VITORIA`
   (`H06-os-jingles.md:77-78`); a ficha de trilha usa `MUS_S01_J01` (`scripts/trilha_fichas.py`).
-- As chamadas: `Som.tocar("<id>", …)` (`som.gd:109`), `Som.no_controle(lugar, "<id>", ganho)` (`som.gd:153`) e
-  `Forja.som_falante(lugar, "<id>", ganho)` (`forja.gd:783`); a do Canto é por variável
-  (`godot/scripts/salas/canto.gd:295-299`, `qual` é `"nota"` ou `"nota_alta"`) e uma é ternário
-  (`godot/scripts/salas/viga.gd:458`).
+- As chamadas: `Som.tocar("<id>", …)` (`som.gd:88`), `Som.no_controle(lugar, "<id>", ganho)` (`som.gd:130`) e
+  `Forja.som_falante(lugar, "<id>", ganho)` (`forja.gd:668`); a do Canto é por variável
+  (`godot/scripts/salas/canto.gd:265-269`, `qual` é `"nota"` ou `"nota_alta"`) e uma é ternário
+  (`godot/scripts/salas/viga.gd:407`).
 - O portão de som (`scripts/portoes/som.py`) já confere, em modo aviso, que todo id tocado existe no mapa.
 
 ## O alvo

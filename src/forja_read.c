@@ -1,20 +1,3 @@
-/* forja-read — giro e acelerômetro de UM DualSense, pelo report 0x01 (USB).
- *
- *   forja-read --player 2          o 3º DualSense da mesa (o mesmo do forja-send)
- *   forja-read /dev/hidraw5        um nó escolhido à mão
- *   forja-read --player 0 --uma    uma leitura só, e sai
- *
- * Imprime uma linha por report:
- *   giro 0.1 -0.3 0.0 graus/s | acel 0.012 -0.998 0.031 g
- *
- * RECUSA o rádio, como o forja-send: outro relatório, outro jogo. rc 3 com a
- * MESMA frase, antes de ler um byte (pelo barramento) ou no primeiro 0x31 que
- * chegar (quando o nó foi escolhido à mão). Um leitor que aceita 0x31 em
- * silêncio publica lixo — os offsets do 0x31 são outros.
- *
- * PROIBIDO aqui: socket IPC, uniq, MAC, escrever no aparelho. Só lê.
- * rc: 0 fim · 1 não abriu · 2 não há esse player · 3 relatório 0x31 · 64 uso.
- */
 #define _XOPEN_SOURCE 700
 
 #include "forja_mesa.h"
@@ -63,8 +46,6 @@ int main(int argc, char **argv) {
     perror(caminho);
     return 1;
   }
-  /* 64 = o report USB inteiro. O hidraw entrega UM report por read(); do
-   * 0x31 (78 bytes) chegam os 64 primeiros, e o id basta para recusar. */
   uint8_t buf[64];
   int rc = 0;
   for (;;) {

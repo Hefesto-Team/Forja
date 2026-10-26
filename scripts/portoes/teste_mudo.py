@@ -43,7 +43,6 @@ def main() -> int:
     a = comum.argumentos("teste_mudo", __doc__.splitlines()[0], com_regras=False)
     relato = comum.Relato("teste mudo", a.modo or "reprova")
     vistos = 0
-    # a prova dos portões traz o caso ruim de propósito
     for f in comum.arquivos(a.raiz, ESCOPO, {".sh"}, ignorar=("tests/prova_dos_portoes.sh",)):
         texto = f.read_text(encoding="utf-8", errors="replace")
         for linha, cmd in comandos(texto):

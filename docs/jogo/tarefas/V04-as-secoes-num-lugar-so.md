@@ -15,12 +15,12 @@ seção nova da I a Q precisa lembrar das sete, e o que esquece vira um portão 
 
 ## O estado de hoje
 
-- `godot/scripts/main.gd:13-24` `SALAS` (id → script) e `:27` `ORDEM_DO_FOGO` (a ordem do percurso).
-- `godot/scripts/musica.gd:11-24` `FAIXAS` (id → tônica, bpm, energia) e `:31` `SALA_DA_SECAO` (S01..S09 → id).
-- `godot/scripts/partida.gd:22-25` `NA_ORDEM` e `:26-28` `NOMES` («A Centelha», «A Viga»…).
-- `godot/scripts/mundo/salao.gd:15-24` `PORTOES`: de novo o nome, a seção («Seção 1»), o ícone, a parede.
+- `godot/scripts/main.gd:3-13` `SALAS` (id → script) e `:27` `ORDEM_DO_FOGO` (a ordem do percurso).
+- `godot/scripts/musica.gd:3-16` `FAIXAS` (id → tônica, bpm, energia) e `:31` `SALA_DA_SECAO` (S01..S09 → id).
+- `godot/scripts/partida.gd:6-9` `NA_ORDEM` e `:26-28` `NOMES` («A Centelha», «A Viga»…).
+- `godot/scripts/mundo/salao.gd:7-16` `PORTOES`: de novo o nome, a seção («Seção 1»), o ícone, a parede.
 - Os nomes aparecem iguais em `partida.gd` e `salao.gd`; a ordem «centelha, viga, molde, impacto, galeria, canto,
-  caminhos, voz, prova» aparece em `main.gd:27` e `musica.gd:31`.
+  caminhos, voz, prova» aparece em `main.gd:16` e `musica.gd:22`.
 - A [G06](G06-o-salao-e-a-colecao.md) também mexe em `PORTOES`: tira o `sobre` (o hardware) dele e da placa 3D. O
   `Catalogo` não ganha `sobre`. Se a V04 entrar antes da G06, o `sobre` fica em `salao.gd` numa tabela id → sobre,
   que a G06 apaga; se entrar depois, não há `sobre` a levar. As duas mudam `salao.gd`, e a esteira não as solta

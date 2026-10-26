@@ -1,28 +1,4 @@
 extends SceneTree
-## O superior que a cabeça deixa à vista (04, as raças: a cabeça e o
-## superior). Precisa de tela (conta píxeis), pela tela virtual:
-##
-##   xvfb-run -a -s "-screen 0 1920x1080x24" godot --rendering-driver opengl3 \
-##       --audio-driver Dummy --path godot -s res://estudos/direcao/medir_tronco.gd
-##
-## Para cada raça, cada um dos 12 superiores e cada pose (em pé: `idle`,
-## `holding-right`, `holding-left`, o aceno `emote-yes` em quatro tempos e
-## `interact-right`; sentada, na `wheelchair-deluxe`: `wheelchair-sit` e
-## `wheelchair-look-left`), renderiza o cavaleiro de frente, câmera
-## ortográfica, em cor chapada por parte, sem item, sem contorno e sem
-## acento. Três fotos:
-##
-##   so          o superior sozinho (a área de frente dele);
-##   sem_cabeca  o cavaleiro sem a cabeça (o que a cadeira, as pernas e os
-##               braços deixam do superior);
-##   tudo        o cavaleiro inteiro.
-##
-##   aparece_pct        tudo ÷ sem_cabeca: o critério do 04, piso de 60 %
-##   aparece_total_pct  tudo ÷ so: quanto do superior se vê com tudo à frente
-##
-## Escreve `docs/jogo/arte/dados/tronco_aparece.csv` e, no terminal, o pior
-## caso de cada raça em pé e sentada. A ordem é fixa: duas rodadas dão o
-## mesmo CSV.
 
 const Montar := preload("res://estudos/direcao/cavaleiro/montar.gd")
 const Racas := preload("res://estudos/direcao/cavaleiro/racas.gd")
@@ -31,7 +7,6 @@ const Cortar := preload("res://estudos/direcao/cavaleiro/cortar.gd")
 const SAIDA := "res://../docs/jogo/arte/dados/tronco_aparece.csv"
 const PISO := 60.0
 const TAM := 384
-## [a pose, a fração da animação, a cadeira]
 const POSES := [["idle", 0.5, ""], ["holding-right", 0.5, ""], ["holding-left", 0.5, ""],
 	["emote-yes", 0.2, ""], ["emote-yes", 0.4, ""], ["emote-yes", 0.6, ""], ["emote-yes", 0.8, ""],
 	["interact-right", 0.5, ""],
@@ -102,7 +77,6 @@ func _rodar() -> void:
 	quit(1 if falhou else 0)
 
 
-## [píxeis do superior sozinho, aparece_pct, aparece_total_pct]
 func _medir(raca: String, pose: Array, p: String) -> Array:
 	var palco := Node3D.new()
 	vp.add_child(palco)
@@ -136,8 +110,6 @@ func _medir(raca: String, pose: Array, p: String) -> Array:
 	return [so, 100.0 * tudo / maxf(sem_cabeca, 1.0), 100.0 * tudo / maxf(so, 1.0)]
 
 
-## A malha é da cabeça: o `head` (a humana e o orc) ou o que pende do
-## `raca-cabeca` (as cabeças por código).
 func _da_cabeca(mi: Node, esq: Node) -> bool:
 	var n := mi
 	while n != null and n != esq:
@@ -157,7 +129,6 @@ func _chapar(n: Node, cor: Color) -> void:
 		(mi as GeometryInstance3D).material_override = m
 
 
-## Os píxeis do superior (o verde) na foto.
 func _contar() -> int:
 	await process_frame
 	await RenderingServer.frame_post_draw

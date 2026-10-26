@@ -1,4 +1,3 @@
-/* A roda das provas. `demo-testes` sai com 0 quando tudo passa. */
 #include "prova.h"
 
 int prova_falhas = 0;
@@ -21,7 +20,6 @@ int main(void) {
   for (size_t i = 0; i < sizeof(PROVAS) / sizeof(PROVAS[0]); i++) {
     int antes = prova_falhas;
     PROVAS[i].fn();
-    /* a coluna conta letras, não bytes: "catálogo" tem um acento */
     int letras = 0;
     for (const unsigned char *c = (const unsigned char *)PROVAS[i].nome; *c; c++)
       letras += (*c & 0xC0) != 0x80;

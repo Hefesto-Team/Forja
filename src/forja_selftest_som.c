@@ -1,9 +1,3 @@
-/* Prova do alto-falante e do movimento — sem servidor de som e sem aparelho.
- *
- * O servidor é um texto de `pactl list sinks` e a mesa é um sysfs de mentira
- * montado numa pasta temporária (FORJA_SYSFS). Nada aqui abre /dev nem fala
- * com o PipeWire de ninguém.
- */
 #define _XOPEN_SOURCE 700
 
 #include "forja_alto_falante.h"
@@ -27,8 +21,6 @@ static void expect(int cond, const char *msg) {
   }
 }
 
-/* Uma mesa com UM DualSense no cabo e outro no rádio, e o daemon que estiver
- * atrás publicando os nós dele. É o `pactl list sinks` em inglês (LC_ALL=C). */
 static const char *SERVIDOR =
     "Sink #40\n"
     "\tState: SUSPENDED\n"
@@ -96,8 +88,6 @@ static void prova_a_lista(void) {
   if (nomeado >= 0) {
     expect(nos[nomeado].canais == 2, "o nó nomeado tem dois canais");
     expect(nos[nomeado].usb_da_sony == 0, "o nó nomeado só se acha pela lista");
-    /* O NOME é o que o jogo mostra: o jogo o acha porque a descrição traz a
-     * palavra da Sony, e não pelo nome de dentro, que não a traz. */
     expect(!forja_e_do_dualsense(nos[nomeado].nome, ""), "o nome de dentro não diz DualSense");
     expect(forja_no_por_nome(nos, n, "controle 1") == nomeado, "a pessoa aponta «Controle 1»");
   }
@@ -106,8 +96,6 @@ static void prova_a_lista(void) {
 }
 
 static void prova_o_nome_de_antes_era_invisivel(void) {
-  /* A mordida do nome (E6): com a descrição de antes da forma A, o nó do rádio
-   * some da lista que o jogo percorre — ele existia e ninguém o reconhecia. */
   const char *antes = "Sink #593\n"
                       "\tName: sink_do_daemon_0c0b0a\n"
                       "\tDescription: Alto-falante do Controle 1\n"
@@ -142,7 +130,6 @@ static void pasta(const char *raiz, const char *rel) {
   mkdir(caminho, 0755);
 }
 
-/* Um pad: a pasta HID dele sob `pai`, e o /sys/class/hidraw/<nome>/device. */
 static void pad(const char *raiz, const char *nome, const char *pai, const char *hid_id) {
   char rel[PATH_MAX], caminho[PATH_MAX], alvo[2 * PATH_MAX], uevent[2 * PATH_MAX];
   snprintf(rel, sizeof(rel), "%s/0003:054C:0CE6.%s", pai, nome);
@@ -188,10 +175,9 @@ static void prova_pelo_aparelho(void) {
     expect(0, "mkdtemp");
     return;
   }
-  /* dois DualSense no cabo, cada um com a placa dele; um no rádio; um virtual */
   usb(raiz, "devices/pci0000:00/usb3/3-4");
   usb(raiz, "devices/pci0000:00/usb3/3-5");
-  usb(raiz, "devices/pci0000:00/usb1/1-2");  /* o adaptador BT */
+  usb(raiz, "devices/pci0000:00/usb1/1-2");
   pasta(raiz, "devices/pci0000:00/usb3/3-4/3-4:1.0/sound/card2");
   pasta(raiz, "devices/pci0000:00/usb3/3-5/3-5:1.0/sound/card3");
   pad(raiz, "hidraw3", "devices/pci0000:00/usb3/3-4/3-4:1.3", "0003:0000054C:00000CE6");
@@ -220,7 +206,6 @@ static void prova_pelo_aparelho(void) {
   expect(forja_usb_do_pad(p1, usb1, sizeof(usb1)) == 0, "o pad do cabo tem aparelho USB");
   expect(forja_usb_do_pad(p2, usb2, sizeof(usb2)) == 0, "o segundo também");
   expect(strcmp(usb1, usb2) != 0, "cada um no seu aparelho");
-  /* O rádio sobe até o ADAPTADOR, que também é USB: tem de recusar antes. */
   expect(forja_usb_do_pad(radio, lixo, sizeof(lixo)) != 0, "o do rádio não tem aparelho de som");
   expect(forja_usb_do_pad(virtual, lixo, sizeof(lixo)) != 0, "o virtual não tem aparelho de som");
 
@@ -295,16 +280,13 @@ static void report(uint8_t *buf, uint8_t id, int16_t g0, int16_t g1, int16_t g2,
 static void prova_o_movimento(void) {
   uint8_t buf[64];
   ForjaImu imu;
-  /* parado na mesa: 1 g no eixo Y (para baixo) e giro zero — a mordida (1) */
   report(buf, 0x01, 0, 0, 0, 0, -8192, 0);
   expect(forja_imu_do_report(buf, 64, &imu) == 0, "o 0x01 se lê");
   expect(imu.acel[1] == -1.0 && imu.acel[0] == 0.0 && imu.acel[2] == 0.0, "1 g num eixo só");
   expect(imu.giro[0] == 0.0 && imu.giro[1] == 0.0 && imu.giro[2] == 0.0, "parado, giro zero");
-  /* girando no yaw a 30 graus/s (o int16 cobre +-32 graus/s por 1024) */
   report(buf, 0x01, 0, 30 * 1024, 0, 0, -8192, 0);
   forja_imu_do_report(buf, 64, &imu);
   expect(imu.giro[1] == 30.0, "yaw de 30 graus/s no giro[1]");
-  /* a mordida (2): o 0x31 é recusado, nunca lido com os offsets do 0x01 */
   report(buf, 0x31, 1024, 1024, 1024, 8192, 8192, 8192);
   expect(forja_imu_do_report(buf, 64, &imu) == 3, "o 0x31 é recusado");
   report(buf, 0x02, 0, 0, 0, 0, 0, 0);

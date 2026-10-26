@@ -20,7 +20,7 @@ conferir se ela é laço.
 
 ## O estado de hoje
 
-- `nativo/som/mixer.c:32-48`:
+- `nativo/som/mixer.c:31-46`:
 
   ```c
   if (livre < 0) {
@@ -43,7 +43,7 @@ conferir se ela é laço.
   pela rampa, a mesma passagem dá 0,5994 e 0,5988).
 - `nativo/CMakeLists.txt:52-69`: o `forja_nucleo` (o que o `forja-testes` liga, `:78-91`) compila só `som/rampa.c` e
   `som/sintese.c` do som; o `mixer.c` e o `som_controle.c` ficam no `forja_sdl` (`:108-109`), sem prova.
-- `nativo/testes/prova_som.c:216-225` prova só a rampa.
+- `nativo/testes/prova_som.c:201-209` prova só a rampa.
 - A H07 já viu e deixou de fora: «o roubo de voz do mixer (sem voz livre, `MIX_MAX_VOZES` = 48) ainda corta de uma
   vez; a ficha não mandou mudar» (`docs/jogo/tarefas/H07-o-som-em-todo-evento.md:995-996`).
 
@@ -64,7 +64,7 @@ conferir se ela é laço.
 
 ## Armadilhas
 
-- A mistura roda no fio de áudio (`alimentar`, `nativo/som/som_controle.c:55-65`): o núcleo não pode alocar memória.
+- A mistura roda no fio de áudio (`alimentar`, `nativo/som/som_controle.c:46-56`): o núcleo não pode alocar memória.
 - O `mixer_tocando(id)` da voz roubada tem de dizer «não» logo depois do roubo, mesmo com ela ainda saindo pela rampa
   (quem pergunta é o jogo, e para ele aquele som acabou).
 

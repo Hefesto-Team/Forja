@@ -1,4 +1,3 @@
-/* A taxa do sensor. Ver taxa.h. */
 #include "taxa.h"
 
 #include <string.h>
@@ -21,7 +20,6 @@ void taxa_evento(Taxa *t, uint64_t host_ns, uint64_t sensor_ns) {
   t->total++;
 }
 
-/* O índice do evento mais antigo que ainda cai na janela; -1 se nenhum. */
 static int primeiro_na_janela(const Taxa *t, uint64_t agora_ns, double janela_s, int *quantos) {
   uint64_t janela_ns = (uint64_t)(janela_s * 1e9);
   uint64_t corte = agora_ns > janela_ns ? agora_ns - janela_ns : 0;

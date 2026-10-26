@@ -15,8 +15,8 @@ trocado no caminho vira o jogo de todo mundo, e subir de versão exige mexer em 
 
 ## O estado de hoje
 
-- `scripts/engine.sh:21` baixa `Godot_v${FORJA_GODOT_VER}_linux.x86_64.zip` com `curl -fsSL` e descompacta sem
-  conferir nada. O SDL, em `scripts/compilar.sh:50-57`, confere `sha256sum` contra `SDL_SHA256` e para se não bate.
+- `scripts/engine.sh:10` baixa `Godot_v${FORJA_GODOT_VER}_linux.x86_64.zip` com `curl -fsSL` e descompacta sem
+  conferir nada. O SDL, em `scripts/compilar.sh:24-27`, confere `sha256sum` contra `SDL_SHA256` e para se não bate.
 - `.github/workflows/forja.yml` repete o bloco «A versão do Godot é a do engine.sh» + «O Godot em cache» + «Baixar
   o Godot» três vezes (`:60-78` no job `linux`, `:177-195` no `exportar`, `:273-291` no `telas`), cada um com o
   próprio `curl` e o próprio `unzip`, sem soma.

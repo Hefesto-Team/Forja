@@ -1,23 +1,9 @@
 #!/usr/bin/env bash
-# A bancada da Forja: uma porta de entrada para as ferramentas de oficina.
-#
-#   ./run.sh              abre o menu
-#   ./run.sh trilha       vai direto para a bancada da trilha
-#   ./run.sh soltar       devolve a memória da placa e sai
-#
-# A mesma porta serve para quem lê um menu e para quem escreve um comando: o
-# menu é a lista de verbos, e todo verbo funciona sozinho na linha de comando.
-# Nenhuma opção de traço: o que o comando precisa saber, ele pergunta.
-#
-# **Ao sair, a placa é devolvida.** Sempre, inclusive com Ctrl+C.
 set -uo pipefail
 
 RAIZ="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$RAIZ"
 
-# ---------------------------------------------------------------- as cores --
-# Só o que um terminal simples entende, e nada sem a palavra junto: a cor
-# nunca é a única informação (docs/estudos/02, o checklist da TV).
 if [[ -t 1 ]]; then
   N=$'\e[0m'; B=$'\e[1m'; ROSA=$'\e[38;5;211m'; CIANO=$'\e[38;5;117m'
   CINZA=$'\e[38;5;245m'; VERDE=$'\e[38;5;114m'; AMARELO=$'\e[38;5;222m'
@@ -25,9 +11,6 @@ else
   N=""; B=""; ROSA=""; CIANO=""; CINZA=""; VERDE=""; AMARELO=""
 fi
 
-# ---------------------------------------------------------------- o kit --
-# Uma linha por ferramenta: verbo | o que faz | a função que roda.
-# Para acrescentar uma ferramenta nova, acrescente uma linha. Mais nada.
 KIT=(
   "trilha|A bancada da trilha: gerar, ouvir e escolher as músicas|f_trilha"
   "servidor|O servidor de música (deixe aberto noutra janela)|f_servidor"
@@ -44,8 +27,6 @@ KIT=(
   "soltar|Devolver a memória da placa agora|f_soltar"
 )
 
-# ---------------------------------------------------------------- a saída --
-
 soltar_a_placa() {
   [[ -x "$RAIZ/scripts/trilha_ambiente.sh" ]] || return 0
   bash "$RAIZ/scripts/trilha_ambiente.sh" soltar 2>/dev/null | sed "s/^/${CINZA}  /;s/$/${N}/"
@@ -53,11 +34,7 @@ soltar_a_placa() {
 
 ao_sair() {
   local codigo=$?
-  ## Se o menu estava aberto, o terminal volta ao que era antes de tudo:
-  ## cursor, mouse e a tela dela com o histórico intacto.
   type -t menu_sair >/dev/null 2>&1 && menu_sair
-  ## Quando a bancada chama uma ferramenta, quem solta a placa é ela, ao
-  ## fechar. Soltar a cada ferramenta derrubaria o servidor no meio do uso.
   [[ "${FORJA_SEM_SOLTAR:-}" == "1" ]] && exit $codigo
   echo
   echo "${CINZA}Devolvendo a memória da placa…${N}"
@@ -67,16 +44,12 @@ ao_sair() {
 }
 trap ao_sair EXIT INT TERM
 
-# ---------------------------------------------------------------- perguntar --
-
-## Uma pergunta com resposta pronta: Enter aceita o que está entre colchetes.
 perguntar() {
   local pergunta="$1" padrao="$2" resposta
   read -r -p "${B}${pergunta}${N} ${CINZA}[${padrao}]${N} " resposta
   printf '%s' "${resposta:-$padrao}"
 }
 
-## Uma escolha numerada. Imprime o que foi escolhido.
 escolher_entre() {
   local titulo="$1"; shift
   local -a itens=("$@")
@@ -98,13 +71,10 @@ escolher_entre() {
 aviso() { echo "${AMARELO}$*${N}"; }
 feito() { echo "${VERDE}$*${N}"; }
 
-## Espera a pessoa ler antes de voltar ao menu.
 pausa() {
   echo
   read -r -p "${CINZA}Enter para voltar ao menu${N} " _
 }
-
-# ---------------------------------------------------------------- as ferramentas --
 
 f_servidor() {
   echo "${CINZA}O servidor de música fica preso nesta janela. Ctrl+C para parar.${N}"
@@ -185,8 +155,6 @@ f_kenney() {
   esac
 }
 
-## Onde mora cada coisa. Com as contas de verdade, não com uma lista decorada:
-## se a pasta cresceu, o número cresce junto.
 f_onde() {
   local ost="$RAIZ/godot/assets/ost" trab="${FORJA_TRILHA:-$RAIZ/oficina/trilha}"
   conta() { find "$1" -type f ${2:+-name "$2"} 2>/dev/null | wc -l; }
@@ -245,8 +213,6 @@ f_instalar() {
   esac
 }
 
-## A oficina é a pasta que a Godot não vê: ela mora fora de res://, de
-## propósito. Quem procura por ela no editor não acha, e tem razão.
 f_oficina() {
   local alvo="$RAIZ/oficina"
   echo "${B}A oficina${N} ${CINZA}— o material bruto, fora do git e fora da Godot${N}"
@@ -277,18 +243,8 @@ f_estado() { bash scripts/instalar.sh conferir; }
 
 f_soltar() { soltar_a_placa; feito "Pronto."; }
 
-# ---------------------------------------------------------------- o menu --
-# O menu é clicável: seta para andar, Enter ou clique para abrir, a primeira
-# letra salta. Nada depende só da cor nem só do mouse — quem usa teclado, quem
-# usa mouse e quem usa leitor de tela chegam no mesmo lugar (docs/estudos/02).
-#
-# Num terminal que não aceita mouse, ou numa saída que não é terminal, cai no
-# menu numerado de sempre. Nenhuma das duas formas pede um traço na linha.
-
 MENU_ABERTO=0
 
-## Liga a tela cheia do terminal e o mouse. Guarda o scrollback dela intacto:
-## o que as ferramentas imprimem volta para o terminal normal, e fica lá.
 menu_entrar() {
   MENU_ABERTO=1
   printf '\e[?1049h\e[?25l\e[?1003h\e[?1006h\e[2J'
@@ -300,8 +256,6 @@ menu_sair() {
   printf '\e[?1003l\e[?1006l\e[?25h\e[?1049l'
 }
 
-## Uma tecla, já com as sequências de escape montadas: «ESC[A» para a seta de
-## cima, «ESC[<0;12;7M» para o clique. Enter chega como linha vazia.
 menu_tecla() {
   local t resto seq=""
   IFS= read -rsn1 t || return 1
@@ -316,7 +270,7 @@ menu_tecla() {
   fi
 }
 
-MENU_BASE=0  ## a linha da tela onde o primeiro item foi desenhado
+MENU_BASE=0
 
 menu_desenhar() {
   local sel="$1" i=0 linha=1 marca cor verbo texto
@@ -358,7 +312,7 @@ menu_clicavel() {
       'ESC[H') sel=0 ;;
       'ESC[F') sel=$((total - 1)) ;;
       'q'|'ESC') break ;;
-      '') ## Enter
+      '')
           (( sel == total - 1 )) && break
           menu_abrir "$sel" ;;
       *)
@@ -373,11 +327,10 @@ menu_clicavel() {
                   (( sel == total - 1 )) && break
                   menu_abrir "$sel"
                 fi ;;
-            *)  ## o mouse só passeando: o item debaixo dele acende
+            *)
                 (( alvo >= 0 && alvo < total )) && sel=$alvo ;;
           esac
         else
-          ## a primeira letra salta para a ferramenta
           local i=0 v
           for item in "${KIT[@]}"; do
             IFS='|' read -r v _ _ <<< "$item"
@@ -391,8 +344,6 @@ menu_clicavel() {
   menu_sair
 }
 
-## Abre uma ferramenta no terminal de verdade: o que ela imprime fica no
-## scrollback, para a pessoa rolar depois de voltar.
 menu_abrir() {
   local funcao
   IFS='|' read -r _ _ funcao <<< "${KIT[$1]}"
@@ -403,7 +354,6 @@ menu_abrir() {
   menu_entrar
 }
 
-## A reserva: terminal sem mouse, ou saída que não é terminal.
 menu_simples() {
   while true; do
     cabecalho
@@ -439,12 +389,6 @@ cabecalho() {
   echo
 }
 
-## Três portas para a mesma lista, da mais rica para a mais simples; a que o
-## terminal e a máquina aguentarem. Nenhuma pede um traço na linha de comando.
-##
-##   1. a bancada em Textual: painel com o estado de cada ferramenta ao lado
-##   2. o menu do terminal: seta, Enter, clique e a letra que salta
-##   3. a lista numerada: quando a saída nem terminal é
 menu() {
   local tela="$RAIZ/oficina/trilha-venv/bin/python"
   if [[ -t 0 && -t 1 && -x "$tela" && "${FORJA_MENU:-}" == "" ]]; then
@@ -457,8 +401,6 @@ menu() {
     menu_simples
   fi
 }
-
-# ---------------------------------------------------------------- a entrada --
 
 verbo="${1:-}"
 if [[ -z "$verbo" ]]; then

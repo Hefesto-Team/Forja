@@ -35,7 +35,7 @@ print(len(k), sum(1 for x in k if x[:1].islower()))
 EOF
 ```
 
-**O botão:** `godot/scripts/ui/glifo.gd:106-113` desenha o glifo e a palavra:
+**O botão:** `godot/scripts/ui/glifo.gd:101-108` desenha o glifo e a palavra:
 
 ```gdscript
 static func dica(ci: CanvasItem, pos: Vector2, glifo: String, texto: String, tam: int, cor_glifo: Color, cor_texto: Color) -> float:
@@ -48,27 +48,27 @@ static func dica(ci: CanvasItem, pos: Vector2, glifo: String, texto: String, tam
 ```
 
 `largura_dica()` (`:98-103`) mede o mesmo. As fileiras são
-`Desenho.dicas_a_direita()` e `dicas_a_esquerda()` (`ui/desenho.gd:178-192`).
-Quem chama: `tela_titulo.gd:65-68`, `tela_lobby.gd:112-113`,
-`cartao_jogador.gd:37`, `:60`, `:92-96`, `hud.gd:73-88`, `pausa.gd:65`,
-`escolha_partida.gd:95`, `placar.gd:208-213`, `tela_creditos.gd:42`,
-`tela_opcoes.gd:131`, `painel_sala.gd:110` (e o fim, que depois da F03 mora em
-`ui/resultado.gd`), `painel_bancada.gd:61`, `diagnostico.gd:57` e `livro.gd:150`.
+`Desenho.dicas_a_direita()` e `dicas_a_esquerda()` (`ui/desenho.gd:147-160`).
+Quem chama: `tela_titulo.gd:54-56`, `tela_lobby.gd:100-101`,
+`cartao_jogador.gd:31`, `:60`, `:92-96`, `hud.gd:73-88`, `pausa.gd:63`,
+`escolha_partida.gd:88`, `placar.gd:190-195`, `tela_creditos.gd:38`,
+`tela_opcoes.gd:120`, `painel_sala.gd:93` (e o fim, que depois da F03 mora em
+`ui/resultado.gd`), `painel_bancada.gd:57`, `diagnostico.gd:53` e `livro.gd:140`.
 
-**"fechar"** (`diagnostico.gd:57`, `livro.gd:150`) não tem tradução.
+**"fechar"** (`diagnostico.gd:53`, `livro.gd:140`) não tem tradução.
 
 **Os textos montados no código** que não são chave: por exemplo
-`salas/sala_jogo.gd:390-399` (`status`: `"pronto"`, `"✕ quando pronto"`,
-`"%d pontos"`, `"terminou · %d"`, `"treino ✓"`), `ui/painel_sala.gd:94`
+`salas/sala_jogo.gd:317-324` (`status`: `"pronto"`, `"✕ quando pronto"`,
+`"%d pontos"`, `"terminou · %d"`, `"treino ✓"`), `ui/painel_sala.gd:81`
 (`"✓ pronto"`), `:100` (`"aguardando"`), `:428` (`"treino — não vale ponto"`),
 as `partes` das dicas de cada sala (`"mira"`, `"atira"`, `"recarrega"`,
 `"tropeçou!"`, `"esquerda"`…) e os `status()` das salas
-(`galeria.gd:601` `"rodada %d de %d · %d ✓"`, `prova.gd:743`…).
+(`galeria.gd:563` `"rodada %d de %d · %d ✓"`, `prova.gd:687`…).
 
 **Do C, na tela do jogador:** `conexao_curta()`
-(`nativo/godot/forja_controles.cpp:42-55`) devolve `"simulado"`,
+(`nativo/godot/forja_controles.cpp:40-53`) devolve `"simulado"`,
 `"declara USB"`, `"virtual"` — desenhados no HUD e no cartão; e
-`tela_titulo.gd:49-52` casa `"simulado"` para contar. Os avisos
+`tela_titulo.gd:39-42` casa `"simulado"` para contar. Os avisos
 (`forja_avisar`) já começam com "P2…" ou "Esse…".
 
 **A coleta** (F02): na rodada sem `--bancada`, a prova do jogo liga
@@ -133,7 +133,7 @@ static func dica(ci: CanvasItem, pos: Vector2, glifo: String, texto: String, tam
 2. **O botão** em `ui/glifo.gd`: `dica()` e `largura_dica()` com
    `com_botao := true`. Com ele, desenha `Desenho.t("Botão")`, 10 px, o glifo,
    10 px e `"(%s)" % Desenho.t(texto)`; sem ele, o glifo, 10 px e `"(%s)"`. A
-   largura soma o mesmo. Em `ui/desenho.gd:178-192`, `dicas_a_direita()` passa
+   largura soma o mesmo. Em `ui/desenho.gd:147-160`, `dicas_a_direita()` passa
    `com_botao = (i == 0)` (o laço anda de trás para a frente: a primeira da
    fileira é o índice 0) e `dicas_a_esquerda()` passa `true` só na primeira.
    Chave nova `"Botão": "Button"`.
@@ -148,8 +148,8 @@ static func dica(ci: CanvasItem, pos: Vector2, glifo: String, texto: String, tam
    maiúscula no começo de cada frase de tela (`status`, `dica`, `progresso`,
    `com_poucos`, as frases dos painéis), e uma entrada em `traducoes.gd` (ou um
    padrão, com número no meio) para cada frase que ainda não tem.
-5. **Do C:** `conexao_curta()` (`forja_controles.cpp:42-55`) →
-   `"Simulado"`, `"Declara USB"`, `"Virtual"`; `tela_titulo.gd:52` casa
+5. **Do C:** `conexao_curta()` (`forja_controles.cpp:40-53`) →
+   `"Simulado"`, `"Declara USB"`, `"Virtual"`; `tela_titulo.gd:42` casa
    `"Simulado"`; as chaves `"simulado"` e `"·  simulado"` da tabela viram
    `"Simulado"` e `"·  Simulado"`. `scripts/compilar.sh linux` (sem o jogo aberto).
 6. **Ligar o portão** em `tests/prova_do_jogo.sh`, logo depois da guarda do
@@ -159,21 +159,21 @@ static func dica(ci: CanvasItem, pos: Vector2, glifo: String, texto: String, tam
 ## Armadilhas
 
 - **Chave e código juntos.** A tradução acha a frase **exata**
-  (`Traducoes.traduzir`, `traducoes.gd:320-336`): mudar a frase no código sem
+  (`Traducoes.traduzir`, `traducoes.gd:296-310`): mudar a frase no código sem
   mudar a chave (ou o contrário) apaga o inglês daquela frase sem erro nenhum.
   Depois de virar, rode `FORJA_IDIOMA=en` nas fotos (com o André).
 - **"Botão" alarga as dicas.** O cartão do lobby tem 384 px
-  (`tela_lobby.gd:16`) e põe duas dicas lado a lado (`cartao_jogador.gd:95-96`):
+  (`tela_lobby.gd:9`) e põe duas dicas lado a lado (`cartao_jogador.gd:84-85`):
   confira nas fotos; se não couber, a segunda sai sem "Botão" (`com_botao = false`).
   A placa do portão no HUD (`hud.gd:73-84`) já mede com `largura_dica`.
-- **As pílulas** das salas (`painel_sala.gd:151-211`, as `partes` com `@glifo`)
+- **As pílulas** das salas (`painel_sala.gd:129-181`, as `partes` com `@glifo`)
   não passam pelo `Glifo.dica`: só a palavra muda de caixa.
 - **O texto do núcleo** (o porquê de cada veredito, os textos dos
   experimentos) continua em português com minúscula, e só aparece no Modo
   bancada: fica fora desta ficha (e fora da checagem da prova, que roda na
   rodada sem `--bancada`).
 - **Sigla fica em caixa alta** (USB, BT, L2, R2); nunca caixa alta decorativa.
-  "✓ PRONTO" (`cartao_jogador.gd:91`) vira "✓ Pronto".
+  "✓ PRONTO" (`cartao_jogador.gd:80`) vira "✓ Pronto".
 - **A F02 já tirou as frases metalinguísticas**; não traga nenhuma de volta ao
   reescrever.
 

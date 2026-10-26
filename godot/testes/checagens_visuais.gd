@@ -1,32 +1,20 @@
 class_name ChecagensVisuais
 extends RefCounted
-## As checagens da prova visual (F09): funções puras sobre os dados que a prova
-## colhe, para valer em todo quadro e não só nas fotos escolhidas. Cada uma
-## devolve a lista de defeitos achados (texto para a pessoa ler); lista vazia é
-## aprovada. Medem disposição (colisão, corte, tamanho, contraste, tela parada,
-## relógio, fim sem vencedor), nunca a aparência da arte: nenhuma delas conhece
-## uma cor do tema.
-##
-## Um quadro: {t: float (s de jogo), estado, sala, pausa: bool, trocando: bool, pq: PackedByteArray
-## (o quadro em 96×54 RGB8, para parada e vazia)}.
-## Um texto: {frase, rect: Rect2 (pixels do jogo), tam: int (px), cor: Color,
-## contraste: float (-1: não medido)}.
 
-const AREA_SEGURA := 0.05  ## 5% de cada borda
-const SEGURA_FOLGA := 4.0  ## px: a margem de erro da caixa da tinta
-const FONTE_MIN := 30  ## px, a letra que se lê do sofá
-const PARADA_DIFERENCA := 0.005  ## 0,5% de diferença média de pixel
+const AREA_SEGURA := 0.05
+const SEGURA_FOLGA := 4.0
+const FONTE_MIN := 30
+const PARADA_DIFERENCA := 0.005
 const PARADA_SEGUNDOS := 5.0
 const VAZIA_FRACAO := 0.97
-const VAZIA_NIVEIS := 8  ## níveis de 0 a 255
-const CONTRASTE_MIN := 3.0  ## a razão da WCAG para letra grande
-const SOBREPOSICAO_MIN := 0.10  ## da área do menor retângulo
+const VAZIA_NIVEIS := 8
+const CONTRASTE_MIN := 3.0
+const SOBREPOSICAO_MIN := 0.10
 const FPS_AVISO := 55.0
 const PQ_L := 96
 const PQ_A := 54
 
 
-## O quadro pequeno (96×54 RGB8) que as checagens de imagem leem.
 static func pequeno(img: Image) -> PackedByteArray:
 	var m := img.duplicate() as Image
 	m.convert(Image.FORMAT_RGB8)
@@ -34,7 +22,6 @@ static func pequeno(img: Image) -> PackedByteArray:
 	return m.get_data()
 
 
-## A diferença média de pixel entre dois quadros pequenos, de 0 a 1.
 static func diferenca(a: PackedByteArray, b: PackedByteArray) -> float:
 	var n := mini(a.size(), b.size())
 	if n == 0:
@@ -45,7 +32,6 @@ static func diferenca(a: PackedByteArray, b: PackedByteArray) -> float:
 	return float(soma) / (float(n) * 255.0)
 
 
-## O mesmo quadro por mais de 5 s seguidos, fora da pausa.
 static func tela_parada(quadros: Array) -> Array:
 	var achados: Array = []
 	var inicio := -1.0
@@ -65,7 +51,6 @@ static func tela_parada(quadros: Array) -> Array:
 	return achados
 
 
-## Quase todo o quadro de uma cor só.
 static func tela_vazia(quadro: Dictionary) -> bool:
 	var d: PackedByteArray = quadro.pq
 	var n := d.size() / 3
@@ -87,8 +72,6 @@ static func tela_vazia(quadro: Dictionary) -> bool:
 	return float(perto) / float(n) > VAZIA_FRACAO
 
 
-## A troca de tela passa pelo preto de propósito (o fade): só o quadro de fora da
-## troca conta. A troca que fica no preto aparece como tela parada.
 static func telas_vazias(quadros: Array) -> Array:
 	var achados: Array = []
 	for q in quadros:
@@ -97,8 +80,6 @@ static func telas_vazias(quadros: Array) -> Array:
 	return achados
 
 
-## Os textos de um quadro: sobreposição, fora da área segura, letra pequena e
-## contraste. `tela` é o tamanho do jogo (1920×1080).
 static func texto(t: float, frases: Array, tela: Vector2) -> Array:
 	var achados: Array = []
 	var seguro := Rect2(tela * AREA_SEGURA, tela * (1.0 - 2.0 * AREA_SEGURA)).grow(SEGURA_FOLGA)
@@ -115,8 +96,7 @@ static func texto(t: float, frases: Array, tela: Vector2) -> Array:
 		for j in range(i + 1, frases.size()):
 			var g: Dictionary = frases[j]
 			if _sem_numeros(g.frase) == _sem_numeros(f.frase) and _mesmo_lugar(r, g.rect, int(f.tam)):
-				continue  # a mesma frase no mesmo lugar é sombra ou contorno, e o mesmo texto com o
-				# número trocado («80 s», «81 s») ali é um contador; em outro lugar, é colisão
+				continue
 			var inter := r.intersection(g.rect)
 			if inter.get_area() <= 0.0:
 				continue
@@ -126,16 +106,11 @@ static func texto(t: float, frases: Array, tela: Vector2) -> Array:
 	return achados
 
 
-## Dois retângulos no mesmo lugar: os centros a menos de 0,4 do corpo da letra na
-## horizontal (o número que muda de largura) e 0,15 na vertical (a sombra).
 static func _mesmo_lugar(a: Rect2, b: Rect2, tam: int) -> bool:
 	var d := (a.get_center() - b.get_center()).abs()
 	return d.x <= 0.4 * float(tam) and d.y <= 0.15 * float(tam)
 
 
-## Os relógios que a TELA mostra (o que a pessoa lê, não a conta da sala): cada
-## frase que é só um tempo («80 s») ou termina num tempo («… · 1:29») vira uma
-## observação para `relogio_sobe`, com a chave do lugar em que foi desenhada.
 static func relogios_na_tela(t: float, chave: String, frases: Array) -> Array:
 	var obs: Array = []
 	var so_s := RegEx.create_from_string("^(\\d+) s$")
@@ -157,9 +132,6 @@ static func relogios_na_tela(t: float, chave: String, frases: Array) -> Array:
 	return obs
 
 
-## Junta os achados que são o mesmo defeito parado na tela: a chave é a frase
-## com os números trocados por «#» e sem a hora. Devolve {linhas: as linhas para
-## ler, primeiros: os achados que valem uma marca na prancha}.
 static func resumir(achados: Array) -> Dictionary:
 	var re_hora := RegEx.create_from_string("^\\d\\d:\\d\\d: ")
 	var re_num := RegEx.create_from_string("\\d+")
@@ -181,8 +153,6 @@ static func resumir(achados: Array) -> Dictionary:
 	return {"linhas": linhas, "primeiros": primeiros}
 
 
-## O relógio de um minigame nunca sobe durante a fase `jogo`.
-## `observacoes`: {t, slot, fase, resta (s; -1 sem relógio ou no treino)}.
 static func relogio_sobe(observacoes: Array) -> Array:
 	var achados: Array = []
 	var antes := {}
@@ -197,7 +167,6 @@ static func relogio_sobe(observacoes: Array) -> Array:
 	return achados
 
 
-## Todo `minigame` `terminou` da linha do tempo tem `vencedor`.
 static func fim_sem_vencedor(eventos: Array) -> Array:
 	var achados: Array = []
 	for e in eventos:
@@ -207,7 +176,6 @@ static func fim_sem_vencedor(eventos: Array) -> Array:
 	return achados
 
 
-## Frase de tela que começa com minúscula (número no começo vale).
 static func minuscula(frases: Array) -> Array:
 	var achados: Array = []
 	for s in frases:
@@ -226,7 +194,6 @@ static func comeca_com_maiuscula(s: String) -> bool:
 	return true
 
 
-## O quadro por segundo de cada minigame: só avisa.
 static func desempenho(eventos: Array) -> Array:
 	var avisos: Array = []
 	for e in eventos:
@@ -235,7 +202,6 @@ static func desempenho(eventos: Array) -> Array:
 	return avisos
 
 
-## A razão de contraste entre a cor do texto e a luminância do fundo.
 static func razao(luz_a: float, luz_b: float) -> float:
 	return (maxf(luz_a, luz_b) + 0.05) / (minf(luz_a, luz_b) + 0.05)
 

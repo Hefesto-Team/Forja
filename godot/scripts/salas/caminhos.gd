@@ -1,51 +1,32 @@
 class_name SalaCaminhos
 extends SalaJogo
-## Os Caminhos — o chão que se sente na mão.
-##
-## O padrão é o da háptica dos jogos de PS5: o passo na grama não é o passo no
-## metal, e a mão sabe antes do olho. Aqui cada um anda no escuro; a lanterna
-## mostra só o boneco, e o chão fica por conta dos atuadores do controle — os
-## canais 3 e 4 da placa de áudio do DualSense no cabo (ou o nó "Háptica do
-## Controle N" que o Hefesto cria). A prova é às cegas:
-##
-##   - o treino: os quatro chãos, um de cada vez, com o nome e o chão à vista;
-##   - depois, oito trechos no escuro: três passos e a pergunta "que chão é
-##     esse?" (✕ grama, ○ cascalho, □ metal, △ água; o touchpad é "não
-##     senti"); só depois da resposta o chão do trecho aparece;
-##   - no meio do caminho, às vezes, uma pedra: o tropeço treme UM lado só, e
-##     a pessoa diz qual (L1 esquerda, R1 direita). O boneco cambaleia para
-##     os dois lados; a pedra só aparece depois da resposta.
-##
-## O "não senti" é resposta, e é a evidência: quem diz "não senti" o caminho
-## inteiro mostra que a háptica não chega à mão. A TV fica calada sobre o
-## chão: o passo só existe no controle.
 
 const F := preload("res://scripts/forja.gd")
 const RAIAS := [-6.0, -2.0, 2.0, 6.0]
 const Z_JOGADOR := 1.6
-const LADRILHO := 1.5  ## a fundura de um trecho do caminho
+const LADRILHO := 1.5
 const RODADAS := 8
 const PASSOS := 3
 const TROPECOS := 4
 const PRIMEIRO_S := 0.35
-const PASSO_S := 0.9  ## entre um passo e outro: a cauda do metal (0,55 s) cabe
+const PASSO_S := 0.9
 const TREINO_S := 2.1
 const PERGUNTA_MAX := 6.0
 const TROPECO_MAX := 2.5
 const REVELA_S := 1.1
 const ENV_MAX := 64
-const CAMINHO_NADA := 4  ## "não senti" no chão (cegas.h)
-const CAMINHO_NADA_LADO := 2  ## "não senti" no tropeço
+const CAMINHO_NADA := 4
+const CAMINHO_NADA_LADO := 2
 const NOME_CHAO := ["grama", "cascalho", "metal", "água"]
 const SENTE := ["um baque macio", "quatro estalos", "um golpe que ressoa", "duas ondas"]
 const BOTAO_CHAO := [F.CRUZ, F.CIRCULO, F.QUADRADO, F.TRIANGULO]
 const GLIFO_CHAO := ["cross", "circle", "square", "triangle"]
-const COR_CHAO := [Tema.SECAO[2], Tema.OXIDO_BRILHO, Tema.MUDO, Tema.SECAO[1]]  ## grama, cascalho, metal, água
+const COR_CHAO := [Tema.SECAO[2], Tema.OXIDO_BRILHO, Tema.MUDO, Tema.SECAO[1]]
 
 enum { TREINO, ANDA, PERGUNTA, REVELA, FIM }
 
-var j := {}  ## lugar -> o estado do jogador
-var n := {}  ## lugar -> os nós da raia
+var j := {}
+var n := {}
 var _escuro: StandardMaterial3D
 
 
@@ -57,7 +38,7 @@ func _init() -> void:
 	objetivo = "No escuro, o chão só existe no controle: a grama é um baque macio, o cascalho são quatro estalos, o metal um golpe que ressoa, a água duas ondas. Primeiro o treino, com o chão à vista; depois, a cada três passos, diga o chão — ✕ grama, ○ cascalho, □ metal, △ água, o touchpad é \"não senti\". Se tropeçar numa pedra, diga o lado que tremeu: L1 esquerda, R1 direita. Confira a sua háptica aqui embaixo: △ dá um pulso na esquerda e outro na direita, ◀ ▶ troca."
 	features = ["haptica_audio"]
 	cega = true
-	com_treino = false  # Os Caminhos têm o treino deles: sentir cada chão antes
+	com_treino = false
 	papel_som = F.PAPEL_HAPTICA
 	botoes_pedidos = F.mascara([F.CRUZ, F.CIRCULO, F.QUADRADO, F.TRIANGULO, F.L1, F.R1, F.TOUCHPAD])
 	duracao = 0.0
@@ -67,9 +48,7 @@ func _init() -> void:
 
 func montar() -> void:
 	Kit.arena(self, 5, 3)
-	# quase breu: poeira verde e o neon ciano, o preenchimento fraco
 	atmosfera(Color("#7ff0b0"), Tema.VIOLETA, false, 30, 22.0, -7.8, 0.08)
-	# quase breu: um enchimento frio e fraco; a luz de cada raia é a lanterna dele
 	var frio := OmniLight3D.new()
 	frio.position = Vector3(0, 9.0, 5.0)
 	frio.light_energy = 0.3
@@ -98,7 +77,6 @@ func _novo_jogador() -> Dictionary:
 		"robo_lado": -1, "robo_espera": -1.0, "robo_espera_trop": -1.0}
 
 
-## Um trecho do caminho no chão que ele é (visto) ou no escuro.
 func _vestir_ladrilho(lad: Dictionary, chao: int, visto: bool) -> void:
 	var m: MeshInstance3D = lad.malha
 	m.material_override = lad.mats[chao] if visto else _escuro
@@ -120,7 +98,6 @@ func _novo_ladrilho(pai: Node3D, z: float) -> Dictionary:
 			mat.albedo_color.a = 0.85
 			Tema.emissivo(mat, 0.5, "mundo")
 		mats.append(mat)
-	# o que dá para ver de cada chão quando ele aparece
 	var enfeites: Array = []
 	var grama := Node3D.new()
 	pai.add_child(grama)
@@ -163,29 +140,23 @@ func _novo_ladrilho(pai: Node3D, z: float) -> Dictionary:
 
 func _montar_raia(l: int, p: ForjaPlayer) -> Dictionary:
 	var x: float = RAIAS[l]
-	# o caminho: os quatro trechos do treino e os oito da prova, um atrás do
-	# outro; ele desliza para trás a cada passo (quem anda fica no lugar)
 	var trilha := Node3D.new()
 	trilha.position = Vector3(x, 0.0, Z_JOGADOR)
 	add_child(trilha)
 	var ladrilhos: Array = []
 	for s in 4 + RODADAS:
 		ladrilhos.append(_novo_ladrilho(trilha, -s * LADRILHO))
-	# as bordas de pedra do caminho
 	for lado in [-1.0, 1.0]:
 		for s in range(0, 4 + RODADAS, 2):
 			Kit.peca(trilha, "rocks", Vector3(lado * 1.3, 0.0, -s * LADRILHO), rng.randf() * TAU, 0.34 + 0.08 * (s % 3))
-	# a pedra do tropeço, que só aparece depois da resposta
 	var pedra_trop := Kit.peca(self, "rocks", Vector3(x, 0.0, Z_JOGADOR), 0.0, 0.9)
 	pedra_trop.visible = false
-	# a lanterna do boneco: só ele à vista
 	var lanterna := OmniLight3D.new()
 	lanterna.position = Vector3(x, 2.6, Z_JOGADOR + 0.6)
 	lanterna.light_color = Forja.cor_do_lugar(l).lerp(Tema.ETIQUETA, 0.55)
 	lanterna.light_energy = 1.3
 	lanterna.omni_range = 2.8
 	add_child(lanterna)
-	# o nome do chão no treino, e o "!" do tropeço (sem lado)
 	var placa := Label3D.new()
 	placa.font = Tema.archivo(700)
 	placa.font_size = 60
@@ -194,7 +165,6 @@ func _montar_raia(l: int, p: ForjaPlayer) -> Dictionary:
 	placa.no_depth_test = true
 	placa.outline_size = 14
 	placa.outline_modulate = Color(Tema.FITA, 0.9)
-	# nas raias da ponta, puxada para dentro: o nome inteiro na tela
 	placa.position = Vector3(x * 0.84, 2.75, Z_JOGADOR - 0.4)
 	placa.visible = false
 	add_child(placa)
@@ -212,12 +182,6 @@ func _montar_raia(l: int, p: ForjaPlayer) -> Dictionary:
 		"lanterna": lanterna}
 
 
-# ------------------------------------------------------------------ o jogo --
-
-## Cada um tem o caminho dele, da mesma semente: os oito chãos (cada um duas
-## vezes, sem repetir seguido) e os quatro tropeços (dois de cada lado, nunca
-## no primeiro trecho nem no último passo). Sem háptica estéreo, não há lado a
-## perguntar: o caminho fica sem pedras.
 func iniciar_jogo() -> void:
 	for p in jogadores:
 		var l: int = p.lugar
@@ -232,7 +196,6 @@ func iniciar_jogo() -> void:
 			for k in mini(TROPECOS, mini(trechos.size(), lados.size())):
 				e.trop_lado[trechos[k]] = lados[k]
 				e.trop_passo[trechos[k]] = rng.randi_range(0, PASSOS - 2)
-		# o treino: os quatro chãos à vista, na ordem
 		var ladrilhos: Array = n[l].ladrilhos
 		for s in 4:
 			_vestir_ladrilho(ladrilhos[s], s, true)
@@ -275,7 +238,6 @@ func _fechar_tropeco(l: int, e: Dictionary, disse: int) -> void:
 	e.trop_aberto = false
 	e.trop_disse = disse
 	e.trop_msg = 1.3
-	# agora a pedra aparece, do lado em que estava
 	var pedra: Node3D = n[l].pedra
 	pedra.position = Vector3(RAIAS[l] + (-0.75 if int(e.trop_agora) == 0 else 0.75), 0.0, Z_JOGADOR - 0.2)
 	pedra.visible = true
@@ -305,8 +267,6 @@ func _fechar_pergunta(l: int, e: Dictionary) -> void:
 	Forja.evento("jogo", l + 1, {"sala": id, "o": "resposta", "chão": NOME_CHAO[certo], "resultado": res})
 
 
-## O chão do trecho aparece. Depois da pergunta (Modo bancada) ou direto da
-## caminhada (o jogo).
 func _revelar_trecho(l: int, e: Dictionary) -> void:
 	var r: int = e.rodada
 	_vestir_ladrilho(n[l].ladrilhos[4 + r], int(e.plano[r]), true)
@@ -368,7 +328,7 @@ func _atualizar_jogador(l: int, e: Dictionary, dt: float) -> void:
 					_tocar_passo(l, int(e.plano[r]), int(e.passos) + r)
 				e.passos = int(e.passos) + 1
 			if int(e.passos) >= PASSOS and not e.trop_aberto and float(e.t) >= PRIMEIRO_S + (PASSOS - 1) * PASSO_S + 0.7:
-				if Forja.bancada:  # a pergunta às cegas é do Modo bancada
+				if Forja.bancada:
 					e.estado = PERGUNTA
 					e.t = 0.0
 					Forja.evento("jogo", l + 1, {"sala": id, "o": "pergunta", "qual": "chao"})
@@ -412,8 +372,6 @@ func dar_vereditos(l: int) -> Array:
 	return [v]
 
 
-# ------------------------------------------------------------------ o que se vê --
-
 func _process(dt: float) -> void:
 	super(dt)
 	for p in jogadores:
@@ -424,7 +382,6 @@ func _mostrar(p: ForjaPlayer, dt: float) -> void:
 	var l: int = p.lugar
 	var e: Dictionary = j[l]
 	var nos: Dictionary = n[l]
-	# o caminho desliza: um trecho por rodada, um terço dele por passo
 	var seg := int(e.treino) if int(e.estado) == TREINO else 4 + mini(int(e.rodada), RODADAS - 1)
 	var por := 2.0 if int(e.estado) == TREINO else float(PASSOS)
 	var passos := int(e.passos)
@@ -437,8 +394,6 @@ func _mostrar(p: ForjaPlayer, dt: float) -> void:
 	e.desloc = move_toward(float(e.desloc), alvo, dt * LADRILHO * 1.6)
 	var trilha: Node3D = nos.trilha
 	trilha.position.z = Z_JOGADOR + float(e.desloc)
-	# o boneco anda enquanto o passo soa, e cambaleia para os dois lados no
-	# tropeço (o lado é da mão, não da tela)
 	e.andando = maxf(0.0, float(e.andando) - dt)
 	e.cambaleio = move_toward(float(e.cambaleio), 0.0, dt * 2.0)
 	if fase == "jogo" and float(e.andando) > 0.0:
@@ -447,7 +402,6 @@ func _mostrar(p: ForjaPlayer, dt: float) -> void:
 		p.animar("idle")
 	if p.modelo:
 		p.modelo.rotation.z = sin(t * 26.0) * 0.16 * float(e.cambaleio)
-	# o nome do chão no treino; o "!" no tropeço
 	var placa: Label3D = nos.placa
 	placa.visible = fase == "jogo" and int(e.estado) == TREINO
 	if placa.visible:
@@ -456,14 +410,11 @@ func _mostrar(p: ForjaPlayer, dt: float) -> void:
 	var aviso: Label3D = nos.aviso
 	aviso.visible = e.trop_aberto
 	aviso.scale = Vector3.ONE * (1.0 + 0.1 * sin(t * 16.0))
-	# a água respira
 	for lad in nos.ladrilhos:
 		var ond: Node3D = lad.enfeites[3]
 		if ond.visible:
 			ond.scale = Vector3.ONE * (1.0 + 0.06 * sin(t * 3.0 + float(lad.z)))
 
-
-# ------------------------------------------------------------------ a HUD --
 
 func status(lugar: int) -> String:
 	if fase == "jogo" and j.has(lugar):
@@ -501,7 +452,7 @@ func dica(lugar: int) -> Dictionary:
 
 func pergunta(lugar: int) -> Dictionary:
 	if not Forja.bancada:
-		return {}  # a pergunta às cegas é do Modo bancada
+		return {}
 	if not j.has(lugar) or fase != "jogo":
 		return {}
 	var e: Dictionary = j[lugar]
@@ -527,12 +478,6 @@ func pergunta(lugar: int) -> Dictionary:
 		"rodape": rodape, "pos": Vector3(RAIAS[lugar], 0.0, 4.0)}
 
 
-# ------------------------------------------------------------------ o robô --
-# Sente os atuadores do controle dele (a placa virtual): o envelope de cada
-# toque, desde que o nível sobe até 0,2 s de silêncio. Dos dois lados por
-# igual é um passo, e o envelope diz o chão (chao.c); de um lado só é o
-# tropeço, e o lado mais forte é o da pedra.
-
 func _robo_sentir(l: int, e: Dictionary) -> void:
 	var v := Forja.som_virtual(l)
 	var esq := float(v.get("esq", 0.0))
@@ -554,8 +499,6 @@ func _robo_sentir(l: int, e: Dictionary) -> void:
 	e.soma_e = float(e.soma_e) + esq
 	e.soma_d = float(e.soma_d) + dir
 	e.silencio = int(e.silencio) + 1 if nivel < 0.02 else 0
-	# 0,2 s de silêncio fecham o toque: a água tem um vão de 0,1 s entre as
-	# duas ondas, que não pode partir um passo em dois
 	if int(e.silencio) < 12 and env.size() < ENV_MAX:
 		return
 	e.gravando = false

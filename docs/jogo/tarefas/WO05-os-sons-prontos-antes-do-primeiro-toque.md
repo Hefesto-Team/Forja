@@ -16,7 +16,7 @@ partida é um quadro perdido no meio da música.
 
 ## O estado de hoje (medido em 09/10/2026, `85f24c3`)
 
-- `godot/scripts/som.gd:75-94`, a carga preguiçosa:
+- `godot/scripts/som.gd:57-75`, a carga preguiçosa:
   ```gdscript
   func stream(nome: String, laco := false) -> AudioStreamWAV:
   	var chave := nome + ("@laco" if laco else "")

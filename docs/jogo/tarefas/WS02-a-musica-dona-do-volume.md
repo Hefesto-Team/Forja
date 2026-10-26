@@ -22,7 +22,7 @@ sua parte.
 
 ## O estado de hoje
 
-- `godot/scripts/musica.gd:282-299`, o `reagir`:
+- `godot/scripts/musica.gd:241-256`, o `reagir`:
 
   ```gdscript
   func reagir(evento: String) -> void:
@@ -40,13 +40,13 @@ sua parte.
   ```
 
   e `:302-303`, `_volume(db)` = `AudioServer.set_bus_volume_db(_bus, db)`, uma escrita absoluta.
-- Quem chama: `godot/scripts/minigames/minigame.gd:272` (erro), `:283` (combo) e `:285` (perfeito), em todo toque
+- Quem chama: `godot/scripts/minigames/minigame.gd:215` (erro), `:283` (combo) e `:285` (perfeito), em todo toque
   julgado de qualquer lugar. Num minigame de ritmo com quatro, um combo a +1,5 dB dura até o próximo perfeito de
   alguém, uns 0,25 s, e não os 2 s.
 - A N1 (pronta, não entrou) guarda o volume de base no primeiro abaixamento e escreve no barramento por conta própria
   (`N1-o-canto.md:926-937`): se a primeira pista cai durante um combo, a base fica em +1,5 dB para sempre; e o primeiro
   `reagir` durante a pista leva a música de −12 dB de volta a 0.
-- A prova de hoje (`godot/testes/prova_do_jogo.gd:1548-1561`, `_prova_da_musica_que_reage`) dispara um evento de cada
+- A prova de hoje (`godot/testes/prova_do_jogo.gd:1414-1425`, `_prova_da_musica_que_reage`) dispara um evento de cada
   vez e espera ele acabar: o caso de dois eventos juntos nunca é medido.
 
 ## O alvo
@@ -78,7 +78,7 @@ zerar o resto (o perfeito sobre um combo dá +1,5 − 2 = −0,5 dB por 80 ms, e
 
 - O `tocar` e o `tocar_do_zero` mexem no `volume_db` dos dois tocadores (o cruzamento), não no barramento: ficam como
   estão. O que é do barramento é só o que é de todos os tocadores ao mesmo tempo.
-- O `_process` da `Musica` roda com `PROCESS_MODE_ALWAYS` (`musica.gd:42`): na pausa, as camadas continuam andando,
+- O `_process` da `Musica` roda com `PROCESS_MODE_ALWAYS` (`musica.gd:31`): na pausa, as camadas continuam andando,
   e é o que a pausa da bíblia quer (−12 dB enquanto o jogo está parado).
 - Os tweens andam no tempo do jogo: a prova espera em quadros, como a de hoje.
 - O `parar_seco` do apito é do tocador, não do barramento: o barramento não muda no apito.
@@ -90,7 +90,7 @@ zerar o resto (o perfeito sobre um combo dá +1,5 − 2 = −0,5 dB por 80 ms, e
 
 ## Pronto quando
 
-`grep -rn 'set_bus_volume_db' godot/scripts` acha só a `musica.gd` e o volume da TV (`forja.gd:164`), e as duas
+`grep -rn 'set_bus_volume_db' godot/scripts` acha só a `musica.gd` e o volume da TV (`forja.gd:118`), e as duas
 provas novas passam.
 
 ## Provas

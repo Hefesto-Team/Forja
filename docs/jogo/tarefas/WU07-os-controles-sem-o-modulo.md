@@ -20,7 +20,7 @@ não tinha isso.
 ## O estado de hoje
 
 - `godot/forja.gdextension:9-10`: só `linux.x86_64` e `windows.x86_64`.
-- `godot/scripts/forja.gd:124-142`: o módulo ou nada; sem ele, só o lugar 0 pelo teclado:
+- `godot/scripts/forja.gd:82-100`: o módulo ou nada; sem ele, só o lugar 0 pelo teclado:
   ```gdscript
   func apertou(l: int, botao: int) -> bool:
   	if modulo:
@@ -33,7 +33,7 @@ não tinha isso.
   godot/scripts` fora dos testes dá zero.
 - Godot 4.7.2 (godotengine/godot, MIT), `drivers/sdl/joypad_sdl.cpp:139-206`: todo controle entra no `Input`, com
   vibração, luz e sensores.
-- A tela já não diz nada sem o módulo (`godot/scripts/ui/tela_titulo.gd:37-39`).
+- A tela já não diz nada sem o módulo (`godot/scripts/ui/tela_titulo.gd:30-31`).
 
 ## O alvo
 

@@ -1,32 +1,23 @@
 class_name Colecao
 extends RefCounted
-## A coleção da noite (G06): o que o grupo conquistou jogando. Uma taça na cor de quem
-## venceu um minigame primeiro, uma moeda para o recorde, quatro cubos para o coop sem
-## erro. Uma seção acende quando todos os minigames dela foram vencidos na noite. Nada
-## daqui muda stat: só aparência (o Dourado, o Cromado, o Néon).
-##
-## É da noite (`Opcoes.noite()`): outra noite começa vazia. Guardada em user://colecao.cfg,
-## uma seção por noite. Com o robô (as provas), nada se lê nem se grava.
 
 const ARQUIVO := "user://colecao.cfg"
-## Os acabamentos que a coleção desbloqueia, e o que desbloqueia cada um.
 const DESBLOQUEIOS := {
 	"Dourado": "o primeiro troféu da noite",
 	"Cromado": "três seções acesas",
 	"Néon": "um coop sem erro",
 }
-const SECOES := 9                      ## os 8 portões e A Prova
-const NOITES_GUARDADAS := 14           ## as seções mais velhas do arquivo se apagam
+const SECOES := 9
+const NOITES_GUARDADAS := 14
 
-static var noite := ""                 ## Opcoes.noite() da coleção carregada
-static var vencidos := {}              ## id do minigame -> lugar que venceu primeiro na noite
-static var recordes := {}              ## id do minigame -> os pontos mais altos da noite
-static var trofeus: Array = []         ## [{"id", "lugar", "tipo": "vitoria" | "recorde" | "coop"}]
-static var desbloqueados: Array = []   ## os nomes de DESBLOQUEIOS já ganhos na noite
+static var noite := ""
+static var vencidos := {}
+static var recordes := {}
+static var trofeus: Array = []
+static var desbloqueados: Array = []
 static var _robo := false
 
 
-## Lê a seção da noite de hoje; outra noite começa vazia.
 static func carregar(robo: bool) -> void:
 	_robo = robo
 	zerar()
@@ -36,7 +27,6 @@ static func carregar(robo: bool) -> void:
 	ler(ARQUIVO)
 
 
-## Lê o arquivo por cima do que há (a prova lê um arquivo dela, não o da pessoa).
 static func ler(arquivo: String) -> void:
 	var cfg := ConfigFile.new()
 	if cfg.load(arquivo) != OK or not cfg.has_section(noite):
@@ -51,7 +41,6 @@ static func ler(arquivo: String) -> void:
 	desbloqueados = (d as Array).duplicate() if d is Array else []
 
 
-## Grava (nada com o robô).
 static func guardar() -> void:
 	gravar(_robo)
 
@@ -60,7 +49,7 @@ static func gravar(robo: bool, arquivo := ARQUIVO) -> void:
 	if robo:
 		return
 	var cfg := ConfigFile.new()
-	cfg.load(arquivo)   # as outras noites ficam
+	cfg.load(arquivo)
 	var secoes := cfg.get_sections()
 	secoes.sort()
 	while secoes.size() >= NOITES_GUARDADAS and not cfg.has_section(noite):
@@ -73,7 +62,6 @@ static func gravar(robo: bool, arquivo := ARQUIVO) -> void:
 	cfg.save(arquivo)
 
 
-## A coleção vazia (a prova usa).
 static func zerar() -> void:
 	vencidos = {}
 	recordes = {}
@@ -81,11 +69,9 @@ static func zerar() -> void:
 	desbloqueados = []
 
 
-## Um minigame acabou: devolve {"desbloqueou": [nomes], "recorde": lugar ou -1}.
 static func registrar(id: String, pontos: Array, presentes: Array, coop := false, sem_erro := false) -> Dictionary:
 	var novos: Array = []
 	var recorde := -1
-	# o vencedor: entre os presentes, o de mais pontos, se for > 0; empate em cima: o menor lugar
 	var vencedor := -1
 	var maior := 0
 	for l in presentes:
@@ -106,7 +92,6 @@ static func registrar(id: String, pontos: Array, presentes: Array, coop := false
 	if coop and sem_erro:
 		trofeus.append({"id": id, "lugar": -1, "tipo": "coop"})
 		novos.append("coop")
-	# os desbloqueios, na ordem, cada um uma vez
 	var ganhos: Array = []
 	var condicoes := {
 		"Dourado": trofeus.size() >= 1,
@@ -123,13 +108,10 @@ static func registrar(id: String, pontos: Array, presentes: Array, coop := false
 	return {"desbloqueou": ganhos, "recorde": recorde}
 
 
-## Os minigames de uma seção. Hoje cada seção tem um só, o do apelido dela; com o catálogo
-## das seções (`catalogo.gd`, H04) viram os `"minigames"` da seção cujo primeiro é `id`.
 static func minigames_da_secao(id_do_portao: String) -> Array:
 	return [id_do_portao]
 
 
-## A seção acende quando todos os minigames dela foram vencidos na noite.
 static func secao_acesa(id_do_portao: String) -> bool:
 	var todos := minigames_da_secao(id_do_portao)
 	if todos.is_empty():
@@ -140,7 +122,6 @@ static func secao_acesa(id_do_portao: String) -> bool:
 	return true
 
 
-## De 0 a SECOES: os 8 portões e A Prova (ela conta pela vitória, sem portão).
 static func secoes_acesas() -> int:
 	var n := 0
 	for p in Salao.PORTOES:
@@ -151,7 +132,6 @@ static func secoes_acesas() -> int:
 	return n
 
 
-## Um bool por minigame da seção: vencido na noite?
 static func marcas(id_do_portao: String) -> Array:
 	var m: Array = []
 	for id in minigames_da_secao(id_do_portao):

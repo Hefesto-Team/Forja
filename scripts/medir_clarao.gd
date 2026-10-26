@@ -1,12 +1,4 @@
 extends SceneTree
-## O clarão d'A Voz contra a regra do estudo 02 (item 29, a do WCAG 2.3.1):
-## quanto da tela muda de luz entre o quadro de antes do susto e o do clarão.
-## Um pixel conta quando a luminância relativa sobe ou desce 10% ou mais e o
-## mais escuro dos dois está abaixo de 0,8 — a definição de "flash" do WCAG.
-##
-##   godot --headless -s scripts/medir_clarao.gd -- <antes.png> <clarão.png> [limite %]
-##
-## Diz a área em % da tela; com o limite (o estudo pede 20), sai com 1 se passa.
 
 
 func _init() -> void:
@@ -21,7 +13,6 @@ func _init() -> void:
 		printerr("as duas fotos têm de existir e ter o mesmo tamanho")
 		quit(2)
 		return
-	# meia resolução basta para a área, e anda quatro vezes mais depressa
 	var tam := antes.get_size() / 2
 	antes.resize(tam.x, tam.y, Image.INTERPOLATE_BILINEAR)
 	depois.resize(tam.x, tam.y, Image.INTERPOLATE_BILINEAR)
@@ -38,7 +29,6 @@ func _init() -> void:
 	quit(1 if limite >= 0.0 and area > limite else 0)
 
 
-## A luminância relativa do WCAG (sRGB linearizado).
 func _luminancia(c: Color) -> float:
 	var f := func(v: float) -> float: return v / 12.92 if v <= 0.04045 else pow((v + 0.055) / 1.055, 2.4)
 	return 0.2126 * f.call(c.r) + 0.7152 * f.call(c.g) + 0.0722 * f.call(c.b)

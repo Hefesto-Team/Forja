@@ -1109,7 +1109,7 @@ const DEGRAUS := {
 }
 ## O degrau golpe: o objeto a 130 % e de volta em 1/2 batida.
 const ESCALA_DO_GOLPE := 1.3
-## O main treme a câmera 0,12 m por unidade de `tremor` (main.gd:986-988).
+## O main treme a câmera 0,12 m por unidade de `tremor` (main.gd:898-900).
 const METROS_POR_TREMOR := 0.12
 ## As últimas batidas de todo minigame da seção: a reta (a régua, item 5).
 const BATIDAS_DA_RETA := 16.0

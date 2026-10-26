@@ -1,13 +1,10 @@
 extends RefCounted
-## As peças do estudo: os modelos da Kenney recoloridos (cada pacote com a sua
-## cópia do colormap), o cavaleiro com o néon de dono, a luz e o pós da fita.
 
 const Fita := preload("res://estudos/direcao/fita.gd")
 const Corpo := preload("res://estudos/direcao/cavaleiro/corpo.gd")
 const Acento := preload("res://estudos/direcao/cavaleiro/acento.gd")
 const RAIZ := "res://estudos/direcao/kenney/%s.glb"
 const K := 2.0
-## A escala de cada pacote sobre o K (a tabela do doc 14).
 const ESCALA := {"survival-kit": 1.4}
 
 static var _cenas := {}
@@ -28,7 +25,6 @@ static func peca(pai: Node, nome: String, pos: Vector3, rot_y := 0.0, escala := 
 	return n
 
 
-## Troca o colormap de todas as superfícies (o "antes" da prancha 09).
 static func trocar_textura(n: Node, tex: Texture2D) -> void:
 	for filho in n.get_children():
 		if filho is MeshInstance3D:
@@ -42,9 +38,6 @@ static func trocar_textura(n: Node, tex: Texture2D) -> void:
 		trocar_textura(filho, tex)
 
 
-## A normal suavizada de cada vértice (a média das faces que dividem a mesma
-## posição), gravada no TANGENT: o casco do contorno cresce por ela e não abre
-## nos cantos dos blocos.
 static func suavizar(mi: MeshInstance3D) -> void:
 	var original: Mesh = mi.mesh
 	if _malhas_suaves.has(original):
@@ -75,8 +68,6 @@ static func suavizar(mi: MeshInstance3D) -> void:
 	mi.mesh = nova
 
 
-## O contorno de néon num modelo inteiro (objetos que importam: a bigorna de
-## cada um, o troféu).
 static func contornar(n: Node, cor: Color, largura := 0.012, energia := 2.4) -> void:
 	for filho in n.get_children():
 		if filho is MeshInstance3D:
@@ -92,15 +83,9 @@ static func contornar(n: Node, cor: Color, largura := 0.012, energia := 2.4) -> 
 		contornar(filho, cor, largura, energia)
 
 
-# ----------------------------------------------------------- o cavaleiro --
 const MODELOS := ["character-male-b", "character-female-b", "character-male-e", "character-female-d"]
 
 
-## Um cavaleiro: o boneco do Mini Characters nas três peças (cabeça,
-## superior, inferior, cada uma na faixa de valor dela: 04, a peça se
-## distingue), o contorno e o aro na cor do lugar, o friso e a costura em
-## néon; o anel de oito lados no chão, com as lâmpadas do lugar (1 a 4)
-## marcadas nele.
 static func cavaleiro(pai: Node, lugar: int, pos: Vector3, yaw := 0.0, anim := "idle", t_anim := 0.3,
 		modelo := "", opcoes := {}) -> Node3D:
 	var cor: Color = Fita.JOGADOR[lugar]
@@ -129,10 +114,7 @@ static func cavaleiro(pai: Node, lugar: int, pos: Vector3, yaw := 0.0, anim := "
 	return raiz
 
 
-## A cor de cada peça: a cabeça no colormap da cabeça (`personagem`), o
-## superior no de tecido, o inferior no de couro (o recolorir faz os três).
 const COLORMAP_DA_PARTE := {"body-sup": "tecido", "body-inf": "couro"}
-## A rugosidade de cada material (02, a escada de valor).
 const RUGOSIDADE := {"head": 0.90, "body-sup": 0.85, "body-inf": 0.70}
 static var _colormaps := {}
 
@@ -145,11 +127,6 @@ static func colormap(parte: String) -> Texture2D:
 	return _colormaps[parte]
 
 
-## Veste as peças do cavaleiro: a textura da faixa de cada uma, o aro de luz a
-## 0,25, o contorno de 0,012 na cor do lugar (energia 1,6 na montagem, 2,4 no
-## jogo: 07, a tabela do brilho). O corpo nunca se tinge.
-##   opcoes: aro, contorno (bool), largura, energia, pele (Color, a pele da
-##   raça na mão e na perna de fora)
 static func vestir(m: Node, cor: Color, opcoes := {}) -> void:
 	for filho in m.find_children("*", "MeshInstance3D", true, false):
 		var mi: MeshInstance3D = filho
@@ -182,7 +159,6 @@ static func vestir(m: Node, cor: Color, opcoes := {}) -> void:
 			mi.set_surface_override_material(s, sm)
 
 
-## O martelo da Kenney (Survival Kit) na mão direita.
 static func martelo(m: Node) -> void:
 	var esq: Skeleton3D = m.find_child("Skeleton3D", true, false)
 	if esq == null:
@@ -190,13 +166,10 @@ static func martelo(m: Node) -> void:
 	var presa := BoneAttachment3D.new()
 	presa.bone_name = "arm-right"
 	esq.add_child(presa)
-	# o boneco já vem na escala K: aqui a medida é a do osso (o braço tem 0,1)
 	var h := peca(presa, "survival-kit/tool-hammer", Vector3(-0.01, -0.13, 0.0), 0.0, 2.3)
 	h.rotation_degrees = Vector3(60, 0, 0)
 
 
-## O anel de oito lados no chão, na cor do lugar, com as lâmpadas do lugar:
-## a cor nunca sozinha.
 static func anel(pai: Node3D, cor: Color, lugar: int, raio := 0.62) -> Node3D:
 	var a := Node3D.new()
 	a.position.y = 0.03
@@ -212,7 +185,6 @@ static func anel(pai: Node3D, cor: Color, lugar: int, raio := 0.62) -> Node3D:
 	mi.rotation.y = PI / 8.0
 	mi.material_override = Fita.neon(cor, 1.5)
 	a.add_child(mi)
-	# as lâmpadas do controle, as cinco posições, na frente do anel
 	for i in 5:
 		if (int(Fita.LEDS[lugar]) >> i) & 1 == 0:
 			continue
@@ -227,8 +199,6 @@ static func anel(pai: Node3D, cor: Color, lugar: int, raio := 0.62) -> Node3D:
 	return a
 
 
-## O néon não faz sombra (é luz): sem isso, o anel da runa desenha um
-## octógono escuro no chão.
 static func neon_sem_sombra(raiz: Node) -> void:
 	for n in raiz.find_children("*", "MeshInstance3D", true, false):
 		var mi: MeshInstance3D = n
@@ -237,13 +207,9 @@ static func neon_sem_sombra(raiz: Node) -> void:
 			mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 
 
-# ----------------------------------------------------------- a luz e o pós --
 static func ambiente(pai: Node, opcoes := {}) -> Environment:
 	var env := Environment.new()
 	env.background_mode = Environment.BG_COLOR
-	# com o glow ligado, o fundo do Compatibility sai ~3,5× mais claro e mais
-	# azul (o #0d0a16 saía #2e1f5b, um lavanda que lavava a tela); medido no
-	# num quadro de prova, o fator 0,45 devolve a fita
 	var fundo: Color = opcoes.get("fundo", Fita.FITA)
 	var k := 0.45 if opcoes.get("glow", true) else 1.0
 	env.background_color = Color(fundo.r * k, fundo.g * k, fundo.b * k)
@@ -317,7 +283,6 @@ static func foco(pai: Node3D, pos_: Vector3, alvo: Vector3, cor: Color, energia:
 	return l
 
 
-## Uma barra de néon (tubo) — da arquitetura (violeta) ou de um jogador.
 static func tubo(pai: Node3D, tamanho: Vector3, pos_: Vector3, cor: Color, energia := 1.6) -> MeshInstance3D:
 	var mi := MeshInstance3D.new()
 	var b := BoxMesh.new()

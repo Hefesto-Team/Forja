@@ -1,5 +1,3 @@
-/* O payload do SDL_SendGamepadEffect: cada bloco liga só o seu bit, carrega a
- * sombra inteira, e nunca liga o que o contrato proíbe. */
 #include "prova.h"
 
 #include "forja_dualsense.h"
@@ -14,8 +12,6 @@ void provas_efeitos(void) {
          "a sombra nasce com os dois gatilhos em Off");
   espera(s.audio == FORJA_AUDIO_BASE, "e com a base segura do áudio (0x0D)");
 
-  /* Um rumble em curso: o SDL mandou 200/40. O payload do gatilho carrega os
-   * motores, senão calaria a vibração (os bytes agem sem os bits). */
   s.motor_esq = 200;
   s.motor_dir = 40;
   ForjaTrigger arma = {FORJA_TRIGGER_WEAPON, 3, 6, 8};
@@ -63,7 +59,6 @@ void provas_efeitos(void) {
   forja_fx_volume_mic(&fx, &s, 0xFF);
   espera(b(&fx)[6] == 0x40, "o microfone tem teto 0x40");
 
-  /* O que o contrato proíbe não sai nem se alguém pedir. */
   forja_fx_da_sombra(&fx, &s, 0xFF, 0xFF);
   espera((b(&fx)[0] & (FORJA_FX_RUMBLE | FORJA_FX_HAPTICS_SELECT)) == 0,
          "HAPTICS_SELECT e rumble nunca saem do payload (a háptica por áudio vive)");

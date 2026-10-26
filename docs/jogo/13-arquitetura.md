@@ -117,7 +117,7 @@ tela muda.
 ### As sensações — F05
 
 **Hoje:** as salas chamam `Forja.vibrar(l, forte, fraco, ms)` com números
-soltos (`godot/scripts/forja.gd:447`).
+soltos (`godot/scripts/forja.gd:377`).
 
 **Alvo:** uma tabela de sensações em `forja.gd`, e as salas pedem pelo nome:
 
@@ -351,7 +351,7 @@ func robo(l: int, dt: float) -> void          # como o robô joga
 ```
 
 **O catálogo:** `godot/scripts/minigames/catalogo.gd` (`class_name Catalogo`)
-substitui o `SALAS` de `godot/scripts/main.gd:13-24`:
+substitui o `SALAS` de `godot/scripts/main.gd:3-13`:
 
 ```gdscript
 const SECOES := [
@@ -556,7 +556,7 @@ aberta pela fase `fim` para toda sala e todo minigame:
 
 ### A identidade — F04
 
-**Hoje:** o lugar é escolhido no ✕ do lobby (`nativo/nucleo/pads.c:506-570`).
+**Hoje:** o lugar é escolhido no ✕ do lobby (`nativo/nucleo/pads.c:477-538`).
 
 **Alvo:** o lugar é dado **na conexão** (`conectou()` em `pads.c`), com
 `SDL_SetGamepadPlayerIndex`, as luzinhas e a cor na hora. O ✕ do lobby só
@@ -619,7 +619,7 @@ verdade, mas **enxergam um jogo arrumado para a câmera**:
 
 | o que esconde o erro | onde |
 | --- | --- |
-| todo mundo entra por código, e o jogo abre direto na sala ou na tela | `_todos_entram()` e `--sala=`/`--tela=` em `godot/scripts/main.gd:156-200` |
+| todo mundo entra por código, e o jogo abre direto na sala ou na tela | `_todos_entram()` e `--sala=`/`--tela=` em `godot/scripts/main.gd:140-180` |
 | a foto sai em momentos escolhidos (aviso, meio, veredito) | o roteiro de `captura_jogo.gd` |
 | o robô acerta sempre: falha, empate, lugar vazio e controle que cai nunca são filmados | o `_robo` de cada sala |
 | sempre quatro controles | `--simular=4` |
@@ -787,7 +787,7 @@ háptica chega com o papel de som do microfone aberto.
 ## Os limites conhecidos
 
 - **O toque tem a resolução do quadro** (16,7 ms a 60 fps). O SDL já guarda o
-  instante de cada aperto (`b_quando` em `nativo/nucleo/pads.c:377`); uma
+  instante de cada aperto (`b_quando` em `nativo/nucleo/pads.c:351`); uma
   ficha futura expõe `Forja.apertou_ha(l, botao)` para julgar pelo instante
   do aperto, não pelo quadro.
 - **Nomes em C:** o tipo C da háptica por material se chama `MaterialHaptico`,

@@ -1,9 +1,4 @@
 extends Node3D
-## Quadro 05 — A Dissonância: a fita enroscou. A sala apaga, a cor escorrega
-## (o vermelho para um lado, o azul para o outro), faixas da imagem
-## escorregam de lado e a fita sai do cassete em laçadas por cima de tudo.
-## Os jogadores continuam acesos (o néon é deles) e o HUD continua legível.
-## Nenhuma palavra de erro: o erro é a fita.
 
 const Fita := preload("res://estudos/direcao/fita.gd")
 const Hud := preload("res://estudos/direcao/hud.gd")
@@ -20,8 +15,6 @@ var cabecas: Array = []
 func montar(estudo) -> void:
 	e = estudo
 	Cena.montar(self, e, 1.0)
-	# o mundo enrosca forte; o HUD fica por cima, só com a cor escorregando
-	# um pouco (ele tem de continuar legível)
 	Mundo.pos(self, 8, {"aberracao": 7.0, "rasgo": 0.24, "desbota": 0.3, "semente": 3.0, "varredura": 0.12,
 		"vinheta": 0.55, "grao": 0.05})
 	Hud.camada(self, _hud, 10)
@@ -36,8 +29,6 @@ func _hud(ci: CanvasItem) -> void:
 	_fita_enroscada(ci)
 
 
-## A fita sai da janela do deck e cai em laçadas pela tela (o óxido marrom,
-## com o brilho da fita por cima).
 func _fita_enroscada(ci: CanvasItem) -> void:
 	var inicio := Vector2(1068, 132)
 	var pontos := PackedVector2Array()

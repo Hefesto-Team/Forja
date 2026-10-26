@@ -22,13 +22,13 @@ da câmera», e a opção «Reações». Esta ficha leva as três ao jogo.
 - `godot/scripts/ui/tela_opcoes.gd`: as linhas em `abrir()` (46 `["tremor", "Movimento da câmera", "sessao"]`, 47
   `flashes`), `trocar()` (79 a 82) e `valor()` (99, 100). São 10 linhas; o quadro mede
   `124 + 80 + 10 × 72 + 48 + 70` = 1042 px de altura.
-- Quem lê `Opcoes.tremor`: `main.gd:929` (o giro do título, `_t * 0.08`), `main.gd:986` (o tremor da câmera na sala,
-  de `sala.tremor`, que `prova.gd:370`/624 e `voz.gd:505` escrevem) e `godot/testes/captura_jogo.gd:43`.
-- `Opcoes.flashes` já se lê em `voz.gd:302` e `sala_jogo.gd:195`; a G15 o lê no `PosFita`.
-- O confete do pódio: `main.gd:490` a 497, `Efeitos.faiscas(salao, alto, cor, 22, 0.9)` a cada 0,45 s.
-- `main.gd:414` `_seguir_a_partida()`: ✕ no placar entra na sala seguinte ou no pódio. A noite não para no meio.
+- Quem lê `Opcoes.tremor`: `main.gd:848` (o giro do título, `_t * 0.08`), `main.gd:898` (o tremor da câmera na sala,
+  de `sala.tremor`, que `prova.gd:324`/624 e `voz.gd:462` escrevem) e `godot/testes/captura_jogo.gd:22`.
+- `Opcoes.flashes` já se lê em `voz.gd:264` e `sala_jogo.gd:132`; a G15 o lê no `PosFita`.
+- O confete do pódio: `main.gd:455` a 497, `Efeitos.faiscas(salao, alto, cor, 22, 0.9)` a cada 0,45 s.
+- `main.gd:382` `_seguir_a_partida()`: ✕ no placar entra na sala seguinte ou no pódio. A noite não para no meio.
 - `godot/scripts/partida.gd`: `salas` (3, 5 ou 9), `passo`, `rotulo()`; a G12 acrescenta `lado()`.
-- `godot/scripts/traducoes.gd:161` `"Movimento da câmera": "Camera motion"`.
+- `godot/scripts/traducoes.gd:145` `"Movimento da câmera": "Camera motion"`.
 - Os sons já gerados: `godot/estudos/direcao/som/fx_virar.wav` (o eject em 0 ms, o plástico de 250 a 1150 ms, o
   clunk de entrar em 1380 ms) e `fx_caneta.wav` (400 ms).
 
@@ -70,15 +70,15 @@ seguinte: abre o virar e depois o intervalo.
 
 | o que | inteiro | reduzido | onde mora | a G16 |
 | --- | --- | --- | --- | --- |
-| tremor da câmera | até 4 batidas | nenhum | `main.gd:986` (todo tremor de sala passa aqui) | troca `Opcoes.tremor` por `not Opcoes.reduzido()` |
-| o giro do título | `_t * 0.08` | parado | `main.gd:929` | idem |
+| tremor da câmera | até 4 batidas | nenhum | `main.gd:898` (todo tremor de sala passa aqui) | troca `Opcoes.tremor` por `not Opcoes.reduzido()` |
+| o giro do título | `_t * 0.08` | parado | `main.gd:848` | idem |
 | push-in, órbita, travelling, grua | os do 01 | corte seco para o plano final | as poses da câmera (G01, G05) | regra abaixo |
 | roll da Dissonância e a lente a 18 mm | sim | não | a Dissonância (Q5, G05) | regra abaixo |
 | squash e stretch | até 20 % | até 5 % | o boneco e os minigames | `Opcoes.esmagar` |
 | hit-stop | 2 quadros | nenhum | o `secao.gd` de cada seção (`_parar` da K1) | `Opcoes.parada` |
 | o corpo que abaixa no tempo | 2 % | nenhum | o boneco (G08) | regra abaixo |
 | a tela que treme na cortina | 8 px | nenhuma | a entrada (G12) | regra abaixo |
-| o confete | 4 por 1 | 1 por 4, sem giro | `main.gd:497` | `Opcoes.confete(22)`, 6 faíscas |
+| o confete | 4 por 1 | 1 por 4, sem giro | `main.gd:461` | `Opcoes.confete(22)`, 6 faíscas |
 | o adesivo e o carimbo | escala e rotação | 4 quadros de opacidade | as reações (G04 e a ficha das reações) | regra abaixo |
 | a fita girando no virar | o giro | corte | esta ficha | faz |
 
@@ -103,7 +103,7 @@ quadro diz). Nenhum julgamento, janela ou ponto muda.
 - São 11 linhas: `124 + 80 + 11 × 72 + 48 + 70` = 1114 px, mais que 1080. O quadro passa a ter no máximo 1000 px
   (40 de margem); quando as linhas não cabem, a lista desliza em `_rolar` (px) para manter a linha escolhida inteira e
   mais uma de folga à vista; um glifo `cima` ou `baixo` de 32 px em `Tema.MUDO`, por `Glifo.desenhar(self, "cima", Rect2(...), Tema.MUDO)`
-  (`godot/scripts/ui/glifo.gd:16`), marca o lado cortado.
+  (`godot/scripts/ui/glifo.gd:11`), marca o lado cortado.
 - `traducoes.gd`: sai `"Movimento da câmera"`; entram `"Movimento": "Motion"`, `"Inteiro": "Full"`,
   `"Reduzido": "Reduced"`, `"Reações": "Reactions"`, `"Todas": "All"`, `"Só do jogo": "Game only"`,
   `"Nenhuma": "None"`, `"Lado B": "Side B"`, `"Seguir": "Continue"` (se a F07 não a pôs).
@@ -123,7 +123,7 @@ quadro diz). Nenhum julgamento, janela ou ponto muda.
 - `godot/scripts/traducoes.gd`. **De todos**
 - `godot/scripts/som.gd` e `docs/jogo/audio/mapa.csv` (o encanamento abaixo). **De todos:** G09, G11, G12
 - `godot/assets/sons/fx_virar.wav`, `fx_caneta.wav` (cópias)
-- `godot/testes/captura_jogo.gd:43` (`Opcoes.movimento = 1`) e `godot/testes/prova_do_jogo.gd`. **De todos**
+- `godot/testes/captura_jogo.gd:22` (`Opcoes.movimento = 1`) e `godot/testes/prova_do_jogo.gd`. **De todos**
 
 ## Como se joga
 
@@ -275,7 +275,7 @@ Reduzido.
 
 ## Passos
 
-1. `Opcoes.movimento`, a migração, as três ajudas; `main.gd:929`, 986, 497 e `captura_jogo.gd:43`.
+1. `Opcoes.movimento`, a migração, as três ajudas; `main.gd:848`, 986, 497 e `captura_jogo.gd:22`.
 2. `Opcoes.reacoes` e as duas funções.
 3. As duas linhas nas Opções, a lista que desliza, as traduções.
 4. A sensação `"fita"`, o encanamento do som, os dois wav.

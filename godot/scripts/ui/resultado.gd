@@ -1,21 +1,15 @@
 class_name TelaResultado
 extends Control
-## O resultado de toda sala que fecha: o nome da sala, quem venceu numa frase
-## e a colocação dos que jogaram, com os pontos. É a mesma tela para todos, com
-## robô ou com gente: o apito toca em 0 s, o resultado vale a partir de
-## APITO_S e a sala volta sozinha em AVANCA_S (o ✕ pula).
-##
-## No Modo bancada, a tabela de veredito de cada lugar vem embaixo do quadro.
 
 const APITO_S := 0.5
 const AVANCA_S := 6.0
 
-var colocacao: Array = []  ## os lugares, do primeiro ao último
+var colocacao: Array = []
 var pontos: Array = [0, 0, 0, 0]
 var coop := false
 var coop_venceu := false
-var titulo := ""  ## o nome da sala
-var sala_da_bancada: SalaJogo = null  ## só no Modo bancada: a tabela de veredito embaixo
+var titulo := ""
+var sala_da_bancada: SalaJogo = null
 
 var _t := 0.0
 
@@ -53,7 +47,6 @@ func _process(dt: float) -> void:
 	queue_redraw()
 
 
-## O nome de uma feature do catálogo, como a tela o diz.
 static func nome_da_feature(chave: String) -> String:
 	for f in Forja.features():
 		if f.chave == chave:
@@ -61,7 +54,6 @@ static func nome_da_feature(chave: String) -> String:
 	return chave
 
 
-## Quantos lugares dividem o primeiro posto (0 sem ninguém).
 func _empatados_no_topo() -> int:
 	if colocacao.is_empty():
 		return 0
@@ -72,7 +64,6 @@ func _empatados_no_topo() -> int:
 	return n
 
 
-## A frase de quem venceu e a cor dela.
 func _frase() -> Array:
 	if coop:
 		return ["Vocês venceram!", Tema.ETIQUETA] if coop_venceu else ["Não deu desta vez.", Tema.SECAO[3]]
@@ -100,7 +91,6 @@ func _draw() -> void:
 	if compacto:
 		alt_tabela = _altura_da_tabela()
 	var total := alt + (24.0 + alt_tabela if compacto else 0.0)
-	# o quadro da HUD ocupa o alto: com a tabela embaixo, o resultado desce abaixo dele
 	var topo := maxf(170.0 if compacto else 24.0, (size.y - total) * 0.5)
 	var r := Rect2(Vector2((size.x - LARG) * 0.5, topo), Vector2(LARG, alt))
 	Desenho.moldura(self, r, Color(Tema.CASCO, 0.97), Tema.GRAFITE, 2, Tema.RAIO_QUADRO)
@@ -128,11 +118,6 @@ func _draw() -> void:
 			Vector2(maxf(LARG, _largura_da_tabela()), alt_tabela)))
 
 
-# ------------------------------------------------------------ a tabela --
-# O veredito enxuto do Modo bancada: uma linha por feature (o glifo e o nome),
-# uma coluna por lugar; na célula, o selo com ícone e palavra. O porquê só
-# aparece no que não passou — o resto mora no livro da sessão.
-
 func _lugares_da_tabela() -> Array:
 	var lugares: Array = []
 	for l in 4:
@@ -147,7 +132,7 @@ func _largura_da_tabela() -> float:
 
 func _alturas_da_tabela() -> Array:
 	var lugares := _lugares_da_tabela()
-	var linhas: Array = []  # as features, com a altura de cada linha
+	var linhas: Array = []
 	for f in sala_da_bancada.features:
 		var alta := false
 		for l in lugares:

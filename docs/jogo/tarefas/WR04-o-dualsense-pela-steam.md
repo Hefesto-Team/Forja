@@ -24,15 +24,15 @@ a pesquisa como «em aberto» (`docs/jogo/pesquisa/dualsense.md:516`), sem mecan
   `SDL_GetJoystickVendor` e `SDL_GetJoystickProduct` devolvem os do controle real para o espelho
   (`src/joystick/SDL_joystick.c:3579-3600`). O SDL dá o sinal certo: `SDL_GetGamepadSteamHandle`
   (`include/SDL3/SDL_gamepad.h:1017`) é diferente de zero no espelho.
-- O módulo lê o VID e o PID pelo SDL (`nativo/nucleo/pads.c:289-290`). No Linux o sysfs mostra o `28de:11ff` do
-  espelho e a origem sai certa (`origem.c:202-206`). No Windows, sem sysfs, `classificar_windows`
-  (`origem.c:113-133`) só olha o VID e o PID:
+- O módulo lê o VID e o PID pelo SDL (`nativo/nucleo/pads.c:264-265`). No Linux o sysfs mostra o `28de:11ff` do
+  espelho e a origem sai certa (`origem.c:199-203`). No Windows, sem sysfs, `classificar_windows`
+  (`origem.c:112-132`) só olha o VID e o PID:
   ```c
   if (f->vid == VID_SONY && f->pid == PID_DUALSENSE)
     o->tipo = ORIGEM_DUALSENSE_NATIVO;
   ```
 - Em todo sistema o espelho não tem luz, e `cap_efeitos = ps5 && (p->cap_rgb || p->simulado)` sai falso
-  (`pads.c:329`): «efeitos não», sem causa.
+  (`pads.c:303`): «efeitos não», sem causa.
 - `grep -rn 'SteamHandle\|IGNORE_DEVICES\|SteamVirtualGamepadInfo' nativo` dá zero.
 
 ## O alvo
@@ -57,7 +57,7 @@ a pesquisa como «em aberto» (`docs/jogo/pesquisa/dualsense.md:516`), sem mecan
 
 - **Sob o Proton**, o SDL não distingue o espelho por VID (`SDL_gamepad.c:3293-3299`); o handle é o sinal que serve.
 - **O espelho segue sendo controle**: ele joga com botões e analógicos. Não recusar, só dizer.
-- **O detector de espelho** (`pads.c:593-606`) continua: o handle só melhora o rótulo.
+- **O detector de espelho** (`pads.c:560-568`) continua: o handle só melhora o rótulo.
 
 ## Não fazer
 

@@ -1,9 +1,7 @@
-/* FORJA — o movimento do report 0x01. Ver include/forja_movimento.h. */
 #include "forja_movimento.h"
 
 #define CORPO_GIRO 15
 #define CORPO_ACEL 21
-/* report id + corpo até o fim do acelerômetro (corpo[26]) */
 #define MINIMO (1 + CORPO_ACEL + 6)
 
 static int16_t le16(const uint8_t *p) { return (int16_t)(p[0] | (p[1] << 8)); }

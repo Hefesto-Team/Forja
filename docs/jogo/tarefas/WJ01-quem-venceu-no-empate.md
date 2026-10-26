@@ -21,25 +21,25 @@ cura é uma regra só, que todos leem.
 
 Quatro donos para a mesma pergunta, e só um deles erra:
 
-- `godot/scripts/salas/sala_jogo.gd:400-407`, `vencedor()`: ordena pelos pontos e, no empate, põe o lugar menor
+- `godot/scripts/salas/sala_jogo.gd:325-330`, `vencedor()`: ordena pelos pontos e, no empate, põe o lugar menor
   primeiro. É a ordem da tabela, e está certa como ordem.
-- `godot/scripts/salas/sala_jogo.gd:386-388`, o evento lê a primeira posição como se fosse a vitória:
+- `godot/scripts/salas/sala_jogo.gd:314-315`, o evento lê a primeira posição como se fosse a vitória:
 
   ```gdscript
   Forja.evento("minigame", 0, {"slot": id, "evento": "terminou",
   	"vencedor": colocacao[0] if not colocacao.is_empty() else -1,
   ```
 
-- `godot/scripts/salas/sala_jogo.gd:412-418`, `_celebrar()`: só `colocacao[0]` faz `emote-yes`, com faíscas na cor
+- `godot/scripts/salas/sala_jogo.gd:335-341`, `_celebrar()`: só `colocacao[0]` faz `emote-yes`, com faíscas na cor
   dele.
-- `godot/scripts/ui/resultado.gd:64-87`: `_empatados_no_topo()` conta quem tem os pontos do primeiro e `_frase()`
+- `godot/scripts/ui/resultado.gd:57-78`: `_empatados_no_topo()` conta quem tem os pontos do primeiro e `_frase()`
   escreve «P%d e P%d empatam!» ou «Empate!».
-- `godot/scripts/ui/resultado.gd:112`: a coluna da colocação vem de `Partida.colocacoes` (`godot/scripts/partida.gd:75`,
+- `godot/scripts/ui/resultado.gd:102`: a coluna da colocação vem de `Partida.colocacoes` (`godot/scripts/partida.gd:52`,
   «1 + quantos fizeram mais: o empate divide a de cima»).
-- `godot/scripts/som.gd:220-231`, `jingle_do_resultado`: conta de novo, à mão, quantos estão no topo, e toca
+- `godot/scripts/som.gd:185-194`, `jingle_do_resultado`: conta de novo, à mão, quantos estão no topo, e toca
   `JIN_EMPATE`.
-- As provas exigem o número errado: `godot/testes/prova_do_jogo.gd:670-673` (todo `terminou` com `vencedor` ≥ 0),
-  `:1254`, e `godot/testes/checagens_visuais.gd:201-206` com o caso `godot/testes/prova_visual.gd:490-491`
+- As provas exigem o número errado: `godot/testes/prova_do_jogo.gd:616-617` (todo `terminou` com `vencedor` ≥ 0),
+  `:1254`, e `godot/testes/checagens_visuais.gd:170-175` com o caso `godot/testes/prova_visual.gd:437-438`
   («o vencedor -1 (ninguém) reprova»). Uma partida de quatro com o robô ruim, todos em 0, grava o P1 como vencedor e
   passa.
 - O que vem: a H08 muda o evento para `campos_do_fim()` e o `_celebrar` para `quem_comemora()`/`quem_brilha()`, os

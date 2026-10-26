@@ -1,8 +1,4 @@
 extends Node3D
-## Quadro 04 — O cartão do minigame como a capa de uma fita (o J-card): a
-## lombada com o nome, a tarja da seção, o título a caneta, o gênero, o
-## «Como jogar» com os glifos do controle, o contador da fita e os quatro
-## lugares (quem está pronto, quem ainda treina). Ao lado, o boneco no gesto.
 
 const Fita := preload("res://estudos/direcao/fita.gd")
 const Hud := preload("res://estudos/direcao/hud.gd")
@@ -41,7 +37,6 @@ func _hud(ci: CanvasItem) -> void:
 	var rr := Rect2(-r.size * 0.5, r.size)
 	Hud.caixa(ci, Rect2(rr.position + Vector2(8, 12), rr.size), Fita.SOMBRA, 8)
 	Hud.caixa(ci, rr, Fita.ETIQUETA, 8)
-	# a lombada: a dobra do J-card, com o nome deitado
 	var lombada := 104.0
 	ci.draw_rect(Rect2(rr.position, Vector2(lombada, rr.size.y)), Fita.ETIQUETA_SOMBRA)
 	ci.draw_rect(Rect2(rr.position + Vector2(0, 0), Vector2(lombada, 22)), tinta)
@@ -50,19 +45,15 @@ func _hud(ci: CanvasItem) -> void:
 	Hud.texto(ci, Fita.vt(), 46, Vector2.ZERO, "S1  ·  O MARTELO DE HEFESTO  ·  LADO A", Fita.TINTA)
 	ci.draw_set_transform(r.get_center(), 0.008, Vector2.ONE)
 	var x0 := rr.position.x + lombada + 44
-	# a tarja da seção e o título a caneta
 	ci.draw_rect(Rect2(Vector2(rr.position.x + lombada, rr.position.y + 22), Vector2(rr.size.x - lombada, 16)), tinta)
 	Hud.texto(ci, Fita.vt(), 40, Vector2(x0, rr.position.y + 62), "A CENTELHA", Fita.TINTA_SUAVE)
 	Hud.texto(ci, Fita.marcador(), 74, Vector2(x0 - 6, rr.position.y + 108), "O Martelo de Hefesto", Fita.TINTA)
-	# o gênero, carimbado
 	var g := Rect2(Vector2(x0, rr.position.y + 228), Vector2(330, 54))
 	Hud.caixa(ci, g, Color(Fita.FITA, 0.0), 6, tinta, 3)
 	Hud.texto(ci, Fita.archivo(700), 34, g.position + Vector2(0, 7), "Todos contra todos", Fita.TINTA, HORIZONTAL_ALIGNMENT_CENTER, g.size.x)
-	# o contador da fita: a faixa no lado
 	Hud.texto(ci, Fita.vt(), 40, Vector2(rr.end.x - 330, rr.position.y + 236), "LADO A", Fita.TINTA_SUAVE)
 	ci.draw_set_transform(r.get_center(), 0.008, Vector2.ONE)
 	Hud.contador(ci, Vector2(rr.end.x - 200, rr.position.y + 216), "03", 64)
-	# as linhas pautadas e o como-se-joga
 	var y := rr.position.y + 318
 	ci.draw_line(Vector2(x0, y), Vector2(rr.end.x - 44, y), Fita.ETIQUETA_SOMBRA, 2.0)
 	Hud.texto(ci, Fita.vt(), 40, Vector2(x0, y + 16), "COMO JOGAR", Fita.TINTA_SUAVE)
@@ -72,7 +63,6 @@ func _hud(ci: CanvasItem) -> void:
 		Hud.glifo(ci, linhas[i][0], Rect2(Vector2(x0, yl), Vector2(64, 64)), Fita.TINTA)
 		Hud.texto(ci, Fita.archivo(600), 44, Vector2(x0 + 88, yl + 6), linhas[i][1], Fita.TINTA)
 		ci.draw_line(Vector2(x0, yl + 80), Vector2(rr.end.x - 44, yl + 80), Fita.ETIQUETA_SOMBRA, 2.0)
-	# os quatro lugares: o treino não vale ponto
 	var yc := rr.end.y - 232
 	Hud.texto(ci, Fita.vt(), 40, Vector2(x0, yc), "TREINO  ·  NÃO VALE PONTO", Fita.TINTA_SUAVE)
 	Hud.texto(ci, Fita.archivo(600), 34, Vector2(x0, yc + 4), "Começa em 6", Fita.TINTA, HORIZONTAL_ALIGNMENT_RIGHT, rr.end.x - 44 - x0)

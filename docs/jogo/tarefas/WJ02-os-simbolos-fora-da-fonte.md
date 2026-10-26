@@ -34,16 +34,16 @@ Medido em 09/10/2026 com `fc-query` no conjunto de caracteres de cada fonte de `
 
 - Os seis `.import` de `godot/assets/fontes/` trazem, na linha 22, `allow_system_fallback=true`, e `fallbacks=[]`
   logo abaixo: o que falta vem da máquina.
-- `godot/scripts/tema.gd:69-87`: `fonte()` e `mono()` são `FontVariation` sobre a fonte, sem fallback declarado.
+- `godot/scripts/tema.gd:52-69`: `fonte()` e `mono()` são `FontVariation` sobre a fonte, sem fallback declarado.
 - Os símbolos de botão que o portão 8 deixa passar, desenhados como letra:
-  `godot/scripts/ui/tela_lobby.gd:64` («Aperte ✕ no seu controle para entrar.»),
-  `godot/scripts/salas/sala_jogo.gd:471` («✕ Quando pronto», o status do aviso),
-  `godot/scripts/main.gd:768` («Seção 9 · □ a partida · △ a Prova de Fogo», a placa do salão).
-- Os que o portão 8 reprova (são da V08): ✓ em `godot/scripts/ui/painel_sala.gd:74`,
-  `godot/scripts/ui/cartao_jogador.gd:78`, `godot/scripts/salas/sala_jogo.gd:477` e nos status das salas antigas
-  (`caminhos.gd:472-473`, `impacto.gd:526`, `galeria.gd:624`, `canto.gd:525`, `voz.gd:565-570`); ✓ e ✗ em
-  `godot/scripts/ui/resultado.gd:197` e `godot/scripts/ui/livro.gd:131`, `:162`, `:164`; ⚡ em
-  `godot/scripts/ui/desenho.gd:223`; ♪ ♫ num `Label3D` em `godot/scripts/salas/canto.gd:302`.
+  `godot/scripts/ui/tela_lobby.gd:55` («Aperte ✕ no seu controle para entrar.»),
+  `godot/scripts/salas/sala_jogo.gd:386` («✕ Quando pronto», o status do aviso),
+  `godot/scripts/main.gd:706` («Seção 9 · □ a partida · △ a Prova de Fogo», a placa do salão).
+- Os que o portão 8 reprova (são da V08): ✓ em `godot/scripts/ui/painel_sala.gd:63`,
+  `godot/scripts/ui/cartao_jogador.gd:69`, `godot/scripts/salas/sala_jogo.gd:389` e nos status das salas antigas
+  (`caminhos.gd:423-424`, `impacto.gd:487`, `galeria.gd:584`, `canto.gd:485`, `voz.gd:520-525`); ✓ e ✗ em
+  `godot/scripts/ui/resultado.gd:182` e `godot/scripts/ui/livro.gd:121`, `:162`, `:164`; ⚡ em
+  `godot/scripts/ui/desenho.gd:189`; ♪ ♫ num `Label3D` em `godot/scripts/salas/canto.gd:271`.
 - Nas árvores em voo (a da Fita e a do cavaleiro) os mesmos textos seguem; na da Fita, já com `Tema.archivo`: a
   troca de fonte da G14 não traz nenhum destes caracteres.
 - A prova visual mede a letra, a margem, o contraste e a colisão do que `Desenho.anotar` guarda; não confere se o

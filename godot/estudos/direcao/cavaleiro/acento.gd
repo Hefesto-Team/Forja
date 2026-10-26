@@ -1,14 +1,4 @@
 extends RefCounted
-## O acento do cavaleiro (04, a peça se distingue): o néon do dono mora numa
-## malha à parte, nunca num tom do corpo. Cada acento é recortado da própria
-## peça (os triângulos do osso dela, cortados por planos), descolado 0,0012
-## pela normal da face e preso à mesma pele, para seguir a animação.
-##
-##   o friso do superior: faixa de 0,010 na barra e na gola do osso `torso`
-##   (a gola logo abaixo do pescoço, y 0,343);
-##   a costura do inferior: linha de 0,008 no lado de fora de cada perna.
-##
-## Medidas nas unidades do personagem (0,67 de altura no male-a).
 
 const Fita := preload("res://estudos/direcao/fita.gd")
 
@@ -16,14 +6,9 @@ const FRISO := 0.010
 const COSTURA := 0.008
 const DESCOLA := 0.0012
 const ENERGIA := 1.6
-## Onde a cabeça começa: o y do osso `head` em descanso (Racas.PESCOCO).
 const PESCOCO := 0.343
 
 
-## Os triângulos de `malha` cujo primeiro vértice pesa nos `ossos`, que
-## passam no `filtro` (pela normal da face) e cortados pelos `planos`
-## ([normal, d]: fica o que tem normal·v >= d). Devolve [posições, normais,
-## ossos, pesos] por vértice, já descolados.
 static func recortar(malha: Mesh, ossos: Array, filtro: Callable, planos: Array) -> Array:
 	var arr := malha.surface_get_arrays(0)
 	var vs: PackedVector3Array = arr[Mesh.ARRAY_VERTEX]
@@ -79,7 +64,6 @@ static func _cortar(pol: Array, n: Vector3, d: float) -> Array:
 	return out
 
 
-## A caixa dos vértices de `malha` que pesam nos `ossos` (acima de `y_min`).
 static func caixa(malha: Mesh, ossos: Array, y_min := -1.0) -> AABB:
 	var arr := malha.surface_get_arrays(0)
 	var vs: PackedVector3Array = arr[Mesh.ARRAY_VERTEX]
@@ -98,8 +82,6 @@ static func caixa(malha: Mesh, ossos: Array, y_min := -1.0) -> AABB:
 	return cx
 
 
-## O friso: a barra (o y mais baixo do torso) e a gola (o mais alto), nas
-## faces de pé.
 static func friso(superior: Mesh) -> Array:
 	var cx := caixa(superior, [3])
 	var em_pe := func(fn: Vector3) -> bool: return absf(fn.y) < 0.5
@@ -107,12 +89,6 @@ static func friso(superior: Mesh) -> Array:
 	return _somar([barra, gola(superior)])
 
 
-## Só a gola do friso: a faixa de 0,010 logo abaixo do pescoço, que marca o
-## corte entre o rosto e o superior quando os dois têm L parecida (04, o
-## critério do rosto). No y mais alto do torso, ou no pescoço se a peça sobe
-## além dele: a gola em pé da Jaqueta preta (até y 0,385), as alças do
-## Macacão e da Regata verde (até 0,357) ficam atrás da cabeça, e a faixa lá
-## em cima não se via de frente.
 static func gola(superior: Mesh) -> Array:
 	var cx := caixa(superior, [3])
 	var topo := minf(cx.end.y, PESCOCO)
@@ -120,15 +96,12 @@ static func gola(superior: Mesh) -> Array:
 	return recortar(superior, [3], em_pe, [[Vector3.UP, topo - FRISO], [Vector3.DOWN, -topo]])
 
 
-## A costura: na frente de cada perna, a faixa de 0,008 junto ao lado de
-## fora; no lado de fora, a linha de 0,008 no meio da profundidade da perna.
 static func costura(inferior: Mesh) -> Array:
 	var partes_ := []
 	for osso in [1, 2]:
 		var toda := caixa(inferior, [osso])
 		if toda.size == Vector3.ZERO:
 			continue
-		# o lado de fora pela calça, não pelo sapato (acima de um quarto da perna)
 		var cx := caixa(inferior, [osso], toda.position.y + toda.size.y * 0.25)
 		var s := signf(toda.get_center().x)
 		var fora := maxf(s * cx.position.x, s * cx.end.x)
@@ -149,7 +122,6 @@ static func _somar(lista: Array) -> Array:
 	return out
 
 
-## A malha de acento, pronta para pôr no esqueleto.
 static func malha(dados: Array) -> ArrayMesh:
 	var m := ArrayMesh.new()
 	if (dados[0] as PackedVector3Array).is_empty():
@@ -164,7 +136,6 @@ static func malha(dados: Array) -> ArrayMesh:
 	return m
 
 
-## A área de frente (projetada no plano xy, só as faces que olham para +z).
 static func area_frente(vs: PackedVector3Array, ns: PackedVector3Array) -> float:
 	var s := 0.0
 	for t in vs.size() / 3:
@@ -177,7 +148,6 @@ static func area_frente(vs: PackedVector3Array, ns: PackedVector3Array) -> float
 	return s
 
 
-## Põe o friso e a costura num esqueleto que já tem body-sup e body-inf.
 static func vestir(esq: Skeleton3D, cor: Color, energia := ENERGIA) -> void:
 	for par in [["body-sup", "acento-friso", true], ["body-inf", "acento-costura", false]]:
 		if not esq.has_node(NodePath(par[0])):

@@ -1,12 +1,9 @@
 class_name Kit
 extends RefCounted
-## As peças do kit Mini Dungeon (Kenney, CC0), na escala do jogo.
 
 const K := 2.0
 const CAMINHO := "res://assets/kenney/%s.glb"
-## Um pacote por pasta (G10). Sem pasta no nome, vale esta.
 const PACOTE_PADRAO := "mini-dungeon"
-## O fator de cada pasta sobre a escala pedida (a escala de cada kit, docs/jogo/14); as outras valem 1.
 const ESCALA_DO_PACOTE := {
 	"castle-kit": 1.4, "survival-kit": 1.4, "factory-kit": 0.5, "building-kit": 0.35,
 	"pirate-kit": 0.4, "cube-pets": 0.4, "blaster-kit": 0.3, "modular-dungeon-kit": 0.25,
@@ -16,14 +13,12 @@ const ESCALA_DO_PACOTE := {
 static var _cenas := {}
 
 
-## O caminho de uma peça: "floor" é do mini-dungeon; "castle-kit/tower-base" traz a pasta antes da barra.
 static func caminho(nome: String) -> String:
 	if "/" in nome:
 		return CAMINHO % nome
 	return CAMINHO % (PACOTE_PADRAO + "/" + nome)
 
 
-## O fator da pasta da peça sobre a escala pedida.
 static func escala_do_pacote(nome: String) -> float:
 	if not "/" in nome:
 		return 1.0
@@ -54,8 +49,6 @@ static func solido(pai: Node, centro: Vector3, tamanho: Vector3) -> StaticBody3D
 	return corpo
 
 
-## Com `brilho` > 0 o material brilha, e o brilho tem dono (Tema.emissivo): um lugar (0 a 3), "mundo" (até 1,2) ou "forja"
-## (até 2,4). Quem chama sem brilho não precisa dizer o dono.
 static func material(cor: Color, brilho := 0.0, rugoso := 0.8, dono: Variant = "mundo") -> StandardMaterial3D:
 	var m := StandardMaterial3D.new()
 	m.albedo_color = cor
@@ -65,8 +58,6 @@ static func material(cor: Color, brilho := 0.0, rugoso := 0.8, dono: Variant = "
 	return m
 
 
-## Um material chapado (sem luz): o que é interface dentro do mundo (a mira,
-## a régua do equilíbrio). `por_cima`: desenha na frente de tudo.
 static func chapado(cor: Color, por_cima := false) -> StandardMaterial3D:
 	var m := StandardMaterial3D.new()
 	m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
@@ -90,7 +81,6 @@ static func caixa(pai: Node, tamanho: Vector3, pos: Vector3, mat: Material) -> M
 	return mi
 
 
-## Um cilindro em pé (`raio_topo` < 0: reto; senão, um tronco de cone).
 static func cilindro(pai: Node, raio: float, altura: float, pos: Vector3, mat: Material, raio_topo := -1.0) -> MeshInstance3D:
 	var mi := MeshInstance3D.new()
 	var c := CylinderMesh.new()
@@ -120,7 +110,6 @@ static func esfera(pai: Node, raio: float, pos: Vector3, mat: Material) -> MeshI
 	return mi
 
 
-## Um anel (toro de 8 por 6) deitado, para o que é facetado como o resto do jogo.
 static func anel(pai: Node, raio_dentro: float, raio_fora: float, pos: Vector3, mat: Material) -> MeshInstance3D:
 	var mi := MeshInstance3D.new()
 	var t := TorusMesh.new()
@@ -135,8 +124,6 @@ static func anel(pai: Node, raio_dentro: float, raio_fora: float, pos: Vector3, 
 	return mi
 
 
-## O anel de 8 lados no chão, na cor do lugar, com as lâmpadas do controle à
-## frente: a cor nunca sozinha (arte/04). Devolve o nó, para esconder ou apagar.
 static func anel_do_dono(pai: Node3D, lugar: int) -> Node3D:
 	var cor: Color = Tema.JOGADOR[lugar]
 	var a := Node3D.new()
@@ -169,8 +156,6 @@ static func anel_do_dono(pai: Node3D, lugar: int) -> Node3D:
 	return a
 
 
-## O martelo do Hefesto: cabo de madeira e cabeça de ferro com a face clara,
-## a pega na origem e a cabeça para cima (+y).
 static func martelo(pai: Node, escala := 1.0) -> Node3D:
 	var m := Node3D.new()
 	m.scale = Vector3.ONE * escala
@@ -181,7 +166,6 @@ static func martelo(pai: Node, escala := 1.0) -> Node3D:
 	return m
 
 
-## Uma arena retangular: chão de lajotas e meia parede em volta.
 static func arena(pai: Node, meia_largura: int, meia_fundura: int) -> void:
 	var sorteio := RandomNumberGenerator.new()
 	sorteio.seed = 11
@@ -204,8 +188,6 @@ static func arena(pai: Node, meia_largura: int, meia_fundura: int) -> void:
 	solido(pai, Vector3(xw, 1.1, 0), Vector3(2, 2.2, zw * 2))
 
 
-## A bigorna do logo do Hefesto, pequena: tampo claro com o chifre, cintura
-## roxa, base azul-ardósia. A de cada jogador nas salas da forja.
 static func bigorna(pai: Node, pos: Vector3, escala := 0.55) -> Node3D:
 	var b := Node3D.new()
 	b.position = pos

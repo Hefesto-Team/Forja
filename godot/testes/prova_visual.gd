@@ -1,22 +1,4 @@
 extends Node
-## A prova visual (F09): UMA partida, do título ao pódio, pelo fluxo que o
-## jogador percorre, com os controles simulados e o robô de temperamento
-## escolhido. A cada 2 s de jogo guarda um quadro pequeno (480×270) e os
-## retângulos de todo texto desenhado; no fim monta a prancha (grade de 6
-## colunas, a hora embaixo de cada quadro) e roda as checagens sobre TODOS os
-## quadros e sobre a linha do tempo. Sai com erro se alguma reprovou.
-##
-## Precisa de janela (Xvfb com OpenGL por software): o `--headless` não devolve
-## imagem. Quem junta as quatro partidas é tests/prova_visual.sh.
-##
-##   xvfb-run -a godot --rendering-driver opengl3 --path godot res://testes/prova_visual.tscn \
-##     -- --simular=4 --robo=bom --semente=7 --saida=<pasta> --salas=5 --indice=1 [--cabo]
-##
-## `--autoteste` não joga: confere que cada checagem reprova o seu defeito
-## plantado e aprova o quadro limpo (roda sem janela).
-##
-## Aparência (luz, cor, brilho, arte) não se aprova aqui: o renderizador por
-## software não é a placa de vídeo. A prova confere disposição.
 
 const AMOSTRA_S := 2.0
 const TELA := Vector2(1920, 1080)
@@ -24,11 +6,11 @@ const COLUNAS := 6
 const QUADRO := Vector2i(480, 270)
 const CELULA_A := 290
 const POR_PAGINA := 60
-const LIMITE_S := 5400.0  ## o teto de uma partida, em s de jogo
+const LIMITE_S := 5400.0
 
 var jogo: Node
 var t := 0.0
-var _proximo := 1.0  ## o primeiro quadro um segundo depois de abrir: o contador de quadros ainda não andou
+var _proximo := 1.0
 var saida := ""
 var indice := 1
 var n_salas := 5
@@ -37,7 +19,7 @@ var quadros: Array = []
 var textos: Array = []
 var observacoes: Array = []
 var falhas: Array = []
-var falhas_da_prancha: Array = []   ## as da prancha cinza da montagem: entram mesmo com o roteiro inteiro
+var falhas_da_prancha: Array = []
 var _cabo_fora := false
 var _batida := 30.0
 
@@ -64,17 +46,13 @@ func _ready() -> void:
 		printerr("FAIL a prova visual precisa de janela (xvfb-run), o --headless não devolve imagem")
 		get_tree().quit(2)
 		return
-	Desenho._coletar = "memoria"  # colhe cada frase desenhada (as minúsculas)
+	Desenho._coletar = "memoria"
 	jogo = load("res://scenes/main.tscn").instantiate()
 	add_child(jogo)
 	var ok := await _roteiro()
 	await _fechar(ok)
 
 
-# ------------------------------------------------------------ o relógio --
-
-## Um quadro de jogo: espera o quadro, anda o relógio, observa e, de 2 em 2 s,
-## fotografa. TODA espera do roteiro passa por aqui.
 func _quadro() -> void:
 	await get_tree().process_frame
 	t += get_process_delta_time()
@@ -96,7 +74,6 @@ func _esperar_s(s: float) -> void:
 		await _quadro()
 
 
-## Espera a condição, até `max_s` s de jogo. Devolve se ela veio.
 func _ate(cond: Callable, max_s: float, o_que: String) -> bool:
 	var fim := t + max_s
 	while not cond.call():
@@ -123,20 +100,15 @@ func _observar() -> void:
 		observacoes.append({"t": t, "slot": sala.id, "fase": str(sala.fase), "resta": -1.0})
 
 
-# ------------------------------------------------------------ o roteiro --
-
 func _roteiro() -> bool:
 	var n: int = Forja.simular
 	await _esperar_s(1.2)
 	if jogo.estado != "titulo":
 		falhas.append("o jogo não abriu no título (%s)" % jogo.estado)
 		return false
-	# a prancha do título (G01): o título, o PLAY com o cassete pela metade e as quatro armaduras acesas
 	var do_titulo: Array = [null, null, null]
 	do_titulo[0] = await _foto_solta()
-	# o ✕ do P1 é o PLAY; da introdução ao salão, quem aperta é o robô do fluxo (main.gd _robo)
 	await _aperta(0, Forja.CRUZ)
-	# a descida é cúbica, 720 px em 4 batidas: a metade (360 px) cai em 4 × ∛0,5 ≈ 3,17 batidas
 	await _ate(func() -> bool: return jogo.estado != "titulo" or (jogo.titulo.play_desde >= 0.0
 		and jogo.titulo.batidas - jogo.titulo.play_desde >= 3.17), 10.0, "o cassete pela metade")
 	if jogo.estado == "titulo":
@@ -156,12 +128,12 @@ func _roteiro() -> bool:
 	await _esperar_s(1.5)
 	if not await _ir_ate_a_bigorna():
 		return false
-	await _aperta(0, Forja.QUADRADO)  # □: escolher a partida
+	await _aperta(0, Forja.QUADRADO)
 	if not await _ate(func() -> bool: return jogo.overlay == "partida", 5.0, "a escolha da partida"):
 		return false
 	await _esperar_s(0.8)
 	if n_salas == 3:
-		await _aperta(0, Forja.ESQUERDA)  # 5 → 3 salas
+		await _aperta(0, Forja.ESQUERDA)
 		await _esperar_s(0.4)
 	await _aperta(0, Forja.CRUZ)
 	if not await _ate(func() -> bool: return jogo.partida != null, 8.0, "a partida"):
@@ -174,12 +146,10 @@ func _roteiro() -> bool:
 			return false
 		_cabo()
 		await _quadro()
-	await _esperar_s(AMOSTRA_S * 3.0)  # o pódio, uns quadros
+	await _esperar_s(AMOSTRA_S * 3.0)
 	return true
 
 
-## A partida de um jogador que perde o cabo no meio do segundo minigame e o
-## recupera no terceiro.
 func _cabo() -> void:
 	if not com_cabo or jogo.partida == null:
 		return
@@ -195,8 +165,6 @@ func _cabo() -> void:
 		Forja.ctl.simulador_cabo(0, true)
 
 
-## O P1 anda até o pé da bigorna pelo analógico, olhando a posição (o mundo é o
-## do controle: LX é x, LY é z).
 func _ir_ate_a_bigorna() -> bool:
 	var p = jogo.jogadores[0]
 	var centro: Vector3 = jogo.salao.bigorna.global_position
@@ -216,8 +184,6 @@ func _ir_ate_a_bigorna() -> bool:
 	await _esperar_s(0.6)
 	return true
 
-
-# ------------------------------------------------------------ os quadros --
 
 func _topo() -> Node:
 	match str(jogo.overlay):
@@ -255,10 +221,6 @@ func _fotografar() -> void:
 	var estado := str(jogo.estado)
 	var topo := _topo()
 	var frases: Array = []
-	# um nó que desenhou em mais de um quadro durante a coleta vale pelo último: o
-	# que está na tela é o último desenho, e dois estados do mesmo texto («Nenhum
-	# controle» e «4 controles») não se encavalam, um só foi apagado pelo outro; nem o
-	# cartão que desliza, desenhado duas vezes no mesmo quadro
 	var ultimo := {}
 	for r in Desenho.retangulos:
 		ultimo[r.no] = maxi(int(ultimo.get(r.no, -1)), int(r.quadro))
@@ -272,7 +234,6 @@ func _fotografar() -> void:
 			r.contraste = _contraste(img, r.rect, r.cor)
 			frases.append(r)
 	Desenho.retangulos.clear()
-	# o relógio que a tela mostra também não sobe (a conta da sala é outra régua)
 	if sala is SalaJogo and sala.fase == "jogo" and not sala.treinando:
 		observacoes.append_array(ChecagensVisuais.relogios_na_tela(t, "%s#%d" % [id, sala.get_instance_id()], frases))
 	var peq := ChecagensVisuais.pequeno(img)
@@ -284,13 +245,11 @@ func _fotografar() -> void:
 	textos.append({"t": t, "estado": estado, "sala": id, "frases": frases})
 
 
-## A razão de contraste entre a cor do texto e o fundo ao redor dele, lido nos
-## pixels de verdade (um anel de 3 px fora do retângulo). -1: não deu para medir.
 func _contraste(img: Image, r: Rect2, cor: Color) -> float:
 	if cor.a < 0.3:
 		return -1.0
 	var k := Vector2(img.get_size()) / TELA
-	var fora := r.grow(maxf(3.0, 2.0 / k.x))  # ao menos 2 pixels da imagem para fora do texto
+	var fora := r.grow(maxf(3.0, 2.0 / k.x))
 	var pontos: Array = []
 	for i in 8:
 		var f := (i + 0.5) / 8.0
@@ -308,12 +267,9 @@ func _contraste(img: Image, r: Rect2, cor: Color) -> float:
 		return -1.0
 	luzes.sort()
 	var fundo := float(luzes[luzes.size() / 2])
-	# o texto esmaecido (alfa < 1) chega ao olho misturado com o fundo
 	var luz_texto := ChecagensVisuais.luminancia(cor) * cor.a + fundo * (1.0 - cor.a)
 	return ChecagensVisuais.razao(luz_texto, fundo)
 
-
-# ------------------------------------------------------ o fim: as checagens --
 
 func _linha_do_tempo() -> Array:
 	var linhas: Array = []
@@ -348,7 +304,7 @@ func _fechar(roteiro_ok: bool) -> void:
 	todos.append_array(ChecagensVisuais.relogio_sobe(observacoes))
 	todos.append_array(ChecagensVisuais.fim_sem_vencedor(eventos))
 	todos.append_array(ChecagensVisuais.minuscula(Desenho._coletados.keys()))
-	var resumo := ChecagensVisuais.resumir(todos)  # o mesmo defeito, parado na tela, conta uma vez
+	var resumo := ChecagensVisuais.resumir(todos)
 	reprovados = resumo.linhas
 	avisos.append_array(ChecagensVisuais.desempenho(eventos))
 	if reprovados.is_empty():
@@ -372,7 +328,6 @@ func _fechar(roteiro_ok: bool) -> void:
 	get_tree().quit(1 if not reprovados.is_empty() else 0)
 
 
-## Os quadros que uma reprovação cita pela hora, para a prancha marcar.
 func _marcar(reprovados: Array) -> Dictionary:
 	var m := {}
 	var re := RegEx.create_from_string("(\\d\\d):(\\d\\d)")
@@ -391,8 +346,6 @@ func _marcar(reprovados: Array) -> Dictionary:
 	return m
 
 
-# ------------------------------------------------------------ a prancha --
-
 const DIGITOS := {
 	"0": [7, 5, 5, 5, 7], "1": [2, 6, 2, 2, 7], "2": [7, 1, 7, 4, 7], "3": [7, 1, 7, 1, 7], "4": [5, 5, 7, 1, 1],
 	"5": [7, 4, 7, 1, 7], "6": [7, 4, 7, 5, 7], "7": [7, 1, 1, 1, 1], "8": [7, 5, 7, 5, 7], "9": [7, 5, 7, 1, 7],
@@ -400,7 +353,6 @@ const DIGITOS := {
 }
 
 
-## Escreve `texto` (dígitos e dois-pontos) em pixels, `escala` vezes maior.
 static func escrever(img: Image, x: int, y: int, texto: String, escala: int, cor: Color) -> void:
 	for ch in texto:
 		var linhas: Array = DIGITOS.get(ch, DIGITOS["-"])
@@ -411,8 +363,6 @@ static func escrever(img: Image, x: int, y: int, texto: String, escala: int, cor
 		x += 4 * escala
 
 
-## As pranchas: 6 colunas, `POR_PAGINA` quadros cada (o PNG não passa de 16384
-## px de altura). A primeira é prancha-<n>.png; as outras, prancha-<n>-2.png...
 func _pranchas(marcados: Dictionary) -> Array:
 	var nomes: Array = []
 	var paginas := maxi(1, ceili(float(quadros.size()) / POR_PAGINA))
@@ -436,9 +386,6 @@ func _pranchas(marcados: Dictionary) -> Array:
 	return nomes
 
 
-# ------------------------------------------------------------ o autoteste --
-
-## Cada checagem reprova o defeito plantado e aprova o quadro limpo.
 func _autoteste() -> int:
 	var erros := [0]
 	var ok := func(cond: bool, msg: String) -> void:
@@ -530,7 +477,6 @@ func _autoteste() -> int:
 	var colado := limpo.duplicate(true)
 	colado[0].rect = Rect2(96, 51, 300, 40)
 	ok.call(ChecagensVisuais.texto(10.0, colado, TELA).is_empty(), "texto: o rente à área segura, com a folga da linha, passa")
-	# a coleta do retângulo: a caixa da tinta, de uma linha, com o tamanho da letra
 	var no := Node2D.new()
 	add_child(no)
 	Desenho.retangulos.clear()
@@ -538,8 +484,6 @@ func _autoteste() -> int:
 	var r: Rect2 = Desenho.retangulos[0].rect
 	ok.call(absf(r.size.y - 100.0) < 0.5 and absf(r.position.y - 222.0) < 0.5 and r.size.x > 100.0 and absf(r.position.x - 100.0) < 0.5,
 		"coleta: o retângulo de uma linha é a caixa da tinta (%s)" % [r])
-	# um desenho do nó (o texto e a sombra) é um só; o desenho seguinte do mesmo nó,
-	# no mesmo quadro (o sinal `draw`), é outro, e só o último vale na tela
 	Desenho.retangulos.clear()
 	Desenho.anotar(no, Vector2(100, 300), "Hefesto", ThemeDB.fallback_font, 40, Color.WHITE)
 	Desenho.anotar(no, Vector2(102, 302), "Hefesto", ThemeDB.fallback_font, 40, Color.BLACK)
@@ -554,8 +498,6 @@ func _autoteste() -> int:
 	return 0 if erros[0] == 0 else 1
 
 
-## Um quadro da tela agora, do tamanho dos da prancha, fora da amostra de 2 em 2 s
-## (não entra nas checagens). null: o Godot não devolveu imagem.
 func _foto_solta() -> Image:
 	await RenderingServer.frame_post_draw
 	var img := get_viewport().get_texture().get_image()
@@ -567,10 +509,6 @@ func _foto_solta() -> Image:
 	return quadro
 
 
-## A prancha do título (G01): o título, o PLAY com o cassete pela metade e a
-## introdução com as quatro armaduras acesas, lado a lado (1, 2 e 3 embaixo de
-## cada um). Um quadro que não veio
-## (o roteiro passou do ponto) fica vermelho e entra nas falhas.
 func _prancha_do_titulo(fotos: Array) -> void:
 	var rotulos := ["titulo", "play", "armaduras"]
 	var prancha := Image.create(3 * QUADRO.x, CELULA_A, false, Image.FORMAT_RGB8)
@@ -588,9 +526,6 @@ func _prancha_do_titulo(fotos: Array) -> void:
 	prancha.save_png(saida.path_join(nome))
 
 
-## A prancha cinza da montagem (G08): o quadro da montagem sem cor, e embaixo
-## cada cavaleiro reduzido a 64 px de altura, para o time apontar, sem a cor,
-## qual parte é a cabeça, o tronco e as pernas, e anotar no diário.
 func _prancha_da_montagem_cinza() -> void:
 	await RenderingServer.frame_post_draw
 	var img := get_viewport().get_texture().get_image()
@@ -601,7 +536,6 @@ func _prancha_da_montagem_cinza() -> void:
 	img.convert(Image.FORMAT_RGB8)
 	var cam := get_viewport().get_camera_3d()
 	var tiras: Array = []
-	# a posição na tela vem no tamanho do desenho (1920x1080); a imagem é a da janela
 	var esc := Vector2(img.get_size()) / get_viewport().get_visible_rect().size
 	if cam != null:
 		for p in jogo.jogadores:

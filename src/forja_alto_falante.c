@@ -1,5 +1,3 @@
-/* FORJA — o alto-falante do DualSense, achado como um jogo o acha.
- * Ver include/forja_alto_falante.h. */
 #define _XOPEN_SOURCE 700
 
 #include "forja_alto_falante.h"
@@ -12,12 +10,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-/* -std=c11 esconde M_PI (__STRICT_ANSI__). */
 #define FORJA_PI 3.14159265358979323846
 
-/* As strings USB da Sony, como o PipeWire as monta no nome do nó da placa e
- * como o Windows as mostra ("Wireless Controller"). Casamento por substring
- * sem caixa — o que todo motor de jogo faz. */
 static const char *MARCAS[] = {"dualsense", "wireless_controller", "wireless controller",
                                NULL};
 
@@ -40,9 +34,9 @@ int forja_e_do_dualsense(const char *nome, const char *descricao) {
   minusculo(nome ? nome : "", baixa, sizeof(baixa));
   size_t n = strlen(baixa);
   if (n >= 8 && strcmp(baixa + n - 8, ".monitor") == 0)
-    return 0; /* o monitor é a saída vista de dentro, não um destino */
+    return 0;
   if (strncmp(baixa, "alsa_input.", 11) == 0)
-    return 0; /* nó de captura nunca é por onde sai som */
+    return 0;
   for (const char **m = MARCAS; *m; m++) {
     if (contem_sem_caixa(nome ? nome : "", *m) || contem_sem_caixa(descricao ? descricao : "", *m))
       return 1;
@@ -62,7 +56,6 @@ static void copiar_sem_fim(char *para, size_t tam, const char *de) {
     para[--n] = '\0';
 }
 
-/* `chave = "valor"` de um bloco Properties. 1 se leu. */
 static int propriedade(const char *linha, char *chave, size_t tc, char *valor, size_t tv) {
   const char *igual = strstr(linha, " = ");
   if (!igual)
@@ -144,7 +137,7 @@ int forja_nos_de_som(const char *texto, ForjaNoDeSom *nos, int max, int *total) 
       else if (strcmp(chave, "device.bus") == 0)
         snprintf(id.bus, sizeof(id.bus), "%s", valor);
       else if (strcmp(chave, "device.vendor.id") == 0)
-        id.vid = strtol(valor, NULL, 16); /* "054c" e "0x054c", como o Wine */
+        id.vid = strtol(valor, NULL, 16);
       else if (strcmp(chave, "device.product.id") == 0)
         id.pid = strtol(valor, NULL, 16);
     }
@@ -170,7 +163,7 @@ int forja_no_do_pad(const ForjaNoDeSom *nos, int n, const char *usb_do_pad) {
     return -1;
   for (int i = 0; i < n; i++) {
     if (!nos[i].sysfs[0])
-      continue; /* sem sysfs.path o Wine zera o ContainerId: não casa nada */
+      continue;
     char caminho[PATH_MAX];
     snprintf(caminho, sizeof(caminho), "%s%s", forja_sysfs(), nos[i].sysfs);
     char usb[PATH_MAX];
@@ -199,8 +192,6 @@ int forja_canal_do_alto_falante(int canais) {
 
 void forja_tom(int16_t *pcm, long n_quadros, int canais, int canal_a, int canal_b,
                double hz) {
-  /* Rampa de 10 ms nas duas pontas: sem ela o nó SUSPENSO come o começo do
-   * primeiro som, e o corte seco no fim estala. */
   long rampa = FORJA_TAXA / 100;
   for (long i = 0; i < n_quadros; i++) {
     double env = 1.0;

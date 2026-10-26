@@ -44,15 +44,13 @@ PROMPTS = Path(__file__).resolve().parent / "trilha_prompts.json"
 OST = RAIZ / "godot" / "assets" / "ost"
 
 URL_PADRAO = "http://127.0.0.1:8001"
-ESPERA_S = 2.0  # de quanto em quanto tempo se pergunta ao servidor
-PEDIDO_S = 30.0  # o tempo de cada pedido ao servidor
-DESISTE_S = 600.0  # dez minutos por slot, e o script desiste com uma frase clara
-CARGA_S = 3600.0  # a carga do modelo na placa, com os pesos descendo, leva o tempo que levar
+ESPERA_S = 2.0
+PEDIDO_S = 30.0
+DESISTE_S = 600.0
+CARGA_S = 3600.0
 MOTOR = "ace-step-1.5"
-RAMPA_S = 0.005  # a rampa no fim do jingle, para não estalar
+RAMPA_S = 0.005
 
-
-# ------------------------------------------------------------------ os lugares --
 
 def pasta_de_trabalho():
     """A pasta das candidatas: `oficina/trilha/` na raiz do repositório.
@@ -92,8 +90,6 @@ def slots_do_alvo(faixas, alvo):
         raise SystemExit("não conheço %r: use um slot, uma seção (S01) ou tudo" % alvo)
     return achados
 
-
-# ------------------------------------------------------------------ os arquivos --
 
 def tem_ffmpeg():
     return shutil.which("ffmpeg") is not None
@@ -153,8 +149,6 @@ def cortar_jingle(caminho, bpm, corte_s):
     return compassos * compasso
 
 
-# ------------------------------------------------------------------ os motores --
-
 class MotorFalso:
     """O motor da prova: cliques no BPM do slot, sem rede e sem placa de vídeo.
 
@@ -183,8 +177,8 @@ class MotorAceStep:
 
     nome = MOTOR
 
-    passos = 60  ## inference_steps; a tela do terminal troca por esforço
-    lote = 2  ## quantas candidatas por tarefa; na placa de 8 GB o servidor não dá mais
+    passos = 60
+    lote = 2
 
     def __init__(self, url=URL_PADRAO):
         self.url = url.rstrip("/")
@@ -277,16 +271,11 @@ class MotorAceStep:
     def gerar(self, slot, faixa, n, pasta, aviso=print):
         livre = self.placa_livre_mib()
         if livre is not None and livre < 1200:
-            # o modelo já carregado ocupa o grosso; menos que isto e a geração
-            # estoura no meio, como já estourou uma vez
             aviso("A placa está com só %d MiB livres. Antes de insistir:" % livre)
             aviso("  scripts/trilha_ambiente.sh soltar   (descarrega o modelo de texto)")
             aviso("  e feche o que estiver pesando na tela (navegador, editor de imagem).")
         self._garantir_modelo(aviso)
 
-        # O servidor limita o lote conforme a placa (na 4060 ele é "tier3" e
-        # entrega poucas por tarefa, às vezes uma só). Então a conta é nossa:
-        # repete a tarefa, com semente nova a cada volta, até juntar as n.
         feitos = []
         voltas_vazias = 0
         while len(feitos) < n:
@@ -321,7 +310,6 @@ class MotorAceStep:
             "time_signature": "4",
             "audio_duration": faixa["duracao_s"],
             "inference_steps": self.passos,
-            # sem isto o servidor sorteia a semente e a faixa não se refaz
             "use_random_seed": False,
             "seed": semente,
             "batch_size": lote,
@@ -370,8 +358,6 @@ class MotorAceStep:
         return 0, []
 
 
-# ------------------------------------------------------------------ gerar --
-
 def gerar(alvo, n, motor, trabalho, faixas, sufixo, aviso=print):
     """O `aviso` é por onde a saída passa: print na linha de comando, o
     registro da tela do terminal na bancada (H10) — nada escreve direto na
@@ -396,9 +382,6 @@ def gerar(alvo, n, motor, trabalho, faixas, sufixo, aviso=print):
                 mapa = mapear(amostras, taxa, float(faixa["bpm"]))
                 escorrega = any(abs(e) > ESCORREGA_MS for e in mapa["escorrega_ms"])
                 destino_mapa = caminho.with_suffix(".batidas.json")
-                # o `tom` e o `titulo` vão no mapa de propósito: os sons do jogo
-                # são notas do arranjo (a regra Rhythm Heaven), e quem sintetiza
-                # a martelada precisa saber em que tom afinar.
                 dados = {"slot": slot, "bpm": mapa["bpm"], "primeiro_tempo_s": mapa["primeiro_tempo_s"],
                          "compassos": mapa["compassos"], "secoes": [{"nome": "introducao", "compasso": 0}],
                          "conferido": False, "escorrega_ms": mapa["escorrega_ms"], "motor": motor.nome,
@@ -419,8 +402,6 @@ def gerar(alvo, n, motor, trabalho, faixas, sufixo, aviso=print):
     aviso("A pasta de trabalho (%s) está com %.1f GB." % (trabalho, tamanho / 1e9))
     aviso("Escute: python3 scripts/gerar_trilha.py ouvir")
 
-
-# ------------------------------------------------------------------ ouvir --
 
 def fichas(trabalho):
     """Todas as candidatas da pasta de trabalho: {slot: [(n, ficha), ...]}."""
@@ -500,8 +481,6 @@ def ouvir(trabalho, abrir=True):
     return alvo
 
 
-# ------------------------------------------------------------------ escolher --
-
 def escolher(slot, n, trabalho, ost=OST, forcar=False, aviso=print):
     origem = trabalho / slot / ("%s.wav" % n)
     if not origem.is_file():
@@ -540,8 +519,6 @@ def em_mp3(origem, slot, trabalho):
                     "-c:a", "libmp3lame", "-q:a", "2", "-ar", "44100", "-ac", "2", str(alvo)], check=True)
     return alvo
 
-
-# ------------------------------------------------------------------ a prova --
 
 def prova():
     falhas = []
@@ -609,8 +586,6 @@ def prova():
 
     return len(falhas)
 
-
-# ------------------------------------------------------------------ a linha de comando --
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])

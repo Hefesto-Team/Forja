@@ -20,14 +20,14 @@ linha só: «FAIL a prova com o servidor «forma-a» (rc=124)». Foi assim que o
 
 ## O estado de hoje (medido em 09/10/2026, `85f24c3`)
 
-- `tests/prova_do_jogo.sh:21-22`:
+- `tests/prova_do_jogo.sh:8-9`:
   ```bash
   TMP="$(mktemp -d /tmp/forja-prova-do-jogo-XXXXXX)"
   trap 'rm -rf "$TMP"' EXIT
   ```
   e `:80-81`, o que sobra na tela (`grep -E "…|FAIL|SCRIPT ERROR|prova do jogo ok"`).
-- O mesmo `trap` em `tests/prova_de_poucos.sh:19`, `tests/prova_da_bancada.sh:16`, `tests/prova_do_som.sh:11`,
-  `tests/prova_da_exportacao.sh:31` e `scripts/gauntlet.sh:29`. A `tests/prova_visual.sh:46` só guarda a prancha quando recebe uma pasta.
+- O mesmo `trap` em `tests/prova_de_poucos.sh:7`, `tests/prova_da_bancada.sh:7`, `tests/prova_do_som.sh:4`,
+  `tests/prova_da_exportacao.sh:10` e `scripts/gauntlet.sh:15`. A `tests/prova_visual.sh:11` só guarda a prancha quando recebe uma pasta.
 - O `.cache/` já está no `.gitignore` (`:6`).
 
 ## O alvo

@@ -1,4 +1,3 @@
-/* As rampas. Ver rampa.h. */
 #include "rampa.h"
 
 float rampa_passo(int taxa, float ms) {

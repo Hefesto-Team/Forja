@@ -72,7 +72,7 @@ def main():
     for a in sem_emote["animations"]:
         if a.get("name") == "emote-yes":
             a["name"] = "emote-sim"
-    pecas = bom   # as peças do kit de cenário não passam pelo conferidor: qualquer glb serve
+    pecas = bom
 
     base = "3D assets/"
     cat = {"categories": [

@@ -56,7 +56,7 @@ pela semente do lugar: humana se `semente % 2 == 0`, senão a raça
   frontal); o resto, a G05.
 - **Luz:** nenhuma muda. A luz da casa (tocha, lilás, névoa) fica.
 - **O corpo do cavaleiro, por parte** (L e croma em OKLab; o recolorir é o
-  `graduar` do estudo, `godot/estudos/direcao/fita.gd:175-197`, com o teto de
+  `graduar` do estudo, `godot/estudos/direcao/fita.gd:140-159`, com o teto de
   croma de cada papel):
 
 | parte | papel em `Pintura.GRADE` | `l0` | `l1` | `sat` | croma máximo | rugosidade | metallic |
@@ -77,9 +77,9 @@ pela semente do lugar: humana se `semente % 2 == 0`, senão a raça
   diferença é de 0,10 ou mais, em qualquer colormap. A exceção é a pele.
 - **A pele não se clareia** (04, «O que a medida deu, em 09/10»). No
   colormap do Mini Characters, as três rampas de pele ficam em
-  `PELE_UV = Rect2(330/512, 380/512, 182/512, 132/512)` (`fita.gd:123`): a mão,
+  `PELE_UV = Rect2(330/512, 380/512, 182/512, 132/512)` (`fita.gd:91`): a mão,
   a perna de fora, o rosto. Esses pixels recebem o papel `personagem` também
-  no superior e no inferior (o `papel_pele` do `recolorir`, `fita.gd:202-218`).
+  no superior e no inferior (o `papel_pele` do `recolorir`, `fita.gd:162-178`).
   As medianas do superior e do inferior se medem só no pano (a UV fora de
   `PELE_UV`). Medido no estudo em 09/10, nos 12 do Mini Characters: o
   superior de 0,501 a 0,562, o inferior de 0,269 a 0,332, o pior par a 0,169.
@@ -125,7 +125,7 @@ pela semente do lugar: humana se `semente % 2 == 0`, senão a raça
   As posições e os giros que a tabela não dá são os de `racas.gd`
   (`automato` 249-287, `golem` 289-331, `raposa` 334-354, `_mao` 357-377,
   `_cauda` 380-397), copiados sem mudar. A marca do perfil é a cor de maior
-  área da cabeça humana do perfil fora de `PELE_UV` (`cabelo`, `racas.gd:110-135`).
+  área da cabeça humana do perfil fora de `PELE_UV` (`cabelo`, `racas.gd:84-109`).
 - **O guardião d'A Voz** sai da esfera de bronze para pedra em blocos:
   pedra `Tema.GRAFITE`, escuro `Tema.CASCO`, a boca `Tema.JANELA`, os dentes
   `Tema.ETIQUETA`; metallic 0, rugosidade 0,95. O olho fica o `mat_olho` de
@@ -214,25 +214,25 @@ confere:**
 - O estudo já tem o shader do cavaleiro (`godot/estudos/direcao/shaders/cavaleiro.gdshader`,
   com `tingir` e `brilho_proprio`), o contorno e o néon (`contorno.gdshader`,
   `neon.gdshader`), a normal suave no TANGENT (`Mundo.suavizar`,
-  `godot/estudos/direcao/mundo.gd:46-73`), o anel com lâmpadas (`Mundo.anel`,
-  `mundo.gd:159-189`) e o `graduar` em OKLab (`fita.gd:107-197`). O jogo não
+  `godot/estudos/direcao/mundo.gd:41-66`), o anel com lâmpadas (`Mundo.anel`,
+  `mundo.gd:136-165`) e o `graduar` em OKLab (`fita.gd:81-159`). O jogo não
   tem `godot/shaders/`.
-- `godot/scripts/salas/voz.gd:114-168`, `_montar_guardiao()`: rosto
+- `godot/scripts/salas/voz.gd:90-140`, `_montar_guardiao()`: rosto
   `Kit.esfera` escalado (1,55; 1,95; 0,55) em bronze `metallic` 0,6; olhos
   esféricos; devolve `{"pivo", "mat_olho", "palpebras", "boca", "dentes",
-  "brilho", "fundo"}`. A animação (`voz.gd:500-515`) usa
+  "brilho", "fundo"}`. A animação (`voz.gd:457-472`) usa
   `mat_olho.emission_energy_multiplier`, `palpebras` (`scale.y` e
   `position.y = 0.28 + 0.2 * olhos`), `boca.scale` e `pivo.position`.
-- Curvas lisas: `TorusMesh` em `player.gd:75`, `efeitos.gd:86`,
-  `centelha.gd:128`, `molde.gd:166`, `canto.gd:139`, `:188`, `:225`,
-  `caminhos.gd:148`, `impacto.gd:115`, `voz.gd:177`, `viga.gd:220`,
-  `galeria.gd:123`; `SphereMesh` em `kit.gd:89` (20 × 10), `centelha.gd:140`,
-  `salao.gd:223`; `kit.gd:78` cilindro de 20 lados; CSG em `kit.gd:158`
-  (16), `salao.gd:214`, `261` (32), `268` (48), `297` (16), `368` (32),
+- Curvas lisas: `TorusMesh` em `player.gd:53`, `efeitos.gd:80`,
+  `centelha.gd:128`, `molde.gd:137`, `canto.gd:117`, `:188`, `:225`,
+  `caminhos.gd:125`, `impacto.gd:97`, `voz.gd:148`, `viga.gd:185`,
+  `galeria.gd:101`; `SphereMesh` em `kit.gd:80` (20 × 10), `centelha.gd:140`,
+  `salao.gd:203`; `kit.gd:69` cilindro de 20 lados; CSG em `kit.gd:145`
+  (16), `salao.gd:194`, `261` (32), `268` (48), `297` (16), `368` (32),
   `378` (40).
-- `metallic` acima de 0,2: `molde.gd:424` (0,7), `canto.gd:129` (0,75),
-  `viga.gd:71` (0,8), `caminhos.gd:117` (0,8), `voz.gd:120` (0,6),
-  `prova.gd:125` (0,8).
+- `metallic` acima de 0,2: `molde.gd:380` (0,7), `canto.gd:107` (0,75),
+  `viga.gd:48` (0,8), `caminhos.gd:95` (0,8), `voz.gd:96` (0,6),
+  `prova.gd:95` (0,8).
 - `pecas.csv` tem 36 peças com os nomes da cor nativa (Blusa roxa, Camisa
   verde, Short azul). A raça não entra no CSV.
 - O `character-orc.glb` corta limpo (0 triângulo misto): cabeça 176,
@@ -456,7 +456,7 @@ void fragment() {
   braços recebem `UV2.y` = −1 (abaixo de qualquer `friso_y0`).
 
   A pele (`pele`, `pele_ativa`, `pele_uv`) é o bloco do estudo
-  (`godot/estudos/direcao/shaders/cavaleiro.gdshader:28-32`): a parte B liga
+  (`godot/estudos/direcao/shaders/cavaleiro.gdshader:20-23`): a parte B liga
   numa raça. A costura (`abs(repouso.x) >= costura_x − costura_larg`) acende
   a faixa de 0,008 da frente de cada perna, junto ao lado de fora (04, «O que
   mudou no estudo»), e a face de fora da perna inteira; a face de fora não
@@ -598,12 +598,12 @@ escuro `Kit.material(Tema.CASCO, 0.0, 0.9)`, tudo filho de `pivo` (escala
   Vector3, mat: Material) -> MeshInstance3D` (`TorusMesh` de `rings` 8 e
   `ring_segments` 6, `material_override = mat`) e `anel_do_dono` (A5).
 - Cada `TorusMesh` da lista do estado de hoje: `rings = 8`,
-  `ring_segments = 6`. `centelha.gd:140` e `salao.gd:223`: `radial_segments`
+  `ring_segments = 6`. `centelha.gd:140` e `salao.gd:203`: `radial_segments`
   8, `rings` 4. Os CSG da lista: `sides = 8`.
 - Os seis `metallic`: 0,2, e a rugosidade de cada um no mínimo 0,45
-  (`molde.gd:423` de 0,3 para 0,5; `canto.gd` de 0,35 para 0,5;
-  `viga.gd:70` de 0,3 para 0,5; `caminhos.gd` de 0,35 para 0,5; `voz.gd` sai
-  com o guardião; `prova.gd:124` de 0,35 para 0,5). A energia de emissão não
+  (`molde.gd:379` de 0,3 para 0,5; `canto.gd` de 0,35 para 0,5;
+  `viga.gd:47` de 0,3 para 0,5; `caminhos.gd` de 0,35 para 0,5; `voz.gd` sai
+  com o guardião; `prova.gd:95` de 0,35 para 0,5). A energia de emissão não
   muda aqui (é da G15).
 
 ### Parte B — as quatro raças
@@ -632,9 +632,9 @@ const ENERGIA := 1.6
 static func vestir(esq: Skeleton3D, raca: int, lugar: int, marca: Color) -> void
 ## A pele da raça (Color(0, 0, 0, 0) na Humana).
 static func pele(raca: int) -> Color
-## A cor de maior área da cabeça do perfil fora de PELE_UV (racas.gd:110-135).
+## A cor de maior área da cabeça do perfil fora de PELE_UV (racas.gd:84-109).
 static func cabelo(cabeca: Mesh, colormap: Image) -> Color
-## O punho no espaço do esqueleto: o Montar.mao do estudo (montar.gd:180-211).
+## O punho no espaço do esqueleto: o Montar.mao do estudo (montar.gd:148-179).
 static func punho(esq: Skeleton3D, osso: String) -> Vector3
 ```
 
@@ -652,7 +652,7 @@ Copiar de `racas.gd`, sem mudar número: `_por` (138), `_liso` (152), `_caixa`
 | `Fita.JANELA`, `Fita.ETIQUETA_SOMBRA`, `Fita.TINTA`, `Fita.PELE_*` | `Tema.JANELA`, `Tema.ETIQUETA_SOMBRA`, `Tema.TINTA`, `Tema.PELE_*` |
 | `Fita.PELE_UV` | `Pintura.PELE_UV` |
 | `Fita.neon(cor, ENERGIA)` | `Tema.neon(cor, ENERGIA, lugar)` (G15); sem a G15, um `ShaderMaterial` com `ForjaPlayer.SH_NEON`, `cor` e `energia` |
-| `Mundo.contornar(n, cor, largura, energia)` | `_contornar`, cópia de `godot/estudos/direcao/mundo.gd:80-92` com o `suavizar` (`mundo.gd:48`); o `Fita.contorno` dela (`fita.gd:245-251`) vira um `ShaderMaterial` com `ForjaPlayer.SH_CONTORNO`, `cor`, `largura` e `energia` |
+| `Mundo.contornar(n, cor, largura, energia)` | `_contornar`, cópia de `godot/estudos/direcao/mundo.gd:71-83` com o `suavizar` (`mundo.gd:41`); o `Fita.contorno` dela (`fita.gd:201-207`) vira um `ShaderMaterial` com `ForjaPlayer.SH_CONTORNO`, `cor`, `largura` e `energia` |
 | `_liso`: `Fita.SH_CAVALEIRO`, `textura`, `rugosidade`, `metalico`, `aro_cor` | `ForjaPlayer.SH_CAVALEIRO`; a textura de 1 px em `textura_cima` e `textura_baixo`; `rugoso_cima` e `rugoso_baixo`; `metal`; `dono`; `tem_acento` false |
 | o orc: `Cortar.partes("orc")` e `Corpo.parte` | a `head-mesh` de `Kit.caminho("mini-dungeon-personagens/character-orc")`: a malha e o skin num `MeshInstance3D` `"raca-orc"` filho do esqueleto, com o `transform` da cabeça humana; o material `SH_CAVALEIRO` com `Pintura.textura` do colormap do orc em `personagem`, passado por `Pintura.trocar_matiz(img, Tema.PELE_ORC, -0.05)`; a cabeça humana fica invisível, não sai |
 | `RAPOSA_CAUDA` | `Kit.caminho("cube-pets/animal-fox")` |
@@ -670,17 +670,17 @@ Copiar de `racas.gd`, sem mudar número: `_por` (138), `_liso` (152), `_caixa`
   `BoneAttachment3D` do osso `head`, com o centro em (0; 0,78; 0) no espaço
   do esqueleto (o `resto.affine_inverse()` do `vestir`).
 - **A cauda balança:** no `_process` de quem mostra o boneco (a tela da
-  G13), o `MeshInstance3D` `"cauda"` (`racas.gd:392`; o pai dele guarda os 8°
+  G13), o `MeshInstance3D` `"cauda"` (`racas.gd:324`; o pai dele guarda os 8°
   do estudo) recebe `rotation.y = deg_to_rad(8) * sin(TAU * batidas)`, com
   `batidas = Time.get_ticks_msec() / 1000.0 * Musica.mapa(Musica.atual).bpm / 60.0`
-  (`musica.gd:128`; 120 BPM sem faixa).
+  (`musica.gd:112`; 120 BPM sem faixa).
 - **`punho`** lê a malha do superior que a G13 põe no esqueleto: no estudo, o
-  nó `"body-sup"` (`corpo.gd:27`). A G13 usa os nomes do estudo
+  nó `"body-sup"` (`corpo.gd:17`). A G13 usa os nomes do estudo
   (`"head"`, `"body-sup"`, `"body-inf"`).
 - **A cadeira de rodas (R1 do inferior, G13):** toda raça senta; a cauda sobe
   0,05.
 - Os triângulos contam só sob o nó `"raca-cabeca"` (o `BoneAttachment3D`
-  do estudo, `racas.gd:68`): até 300 no autômato e na raposa, até 400 no
+  do estudo, `racas.gd:44`): até 300 no autômato e na raposa, até 400 no
   golem. As mãos e a cauda ficam fora da conta.
 
 **B3. A montagem (`godot/scripts/ui/tela_lobby.gd`, a tela da G13):** na

@@ -1,27 +1,5 @@
 class_name SalaProva
 extends SalaJogo
-## A Prova — duas equipes, tudo ligado.
-##
-## O padrão é o jogo de ação do PS5 inteiro de uma vez, que é onde um
-## intermediário se prova: noventa segundos de partida com tudo ligado ao mesmo
-## tempo, nos quatro controles —
-##
-##   - o analógico esquerdo anda; o direito e o giroscópio miram (L2 afina a
-##     mira, e o gatilho resiste); R2 atira, com a parede e o clique da arma;
-##   - a munição na tela (no Modo bancada, nas cinco luzinhas); vazia, o gatilho
-##     solta e o clique seco sai no alto-falante do controle; □ recarrega;
-##   - o tiro que vem da esquerda treme o motor da esquerda; a luz é a cor do
-##     lugar (a da equipe é o disco no chão), pisca vermelho no golpe e
-##     escurece com a vida, nunca abaixo de 30%;
-##   - o passo no chão da arena (grama, cascalho, metal, água) nos atuadores;
-##   - ✕ corre; o clique do touchpad solta a martelada quando o sino do
-##     especial toca no controle de quem a carregou.
-##
-## A sala mede o que um jogo não mede: se, com tudo isso junto, a entrada
-## continuou chegando (o giroscópio sem buraco) e se o SDL aceitou todas as
-## saídas. No fim, a prova final às cegas: as luzinhas e a cor de cada
-## controle, depois de noventa segundos de carga. O microfone fica de fora: no
-## ar de uma sala, a voz de um é ouvida por todos (A Voz mede em turnos).
 
 const F := preload("res://scripts/forja.gd")
 const CONTAGEM_S := 3.0
@@ -42,38 +20,35 @@ const PERGUNTA_S := 8.0
 const PLACAR_S := 3.0
 const ARENA_X := 11.3
 const ARENA_Z := 6.9
-## Os pilares: nos quatro cantos, ou (a variante 1) em cata-vento — sempre
-## simétricos pelo centro, para a Brasa e a Maré terem a mesma arena.
 const PILARES := [Vector3(-4.4, 0, -3.4), Vector3(4.4, 0, -3.4), Vector3(-4.4, 0, 3.4), Vector3(4.4, 0, 3.4)]
 const PILARES_CATAVENTO := [Vector3(-6.8, 0, 2.8), Vector3(6.8, 0, -2.8), Vector3(-2.2, 0, -4.2), Vector3(2.2, 0, 4.2)]
 static var pilares: Array = PILARES
 const RAIO_PILAR := 0.7
-const METAL_X := 3.0  ## a faixa de metal no meio
-const AGUA_Z := 0.9  ## o riacho que corta a arena
-const CASCALHO := 1.7  ## o cascalho em volta dos pilares
+const METAL_X := 3.0
+const AGUA_Z := 0.9
+const CASCALHO := 1.7
 const CORES := [
 	{"nome": "âmbar", "cor": Color(1.0, 0.59, 0.0)},
 	{"nome": "ciano", "cor": Color(0.0, 0.82, 1.0)},
 	{"nome": "violeta", "cor": Color(0.67, 0.27, 1.0)},
 	{"nome": "branco", "cor": Color(1.0, 1.0, 1.0)},
 ]
-## a cor que a prova final não pode sortear: a que lembra a da equipe
 const COR_PARECIDA := [0, 1]
 const NOME_EQUIPE := ["Brasa", "Maré"]
 const LUZ_EQUIPE := [Color(1.0, 0.27, 0.0), Color(0.0, 0.35, 1.0)]
 const BOTAO := [F.CRUZ, F.CIRCULO, F.QUADRADO, F.TRIANGULO]
 const GLIFO := ["cross", "circle", "square", "triangle"]
-const COR_CHAO := [Tema.SECAO[2], Tema.OXIDO_BRILHO, Tema.MUDO, Tema.SECAO[1]]  ## grama, cascalho, metal, água
+const COR_CHAO := [Tema.SECAO[2], Tema.OXIDO_BRILHO, Tema.MUDO, Tema.SECAO[1]]
 
 enum { CONTAGEM, PARTIDA, LEDS, COR, PLACAR, ACABOU }
 
 var etapa := CONTAGEM
 var t_etapa := 0.0
-var lut: Array = []  ## os lutadores: os jogadores e os bonecos de treino
-var lut_do_lugar := {}  ## lugar -> índice em lut
-var tiros: Array = []  ## {no, pos, vel, vida, dono, equipe}
+var lut: Array = []
+var lut_do_lugar := {}
+var tiros: Array = []
 var placar := [0, 0]
-var fin := {}  ## lugar -> a prova final e o que ela precisa
+var fin := {}
 
 
 func _init() -> void:
@@ -90,12 +65,10 @@ func _init() -> void:
 	duracao = 0.0
 	camera_pos = Vector3(0, 17.5, 13.2)
 	camera_olhar = Vector3(0, 0, 0.9)
-	# a arena de 22,6 × 13,8 m cabia a 24 m com 40°; a 35 mm são 24 × 1,0616 = 25,5 m
 	camera_modo = "grupo"
 	camera_distancia = Vector2(17.0, 25.5)
 
 
-## A câmera enquadra quem está na partida; no aviso, todos os visíveis.
 func alvos_da_camera() -> Array:
 	var alvos: Array = []
 	for p in jogadores:
@@ -107,7 +80,6 @@ func alvos_da_camera() -> Array:
 func montar() -> void:
 	pilares = PILARES_CATAVENTO if variante == 1 else PILARES
 	Kit.arena(self, 6, 4)
-	# a arena: a Brasa de um lado, a Maré do outro
 	atmosfera(Color("#ffb86c"), Tema.TUNGSTENIO, true, 40, 24.0, -9.8)
 	Efeitos.poeira(self, Vector3(0, 1.8, 0), Vector3(24, 3.5, 9), Tema.VIOLETA, 30)
 	luzes([Vector3(-10, 3.0, -6), Vector3(10, 3.0, -6), Vector3(-10, 3.0, 6), Vector3(10, 3.0, 6)])
@@ -115,14 +87,11 @@ func montar() -> void:
 	for c in pilares:
 		Kit.peca(self, "column", c, 0.0, 2.2)
 		Kit.cilindro(self, CASCALHO, 0.03, c + Vector3(0, 0.03, 0), Kit.material(COR_CHAO[1], 0.0, 0.95))
-	# o clique seco, o sino do especial e os passos saem do controle de cada um
 	if not Forja.som_pronto():
 		Forja.som_preparar(F.PAPEL_ALTO_FALANTE)
 	_montar_lutadores()
 
 
-## O chão da arena: grama nos campos das equipes, a faixa de metal no meio, o
-## riacho que corta de lado a lado. O passo sentido na mão é o do chão.
 func _montar_chao() -> void:
 	for lado in [-1.0, 1.0]:
 		var campo := Kit.caixa(self, Vector3(ARENA_X - METAL_X + 0.6, 0.03, ARENA_Z * 2 + 0.6),
@@ -140,7 +109,6 @@ func _montar_chao() -> void:
 	Kit.caixa(self, Vector3(ARENA_X * 2 + 0.6, 0.05, AGUA_Z * 2), Vector3(0, 0.035, 0), agua)
 
 
-## O chão debaixo de um ponto (chao.h: 0 grama, 1 cascalho, 2 metal, 3 água).
 static func chao_em(p: Vector3) -> int:
 	for c in pilares:
 		if Vector2(p.x - c.x, p.z - c.z).length() < CASCALHO:
@@ -161,9 +129,6 @@ func _novo_lutador(lugar: int, equipe: int) -> Dictionary:
 		"robo_recarregou": false, "no": null, "anim": null, "disco": null, "mat_disco": null}
 
 
-## As equipes: quatro, dois contra dois (P1 e P2 contra P3 e P4); três, dois
-## contra um e um boneco de treino; dois, um contra um; sozinho, contra dois
-## bonecos.
 func _montar_lutadores() -> void:
 	var lugares: Array = []
 	for p in jogadores:
@@ -190,7 +155,6 @@ func _montar_lutadores() -> void:
 		e.anim = modelo.find_child("AnimationPlayer", true, false)
 		lut.append(e)
 	for e in lut:
-		# o disco da equipe debaixo de cada um
 		var disco := MeshInstance3D.new()
 		var cil := CylinderMesh.new()
 		cil.top_radius = 0.7
@@ -221,11 +185,7 @@ static func _tingir(n: Node, cor: Color) -> void:
 		_tingir(filho, cor)
 
 
-# ------------------------------------------------------------------ as saídas --
-# Cada saída mandada na partida conta para a carga: o SDL aceitou?
-
 func _saida(l: int, ok: bool) -> void:
-	# com o cabo fora, a saída não chega a controle nenhum: não é o SDL recusando
 	if l >= 0 and Forja.lugar(l).get("conectado", false):
 		Forja.carga_saida(l, ok)
 
@@ -236,7 +196,7 @@ static func _mascara(n: int) -> int:
 
 func _mostrar_municao(e: Dictionary) -> void:
 	if not Forja.bancada:
-		return  # o status já mostra as balas; as luzinhas são o número do lugar
+		return
 	if e.lugar >= 0:
 		_saida(e.lugar, Forja.leds_jogador(e.lugar, _mascara(int(e.municao))))
 
@@ -251,13 +211,10 @@ func _armar(e: Dictionary, arma: bool) -> void:
 		_saida(e.lugar, Forja.gatilho(e.lugar, 1, F.GATILHO_OFF))
 
 
-## A luz: a cor do lugar, mais fraca com a vida (nunca abaixo de 30%); o
-## vermelho do golpe; o pulso de quem está por um fio; a 30% derrubado. Só sai
-## quando muda.
 func _atualizar_luz(e: Dictionary, dt: float) -> void:
 	e.luz_pisca = maxf(0.0, float(e.luz_pisca) - dt)
 	e.pulso_t = float(e.pulso_t) + dt
-	var c: Color = Forja.cor_do_lugar(e.lugar)  # a cor do lugar; a da equipe vai para o mundo
+	var c: Color = Forja.cor_do_lugar(e.lugar)
 	var estado := 0
 	var k := 1.0
 	if float(e.fora) > 0.0:
@@ -303,8 +260,6 @@ func _voltar(e: Dictionary) -> void:
 			_mostrar_municao(e)
 
 
-# ------------------------------------------------------------------ o jogo --
-
 func iniciar_jogo() -> void:
 	for e in lut:
 		if e.lugar < 0:
@@ -348,14 +303,13 @@ func _golpe(alvo: Dictionary, autor: int, vx: float) -> void:
 	alvo.dano = 1.0
 	Som.tocar("golpe", alvo.pos + Vector3(0, 1.0, 0), -4.0)
 	if alvo.lugar >= 0:
-		Som.no_controle(alvo.lugar, "golpe", 0.7)  # o golpe se ouve na mão de quem apanhou
+		Som.no_controle(alvo.lugar, "golpe", 0.7)
 	var quem: Dictionary = lut[autor]
 	if quem.lugar >= 0:
 		quem.acertos = int(quem.acertos) + 1
 		quem.especial = minf(1.0, float(quem.especial) + 0.12)
 		marcar(quem.lugar, 50)
 	if alvo.lugar >= 0:
-		# o tiro que anda para a direita veio da esquerda: o motor da esquerda
 		var da_esquerda := vx > 0.0
 		_saida(alvo.lugar, Forja.sentir(alvo.lugar, "golpe_esq" if da_esquerda else "golpe_dir"))
 		alvo.luz_pisca = 0.16
@@ -423,7 +377,6 @@ func _jogador(i: int, dt: float) -> void:
 	e.andando = 0.0
 	if float(e.fora) > 0.0 or float(e.atordoado) > 0.0:
 		return
-	# andar: o analógico esquerdo; L2 afina (e anda devagar); ✕ corre
 	var mv := Vector2(Forja.eixo(l, F.LX), Forja.eixo(l, F.LY))
 	if mv.length() < 0.15:
 		mv = Vector2.ZERO
@@ -434,7 +387,6 @@ func _jogador(i: int, dt: float) -> void:
 	var v := VEL * (0.55 if afina else 1.0) * (2.3 if float(e.corrida) > 0.0 else 1.0)
 	e.pos = _empurrar(e.pos + Vector3(mv.x, 0, mv.y) * v * dt)
 	e.andando = mv.length() * (2.0 if float(e.corrida) > 0.0 else 1.0)
-	# mirar: o analógico direito e o giroscópio (a guinada gira a mira)
 	var mira := Vector2(Forja.eixo(l, F.RX), Forja.eixo(l, F.RY))
 	if mira.length() > 0.35:
 		e.mira = atan2(mira.y, mira.x)
@@ -442,7 +394,6 @@ func _jogador(i: int, dt: float) -> void:
 		e.mira = atan2(mv.y, mv.x)
 	if Forja.capacidade(l, "giro"):
 		e.mira = float(e.mira) - Forja.giro(l).y * dt * (2.2 if afina else 1.2)
-	# atirar e recarregar
 	if float(e.recarga) > 0.0:
 		e.recarga = float(e.recarga) - dt
 		if float(e.recarga) <= 0.0:
@@ -461,16 +412,14 @@ func _jogador(i: int, dt: float) -> void:
 			if int(e.municao) == 0:
 				_armar(e, false)
 		else:
-			Forja.som_falante(l, "clique", 0.9)  # o clique seco sai da mão
-	# a martelada
+			Forja.som_falante(l, "clique", 0.9)
 	if float(e.especial) < 1.0:
 		e.especial = minf(1.0, float(e.especial) + dt / ESPECIAL_S)
 	if float(e.especial) >= 1.0 and not e.avisou:
 		e.avisou = true
-		Forja.som_falante(l, "pronto", 0.8)  # o sino só no controle de quem tem
+		Forja.som_falante(l, "pronto", 0.8)
 	if float(e.especial) >= 1.0 and Forja.apertou(l, F.TOUCHPAD):
 		_martelada(i)
-	# o passo no chão, nos atuadores
 	if mv.length() > 0.0:
 		e.passo_t = float(e.passo_t) - dt * (1.8 if float(e.corrida) > 0.0 else 1.0)
 		if float(e.passo_t) <= 0.0:
@@ -554,8 +503,6 @@ func _mover_tiros(dt: float) -> void:
 	tiros = ficam
 
 
-# ------------------------------------------------------------------ a prova final --
-
 func _perguntar_leds() -> void:
 	for e in lut:
 		var l: int = e.lugar
@@ -595,7 +542,6 @@ func _perguntar_cor() -> void:
 	t_etapa = 0.0
 
 
-## Uma rodada da prova final: true quando todos responderam (ou o tempo acabou).
 func _rodada_final(leds: bool, dt: float) -> bool:
 	var todos := true
 	for l in fin:
@@ -622,7 +568,7 @@ func _rodada_final(leds: bool, dt: float) -> bool:
 				Cega.perdido(c)
 			f.ultima = int(f.resp)
 			f.certa = certo
-			f.resp = -2  # fechada
+			f.resp = -2
 			f.revela = 0.9
 		else:
 			todos = false
@@ -670,7 +616,7 @@ func jogar(dt: float) -> void:
 						_armar(e, false)
 						Forja.carga_parar(e.lugar)
 				Som.tocar("sucesso", null, -4.0)
-				if Forja.bancada:  # a prova final às cegas é do Modo bancada
+				if Forja.bancada:
 					_perguntar_leds()
 				else:
 					_ir_para_o_placar()
@@ -711,8 +657,6 @@ func dar_vereditos(l: int) -> Array:
 	var v := Forja.carga_veredito(l, f.leds, f.cor, int(e.tiros) > 0 or Cega.total(f.leds) > 0)
 	return [] if v.is_empty() else [v]
 
-
-# ------------------------------------------------------------------ o que se vê --
 
 func _process(dt: float) -> void:
 	super(dt)
@@ -756,8 +700,6 @@ func _mostrar(e: Dictionary, dt: float) -> void:
 				anim.play(qual, 0.2)
 
 
-# ------------------------------------------------------------------ a HUD --
-
 func status(lugar: int) -> String:
 	if fase != "jogo" or not lut_do_lugar.has(lugar):
 		return super(lugar)
@@ -800,7 +742,7 @@ func dica(lugar: int) -> Dictionary:
 
 func pergunta(lugar: int) -> Dictionary:
 	if not Forja.bancada:
-		return {}  # a pergunta às cegas é do Modo bancada
+		return {}
 	if fase != "jogo" or not (etapa == LEDS or etapa == COR) or not fin.has(lugar):
 		return {}
 	var f: Dictionary = fin[lugar]
@@ -832,12 +774,6 @@ func pergunta(lugar: int) -> Dictionary:
 	return {"titulo": "Quantas luzinhas acesas?" if leds else "Que cor está a sua luz?", "opcoes": opcoes,
 		"escolhida": escolhida, "certa": certa, "rodape": rodape, "pos": Vector3(col.pos.x, 0.0, col.pos.z + 1.2)}
 
-
-# ------------------------------------------------------------------ o robô --
-# Joga a partida como um jogador: chega perto do inimigo mais próximo sem
-# colar, anda de lado, mira com o analógico direito e atira quando a mira
-# está nele; recarrega vazio, solta a martelada de perto. Na prova final, vê
-# as luzinhas e a cor do controle simulado dele.
 
 static func _cor_mais_perto(c: Color) -> int:
 	var melhor := 0
@@ -891,7 +827,7 @@ func _robo(i: int, dt: float) -> void:
 		e.robo_lado = -1 if rng.randf() < 0.5 else 1
 	var av := 1.0 if d > 6.2 else (-0.8 if d < 4.0 else 0.0)
 	if float(e.especial) >= 1.0:
-		av = 1.0 if d > 2.0 else 0.0  # o especial cheio: chega perto para a martelada
+		av = 1.0 if d > 2.0 else 0.0
 	var lado := float(e.robo_lado)
 	var mv := Vector2(cos(ang) * av - sin(ang) * 0.7 * lado, sin(ang) * av + cos(ang) * 0.7 * lado)
 	if mv.length() > 1.0:

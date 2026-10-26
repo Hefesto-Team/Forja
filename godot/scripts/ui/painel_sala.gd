@@ -1,11 +1,8 @@
 class_name PainelSala
 extends Control
-## O painel de uma sala que mede: no aviso, o objetivo e as features que ela
-## prova, e quem já está pronto; no jogo, o tempo que resta. O fim é da
-## TelaResultado (resultado.gd).
 
-var sala: Node = null  ## a SalaJogo em curso, ou null
-var escondido := false  ## a pausa ou o diagnóstico estão por cima
+var sala: Node = null
+var escondido := false
 
 
 func _ready() -> void:
@@ -30,18 +27,13 @@ func _draw() -> void:
 
 
 func _aviso() -> void:
-	# a arena fica à mostra: o quadro sobe e o boneco de cada um mostra o gesto
 	draw_rect(Rect2(Vector2.ZERO, size), Color(Tema.FITA, 0.25))
 	var larg := 1120.0
-	# mostrar, não contar: o nome, o verbo numa linha e um ícone da parte do
-	# controle que a sala usa. O resto a sala ensina jogando, pelas dicas curtas
-	# na raia. O dispositivo de som achado é ferramenta: só no Modo bancada.
 	var poucos := str(sala.com_poucos())
 	var papel: int = sala.papel_som
 	var som := papel >= 0 and Forja.bancada
 	var alt := 368.0 + (40.0 if poucos != "" else 0.0) + (ALTURA_SOM if som else 0.0)
 	var r := Rect2(Vector2((size.x - larg) * 0.5, 176), Vector2(larg, alt))
-	# o quadro entra deslizando (a sala nova chega, não aparece)
 	var k := clampf(float(sala.t_fase) / 0.35, 0.0, 1.0)
 	r.position.x += (1.0 - k * k * (3.0 - 2.0 * k)) * 520.0
 	Desenho.moldura(self, r, Color(Tema.CASCO, 0.97), Tema.GRAFITE, 2, Tema.RAIO_QUADRO)
@@ -52,14 +44,11 @@ func _aviso() -> void:
 			str(sala.na_prova_de_fogo), Tema.archivo(600), Tema.T_SELO, Tema.SECAO[3])
 	Desenho.texto(self, Vector2(x, r.position.y + 156), str(sala.acao), Tema.archivo(500), Tema.T_SUBTITULO, Tema.ETIQUETA,
 		HORIZONTAL_ALIGNMENT_LEFT, larg - 96)
-	# com menos de quatro, o que muda: um selo, não uma frase
 	if poucos != "":
 		Desenho.selo(self, Vector2(x, r.position.y + 180), poucos, Tema.ETIQUETA, Tema.T_SELO)
-	# o ícone da parte do controle que a sala usa
 	var icone := Desenho.glifo(str(sala.icone))
 	if icone:
 		draw_texture_rect(icone, Rect2(Vector2(r.end.x - 48 - 96, r.position.y + 40), Vector2(96, 96)), false, Tema.ETIQUETA)
-	# quem já está pronto, na ordem dos lugares
 	var y := r.position.y + 216 + (40.0 if poucos != "" else 0.0)
 	var cx := x
 	for l in 4:
@@ -78,12 +67,10 @@ func _aviso() -> void:
 		if som:
 			_som_do_lugar(chip, l, papel)
 		cx += 258
-	# o aviso não espera para sempre: o trilho esvazia até a sala começar sozinha
 	var trilho := Rect2(Vector2(x, y + 64.0 + (ALTURA_SOM if som else 0.0) + 16.0), Vector2(larg - 96.0, 8.0))
 	draw_rect(trilho, Tema.GRAFITE)
 	var resta := 1.0 - clampf(float(sala.t_fase) / SalaJogo.AVISO_MAX, 0.0, 1.0)
 	draw_rect(Rect2(trilho.position, Vector2(trilho.size.x * resta, 8.0)), Tema.ETIQUETA)
-	# os botões, embaixo à direita (a linha dos lugares é dos quatro)
 	var dicas := [["cruz", "Pronto"]]
 	if som:
 		dicas = [["esquerda", "Trocar"], ["triangulo", "Testar"], ["cruz", "Pronto"]]
@@ -92,12 +79,9 @@ func _aviso() -> void:
 	Desenho.dicas_a_direita(self, Vector2(r.end.x - 48, trilho.position.y + 52), dicas, Tema.T_ROTULO)
 
 
-## O que o chip de cada lugar cresce numa sala de som.
 const ALTURA_SOM := 190.0
 
 
-## O dispositivo do papel de um lugar, no aviso de uma sala de som: o nome que
-## o jogo mostra, como foi achado e, no microfone, a barra que sobe com a voz.
 func _som_do_lugar(chip: Rect2, l: int, papel: int) -> void:
 	var x := chip.position.x + 20.0
 	var w := chip.size.x - 40.0
@@ -105,7 +89,6 @@ func _som_do_lugar(chip: Rect2, l: int, papel: int) -> void:
 	var nome := Forja.som_nome(l, papel)
 	var f := Tema.archivo(500)
 	var f2 := Tema.archivo(500)
-	# o nome do aparelho em até três linhas a 30 px (é o que diz qual é qual)
 	var tam := Tema.T_SELO
 	var nome_cabe := Desenho.caber(nome, f, tam, w, 3)
 	var topo := chip.position.y + 64.0 + 8.0
@@ -121,18 +104,14 @@ func _som_do_lugar(chip: Rect2, l: int, papel: int) -> void:
 		draw_rect(Rect2(trilho.position, Vector2(w * clampf(nivel, 0.0, 1.0), 8)), Tema.ETIQUETA)
 
 
-## As dicas de cada lugar, embaixo da raia de cada um: uma pílula com a frase
-## e os glifos dos botões, com a borda na cor do lugar.
 func _dicas() -> void:
 	var cam := get_viewport().get_camera_3d()
 	if cam == null:
 		return
 	var f := Tema.archivo(500)
 	var tam := Tema.T_SELO
-	# as perguntas primeiro: onde cada uma cairia, e depois lado a lado, sem
-	# uma cobrir a outra (numa câmera mais perto, as raias vizinhas se tocam)
-	if Forja.bancada:  # a pergunta às cegas é do Modo bancada
-		var perguntas: Array = []  # [lugar, pergunta, retângulo]
+	if Forja.bancada:
+		var perguntas: Array = []
 		for l in 4:
 			if not Forja.ocupado(l):
 				continue
@@ -142,8 +121,7 @@ func _dicas() -> void:
 		_afastar(perguntas, FOLGA_PERGUNTA)
 		for item in perguntas:
 			_pergunta(item[0], item[1], item[2])
-	# as dicas: onde cada uma cairia, afastadas como as perguntas, e desenhadas
-	var pilulas: Array = []  # [lugar, partes, retângulo]
+	var pilulas: Array = []
 	for l in 4:
 		if not Forja.ocupado(l) or not sala.pergunta(l).is_empty():
 			continue
@@ -152,7 +130,6 @@ func _dicas() -> void:
 			continue
 		var partes: Array = d.get("partes", [])
 		if sala.aprendeu(l):
-			# aprendeu: a dica perde as palavras e fica só o glifo; sem glifo, some
 			partes = partes.filter(func(s): return str(s).begins_with("@"))
 			if partes.is_empty():
 				continue
@@ -163,12 +140,10 @@ func _dicas() -> void:
 		larg += 36.0 - 10.0
 		var centro := cam.unproject_position(d.pos)
 		var r := Rect2(Vector2(centro.x - larg * 0.5, centro.y - 26.0), Vector2(larg, 52.0))
-		# o texto da pílula (18 px de folga) fica dentro da área segura
 		r.position.x = clampf(r.position.x, Tema.MARGEM_X - FOLGA_PILULA, size.x - Tema.MARGEM_X + FOLGA_PILULA - larg)
 		r.position.y = clampf(r.position.y, 12.0, size.y - 140.0)
 		pilulas.append([l, partes, r])
 	_afastar(pilulas, FOLGA_PILULA)
-	# a dica que cairia em cima do «Valendo!» espera ele sumir (1,4 s)
 	var valendo := _rect_valendo()
 	if valendo.size.x > 0.0:
 		pilulas = pilulas.filter(func(it): return not (it[2] as Rect2).intersects(valendo))
@@ -191,18 +166,13 @@ func _dicas() -> void:
 				x += Desenho.largura(s, f, tam) + 10.0
 
 
-## O quanto a moldura passa do texto (a pílula e a pergunta): o texto, e não a
-## moldura, é o que fica dentro da área segura.
 const FOLGA_PILULA := 18.0
 const FOLGA_PERGUNTA := 20.0
 const LARG_PERGUNTA := 400.0
-## As respostas numa coluna só, a 30 px (quatro painéis lado a lado não cabem
-## duas respostas por linha nesse tamanho: "metralhadora" não caberia).
 const T_PERGUNTA := Tema.T_SELO
 const LINHA_RESPOSTA := 52.0
 
 
-## A altura do título e a do rodapé (até duas linhas cada).
 func _alturas(q: Dictionary) -> Array:
 	var ft := Tema.archivo(600)
 	var fo := Tema.archivo(500)
@@ -215,7 +185,6 @@ func _alturas(q: Dictionary) -> Array:
 	return [th, rh]
 
 
-## Onde a pergunta cai: embaixo da raia, dentro da tela.
 func _rect_pergunta(cam: Camera3D, q: Dictionary) -> Rect2:
 	var larg := LARG_PERGUNTA
 	var n := Array(q.get("opcoes", [])).size()
@@ -228,9 +197,6 @@ func _rect_pergunta(cam: Camera3D, q: Dictionary) -> Rect2:
 	return r
 
 
-## Lado a lado, na ordem das raias: da esquerda para a direita empurra para a
-## direita o que encosta; da direita para a esquerda, devolve o que passou da
-## tela.
 func _afastar(itens: Array, folga: float) -> void:
 	var vao := 10.0
 	var esq := Tema.MARGEM_X - folga
@@ -249,19 +215,14 @@ func _afastar(itens: Array, folga: float) -> void:
 			limite = (itens[i + 1][2] as Rect2).position.x - vao
 		if b.end.x > limite:
 			b.position.x = limite - b.size.x
-		# o texto não passa da margem da esquerda nem quando a fila se aperta
 		b.position.x = maxf(b.position.x, esq)
 		itens[i][2] = b
 
 
-## Duas caixas na mesma altura da tela (uma empurra a outra só se se cruzam na vertical).
 func _mesma_faixa(a: Rect2, b: Rect2) -> bool:
 	return a.position.y < b.end.y and b.position.y < a.end.y
 
 
-## Uma pergunta às cegas embaixo da raia: o título, as quatro respostas (o
-## glifo do botão, a cor quando a pergunta é de cor, a palavra) e, revelada, a
-## certa em verde e a escolhida errada em vermelho, com a frase do resultado.
 func _pergunta(l: int, q: Dictionary, r: Rect2) -> void:
 	var larg := LARG_PERGUNTA
 	var opcoes: Array = q.get("opcoes", [])
@@ -285,9 +246,9 @@ func _pergunta(l: int, q: Dictionary, r: Rect2) -> void:
 		if i == escolhida:
 			fundo = Tema.CASCO_ALTO
 		if certa >= 0 and i == certa:
-			borda = cor_id  # o acerto é a cor de quem acertou
+			borda = cor_id
 		elif certa >= 0 and i == escolhida:
-			borda = Tema.MUDO  # o erro não tem cor (02, «O erro»)
+			borda = Tema.MUDO
 		Desenho.moldura(self, caixa, fundo, borda, 2 if borda == Tema.GRAFITE else 3, 10)
 		var meio := caixa.position.y + caixa.size.y * 0.5
 		var tex := Desenho.glifo(str(o[0]))
@@ -298,7 +259,6 @@ func _pergunta(l: int, q: Dictionary, r: Rect2) -> void:
 			draw_circle(Vector2(tx + 12.0, meio), 12.0, o[1])
 			draw_arc(Vector2(tx + 12.0, meio), 12.0, 0.0, TAU, 24, Tema.GRAFITE, 1.5)
 			tx += 34.0
-		# a letra não encolhe (nada abaixo de 30 px): a palavra que não cabe fecha com «…»
 		var palavra := str(o[o.size() - 1])
 		var cabe := caixa.end.x - tx - 10.0
 		var tam := T_PERGUNTA
@@ -314,11 +274,9 @@ func _pergunta(l: int, q: Dictionary, r: Rect2) -> void:
 func _tempo() -> void:
 	_dicas()
 	_treino_e_valendo()
-	# as faixas descem para baixo do quadro da HUD (que cresce com a ação em duas linhas)
 	var topo_das_faixas: float = (HudJogo.quadro_da_sala(str(sala.nome), str(sala.acao), size.x)["rect"] as Rect2).end.y + 8.0
 	var d: float = sala.duracao
 	if d <= 0.0:
-		# sem relógio: a linha de progresso da sala, no mesmo lugar
 		var linha := str(sala.progresso())
 		if linha != "":
 			var fp := Tema.archivo(500)
@@ -327,9 +285,8 @@ func _tempo() -> void:
 			Desenho.moldura(self, q, Color(Tema.CASCO, 0.9), Tema.GRAFITE, 2, 12)
 			Desenho.texto(self, q.position + Vector2(28, 34), linha, fp, Tema.T_SELO, Tema.ETIQUETA_SOMBRA)
 		return
-	# o tempo que resta, logo abaixo do nome da sala (o quadro da HUD)
 	if sala.treinando:
-		return  # o treino não gasta o relógio: a barra só aparece valendo
+		return
 	var resta := maxf(0.0, d - float(sala.t_jogo))
 	var larg := 480.0
 	var p := Vector2(Tema.MARGEM_X - 28, topo_das_faixas + 22.0)
@@ -344,7 +301,6 @@ func _tempo() -> void:
 	Desenho.texto(self, Vector2(trilho.end.x + 18, p.y + 12), s, f, Tema.T_SELO, cor)
 
 
-## O selo do treino no alto, e o "Valendo!" grande quando ele acaba.
 func _treino_e_valendo() -> void:
 	if sala.treinando:
 		var s := "Treino — não vale ponto"
@@ -361,16 +317,12 @@ func _treino_e_valendo() -> void:
 		var f2 := Tema.bungee()
 		var tam := int(Tema.T_DISPLAY * escala)
 		var w2 := Desenho.largura(s2, f2, tam)
-		# a placa atrás: a arena é clara e a palavra, sozinha, some nela; a placa
-		# esvazia antes do texto, para a palavra não ficar sem fundo ao sumir
 		var placa := _rect_valendo()
 		var alfa_placa := 0.92 * clampf(alfa * 2.5, 0.0, 1.0)
 		Desenho.moldura(self, placa, Color(Tema.CASCO, alfa_placa), Color(Tema.GRAFITE, alfa_placa), 2, Tema.RAIO_QUADRO)
 		Desenho.texto(self, Vector2((size.x - w2) * 0.5, size.y * 0.42), s2, f2, tam, Color(Tema.ETIQUETA, alfa))
 
 
-## A placa do «Valendo!» (no tamanho cheio dele, com o folguedo do pulo): vazia
-## quando a palavra não está na tela. As dicas que cairiam em cima dela esperam.
 func _rect_valendo() -> Rect2:
 	if sala == null or sala.treinando or float(sala.valendo_t) <= 0.0:
 		return Rect2()

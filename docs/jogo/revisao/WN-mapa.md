@@ -37,7 +37,7 @@ quando um controle volta, e `Forja.entrar` só acontece no lobby (`:670`) e nos 
 ## O build
 
 `scripts/compilar.sh` roda o CMake com Ninja. A prova nativa vai por `ctest`, com `FORJA_TESTES=ON` e sem a extensão
-(`compilar.sh:135-144`); por isso o `forja_sdl` nunca entra nela. O SDL 3.4.14 sai compilado estático de `.cache/src`.
+(`compilar.sh:99-108`); por isso o `forja_sdl` nunca entra nela. O SDL 3.4.14 sai compilado estático de `.cache/src`.
 
 ## O que foi conferido e está são
 

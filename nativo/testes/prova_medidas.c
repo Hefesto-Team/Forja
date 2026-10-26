@@ -1,5 +1,3 @@
-/* A postura do controle e as medidas das salas de entrada: o que a sala decide
- * a partir do que chegou. Entradas sintéticas, nenhum aparelho. */
 #include "prova.h"
 
 #include "medidas.h"
@@ -12,15 +10,12 @@
 
 static bool perto(float a, float b, float tol) { return fabsf(a - b) <= tol; }
 
-/* A gravidade que um controle parado lê com rolagem `r` e arfagem `p`. */
 static void gravidade(float r, float p, float a[3]) {
   a[0] = POSTURA_G * sinf(r) * cosf(p);
   a[1] = POSTURA_G * cosf(r) * cosf(p);
   a[2] = -POSTURA_G * sinf(p);
 }
 
-/* Gira de verdade em rolagem com `taxa` rad/s por `seg` segundos a 250 Hz; o
- * giroscópio relata `taxa * sinal_giro` (sinal -1 = eixo invertido). */
 static void girar_rolagem(Postura *p, float *verdade, float taxa, float seg, float sinal_giro, uint64_t *ns) {
   int passos = (int)(seg * 250);
   for (int i = 0; i < passos; i++) {
@@ -43,19 +38,16 @@ void provas_postura(void) {
   espera(perto(postura_rolagem_da_gravidade(a), 0, 0.001f), "parado: rolagem 0");
   espera(perto(postura_arfagem_da_gravidade(a), 0, 0.001f), "parado: arfagem 0");
 
-  /* as convenções do SDL: o lado direito erguido dá X positivo */
   gravidade(0.5f, 0, a);
   espera(a[0] > 0 && perto(postura_rolagem_da_gravidade(a), 0.5f, 0.001f), "rolagem pela gravidade");
   gravidade(0, 0.4f, a);
   espera(a[2] < 0 && perto(postura_arfagem_da_gravidade(a), 0.4f, 0.001f), "arfagem pela gravidade");
 
-  /* a primeira gravidade põe o controle onde ele está */
   postura_zerar(&p);
   gravidade(0.52f, 0, a);
   postura_acel(&p, a);
   espera(perto(p.rolagem, 0.52f, 0.01f), "começa na inclinação da gravidade, não no zero");
 
-  /* girar de verdade: o giro integrado acompanha, e o sinal concorda */
   postura_zerar(&p);
   uint64_t ns = 1000000000ull;
   float verdade = 0;
@@ -69,7 +61,6 @@ void provas_postura(void) {
   espera(postura_sinal(&p, 0) == 1, "o giro concorda com a gravidade");
   espera(postura_sinal(&p, 1) == 0, "sem arfagem, a arfagem não tem veredito");
 
-  /* o giroscópio invertido: gira para um lado, a gravidade vai para o outro */
   postura_zerar(&p);
   verdade = 0;
   gravidade(0, 0, a);
@@ -81,22 +72,19 @@ void provas_postura(void) {
   espera(postura_sinal(&p, 0) == -1, "o eixo invertido aparece");
   espera(p.discorda[0] >= 3, "janela a janela");
 
-  /* um buraco no relógio (pausa, reconexão) não vira giro */
   postura_zerar(&p);
   float g1[3] = {0, 0, 2.0f};
   postura_giro(&p, g1, 1000000000ull, 0);
-  postura_giro(&p, g1, 1300000000ull, 0); /* 300 ms depois */
+  postura_giro(&p, g1, 1300000000ull, 0);
   espera(perto(p.rolagem, 0, 0.0001f), "um buraco de 300 ms não integra");
   postura_giro(&p, g1, 1304000000ull, 0);
   espera(perto(p.rolagem, 2.0f * 0.004f, 0.0001f), "o passo seguinte integra");
 
-  /* sem carimbo do controle, vale o do host */
   postura_zerar(&p);
   postura_giro(&p, g1, 0, 5000000000ull);
   postura_giro(&p, g1, 0, 5010000000ull);
   espera(perto(p.rolagem, 2.0f * 0.010f, 0.0001f), "sem carimbo do controle, o passo é o do host");
 
-  /* uma sacudida (2,5 g) não puxa a postura para um ângulo falso */
   postura_zerar(&p);
   gravidade(0, 0, a);
   postura_acel(&p, a);
@@ -117,7 +105,6 @@ void provas_medidas(void) {
   espera_str(num_pt(b, sizeof(b), 250.34, 1), "250,3", "vírgula decimal");
   espera_str(num_pt(b, sizeof(b), 1.0, 0), "1", "sem casas");
 
-  /* ---- botões ---- */
   MedBotoes mb;
   med_botoes_iniciar(&mb, 0xF, NOMES);
   for (int i = 0; i < 4; i++)
@@ -138,11 +125,10 @@ void provas_medidas(void) {
   espera(v.resultado == RES_FALHOU, "pediu e não chegou: falhou");
   espera(strstr(v.medido, "quadrado") && strstr(v.medido, "triângulo"), "o medido diz quais faltaram");
 
-  /* ✕ e ○ trocados: o ✕ físico chega como ○ e vice-versa */
   med_botoes_iniciar(&mb, 0xF, NOMES);
   for (int k = 0; k < 3; k++) {
-    med_botoes_apertou(&mb, 1, 0); /* pedia cruz, chegou círculo */
-    med_botoes_apertou(&mb, 0, 1); /* pedia círculo, chegou cruz */
+    med_botoes_apertou(&mb, 1, 0);
+    med_botoes_apertou(&mb, 0, 1);
   }
   med_botoes_apertou(&mb, 2, 2);
   med_botoes_apertou(&mb, 3, 3);
@@ -162,7 +148,6 @@ void provas_medidas(void) {
   espera(v.resultado == RES_PASSOU, "chegou fora da runa, sem troca: passou");
   espera(v.obs[0] != 0, "com observação");
 
-  /* ---- analógicos ---- */
   espera(med_analogico_setor(1, 0) == 0, "direita é o setor 0");
   espera(med_analogico_setor(0, 1) == 2, "baixo é o setor 2 (y do SDL para baixo)");
   espera(med_analogico_setor(-1, 0) == 4, "esquerda é o setor 4");
@@ -185,7 +170,7 @@ void provas_medidas(void) {
   d.pedido = true;
   for (int i = 0; i < 64; i++) {
     float ang = i * 2 * PI_F / 64;
-    med_analogico_amostra(&d, 0.7f * cosf(ang), 0.7f * sinf(ang)); /* o curso cortado em 70% */
+    med_analogico_amostra(&d, 0.7f * cosf(ang), 0.7f * sinf(ang));
   }
   v = med_analogicos_veredito(&e, &d, true);
   espera(v.resultado == RES_FALHOU, "curso cortado: falhou");
@@ -207,7 +192,6 @@ void provas_medidas(void) {
   v = med_analogicos_veredito(&e, &d, true);
   espera(v.resultado == RES_FALHOU && strstr(v.obs, "direito nunca se mexeu") != NULL, "analógico morto: falhou");
 
-  /* ---- gatilhos ---- */
   MedGatilho l2, r2;
   med_gatilho_iniciar(&l2);
   med_gatilho_iniciar(&r2);
@@ -237,7 +221,6 @@ void provas_medidas(void) {
   v = med_gatilhos_veredito(&l2, &r2, false);
   espera(v.resultado == RES_NAO_MEDIDO, "nada chegou: não medido");
 
-  /* ---- touchpad ---- */
   MedToque t;
   med_toque_iniciar(&t);
   bool um[2] = {true, false};
@@ -252,12 +235,12 @@ void provas_medidas(void) {
   espera(v.resultado == RES_FALHOU && strstr(v.obs, "só um dedo") != NULL, "pediu dois e chegou um: falhou");
 
   bool dois[2] = {true, true};
-  for (int i = 0; i <= 20; i++) { /* abre */
+  for (int i = 0; i <= 20; i++) {
     float s = i / 20.0f * 0.4f;
     float x[2] = {0.5f - s, 0.5f + s}, y[2] = {0.5f, 0.5f};
     med_toque_amostra(&t, dois, x, y);
   }
-  for (int i = 20; i >= 0; i--) { /* fecha */
+  for (int i = 20; i >= 0; i--) {
     float s = i / 20.0f * 0.4f;
     float x[2] = {0.5f - s, 0.5f + s}, y[2] = {0.5f, 0.52f};
     med_toque_amostra(&t, dois, x, y);
@@ -271,7 +254,7 @@ void provas_medidas(void) {
 
   med_toque_iniciar(&t);
   t.tracou = true;
-  for (int i = 0; i <= 20; i++) { /* só a metade esquerda chega */
+  for (int i = 0; i <= 20; i++) {
     float s = i / 20.0f * 0.2f;
     float x[2] = {0.05f + s * 0.1f, 0.05f + s * 2.2f}, y[2] = {0.1f, 0.4f};
     med_toque_amostra(&t, dois, x, y);
@@ -292,7 +275,6 @@ void provas_medidas(void) {
   v = med_toque_clique_veredito(&t, true);
   espera(v.resultado == RES_PASSOU, "o clique chegou: passou");
 
-  /* ---- giroscópio e acelerômetro ---- */
   MedSensores s;
   med_sensores_iniciar(&s, false, false, 0);
   espera(med_giro_veredito(&s, true).resultado == RES_NAO_MEDIDO, "sem giroscópio: não medido");
@@ -306,7 +288,7 @@ void provas_medidas(void) {
   giro[0] = giro[1] = giro[2] = 0;
   for (int i = 0; i < 100; i++)
     med_sensores_amostra(&s, giro, acel);
-  for (int i = -40; i <= 40; i++) { /* inclina de -40° a +40° */
+  for (int i = -40; i <= 40; i++) {
     gravidade(i * PI_F / 180, 0, acel);
     giro[0] = 1.2f;
     giro[1] = -1.5f;
@@ -346,7 +328,6 @@ void provas_medidas(void) {
   v = med_giro_veredito(&s, true);
   espera(v.resultado == RES_FALHOU && strstr(v.obs, "guinada") != NULL, "na mira, eixo parado: falhou");
 
-  /* marteladas com o giro parado não puxam a mediana */
   MedSensores k;
   med_sensores_iniciar(&k, true, true, 250);
   float quieto[3] = {0, 0, 0};
@@ -357,7 +338,6 @@ void provas_medidas(void) {
     med_sensores_amostra(&k, quieto, pancada);
   espera(perto((float)med_sensores_g_parado(&k), 1.0f, 0.06f), "a mediana ignora as marteladas");
 
-  /* acelerômetro em escala errada: parado, lê 0,1 g */
   MedSensores q;
   med_sensores_iniciar(&q, true, true, 250);
   float zero[3] = {0, 0, 0}, fraco[3] = {0, 0.98f, 0};
@@ -367,7 +347,6 @@ void provas_medidas(void) {
   v = med_acel_veredito(&q, true);
   espera(v.resultado == RES_FALHOU && strstr(v.obs, "escala") != NULL, "0,1 g parado: escala errada");
 
-  /* sem martelada */
   MedSensores m2;
   med_sensores_iniciar(&m2, true, true, 250);
   for (int i = -40; i <= 40; i++) {
@@ -381,13 +360,12 @@ void provas_medidas(void) {
   v = med_acel_veredito(&m2, true);
   espera(v.resultado == RES_FALHOU && strstr(v.obs, "martelada") != NULL, "na pedra, sem martelada: falhou");
 
-  /* ---- A Prova: a carga ---- */
   MedCarga mc;
   med_carga_zerar(&mc, true);
   for (int i = 0; i < 60 * 90; i++)
     med_carga_quadro(&mc, 4, 1.0f / 60);
   espera(mc.paradas == 0 && mc.amostras_giro == 4L * 60 * 90, "noventa segundos sem buraco");
-  for (int i = 0; i < 90; i++) /* 1,5 s sem amostra */
+  for (int i = 0; i < 90; i++)
     med_carga_quadro(&mc, 0, 1.0f / 60);
   med_carga_quadro(&mc, 4, 1.0f / 60);
   for (int i = 0; i < 90; i++)

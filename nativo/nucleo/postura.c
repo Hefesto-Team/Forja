@@ -1,13 +1,12 @@
-/* A postura do controle. Ver postura.h. */
 #include "postura.h"
 
 #include <math.h>
 #include <string.h>
 
-#define TAU 0.6f     /* s: quão devagar a gravidade corrige o giro */
-#define JANELA 0.30f /* s: a janela da prova do sinal */
-#define MIN_MOV 0.07f /* rad (~4°): o mínimo, nos dois, para a janela contar */
-#define BURACO 0.05f /* s: um buraco maior (pausa, reconexão) não vira giro */
+#define TAU 0.6f
+#define JANELA 0.30f
+#define MIN_MOV 0.07f
+#define BURACO 0.05f
 
 void postura_zerar(Postura *p) { memset(p, 0, sizeof(*p)); }
 
@@ -40,7 +39,6 @@ void postura_acel(Postura *p, const float a[3]) {
   p->tem_acel = true;
   p->amostras_acel++;
   if (primeira && gravidade_confiavel(p)) {
-    /* o controle começa onde a gravidade diz, não no zero */
     p->rolagem = postura_rolagem_da_gravidade(a);
     p->arfagem = postura_arfagem_da_gravidade(a);
     abrir_janela(p);
@@ -48,7 +46,6 @@ void postura_acel(Postura *p, const float a[3]) {
 }
 
 void postura_giro(Postura *p, const float g[3], uint64_t sensor_ns, uint64_t host_ns) {
-  /* o relógio do controle quando ele anda; o do host quando não */
   float dt = 0;
   if (sensor_ns) {
     if (p->ultimo_ns && sensor_ns > p->ultimo_ns)

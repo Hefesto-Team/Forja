@@ -1,12 +1,4 @@
 extends Minigame
-## O minigame de prova do kit (fica em testes/: não entra no jogo nem na
-## exportação). Quatro raias, uma nota por tempo para cada lugar, ✕ no tempo.
-## O robô de cada lugar mira um desvio combinado, para a prova ver os quatro
-## julgamentos saírem do Ritmo pelo caminho inteiro: o controle simulado, o
-## módulo, o Forja.apertou, o julgar_toque do kit e o registro.
-##
-## Sem faixa (o relógio do sistema), 120 bpm; cada lugar julga NOTAS notas e
-## acaba; o minigame acaba quando todos acabam.
 
 const FICHA := {
 	"slot": "T00_J00",
@@ -25,21 +17,18 @@ const FICHA := {
 	"treino": false,
 }
 const NOTAS := 12
-## A primeira nota: dá tempo de o robô adiantado mirar antes dela.
 const PRIMEIRA := BATIDA_DA_PRIMEIRA_NOTA
-## O desvio que o robô de cada lugar mira, em s (NUNCA: não aperta).
 const NUNCA := 99.0
 const MIRA := [0.0, -0.065, -0.115, NUNCA]
-## Os pontos de cada julgamento (ERRO, BOM, OTIMO, PERFEITO).
 const PONTOS := [0, 1, 2, 3]
 
-var contagem := [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]  ## [lugar][julgamento]
-var _nota := [PRIMEIRA, PRIMEIRA, PRIMEIRA, PRIMEIRA]  ## a nota da vez de cada lugar
+var contagem := [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]
+var _nota := [PRIMEIRA, PRIMEIRA, PRIMEIRA, PRIMEIRA]
 var _julgadas := [0, 0, 0, 0]
-var _robo_apertou := [-1, -1, -1, -1]  ## a última nota em que o robô apertou
-var _robo_nota := [-1, -1, -1, -1]  ## a nota que o robô já mirou
+var _robo_apertou := [-1, -1, -1, -1]
+var _robo_nota := [-1, -1, -1, -1]
 var _robo_mira := [0.0, 0.0, 0.0, 0.0]
-var _fora := [false, false, false, false]  ## o lugar estava sem controle
+var _fora := [false, false, false, false]
 
 
 func montar() -> void:
@@ -66,7 +55,6 @@ func jogar(_dt: float) -> void:
 			_fora[l] = true
 			continue
 		if _fora[l]:
-			# voltou: a nota da vez é a próxima que ainda não passou
 			_fora[l] = false
 			_nota[l] = maxi(_nota[l], ceili(Ritmo.batida() + 0.3))
 			nova_nota(l, _nota[l], Ritmo.t_da_batida(_nota[l]))
@@ -77,7 +65,6 @@ func jogar(_dt: float) -> void:
 			contagem[l][julgar_toque(l, alvo, n)] += 1
 			_proxima(l)
 		elif Ritmo.t_musica() - float(Ritmo.desvio[l]) > alvo + Ritmo.JANELA_BOM:
-			# a nota passa pela janela do lugar: o desvio calibrado (G02) a empurra junto
 			nota_perdida(l, n)
 			contagem[l][Ritmo.ERRO] += 1
 			_proxima(l)
@@ -99,14 +86,8 @@ func robo(l: int, dt: float) -> void:
 	if MIRA[l] == NUNCA or _robo_apertou[l] == n:
 		return
 	if _robo_nota[l] != n:
-		# o temperamento (--robo=bom|medio|ruim): quando não acerta, aperta tarde demais
 		_robo_nota[l] = n
-		# o robô toca como o cavaleiro que a construção calibrou: atrasado o
-		# desvio do lugar (G02), que o Ritmo desconta; o julgamento vê a MIRA
 		_robo_mira[l] = (MIRA[l] + float(Ritmo.desvio[l])) if Forja.robo_acerta() else 0.25
-	# o toque é julgado no quadro seguinte (minigame.gd, julgar_toque): o robô aperta
-	# quando o quadro do julgamento passa da mira, e o desvio fica entre a mira e a mira
-	# mais um quadro, em qualquer fase da batida contra o quadro (a WE02)
 	if Ritmo.t_musica() + dt >= Ritmo.t_da_batida(n) + float(_robo_mira[l]):
 		Forja.robo_apertar(l, Forja.CRUZ, 0.05)
 		_robo_apertou[l] = n

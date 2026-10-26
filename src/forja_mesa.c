@@ -1,5 +1,3 @@
-/* FORJA — a mesa: os DualSense em hidraw, na mesma ordem para todo binário.
- * Ver include/forja_mesa.h. */
 #define _XOPEN_SOURCE 700
 
 #include "forja_mesa.h"
@@ -88,16 +86,12 @@ int forja_usb_de(const char *caminho, char *out, size_t tam) {
     if (!barra || barra == atual)
       return -1;
     *barra = '\0';
-    /* Nunca sobe além da raiz do sysfs: acima dela não há aparelho. */
     if (strlen(atual) <= n_raiz)
       return -1;
   }
 }
 
 int forja_usb_do_pad(const ForjaPad *pad, char *out, size_t tam) {
-  /* Só o pad no USB tem aparelho de som próprio. Subir do nó de um pad no
-   * rádio chegaria ao ADAPTADOR Bluetooth, que também é um usb_device — e o
-   * alto-falante "achado" seria de outro aparelho. */
   if (pad->bus != FORJA_BUS_USB)
     return -1;
   char device[PATH_MAX];

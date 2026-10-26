@@ -24,10 +24,8 @@ MINIGAMES = RAIZ / "docs" / "jogo" / "03-os-45-minigames.md"
 RITMO = RAIZ / "docs" / "jogo" / "04-ritmo-e-audio.md"
 PROMPTS = Path(__file__).resolve().parent / "trilha_prompts.json"
 
-## O id da seção -> o nome da sala no jogo (a ordem de docs/jogo/03).
 SECOES = ["", "centelha", "viga", "molde", "impacto", "galeria", "canto", "caminhos", "voz", "prova"]
 
-## As telas e o Relâmpago: o slot -> (onde toca, o que a música tem de fazer ali).
 TELAS = {
     "MUS_TELA_TITULO": ("a tela de título", "a primeira coisa que se ouve na noite; convida a pegar o controle"),
     "MUS_TELA_CONSTRUCAO": ("a construção do cavaleiro", "quatro pessoas escolhendo peças ao mesmo tempo, sem pressa"),
@@ -37,7 +35,6 @@ TELAS = {
     "MUS_RELAMPAGO": ("o Relâmpago", "a rodada curta e rápida, fora da noite inteira"),
 }
 
-## Os jingles: o slot -> o momento exato em que ele toca.
 JINGLES = {
     "JIN_VITORIA": "alguém venceu o minigame",
     "JIN_DERROTA": "o minigame acabou e esta pessoa ficou em último",

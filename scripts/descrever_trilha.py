@@ -157,20 +157,13 @@ def o_pedido(ficha, usados=()):
     return "\n".join(linhas)
 
 
-## As palavras que denunciam um prompt escrito em português (o ACE-Step só
-## entende inglês; o título e a descrição é que são nossos).
 PALAVRAS_PT = {"com", "de", "para", "que", "uma", "dos", "das", "não", "no", "na",
                "ao", "pelo", "pela", "sons", "batida", "tempo", "forja", "jogo"}
 
 
-## As palavras que denunciam um título escrito em inglês (o título é nosso,
-## e é em português).
-## «neon» fica de fora de propósito: é palavra do jogo em português (Portões
-## de Néon), e com ou sem acento vale como título nosso.
 PALAVRAS_EN = {"the", "of", "and", "in", "on", "from", "with", "forge", "fire", "flame",
                "night", "steel", "iron", "song", "theme", "beat", "hammer", "anvil", "spark"}
 
-## O tom vai como parâmetro do motor, nunca escrito no prompt.
 TONS = re.compile(r"\b([A-G])(\s*#|\s*b|\s*sharp|\s*flat)?\s+(minor|major)\b", re.I)
 
 
@@ -188,8 +181,6 @@ def conferir(campos, usados=()):
     em_ingles = palavras_do_titulo & PALAVRAS_EN
     if em_ingles:
         raise ValueError("o título é em PORTUGUÊS, e veio em inglês (%s)" % ", ".join(sorted(em_ingles)))
-    # a trilha tem 55 faixas: nenhuma palavra de peso se repete entre elas, ou
-    # tudo vira "Chama da Forja", "Fogo da Forja", "Forja Neon"
     meu = _palavras(titulo)
     if not meu:
         raise ValueError("o título é só artigo e preposição")
@@ -203,7 +194,6 @@ def conferir(campos, usados=()):
                          % ", ".join(sorted(repetidas)))
     if len(descricao.split()) < 20:
         raise ValueError("a descrição está curta demais")
-    # o prompt é para o modelo de música, que só entende inglês
     palavras = {p.strip(".,;:[]()").lower() for p in prompt.split()}
     intrusas = palavras & PALAVRAS_PT
     if intrusas or any(c in prompt for c in "áàâãéêíóôõúçÁÀÂÃÉÊÍÓÔÕÚÇ"):
@@ -263,8 +253,6 @@ class ModeloOllama:
                 "stream": False,
                 "keep_alive": "5m",
                 "options": {
-                    # a janela curta e a temperatura por esforço: a 4ª tentativa
-                    # arrisca mais que a 1ª, e nada disso enche a memória da placa
                     "num_ctx": 4096,
                     "temperature": min(1.1, 0.6 + 0.15 * esforco + 0.1 * tentativa),
                     "top_p": 0.9,
@@ -338,15 +326,12 @@ def descrever(alvo, modelo, refazer=False, esforco=0, aviso=print):
         try:
             campos = modelo.descrever(todas[slot], esforco, tuple(usados))
         except (ValueError, urllib.error.URLError, OSError, json.JSONDecodeError) as e:
-            # o título velho não pode ficar no lugar: apagado, a próxima rodada
-            # pega este slot de novo (é o que faz «nada se perde» valer nos dois
-            # sentidos — nem o que ficou pronto, nem o que falta)
             gravar({slot: {"titulo": "", "descricao": ""}})
             faltaram.append(slot)
             aviso("%s: não deu (%s); fica para a próxima rodada" % (slot, e))
             continue
         campos["descrito_por"] = getattr(modelo, "nome", "?")
-        gravar({slot: campos})  # um a um: nada se perde se parar no meio
+        gravar({slot: campos})
         usados.append(campos["titulo"])
         feitos.append((slot, campos))
         aviso("%d/%d %s — «%s» (%.0f s)" % (i, len(alvos), slot, campos["titulo"], time.monotonic() - começo))
@@ -385,7 +370,7 @@ def prova():
         confere(lido == {"titulo": "A", "descricao": "B", "prompt": "C"},
                 "a resposta do modelo se lê mesmo com <think> na frente")
     finally:
-        PROMPTS.write_text(original, encoding="utf-8")  # a prova não mexe no arquivo de verdade
+        PROMPTS.write_text(original, encoding="utf-8")
     confere(PROMPTS.read_text(encoding="utf-8") == original, "o trilha_prompts.json voltou como estava")
     return falhas
 

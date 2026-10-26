@@ -1,4 +1,3 @@
-/* O registro da sessão. Ver registro.h. */
 #include "registro.h"
 
 #include "mascara.h"

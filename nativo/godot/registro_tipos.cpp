@@ -1,6 +1,3 @@
-/* A porta de entrada da GDExtension: o Godot chama forja_iniciar_biblioteca
- * (o entry_symbol de godot/forja.gdextension) e o módulo registra o nó
- * ForjaControles para o GDScript. */
 #include <gdextension_interface.h>
 #include <godot_cpp/core/class_db.hpp>
 #include <godot_cpp/core/defs.hpp>

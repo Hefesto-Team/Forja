@@ -1,14 +1,4 @@
 extends Node3D
-## Quadro 10 — A tela de montagem (04): quatro colunas de 432 px, cada uma um
-## corpo misturado (a cabeça de um personagem, o superior de outro, o
-## inferior de um terceiro). P1 já forjado (a chave em tungstênio e a build
-## boa sublinhada), P2 com a linha do inferior travada e a fita das 12
-## cabeças aberta, P3 de cadeira de rodas, P4 passando por um item que o corpo
-## não alcança. 50 mm, frontal, à altura do peito.
-## Refeita no item 16: quatro raças (P1 orc, P2 humana, P3 raposa, P4
-## autômato), cada peça na cor dela; a cor do lugar só no contorno, no
-## acento e no contra-luz, que baixou de 3,0 para 1,2 para não tingir o corpo;
-## a chave de quem não forjou passou do violeta #8a7cff ao tungstênio a 3,2.
 
 const Fita := preload("res://estudos/direcao/fita.gd")
 const Hud := preload("res://estudos/direcao/hud.gd")
@@ -21,21 +11,17 @@ var espera := 8
 var arquivo := "10_montagem"
 var e
 
-## Cada coluna: as três peças pelo personagem, o item, o nome e o estado.
 const COLUNAS := [
 	{"pecas": ["male-c", "female-f", "male-a"], "raca": "orc", "item": "ancora", "nome": "Basalto", "forjado": true, "linha": -1},
 	{"pecas": ["male-b", "female-c", "male-e"], "raca": "humana", "item": "martelo", "nome": "Obsidiana", "trava": 2, "linha": 0, "fita": true},
 	{"pecas": ["female-d", "female-b", "male-b"], "raca": "raposa", "item": "diapasao", "nome": "Latão", "cadeira": "wheelchair-deluxe", "linha": 2},
 	{"pecas": ["female-a", "male-d", "female-d"], "raca": "automato", "item": "escudo", "nome": "Faísca", "passando": "martelo", "linha": 3},
 ]
-## A câmera: 50 mm, à altura do peito, a lente deslocada para o cavaleiro cair
-## na faixa de 160 a 600 px sem a câmera olhar para baixo.
 const DIST := 9.0
 const ALTURA_CAM := 0.95
-const PX_POR_M := 1080.0 / (2.0 * DIST * 0.24)  # tan(13,5°) ≈ 0,24
+const PX_POR_M := 1080.0 / (2.0 * DIST * 0.24)
 const PASSO := 432.0 / PX_POR_M
 var corpos := []
-## A pose de quem segura o item: a arma na mão pede o braço de segurar.
 const ANIM := {"martelo": "holding-right", "ancora": "holding-right", "escudo": "holding-left"}
 
 
@@ -45,8 +31,6 @@ func montar(estudo) -> void:
 	cam.projection = Camera3D.PROJECTION_FRUSTUM
 	cam.near = 0.1
 	cam.size = 2.0 * cam.near * 0.24
-	# o cavaleiro (0,79·K = 1,58 m com o cabelo, o meio a 0,79 m) no meio da
-	# faixa de 160 a 600 px, os pés em cerca de 580
 	var desce := (ALTURA_CAM - 0.79) + (540.0 - 375.0) / PX_POR_M
 	cam.frustum_offset = Vector2(0, -desce * cam.near / DIST)
 	cam.position = Vector3(0, ALTURA_CAM, DIST)
@@ -57,7 +41,6 @@ func montar(estudo) -> void:
 	for i in range(-5, 6):
 		for j in range(-3, 1):
 			Mundo.peca(self, "mini-dungeon/floor", Vector3(i * 2.0, 0, j * 2.0))
-	# a parede de fundo e o néon da arquitetura, baixo
 	Mundo.caixa(self, Vector3(24, 6, 0.3), Vector3(0, 3, -6.2), Fita.fosco(Fita.graduar(Color("#3a3346"), "cenario")))
 	var sol := DirectionalLight3D.new()
 	add_child(sol)
@@ -73,9 +56,6 @@ func montar(estudo) -> void:
 		Montar.cavaleiro(self, i, Vector3(x, 0, 0), c.pecas, {"raca": c.raca, "item": c.item, "cadeira": c.get("cadeira", ""),
 			"anim": ANIM.get(c.item, "idle") if not c.has("cadeira") else "wheelchair-sit", "t_anim": 0.25, "anel": true,
 			"yaw": 0.0})
-		# a chave: tungstênio sempre, 3,2 até forjar e 5,5 depois (o violeta
-		# de antes, e até um branco frio, tingiam o corpo de rosa e as três
-		# peças viravam uma cor só); o contra-luz na cor do lugar
 		var chave: Color = Fita.TUNGSTENIO
 		Mundo.foco(self, Vector3(x + 1.6, 3.6, 3.2), Vector3(x, 0.8, 0), chave, 5.5 if c.get("forjado", false) else 3.2, 22.0, 9.0, true)
 		Mundo.foco(self, Vector3(x - 0.4, 2.8, -2.6), Vector3(x, 1.0, 0), cor, 1.2, 26.0, 7.0)
@@ -87,7 +67,6 @@ func montar(estudo) -> void:
 func _hud(ci: CanvasItem) -> void:
 	for i in 4:
 		_coluna(ci, i)
-	# as dicas, na voz do texto
 	var dicas := [["cross", "Botão ✕ (Forjar)"], ["triangle", "Botão △ (Sortear)"], ["square", "Botão □ (Travar)"], ["dpad_left", "Botão ◀ ▶ (Trocar)"]]
 	var x := 196.0
 	for d in dicas:
@@ -102,7 +81,6 @@ func _coluna(ci: CanvasItem, i: int) -> void:
 	var cor: Color = Fita.JOGADOR[i]
 	var x0 := 96.0 + 432.0 * i + 10.0
 	var w := 412.0
-	# a placa do lugar (60 a 150)
 	var placa := Rect2(x0, 60, w, 90)
 	Hud.caixa(ci, Rect2(placa.position + Vector2(0, 6), placa.size), Fita.SOMBRA, 10)
 	Hud.caixa(ci, placa, Fita.CASCO, 10, Fita.CASCO_ALTO, 2)
@@ -112,7 +90,6 @@ func _coluna(ci: CanvasItem, i: int) -> void:
 	Hud.texto(ci, Fita.archivo(600), 32, placa.position + Vector2(0, 26), c.nome, Fita.ETIQUETA, HORIZONTAL_ALIGNMENT_RIGHT, w - 20)
 	if c.get("forjado", false):
 		Hud.texto(ci, Fita.vt(), 30, placa.position + Vector2(0, 58), "FORJADO", Fita.TUNGSTENIO, HORIZONTAL_ALIGNMENT_RIGHT, w - 20)
-	# a etiqueta do arquétipo (610 a 650), em Permanent Marker, em TINTA
 	var et := Rect2(x0 + 26, 608, w - 52, 44)
 	Hud.caixa(ci, Rect2(et.position + Vector2(4, 5), et.size), Fita.SOMBRA, 6)
 	Hud.caixa(ci, et, Fita.ETIQUETA, 6)
@@ -120,14 +97,11 @@ func _coluna(ci: CanvasItem, i: int) -> void:
 	var titulo := "%s · %s" % [c.nome, corpo.arquetipo]
 	Hud.texto(ci, Fita.marcador(), 30, et.position + Vector2(0, 0), titulo, Fita.TINTA, HORIZONTAL_ALIGNMENT_CENTER, et.size.x)
 	if Sis.build_boa(corpo, c.item):
-		# a build boa: os dois sublinhados de caneta
 		var lw := Hud.largura_do(Fita.marcador(), 30, titulo)
 		var sx := et.position.x + (et.size.x - lw) * 0.5
 		for k in 2:
 			var y := et.end.y - 7 + k * 6
 			ci.draw_line(Vector2(sx - 4, y + k), Vector2(sx + lw + 4, y - 1), Fita.TINTA, 2.5, true)
-	# as cinco linhas (660 a 860)
-	# fora da humana, a linha da cabeça diz a raça
 	var rotulos := ["Cabeça" if c.raca == "humana" else Racas.NOME[c.raca], "Superior", "Inferior", "Item", "Nome"]
 	var valores := [corpo.pecas[0].nome, corpo.pecas[1].nome, corpo.pecas[2].nome, Sis.item(c.item).nome, c.nome]
 	if c.has("cadeira"):
@@ -147,7 +121,6 @@ func _coluna(ci: CanvasItem, i: int) -> void:
 		Hud.texto(ci, Fita.archivo(600), 30, Vector2(vx, r.position.y + 1), "▶", Fita.MUDO, HORIZONTAL_ALIGNMENT_RIGHT, vw)
 		Hud.texto(ci, Fita.archivo(500), 30, Vector2(vx + 22, r.position.y + 1), valores[k], cor_valor, HORIZONTAL_ALIGNMENT_CENTER, vw - 44)
 		if k == 3 and c.has("passando"):
-			# o item que o corpo não alcança: riscado
 			var lw := Hud.largura_do(Fita.archivo(500), 30, valores[k])
 			var cx := vx + 22 + (vw - 44) * 0.5
 			ci.draw_line(Vector2(cx - lw * 0.5 - 6, r.position.y + 21), Vector2(cx + lw * 0.5 + 6, r.position.y + 19), cor, 3.0, true)
@@ -155,7 +128,6 @@ func _coluna(ci: CanvasItem, i: int) -> void:
 			_cadeado(ci, Vector2(r.position.x + 134, r.position.y + 6), Fita.ETIQUETA)
 	if c.get("fita", false):
 		_fita_das_cabecas(ci, i, Rect2(x0, 700, w, 52))
-	# os quatro VUs (870 a 1010)
 	for k in 4:
 		var y := 872.0 + k * 35.0
 		Hud.texto(ci, Fita.vt(), 30, Vector2(x0 + 12, y - 2), Sis.NOME_ST[k], Fita.MUDO)
@@ -168,23 +140,18 @@ func _coluna(ci: CanvasItem, i: int) -> void:
 			var pede := int(it["pede_" + Sis.ST[k]])
 			var liga := int(it["liga_" + Sis.ST[k]])
 			if pede > 0:
-				# as duas marcas do item no VU: o que pede e a liga
 				for nivel in [pede, liga]:
 					var seg := (r.size.x - 16.0) / 5.0
 					var mx: float = r.position.x + nivel * (seg + 4.0) - 2.0
 					ci.draw_line(Vector2(mx, r.position.y - 6), Vector2(mx, r.end.y + 6), Fita.ETIQUETA, 3.0)
 
 
-## O cadeado da linha travada, desenhado: a alça e o corpo.
 func _cadeado(ci: CanvasItem, p: Vector2, cor: Color) -> void:
 	ci.draw_arc(p + Vector2(-14, 12), 7.0, PI, TAU, 10, cor, 3.0, true)
 	ci.draw_rect(Rect2(p + Vector2(-24, 11), Vector2(20, 16)), cor)
 	ci.draw_rect(Rect2(p + Vector2(-15, 16), Vector2(2, 6)), Fita.CASCO)
 
 
-## A fita das 12 marcas, embaixo da linha escolhida: a atual acesa na cor do
-## lugar, as travadas pela regra riscadas em GRAFITE, as ocupadas por outro
-## jogador na cor dele com o P#.
 func _fita_das_cabecas(ci: CanvasItem, lugar: int, r: Rect2) -> void:
 	Hud.caixa(ci, Rect2(r.position + Vector2(0, 5), r.size), Fita.SOMBRA, 6)
 	Hud.caixa(ci, r, Fita.JANELA, 6, Fita.GRAFITE, 2)

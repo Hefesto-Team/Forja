@@ -66,5 +66,5 @@ Catálogo: [dualsense.md](dualsense.md). Data: 08/10/2026.
 ## O que preciso de outras cabeças
 
 - **Arquiteto:** expor o bloco inteiro do gatilho (11 bytes) na `percepcao`; hoje
-  `nativo/godot/forja_controles.cpp:569` só dá o byte `[0]`, e o `Percepcao` do `simulador.h` já guarda os 11.
+  `nativo/godot/forja_controles.cpp:547` só dá o byte `[0]`, e o `Percepcao` do `simulador.h` já guarda os 11.
 - **Diretor de jogo:** se a pá muda para Weapon (proposta 2), a ficha muda; é decisão dele.

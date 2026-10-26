@@ -1,17 +1,4 @@
 extends SceneTree
-## A tabela dos contatos (PRODUCAO, item 9): para cada uma das 32 animações
-## do Mini Characters, o instante em que o golpe acerta ou o pé pousa. É
-## o número que a sala usa para casar o impacto com o tempo da música.
-##
-##   godot --headless --path godot -s res://estudos/direcao/medir_contatos.gd
-##
-## Grava docs/jogo/arte/dados/contatos.csv. Amostra a 120 quadros por
-## segundo, sem relógio e sem acaso: rodar duas vezes dá a mesma tabela.
-##
-## O golpe (ataque, interação, pegar, tiro): o quadro de maior velocidade
-## angular do osso que bate (o braço; a perna no chute). O passo e o pulo: o
-## quadro em que o pé chega mais baixo (no pulo, depois do ponto mais alto).
-## As outras (parado, sentado, emoções, a cadeira) não têm contato.
 
 const MODELO := "res://estudos/direcao/kenney/mini-characters/character-male-a.glb"
 const SAIDA := "res://../docs/jogo/arte/dados/contatos.csv"
@@ -39,8 +26,6 @@ func _init() -> void:
 	quit()
 
 
-## A pose no instante t, lida das trilhas da animação (sem o mixer: fora do
-## laço de quadros ele não aplica nada, e assim o resultado não depende dele).
 func _pose(ap: AnimationPlayer, esq: Skeleton3D, nome: String, t: float) -> void:
 	var a := ap.get_animation(nome)
 	esq.reset_bone_poses()
@@ -78,7 +63,6 @@ func _medir(ap: AnimationPlayer, esq: Skeleton3D, corpo: MeshInstance3D, nome: S
 	return ["", "", "sem contato"]
 
 
-## O quadro de maior velocidade angular do osso (a rotação entre dois quadros).
 func _golpe(ap: AnimationPlayer, esq: Skeleton3D, nome: String, n: int, osso: String) -> Array:
 	var b := esq.find_bone(osso)
 	var antes := Quaternion()
@@ -90,7 +74,6 @@ func _golpe(ap: AnimationPlayer, esq: Skeleton3D, nome: String, n: int, osso: St
 		var q := _global(esq, b).basis.get_rotation_quaternion()
 		if i > 0:
 			var v := antes.angle_to(q) * FPS
-			# o meio do intervalo é o quadro do contato; empate fica com o primeiro
 			if v > melhor + 1e-4:
 				melhor = v
 				quando = t
@@ -98,9 +81,6 @@ func _golpe(ap: AnimationPlayer, esq: Skeleton3D, nome: String, n: int, osso: St
 	return ["%.3f" % quando, osso, "maior velocidade angular (%.0f graus/s)" % rad_to_deg(melhor)]
 
 
-## O quadro em que o pé chega mais baixo: o vértice mais baixo da malha que
-## cada perna move, no espaço do esqueleto. No pulo, só depois do ponto mais
-## alto (a aterrissagem, não o chão de onde ele saiu).
 func _pe(ap: AnimationPlayer, esq: Skeleton3D, corpo: MeshInstance3D, nome: String, n: int, pulo: bool) -> Array:
 	var pernas := {}
 	for lado in ["left", "right"]:
@@ -135,7 +115,6 @@ func _pe(ap: AnimationPlayer, esq: Skeleton3D, corpo: MeshInstance3D, nome: Stri
 	return ["%.3f" % (melhor / FPS), ossos[melhor], met]
 
 
-## Os vértices que a perna move (peso maior que 0,5), já no espaço do osso.
 func _vertices(esq: Skeleton3D, mi: MeshInstance3D, osso: String) -> PackedVector3Array:
 	var skin: Skin = mi.skin
 	var b := esq.find_bone(osso)
@@ -157,8 +136,6 @@ func _vertices(esq: Skeleton3D, mi: MeshInstance3D, osso: String) -> PackedVecto
 	return out
 
 
-## A pose global do osso, montada pelos pais a partir das poses locais (a
-## global do esqueleto fica em cache fora do laço de quadros).
 func _global(esq: Skeleton3D, b: int) -> Transform3D:
 	var t := esq.get_bone_pose(b)
 	var p := esq.get_bone_parent(b)

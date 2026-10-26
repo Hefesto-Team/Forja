@@ -395,12 +395,12 @@ ritmo.
 1. **O sussurro** (`SUSSURRO_S`, 3,0 s): o jogo liga o mudo de todos (`ouvido.mudo[l] = true`,
    `Forja.led_mic(l, 1)`). A dica é `["@mic", "Mudo, sussurre baixinho"]`. O maior `Forja.som_mic(l).nivel` vai
    para `_mudo_nivel[l]`, e `_viu_mudo[l] = true` depois de 1,0 s.
-2. **A luz do microfone:** `_luz_rodada` (`voz.gd:263-276`), `_comecar_luz` (278-288) e `_atualizar_luz` (333-365),
+2. **A luz do microfone:** `_luz_rodada` (`voz.gd:226-239`), `_comecar_luz` (278-288) e `_atualizar_luz` (333-365),
    copiados iguais. Troque `F` por `Forja`, `_conectado` por `conectado` e `estado = LUZ` por `_bancada = LUZ_B`.
 3. Quando todos chegam a `FIM_LUZ`, `acabou[l] = true` para todos, e o kit fecha.
 
-`pergunta(l)` é a de hoje (`voz.gd:608-633`), com `estado != LUZ` trocado por `_bancada != LUZ_B`; fora da bancada,
-devolve `{}`. `dar_vereditos(l)` é o de hoje (`voz.gd:471-484`), com os dados do minigame:
+`pergunta(l)` é a de hoje (`voz.gd:563-588`), com `estado != LUZ` trocado por `_bancada != LUZ_B`; fora da bancada,
+devolve `{}`. `dar_vereditos(l)` é o de hoje (`voz.gd:431-444`), com os dados do minigame:
 
 | dado | de onde vem |
 | --- | --- |
@@ -630,7 +630,7 @@ O catálogo:
 
 A limpeza: `git rm godot/scripts/salas/voz.gd godot/scripts/salas/voz.gd.uid`; tire a linha 19 de `main.gd` se a
 H04 ainda não tirou. Confira com `grep -rn "salas/voz.gd\|SalaVoz" godot/`: tem que sair vazio. O id `"voz"` como
-apelido (`godot/scripts/mundo/salao.gd:21`, `godot/scripts/partida.gd:28`) fica.
+apelido (`godot/scripts/mundo/salao.gd:13`, `godot/scripts/partida.gd:12`) fica.
 
 As traduções, em `godot/scripts/traducoes.gd` (as que ainda não existirem): `"A Voz": "The Voice"`,
 `"Chame a forja!": "Call the forge!"`, `"Sopre!": "Blow!"`, `"Mudo, sussurre baixinho": "Muted, whisper softly"`.
@@ -1222,7 +1222,7 @@ func robo(l: int, dt: float) -> void:
 A 105 bpm, o rugido cai 0,571 s depois da nota do mudo: o robô que erra (0,65 s tarde) leva o rugido. A chance de
 cair no rugido é 0,05 no `bom`, 0,34 no `medio` e 0,7 no `ruim`. Na mesa padrão (`bom`, `medio`, `medio`, `ruim`),
 a chance de ninguém cair é de 0,95 × 0,66 × 0,66 × 0,3 = 12 %; a de alguém cair, 88 %. `_robo_bancada(l, dt)` é o
-`_robo` de hoje nos ramos `SUSSURRO` e `LUZ` (`voz.gd:654-666`), com o `estado` trocado por `_bancada`.
+`_robo` de hoje nos ramos `SUSSURRO` e `LUZ` (`voz.gd:604-616`), com o `estado` trocado por `_bancada`.
 O robô sorteia o temperamento **uma vez** (`Forja.robo_acerta()`) e aperta pelo `Forja._robo_apertar_cru` da F09,
 que não sorteia de novo. O `Forja.robo_apertar` sorteia dentro: com ele, o robô que errou no primeiro sorteio ainda
 erraria no segundo, e as chances acima ficariam erradas. Na bancada, o `_robo_bancada` aperta pelo
@@ -1485,7 +1485,7 @@ A prancha da prova visual (`SAIDA/prancha-<n>.png`, um quadro de 480 × 270 a ca
 
 ### Armadilhas
 
-- **`main.gd:19` ainda carrega `salas/voz.gd`** até a H04 trocar o `SALAS` pelo catálogo. Não faça o `git rm`
+- **`main.gd:8` ainda carrega `salas/voz.gd`** até a H04 trocar o `SALAS` pelo catálogo. Não faça o `git rm`
   antes da H04 (ou tire a linha junto).
 - **O erro do kit encosta na escuta no pico.** O `erro` (0,7 / 0,3, 160 ms) sai do `_reagir` no julgamento. Com
   uma nota por batida (0,571 s), a escuta seguinte abre 0,32 s depois do alvo, e um erro julgado tarde (até

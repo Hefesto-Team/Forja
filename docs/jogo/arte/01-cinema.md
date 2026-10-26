@@ -25,7 +25,7 @@ os cinco e diz como a luz muda de seção para seção.
    julgamento e a física nunca param.
 7. **Toda câmera é vertical em KEEP_HEIGHT.** A lente se diz em milímetros e
    vira FOV vertical pela tabela abaixo. O jogo hoje usa 40° em 16:9
-   (`godot/scripts/main.gd:947`), que é perto de 33 mm.
+   (`godot/scripts/main.gd:863`), que é perto de 33 mm.
 
 ### A tabela de lente
 

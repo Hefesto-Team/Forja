@@ -26,7 +26,7 @@ outro, sem aviso:
 
 ## O estado de hoje
 
-- `nativo/som/som_controle_linux.c:49-59`:
+- `nativo/som/som_controle_linux.c:41-51`:
   ```c
   char *saidas = ler_comando("LC_ALL=C pactl list sinks 2>/dev/null");
   ...
@@ -36,15 +36,15 @@ outro, sem aviso:
   ```
   O `pactl` vem de um pacote à parte (`pulseaudio-utils` no Debian; o `pipewire-pulse` só o sugere). Esta máquina tem
   `pw-dump`, que dá as mesmas propriedades sem ele.
-- `nativo/som/som_controle.c:236-244`, a reserva, só pelo `usb_pai`:
+- `nativo/som/som_controle.c:221-229`, a reserva, só pelo `usb_pai`:
   ```c
   if (o->usado && o->slot < 0 && o->usb_pai[0] && !SDL_strcmp(o->usb_pai, g_sc.nos[i].usb))
     usado[i] = true;
   ```
   e `:228-229`: `somc_plataforma_pad` (o ContainerId no Windows) só para quem está sentado.
-  `nativo/nucleo/origem_linux.c:155-165`: fora do Linux o `usb_pai` fica vazio. O `Pad` não guarda container
-  (`nativo/nucleo/pads.h:47`).
-- `nativo/nucleo/achar_som.c:212-220`, a passada pelo nome, não olha a conexão do controle; `som_controle.c:246-258`
+  `nativo/nucleo/origem_linux.c:146-156`: fora do Linux o `usb_pai` fica vazio. O `Pad` não guarda container
+  (`nativo/nucleo/pads.h:32`).
+- `nativo/nucleo/achar_som.c:198-204`, a passada pelo nome, não olha a conexão do controle; `som_controle.c:230-241`
   a roda para todo lugar ocupado e não simulado.
 - O relatório só marca «como: nome».
 

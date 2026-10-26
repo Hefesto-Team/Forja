@@ -1,13 +1,4 @@
 extends Node3D
-## Quadro 11 — A prancha das peças (PRODUCAO, item 2): as 36 peças do corte
-## (cabeça, superior e inferior dos 12 personagens), de frente, na mesma
-## escala, sobre o casco, cada uma com o emblema e os pontos que dá; e os
-## seis itens com o que pedem e a liga. 42 células, nenhuma vazia.
-## Refeita no item 16: cada peça no material dela (tecido, couro, pele), sem
-## tom de jogador no corpo; o acento (friso, costura, runa) aceso em P1.
-## Na conferência: o inferior a 1,8× (só as pernas: saía com cerca de
-## 42 px de altura e a calça não se lia); o rótulo diz a escala.
-## 1920×1440: um mundo só, câmera ortográfica, um píxel = ESCALA m.
 
 const Fita := preload("res://estudos/direcao/fita.gd")
 const Hud := preload("res://estudos/direcao/hud.gd")
@@ -21,10 +12,9 @@ var espera := 10
 var arquivo := "11_pecas"
 var folha: SubViewport
 const TAM := Vector2i(1920, 1440)
-const ESCALA := 0.0084          ## metros por píxel (o tronco superior de braços abertos cabe na coluna)
+const ESCALA := 0.0084
 const X0 := 48.0
 const COL := 152.0
-## As linhas: o topo de cada uma e a área do boneco dentro dela.
 const LINHA_Y := [196.0, 486.0, 776.0]
 const LINHA_H := 290.0
 const BONECO_H := 168.0
@@ -32,8 +22,6 @@ const ITENS_Y := 1080.0
 const ITEM_W := 304.0
 const PARTES := ["cabeca", "superior", "inferior"]
 const ROTULO := ["Cabeça", "Tronco superior", "Tronco inferior (a 1,8×)"]
-## A escala de cada linha sobre a ESCALA: o inferior a 1,8× (cabe na coluna
-## de 152 px: as pernas mais largas dão cerca de 140).
 const AMPLIA := [1.0, 1.0, 1.8]
 const ITENS := ["martelo", "ancora", "escudo", "fole", "lanterna", "diapasao"]
 
@@ -70,12 +58,9 @@ func montar(_estudo) -> void:
 			var p: String = Cortar.PERSONAGENS[c]
 			var caixa: AABB = Cortar.partes(p).caixa[parte]
 			var centro_px := Vector2(X0 + c * COL + COL * 0.5, LINHA_Y[linha] + 40.0 + BONECO_H * 0.5)
-			# a peça no meio da célula: o centro da caixa dela (na escala K) no centro
 			var amplia: float = AMPLIA[linha]
 			var pos := _mundo(centro_px) - caixa.get_center() * Mundo.K * amplia
 			pos.z = 0.0
-			# cada peça no material dela (tecido, couro, pele) e o acento
-			# aceso na cor de P1; sem contorno, para a peça se ler sozinha
 			var peca := Montar.cavaleiro(raiz, 0, pos, [p, p, p], {"so": parte, "contorno": false,
 				"acento": true, "anel": false, "anim": "idle", "t_anim": 0.0})
 			peca.scale = Vector3.ONE * amplia
@@ -89,8 +74,6 @@ func foto() -> Image:
 	return await Prancha.foto(folha)
 
 
-## O item sozinho, em pé, na escala que cabe na célula (o medalhão de 12 cm
-## sumiria ao lado do martelo; o tamanho de cada um está no 04).
 func _item(raiz: Node3D, id: String, centro_px: Vector2) -> void:
 	var n := Node3D.new()
 	raiz.add_child(n)
@@ -115,7 +98,7 @@ func _item(raiz: Node3D, id: String, centro_px: Vector2) -> void:
 			n.add_child(mi)
 			malha = mi
 			esc = 22.0
-	esc *= ESCALA / 0.0064      # os tamanhos acima foram medidos na escala 0,0064
+	esc *= ESCALA / 0.0064
 	n.scale = Vector3.ONE * esc
 	var caixa := AABB()
 	for mi in n.find_children("*", "MeshInstance3D", true, false):
@@ -125,7 +108,6 @@ func _item(raiz: Node3D, id: String, centro_px: Vector2) -> void:
 	n.position = _mundo(centro_px) - caixa.get_center() * esc
 	n.position.z = 0.0
 	n.rotation.y = 0.0
-	# a runa do item, acesa na cor de P1
 	Montar.por_runa(malha, id, Fita.JOGADOR[0])
 
 
@@ -152,7 +134,6 @@ func _texto(ci: CanvasItem) -> void:
 			Hud.texto(ci, Fita.vt(), 30, Vector2(x, yt + 32), "%s +1" % sec, Fita.MUDO, HORIZONTAL_ALIGNMENT_CENTER, COL)
 			if c > 0:
 				ci.draw_line(Vector2(x, y + 44), Vector2(x, y + LINHA_H - 8), Color(Fita.GRAFITE, 0.6), 1.0)
-	# os itens
 	ci.draw_line(Vector2(X0, ITENS_Y - 14), Vector2(X0 + 12 * COL, ITENS_Y - 14), Fita.GRAFITE, 2.0)
 	Hud.texto(ci, Fita.archivo(600), 30, Vector2(X0 + 6, ITENS_Y - 10), "Os itens (cada um na escala que cabe)", Fita.ETIQUETA)
 	for i in 6:

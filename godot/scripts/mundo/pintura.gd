@@ -1,37 +1,21 @@
 class_name Pintura
 extends RefCounted
-## A cor das peças (arte/02 e 04): cada cor do colormap da Kenney passa pelo
-## OKLab, a luz se comprime na faixa do papel da parte, o croma encolhe e a peça
-## nunca chega perto do néon de um jogador. O degradê de cada bloco (claro em
-## cima, escuro embaixo) fica: é ele que faz o volume. O jogo não puxa a peça
-## para o violeta do cenário (o `tinge` do estudo é 0 nos quatro papéis).
-##
-## Também prepara a malha de um boneco com skin para o shader do cavaleiro:
-## o superior e o inferior, a posição de repouso (a faixa do acento) e a normal
-## suave do contorno.
 
-## A distância mínima da peça até um néon de jogador: 0,08 mais a folga do sRGB
-## de 8 bits.
 const DE_JOGADOR := 0.085
-## `l = l0 + L × l1`; `sat` é o quanto do croma fica; `teto` é o croma máximo.
 const GRADE := {
-	"personagem": {"sat": 0.80, "l0": 0.06, "l1": 0.86, "teto": 0.098},  ## pele e cabelo quase como vieram
-	"tecido": {"sat": 0.55, "l0": 0.46, "l1": 0.12, "teto": 0.098},      ## o tronco superior
-	"couro": {"sat": 0.40, "l0": 0.22, "l1": 0.14, "teto": 0.07},        ## o tronco inferior
-	"objeto": {"sat": 0.40, "l0": 0.22, "l1": 0.56, "teto": 0.03},       ## o que se segura: o item
+	"personagem": {"sat": 0.80, "l0": 0.06, "l1": 0.86, "teto": 0.098},
+	"tecido": {"sat": 0.55, "l0": 0.46, "l1": 0.12, "teto": 0.098},
+	"couro": {"sat": 0.40, "l0": 0.22, "l1": 0.14, "teto": 0.07},
+	"objeto": {"sat": 0.40, "l0": 0.22, "l1": 0.56, "teto": 0.03},
 }
-## A pele no colormap dos Mini Characters (as três rampas: a mão, a perna de
-## fora, o rosto), medida nos 12. No tecido e no couro, esses pixels ficam com a
-## graduação da cabeça; numa raça, o shader troca a pele pela dela.
 const PELE_UV := Rect2(330.0 / 512.0, 380.0 / 512.0, 182.0 / 512.0, 132.0 / 512.0)
 const INFERIOR := ["root", "leg-left", "leg-right"]
-## O pescoço: o friso do superior não passa dele.
 const PESCOCO := 0.343
 
-static var _texturas := {}   ## "caminho|papel|papel_pele" -> ImageTexture
-static var _imagens := {}    ## ImageTexture -> Image (para as medianas)
-static var _prontas := {}    ## Mesh de origem -> {"mesh", "medidas"}
-static var _medidas_de := {} ## Mesh preparada -> medidas
+static var _texturas := {}
+static var _imagens := {}
+static var _prontas := {}
+static var _medidas_de := {}
 
 
 static func _lin(v: float) -> float:
@@ -64,14 +48,10 @@ static func de_oklab(v: Vector3, a := 1.0) -> Color:
 		_srgb(-0.0041960863 * l - 0.7034186147 * m + 1.7076147010 * s), a)
 
 
-## Distância OKLab entre duas cores.
 static func delta_e(a: Color, b: Color) -> float:
 	return para_oklab(a).distance_to(para_oklab(b))
 
 
-## A cor de um colormap no papel: a luz na faixa, o croma no teto e longe dos
-## néons (o croma desce 10 % por passo, até 20, enquanto a cor está perto de
-## algum Tema.JOGADOR).
 static func graduar(c: Color, papel: String) -> Color:
 	var g: Dictionary = GRADE[papel]
 	var v := para_oklab(c)
@@ -91,8 +71,6 @@ static func graduar(c: Color, papel: String) -> Color:
 	return de_oklab(Vector3(l, ab.x, ab.y), c.a)
 
 
-## `papel_pele`: o papel dos pixels de PELE_UV (o tecido e o couro deixam a pele
-## na graduação da cabeça).
 static func recolorir(img: Image, papel: String, papel_pele := "") -> Image:
 	var out: Image = img.duplicate()
 	out.convert(Image.FORMAT_RGBA8)
@@ -112,8 +90,6 @@ static func recolorir(img: Image, papel: String, papel_pele := "") -> Image:
 	return out
 
 
-## Os pixels verdes (o a do OKLab abaixo de `limite`) ganham o a e o b de
-## `pele`, cada um com a sua luz.
 static func trocar_matiz(img: Image, pele: Color, limite: float) -> Image:
 	var out: Image = img.duplicate()
 	var alvo := para_oklab(pele)
@@ -129,8 +105,6 @@ static func trocar_matiz(img: Image, pele: Color, limite: float) -> Image:
 	return out
 
 
-## A textura do colormap `caminho` recolorida pelo papel, uma vez por trio.
-## `papel_pele`: o papel dos pixels de PELE_UV ("" fora do Mini Characters).
 static func textura(caminho: String, papel: String, papel_pele := "") -> ImageTexture:
 	var chave := "%s|%s|%s" % [caminho, papel, papel_pele]
 	if _texturas.has(chave):
@@ -157,14 +131,6 @@ static func _nome_do_osso(mi: MeshInstance3D, esq: Skeleton3D, i: int) -> String
 	return esq.get_bone_name(i) if i < esq.get_bone_count() else ""
 
 
-## Prepara a malha de um boneco com skin: grava COLOR.r (0 superior, 1
-## inferior), UV2 (a posição de repouso x, y; y = -1 nos braços e na cabeça) e a
-## normal suave no TANGENT (o casco do contorno), pelo osso de maior peso de cada
-## vértice: `leg-left`, `leg-right` e `root` são inferior; os outros, superior.
-## Devolve as medidas para o shader: {"friso_y0", "friso_y1", "friso_alto",
-## "costura_x", "costura_larg", "frente_cima", "frente_baixo", "largura_torso",
-## "altura_perna"}. Guarda a malha pronta num cache por Mesh: os quatro lugares
-## dividem a malha e cada um tem o seu material.
 static func preparar(mi: MeshInstance3D, esq: Skeleton3D) -> Dictionary:
 	var original: Mesh = mi.mesh
 	if _medidas_de.has(original):
@@ -173,7 +139,7 @@ static func preparar(mi: MeshInstance3D, esq: Skeleton3D) -> Dictionary:
 		mi.mesh = _prontas[original].mesh
 		return _prontas[original].medidas
 	var nova := ArrayMesh.new()
-	var caixas := {}   ## osso -> AABB dos vértices de maior peso nele
+	var caixas := {}
 	for s in original.get_surface_count():
 		var arr: Array = original.surface_get_arrays(s)
 		var vs: PackedVector3Array = arr[Mesh.ARRAY_VERTEX]
@@ -199,7 +165,7 @@ static func preparar(mi: MeshInstance3D, esq: Skeleton3D) -> Dictionary:
 						maior = pesos[i * por_vertice + j]
 						melhor = _nome_do_osso(mi, esq, ossos[i * por_vertice + j])
 			var baixo := melhor in INFERIOR
-			var marca := 1.0 if baixo else 0.0   # COLOR.r é a marca da parte, não uma cor de tela
+			var marca := 1.0 if baixo else 0.0
 			cores.append(Color(marca, 0.0, 0.0, 1.0))
 			var braco := melhor == "arm-left" or melhor == "arm-right" or melhor == "head"
 			uv2.append(Vector2(vs[i].x, -1.0 if braco else vs[i].y))
@@ -265,10 +231,6 @@ static func _mediana(v: Array) -> float:
 	return float(v[v.size() / 2])
 
 
-## As medianas de L (OKLab) de cada parte, pela cor da textura recolorida no UV
-## de cada vértice: {"cabeca", "superior", "inferior"}, e as cores usadas por
-## superior e inferior em "cores". Com `boneco.get_meta("so_pano", false)`, o
-## superior e o inferior pulam os vértices com UV em PELE_UV (a pele).
 static func medianas(boneco: Node3D) -> Dictionary:
 	var so_pano := bool(boneco.get_meta("so_pano", false))
 	var luz := {"cabeca": [], "superior": [], "inferior": []}

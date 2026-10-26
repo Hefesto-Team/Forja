@@ -271,7 +271,7 @@ cura, e metade das notas são duplas.
 
 Só com `Forja.bancada`. O `_bancada(dt)` é o `PAUSA`/`PERGUNTA`/`RESPOSTA` de hoje reduzido à cor: no começo
 do compasso 16 e do 32 (`Ritmo.batida() >= 4 * c`), `_iniciar_pergunta()` (com o evento `pergunta` da F01,
-`qual` = `"cor"`); em `PERGUNTA`, o laço de hoje (`impacto.gd:432-447`); em `RESPOSTA`, depois de 1,6 s,
+`qual` = `"cor"`); em `PERGUNTA`, o laço de hoje (`impacto.gd:399-414`); em `RESPOSTA`, depois de 1,6 s,
 `_luz_da_vida(l)` de cada um e `estado_bancada = JOGO`. Com a pergunta aberta, o `_piscar` não mexe na barra de
 luz e `_gerar_compasso` não gera nada nesses compassos. Fora da bancada, nenhum `pergunta()` devolve nada e o
 `lightbar` sai «não medido» (é o esperado: `SO_COM_PERGUNTA` da F01).
@@ -520,7 +520,7 @@ cenário comum põe o preenchimento (o `atmosfera` da sala) e a chave (uma `Omni
 | --- | --- | --- |
 | `floor`, `floor-detail`, `wall`, `wall-half` | `Kit.arena(sala, 5, 3)` | o chão e as paredes da arena (de x −10 a 10, z −6 a 6) |
 | `column` (escala 1,35) | duas por raia: `(RAIAS[l] ± 1.35, 0, Z_JOGADOR − 1.45)`, viradas para o boneco | a sentinela de pedra |
-| `shield-round` (escala 2,4) | dois por raia, em `(RAIAS[l] ± 0.62, 0.95, Z_JOGADOR − 0.2)`, escondidos em 0,001 | o escudo que sobe na defesa (como hoje, `impacto.gd:136-141`) |
+| `shield-round` (escala 2,4) | dois por raia, em `(RAIAS[l] ± 0.62, 0.95, Z_JOGADOR − 0.2)`, escondidos em 0,001 | o escudo que sobe na defesa (como hoje, `impacto.gd:117-121`) |
 | `gate` (escala 2) | `POS_PORTAO = Vector3(0, 0, -7.0)`, de frente para a câmera | o portão do fundo, que o aríete racha |
 | `wood-support` (escala 2) | dois, em `(±1.6, 0, −5.4)` | o cavalete que segura o aríete |
 
@@ -585,7 +585,7 @@ const DEGRAUS := {
 	"estrondo": {"tremor_m": 0.05, "batidas": 2.0, "hit_stop": 3, "luz": 0.0},
 	"catastrofe": {"tremor_m": 0.08, "batidas": 4.0, "hit_stop": 0, "luz": 0.4},
 }
-## O main treme a câmera 0,12 m por unidade de `tremor` (main.gd:986-988).
+## O main treme a câmera 0,12 m por unidade de `tremor` (main.gd:898-900).
 const METROS_POR_TREMOR := 0.12
 ## Os ganchos dos stats no neutro (stat 3), enquanto a classe Cavaleiro (G13)
 ## não existe (docs/jogo/sistemas/stats.csv).
@@ -773,7 +773,7 @@ Os ids do [mapa do áudio](../audio/mapa.csv). Todos já existem; nenhum som nov
 | o fantasma | — | — | — |
 | a faixa | `MUS_S04_J16`: 140 BPM, Dó menor, 150 s; até ela existir, a reserva `sint_trilha` da H05 | — | `mus_s04_j16` |
 
-- **O `falha` sai.** O `Som.tocar("falha")` de hoje (`impacto.gd:293`) é um bipe de erro, que a bíblia proíbe. O
+- **O `falha` sai.** O `Som.tocar("falha")` de hoje (`impacto.gd:262`) é um bipe de erro, que a bíblia proíbe. O
   golpe que entra soa como corpo (`golpe_*`); o erro de julgamento é do kit (`jul_erro_p{n}`, e o `fx_tropeco_*`
   quando a H11 trocar a falha da TV). O Cerco nunca chama `"falha"`.
 - **O alto-falante toca um som por vez** e o julgamento tem a vez: o Cerco não põe `escudo` nem `golpe` no
@@ -838,7 +838,7 @@ func robo(l: int, _dt: float) -> void:
 		if _robo_lado[l] != 0:
 			Forja.robo_apertar(l, Forja.R1, 0.06)
 		_robo_alvo[l] = -1.0
-	# a bancada: a pergunta da cor, como hoje (impacto.gd:589-597), com _cor_mais_perto
+	# a bancada: a pergunta da cor, como hoje (impacto.gd:545-553), com _cor_mais_perto
 	if Forja.bancada and estado_bancada == PERGUNTA and j[l].cor_pedida >= 0 and j[l].cor_resposta < 0:
 		j[l].robo_cor = float(j[l].robo_cor) - _dt
 		if j[l].robo_cor <= 0.0:
@@ -847,7 +847,7 @@ func robo(l: int, _dt: float) -> void:
 ```
 
 O `robo_cor` vai para `0.7 + 0.8 * rng.randf()` quando a pergunta abre, e a `_cor_mais_perto` de hoje
-(`impacto.gd:600-609`) é copiada igual. Na defesa, o robô **não** lê a partitura: se a vibração não chegou ao
+(`impacto.gd:556-565`) é copiada igual. Na defesa, o robô **não** lê a partitura: se a vibração não chegou ao
 controle simulado, ele não defende. É a prova do caminho inteiro, e a do simulador: a mesma conta roda no
 controle simulado da prova do jogo e no da prova visual.
 

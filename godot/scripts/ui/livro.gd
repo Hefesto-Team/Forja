@@ -1,16 +1,11 @@
 class_name Livro
 extends Control
-## O livro da sessão: o relatório na tela. Cada linha é uma feature, cada
-## coluna um lugar; a célula diz o veredito com ícone e palavra (passou,
-## falhou, não medido — este com forma própria). A célula escolhida abre à
-## direita: o que foi pedido, o que foi medido e o degrau da evidência. O mesmo
-## conteúdo está gravado em relatorio-<sessão>.json e .txt, ao lado do jogo.
 
 const NIVEIS := ["—", "montou o pedido", "o SDL aceitou", "a pessoa sentiu, às cegas", "o jogo leu de volta"]
 
 var linha := 0
 var coluna := 0
-var _linhas: Array = []  # [{tipo: "sala"|"feature", ...}]
+var _linhas: Array = []
 var _rolagem := 0.0
 
 const ALTURA := 46.0
@@ -48,7 +43,6 @@ func _proxima_feature(de: int, passo: int) -> int:
 	return 0
 
 
-## A navegação: qualquer lugar mexe (o d-pad ou o analógico).
 func navegar(dx: int, dy: int) -> void:
 	if dy != 0 and not _linhas.is_empty():
 		linha = _proxima_feature(wrapi(linha + dy, 0, _linhas.size()), dy)
@@ -70,10 +64,8 @@ func _draw() -> void:
 	Desenho.texto(self, Vector2(Tema.MARGEM_X, 164), sub, Tema.vt(), Tema.T_MONO, Tema.ETIQUETA_SOMBRA, HORIZONTAL_ALIGNMENT_LEFT, size.x - 2 * Tema.MARGEM_X)
 
 	var x0 := float(Tema.MARGEM_X)
-	# a coluna cabe "não medido" a 30 px; o detalhe fica com o que sobra
 	var larg_feat := 420.0
 	var larg_cel := 214.0
-	# o cabeçalho das colunas
 	for l in 4:
 		var cor_id := Tema.tom_para_a_borda(Forja.cor_do_lugar(l))
 		var xc := x0 + larg_feat + l * larg_cel
@@ -81,7 +73,6 @@ func _draw() -> void:
 		Desenho.texto(self, Vector2(xc + 16, TOPO - 20), "P%d" % (l + 1), Tema.bungee(), Tema.T_ROTULO, cor_id if ocupado else Tema.MUDO)
 	draw_line(Vector2(x0, TOPO - 6), Vector2(x0 + larg_feat + 4 * larg_cel, TOPO - 6), Tema.GRAFITE, 2)
 
-	# as linhas (rolando para a escolhida ficar à vista)
 	var visiveis := int((size.y - TOPO - 120) / ALTURA)
 	var alvo := clampf(linha - visiveis * 0.5, 0, maxf(0, _linhas.size() - visiveis))
 	_rolagem = lerpf(_rolagem, alvo, 0.25)
@@ -103,7 +94,6 @@ func _draw() -> void:
 				Desenho.moldura(self, cel, Tema.CASCO_ALTO, Tema.tom_para_a_borda(Forja.cor_do_lugar(coluna)), 3, 8)
 			_celula(cel, Forja.ultimo_veredito(l, item.chave) if Forja.ocupado(l) else {}, Forja.ocupado(l))
 
-	# o detalhe da célula escolhida
 	var dr := Rect2(Vector2(x0 + larg_feat + 4 * larg_cel + 40, TOPO - 40), Vector2(0, 0))
 	dr.size = Vector2(size.x - Tema.MARGEM_X - dr.position.x, size.y - dr.position.y - 120)
 	Desenho.moldura(self, dr, Tema.CASCO, Tema.GRAFITE, 2, Tema.RAIO_QUADRO)
@@ -161,16 +151,12 @@ func _celula(r: Rect2, v: Dictionary, ocupado: bool) -> void:
 		1:
 			Desenho.texto(self, Vector2(x, y), "✓ passou", Tema.archivo(600), Tema.T_SELO, Tema.ETIQUETA)
 		2:
-			Desenho.texto(self, Vector2(x, y), "✗ falhou", Tema.archivo(600), Tema.T_SELO, Tema.ETIQUETA)  # vermelhão não vira texto abaixo de 48 px (02)
+			Desenho.texto(self, Vector2(x, y), "✗ falhou", Tema.archivo(600), Tema.T_SELO, Tema.ETIQUETA)
 		_:
-			# não medido tem forma própria: o anel vazado, e a palavra apagada
 			draw_arc(Vector2(x + 8, y - 8), 7, 0, TAU, 20, Tema.MUDO, 2, true)
 			Desenho.texto(self, Vector2(x + 24, y), "não medido", Tema.archivo(500), Tema.T_SELO, Tema.MUDO)
 
 
-## Um parágrafo quebrado na largura (até 80 caracteres por linha, entrelinha
-## de 1,5: o estudo 02, item 30); devolve o y depois dele. O que passa do
-## `fundo` vira reticências: o texto inteiro está no relatório.
 func _paragrafo(pos: Vector2, texto: String, largura: float, fundo: float) -> float:
 	var f := Tema.archivo(500)
 	var tam := Tema.T_ROTULO

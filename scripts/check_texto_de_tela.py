@@ -14,7 +14,7 @@ padroes = re.findall(r'^\s*\["((?:[^"\\]|\\.)*)",\s*"((?:[^"\\]|\\.)*)"\]', pad,
 def minuscula(s: str) -> bool:
     for c in s:
         if c.isdigit() or c in "$(\\[":
-            return False  # número, grupo ou referência: não se julga
+            return False
         if c.isalpha():
             return not c.isupper()
     return False

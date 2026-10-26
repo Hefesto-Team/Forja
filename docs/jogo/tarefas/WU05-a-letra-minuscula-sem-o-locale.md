@@ -17,7 +17,7 @@ a háptica de um jogador pode ir para o número de outro, e o mesmo nó passa a 
 
 ## O estado de hoje
 
-- `nativo/nucleo/achar_som.c:9-14`:
+- `nativo/nucleo/achar_som.c:8-13`:
   ```c
   static void minusculo(const char *de, char *para, size_t tam) {
     size_t i = 0;
@@ -25,7 +25,7 @@ a háptica de um jogador pode ir para o número de outro, e o mesmo nó passa a 
       para[i] = (char)tolower((unsigned char)de[i]);
   ```
   e `:110`, `isdigit((unsigned char)*p)`; a agulha `"háptica do controle"` em `:128`. A mesma conta está em
-  `src/forja_alto_falante.c:27`.
+  `src/forja_alto_falante.c:21`.
 - Godot 4.7.2 (godotengine/godot, MIT), `platform/windows/godot_windows.cpp:80`: `setlocale(LC_CTYPE, "");`.
 - No pacote da corrida 37935555661 (`LC_ALL=C objdump -p`): o `forja.exe` importa `setlocale` de `msvcrt.dll`, e a
   `libforja.windows.x86_64.dll` importa `tolower` do mesmo `msvcrt.dll`. No `msvcrt` o locale vale para o processo.
@@ -43,7 +43,7 @@ a tela não mudam.
 
 1. Em `achar_som.c`: `minusculo` baixa só `'A'..'Z'` (`c + 32`), sem `<ctype.h>`; `achar_numero` usa
    `c >= '0' && c <= '9'`.
-2. A mesma troca em `src/forja_alto_falante.c:27`, para a regra ter um dono só (ou a ferramenta passa a chamar a do
+2. A mesma troca em `src/forja_alto_falante.c:21`, para a regra ter um dono só (ou a ferramenta passa a chamar a do
    núcleo).
 3. `grep -n 'tolower\|toupper\|isdigit\|isalpha\|isspace' nativo src` e anotar aqui se outra busca de nome usa o
    locale.

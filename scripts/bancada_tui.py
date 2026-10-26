@@ -34,12 +34,8 @@ RAIZ = Path(__file__).resolve().parent.parent
 OFICINA = Path(os.environ.get("FORJA_OFICINA", RAIZ / "oficina"))
 TRABALHO = Path(os.environ.get("FORJA_TRILHA", OFICINA / "trilha"))
 OST = RAIZ / "godot" / "assets" / "ost"
-## As descrições moram ao lado do script que as escreve, no git: elas são
-## trabalho que se guarda, não material bruto.
 PROMPTS = RAIZ / "scripts" / "trilha_prompts.json"
 
-
-# ------------------------------------------------------------------ o kit --
 
 def kit():
     """As ferramentas, lidas do run.sh. Acrescentar lá aparece aqui."""
@@ -54,10 +50,6 @@ def kit():
             saida.append((partes[0], partes[1]))
     return saida
 
-
-# ------------------------------------------------------------------ o estado --
-# Cada ferramenta diz, em uma ou duas linhas, como ela está agora. É o que
-# transforma um menu numa bancada: dá para decidir olhando, sem abrir nada.
 
 def conta(pasta, sufixo):
     p = Path(pasta)
@@ -149,8 +141,6 @@ def estado(verbo):
     return []
 
 
-## O nome curto, para caber na lista. A frase inteira do run.sh continua
-## aparecendo no painel, ao lado — a lista não corta texto, ela resume.
 ROTULO = {
     "trilha": "A trilha",
     "servidor": "O servidor de música",
@@ -168,7 +158,6 @@ ROTULO = {
 }
 
 
-## O que cada ferramenta é, em uma frase que não repete o rótulo.
 PORQUE = {
     "trilha": "A tela que conduz a geração: descrever, gerar, ouvir e escolher, "
               "sem nunca perder trabalho e sem nunca pôr os dois modelos na placa ao mesmo tempo.",
@@ -194,12 +183,7 @@ PORQUE = {
 }
 
 
-# ------------------------------------------------------------------ a tela --
-
 class Bancada(App):
-    ## As cores são as do app Hefesto (estudo 03): o rosa é a marca, o ciano
-    ## é o que se pode fazer. Nenhuma informação vive só na cor — o item
-    ## escolhido também ganha negrito e a seta.
     CSS = """
     Screen { layout: vertical; background: $surface; }
     #corpo { height: 1fr; }
@@ -247,8 +231,6 @@ class Bancada(App):
         self.atualizar_placa()
         self.mostrar(0)
 
-    # ------------------------------------------------------------ o painel --
-
     def mostrar(self, i):
         verbo, texto = self.kit[i]
         self.query_one("#titulo", Static).update("› %s" % texto)
@@ -267,8 +249,6 @@ class Bancada(App):
                 "placa  %s  %d de %d MiB" % (barra, usada, total))
         else:
             self.query_one("#placa", Static).update("placa  sem NVIDIA nesta máquina")
-
-    # ------------------------------------------------------------ as ações --
 
     @on(ListView.Highlighted, "#lista")
     def _andou(self, e: ListView.Highlighted):

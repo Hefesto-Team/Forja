@@ -1,14 +1,9 @@
 extends RefCounted
-## A prancha: uma folha 2D do tamanho que o item pede (maior que a tela, se
-## for preciso), com células 3D pregadas nela. Cada célula é um mundo próprio
-## (a câmera, a luz, a névoa e o pós dela), renderizado numa SubViewport; a
-## folha junta tudo e o estudo fotografa a folha, não a janela.
 
 const Fita := preload("res://estudos/direcao/fita.gd")
 const Hud := preload("res://estudos/direcao/hud.gd")
 
 
-## A folha: o fundo, as células por baixo e o texto por cima.
 static func folha(pai: Node, tamanho: Vector2i, fundo: Color = Fita.CASCO) -> SubViewport:
 	var vp := SubViewport.new()
 	vp.size = tamanho
@@ -25,9 +20,6 @@ static func folha(pai: Node, tamanho: Vector2i, fundo: Color = Fita.CASCO) -> Su
 	return vp
 
 
-## Uma célula 3D de `tamanho` px na folha. O 2D dela (o HUD, o pós) desenha
-## em px da tela lógica de 1920×1080, encolhido para a célula, como o jogo
-## faz com a janela.
 static func celula(pai: Node, tamanho: Vector2i, escala_2d := true) -> SubViewport:
 	var vp := SubViewport.new()
 	vp.size = tamanho
@@ -52,12 +44,10 @@ static func camera(vp: SubViewport) -> Camera3D:
 	return vp.get_meta("camera")
 
 
-## A câmera de uma célula pela lente (mm, em 35 mm: a altura do quadro é 24 mm).
 static func lente(cam: Camera3D, mm: float) -> void:
 	cam.fov = rad_to_deg(2.0 * atan(12.0 / mm))
 
 
-## Prega a imagem de uma célula na folha, em `r` (encolhe se o tamanho difere).
 static func pregar(folha_: SubViewport, vp: SubViewport, r: Rect2) -> TextureRect:
 	var t := TextureRect.new()
 	t.texture = vp.get_texture()
@@ -71,7 +61,6 @@ static func pregar(folha_: SubViewport, vp: SubViewport, r: Rect2) -> TextureRec
 	return t
 
 
-## O texto e as marcas por cima de tudo, em px da folha.
 static func por_cima(folha_: SubViewport, f: Callable) -> Control:
 	var t := Hud.Tela.new(f)
 	t.position = Vector2.ZERO
@@ -80,7 +69,6 @@ static func por_cima(folha_: SubViewport, f: Callable) -> Control:
 	return t
 
 
-## A foto da folha, depois de a folha ter sido desenhada.
 static func foto(folha_: SubViewport) -> Image:
 	await RenderingServer.frame_post_draw
 	return folha_.get_texture().get_image()

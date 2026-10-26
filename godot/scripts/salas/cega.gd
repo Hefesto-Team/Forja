@@ -1,8 +1,5 @@
 class_name Cega
 extends RefCounted
-## As respostas de uma prova às cegas: as certas, as erradas (e o que a pessoa
-## disse em cada uma) e as perdidas (não respondeu a tempo). A sala só guarda;
-## o veredito sai da régua do núcleo (Forja.cega_veredito, cegas.c).
 
 
 static func nova() -> Dictionary:
@@ -27,7 +24,6 @@ static func total(c: Dictionary) -> int:
 	return int(c.certos) + int(c.errados) + int(c.perdidos)
 
 
-## Duas provas somadas (os golpes da esquerda e da direita, por exemplo).
 static func somar(a: Dictionary, b: Dictionary) -> Dictionary:
 	var s := nova()
 	for k in ["certos", "errados", "perdidos"]:

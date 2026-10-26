@@ -10,7 +10,7 @@ ficha I2 manda ler a [H04](H04-o-kit-do-minigame.md), uma ficha já feita de 43.
 dela está numa seção do [13](../13-arquitetura.md#o-kit-do-minigame--h04). A mediana do que uma ficha manda ler antes
 é de 78 mil caracteres; com o link pela âncora, cai para uns 37 mil. É metade da leitura de cada pessoa (e de cada
 execução) que pega uma ficha, e a ficha feita ainda ensina código velho: a «O estado de hoje» da H04 cita a
-`const SALAS` em `main.gd:13-24`, que hoje é a `ORDEM_DO_FOGO`.
+`const SALAS` em `main.gd:3-13`, que hoje é a `ORDEM_DO_FOGO`.
 
 ## Ler antes
 

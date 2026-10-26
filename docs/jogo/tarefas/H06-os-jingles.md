@@ -28,17 +28,17 @@ um, vai" no tempo da faixa.
   Nenhum tem os 5 a 8 s que o 04 pede para a vitória: são provisórios até
   os `JIN_*` próprios.
 - `godot/scripts/som.gd`: `RECEITAS` (sintetizados pelo módulo,
-  `som.gd:17-35`), `GRAVADOS` (o nome da sala → a gravação, `som.gd:38-45`),
+  `som.gd:3-19`), `GRAVADOS` (o nome da sala → a gravação, `som.gd:21-27`),
   `versoes(gravacao)`, `stream(nome)`, `tocar(nome, pos, volume_db, tom)`.
   O `tocar` sem posição usa quatro tocadores 2D e **desiste** se os quatro
-  estiverem ocupados (`som.gd:127-133`): um jingle pode não tocar.
-- O fim de hoje: `godot/scripts/salas/sala_jogo.gd:330`,
+  estiverem ocupados (`som.gd:104-110`): um jingle pode não tocar.
+- O fim de hoje: `godot/scripts/salas/sala_jogo.gd:262`,
   `Som.tocar("sucesso")` (a gravação `vitoria_sala`), sem parar a música.
   Com a F03, o fim é a `TelaResultado` (apito, resultado, jingle, volta em
   6 s).
-- O começo do jogo: `sala_jogo.gd:292`, `Som.tocar("confirma")` solto, no
+- O começo do jogo: `sala_jogo.gd:227`, `Som.tocar("confirma")` solto, no
   quadro em que todos ficaram prontos.
-- A virada: `godot/scripts/ui/placar.gd:98`,
+- A virada: `godot/scripts/ui/placar.gd:87`,
   `Som.tocar("placar" if _virada else "confirma")`.
 - O kit (H04): `Minigame.comecar()` chama `Ritmo.tocar(...)` e depois o
   `comecar()` da `SalaJogo`.
@@ -175,7 +175,7 @@ func _contar_a_entrada(n: int) -> void:
 1. **Prova verde antes** (`bash tests/prova_do_jogo.sh`).
 2. **`godot/scripts/som.gd`**: as três receitas e o bloco dos jingles.
 3. **`godot/scripts/musica.gd`**: `parar_seco()`.
-4. **O começo** — `godot/scripts/salas/sala_jogo.gd:292`: troque
+4. **O começo** — `godot/scripts/salas/sala_jogo.gd:227`: troque
    `Som.tocar("confirma")` por `_som_do_comeco()` e crie na `SalaJogo`:
 
    ```gdscript
@@ -194,7 +194,7 @@ func _contar_a_entrada(n: int) -> void:
      `Som.jingle(Som.jingle_do_resultado(pontos, presentes, coop, coop_venceu))`
      com os valores que a F03 já passa à tela.
    - Se ainda está o `Som.tocar("sucesso")` do `terminar()`
-     (`sala_jogo.gd:330`), troque por:
+     (`sala_jogo.gd:262`), troque por:
 
      ```gdscript
      	# o apito: a música para em seco; meio segundo depois, o jingle do resultado
@@ -209,7 +209,7 @@ func _contar_a_entrada(n: int) -> void:
      e o `coop`/`coop_venceu` da F03 no lugar dos dois `false` se ela os
      criou. O tween é da sala: se a sala sai antes de meio segundo, ele
      morre junto.
-6. **A virada** — `godot/scripts/ui/placar.gd:98`: `if _virada: Som.jingle("JIN_VIRADA")`,
+6. **A virada** — `godot/scripts/ui/placar.gd:87`: `if _virada: Som.jingle("JIN_VIRADA")`,
    senão `Som.tocar("confirma")`.
 7. **`godot/testes/prova_do_jogo.gd`**: `_prova_dos_jingles()` (em "Provas"),
    chamada em `_ready()` logo depois de `_prova_das_janelas()`; e, em

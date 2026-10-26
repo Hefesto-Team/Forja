@@ -41,7 +41,7 @@ As duas referências que emulam a plataforma fazem o contrário: um SDL só no p
   `SDL_GetStringBoolean(hint, true)` dá ON (`src/joystick/hidapi/SDL_hidapi_ps5.c:925-934` no 3.4.14); o modo
   completo escreve a cor da tabela por índice (`:328-341`: azul, vermelho, verde, rosa a `0x40`) e as luzinhas
   (`:876-887`); no rádio, embrulha em `0x31` com CRC (`:1100-1122`).
-- A Forja só mexe nas dicas do SDL dela, com prioridade normal (`nativo/nucleo/forja.c:168-171`):
+- A Forja só mexe nas dicas do SDL dela, com prioridade normal (`nativo/nucleo/forja.c:160-162`):
   ```c
   SDL_SetHint(SDL_HINT_NO_SIGNAL_HANDLERS, "1");
   SDL_SetHint(SDL_HINT_JOYSTICK_ENHANCED_REPORTS, "0");
@@ -49,7 +49,7 @@ As duas referências que emulam a plataforma fazem o contrário: um SDL só no p
   SDL_SetHint(SDL_HINT_JOYSTICK_HIDAPI_PS5_PLAYER_LED, "1");
   ```
   Prioridade normal perde para a variável de ambiente de mesmo nome (`src/SDL_hints.c:111-113`).
-- A entrada da biblioteca, `nativo/godot/registro_tipos.cpp:21-29` (`forja_iniciar_biblioteca`), roda quando o Godot
+- A entrada da biblioteca, `nativo/godot/registro_tipos.cpp:18-26` (`forja_iniciar_biblioteca`), roda quando o Godot
   carrega a extensão, em `main.cpp:2282`, antes do `initialize_joypads`. Hoje ela só registra o nó no nível SCENE.
 - `grep -rn 'get_connected_joypads\|is_joy_button_pressed\|get_joy_axis\|InputEventJoypad\|start_joy_vibration'
   godot/scripts` fora dos testes dá zero: o jogo não usa o `Input` de controle do Godot.

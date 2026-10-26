@@ -18,9 +18,9 @@ golpe se sente na mão, é tempo demais, e o servidor de som aceitaria um perío
 
 ## O estado de hoje (medido em 09/10/2026, `85f24c3`)
 
-- As dicas do SDL que o módulo põe, `nativo/nucleo/forja.c:168-171`: sinais, relatório do rádio, eventos em segundo
+- As dicas do SDL que o módulo põe, `nativo/nucleo/forja.c:160-162`: sinais, relatório do rádio, eventos em segundo
   plano e luzinhas. Nenhuma de som.
-- O subsistema de som abre em `nativo/som/som_controle.c:43-51` (`abrir_audio`, `SDL_InitSubSystem(SDL_INIT_AUDIO)`),
+- O subsistema de som abre em `nativo/som/som_controle.c:36-44` (`abrir_audio`, `SDL_InitSubSystem(SDL_INIT_AUDIO)`),
   e cada saída em `:112`:
   ```c
   s->fluxo = SDL_OpenAudioDeviceStream(g_ids[no], &spec, alimentar, s);
@@ -55,13 +55,13 @@ O fluxo de cada controle abre com um período curto, de 256 quadros (5,3 ms) ou,
    &quadros)` e escrever no registro «som: <saída> · período de N quadros». É a medida que a bancada e a prova leem.
 3. A prova, sem aparelho: a prova do jogo ganha um passo que roda com `SDL_AUDIO_DRIVER=dummy` no ambiente do módulo
    e aponta o alto-falante do lugar 0 para a saída do driver falso pelo caminho que a pessoa já usa
-   (`Forja.som_trocar`, `godot/scripts/forja.gd:879`). O registro tem de dizer no máximo 480 quadros; hoje diz 1024.
+   (`Forja.som_trocar`, `godot/scripts/forja.gd:738`). O registro tem de dizer no máximo 480 quadros; hoje diz 1024.
 4. Na bancada com ela, ouvir e sentir: sem estalo no alto-falante e na háptica com quatro controles e a máquina
    carregada. Com estalo, subir para 480 e registrar o porquê no `docs/o-porque-dos-modulos.md`.
 
 ## Armadilhas
 
-- **A dica vale para o processo do módulo** e também encurta o microfone (`som_controle.c:212`). Isso é inofensivo,
+- **A dica vale para o processo do módulo** e também encurta o microfone (`som_controle.c:199`). Isso é inofensivo,
   mas a Voz tem de seguir ouvindo (a prova do jogo joga a Voz).
 - **O servidor de som pode subir o quantum do grafo inteiro** para atender o pedido mais curto: a TV passa a acordar
   mais vezes. É custo de CPU pequeno; anotar na conferência.

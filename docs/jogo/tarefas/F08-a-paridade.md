@@ -18,17 +18,17 @@ Os atalhos do robô no código do jogo (fora da função `_robo` de cada sala):
 
 | onde | o atalho |
 | --- | --- |
-| `godot/scripts/salas/sala_jogo.gd:237` | `if Forja.apertou(l, Forja.CRUZ) or (Forja.robo and t_fase > 1.4 + 0.2 * l):` — o robô fica pronto sem apertar ✕ |
-| `godot/scripts/salas/sala_jogo.gd:385` | `if Forja.robo and t_fase > 3.0: terminou.emit()` — o fim da sala avança sozinho |
-| `godot/scripts/main.gd:493` | `if Forja.robo and "--sair-no-fim" in ... and placar._t > 3.0:` — o pódio sai sozinho |
-| `godot/scripts/main.gd:873` | `if Forja.robo and placar._t > Placar.T_PRONTO + 0.6:` — o placar avança sozinho |
-| `godot/scripts/main.gd:791` | `Opcoes.gravar(Forja.robo)` — com robô, as opções não são gravadas (este fica: é para não sujar o `opcoes.cfg` da máquina) |
+| `godot/scripts/salas/sala_jogo.gd:173` | `if Forja.apertou(l, Forja.CRUZ) or (Forja.robo and t_fase > 1.4 + 0.2 * l):` — o robô fica pronto sem apertar ✕ |
+| `godot/scripts/salas/sala_jogo.gd:313` | `if Forja.robo and t_fase > 3.0: terminou.emit()` — o fim da sala avança sozinho |
+| `godot/scripts/main.gd:457` | `if Forja.robo and "--sair-no-fim" in ... and placar._t > 3.0:` — o pódio sai sozinho |
+| `godot/scripts/main.gd:798` | `if Forja.robo and placar._t > Placar.T_PRONTO + 0.6:` — o placar avança sozinho |
+| `godot/scripts/main.gd:724` | `Opcoes.gravar(Forja.robo)` — com robô, as opções não são gravadas (este fica: é para não sujar o `opcoes.cfg` da máquina) |
 
 Dentro das salas, o robô já joga pelo controle simulado:
 `Forja.robo_apertar`, `robo_eixo`, `robo_girar`, `robo_tocar`, `robo_falar`,
 `robo_sacudir` (`godot/scripts/forja.gd`, a partir da linha 875). Há
 `if Forja.robo:` em cada sala que chama o `_robo` dela
-(`centelha.gd:245`, `galeria.gd:244`, `viga.gd:287`…), e isso fica.
+(`centelha.gd:245`, `galeria.gd:217`, `viga.gd:246`…), e isso fica.
 
 ## O alvo
 
@@ -42,19 +42,19 @@ checagem estática impede a volta dos atalhos.
 1. Um robô de fluxo em `godot/scripts/forja.gd`: `robo_confirmar(l, depois_s)`
    aperta ✕ no controle simulado do lugar depois de um atraso (usa
    `robo_apertar`).
-2. `sala_jogo.gd:237`: tirar o `or (Forja.robo and …)`; no lugar, a sala
+2. `sala_jogo.gd:173`: tirar o `or (Forja.robo and …)`; no lugar, a sala
    chama `Forja.robo_confirmar(l, 1.4 + 0.2 * l)` uma vez, quando o aviso
    começa, se `Forja.robo`.
-3. `sala_jogo.gd:385`: tirar o avanço automático do robô. Com a tela de
+3. `sala_jogo.gd:313`: tirar o avanço automático do robô. Com a tela de
    resultado da F03, o fim já avança sozinho em 6 s para todo mundo; o robô,
    se quiser pular, aperta ✕ pelo controle.
-4. `main.gd:873` e `main.gd:493`: mesma troca — o placar e o pódio avançam
+4. `main.gd:798` e `main.gd:457`: mesma troca — o placar e o pódio avançam
    pelo ✕ simulado (ou pelo avanço automático que vale para todo mundo).
 5. Juntar em `godot/scripts/forja.gd` um comentário na seção do robô: "o robô
    só age pelo controle simulado; ver docs/jogo/13".
 6. A checagem estática, em `godot/testes/prova_do_jogo.gd`: ler cada `.gd` de
    `res://scripts/` e reprovar `Forja.robo` fora de `forja.gd`, de
-   `main.gd:791` (as opções) e das funções `_robo`/`robo`.
+   `main.gd:724` (as opções) e das funções `_robo`/`robo`.
 7. Conferir que a F01 deixou as duas rodadas em `tests/prova_do_jogo.sh` (a
    "forma-a" sem `--bancada`, a "antes" com `--bancada`), e que
    `scripts/gauntlet.sh` e `tests/prova_de_poucos.sh` passam `--bancada`
@@ -107,7 +107,7 @@ sugerido: `fix: o robô só joga pelo controle, e a prova percorre o jogo que se
 ## O que foi feito (leva 1, as-provas)
 
 - Medido antes: a prova rápida passava verde (as duas rodadas) com os atalhos no
-  lugar. Dos quatro atalhos da tabela, o de `sala_jogo.gd:385` já tinha saído
+  lugar. Dos quatro atalhos da tabela, o de `sala_jogo.gd:313` já tinha saído
   com a F03 (o fim avança em 6 s para todo mundo); restavam o do aviso e o do
   placar, mais o `--sair-no-fim` do pódio.
 - `Forja.robo_confirmar(l, depois_s, dono)` (em `forja.gd`): o robô aperta ✕ no
@@ -142,7 +142,7 @@ sugerido: `fix: o robô só joga pelo controle, e a prova percorre o jogo que se
 
 **As provas.** `bash tests/prova_do_jogo.sh` verde nas duas rodadas. A régua
 morde: com um atalho plantado em `viga.gd` ela reprovou
-(`viga.gd:283 … (Forja.robo and t_fase > 1.4)`), e com `robo_confirmar` sem
+(`viga.gd:242 … (Forja.robo and t_fase > 1.4)`), e com `robo_confirmar` sem
 apertar as nove salas reprovaram («o ✕ veio do controle, não do relógio»);
 devolvidos, voltou o verde. A partida de 3 pelo robô, na fonte, deu 3 salas, 3
 placares e o fim em 43 s.

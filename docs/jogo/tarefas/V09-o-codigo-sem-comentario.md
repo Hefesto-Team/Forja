@@ -72,14 +72,16 @@ motivo no «O que foi feito».
 - A mordida: um comentário devolvido a um `.gd` e o portão reprova pelo nome; tirado, passa.
 - As provas do jogo, do som e da bancada verdes depois da remoção.
 
-## Estado (26/10/2026, worktree `forja-voo/sem-comentario`, ramo `voo/sem-comentario`)
+## O que foi feito (26/10/2026)
 
-Feito: o portão, o removedor, as catracas (5824 comentários, 421 linhas de docstring), o pre-commit
-(`scripts/hooks/ligar.sh`, ligado na mesa), 102 casos na prova dos portões, a mordida do pre-commit. A proposta do
-gancho do editor está em `~/.local/state/hefesto-travas/proposta` (14 baterias verdes), à espera do «sim» dela.
-
-Falta, nesta ordem:
-1. Conferir o `docs/o-porque-dos-modulos.md` e as ajudas dos scripts de shell (o agente da triagem).
-2. `tirar_os_comentarios.py --aplicar`, recalcular os mapas das citações e reapontar `caminho:linha` nos versionados.
-3. `codigo_sem_comentario.py --catraca --aceitar`; a bateria inteira; devolver os `.import` que a Godot regrava.
-4. `docs/COMO-CONTRIBUIR.md` com as regras; o estado no quadro; integrar em `integra/forja`.
+- O corte: 5824 comentários saíram de 258 arquivos (6321 linhas a menos no código), cada arquivo provado pelo leitor
+  da sua linguagem; nenhum recusado. A catraca agora tem piso 0.
+- O porquê caro de redescobrir foi para `docs/o-porque-dos-modulos.md` (279 linhas). As ajudas que vinham do
+  cabeçalho viraram `uso()` nos seis scripts de shell, e o que só vivia em comentário foi para o `DESENVOLVER.md`,
+  o `COMO-RODAR.md` e a `a-esteira.md`.
+- 998 citações `arquivo:linha` reapontadas em 122 arquivos. Ficaram como estavam as que já apontavam fora do arquivo
+  antes do corte (5) e as de `hud.gd` sem pasta nas fichas F07 e G04 (3).
+- O pre-commit (`scripts/hooks/ligar.sh`) e o CI rodam o grupo `texto`; a prova dos portões tem 102 casos.
+- O gancho do editor que aponta o comentário no mesmo turno está em proposta, à espera dela.
+- As provas: compilar linux e testes, `make all`, as ferramentas, o jogo, poucos, a bancada, o som, os portões e a
+  esteira, todas verdes, nos mesmos tempos de antes.

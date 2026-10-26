@@ -1,4 +1,3 @@
-/* A linha do tempo. Ver linha_tempo.h. */
 #include "linha_tempo.h"
 
 #include "mascara.h"
@@ -11,7 +10,7 @@ void lt_t_musica(double s) { g_t_musica = s; }
 void lt_abrir(LinhaTempo *lt, const char *caminho, Uint64 inicio_ns) {
   SDL_memset(lt, 0, sizeof(*lt));
   lt->inicio_ns = inicio_ns;
-  lt_t_musica(-1.0); /* sessão nova: sem música até alguém informar */
+  lt_t_musica(-1.0);
   if (caminho && caminho[0])
     lt->arq = SDL_IOFromFile(caminho, "w");
 }
@@ -42,9 +41,6 @@ void ev_iniciar(Evento *e, const LinhaTempo *lt, const char *tipo, int jogador) 
   }
 }
 
-/* A chave já está na cabeça desta linha? Então o campo não entra (a cabeça
- * vence): o `lugar` que o Ritmo e a reserva mandam como campo é o mesmo
- * jogador - 1 da cabeça, e um JSON com chave repetida quebra leitor estrito. */
 static bool na_cabeca(const Evento *e, const char *chave) {
   if (SDL_strcmp(chave, "t") == 0 || SDL_strcmp(chave, "tipo") == 0)
     return true;

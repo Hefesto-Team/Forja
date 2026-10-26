@@ -1,11 +1,4 @@
 extends SceneTree
-## A cor nunca sozinha (o checklist do estudo 02, item 16): passa as fotos das
-## telas por simuladores de protanopia, deuteranopia e tritanopia, e grava uma
-## prancha com as quatro versões lado a lado para a revisão. As matrizes são
-## as de Machado, Oliveira e Fernandes (2009), severidade 1, aplicadas em RGB
-## linear.
-##
-##   godot --headless -s scripts/daltonismo.gd -- <pasta com os PNG> <pasta de saída>
 
 const MATRIZES := {
 	"protanopia": [0.152286, 1.052583, -0.204868, 0.114503, 0.786281, 0.099216, -0.003882, -0.048116, 1.051998],
@@ -31,7 +24,6 @@ func _init() -> void:
 		if img == null:
 			continue
 		img.convert(Image.FORMAT_RGB8)
-		# metade do tamanho: a prancha 2×2 volta ao tamanho da foto
 		img.resize(img.get_width() / 2, img.get_height() / 2, Image.INTERPOLATE_BILINEAR)
 		var w := img.get_width()
 		var h := img.get_height()

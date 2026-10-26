@@ -310,15 +310,15 @@ frase, `_ensinou[l] = true` e o glifo nunca mais aparece.
 Só com `Forja.bancada`. Na chamada `c` com `c % BANCADA_A_CADA == BANCADA_DESLOC` (3, 9, 15, 21, 27, 33), o gerador
 não dá frase, e em `Ritmo.batida() >= 4c` o `_bancada(dt)` começa **o canto às cegas** de hoje:
 
-- o plano das fontes de hoje (`canto.gd:244-265`, `Forja.cega_plano_fontes`), com `cada` = 1 por controle e 1 na TV
+- o plano das fontes de hoje (`canto.gd:216-235`, `Forja.cega_plano_fontes`), com `cada` = 1 por controle e 1 na TV
   (sozinho: 3 e 3, como hoje), montado no `iniciar_jogo`: com quatro, 5 cantos; cabem os 6 compassos;
-- `_comecar_canto()` e `_tocar_nota(k)` de hoje (`canto.gd:273-312`), sem o `Label3D` da nota (o `♪` sai: a tela não
+- `_comecar_canto()` e `_tocar_nota(k)` de hoje (`canto.gd:243-281`), sem o `Label3D` da nota (o `♪` sai: a tela não
   aponta); a TV canta no `SINO_TV` a −2 dB;
-- `PERGUNTA` (o laço de `canto.gd:420-439`, com o evento `pergunta` da F01, `qual` = `"canto"`), `_fechar_pergunta()`
-  (`canto.gd:315-349`) e `REVELA` por `REVELA_S`; o `_revelar()` toca `Som.tocar("sino", SINO_TV, -8.0)` no lugar de
+- `PERGUNTA` (o laço de `canto.gd:387-406`, com o evento `pergunta` da F01, `qual` = `"canto"`), `_fechar_pergunta()`
+  (`canto.gd:284-318`) e `REVELA` por `REVELA_S`; o `_revelar()` toca `Som.tocar("sino", SINO_TV, -8.0)` no lugar de
   `bigorna_aguda` e solta 20 faíscas `Tema.TUNGSTENIO` no dono; `REPETE` e `_fechar_repeticao` saem;
 - enquanto `estado_bancada != JOGO`, `_gerar_compasso` não gera chamada nenhuma;
-- `pergunta()` (`canto.gd:546-574`) e `dar_vereditos()` (`canto.gd:456-462`) ficam iguais; o veredito
+- `pergunta()` (`canto.gd:506-532`) e `dar_vereditos()` (`canto.gd:423-429`) ficam iguais; o veredito
   `alto_falante` é calculado nos dois modos (fora da bancada, sai «não medido», como a F01 manda).
 
 ### O fim e o vencedor
@@ -355,7 +355,7 @@ O que muda do `canto.gd` de hoje, na ordem do arquivo:
 | `estado`, `t_estado`, `relogio`, `plano`, `rodada`, `fonte`, `ritmo`, `notas_tocadas` | ficam, só para a bancada |
 | `j`, `n` | são do kit: não declare |
 | `sino_tv`, `brilho_tv`, `_mat_tv`, `_notas_no_ar` | saem (o sino grande é do cenário; o `♪` sai) |
-| `_init()` | sai: a FICHA (o `papel_som` vira a chave; a câmera vai para o `montar`); o `cega = true` vai para o `montar` (a pergunta às cegas da bancada: o diagnóstico fica fechado em jogo, `sala_jogo.gd:470-471`) |
+| `_init()` | sai: a FICHA (o `papel_som` vira a chave; a câmera vai para o `montar`); o `cega = true` vai para o `montar` (a pergunta às cegas da bancada: o diagnóstico fica fechado em jogo, `sala_jogo.gd:385-386`) |
 | `montar()`, `sino()`, `_montar_torre()`, `_montar_raia()` | o de «A cena»; a partitura sai |
 | `_novo_jogador()` | fica igual (a bancada), em `j[l]` |
 | `iniciar_jogo()` | o plano das fontes só com `Forja.bancada` |
@@ -423,7 +423,7 @@ func iniciar_jogo() -> void:
 	for l in presentes():
 		CenarioDoCanto.luz_da_nota(l, 1.0)
 	if Forja.bancada:
-		_planejar_a_bancada()  # canto.gd:244-265, com cada = 1
+		_planejar_a_bancada()  # canto.gd:216-235, com cada = 1
 
 
 func jogar(dt: float) -> void:
@@ -562,7 +562,7 @@ O catálogo: `Catalogo.MINIGAMES["S06_J26"] = preload("res://scripts/minigames/s
 `SECOES`, `"minigames": ["S06_J26"]`; e sai `"canto"` de `SALAS_ANTIGAS`.
 `git rm godot/scripts/salas/canto.gd godot/scripts/salas/canto.gd.uid`.
 Em `godot/scripts/traducoes.gd`: `"O Canto": "The Chant"`, `"Repita!": "Repeat!"` (as que ainda não existirem). Os
-textos da pergunta da bancada (`canto.gd:546-574`) já estão lá.
+textos da pergunta da bancada (`canto.gd:506-532`) já estão lá.
 
 ## A cena
 
@@ -1057,7 +1057,7 @@ func robo(l: int, _dt: float) -> void:
 		if Forja.bancada and estado_bancada == CANTO:
 			_robo_bancada[l] = true
 	if Forja.bancada and estado_bancada != JOGO:
-		_robo_da_bancada(l)  # a pergunta de hoje: ✕ se ouviu o canto às cegas, ○ se não (canto.gd:592-598)
+		_robo_da_bancada(l)  # a pergunta de hoje: ✕ se ouviu o canto às cegas, ○ se não (canto.gd:547-553)
 		return
 	var batida := 60.0 / Ritmo.bpm
 	for nn in notas_em_aberto(l):
@@ -1077,7 +1077,7 @@ func robo(l: int, _dt: float) -> void:
 		return
 ```
 
-O `_robo_da_bancada(l)` é o trecho da pergunta do `_robo` de hoje (`canto.gd:592-598`), com `_robo_bancada[l]` no
+O `_robo_da_bancada(l)` é o trecho da pergunta do `_robo` de hoje (`canto.gd:547-553`), com `_robo_bancada[l]` no
 lugar de `e.robo_ouviu`; ele volta a `false` no `_comecar_canto`. O robô **não** lê a partitura: se a chamada não
 saiu do alto-falante simulado, ele não responde. É a prova do caminho inteiro, e a do simulador: a mesma conta roda no
 controle simulado da prova do jogo e no da prova visual.

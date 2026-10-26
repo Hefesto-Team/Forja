@@ -1,4 +1,3 @@
-/* De onde veio o controle. Ver origem.h. */
 #include "origem.h"
 
 #include "mascara.h"
@@ -174,8 +173,6 @@ void origem_classificar(const OrigemFatos *f, Origem *o) {
 
   if (sony) {
     if (uhid && f->bus == ORIGEM_BUS_BT) {
-      /* O BlueZ >= 5.73 publica o controle do rádio por uhid, com bus 0005:
-       * é o físico, não um virtual (a pasta sozinha não prova nada). */
       o->tipo = edge ? ORIGEM_EDGE_NATIVO : ORIGEM_DUALSENSE_NATIVO;
       o->conexao = CONEXAO_BT;
       snprintf(o->evidencia, sizeof(o->evidencia), "sysfs: HID bus 0005 publicado pelo BlueZ (uhid)%s",

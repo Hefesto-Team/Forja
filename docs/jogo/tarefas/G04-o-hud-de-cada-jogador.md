@@ -326,7 +326,7 @@ palavra é a do contorno do boneco. **Como se confere:**
   progresso em y 162; `_treino_e_valendo()` (338 a 355) põe o selo em y 176;
   `_dicas()` (129) prende as pílulas às raias sem fugir dos cantos.
 - O combo só existe n'A Centelha (`centelha.gd:110`, `j[l].combo`; zera em
-  268 e 353) e n'O Impacto (`impacto.gd:101`, 249, 262).
+  268 e 353) e n'O Impacto (`impacto.gd:84`, 249, 262).
 - A Centelha: o botão errado (`centelha.gd:264-270`) e `_perdeu()` (350)
   tocam `"falha"`; `_acertou()` (326 a 347) toca `bigorna`, `martelo`,
   `Som.no_controle(l, "martelo", 0.55)` e `Forja.vibrar(l, 0.0, 0.2, 50)`.
@@ -334,12 +334,12 @@ palavra é a do contorno do boneco. **Como se confere:**
   `car_*`, `jin_virada` ou `fx_caneta` está em `godot/assets/sons/` (os 22
   estão no estudo, `godot/estudos/direcao/som/`, e no mapa com
   `estado` = `gerado`).
-- `godot/scripts/ui/desenho.gd:63-80`: a coleta de texto guarda só a frase;
+- `godot/scripts/ui/desenho.gd:53-68`: a coleta de texto guarda só a frase;
   o retângulo é da F09 (em voo). Não há `tests/prova_visual.sh` ainda (F09).
-- `godot/scripts/forja.gd:134-137`, `aplicar_opcoes()`: a escala vem de
+- `godot/scripts/forja.gd:92-95`, `aplicar_opcoes()`: a escala vem de
   `Opcoes.texto`, o idioma de `FORJA_IDIOMA`; não há variável para a escala.
-- `Ritmo.batida()` (`ritmo.gd:110`) e `Ritmo.bpm` (21);
-  `Musica.SALA_DA_SECAO` (`musica.gd:31`); `SalaJogo.fase` (`"aviso"`,
+- `Ritmo.batida()` (`ritmo.gd:82`) e `Ritmo.bpm` (21);
+  `Musica.SALA_DA_SECAO` (`musica.gd:22`); `SalaJogo.fase` (`"aviso"`,
   `"jogo"`, `"fim"`), `pontos`, `jogando`, `duracao`, `t_jogo`, `treinando`.
 
 ## O alvo

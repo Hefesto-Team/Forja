@@ -18,7 +18,7 @@ com 14 «Lambda capture at index 0 was freed» nos registros da prova do jogo de
 
 ## O estado de hoje (medido em 09/10/2026, `85f24c3`)
 
-- `godot/scripts/forja.gd:1068-1083`:
+- `godot/scripts/forja.gd:881-892`:
   ```gdscript
   ## ... Se vier um `dono` (a
   ## tela que pediu o ✕) e ele já saiu da árvore na hora de apertar, o robô
@@ -29,9 +29,9 @@ com 14 «Lambda capture at index 0 was freed» nos registros da prova do jogo de
   		if dono == null or (is_instance_valid(dono) and dono.is_inside_tree()):
   			_robo_apertar_cru(l, CRUZ, 0.09))
   ```
-- O único chamador com dono, `godot/scripts/salas/sala_jogo.gd:259`:
+- O único chamador com dono, `godot/scripts/salas/sala_jogo.gd:194`:
   `Forja.robo_confirmar(p.lugar, 1.4 + 0.2 * p.lugar, self)`; nos temperamentos que erram, mais 1,5 a 3 s
-  (`forja.gd:1076-1077`).
+  (`forja.gd:888-889`).
 - Os registros (prova do jogo, semente 7): 7 «Lambda capture» em cada rodada, um por jogador da sala que acabou,
   logo depois de «o motor parou: a háptica volta» e entre «partida: centelha é a sala 1 de 3» e «partida: o placar
   depois d'O Martelo de Hefesto».
@@ -57,7 +57,7 @@ Quem passou dono e viu o dono sair não aperta nada. Quem não passou dono apert
 
 ## Armadilhas
 
-- **Não trocar o `dono == null` por `is_instance_valid(dono)` apenas:** o chamador sem dono (`main.gd:574`) tem de
+- **Não trocar o `dono == null` por `is_instance_valid(dono)` apenas:** o chamador sem dono (`main.gd:527`) tem de
   continuar apertando.
 - **O caso de prova precisa liberar a sala de verdade** (`queue_free` e um quadro), não só tirá-la da árvore, para
   reproduzir o `null` da captura.
@@ -89,7 +89,7 @@ Pôr a linha da WQ02 no [quadro](README.md) como **feito**, com o commit.
 ## O que foi feito (leva 1, a-caixa)
 
 - **`godot/scripts/forja.gd`, `robo_confirmar`:** guarda, antes do temporizador, se houve dono e o id dele, e não
-  captura o nó. Sem dono, aperta como antes (o `main.gd:574` segue apertando); com dono, aperta só se o id ainda vale
+  captura o nó. Sem dono, aperta como antes (o `main.gd:527` segue apertando); com dono, aperta só se o id ainda vale
   e o nó está na árvore. A assinatura não mudou, nem os atrasos e os temperamentos.
 - **`godot/testes/prova_de_poucos.gd`, `_prova_do_x_que_nao_cai`:** entra na centelha, espera o aviso pedir o ✕
   (`_robo_confirmou`), volta ao salão 18 quadros depois (o `queue_free` da sala, bem antes de 1,4 s), confere que a

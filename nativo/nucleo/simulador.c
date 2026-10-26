@@ -1,4 +1,3 @@
-/* O simulador. Ver simulador.h. */
 #include "simulador.h"
 
 #include "forja.h"
@@ -14,10 +13,10 @@ typedef enum { AC_BOTAO, AC_EIXO, AC_GIRO, AC_SACODE, AC_TOQUE } TipoAcao;
 typedef struct Acao {
   bool viva;
   TipoAcao tipo;
-  int alvo;     /* botão, eixo ou dedo */
+  int alvo;
   float valor;
   float x, y, z;
-  float fim;    /* app->t */
+  float fim;
 } Acao;
 
 typedef struct Sim {
@@ -30,16 +29,16 @@ typedef struct Sim {
   float eixo_tecla[SDL_GAMEPAD_AXIS_COUNT];
   float giro_tecla[3];
   float sacode_tecla;
-  float fala_tecla;          /* a barra de espaço: falar no microfone de mentira */
-  float fala, fala_ate;      /* o robô falando no microfone: nível e até quando */
-  bool mouse_dedo[2]; /* o mouse faz de dedo: esquerdo = dedo 1, direito = dedo 2 */
+  float fala_tecla;
+  float fala, fala_ate;
+  bool mouse_dedo[2];
   float mouse_x[2], mouse_y[2];
   Uint64 sensor_ns;
   double acum_sensor;
   float fase;
-  float rol, arf, gui; /* a postura do controle de mentira (rad) */
-  long efeitos;        /* pacotes de efeito que chegaram */
-  float engasgo_ate;   /* o defeito "engasga": a entrada parada até aqui (app->t) */
+  float rol, arf, gui;
+  long efeitos;
+  float engasgo_ate;
 } Sim;
 
 static float limitar(float v, float a, float b) { return v < a ? a : (v > b ? b : v); }
@@ -63,8 +62,8 @@ static const struct {
     {"haptica-muda", DEFEITO_HAPTICA_MUDA},             {"engasga", DEFEITO_ENGASGA},
 };
 static unsigned g_defeitos;
-static float g_t_sim; /* o app->t do último quadro, para a voz do robô */
-static unsigned g_def_agora; /* os defeitos valendo neste quadro (só dentro das salas) */
+static float g_t_sim;
+static unsigned g_def_agora;
 static char g_defeitos_texto[200];
 
 bool simulador_defeitos(const char *lista, char *erro, size_t tam_erro) {
@@ -117,8 +116,6 @@ static int popcount(Uint32 m) {
   return n;
 }
 
-/* ---------- os callbacks: o que chega ao "plástico" ---------- */
-
 static bool SDLCALL cb_rumble(void *u, Uint16 baixo, Uint16 alto) {
   Sim *s = u;
   if (g_def_agora & DEFEITO_MOTORES_TROCADOS) {
@@ -127,7 +124,6 @@ static bool SDLCALL cb_rumble(void *u, Uint16 baixo, Uint16 alto) {
     alto = t;
   }
   if ((g_def_agora & DEFEITO_VIBRA_VIZINHO) && g_n > 1) {
-    /* o fio trocado: a vibração deste controle chega no próximo da fila */
     int i = (int)(s - g_sim);
     s = &g_sim[(i + 1) % g_n];
   }
@@ -162,11 +158,9 @@ static bool SDLCALL cb_efeito(void *u, const void *dados, int tam) {
   SDL_memcpy(s->perc.efeito, b, (size_t)tam);
   s->perc.n_efeito = tam;
   s->perc.efeito_ms = SDL_GetTicks();
-  /* o intermediário que engasga sob carga: a cada 40 pacotes, a entrada para */
   if (++s->efeitos % 40 == 0 && (g_def_agora & DEFEITO_ENGASGA))
     s->engasgo_ate = g_t_sim + 1.5f;
   if (tam >= 47) {
-    /* o "firmware" do simulador obedece aos blocos cujos bits vieram ligados */
     if ((b[0] & 0x04) && !(g_def_agora & DEFEITO_GATILHO_MUDO))
       SDL_memcpy(s->perc.gatilho_dir, b + 10, 11);
     if ((b[0] & 0x08) && !(g_def_agora & DEFEITO_GATILHO_MUDO))
@@ -200,10 +194,6 @@ static void SDLCALL cb_indice(void *u, int indice) {
   s->perc.leds_jogador = indice >= 0 ? figuras[indice % 5] : 0;
 }
 
-/* ---------- vida ---------- */
-
-/* Pendura o controle virtual `i` no SDL (na abertura, e de novo quando o
- * cabo volta: o mesmo nome, a mesma assinatura — o jogo o devolve ao lugar). */
 static bool anexar(int i) {
   static SDL_VirtualJoystickTouchpadDesc toque = {2, {0, 0, 0}};
   static SDL_VirtualJoystickSensorDesc sensores[2] = {{SDL_SENSOR_GYRO, 250.0f}, {SDL_SENSOR_ACCEL, 250.0f}};
@@ -232,8 +222,6 @@ static bool anexar(int i) {
     d.SendEffect = cb_efeito;
     d.SetSensorsEnabled = cb_sensores;
     d.SetPlayerIndex = cb_indice;
-    /* antes de ligar: o SDL já dá um player index ao controle na chegada, e o
-     * aviso (cb_indice) não pode ser apagado depois */
     s->perc.player_index = -1;
     s->perc.gatilho_dir[0] = s->perc.gatilho_esq[0] = 0x05;
     s->id = SDL_AttachVirtualJoystick(&d);
@@ -255,8 +243,6 @@ void simulador_iniciar(Forja *a, int n) {
     anexar(i);
 }
 
-/* O cabo do controle simulado `sim`: false tira (o SDL vê o controle sair),
- * true põe de volta. É a prova do "controle que cai" sem aparelho. */
 bool simulador_cabo(int sim, bool ligado) {
   if (sim < 0 || sim >= g_n)
     return false;
@@ -311,9 +297,6 @@ static Sim *sim_do_pad(Forja *a, int pad) {
   return NULL;
 }
 
-/* A ação nova do mesmo botão, eixo ou dedo toma o lugar da velha (vale a mais
- * nova de qualquer jeito): o robô que reescreve os analógicos a cada quadro
- * não enche a fila e não deixa o aperto do gatilho de fora. */
 static void agendar(Sim *s, Acao ac) {
   ac.viva = true;
   int livre = -1;
@@ -403,20 +386,11 @@ void robo_falar(Forja *a, int pad, float nivel, float seg) {
 float simulador_fala(SDL_JoystickID id) {
   for (int i = 0; i < g_n; i++)
     if (g_sim[i].usado && g_sim[i].id == id) {
-      /* uma sala quieta não é silêncio absoluto: o microfone de verdade sempre
-       * ouve o ambiente (SIM_PISO_DA_SALA); silêncio absoluto é o mudo do sistema */
       float robo = g_t_sim < g_sim[i].fala_ate ? g_sim[i].fala : SIM_PISO_DA_SALA;
       return robo > g_sim[i].fala_tecla ? robo : g_sim[i].fala_tecla;
     }
   return 0;
 }
-
-/* ---------- o teclado ---------- */
-
-/* ---------- à mão: o jogo dirige o controle selecionado ----------
- *
- * Sem janela própria, o módulo não vê o teclado: o jogo (o Godot) lê as
- * teclas e diz aqui o que está apertado no controle de mentira selecionado. */
 
 static Sim *sim_manual(int sim) { return sim >= 0 && sim < g_n && g_sim[sim].usado ? &g_sim[sim] : NULL; }
 
@@ -467,8 +441,6 @@ void simulador_manual_sacode(int sim, float g) {
     s->sacode_tecla = g;
 }
 
-/* ---------- a cada quadro ---------- */
-
 void simulador_atualizar(Forja *a, float dt) {
   g_def_agora = a->em_sala ? g_defeitos : 0;
   g_t_sim = a->t;
@@ -484,8 +456,6 @@ void simulador_atualizar(Forja *a, float dt) {
     float dx[2] = {s->mouse_x[0], s->mouse_x[1]}, dy[2] = {s->mouse_y[0], s->mouse_y[1]};
     SDL_memcpy(botao, s->botao_tecla, sizeof(botao));
     SDL_memcpy(eixo, s->eixo_tecla, sizeof(eixo));
-    /* quando duas ações pedem a mesma coisa, vale a mais nova (a que acaba
-     * depois): o robô reescreve o analógico e o dedo a cada quadro */
     float fim_eixo[SDL_GAMEPAD_AXIS_COUNT], fim_dedo[2] = {-1, -1}, fim_giro = -1;
     for (int x = 0; x < SDL_GAMEPAD_AXIS_COUNT; x++)
       fim_eixo[x] = -1;
@@ -533,10 +503,6 @@ void simulador_atualizar(Forja *a, float dt) {
     for (int e = 0; e < 3; e++)
       giro[e] += giro_robo[e];
 
-    /* os defeitos entram entre a mão e o "fio": o robô aperta o que quer, e o
-     * jogo recebe o que o intermediário quebrado deixaria passar. Valem dentro
-     * das salas; no menu e no salão o controle chega inteiro, para o robô
-     * chegar até elas */
     unsigned def = a->em_sala ? g_defeitos : 0;
     if (def & DEFEITO_TROCA_CRUZ_CIRCULO) {
       bool c = botao[SDL_GAMEPAD_BUTTON_SOUTH];
@@ -560,7 +526,6 @@ void simulador_atualizar(Forja *a, float dt) {
     if (def & DEFEITO_UM_DEDO)
       dedo[1] = false;
     if (a->t < s->engasgo_ate) {
-      /* engasgado: nada sai do controle de mentira, nem os sensores */
       s->acum_sensor = 0;
       continue;
     }
@@ -573,17 +538,13 @@ void simulador_atualizar(Forja *a, float dt) {
       float v = eixo[x];
       Sint16 raw;
       if (x == SDL_GAMEPAD_AXIS_LEFT_TRIGGER || x == SDL_GAMEPAD_AXIS_RIGHT_TRIGGER)
-        raw = (Sint16)(limitar(v, 0, 1) * 65535.0f - 32768.0f); /* o gatilho solto é -32768 */
+        raw = (Sint16)(limitar(v, 0, 1) * 65535.0f - 32768.0f);
       else
         raw = (Sint16)(limitar(v, -1, 1) * 32767);
       SDL_SetJoystickVirtualAxis(s->js, x, raw);
     }
     for (int d = 0; d < 2; d++)
       SDL_SetJoystickVirtualTouchpad(s->js, 0, d, dedo[d], dx[d], dy[d], dedo[d] ? 0.6f : 0);
-    /* os sensores a 250 Hz, coerentes entre si: o controle de mentira tem uma
-     * postura, o giro pedido a move, e o acelerômetro lê a gravidade dessa
-     * postura (convenções do SDL: parado, Y = +9,8). Com o teclado, a mão
-     * "relaxa" e o controle volta devagar ao nível — e o giro diz isso também */
     s->acum_sensor += dt * 250.0;
     s->fase += dt;
     int passos = 0;

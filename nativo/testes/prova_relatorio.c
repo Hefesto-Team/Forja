@@ -1,13 +1,9 @@
-/* O relatório: JSON válido, matriz completa, máscara na entrada. */
 #include "prova.h"
 
 #include "relatorio.h"
 
 #include <stdlib.h>
 
-/* Um validador de JSON pequeno: aceita o que o relatório escreve (objetos,
- * listas, strings com escape, números, true/false/null). Não é genérico — é o
- * bastante para provar que nenhuma vírgula ficou sobrando. */
 static const char *json_valor(const char *p);
 
 static const char *pula(const char *p) {
@@ -115,7 +111,6 @@ void provas_relatorio(void) {
   snprintf(r.contrato, sizeof(r.contrato), "USB 0x02 pelo SDL");
   r.semente = 42;
 
-  /* vazio: JSON válido, sem controles */
   char *json = NULL;
   espera(rel_json(&r, &json, NULL) == 0, "o JSON vazio monta");
   espera(json && json_valido(json), "o JSON vazio é válido");
@@ -160,7 +155,6 @@ void provas_relatorio(void) {
     espera(strstr(json, "\\\"aspas\\\"") != NULL, "aspas escapadas");
     espera(strstr(json, "\\t") != NULL, "tab escapado");
     espera(strstr(json, "12:34") == NULL, "nenhum octeto de MAC escapa");
-    /* matriz: 2 controles x F_TOTAL linhas */
     int linhas = 0;
     const char *m = strstr(json, "\"matriz\"");
     const char *t = strstr(json, "\"tentativas\"");

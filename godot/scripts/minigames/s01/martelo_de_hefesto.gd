@@ -1,25 +1,4 @@
 extends Minigame
-## O Martelo de Hefesto (S01_J01) — por enquanto, A Centelha de antes no kit:
-## runas que acendem ao apertar. Cada jogador tem a sua bigorna; em cima dela
-## acende uma runa com um símbolo e um anel que vai se fechando. Apertar o
-## botão da runa antes do anel fechar faz o boneco martelar a bigorna. A fila
-## de cada um passa por todos os botões que um jogo usa (✕ ○ □ △, L1, R1, L3,
-## R3, as quatro setas e o Create), por dois círculos (cada analógico até a
-## borda, nas oito direções) e pelo fole (cada gatilho segurado na faixa
-## dourada e depois apertado até o fundo), numa ordem sorteada pela semente.
-## Runa perdida volta para o fim da fila (até três vezes).
-##
-## A regra é a de antes: a H04 só mudou a casa. O Martelo no tempo da faixa,
-## com as quatro bigornas e a nota de cada um, é da ficha da seção (I).
-##
-## A falha: a runa treme e o boneco balança a cabeça. O vencedor: mais pontos.
-## O registro mede: cada botão, analógico e gatilho pedido e respondido (as
-## medidas do núcleo, que servem à bancada). O robô: vê a runa e reage como
-## gente — às vezes o dedo escorrega para o vizinho e corrige; gira o
-## analógico em volta; segura o gatilho no meio e aperta.
-##
-## O Options é a pausa, o PS fica de fora (o sistema toma), o botão do
-## microfone é d'A Voz e o clique do touchpad é d'O Molde.
 
 const BOTOES := [Forja.CRUZ, Forja.CIRCULO, Forja.QUADRADO, Forja.TRIANGULO, Forja.L1, Forja.R1, Forja.L3,
 	Forja.R3, Forja.CIMA, Forja.BAIXO, Forja.ESQUERDA, Forja.DIREITA, Forja.CREATE]
@@ -38,7 +17,6 @@ const FICHA := {
 	"sensacoes": ["acerto", "erro"],
 	"material": "metal",
 	"microjogo": {"verbo": "Bata!", "segundos": 6.0},
-	# o que a bancada mede (o veredito é das medidas do núcleo)
 	"features": ["botoes", "analogicos", "gatilhos_analogicos"],
 	"botoes_medidos": BOTOES,
 	"gesto": "attack-melee-right",
@@ -56,21 +34,18 @@ const JANELA_GATILHO := 8.0
 const MAX_TENTATIVAS := 3
 const BORDA := 0.85
 
-var j := {}  ## lugar -> o estado do jogador
-var runas := {}  ## lugar -> os nós da runa (glifo, anel, marcas, fole)
+var j := {}
+var runas := {}
 
 
 func montar() -> void:
 	camera_pos = Vector3(0, 7.2, 12.4)
 	camera_olhar = Vector3(0, 1.2, -0.2)
 	Kit.arena(self, 5, 3)
-	# a forja: brasas subindo, e o neon rosa do Hefesto
 	atmosfera(Color("#ff9a52"), Tema.VIOLETA, true, 60)
 	luzes([Vector3(-9, 2.5, -4), Vector3(9, 2.5, -4), Vector3(0, 3.0, 4)])
 	for p in jogadores:
 		var l: int = p.lugar
-		# o ferreiro ao lado da bigorna, em três-quartos para a câmera: a
-		# martelada aparece
 		Kit.bigorna(self, _bigorna(l), 0.62)
 		p.position = Vector3(RAIAS[l] - 1.05, 0.05, 1.15)
 		p.olhar_para(_bigorna(l))
@@ -86,15 +61,12 @@ func montar() -> void:
 		Forja.gatilhos_off(l)
 
 
-## A bigorna de cada um, à frente e à direita do ferreiro; a runa acende em
-## cima dela.
 static func _bigorna(l: int) -> Vector3:
 	return Vector3(RAIAS[l] + 0.45, 0.0, 0.3)
 
 
 func _novo_jogador() -> Dictionary:
 	var ordem := BOTOES.duplicate()
-	# embaralha pela semente da sala
 	for i in range(ordem.size() - 1, 0, -1):
 		var k := rng.randi_range(0, i)
 		var tmp = ordem[i]
@@ -125,12 +97,10 @@ func _novo_jogador() -> Dictionary:
 		"robo_reacao": -1.0, "robo_passo": 0, "robo_ang": 0.0, "robo_gatilho": 0.0}
 
 
-# ------------------------------------------------------------------ a runa --
-
 func _montar_runa(l: int) -> Dictionary:
 	var raiz := Node3D.new()
 	raiz.position = _bigorna(l) + Vector3(0, 2.55, 0)
-	raiz.visible = false  # acende quando o jogo começa
+	raiz.visible = false
 	add_child(raiz)
 	var glifo := Sprite3D.new()
 	glifo.pixel_size = 0.0062
@@ -159,12 +129,10 @@ func _montar_runa(l: int) -> Dictionary:
 		esf.height = 0.14
 		m.mesh = esf
 		var ang := s * PI / 4.0
-		# setor 0 = direita, sentido horário na tela (y do analógico para baixo)
 		m.position = Vector3(cos(ang) * 0.95, -sin(ang) * 0.95, 0)
 		m.material_override = Kit.material(Tema.GRAFITE, 0.0)
 		raiz.add_child(m)
 		marcas.append(m)
-	# o fole: o trilho, a faixa dourada (35–62%), o topo (92%) e o nível
 	var fole := Node3D.new()
 	fole.position = Vector3(1.05, -0.7, 0)
 	raiz.add_child(fole)
@@ -225,7 +193,6 @@ func _mostrar_runa(l: int) -> void:
 	glifo.modulate = Tema.ETIQUETA.lerp(Tema.ETIQUETA, e.pop)
 	glifo.scale = Vector3.ONE * brilho
 	glifo.position.x = sin(t * 60.0) * 0.08 * e.tremor
-	# o anel fecha com o tempo da runa de botão; nas outras, com a janela maior
 	var janela: float = e.janela if r.tipo == "botao" else (JANELA_ANALOGICO if r.tipo == "analogico" else JANELA_GATILHO)
 	var resto := clampf(1.0 - e.t / janela, 0.0, 1.0)
 	var anel: MeshInstance3D = n.anel
@@ -250,8 +217,6 @@ func _mostrar_runa(l: int) -> void:
 func _lugar_da(l: int) -> int:
 	return l
 
-
-# ------------------------------------------------------------------ o jogo --
 
 func jogar(dt: float) -> void:
 	for p in jogadores:
@@ -321,7 +286,6 @@ func _jogar(l: int, p: ForjaPlayer, dt: float) -> void:
 				_perdeu(l, p)
 
 
-## O setor do analógico (0 = direita, sentido horário na tela), como o núcleo.
 static func _setor(x: float, y: float) -> int:
 	var a := atan2(y, x)
 	if a < 0.0:
@@ -349,7 +313,7 @@ func _acertou(l: int, p: ForjaPlayer, base: int) -> void:
 	Efeitos.anel(self, runas[l].raiz.global_position, Forja.cor_do_lugar(l), 0.7, Vector3.BACK, l)
 	Som.tocar("bigorna_aguda" if r != null and r.tipo == "botao" else "bigorna", bigorna_topo, -2.0)
 	Som.tocar("martelo", bigorna_topo, -6.0)
-	Som.no_controle(l, "martelo", 0.55)  # o martelo soa na mão de quem martelou
+	Som.no_controle(l, "martelo", 0.55)
 	p.gesto("attack-melee-right", 0.45)
 	Forja.sentir(l, "acerto")
 	if r != null and r.tipo == "botao" and e.janela > JANELA_MINIMA * ritmo_nivel:
@@ -366,7 +330,6 @@ func _perdeu(l: int, p: ForjaPlayer) -> void:
 	var e: Dictionary = j[l]
 	var r: Dictionary = _runa_atual(l)
 	if errou(l):
-		# o Escudo absorveu: a runa passa sem castigo e sem voltar à fila
 		_proxima(l)
 		if e.atual >= e.fila.size():
 			acabou[l] = true
@@ -402,9 +365,6 @@ func status(lugar: int) -> String:
 	return super(lugar)
 
 
-# ------------------------------------------------------------------ o robô --
-# O kit chama robo(l, dt) antes de jogar(dt), a cada quadro, de quem ainda joga.
-
 func robo(l: int, dt: float) -> void:
 	if not Forja.robo:
 		return
@@ -414,7 +374,6 @@ func robo(l: int, dt: float) -> void:
 		return
 	if e.robo_reacao < 0.0:
 		e.robo_reacao = 0.35 + 0.55 * rng.randf()
-		# o temperamento (--robo=bom|medio|ruim): quando não acerta, chega tarde e perde a runa
 		if not Forja.robo_acerta():
 			e.robo_reacao += JANELA_GATILHO + 1.0
 	match str(r.tipo):
@@ -441,7 +400,6 @@ func robo(l: int, dt: float) -> void:
 		"gatilho":
 			var alvo := 0.0 if e.t < e.robo_reacao else (0.48 if e.estagio == 0 else 1.0)
 			var lido := Forja.eixo(l, Forja.R2 if r.alvo == 1 else Forja.L2)
-			# o fole não enche (o jogo não vê o meio): aperta mais, como gente
 			if e.estagio == 0 and e.t > e.robo_reacao + 1.2 and lido < 0.2 and fmod(e.t, 1.6) < 0.5:
 				alvo = 1.0
 			e.robo_gatilho = move_toward(e.robo_gatilho, alvo, dt * 4.0)

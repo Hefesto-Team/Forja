@@ -1,4 +1,3 @@
-/* O relógio da sessão. Ver relogio.h. */
 #include "relogio.h"
 
 static Uint64 g_inicio_ns;

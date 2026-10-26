@@ -8,7 +8,7 @@ VENV="$OFICINA/trilha-venv"
 export OLLAMA_MODELS="${OLLAMA_MODELS:-$OFICINA/modelos/ollama}"
 export OLLAMA_HOST="${OLLAMA_HOST:-127.0.0.1:11434}"
 OLLAMA_API="https://api.github.com/repos/ollama/ollama/releases/latest"
-OLLAMA_PACOTE="ollama-linux-amd64.tar.zst"  ## o nome do pacote na release (mudou de .tgz em 2025)
+OLLAMA_PACOTE="ollama-linux-amd64.tar.zst"
 MODELO_TEXTO="${FORJA_MODELO_TEXTO:-qwen3:8b}"
 
 ollama_bin() {

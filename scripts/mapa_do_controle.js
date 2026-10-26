@@ -1,24 +1,3 @@
-// O mapa do controle para o jogo: o SVG do DualSense desenhado para o Hefesto
-// (godot/assets/svg/dualsense.svg, o mesmo `ds_limpo.svg` do app) vira camadas
-// PNG que o jogo empilha e acende por peça — o botão apertado, o analógico
-// andando, o motor vibrando, a barra de luz na cor que o jogo mandou.
-//
-// Por que PNG e não o SVG direto: o desenho pinta as zonas com CSS (variáveis,
-// seletor de atributo, :is/:not) e contorno por filtro, e o rasterizador de
-// SVG do Godot (ThorVG) não lê nada disso. O Chromium lê igual ao app, então as
-// camadas saem exatamente como o desenho.
-//
-//   npm install playwright   (uma vez; ou NODE_PATH para um playwright que já exista)
-//   node scripts/mapa_do_controle.js
-//
-// E o logo do Hefesto (godot/assets/svg/hefesto-logo.svg) em godot/assets/hefesto-logo.png,
-// e os glifos de feature do app (godot/assets/svg/glifos) em godot/assets/glifos/.
-//
-// Escreve godot/assets/mapa/: base.png e corpo.png (o desenho inteiro), os
-// miolos dos analógicos, uma máscara branca por peça (<id>.png) e uma por glifo
-// (glifo-<id>.png) — cada uma recortada na caixa da peça, para não serem 50
-// texturas do tamanho do desenho — e pecas.json: onde cada camada senta no
-// desenho (px) e as caixas das peças no viewBox (de pecas-do-dualsense.csv).
 const fs = require('fs');
 const path = require('path');
 const { chromium } = require('playwright');
@@ -32,8 +11,6 @@ const LOGO_PNG = path.join(RAIZ, 'godot/assets/hefesto-logo.png');
 const GLIFOS_SVG = path.join(RAIZ, 'godot/assets/svg/glifos');
 const GLIFOS_PNG = path.join(RAIZ, 'godot/assets/glifos');
 
-// A base neutra: só tokens da paleta do Hefesto. A casca sai numa camada
-// própria, que o jogo pinta na cor de luz do jogador (a borda diz QUAL).
 const NEUTRO = {
   painel: '#9a9eb8',
   touch: '#53576f',
@@ -45,7 +22,6 @@ const NEUTRO = {
 };
 const GLIFOS_COR = '#c8ccda';
 const MIOLO_COR = '#44475a';
-// as cinco lâmpadas apagadas: o soquete aparece, mas não acende
 const LAMPADA_APAGADA = '#44475a';
 
 const MASCARAS = [
@@ -81,8 +57,6 @@ function regrasNeutras() {
 const SEM_FILTRO = '*{filter:none !important}';
 const ESCONDE_OCULTAS = '.oculta{display:none !important}';
 
-// Só a peça, em branco: o jogo tinge. Tudo o mais fica invisível (visibility
-// herda, e a peça a desfaz); o que era `.oculta` volta a aparecer quando é ela.
 function soPeca(seletor) {
   return (
     SEM_FILTRO +
@@ -136,14 +110,11 @@ function lerCsv() {
   const caixa = svg.match(/viewBox="([^"]+)"/)[1].split(/\s+/).map(Number);
   const navegador = await chromium.launch({ args: ['--no-sandbox'] });
   const pagina = await navegador.newPage({ viewport: { width: 1160, height: 800 } });
-  // o .oculta volta ao display quando é a peça; o `display:inline` da regra
-  // da peça cuida disso, e o getBoundingClientRect precisa dele ligado
   await pagina.setContent(
     `<html><body style="margin:0;background:transparent">${svg}<style id="camada"></style></body></html>`
   );
   await pagina.evaluate(() => document.querySelector('svg').removeAttribute('data-colorway'));
   const camadas = {};
-  // `recorte`: o seletor cuja caixa na tela limita a foto (null: o desenho todo)
   const foto = async (nome, css, recorte = null) => {
     await pagina.evaluate((c) => (document.getElementById('camada').textContent = c), css);
     let caixa = { x: 0, y: 0, width: 1160, height: 800 };
@@ -172,7 +143,6 @@ function lerCsv() {
   };
 
   const neutro = regrasNeutras();
-  // a base: sem a casca (é do jogador) e sem os miolos dos analógicos (andam)
   await foto('base.png', SEM_FILTRO + ESCONDE_OCULTAS + neutro + '#corpo,#stick_l .miolo,#stick_r .miolo{visibility:hidden !important}');
   await foto('corpo.png', soPeca('#corpo'));
   const miolo = (lado) =>
@@ -185,12 +155,10 @@ function lerCsv() {
   for (const id of MASCARAS) await foto(`${id}.png`, soPeca(`#${id}`), `#${id}`);
   for (const id of GLIFOS) await foto(`glifo-${id}.png`, soPeca(`#glifo-${id}`), `#glifo-${id}`);
 
-  // o logo do Hefesto (com os filtros de contorno, que o ThorVG não lê)
   const logo = await navegador.newPage({ viewport: { width: 512, height: 512 } });
   await logo.setContent(`<html><body style="margin:0;background:transparent">${fs.readFileSync(LOGO, 'utf8')}</body></html>`);
   await logo.locator('svg').screenshot({ path: LOGO_PNG, omitBackground: true });
 
-  // os glifos de feature do app (assets/glyphs), em branco a 128 px: o jogo tinge
   fs.mkdirSync(GLIFOS_PNG, { recursive: true });
   const glifo = await navegador.newPage({ viewport: { width: 128, height: 128 } });
   for (const arq of fs.readdirSync(GLIFOS_SVG).filter((f) => f.endsWith('.svg')).sort()) {

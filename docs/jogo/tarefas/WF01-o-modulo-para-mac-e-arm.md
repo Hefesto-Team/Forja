@@ -27,12 +27,12 @@ som para «outra plataforma». O que falta é compilar, exportar e provar.
   windows.x86_64 = "res://bin/libforja.windows.x86_64.dll"
   ```
 - `godot/export_presets.cfg`: dois presets, «Linux» (`:10`) e «Windows» (`:41`).
-- `scripts/compilar.sh:148-163`: os alvos `linux`, `windows`, `testes`, `tudo` e `deps`; o Windows por
+- `scripts/compilar.sh:111-126`: os alvos `linux`, `windows`, `testes`, `tudo` e `deps`; o Windows por
   `cmake/mingw64-x86_64.cmake`.
 - `nativo/CMakeLists.txt:110-112` compila `som_controle_linux.c`, `som_controle_outro.c` e
   `som_controle_windows.c` sempre; o `outro` só tem corpo fora do Linux e do Windows
   (`#if !defined(__linux__) && !defined(_WIN32)`): devolve «só pelo nome nesta plataforma».
-- `nativo/nucleo/pads.c:248-250`: a leitura crua por `SDL_hid_open_path` (portável).
+- `nativo/nucleo/pads.c:225-227`: a leitura crua por `SDL_hid_open_path` (portável).
 - `.github/workflows/forja.yml`: todos os jobs em `ubuntu-24.04` (`:24`, `:97`, `:121`, `:160`, `:260`).
 - `COMO-RODAR.md:82`: «O macOS não tem módulo nem exportação.»
 

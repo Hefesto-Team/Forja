@@ -18,11 +18,8 @@ diz() { echo "$(date +%H:%M:%S) $*" | tee -a "$REGISTRO"; }
 placa_usada() { nvidia-smi --query-gpu=memory.used --format=csv,noheader,nounits 2>/dev/null | head -1; }
 placa_livre() { nvidia-smi --query-gpu=memory.free --format=csv,noheader,nounits 2>/dev/null | head -1; }
 
-# Um jogo aberto: a Steam (SteamLaunch, o reaper, o Proton) ou a Forja numa janela de verdade.
 jogo_aberto() {
   pgrep -f 'SteamLaunch AppId|/proton |wine64-preloader' >/dev/null && return 0
-  # a Forja na tela: o Godot de verdade (não o timeout nem o xvfb-run que o chamam), sem --headless e fora
-  # da tela de mentira (o xvfb-run -a usa :99 em diante)
   local p
   for p in $(pgrep -f Godot_v); do
     [[ "$(readlink "/proc/$p/exe" 2>/dev/null)" == *Godot_v* ]] || continue
@@ -77,7 +74,6 @@ subir_servidor() {
   return 1
 }
 
-# Uma faixa: 0 pronta, 1 interrompida (volta para a fila), 2 falhou.
 uma_faixa() {
   local slot="$1" falta; falta=$((N - $(candidatas "$slot")))
   [[ $falta -le 0 ]] && return 0

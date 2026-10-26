@@ -159,8 +159,8 @@ Fonte: o `:root` de `interface/topo.html`. Os contrastes são medidos contra `--
   - A coluna Atenção mostra até 3 avisos + "+N", e só o que pede ação.
   - Lugar vazio mostra travessão, nunca dado inventado.
 - **No app 2D, contra essa regra (no dia do estudo; o jogo 3D já segue a voz):**
-  - "ninguém na mesa" (`salas/sala_base.c:508`), "voltou à mesa" (`nucleo/pads.c:313`), "Ninguém na mesa…" (`cenas/hub.c:485`).
-  - "uinput" em `nucleo/origem.c:34-40`, que chega à tela por `cenas/diagnostico.c:151`.
+  - "ninguém na mesa" (`salas/sala_base.c:508`), "voltou à mesa" (`nucleo/pads.c:287`), "Ninguém na mesa…" (`cenas/hub.c:485`).
+  - "uinput" em `nucleo/origem.c:33-39`, que chega à tela por `cenas/diagnostico.c:151`.
 
 ## 6. Decisões da mantenedora
 - **26/08:** a borda grossa é sempre a cor do plástico; escolher pinta só o interior, de lilás ("Deixa lilás. Confundi").

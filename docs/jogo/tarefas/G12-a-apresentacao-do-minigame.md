@@ -23,7 +23,7 @@ dela em 08/10/2026. Na Forja, a entrada é a cortina diagonal da fita e o cartã
   `_quadro_aviso()` (244): cada ✕ marca pronto com `Forja.vibrar(l, 0.0, 0.3, 60)` e `Som.tocar("tique")`; começa
   com todos prontos ou em `AVISO_MAX`, nunca antes de 0,9 s. `comecar()` (300) toca `"confirma"`. O boneco de quem
   não está pronto repete `gesto_do_aviso` a cada 1,6 s.
-- O desenho é `_aviso()` em `godot/scripts/ui/painel_sala.gd:32`: um véu `Tema.CASA` a 25 % e um quadro de 1120 px
+- O desenho é `_aviso()` em `godot/scripts/ui/painel_sala.gd:29`: um véu `Tema.CASA` a 25 % e um quadro de 1120 px
   com título, verbo e ícone. Aparece de uma vez, sem transição, e não diz como se joga.
 - O treino (`com_treino`, `TREINO_ACERTOS` 3) roda depois de `comecar()`, já na fase `jogo`, com `treinando`.
 - O kit da H04 (`godot/scripts/minigames/minigame.gd`) lê a `FICHA` por `CHAVES` (linha 104 da ficha H04): `slot`,
@@ -194,7 +194,7 @@ reprova; e a prova visual passa em todas as escalas e línguas, de 1 a 4 jogador
   _esperar(partida_de_teste.lado() == "B", "partida: o lado B na segunda metade")
   ```
 
-  Os dois leitores do registro, sobre `_linha_do_tempo()` (`prova_do_jogo.gd:884`). Quem chega primeiro, G11 ou
+  Os dois leitores do registro, sobre `_linha_do_tempo()` (`prova_do_jogo.gd:803`). Quem chega primeiro, G11 ou
   G12, os escreve; a outra usa:
 
   ```gdscript

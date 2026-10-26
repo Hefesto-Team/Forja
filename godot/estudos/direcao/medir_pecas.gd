@@ -1,36 +1,4 @@
 extends SceneTree
-## A medida da peça (PRODUCAO, item 17). Sem tela:
-##
-##   godot --headless --path godot -s res://estudos/direcao/medir_pecas.gd
-##
-## Para cada uma das 36 peças do corte (a cabeça, o superior e o inferior dos
-## 12 Mini Characters) lê as faces que olham para a frente (normal z > 0), a
-## área de cada uma projetada no plano da frente e a cor do colormap graduado
-## da peça no meio da face (a cabeça no `colormap.png`, o superior no
-## `colormap-tecido.png`, o inferior no `colormap-couro.png`). Escreve
-## `docs/jogo/arte/dados/pecas_medidas.csv`:
-##
-##   l_mediana     a L do OKLab no meio da área (mediana ponderada pela área);
-##                 no superior e no inferior, só nas faces de pano (a UV fora
-##                 de PELE_UV): a mão, o braço e a perna de fora são pele, não
-##                 a peça (a bermuda do male-f, 04, o critério do rosto)
-##   l_pele        a mesma mediana só nas faces de pele (a UV em PELE_UV): o
-##                 rosto, na cabeça; vazio onde a peça não mostra pele
-##   croma_mediana o croma no meio da área; croma_max, o maior de toda face
-##   de_p1..de_p4  o menor ΔE OKLab de uma face da peça até cada JOGADOR
-##   acento_pct    a área de frente do friso (superior) ou da costura
-##                 (inferior) sobre a área de frente da peça, sem o contorno
-##
-## Embaixo, no terminal, cada critério do item 17 com o pior caso. A ordem
-## das linhas e dos números é fixa: duas rodadas dão o mesmo CSV byte a byte.
-## Sai com 1 se algum critério falha.
-##
-## O rosto (04, o critério do rosto): sem faixa absoluta na cabeça humana (a
-## pele não se clareia). Cada par rosto e superior, de quaisquer dois
-## personagens, passa por |ΔL| de 0,10 ou mais entre o `l_pele` da cabeça e o
-## `l_mediana` do superior; o par que não chega passa pela gola acesa, se o
-## superior tem o friso da gola de frente e a cabeça não desce sobre ela. As
-## peles das raças (tokens) ficam na faixa de 0,68 a 0,80.
 
 const Fita := preload("res://estudos/direcao/fita.gd")
 const Cortar := preload("res://estudos/direcao/cavaleiro/cortar.gd")
@@ -39,9 +7,7 @@ const Acento := preload("res://estudos/direcao/cavaleiro/acento.gd")
 const PASTA_TEX := "res://estudos/direcao/kenney/mini-characters/Textures/"
 const COLORMAP := {"cabeca": "colormap.png", "superior": "colormap-tecido.png", "inferior": "colormap-couro.png"}
 const SAIDA := "res://../docs/jogo/arte/dados/pecas_medidas.csv"
-## As faixas do 02 (a escada de valor) e os tetos do item 17.
 const FAIXA := {"superior": [0.46, 0.58], "inferior": [0.22, 0.36]}
-## A faixa do rosto, só nas raças (a pele é token).
 const FAIXA_RACA := [0.68, 0.80]
 const PELES_RACA := {"orc": Fita.PELE_ORC, "automato": Fita.PELE_LATAO, "golem": Fita.PELE_ESCORIA, "raposa": Fita.PELE_RAPOSA}
 const TETO_CROMA := 0.10
@@ -94,7 +60,6 @@ func _init() -> void:
 	var f := FileAccess.open(ProjectSettings.globalize_path(SAIDA), FileAccess.WRITE)
 	f.store_string("\n".join(linhas) + "\n")
 	f.close()
-	# os vizinhos: cada par de quaisquer duas peças, de qualquer personagem
 	var sup_min := _menor(l_de.superior)
 	var inf_max := _maior(l_de.inferior)
 	var pares_si := 0
@@ -118,7 +83,6 @@ func _init() -> void:
 	if pares_si < n * n:
 		falhas.append("superior e inferior: %d de %d pares a %.2f ou mais" % [pares_si, n * n, VIZINHO])
 	for raca in PELES_RACA:
-		# a L com três casas, como o CSV (o #a3958e da escória dá 0,6799)
 		var lr: float = snappedf(Fita.para_oklab(PELES_RACA[raca]).x, 0.001)
 		if lr < FAIXA_RACA[0] or lr > FAIXA_RACA[1]:
 			falhas.append("pele da raça %s: L %.3f fora de %.2f a %.2f" % [raca, lr, FAIXA_RACA[0], FAIXA_RACA[1]])
@@ -137,8 +101,6 @@ func _init() -> void:
 	quit(1 if not falhas.is_empty() else 0)
 
 
-## As faces de frente de `malha`: a área total, a mediana de L e de croma
-## ponderadas pela área, o croma maior e o menor ΔE até cada jogador.
 func _medir(malha: Mesh, img: Image, jog: Array, so_pano := false) -> Dictionary:
 	var arr := malha.surface_get_arrays(0)
 	var vs: PackedVector3Array = arr[Mesh.ARRAY_VERTEX]
@@ -192,7 +154,6 @@ func _medir(malha: Mesh, img: Image, jog: Array, so_pano := false) -> Dictionary
 	return {"area": area, "area_toda": area_toda, "area_pele": area_pele, "l_pele": _mediana(pele, 0, area_pele), "l": _mediana(faces, 0, area), "croma": _mediana(faces, 1, area), "croma_max": croma_max, "de": de}
 
 
-## A mediana ponderada da coluna `k` (o peso é a área, na coluna 2).
 func _mediana(faces: Array, k: int, total: float) -> float:
 	var ord := faces.duplicate()
 	ord.sort_custom(func(x, y): return x[k] < y[k] or (x[k] == y[k] and x[2] < y[2]))

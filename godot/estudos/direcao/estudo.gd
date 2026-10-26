@@ -1,12 +1,4 @@
 extends Node3D
-## O estudo de direção de arte (Fita Magnética): monta um quadro e fotografa.
-## Nada do jogo roda aqui; só os modelos da Kenney recoloridos, a luz, o pós
-## e o HUD novo, para a aprovação da direção.
-##
-##   QUADRO=01_centelha SAIDA=<pasta> xvfb-run -a -s "-screen 0 1920x1080x24" godot \
-##       --rendering-driver opengl3 --path godot --resolution 1920x1080 res://estudos/direcao/estudo.tscn
-##
-## (o render.sh desta pasta faz todos.)
 
 var camera: Camera3D
 var quadro: Node
@@ -32,7 +24,6 @@ func _ready() -> void:
 	await RenderingServer.frame_post_draw
 	var saida := OS.get_environment("SAIDA")
 	var img: Image
-	# a prancha maior que a tela fotografa a folha dela (prancha.gd)
 	if quadro.has_method("foto"):
 		img = await quadro.foto()
 	else:
@@ -45,7 +36,6 @@ func _ready() -> void:
 	get_tree().quit()
 
 
-## A câmera do quadro (a pose, o olhar, o campo).
 func olhar(pos: Vector3, alvo: Vector3, fov := 40.0) -> void:
 	camera.position = pos
 	camera.look_at(alvo)

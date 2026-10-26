@@ -1,22 +1,9 @@
 extends Node
-## O metrônomo do relógio de áudio (ficha H01): a prova que só o ouvido faz.
-##
-## Toca a trilha d'A Centelha e põe um tique e um clarão em cada tempo inteiro,
-## pelo «Ritmo». Se o relógio segue a placa de som, o tique cai no bumbo do
-## começo ao fim; se ele soma delta, vai se afastando.
-##
-##   tools/Godot_v4.4.1-stable_linux.x86_64 --path godot --max-fps 20 res://testes/metronomo.tscn
-##   SLOT=MUS_S02_J06 tools/Godot_v4.4.1-stable_linux.x86_64 --path godot res://testes/metronomo.tscn
-##   tools/Godot_v4.4.1-stable_linux.x86_64 --path godot --max-fps 60 res://testes/metronomo.tscn
-##
-## Nos dois, por três minutos. A 20 quadros o clarão treme (é o quadro), mas o
-## tique não pode escorregar.
 
 const CLARAO_S := 0.06
 const FIM_S := 190.0
 const RELATO_S := 10.0
 
-## O slot a conferir: SLOT=MUS_S02_J06 na linha de comando (H05).
 var slot := "MUS_S01_J01"
 var _clarao: ColorRect = null
 var _apaga_em := 0.0

@@ -1,4 +1,3 @@
-/* A sessão. Ver forja.h. */
 #include "forja.h"
 
 #include "mascara.h"
@@ -96,9 +95,6 @@ bool forja_sob_wine(void) { return false; }
 const char *forja_versao_wine(void) { return NULL; }
 #endif
 
-/* A pasta dos relatórios: a pedida pelo jogo (que já a resolveu: ao lado do
- * executável, ou a pasta do usuário), com a barra no fim. Nunca um caminho
- * escrito no código. */
 static void preparar_pasta(Forja *f, const char *pasta) {
   f->pasta_relatorios[0] = '\0';
   if (!pasta || !pasta[0])
@@ -161,11 +157,6 @@ bool forja_abrir(Forja *f, const char *pasta, int simular, bool robo, unsigned l
     f->semente = (t % 1000000000ull) + 1;
   }
 
-  /* o contrato, antes de tudo: sem o relatório estendido, um DualSense nativo
-   * no rádio fica só com a entrada básica — este jogo não monta o 0x31 */
-  /* o processo é do Godot: o Ctrl+C e o SIGTERM são dele (sem esta dica, o
-   * SDL troca os dois por um evento de saída que ninguém lê, e o jogo não
-   * fecha pelo terminal) */
   SDL_SetHint(SDL_HINT_NO_SIGNAL_HANDLERS, "1");
   SDL_SetHint(SDL_HINT_JOYSTICK_ENHANCED_REPORTS, "0");
   SDL_SetHint(SDL_HINT_JOYSTICK_ALLOW_BACKGROUND_EVENTS, "1");
@@ -176,7 +167,7 @@ bool forja_abrir(Forja *f, const char *pasta, int simular, bool robo, unsigned l
     return false;
   }
   f->inicio_ns = SDL_GetTicksNS();
-  relogio_iniciar(f->inicio_ns);  /* de parede; o do jogo só com --acelerado (forja_controles) */
+  relogio_iniciar(f->inicio_ns);
   preparar_pasta(f, pasta);
   preparar_relatorio(f);
 
@@ -212,8 +203,6 @@ void forja_quadro(Forja *f, float dt) {
   f->dt = dt;
   f->t += dt;
   f->relogio_sim_ns += (Uint64)((double)dt * 1e9);
-  /* os apertos do quadro anterior já foram lidos pelo jogo: zera, e só então
-   * bombeia os novos — cada borda vale exatamente um quadro */
   pads_fim_do_quadro(f);
   if (f->simular > 0)
     simulador_atualizar(f, dt);
@@ -221,7 +210,6 @@ void forja_quadro(Forja *f, float dt) {
   while (SDL_PollEvent(&e))
     pads_evento(f, &e);
   pads_atualizar(f, dt);
-  /* o som de cada controle (só depois de uma sala de som pedir) */
   somc_atualizar(f, dt);
 }
 

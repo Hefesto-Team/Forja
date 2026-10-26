@@ -1,4 +1,3 @@
-/* ForjaControles. Ver forja_controles.h. */
 #include "forja_controles.h"
 
 #include <godot_cpp/classes/engine.hpp>
@@ -23,7 +22,6 @@ using namespace godot;
 
 namespace {
 
-/* A sessão do módulo: uma só por processo, como o SDL. */
 Forja g_forja;
 
 String texto(const char *s) { return String::utf8(s ? s : ""); }
@@ -86,18 +84,14 @@ Dictionary info_do_pad(int i, const Pad *p) {
   d["luz"] = p->cap_rgb;
   d["giro_hz_declarado"] = p->giro_hz_declarado;
   d["cru"] = p->cru_ok;
-  /* o DualSense nativo no rádio, com o contrato estrito, entra só com a
-   * entrada: este jogo não monta o 0x31 */
   d["so_entrada"] = FORJA && FORJA->pads.contrato_estrito && p->origem.conexao == CONEXAO_BT &&
                     origem_eh_dualsense(p->origem.tipo);
   return d;
 }
 
-} // namespace
+}
 
 ForjaControles::~ForjaControles() { fechar(); }
-
-/* ---------- a sessão ---------- */
 
 bool ForjaControles::abrir(const String &pasta, int simular, bool robo, int64_t semente) {
   if (aberto_)
@@ -129,7 +123,6 @@ void ForjaControles::_process(double delta) {
   forja_quadro(&g_forja, (float)delta);
   med_quadro();
   if (g_forja.relatorio_sujo) {
-    /* grava de vez em quando, não a cada veredito */
     static double desde = 0;
     desde += delta;
     if (desde > 2.0) {
@@ -154,8 +147,6 @@ void ForjaControles::intensidade(float v) {
   if (aberto_)
     g_forja.intensidade = v < 0 ? 0 : (v > 1 ? 1 : v);
 }
-
-/* ---------- os controles e os lugares ---------- */
 
 int ForjaControles::conectados() const { return aberto_ ? pads_conectados(FORJA) : 0; }
 int ForjaControles::jogadores() const { return aberto_ ? pads_jogadores(FORJA) : 0; }
@@ -205,8 +196,6 @@ void ForjaControles::sair(int lugar) {
     pads_sair(FORJA, lugar);
 }
 
-/* ---------- a entrada ---------- */
-
 bool ForjaControles::pad_apertou(int indice, int botao) const {
   const Pad *p = pad_por_indice(indice);
   return p && botao_valido(botao) && ::pad_apertou(p, (SDL_GamepadButton)botao);
@@ -237,7 +226,6 @@ float ForjaControles::eixo(int lugar, int eixo) const {
   if (!p || eixo < 0 || eixo >= SDL_GAMEPAD_AXIS_COUNT)
     return 0;
   float v = p->ax[eixo];
-  /* os gatilhos chegam de 0 a 1 */
   if (eixo == SDL_GAMEPAD_AXIS_LEFT_TRIGGER || eixo == SDL_GAMEPAD_AXIS_RIGHT_TRIGGER)
     v = v < 0 ? 0 : v;
   return v;
@@ -275,8 +263,6 @@ int ForjaControles::status_cru(int lugar) const {
   return p && p->cru_ok ? p->status53 : -1;
 }
 
-/* ---------- as saídas ---------- */
-
 bool ForjaControles::vibrar(int lugar, float forte, float fraco, int ms) {
   Pad *p = pad_por_lugar(lugar);
   return p && pad_rumble(FORJA, p, forte, fraco, ms);
@@ -299,7 +285,6 @@ bool ForjaControles::gatilho(int lugar, int lado, int modo, int a, int b, int c)
   Pad *p = pad_por_lugar(lugar);
   if (!p)
     return false;
-  /* só os quatro modos oficiais (isteamdualsense.h) */
   if (modo < FORJA_TRIGGER_OFF || modo > FORJA_TRIGGER_VIBRATION)
     return false;
   ForjaTrigger t = {(ForjaTriggerMode)modo, (uint8_t)a, (uint8_t)b, (uint8_t)c};
@@ -378,8 +363,6 @@ Color ForjaControles::cor_do_lugar(int lugar) const {
     return Color(0.5f, 0.5f, 0.5f);
   return cor(LUZ_DO_LUGAR[lugar]);
 }
-
-/* ---------- o relatório ---------- */
 
 Array ForjaControles::salas() const {
   Array a;
@@ -487,8 +470,6 @@ void ForjaControles::registrar(const String &linha) {
   reg_linha(&g_forja.reg, "%s", s.get_data());
 }
 
-/* Uma lista do GDScript vira lista JSON: inteiros, números ou textos (até 16
- * itens, todos do mesmo tipo); qualquer outra mistura segue virando texto. */
 static void evento_lista(Evento *ev, const char *chave, const Array &a) {
   const int MAX_ITENS = 16;
   int n = (int)a.size();
@@ -560,11 +541,8 @@ void ForjaControles::evento(const String &tipo, int jogador, const Dictionary &c
   ev_fim(&ev, &g_forja.lt);
 }
 
-/* A posição da música, que a H01 informa a cada quadro (-1: sem música). */
 void ForjaControles::t_musica(float s) { lt_t_musica((double)s); }
 
-/* --acelerado (só com controles simulados): o t da linha do tempo passa a ser
- * o tempo do jogo, como era antes da v2. A linha `sessao` registra a troca. */
 void ForjaControles::acelerar(bool sim) {
   if (!aberto_ || (sim && g_forja.simular <= 0))
     return;
@@ -586,8 +564,6 @@ PackedStringArray ForjaControles::registro_recente(int n) const {
   }
   return a;
 }
-
-/* ---------- o simulador e o robô ---------- */
 
 void ForjaControles::em_sala(bool v) {
   if (aberto_)
@@ -653,8 +629,6 @@ Dictionary ForjaControles::percepcao(int indice) const {
   d["gatilho_dir"] = (int)pe->gatilho_dir[0];
   return d;
 }
-
-/* ---------- o que o GDScript vê ---------- */
 
 #define METODO(nome, ...) ClassDB::bind_method(D_METHOD(#nome, ##__VA_ARGS__), &ForjaControles::nome)
 #define CONSTANTE(nome, valor) ClassDB::bind_integer_constant(get_class_static(), "", nome, valor)
@@ -793,7 +767,6 @@ void ForjaControles::_bind_methods() {
   METODO(sintetizar, "tipo", "parametros");
   METODO(sintetizar_pcm16, "tipo", "parametros");
 
-  /* os botões, como o SDL3 os numera */
   CONSTANTE("BOTAO_CRUZ", SDL_GAMEPAD_BUTTON_SOUTH);
   CONSTANTE("BOTAO_CIRCULO", SDL_GAMEPAD_BUTTON_EAST);
   CONSTANTE("BOTAO_QUADRADO", SDL_GAMEPAD_BUTTON_WEST);
@@ -811,19 +784,16 @@ void ForjaControles::_bind_methods() {
   CONSTANTE("BOTAO_DIREITA", SDL_GAMEPAD_BUTTON_DPAD_RIGHT);
   CONSTANTE("BOTAO_MICROFONE", SDL_GAMEPAD_BUTTON_MISC1);
   CONSTANTE("BOTAO_TOUCHPAD", SDL_GAMEPAD_BUTTON_TOUCHPAD);
-  /* os eixos */
   CONSTANTE("EIXO_LX", SDL_GAMEPAD_AXIS_LEFTX);
   CONSTANTE("EIXO_LY", SDL_GAMEPAD_AXIS_LEFTY);
   CONSTANTE("EIXO_RX", SDL_GAMEPAD_AXIS_RIGHTX);
   CONSTANTE("EIXO_RY", SDL_GAMEPAD_AXIS_RIGHTY);
   CONSTANTE("EIXO_L2", SDL_GAMEPAD_AXIS_LEFT_TRIGGER);
   CONSTANTE("EIXO_R2", SDL_GAMEPAD_AXIS_RIGHT_TRIGGER);
-  /* os quatro modos oficiais de gatilho */
   CONSTANTE("GATILHO_OFF", FORJA_TRIGGER_OFF);
   CONSTANTE("GATILHO_RESISTENCIA", FORJA_TRIGGER_FEEDBACK);
   CONSTANTE("GATILHO_ARMA", FORJA_TRIGGER_WEAPON);
   CONSTANTE("GATILHO_VIBRACAO", FORJA_TRIGGER_VIBRATION);
-  /* o veredito e o degrau da evidência */
   CONSTANTE("NAO_MEDIDO", RES_NAO_MEDIDO);
   CONSTANTE("PASSOU", RES_PASSOU);
   CONSTANTE("FALHOU", RES_FALHOU);
@@ -831,11 +801,9 @@ void ForjaControles::_bind_methods() {
   CONSTANTE("NIVEL_SAIU", NIVEL_SAIU);
   CONSTANTE("NIVEL_OBEDECEU", NIVEL_OBEDECEU);
   CONSTANTE("NIVEL_REAGIU", NIVEL_REAGIU);
-  /* o byte 53 do report cru */
   CONSTANTE("CRU_FONE", 1);
   CONSTANTE("CRU_MIC_DO_FONE", 2);
   CONSTANTE("CRU_MUDO", 4);
-  /* os papéis do som de cada controle */
   CONSTANTE("PAPEL_ALTO_FALANTE", 0);
   CONSTANTE("PAPEL_HAPTICA", 1);
   CONSTANTE("PAPEL_MICROFONE", 2);

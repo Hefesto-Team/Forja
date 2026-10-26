@@ -1,10 +1,4 @@
 #!/usr/bin/env bash
-# Os quadros do estudo de direção (Fita Magnética), fotografados na tela
-# virtual (Xvfb) pelo renderizador Compatibility, como as telas do jogo.
-#
-#   bash godot/estudos/direcao/render.sh <pasta> [quadro ...]
-#
-# Sem quadro, faz todos. Recolore os colormaps antes (recolorir.gd).
 set -u
 RAIZ="$(cd "$(dirname "$0")/../../.." && pwd)"
 source "$RAIZ/scripts/engine.sh"

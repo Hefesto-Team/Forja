@@ -38,14 +38,9 @@ MAPA = RAIZ / "docs/jogo/audio/mapa.csv"
 KENNEY = RAIZ / "oficina/kenney/3.7.0/Audio"
 TAU = 2.0 * math.pi
 
-# ------------------------------------------------------------ as constantes --
-## A nota de cada lugar (H04, TOM_DO_LUGAR): Dó5, Ré5, Fá5, Sol5.
 NOTA = {1: 523.25, 2: 587.33, 3: 698.46, 4: 783.99}
-## O pio: a segunda nota, em semitons sobre a do lugar.
 INTERVALO = {"segunda": 2, "terca": -4, "quarta": 5, "quinta": 7, "quinta_baixo": -7, "oitava": 12}
-## As parciais da bigorna (sintese.c): razão e amplitude.
 PARCIAIS = [(1.0, 1.0), (2.76, 0.62), (5.40, 0.45), (8.93, 0.30), (13.34, 0.18), (18.64, 0.10)]
-## O teto de duração por prefixo, em ms (03, «O formato»).
 TETO = [("ui_sorteio", 480), ("ui_", 120), ("reacao_", 120), ("jul_", 250), ("ass_", 400),
         ("pio_", 400), ("car_", 1200), ("fx_", 1600), ("jin_", 2000), ("amb_", 8000)]
 
@@ -58,7 +53,6 @@ def semi(s):
     return 2.0 ** (s / 12.0)
 
 
-# -------------------------------------------------------------- os filtros --
 def biquad(x, tipo, f, q=0.7071, ganho_db=0.0):
     """Os biquads do RBJ: lp, hp, bp (pico 0 dB) e grave (prateleira, S = 1)."""
     w = TAU * min(f, SR * 0.45) / SR
@@ -126,7 +120,6 @@ def um_polo(x, f, modo="lp"):
     return y
 
 
-# ---------------------------------------------------------- os osciladores --
 def _blep(t, dt):
     if t < dt:
         t /= dt
@@ -153,7 +146,7 @@ def oscilador(forma, n, freq, largura=0.5, fase=0.0):
             v = 1.0 if p < w else -1.0
             v += _blep(p, dt)
             v -= _blep((p + 1.0 - w) % 1.0, dt)
-            y[i] = v - (2.0 * w - 1.0)  # o pulso estreito tem média: fora, ou vira baque grave
+            y[i] = v - (2.0 * w - 1.0)
         p += dt
         p -= math.floor(p)
     return y
@@ -180,7 +173,6 @@ def rosa(n, rng):
     return y
 
 
-# ------------------------------------------------------------- utilidades --
 def vazio(seg):
     return [0.0] * amostras(seg)
 
@@ -224,7 +216,6 @@ def vezes(x, e):
     return [a * b for a, b in zip(x, e)]
 
 
-# ----------------------------------------------------------- os timbres --
 def bigorna(f, seg, brilho=1.0, rng=None, ruido_ms=4.0):
     """A família metal: as seis parciais da bigorna, as altas caindo mais
     rápido, e 4 ms de ruído no ataque."""
@@ -273,7 +264,6 @@ def voz(lugar, f, seg, fm=None, queda60=None, ataque=0.005):
     n = amostras(seg)
     fm = fm or (lambda t: 1.0)
     if lugar == 1:
-        # o cristal: FM 1:3,5, índice 2,5 caindo a 0 em 400 ms
         y = [0.0] * n
         pc = pm = 0.0
         for i in range(n):
@@ -284,14 +274,11 @@ def voz(lugar, f, seg, fm=None, queda60=None, ataque=0.005):
             pc = (pc + fi / SR) % 1.0
             pm = (pm + 3.5 * fi / SR) % 1.0
     elif lugar == 2:
-        # o pulso: 25 %, passa-baixa em 3 kHz
         y = biquad(oscilador("pulso", n, lambda t: f * fm(t), 0.25), "lp", 3000.0)
     elif lugar == 3:
-        # a faísca: quadrada que começa 2 semitons acima e cai em 30 ms
         y = oscilador("quadrada", n, lambda t: f * fm(t) * semi(2.0 * max(0.0, 1.0 - t / 0.03)))
         y = biquad(y, "lp", 6000.0)
     else:
-        # o bronze: duas serras a ±7 cents, passa-baixa em 2,2 kHz
         a = oscilador("serra", n, lambda t: f * fm(t) * 2 ** (7 / 1200))
         b = oscilador("serra", n, lambda t: f * fm(t) * 2 ** (-7 / 1200), fase=0.37)
         y = biquad([(u + v) * 0.5 for u, v in zip(a, b)], "lp", 2200.0)
@@ -356,7 +343,6 @@ def boing(seg, f0=300.0, f1=120.0, vib=12.0, prof=0.06):
     return vezes(y, envelope(n, 0.003, seg * 1.6, 0.01))
 
 
-# ------------------------------------------------------ o tratamento de fita --
 def fita(x, modo, rng, alvo_db):
     """03, «O tratamento de fita»: wow, flutter, saturação, corpo, teto,
     chiado e dropouts. Termina no pico do mapa, com rampas de 3 ms."""
@@ -382,7 +368,7 @@ def fita(x, modo, rng, alvo_db):
     y = [math.tanh(1.8 * v) / k for v in y]
     y = biquad(y, "grave", 90.0, ganho_db=2.0)
     y = biquad(y, "lp", 12000.0)
-    y = um_polo(y, 15.0, "hp")  # o desvio DC fora
+    y = um_polo(y, 15.0, "hp")
     y = normalizar(y, alvo)
     if modo in ("cheia", "quebrada"):
         ch = biquad(rosa(n, rng), "hp", 2000.0)
@@ -407,7 +393,6 @@ def fita(x, modo, rng, alvo_db):
     return normalizar(y, alvo)
 
 
-# --------------------------------------------------------------- as receitas --
 class Som:
     def __init__(self, id, familia, ms, pico_db, modo, gerar, lugar=None, intervalo=None, semente=0):
         self.id, self.familia, self.ms, self.pico_db, self.modo = id, familia, ms, pico_db, modo
@@ -445,7 +430,7 @@ def _jul_erro(c):
     f = NOTA[c.lugar] * 2 ** (-60 / 1200)
     y = voz(c.lugar, f, 0.22, fm=lambda t: 1 + 0.008 * math.sin(TAU * 4.0 * t), queda60=0.5)
     y = normalizar(y)
-    return [round(v * 31) / 31 for v in y]  # 6 bits
+    return [round(v * 31) / 31 for v in y]
 
 
 def _vitoria(c):
@@ -469,7 +454,7 @@ def _derrota(c):
     fonte = svf(fonte, lambda t: 8000.0 * (400.0 / 8000.0) ** min(1.0, t / 0.7), 0.9, "lp")
     e = [min(1.0, i / amostras(0.01)) * (1.0 if i / SR < 0.55 else max(0.0, 1 - (i / SR - 0.55) / 0.3)) for i in range(n)]
     y = vezes(fonte, e)
-    somar(y, blip(2000.0, 0.015), 0.9, 0.35)  # o plic do carretel
+    somar(y, blip(2000.0, 0.015), 0.9, 0.35)
     return y
 
 
@@ -493,7 +478,7 @@ def _entrada(c):
     nr, nf = len(rasgo), amostras(0.008)
     rasgo = vezes(rasgo, [(i / nr) ** 1.5 * min(1.0, (nr - 1 - i) / nf) for i in range(nr)])
     somar(y, rasgo, 0.0, 1.4)
-    somar(y, martelada(98.0, 0.30, c.rng), 0.600, 1.0)  # o impacto cravado em 600 ms
+    somar(y, martelada(98.0, 0.30, c.rng), 0.600, 1.0)
     return y
 
 
@@ -509,14 +494,14 @@ def _rebobinar(c):
 
 def _virar(c):
     y = vazio(1.6)
-    somar(y, clunk(c.rng, 130.0), 0.0, 1.0)  # o eject
+    somar(y, clunk(c.rng, 130.0), 0.0, 1.0)
     t = 0.25
-    while t < 1.15:  # o plástico na mão
+    while t < 1.15:
         nr = amostras(0.012)
         est = svf(ruido(nr, c.rng), c.rng.uniform(1500, 3500), 2.0, "bp")
         somar(y, vezes(est, [1 - i / nr for i in range(nr)]), t, c.rng.uniform(0.25, 0.6))
         t += c.rng.uniform(0.04, 0.16)
-    somar(y, clunk(c.rng, 100.0), 1.38, 1.0)  # o clunk de entrar
+    somar(y, clunk(c.rng, 100.0), 1.38, 1.0)
     return y
 
 
@@ -588,7 +573,7 @@ def _ui_trava(c):
 def _ui_sorteio(c):
     y = vazio(0.48)
     t, passo = 0.0, 0.045
-    for k in range(6):  # seis tiques que freiam
+    for k in range(6):
         somar(y, blip(1760.0 if k < 5 else 2093.0, 0.03), t, 1.0)
         t += passo
         passo *= 1.32
@@ -688,7 +673,6 @@ def _jin_entrada_vai(c):
 def _amb_salao(c):
     seg, xf = 8.0, 0.5
     n = amostras(seg + xf)
-    # o fogo: um ruído grave que respira devagar, mais um crepitar miúdo
     grave = biquad(biquad(ruido(n, c.rng), "lp", 420.0), "lp", 420.0)
     resp = []
     v, alvo = 0.6, 0.6
@@ -705,14 +689,12 @@ def _amb_salao(c):
             crep[i] = c.rng.uniform(-1, 1)
     crep = svf(crep, 2500.0, 1.5, "bp")
     y = [a + 3.0 * b for a, b in zip(y, crep)]
-    # a brasa que estala, uma a cada 1,7 s em média
     t = c.rng.uniform(0.2, 1.0)
     while t < seg + xf - 0.1:
         nr = amostras(0.025)
         est = svf(ruido(nr, c.rng), c.rng.uniform(1200, 3000), 3.0, "bp")
         somar(y, vezes(est, [(1 - i / nr) ** 2 for i in range(nr)]), t, c.rng.uniform(1.2, 2.2))
         t += c.rng.expovariate(1 / 1.7)
-    # o laço: os últimos 0,5 s se fundem nos primeiros, sem clique
     ns, nx = amostras(seg), amostras(xf)
     out = y[:ns]
     for i in range(nx):
@@ -768,7 +750,6 @@ def receitas():
     return {x.id: x for x in s}
 
 
-# ------------------------------------------------------------ a escrita --
 class Ctx:
     def __init__(self, som):
         self.lugar, self.intervalo = som.lugar, som.intervalo
@@ -961,7 +942,7 @@ def main():
     (saida / ".gdignore").touch()
     for i in ids:
         s = todos[i]
-        if len(ids) == 1:  # a receita do mapa pode afinar um som só
+        if len(ids) == 1:
             s.modo = a.fita or s.modo
             s.lugar = a.lugar or s.lugar
             s.intervalo = a.intervalo or s.intervalo

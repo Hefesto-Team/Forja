@@ -25,7 +25,7 @@ mais largo do «qualquer PC»: não depende de controle, de rádio nem de regra,
 - O mesmo no `tools/Godot_v4.7.2-stable_linux.x86_64`: no máximo `GLIBC_2.28`.
 - O artefato sai do job `linux` em `runs-on: ubuntu-24.04` (`.github/workflows/forja.yml:24`, glibc 2.39), com
   `scripts/compilar.sh linux` (`:55`), e a exportação baixa esse artefato (`:171`).
-- A queda, `godot/scripts/forja.gd:124` e `:141-142`:
+- A queda, `godot/scripts/forja.gd:82` e `:141-142`:
   ```gdscript
   if ClassDB.class_exists("ForjaControles") and not _args.has("sem-modulo"):
   ...

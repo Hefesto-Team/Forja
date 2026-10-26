@@ -487,7 +487,7 @@ func falha(l: int) -> void:
   - `"minigames": ["S05_J21"]` na seção `S05`;
   - o apelido `"galeria"` sai de `SALAS_ANTIGAS`.
 - O apelido continua abrindo pelo `Catalogo.resolver`. Ninguém troca isto: `musica.gd`, `salao.gd`, `partida.gd`,
-  `prova_de_poucos.gd` e `prova_de_poucos.sh`, e o preload de `main.gd:16`, que a H04 tira.
+  `prova_de_poucos.gd` e `prova_de_poucos.sh`, e o preload de `main.gd:5`, que a H04 tira.
 - `git rm godot/scripts/salas/galeria.gd godot/scripts/salas/galeria.gd.uid`.
 - Os `.uid` novos: `a_galeria.gd.uid` e `cenario_da_galeria.gd.uid`, gerados com
   `"$GODOT" --headless --path godot --import --quit`.
@@ -597,7 +597,7 @@ Nada mais brilha. As tintas, a fuligem, o balcão e as moedas são foscos.
 | `estrondo` | 50 faíscas | 0,417 (0,05 m) por 2 batidas | 50 ms no cavaleiro `l` |
 | `catastrofe` | a chave a ×1,4 por 1 batida; 60 faíscas | 0,667 (0,08 m) por 4 batidas | nenhuma |
 
-O tremor da câmera é 0,12 m × `sala.tremor` (`main.gd:988`); por isso, tremor = amplitude ÷ 0,12. Quando a G05
+O tremor da câmera é 0,12 m × `sala.tremor` (`main.gd:900`); por isso, tremor = amplitude ÷ 0,12. Quando a G05
 trouxer `tremer(forca)`, o `impacto` passa a chamá-la, e as fichas não mudam.
 
 ### O cenário comum (`godot/scripts/minigames/s05/cenario_da_galeria.gd`)

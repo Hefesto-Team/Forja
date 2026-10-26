@@ -1,6 +1,4 @@
 extends RefCounted
-## O RPG da Forja lido das tabelas de docs/jogo/sistemas (as mesmas contas do
-## conferir.py): os stats, o arquétipo, o item que o corpo alcança e a liga.
 
 const ST := ["peso", "passo", "folego", "faro"]
 const NOME_ST := ["Peso", "Passo", "Fôlego", "Faro"]
@@ -30,7 +28,6 @@ static func tabela(nome: String) -> Array:
 	return linhas
 
 
-## A peça de uma parte pelo personagem.
 static func peca(parte: String, personagem: String) -> Dictionary:
 	for p in tabela("pecas.csv"):
 		if p.parte == parte and p.personagem == personagem:
@@ -45,9 +42,6 @@ static func item(id: String) -> Dictionary:
 	return {}
 
 
-## As contas de um corpo: stats (com o teto), os pontos perdidos, o arquétipo
-## (os dois mais altos; no empate, mais peças com o emblema; depois a ordem
-## Peso, Passo, Fôlego, Faro) e se a regra dos opostos deixa.
 static func corpo(personagens: Array) -> Dictionary:
 	var ps := []
 	for i in 3:
@@ -85,7 +79,6 @@ static func corpo(personagens: Array) -> Dictionary:
 		"emblemas": emblemas, "dois": dois}
 
 
-## O item no corpo: "fora" (não alcança), "alcanca" ou "liga".
 static func no_corpo(id: String, st: Array) -> String:
 	var it := item(id)
 	for j in 4:
@@ -97,8 +90,6 @@ static func no_corpo(id: String, st: Array) -> String:
 	return "liga"
 
 
-## A build boa: nada perdido, o item no canto (o que ele pede está entre os
-## dois mais altos) e em liga.
 static func build_boa(c: Dictionary, id: String) -> bool:
 	if c.perdidos > 0 or no_corpo(id, c.stats) != "liga":
 		return false

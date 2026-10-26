@@ -13,7 +13,7 @@ mudar qualquer valor.
 
 | | suspeita | o que se sabe | o teste |
 | --- | --- | --- | --- |
-| a | **O jogo pede pouco** | a maioria dos eventos pede 0,2 a 0,35 no motor fraco por 40 a 70 ms (`salas/centelha.gd:338`, `main.gd:613`, `salas/sala_jogo.gd:239`) | tabela de piso abaixo; comparar sentido às cegas antes e depois |
+| a | **O jogo pede pouco** | a maioria dos eventos pede 0,2 a 0,35 no motor fraco por 40 a 70 ms (`salas/centelha.gd:338`, `main.gd:563`, `salas/sala_jogo.gd:174`) | tabela de piso abaixo; comparar sentido às cegas antes e depois |
 | b | **O SDL corta pela metade** | com firmware abaixo de 2.24 (e fora do Edge), o `SDL_hidapi_ps5.c` usa a emulação antiga e divide o motor por dois; o kernel usa outro limiar (2.21) | registrar o firmware de cada controle na conexão (o SDL lê o relatório de recurso `0x20`) |
 | c | **O modo suave** | no firmware novo o SDL liga a emulação "melhorada" (bit `0x04` do byte 38), que se sente mais suave que a antiga | medir as duas sensações às cegas no mesmo controle |
 | d | **Outro dono do motor** | no Linux o `hid-playstation` segue preso ao controle; se alguém (o kernel, o `Input.start_joy_vibration` do Godot) mandar um relatório com motor em zero, o rumble do SDL some até o reenvio de dois segundos | garantir que o Godot nunca vibra (nenhum `start_joy_vibration` no código) e registrar cada saída do kernel na bancada |

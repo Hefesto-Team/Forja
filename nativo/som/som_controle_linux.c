@@ -1,13 +1,5 @@
-/* O som de cada controle, no Linux: o "pelo aparelho" pelo PipeWire.
- *
- * `LC_ALL=C pactl list sinks|sources` — o PipeWire responde pelo
- * pipewire-pulse — dá, de cada nó, a descrição (o nome que o SDL mostra) e o
- * `sysfs.path` da placa. Do caminho, sobe-se ao usb_device (origem_usb_de), o
- * mesmo pai de onde o controle tem o dele: se os dois batem, o nó mora no
- * aparelho do controle. É o caminho do forja-speak, e o mesmo pai de onde o
- * Wine tira o ContainerId de um endpoint (winepulse.drv, get_container_id). */
 #if defined(__linux__)
-#define _POSIX_C_SOURCE 200809L /* popen, no C11 estrito */
+#define _POSIX_C_SOURCE 200809L
 #endif
 #include "som_controle.h"
 

@@ -42,7 +42,6 @@ from textual.widgets import (  # noqa: E402
 )
 
 ESFORCOS = [
-    # (rótulo, candidatas, passos do ACE-Step, risco do modelo de texto)
     ("leve", 2, 32, 0),
     ("normal", 4, 60, 1),
     ("caprichado", 6, 90, 2),
@@ -82,11 +81,9 @@ class Bancada(App):
         self.trabalho.mkdir(parents=True, exist_ok=True)
         self.esforco = 1
         self.ocupada = False
-        self.ollama = None  # o processo do Ollama, se fomos nós que subimos
+        self.ollama = None
         self.fichas = {}
         self.faixas = {}
-
-    # ---------------------------------------------------------------- a tela --
 
     def compose(self) -> ComposeResult:
         yield Header(show_clock=True)
@@ -115,8 +112,6 @@ class Bancada(App):
         self.set_interval(5.0, self.atualizar_placa)
         self.registrar("A pasta de trabalho é %s" % self.trabalho)
         self.registrar("Esforço: %s. Nada é apagado: sair no meio não perde trabalho." % self.rotulo_do_esforco())
-
-    # ---------------------------------------------------------------- o estado --
 
     def rotulo_do_esforco(self):
         r, n, passos, _ = ESFORCOS[self.esforco]
@@ -225,8 +220,6 @@ class Bancada(App):
         except Exception:
             return False
 
-    # ---------------------------------------------------------------- os botões --
-
     @on(DataTable.RowHighlighted)
     def _mudou_a_linha(self) -> None:
         self.mostrar_ficha()
@@ -313,8 +306,6 @@ class Bancada(App):
         self.soltar_tudo()
         self.exit()
 
-    # ---------------------------------------------------------------- o trabalho --
-
     def soltar_tudo(self) -> None:
         dt.soltar_a_placa()
         if self.ollama is not None:
@@ -359,7 +350,6 @@ class Bancada(App):
             return
         self.call_from_thread(self.ocupar, True)
         try:
-            # a regra da casa: os dois modelos não cabem juntos na placa
             if dt.no_ar():
                 self.call_from_thread(self.registrar, "Descarregando o modelo de texto antes de gerar som…")
                 self.soltar_na_thread()
@@ -379,7 +369,7 @@ class Bancada(App):
             self.call_from_thread(self.registrar, "Pronto: %s" % alvo)
         except SystemExit as e:
             self.call_from_thread(self.registrar, "Parou: %s" % e)
-        except Exception as e:  # a tela nunca morre por causa de uma faixa
+        except Exception as e:
             self.call_from_thread(self.registrar, "Deu erro em %s: %s" % (alvo, e))
         finally:
             self.call_from_thread(self.ocupar, False)
@@ -399,7 +389,6 @@ class Bancada(App):
 
 def main():
     if os.environ.get("FORJA_TRILHA_PROVA"):
-        # a prova sem terminal: a tela monta, lista os 55 e sai
         app = Bancada()
 
         async def correr():

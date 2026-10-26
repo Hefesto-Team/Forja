@@ -1,5 +1,3 @@
-/* O que as partes do módulo repartem entre si (não é API do GDScript): a Cega
- * que vem do dicionário da sala e o porquê de uma saída que nem montou. */
 #ifndef FORJA_GODOT_INTERNO_H
 #define FORJA_GODOT_INTERNO_H
 
@@ -20,8 +18,6 @@ extern "C" {
 
 namespace forja_interno {
 
-/* A Cega do dicionário da sala: {certos, errados, perdidos, como}, em que
- * `como[i]` conta as erradas em que a pessoa disse a opção i. */
 inline Cega cega_de(const godot::Variant &v) {
   Cega c;
   cega_zerar(&c);
@@ -44,7 +40,6 @@ inline void juntar_obs(Veredito *v, const char *s) {
   std::snprintf(v->obs + n, sizeof(v->obs) - n, "%s%s", n ? " — " : "", s);
 }
 
-/* A saída nem montou (o SDL recusou): o porquê é a origem do controle. */
 inline void explica_recusa(int lugar, Veredito *v) {
   Pad *p = FORJA ? pads_do_slot(FORJA, lugar) : nullptr;
   if (!p || v->nivel != NIVEL_MONTOU)
@@ -59,6 +54,6 @@ inline void explica_recusa(int lugar, Veredito *v) {
   juntar_obs(v, pq);
 }
 
-} // namespace forja_interno
+}
 
 #endif

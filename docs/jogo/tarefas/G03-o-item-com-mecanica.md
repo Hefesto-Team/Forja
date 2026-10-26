@@ -186,20 +186,20 @@ escudo quebrou sem olhar a tela. **Como se confere:**
 
 ## O estado de hoje
 
-- `godot/scripts/player.gd:16-24`: `ITENS` antigos (mãos livres, espada,
+- `godot/scripts/player.gd:8-13`: `ITENS` antigos (mãos livres, espada,
   lança, espada e escudo, lança e escudo, poção, chave); a G02 os troca pelos
   sete (0 «Mãos livres», 1 «Martelo», 2 «Escudo», 3 «Fole», 4 «Lanterna»,
   5 «Diapasão», 6 «Âncora»), cada um com `"icone"` e **sem peça 3D**.
-- `player.gd:30-36`: `POSE_DO_ITEM` (o escudo em `(0.03, -0.07, 0.075)`,
-  escala 0,9). `player.gd:132-152`, `_segurar()`: apaga todo
+- `player.gd:17-21`: `POSE_DO_ITEM` (o escudo em `(0.03, -0.07, 0.075)`,
+  escala 0,9). `player.gd:108-127`, `_segurar()`: apaga todo
   `BoneAttachment3D` do esqueleto e prende as peças `"direita"`/`"esquerda"`
   carregando `res://assets/kenney/%s.glb`.
 - `godot/scripts/mundo/kit.gd`: `peca` (11), `material(cor, brilho, rugoso)`
   (35), `caixa` (60), `martelo` (103). O martelo da Kenney está só no estudo
   (`godot/estudos/direcao/kenney/survival-kit/tool-hammer.glb`, preso em
-  `godot/estudos/direcao/mundo.gd:145-155`); a G10 o traz para
+  `godot/estudos/direcao/mundo.gd:127-132`); a G10 o traz para
   `godot/assets/kenney/survival-kit/`.
-- `godot/scripts/salas/sala.gd:52`: `jogador(lugar) -> ForjaPlayer`.
+- `godot/scripts/salas/sala.gd:41`: `jogador(lugar) -> ForjaPlayer`.
 - `godot/scripts/salas/sala_jogo.gd`: `treinando` (82), `entrar()` (95),
   `maos_livres(p)` (128, tira o item **visual** com `p.visual(p.modelo_i, 0)`),
   `comecar()` (300), `terminar()` (337), `marcar()` (435). Não há gancho de
@@ -208,14 +208,14 @@ escudo quebrou sem olhar a tela. **Como se confere:**
   `e.tremor = 0.6`, `Som.tocar("falha", …)`); `_perdeu(l, p)` (350-363):
   `e.combo = 0`, `e.tremor = 1.0`, `"falha"`, `emote-no`, a runa volta à fila
   se `tentativas < MAX_TENTATIVAS`; `_proxima(l)` (365) avança.
-- Os gatilhos: `galeria.gd:185-195` e `prova.gd:236-238, 302` usam
-  `Forja.gatilho`; `galeria.gd:57` e `prova.gd:85` montam `features` no
-  `_init()`; `bancada.gd:80` tem `_init()`. `Forja.gatilho(l, lado, modo, a, b, c)`
-  (`forja.gd:468`, lado 0 = L2), `GATILHO_OFF` 0, `GATILHO_RESISTENCIA` 1.
+- Os gatilhos: `galeria.gd:160-170` e `prova.gd:196-198, 302` usam
+  `Forja.gatilho`; `galeria.gd:41` e `prova.gd:60` montam `features` no
+  `_init()`; `bancada.gd:62` tem `_init()`. `Forja.gatilho(l, lado, modo, a, b, c)`
+  (`forja.gd:398`, lado 0 = L2), `GATILHO_OFF` 0, `GATILHO_RESISTENCIA` 1.
 - As provas conferem o R2 solto (`0x05`) no salão e depois de cada sala
-  (`godot/testes/prova_do_jogo.gd:299, 401`) e o L2 solto na Galeria (158).
+  (`godot/testes/prova_do_jogo.gd:270, 401`) e o L2 solto na Galeria (158).
 - `godot/assets/sons/escudo_0..4.wav` estão no jogo (`Som.GRAVADOS`,
-  `som.gd:41`); `ui_peca.wav` não.
+  `som.gd:24`); `ui_peca.wav` não.
 - Não existe `godot/scripts/itens.gd`.
 
 ## O alvo
@@ -228,7 +228,7 @@ enum { NENHUM, MARTELO, ESCUDO, FOLE, LANTERNA, DIAPASAO, ANCORA }
 const PERFEITO := 3
 ## Os tons das peças (arte/02, a escada de valor), medidos em OKLab.
 const METAL := Color("#9ba6b1")     ## L 0,72, croma 0,020: a arma
-const CERAMICA := Color("#c9b08f")  ## L 0,770, croma 0,053: o disco do amuleto (o Fita.CERAMICA do estudo, fita.gd:131)
+const CERAMICA := Color("#c9b08f")  ## L 0,770, croma 0,053: o disco do amuleto (o Fita.CERAMICA do estudo, fita.gd:97)
 const LATAO := Color("#b59b63")     ## L 0,70, croma 0,080: o emblema
 ## O item de cada lugar, para a mecânica (a construção escreve; a sala não mexe).
 static var escolhido := [NENHUM, NENHUM, NENHUM, NENHUM]

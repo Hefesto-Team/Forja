@@ -1,23 +1,9 @@
 extends Node
-## A prova do jogo, sem janela e sem aparelho: abre a cena principal com quatro
-## DualSense simulados (o módulo nativo inteiro roda, o SDL inclusive) e confere,
-## pelo que cada controle simulado RECEBEU, que cada saída chegou só no lugar
-## certo — o player index 0..3, a luz e as lâmpadas do lugar, os modos de
-## gatilho, o motor do lado do golpe, o LED do mudo. No fim, o relatório gravado:
-## JSON que se lê, os quatro controles, nenhum endereço de aparelho e nenhum
-## caminho da máquina dentro dos arquivos.
-##
-##   godot --headless --fixed-fps 60 --path godot res://testes/prova_do_jogo.tscn \
-##     -- --simular=4 --robo --semente=7 --relatorios=<pasta vazia>
-##
-## Com o pactl de mentira na frente do PATH (tests/prova_do_jogo.sh), ESPERADO
-## diz o nome do alto-falante que o jogo tem de achar.
 
 var falhas := 0
 var jogo: Node
 var pasta := ""
 
-## As features que só a pergunta às cegas mede: fora do Modo bancada, «não medido».
 const SO_COM_PERGUNTA := {
 	"galeria": ["gatilho_resistencia", "gatilho_arma", "gatilho_vibracao", "leds_jogador"],
 	"impacto": ["lightbar"],
@@ -60,7 +46,7 @@ func _ready() -> void:
 	_prova_das_faixas()
 	_prova_da_paridade()
 	_prova_das_contas_da_camera()
-	Desenho._coletar = "memoria"  # colhe cada frase desenhada (F02, F07)
+	Desenho._coletar = "memoria"
 	jogo = load("res://scenes/main.tscn").instantiate()
 	add_child(jogo)
 	_prova_do_catalogo()
@@ -99,7 +85,6 @@ func _ready() -> void:
 		get_tree().quit(0)
 
 
-## O pad (o índice do módulo) do controle simulado `s` (0..3).
 func _pad_do_sim(s: int) -> int:
 	for p in Forja.pads():
 		if str(p.nome) == "DualSense simulado %d" % (s + 1):
@@ -111,7 +96,6 @@ func _perc_do_sim(s: int) -> Dictionary:
 	return Forja.ctl.percepcao(_pad_do_sim(s))
 
 
-## Os simulados `sims`, tirados e postos de volta nessa ordem.
 func _religar(sims: Array) -> void:
 	for s in sims:
 		Forja.ctl.simulador_cabo(s, false)
@@ -121,7 +105,6 @@ func _religar(sims: Array) -> void:
 		await _quadros(4)
 
 
-## A mesma cor, com outro brilho (a barra de luz escurece com a vida, mas não muda de cor).
 func _mesmo_tom(a: Color, b: Color) -> bool:
 	var ma := maxf(a.r, maxf(a.g, a.b))
 	var mb := maxf(b.r, maxf(b.g, b.b))
@@ -140,13 +123,12 @@ func _prova_do_percurso() -> void:
 	_esperar(Forja.conectados() == 4, "quatro DualSense simulados (%d)" % Forja.conectados())
 	_esperar(Forja.jogadores() == 0, "ninguém no lugar antes do lobby")
 	_esperar(jogo.estado == "titulo", "o jogo abre no título")
-	Forja.robo_confirma = false  # o robô do fluxo espera: as checagens de conexão não têm botão nenhum
+	Forja.robo_confirma = false
 	for s in 4:
 		var p := _perc_do_sim(s)
 		_esperar(int(p.get("player_index", -9)) == s and int(p.get("leds_jogador", 0)) == Forja.LEDS_DO_LUGAR[s]
 			and (p.get("luz", Color.BLACK) as Color).is_equal_approx(Forja.cor_do_lugar(s)),
 			"conexão: o simulado %d já é P%d, com as luzinhas e a cor, antes de qualquer botão" % [s + 1, s + 1])
-	# conectar na ordem 3, 2, 1 (os simulados de índice 2, 1 e 0): P1, P2 e P3
 	await _religar([2, 1, 0])
 	for par in [[2, 0], [1, 1], [0, 2]]:
 		var s: int = par[0]
@@ -154,16 +136,13 @@ func _prova_do_percurso() -> void:
 		_esperar(int(Forja.pad(_pad_do_sim(s)).get("reserva", -9)) == l and int(_perc_do_sim(s).get("player_index", -9)) == l
 			and int(_perc_do_sim(s).get("leds_jogador", 0)) == Forja.LEDS_DO_LUGAR[l],
 			"ordem trocada: o simulado %d, o %dº a chegar, é P%d" % [s + 1, l + 1, l + 1])
-	await _religar([0, 1, 2])  # de volta: o simulado N é o PN
+	await _religar([0, 1, 2])
 
-	# o título: quem aperta ✕ é o robô do fluxo (main.gd _robo), no controle do P1
 	Forja.robo_confirma = true
 	var pio := [0.0, 0.0]
 	var fita := 0.0
 	var nq := 0
 	var nq_play := -1
-	# a batida do título segue a placa de som, que anda em tempo de parede; o
-	# jogo, sem janela, anda muito mais depressa: o laço espera pelo relógio de parede
 	var t_parede := Time.get_ticks_msec()
 	while jogo.estado == "titulo" and Time.get_ticks_msec() - t_parede < 20000:
 		await _quadros(1)
@@ -173,7 +152,6 @@ func _prova_do_percurso() -> void:
 		if jogo.play_ms >= 0:
 			if nq_play < 0:
 				nq_play = nq
-			# depois dos 60 ms do toque do pio, só o motor da fita (400 ms) segue na mão
 			if nq - nq_play >= 8:
 				fita = maxf(fita, float(_perc(0).get("fraco", 0.0)))
 	_esperar(jogo.play_ms >= 0, "o ✕ no título deu o PLAY")
@@ -203,7 +181,6 @@ func _prova_do_percurso() -> void:
 				if p.visible:
 					n += 1
 			armaduras = maxi(armaduras, n)
-		# a cor da armadura: grafite antes da primeira acender, a do dono depois da última
 		for l in 4:
 			var r: Array = jogo.jogadores[l]._mats_corpo
 			if r.is_empty():
@@ -219,7 +196,6 @@ func _prova_do_percurso() -> void:
 		for s in 4:
 			if not Forja.ocupado(s):
 				tremeu_sem_lugar[s] = tremeu_sem_lugar[s] or float(_perc_do_sim(s).get("forte", 0.0)) > 0.0
-		# nenhuma palavra na introdução: nem as placas das salas, nem o «P1» em cima dos bonecos
 		if jogo.estado == "intro":
 			for id in jogo.salao.portoes:
 				if (jogo.salao.portoes[id].placa as Node3D).is_visible_in_tree():
@@ -245,9 +221,8 @@ func _prova_do_percurso() -> void:
 	for p in jogo.jogadores:
 		placas_de_volta = placas_de_volta and p.etiqueta.visible
 	_esperar(placas_de_volta, "depois da introdução as placas e o «P1»…«P4» voltam")
-	Forja.robo_confirma = false  # o robô do fluxo espera: as checagens do lobby apertam à mão
-	# ◻ segurado um segundo, antes de confirmar: a reserva passa ao próximo lugar livre
-	Forja.ctl.simulador_cabo(1, false)  # o P2 vaga
+	Forja.robo_confirma = false
+	Forja.ctl.simulador_cabo(1, false)
 	await _quadros(4)
 	Forja.ctl.simulador_botao(3, Forja.QUADRADO, true)
 	await _quadros(70)
@@ -257,12 +232,10 @@ func _prova_do_percurso() -> void:
 		"◻ por um segundo: o simulado 4 passa de P4 para P2, o próximo livre")
 	Forja.ctl.simulador_cabo(3, false)
 	await _quadros(4)
-	await _religar([1, 3])  # o simulado 2 volta a P2 e o 4 a P4
-	# o ✕ só confirma: em ordem inversa, cada um fica com o lugar que a conexão deu
+	await _religar([1, 3])
 	for s in [3, 2, 1, 0]:
-		if int(Forja.pad(_pad_do_sim(s)).get("lugar", -1)) < 0:  # o P1 já se sentou no título
+		if int(Forja.pad(_pad_do_sim(s)).get("lugar", -1)) < 0:
 			await _aperta(s, Forja.CRUZ)
-			# o pio do cavaleiro sai no controle de quem entrou, e só nele (H07)
 			var nivel := float(Forja.som_virtual(s).get("falante", 0.0))
 			var outros := 0.0
 			for o in 4:
@@ -275,8 +248,6 @@ func _prova_do_percurso() -> void:
 		_esperar(Forja.pad_do_lugar(s) == _pad_do_sim(s), "o ✕ confirma: o simulado %d é P%d, mesmo apertando por último" % [s + 1, s + 1])
 	_esperar(Forja.jogadores() == 4, "os quatro entraram")
 	_esperar(Forja.som_pronto(), "a placa de áudio dos quatro abriu na entrada")
-	# um som por vez no alto-falante (H07): o sino longo soa; o clique chega,
-	# o sino sai pela rampa, e quando o clique (20 ms) acaba não sobra nada
 	Forja.som_falante(0, "sino", 0.9)
 	await _quadros(5)
 	var com_sino := float(Forja.som_virtual(0).get("falante", 0.0))
@@ -296,7 +267,6 @@ func _prova_do_percurso() -> void:
 		_esperar(int(e.get("leds_jogador", 0)) == Forja.LEDS_DO_LUGAR[l], "P%d: o estado das lâmpadas" % (l + 1))
 		_esperar(not jogo.lobby.prontos[l], "P%d: entrar não é ficar pronto" % (l + 1))
 	_prova_da_peca()
-	# a construção: ◀▶ e ▼ mexem só no próprio lugar; o robô forja os quatro na batida
 	var visuais := {}
 	var nomes0 := {}
 	for l in 4:
@@ -335,9 +305,7 @@ func _prova_do_percurso() -> void:
 	await _aperta(0, Forja.CIRCULO)
 	_esperar(jogo.lobby.linha[0] == TelaLobby.BONECO and Forja.ocupado(0), "○ numa linha de baixo volta à primeira, sem sair do lugar")
 	await _prova_do_teclado_na_mesa()
-	# o cavaleiro guarda-se como dado: ida e volta pelo arquivo, e o acabamento só muda a luz
 	_prova_do_cavaleiro_guardado()
-	# o robô forja os quatro, só apertando botões: ✕ para forjar e as oito marteladas na batida
 	Forja.robo_confirma = true
 	var perfeito := [false, false, false, false]
 	var pio_f := [false, false, false, false]
@@ -371,8 +339,6 @@ func _prova_do_percurso() -> void:
 			continue
 		var osso: String = {Itens.MARTELO: "arm-right", Itens.ANCORA: "arm-right", Itens.ESCUDO: "arm-left"}.get(pi.item_i, "torso")
 		_esperar(presa.bone_name == osso, "P%d: o item no osso %s" % [l + 1, osso])
-		# o tamanho do item é o do maior lado dele no espaço dele (a pose do braço não entra),
-		# contra o boneco inteiro (0,755 × a escala do kit)
 		var uniao := AABB()
 		var primeiro := true
 		for mi in presa.find_children("*", "MeshInstance3D", true, false):
@@ -386,7 +352,6 @@ func _prova_do_percurso() -> void:
 			"P%d: o item no tamanho (%.2f do corpo)" % [l + 1, alto / corpo])
 		_esperar(pi._mats_runa.size() >= 1, "P%d: o item tem a runa" % (l + 1))
 		if ForjaPlayer.MALHA_DO_ITEM.has(ForjaPlayer.ITENS[pi.item_i].id):
-			# a malha do Kenney leva o colormap na faixa dos objetos (G08), o do item, não o cru
 			var faixa_do_objeto := Pintura.textura(String(ForjaPlayer.MALHA_DO_ITEM[ForjaPlayer.ITENS[pi.item_i].id]).get_base_dir() + "/Textures/colormap.png", "objeto")
 			var cheio := true
 			var visto := 0
@@ -416,20 +381,17 @@ func _prova_do_percurso() -> void:
 	_esperar(nomes_f.size() == 4 and not nomes_f.has(""), "quatro nomes diferentes (%s)" % [nomes_f.keys()])
 	var d0: float = jogo.lobby.desvio[0]
 	var dif: float = jogo.lobby.desvio[3] - d0
-	# o robô aperta no primeiro quadro depois da hora: com a máquina carregada um quadro leva dezenas de ms, então a banda é larga
 	_esperar(d0 >= -0.01 and d0 <= 0.15, "P1 martelou no tempo: desvio %d ms" % int(d0 * 1000.0))
 	_esperar(dif >= 0.07 and dif <= 0.25, "P4 martelou uns 100 ms depois do P1: %d ms" % int(dif * 1000.0))
 	_esperar(absf(TelaLobby.mediana([0.3, -0.1, 0.0, 0.5, 0.1]) - 0.1) < 0.0001
 		and absf(TelaLobby.mediana([0.0, 0.2, 0.4, 1.0]) - 0.3) < 0.0001
 		and TelaLobby.mediana([]) == 0.0, "a mediana: ímpar, par e vazia")
 	_esperar(Ritmo.slot == "", "fora do lobby o Ritmo não segue a faixa da construção")
-	# quem volta ao lobby na mesma noite (pela pausa) acha o cavaleiro guardado: ✕ confirma, ○ refaz
 	var antes_n: Array = []
 	for l in 4:
 		antes_n.append(jogo.jogadores[l].cavaleiro())
 	Forja.robo_confirma = false
-	Itens._escudo = [false, false, false, false]   # o Escudo quebrado na última sala: a construção o devolve inteiro
-	# pela pausa de verdade: Options no salão, desce até «Voltar ao lobby» e ✕
+	Itens._escudo = [false, false, false, false]
 	var t_volta := Time.get_ticks_msec()
 	while jogo._trocando and Time.get_ticks_msec() - t_volta < 10000:
 		await _quadros(2)
@@ -469,13 +431,13 @@ func _prova_do_percurso() -> void:
 	_esperar(jogo.lobby.etapa[0] == TelaLobby.EDITANDO and jogo.lobby.golpes[0].is_empty(), "○ forjando cancela: as marteladas zeram")
 	for s in [2, 3]:
 		await _aperta(s, Forja.CRUZ)
-	Forja.robo_confirma = true   # o robô forja o P1 de novo e fecha a contagem
+	Forja.robo_confirma = true
 	t_volta = Time.get_ticks_msec()
 	while (jogo.estado != "salao" or jogo._trocando) and Time.get_ticks_msec() - t_volta < 60000:
 		await _quadros(2)
 	_esperar(jogo.estado == "salao", "com os quatro de novo prontos, o salão")
 	_esperar(jogo.lobby.golpes[0].size() == TelaLobby.MARTELADAS, "o P1 refez as oito marteladas")
-	Forja.robo_confirma = true  # o robô do fluxo volta para as salas
+	Forja.robo_confirma = true
 
 	await _aperta(0, Forja.CREATE)
 	if Forja.bancada:
@@ -491,9 +453,6 @@ func _prova_do_percurso() -> void:
 		"a pausa tem o livro e o diagnóstico só na bancada (%s)" % [acoes])
 	jogo._fechar_overlay()
 
-	# As salas de entrada, jogadas pelo robô do começo ao fim: cada lugar sai
-	# com PASSOU em cada feature da sala. Com um defeito de mentira ligado, a
-	# feature que ele quebra tem de sair FALHOU (a prova da prova).
 	var centelha = await _comeca_a_sala("centelha")
 	if centelha:
 		Itens.escolhido[1] = Itens.ESCUDO
@@ -518,12 +477,11 @@ func _prova_do_percurso() -> void:
 		_esperar(int(_perc(1).get("gatilho_esq", 0)) == 0x05, "Centelha: o L2 do P2 afrouxa quando o escudo quebra")
 		_esperar(not centelha.errou(1), "Centelha: o segundo erro do P2 é de verdade")
 		_esperar(not centelha.errou(0), "Centelha: o P1, sem Escudo, erra de verdade")
-		# a Centelha pergunta errou() na runa perdida: com o Escudo inteiro, o combo fica
 		Itens.novo_minigame()
 		var e2: Dictionary = centelha.j[1]
 		var r2 = centelha._runa_atual(1)
 		if r2 != null:
-			e2.fila.append(r2.duplicate())   # a runa volta ao fim da fila: o robô ainda a joga
+			e2.fila.append(r2.duplicate())
 			e2.combo = 4
 			centelha._perdeu(1, centelha.jogador(1))
 			_esperar(int(e2.combo) == 4 and not Itens.escudo_inteiro(1), "Centelha: a runa perdida com o Escudo passa sem zerar o combo")
@@ -531,14 +489,11 @@ func _prova_do_percurso() -> void:
 		for l in 2:
 			Itens.escolhido[l] = jogo.jogadores[l].item_i
 	await _prova_do_kit()
-	# o P4 entra na Viga de mãos livres: o registro diz o item dele assim mesmo (G03)
 	Itens.escolhido[3] = Itens.NENHUM
 	await _joga_a_sala("viga", ["giroscopio", "acelerometro"])
 	Itens.escolhido[3] = jogo.jogadores[3].item_i
 	await _joga_a_sala("molde", ["touchpad_dois_dedos", "touchpad_clique"])
 
-	# A Galeria, às cegas: a arma do escuro chega ao R2 de cada um no modo dela
-	# (e o L2 fica solto); o robô sente o gatilho, responde e conta as luzinhas
 	var galeria = await _comeca_a_sala("galeria")
 	if galeria:
 		await _quadros(4)
@@ -551,8 +506,6 @@ func _prova_do_percurso() -> void:
 			_esperar(int(pg.get("gatilho_esq", 0)) == 0x05, "Galeria P%d: o L2 solto (0x05)" % (l + 1))
 		await _termina_a_sala(galeria, ["gatilho_resistencia", "gatilho_arma", "gatilho_vibracao", "leds_jogador"])
 
-	# O Impacto, às cegas: o golpe treme só o motor do lado dele, e só no
-	# controle do alvo; na pergunta da onda, a luz de cada um é a cor sorteada
 	var impacto = await _comeca_a_sala("impacto")
 	if impacto:
 		var q := 0
@@ -583,13 +536,10 @@ func _prova_do_percurso() -> void:
 				continue
 			var luz: Color = _perc(l).get("luz", Color.BLACK)
 			var cor: Color = SalaImpacto.CORES[pedida].cor
-			# a cor passa por 8 bits no caminho: um degrau de folga
 			var perto := absf(luz.r - cor.r) < 0.01 and absf(luz.g - cor.g) < 0.01 and absf(luz.b - cor.b) < 0.01
 			_esperar(perto, "Impacto P%d: a luz acendeu %s para a pergunta" % [l + 1, SalaImpacto.CORES[pedida].nome])
 		await _termina_a_sala(impacto, ["vibracao_forte", "vibracao_fraca", "vibracao_isolamento", "lightbar"])
 
-	# O Canto, às cegas: o canto de um controle toca só no alto-falante daquele
-	# controle (a placa virtual, que o robô ouve); o canto da TV, em nenhum
 	var canto = await _comeca_a_sala("canto")
 	if canto:
 		var viu_controle := false
@@ -616,8 +566,6 @@ func _prova_do_percurso() -> void:
 		_esperar(viu_controle and viu_tv, "Canto: cantou num controle e na TV")
 		await _termina_a_sala(canto, ["alto_falante"])
 
-	# Os Caminhos, às cegas: o tropeço treme só o atuador do lado da pedra, no
-	# controle de quem tropeçou (o passo vai aos dois lados)
 	var caminhos = await _comeca_a_sala("caminhos")
 	if caminhos:
 		var viu := false
@@ -640,8 +588,6 @@ func _prova_do_percurso() -> void:
 		_esperar(viu, "Caminhos: alguém tropeçou")
 		await _termina_a_sala(caminhos, ["haptica_audio"])
 
-	# A Voz: o robô chama o guardião no microfone do controle dele, fica mudo
-	# e olha a luz; o mudo acende o LED de quem apertou, e só o dele
 	var voz = await _comeca_a_sala("voz")
 	if voz:
 		_esperar(voz.g.pivo.find_children("*", "MeshInstance3D", true, false).all(func(m): return not (m.mesh is SphereMesh)),
@@ -668,9 +614,6 @@ func _prova_do_percurso() -> void:
 		_esperar(viu, "Voz: o mudo chegou de uns antes dos outros")
 		await _termina_a_sala(voz, ["microfone", "microfone_mudo", "led_microfone"])
 
-	# A Prova: noventa segundos de tudo ligado. Na partida, R2 arma e L2
-	# resistência em todos, e a luz é a da equipe; no fim, a prova final às
-	# cegas, e cada um sai com PASSOU em tudo junto
 	var prova = await _comeca_a_sala("prova")
 	if prova:
 		var q := 0
@@ -696,21 +639,16 @@ func _prova_do_percurso() -> void:
 		jogo._fechar_overlay()
 
 
-## Entra na sala, espera o aviso (o robô fica pronto sozinho), o jogo e o
-## veredito; confere o veredito de cada lugar e espera a volta ao salão.
 func _joga_a_sala(id: String, features: Array) -> void:
 	var sala = await _comeca_a_sala(id)
 	if sala:
 		await _termina_a_sala(sala, features)
 
 
-## A sala aberta é a do id pedido (o apelido da seção abre o primeiro minigame dela)?
 func _e_a_sala(sala, id: String) -> bool:
 	return sala.id == id or Catalogo.apelido(sala.id) == id
 
 
-## O catálogo (H04): os apelidos abrem o primeiro minigame da seção, os ids
-## de hoje continuam abrindo, e toda FICHA tem as chaves do molde. Pura.
 func _prova_do_catalogo() -> void:
 	_esperar(Catalogo.resolver("centelha") == "S01_J01", "catálogo: centelha abre o S01_J01")
 	_esperar(Catalogo.apelido("S01_J01") == "centelha", "catálogo: o apelido do S01_J01 é centelha")
@@ -728,7 +666,6 @@ func _prova_do_catalogo() -> void:
 		var mg: Minigame = Catalogo.MINIGAMES[slot].new()
 		_esperar(mg.id == slot and mg.conferir_a_ficha(), "catálogo: a FICHA de %s está completa" % slot)
 		_esperar(not mg.ficha.is_empty() and mg.nome == str(mg.ficha.titulo), "catálogo: %s leu a FICHA no _init" % slot)
-		# a conferência reprova de verdade: sem chave, e com valor fora da lista
 		var quebrada: Minigame = Catalogo.MINIGAMES[slot].new()
 		quebrada.ficha = quebrada.ficha.duplicate()
 		quebrada.ficha.erase("faixa")
@@ -742,11 +679,7 @@ func _prova_do_catalogo() -> void:
 		mg.free()
 
 
-## O kit (H04): o minigame de prova (godot/testes/minigame_de_prova.gd) joga
-## com o robô de cada lugar mirando um desvio, e o Ritmo julga cada toque.
-## As fases esperam em quadros; a música, pelo relógio do Ritmo, que na sessão acelerada é o do quadro (a WE02).
 func _prova_do_kit() -> void:
-	# a régua do kit (a WE02): o piso de 70%, e o esperado maior que cada um dos outros
 	_esperar(not _julgamento_basta([0, 6, 6, 0], Ritmo.OTIMO), "kit: a régua reprova o empate [0, 6, 6, 0] para o ótimo")
 	_esperar(_julgamento_basta([0, 2, 10, 0], Ritmo.OTIMO), "kit: a régua deixa passar [0, 2, 10, 0] para o ótimo")
 	var mg: Minigame = load("res://testes/minigame_de_prova.gd").new()
@@ -757,9 +690,8 @@ func _prova_do_kit() -> void:
 	while is_instance_valid(mg) and mg.fase == "aviso" and q < 600:
 		await _quadros(1)
 		q += 1
-	# a contagem de entrada (H06): tique nos tempos 0 a 2 da faixa, o "vai" no 3, e some
 	Som.ultimo_jingle = ""
-	var q_conta := 0  # os prazos em quadros (a WE02): 60 quadros por segundo de jogo
+	var q_conta := 0
 	while is_instance_valid(mg) and mg.fase == "jogo" and Ritmo.batida() < 2.3 and q_conta < 300:
 		await _quadros(1)
 		q_conta += 1
@@ -768,7 +700,6 @@ func _prova_do_kit() -> void:
 		await _quadros(1)
 		q_conta += 1
 	_esperar(is_instance_valid(mg) and not Ritmo.batida_cheia.is_connected(mg._contar_a_entrada), "kit: a contagem acaba no quarto tempo e solta o relógio")
-	# o cabo do P3 sai depois da terceira nota e volta 0,8 s depois: o minigame segue
 	var q_jogo := 0
 	while is_instance_valid(mg) and mg.fase == "jogo" and mg._julgadas[2] < 3 and q_jogo < 1200:
 		await _quadros(1)
@@ -777,8 +708,6 @@ func _prova_do_kit() -> void:
 	await _quadros(48)
 	q_jogo += 48
 	_esperar(is_instance_valid(mg) and mg.fase == "jogo", "kit: sem o P3, o minigame seguiu")
-	# com o cabo, o nó de áudio do controle some: a placa refeita agora fica sem
-	# o P3, e só a volta do controle (Main._ao_mudar_os_controles) o devolve
 	Forja.som_preparar(Forja.PAPEL_ALTO_FALANTE)
 	_esperar(not Forja.som_tem(2, Forja.PAPEL_ALTO_FALANTE), "kit: sem o cabo, a placa refeita fica sem o P3")
 	_esperar(Forja.ctl.simulador_cabo(2, true), "kit: o cabo do P3 voltou")
@@ -795,7 +724,6 @@ func _prova_do_kit() -> void:
 		var c: Array = mg.contagem[l]
 		var total := int(c[0]) + int(c[1]) + int(c[2]) + int(c[3])
 		var certos := int(c[esperado[l]])
-		# o piso de 70% sem empate (a WE02): no relógio do quadro, a máquina carregada não muda o julgamento
 		_esperar(total == mg.NOTAS and _julgamento_basta(c, esperado[l]),
 			"kit P%d: %s em %d de %d notas %s" % [l + 1, Ritmo.NOMES_DO_JULGAMENTO[esperado[l]], certos, total, c])
 	_esperar(mg.vencedor() == [0, 1, 2, 3], "kit: a colocação pelos pontos (%s, pontos %s)" % [mg.vencedor(), mg.pontos])
@@ -808,8 +736,6 @@ func _prova_do_kit() -> void:
 	_esperar(Forja.som_tem(2, Forja.PAPEL_ALTO_FALANTE), "kit: o P3 voltou com o alto-falante")
 
 
-## Entra na sala e espera o jogo começar (o robô fica pronto no aviso).
-## Devolve a sala, ou null se ela não abriu.
 func _comeca_a_sala(id: String):
 	jogo._entrar_na_sala(id, false)
 	await _quadros(2)
@@ -818,8 +744,7 @@ func _comeca_a_sala(id: String):
 	if not sala is SalaJogo:
 		return null
 	_esperar(str(sala.icone) != "" and Desenho.glifo(str(sala.icone)) != null, "%s: o aviso tem o ícone da parte do controle" % id)
-	# o fim: quando a sala emitir `terminou` e quanto era o relógio no começo
-	var fim := [-1.0]  # o t_fase da sala quando ela emitiu terminou
+	var fim := [-1.0]
 	sala.terminou.connect(func() -> void: fim[0] = float(sala.t_fase))
 	sala.set_meta("fim", fim)
 	sala.set_meta("duracao_no_inicio", float(sala.duracao))
@@ -828,20 +753,17 @@ func _comeca_a_sala(id: String):
 		await _quadros(1)
 		q += 1
 	_esperar(is_instance_valid(sala) and sala.fase == "jogo", "%s: o aviso passou com os quatro prontos" % id)
-	# o ✕ do robô chegou pelo controle simulado (F08): passou antes dos 8 s do relógio
 	_esperar(q < int(SalaJogo.AVISO_MAX * 60) - 60, "%s: o ✕ dos quatro veio do controle, não do relógio (%d quadros)" % [id, q])
 	if is_instance_valid(sala):
 		_confere_a_arte(sala, id)
 	return sala if is_instance_valid(sala) else null
 
 
-## Espera o veredito, confere cada lugar em cada feature (e o que foi para o
-## relatório) e espera a volta ao salão, com os controles no repouso.
 func _termina_a_sala(sala, features: Array) -> void:
 	var id: String = sala.id
 	var q := 0
 	var viu_pergunta := false
-	var fim: Array = sala.get_meta("fim")  # pega antes: depois do `terminou` a sala é liberada
+	var fim: Array = sala.get_meta("fim")
 	var duracao_no_inicio: float = sala.get_meta("duracao_no_inicio")
 	var resta_antes := INF
 	var subiu := false
@@ -872,9 +794,6 @@ func _termina_a_sala(sala, features: Array) -> void:
 	if not is_instance_valid(sala):
 		return
 	_esperar(Musica.atual == "" and Som.ultimo_jingle.begins_with("JIN_"), "%s: o apito parou a música em seco (%s)" % [id, Som.ultimo_jingle])
-	# o fim é visto no máximo 10 quadros depois do apito, antes dos APITO_S do
-	# jingle do resultado: o que soou por último é o apito desta sala, não um
-	# jingle que sobrou de antes
 	_esperar(Som.ultimo_jingle == "JIN_APITO", "%s: o apito soou no fim (%s)" % [id, Som.ultimo_jingle])
 	var jingle_certo := Som.jingle_do_resultado(sala.pontos, sala._presentes_do_fim(), sala.coop, sala.coop_venceu)
 	for l in 4:
@@ -891,8 +810,6 @@ func _termina_a_sala(sala, features: Array) -> void:
 			_esperar(ok, "%s P%d: %s → %s (%s)" % [id, l + 1, f, str(v.get("rotulo", "sem veredito")), porque])
 			var gravado := Forja.ultimo_veredito(l, f)
 			_esperar(int(gravado.get("resultado", -1)) == int(v.get("resultado", -2)), "%s P%d: %s gravado no relatório" % [id, l + 1, f])
-	# o fechamento é o mesmo para todos: o relógio não volta a encher, o
-	# resultado mostra quem venceu e os quatro, e a sala avança sozinha em 6 s
 	_esperar(not subiu and is_equal_approx(float(sala.duracao), duracao_no_inicio),
 		"%s: o relógio nunca volta a encher" % id)
 	await _quadros(40)
@@ -909,7 +826,6 @@ func _termina_a_sala(sala, features: Array) -> void:
 	_esperar(fim[0] >= TelaResultado.AVANCA_S - 0.05 and fim[0] <= TelaResultado.AVANCA_S + 0.1,
 		"%s: o fim avança sozinho em 6 s, robô ou não (%.2f s)" % [id, fim[0]])
 	_esperar(Som.ultimo_jingle == jingle_certo, "%s: o jingle do resultado é o certo (%s; esperado %s)" % [id, Som.ultimo_jingle, jingle_certo])
-	# o robô aperta ✕ no veredito; a cortina leva de volta ao salão
 	q = 0
 	while (jogo.estado != "salao" or jogo._trocando) and q < 600:
 		await _quadros(5)
@@ -922,10 +838,6 @@ func _termina_a_sala(sala, features: Array) -> void:
 			"%s: o P%d voltou ao repouso" % [id, l + 1])
 
 
-## A Prova de Fogo: todas as salas na ordem, sem voltar ao salão. Aqui só a
-## costura: a primeira abre com "sala 1 de 9", o ✕ do veredito leva à segunda
-## (a primeira acaba na hora: as salas já foram provadas jogadas), e a pausa
-## desiste e volta ao salão.
 func _prova_de_fogo() -> void:
 	jogo._comecar_a_prova_de_fogo(false)
 	await _quadros(3)
@@ -954,8 +866,6 @@ func _prova_de_fogo() -> void:
 	_esperar(jogo.estado == "salao" and jogo.fogo == -1, "Prova de Fogo: pela pausa, desiste e volta ao salão")
 
 
-## O cavaleiro como dado (G02): vestir e cavaleiro() são inversos; o acabamento
-## muda só a rugosidade e o metal, nunca a cor; o arquivo devolve o que se guardou.
 func _prova_do_cavaleiro_guardado() -> void:
 	var p := ForjaPlayer.new()
 	add_child(p)
@@ -1013,15 +923,13 @@ func _prova_do_relatorio() -> void:
 	if pasta == "":
 		return
 	var arquivos := DirAccess.get_files_at(pasta)
-	# o kit (H04): na linha do tempo, os quatro julgamentos do minigame de
-	# prova, e todo minigame que terminou tem vencedor
 	var julgamentos := {}
 	var sem_vencedor: Array = []
 	var terminados := 0
 	for f in arquivos:
 		if not (f.begins_with("linha-do-tempo-") and f.ends_with(".jsonl")):
 			continue
-		var comecou := {}  # slot -> a fase jogo começou (o `minigame` `comecou`)
+		var comecou := {}
 		for linha in FileAccess.get_file_as_string(pasta.path_join(f)).split("\n", false):
 			var ev = JSON.parse_string(linha)
 			if not ev is Dictionary:
@@ -1030,7 +938,6 @@ func _prova_do_relatorio() -> void:
 				julgamentos[ev.get("julgamento", "?")] = true
 			if ev.get("tipo", "") == "minigame" and ev.get("evento", "") == "comecou":
 				comecou[str(ev.get("slot", ""))] = true
-			# a sala fechada ainda no aviso (a prova do motor) não jogou: só conta quem começou
 			if ev.get("tipo", "") == "minigame" and ev.get("evento", "") == "terminou" and comecou.get(str(ev.get("slot", "")), false):
 				comecou.erase(str(ev.get("slot", "")))
 				terminados += 1
@@ -1039,7 +946,6 @@ func _prova_do_relatorio() -> void:
 	_esperar(julgamentos.has("perfeito") and julgamentos.has("otimo") and julgamentos.has("bom") and julgamentos.has("erro"),
 		"registro: os quatro julgamentos do minigame de prova (%s)" % [julgamentos.keys()])
 	_esperar(terminados >= 2 and sem_vencedor.is_empty(), "registro: %d minigames terminaram, todos com vencedor (%s)" % [terminados, sem_vencedor])
-	# o registro v2 do ritmo: os toques da prova das janelas (n 900 e 901)
 	var julgado := {}
 	var perdido := {}
 	var ruins: Array = []
@@ -1073,8 +979,6 @@ func _prova_do_relatorio() -> void:
 		"registro: a nota perdida, sem desvio (%s)" % [perdido])
 	_esperar(calibracoes.any(func(ev): return int(ev.get("desvio_ms", 0)) == 80 and ev.get("transporte", "") == "simulado"),
 		"registro: a calibração de +80 ms, com o transporte do controle")
-	# o som em todo evento (H07): cada lugar recebeu sons no controle, com a
-	# placa (a virtual, nos simulados), o pio na entrada e a nota do perfeito
 	var sons := [0, 0, 0, 0]
 	var pios := 0
 	var notas := 0
@@ -1094,9 +998,7 @@ func _prova_do_relatorio() -> void:
 			pios += 1 if str(ev.get("som", "")).begins_with("pio:") else 0
 			notas += 1 if str(ev.get("som", "")) == "nota:0" else 0
 			materiais += 1 if str(ev.get("som", "")).begins_with("material:") else 0
-			# o P4 do minigame de prova nunca aperta: a nota dele quebra, no controle dele
 			quebradas += 1 if l == 3 and str(ev.get("som", "")) == "nota_quebrada:3" else 0
-			# o P2 andou nas opções: o clique baixinho (0,5) só no controle dele
 			cliques += 1 if l == 1 and str(ev.get("som", "")) == "clique" and is_equal_approx(float(ev.get("ganho", 0.0)), 0.5) else 0
 	_esperar(sons.all(func(n): return n > 0), "registro: cada controle recebeu som, com a placa (%s)" % [sons])
 	_esperar(pios >= 4 and notas >= 1, "registro: o pio de cada um e a nota do perfeito (%d pios, %d notas)" % [pios, notas])
@@ -1127,7 +1029,6 @@ func _prova_do_relatorio() -> void:
 		return
 	var dados = JSON.parse_string(FileAccess.get_file_as_string(pasta.path_join(json)))
 	_esperar(dados is Dictionary, "o JSON se lê")
-	# nenhum endereço de aparelho e nenhum caminho da máquina dentro dos arquivos
 	var mac := RegEx.create_from_string("(?i)\\b([0-9a-f]{2}:){5}[0-9a-f]{2}\\b")
 	for f in arquivos:
 		var texto := FileAccess.get_file_as_string(pasta.path_join(f))
@@ -1159,8 +1060,6 @@ func _prova_a_lista() -> void:
 	af.free()
 
 
-## Com o pactl de mentira (tests/prova_do_jogo.sh), o forja-speak --list acha
-## — ou não acha — o alto-falante pelo nome que o sistema publica.
 func _prova_o_alto_falante_do_sistema() -> void:
 	var esperado := OS.get_environment("ESPERADO")
 	if esperado == "":
@@ -1173,8 +1072,6 @@ func _prova_o_alto_falante_do_sistema() -> void:
 	af.free()
 
 
-## As contas da partida, sem abrir sala: o roteiro, a colocação com empate e o
-## pódio com o desempate pelas salas vencidas.
 func _prova_das_contas_da_partida() -> void:
 	var ordem: Array = jogo.ORDEM_DO_FOGO
 	_esperar(Partida.roteiro(3, false, 7, ordem) == ["centelha", "galeria", "prova"], "partida: três salas na ordem")
@@ -1199,8 +1096,6 @@ func _prova_das_contas_da_partida() -> void:
 	var e := p.registrar("centelha", [300, 100, 300, 0], [0, 1, 2, 3])
 	_esperar(e.ganhos == [4, 2, 4, 1], "partida: 1º 4, 3º 2, 4º 1, e o empate em primeiro dá 4 aos dois")
 	p.registrar("galeria", [0, 10, 20, 30], [0, 1, 2, 3])
-	# P1 4+1=5, P2 2+2=4, P3 4+3=7, P4 1+4=5: P3 primeiro; P1 e P4 empatam em 5
-	# e numa sala vencida cada: a última sala desempata (P4 1º, P1 4º)
 	var podio := p.podio([0, 1, 2, 3])
 	_esperar(int(podio[0].lugar) == 2 and int(podio[0].degrau) == 1, "partida: P3 no topo do pódio")
 	_esperar(int(podio[1].lugar) == 3 and int(podio[2].lugar) == 0 and str(podio[1].criterio) == "a última sala",
@@ -1210,8 +1105,6 @@ func _prova_das_contas_da_partida() -> void:
 		degraus[int(item.degrau)] = true
 	_esperar(degraus.size() == 4, "partida: nenhum degrau dividido — alguém sempre ganha")
 	_esperar(Placar.frase_do_vencedor(podio) == "P3 venceu a noite", "partida: a frase do pódio")
-	# o empate total (mesmos pontos, nenhuma sala vencida a mais, as mesmas
-	# colocações): o sorteio da semente decide, e decide igual sempre
 	var q := Partida.nova(3, false, 7, ordem)
 	q.registrar("centelha", [10, 10, 10, 10], [0, 1, 2, 3])
 	var pq := q.podio([0, 1, 2, 3])
@@ -1222,8 +1115,6 @@ func _prova_das_contas_da_partida() -> void:
 	_esperar(p.acabou(), "partida: acabou depois da terceira sala")
 
 
-## A partida jogada: três salas, o placar entre elas (o robô aperta ✕), o
-## pódio no salão e ○ de volta ao salão.
 func _prova_da_partida() -> void:
 	jogo._comecar_a_partida(3, false, false)
 	await _quadros(3)
@@ -1251,7 +1142,6 @@ func _prova_da_partida() -> void:
 			await _quadros(2)
 			q += 2
 		_esperar(jogo.overlay == "placar" and jogo.partida.historico.size() == i + 1, "partida: o placar depois d%s" % Placar._contracao(sala.nome))
-		# a partida fala pelo apelido (H04): o slot do minigame não chega ao placar
 		_esperar(not jogo.partida.historico.is_empty() and str(jogo.partida.historico[-1].sala) == ids[i],
 			"partida: o placar guarda a sala pelo apelido (%s)" % [jogo.partida.historico[-1].sala if not jogo.partida.historico.is_empty() else "-"])
 	var q := 0
@@ -1259,7 +1149,6 @@ func _prova_da_partida() -> void:
 		await _quadros(2)
 		q += 2
 	_esperar(jogo.estado == "podio" and jogo.placar.visible and jogo.placar.no_podio, "partida: o pódio no fim")
-	# P2 venceu as três: 12; P3 e P4 empatam em 7 e dividem o 2º; P1 fica com 5
 	var lista: Array = jogo.partida.podio(jogo.partida.presentes())
 	_esperar(int(lista[0].lugar) == 1 and int(lista[0].total) == 12, "partida: P2 venceu a noite com 12 (%s)" % [lista])
 	_esperar(Placar.frase_do_vencedor(lista) == "P2 venceu a noite", "partida: a frase diz quem venceu")
@@ -1277,12 +1166,10 @@ func _prova_da_partida() -> void:
 	await _prova_da_colecao_no_salao()
 
 
-## O salão depois da partida (G06): o portão aceso, o contador, a vitrine, a dica presa e os sons do ✕.
 func _prova_da_colecao_no_salao() -> void:
 	await _quadros(4)
 	_esperar(Colecao.vencidos.has("centelha"), "coleção: A Centelha foi vencida nesta noite")
 	_esperar(jogo.salao.portao_aceso("centelha"), "o portão d'A Centelha acendeu")
-	# o robô já venceu os outros portões no percurso: tira o d'A Voz da noite para ver um apagado
 	var voz_antes = Colecao.vencidos.get("voz", null)
 	Colecao.vencidos.erase("voz")
 	jogo.salao.mostrar_colecao()
@@ -1304,7 +1191,6 @@ func _prova_da_colecao_no_salao() -> void:
 	var de := maxi(0, Colecao.trofeus.size() - 18)
 	_esperar(primeiro >= de and jogo.salao.cor_do_trofeu(primeiro - de).is_equal_approx(Tema.JOGADOR[dono]), "a taça tem a cor de quem venceu")
 	_esperar(ForjaPlayer.acabamentos_disponiveis().has(3), "a construção oferece o Dourado")
-	# a dica presa e o som do ✕, sem entrar
 	jogo.jogadores[0].global_position = jogo.salao.saida_do_portao("centelha", 0)
 	await _quadros(3)
 	_esperar(jogo.hud.dica_presa.get("lugar", -1) == 0, "perto do portão, a dica presa ao P1")
@@ -1312,8 +1198,7 @@ func _prova_da_colecao_no_salao() -> void:
 	_esperar(jogo.hud.retangulos().all(func(r): return tela.encloses(r)), "o contador, os chips e a dica presa cabem na tela")
 	var linhas_da_dica: Array = jogo.hud.dica_presa.get("linhas", [])
 	_esperar(not linhas_da_dica.is_empty() and str(linhas_da_dica[0][1]) == "Tocar a faixa", "a dica presa diz «Tocar a faixa» (%s)" % [linhas_da_dica])
-	# o ✕ pelo controle simulado, no portão: o alto-falante do P1 cala antes, soa depois, e a sala abre
-	var t_parede := Time.get_ticks_msec()   # o som de 90 ms anda em tempo de parede; o jogo, sem janela, anda mais depressa
+	var t_parede := Time.get_ticks_msec()
 	while Time.get_ticks_msec() - t_parede < 600 and float(Forja.som_virtual(0).get("falante", 0.0)) > 0.0:
 		await _quadros(1)
 	var calado := float(Forja.som_virtual(0).get("falante", 0.0)) == 0.0
@@ -1336,20 +1221,19 @@ func _prova_da_colecao_no_salao() -> void:
 		q += 1
 	_esperar(jogo.estado == "sala" and jogo.sala_id == "centelha", "o ✕ no portão aberto entra na sala (%s)" % jogo.estado)
 	q = 0
-	while jogo._trocando and q < 120:   # a cortina termina de abrir
+	while jogo._trocando and q < 120:
 		await _quadros(1)
 		q += 1
 	jogo._ir_para_o_salao(false)
 	await _quadros(3)
 	_esperar(jogo.estado == "salao", "de volta ao salão sem jogar a sala")
-	for l in range(1, jogo.jogadores.size()):   # a volta põe todos na boca do portão: os outros voltam para onde estavam
+	for l in range(1, jogo.jogadores.size()):
 		jogo.jogadores[l].global_position = onde_estavam[l]
 	jogo.jogadores[0].global_position = Vector3(-3.0, 0.05, 3.2)
 	await _quadros(3)
 	_esperar(jogo.hud.dica_presa.is_empty(), "longe do portão, nenhuma dica")
 
 
-## As contas da coleção, sem sala (G06).
 func _prova_das_contas_da_colecao() -> void:
 	var antes := [Colecao.vencidos.duplicate(), Colecao.recordes.duplicate(), Colecao.trofeus.duplicate(), Colecao.desbloqueados.duplicate()]
 	Colecao.zerar()
@@ -1367,7 +1251,6 @@ func _prova_das_contas_da_colecao() -> void:
 	Colecao.registrar("caminhos", [1, 1, 1, 1], [0, 1, 2, 3], true, true)
 	_esperar(Colecao.desbloqueado("Néon"), "coleção: o coop sem erro desbloqueia o Néon")
 	_esperar(Colecao.registrar("caminhos", [1, 1, 1, 1], [0, 1, 2, 3], true, false).desbloqueou == [], "coleção: nada se ganha duas vezes")
-	# o arquivo: outra noite começa vazia e a mais velha se apaga
 	var arq := "user://prova_colecao.cfg"
 	var noite_antes := Colecao.noite
 	Colecao.noite = "2026-10-01"
@@ -1386,7 +1269,7 @@ func _prova_das_contas_da_colecao() -> void:
 	cfg.load(arq)
 	_esperar(cfg.get_sections().size() <= Colecao.NOITES_GUARDADAS and not cfg.has_section("2026-10-01"), "coleção: o arquivo guarda só as %d noites mais novas (%d)" % [Colecao.NOITES_GUARDADAS, cfg.get_sections().size()])
 	DirAccess.remove_absolute(ProjectSettings.globalize_path(arq))
-	Colecao.gravar(true, arq)   # o robô não grava
+	Colecao.gravar(true, arq)
 	_esperar(not FileAccess.file_exists(arq), "coleção: com o robô nada se grava")
 	Colecao.noite = noite_antes
 	for a in ForjaPlayer.ACABAMENTOS:
@@ -1398,15 +1281,8 @@ func _prova_das_contas_da_colecao() -> void:
 	Colecao.desbloqueados = antes[3]
 
 
-## O relógio (H01): a volta do laço (a conta pura), o relógio do sistema sem
-## faixa e o da placa com a trilha sintetizada. Espera pelo relógio de
-## parede: com --fixed-fps 60 sem janela, o jogo anda mais depressa que ele.
 func _prova_do_relogio() -> void:
-	# na sessão acelerada o relógio do ritmo é o tempo do jogo (a WE02): esta prova mede o
-	# relógio de verdade (a placa e o sistema), e desliga o tempo do jogo enquanto mede
 	Ritmo.pelo_relogio_de_verdade = true
-	# o primeiro quadro da cena leva de 0,3 s a 10 s de parede (o disco, a máquina): a
-	# medida começa depois dele, senão ele entra na conta dos 0,8 s (a WE02)
 	await _quadros(3)
 	var r := Ritmo.posicao_continua(0.2, 17.6, 0, 17.8)
 	_esperar(int(r[1]) == 1 and absf(float(r[0]) - 18.0) < 0.0001, "relógio: a volta do laço soma a duração (%s)" % [r])
@@ -1444,12 +1320,10 @@ func _medir_o_relogio(slot: String, segundos: float, rotulo: String, pela_placa:
 	_esperar(batida_certa, "relógio %s: a batida é (t_musica − primeiro tempo) × bpm / 60" % rotulo)
 	_esperar(andou > segundos * 0.7 and andou < segundos * 1.3,
 		"relógio %s: andou %.3f s em %.1f s de relógio" % [rotulo, andou, segundos])
-	var tempos := int(floor(andou * float(mapa.bpm) / 60.0)) + 1  # o tempo 0 também conta
+	var tempos := int(floor(andou * float(mapa.bpm) / 60.0)) + 1
 	_esperar(absi(sinais[0] - tempos) <= 1, "relógio %s: um sinal por tempo (%d sinais, %d tempos)" % [rotulo, sinais[0], tempos])
 
 
-## A calibração (H03): o desvio do lugar vale no julgamento, a linha Tempo
-## das opções anda de 10 em 10 e para nas bordas. Devolve tudo como achou.
 func _prova_da_calibracao() -> void:
 	var guardado: Array = Opcoes.tempo_ms.duplicate()
 	Ritmo.definir_desvio(2, 0.080, "opcoes")
@@ -1476,7 +1350,6 @@ func _prova_da_calibracao() -> void:
 		Ritmo.definir_desvio(1, -0.150, "opcoes")
 		tela.trocar(-1)
 		_esperar(Opcoes.tempo_ms[1] == Opcoes.TEMPO_MIN, "calibração: para em %d ms" % Opcoes.TEMPO_MIN)
-		# o metrônomo: ✕ 30 ms depois do tique ouvido e ✕ 70 ms antes do próximo, já corrigidos pelo tempo do lugar
 		Ritmo.definir_desvio(1, 0.020, "opcoes")
 		tela._toques = []
 		tela._ouvido_us = Time.get_ticks_usec() - 30000
@@ -1492,7 +1365,6 @@ func _prova_da_calibracao() -> void:
 		for k in 9:
 			tela.tocou()
 		_esperar(tela._toques.size() == 8, "calibração: a régua guarda os últimos 8 toques")
-		# o tique: um por batida, só no começo dela; a batida achada tarde passa calada
 		var per := tela._periodo_us()
 		tela._metronomo_us = 0
 		tela._batida_tocada = -1
@@ -1502,11 +1374,9 @@ func _prova_da_calibracao() -> void:
 		var t4 := tela._tique(4 * per + 5000)
 		_esperar(t1 and not t2 and not t3 and t4,
 			"calibração: o tique soa uma vez por batida e nunca fora dela (%s %s %s %s)" % [t1, t2, t3, t4])
-		# o ✕ se mede contra o tique que se ouve: o som sai depois da latência de saída, como no Ritmo
 		tela._latencia = 0.030
 		_esperar(tela._ate_o_ouvido_us() >= 30000, "calibração: o tique ouvido conta a latência de saída (%d µs)" % tela._ate_o_ouvido_us())
 	tela.free()
-	# o tempo sobrevive a fechar e abrir (num arquivo da prova, nunca o da pessoa); e o que passa da borda volta para ela
 	var arquivo := "user://opcoes-da-prova-h03.cfg"
 	Opcoes.tempo_ms = [-150, 0, 80, 250]
 	Opcoes.gravar(false, arquivo)
@@ -1520,7 +1390,6 @@ func _prova_da_calibracao() -> void:
 	Opcoes.ler(arquivo)
 	_esperar(Opcoes.tempo_ms[0] == Opcoes.TEMPO_MAX and Opcoes.tempo_ms[1] == Opcoes.TEMPO_MIN, "calibração: um arquivo fora da régua volta para as bordas (%s)" % [Opcoes.tempo_ms])
 	DirAccess.remove_absolute(ProjectSettings.globalize_path(arquivo))
-	# o Ritmo começa com o que as opções guardam
 	Opcoes.tempo_ms = [0, 30, 0, -20]
 	Ritmo.ler_das_opcoes()
 	_esperar(is_equal_approx(Ritmo.desvio[1], 0.030) and is_equal_approx(Ritmo.desvio[3], -0.020) and Ritmo.desvio[0] == 0.0,
@@ -1529,9 +1398,6 @@ func _prova_da_calibracao() -> void:
 		Ritmo.definir_desvio(l, int(guardado[l]) / 1000.0, "opcoes")
 
 
-## O Tempo pelas opções de verdade (H03): ▼ chega à linha Tempo, ▶ soma 10 ms,
-## o ✕ de quem abriu deixa um ponto na régua e o de outro lugar não. Devolve
-## tudo como achou.
 func _prova_do_tempo_nas_opcoes() -> void:
 	var antes := int(Opcoes.tempo_ms[1])
 	jogo._abrir_overlay("opcoes", 1)
@@ -1552,8 +1418,6 @@ func _prova_do_tempo_nas_opcoes() -> void:
 	_esperar(int(Opcoes.tempo_ms[1]) == antes and jogo.estado == "lobby", "opções: fechadas, o tempo volta ao que era e o lobby segue")
 
 
-## As janelas (H02): as bordas de cada julgamento, a folga de quem está
-## atrás, o desvio do lugar e a partitura mais simples. Pura: sem sala.
 func _prova_das_janelas() -> void:
 	var guardado: Array = Ritmo.desvio.duplicate()
 	Ritmo.desvio = [0.0, 0.0, 0.0, 0.0]
@@ -1561,7 +1425,6 @@ func _prova_das_janelas() -> void:
 	var O := Ritmo.OTIMO
 	var B := Ritmo.BOM
 	var E := Ritmo.ERRO
-	# [desvio do toque em s, folga, julgamento esperado]; o alvo em 10 s (o float de verdade)
 	var casos := [
 		[0.0, 0.0, P], [-0.040, 0.0, P], [0.060, 0.0, P],
 		[-0.041, 0.0, O], [0.061, 0.0, O], [-0.090, 0.0, O], [0.090, 0.0, O],
@@ -1574,19 +1437,16 @@ func _prova_das_janelas() -> void:
 		var j := Ritmo.julgar(0, 10.0 + float(c[0]), 10.0, float(c[1]))
 		_esperar(j == int(c[2]), "janela: %+.0f ms (folga %.0f) → %s (deu %s)" % [
 			float(c[0]) * 1000.0, float(c[1]) * 1000.0, Ritmo.NOMES_DO_JULGAMENTO[int(c[2])], Ritmo.NOMES_DO_JULGAMENTO[j]])
-	# o desvio do lugar sai do toque: +80 ms de calibração, 80 ms atrasado é perfeito
 	Ritmo.desvio[2] = 0.080
 	_esperar(Ritmo.julgar(2, 10.080, 10.0) == P, "janela: com +80 ms de desvio, 80 ms atrasado é perfeito")
 	_esperar(Ritmo.julgar(2, 10.0, 10.0) == O, "janela: com +80 ms de desvio, o toque em cima é −80 ms (ótimo)")
 	_esperar(Ritmo.julgar(1, 10.080, 10.0) == O, "janela: o desvio de um lugar não mexe no outro")
 	_esperar(is_equal_approx(Ritmo.desvio_ms(2, 10.1, 10.0), 20.0), "janela: o desvio_ms já vem corrigido")
-	# a folga de quem está atrás: só o último, sozinho
 	_esperar(Ritmo.folga_para(3, [30, 20, 10, 0], [0, 1, 2, 3]) == Ritmo.FOLGA_DO_ULTIMO, "ajuda: o último sozinho ganha a folga")
 	_esperar(Ritmo.folga_para(2, [30, 20, 10, 0], [0, 1, 2, 3]) == 0.0, "ajuda: o penúltimo não")
 	_esperar(Ritmo.folga_para(3, [30, 0, 10, 0], [0, 1, 2, 3]) == 0.0, "ajuda: empate em último não")
 	_esperar(Ritmo.folga_para(2, [30, 20, 10, 0], [0, 1, 2]) == Ritmo.FOLGA_DO_ULTIMO, "ajuda: só conta quem está presente")
 	_esperar(Ritmo.folga_para(0, [0, 0, 0, 0], [0]) == 0.0, "ajuda: sozinho na sala, ninguém está atrás")
-	# a partitura mais simples: três erros ligam, quatro acertos desligam
 	Ritmo.zerar_ajuda()
 	for k in 2:
 		Ritmo.contar_para_ajuda(1, E)
@@ -1599,15 +1459,11 @@ func _prova_das_janelas() -> void:
 	Ritmo.contar_para_ajuda(1, P)
 	_esperar(not Ritmo.simples[1], "ajuda: o quarto acerto seguido devolve a partitura")
 	Ritmo.zerar_ajuda()
-	# o registro: um toque julgado e um perdido (a prova do relatório os procura)
 	Ritmo.registrar_toque(0, 900, P, Ritmo.desvio_ms(0, 10.012, 10.0))
 	Ritmo.registrar_toque(0, 901, E)
 	Ritmo.desvio = guardado
 
 
-## As faixas (H05): o caminho de cada tipo, o mapa lido do JSON, e cada faixa
-## de exemplo — sem ela, a trilha sintetizada; com ela e o mapa conferido, a
-## gerada, com o laço do tipo dela. Pura (não toca nada).
 func _prova_das_faixas() -> void:
 	_esperar(Musica.caminho("MUS_S01_J01") == "res://assets/ost/S01/MUS_S01_J01.ogg", "faixas: o caminho de uma faixa de minigame")
 	_esperar(Musica.caminho("MUS_TELA_SALAO") == "res://assets/ost/telas/MUS_TELA_SALAO.ogg", "faixas: o caminho de uma tela")
@@ -1621,7 +1477,6 @@ func _prova_das_faixas() -> void:
 	_esperar(AudioServer.get_mix_rate() == 48000.0, "faixas: a mistura a 48 kHz (%d)" % AudioServer.get_mix_rate())
 	for slot: String in ["MUS_S01_J01", "MUS_S02_J06", "MUS_TELA_SALAO"]:
 		if not ResourceLoader.exists(Musica.caminho(slot)):
-			# sem a faixa na pasta (a nuvem nunca tem), a sintetizada da seção
 			if slot.begins_with("MUS_S"):
 				_esperar(Musica.mapa_gerado(slot).is_empty() and bool(Musica.mapa(slot).get("sintetizada", false)) == Forja.modulo,
 					"faixas: sem a faixa %s, a trilha sintetizada" % slot)
@@ -1635,7 +1490,6 @@ func _prova_das_faixas() -> void:
 			"faixas: %s com o laço do tipo dela (volta: %s)" % [slot, volta])
 
 
-## A sala está num estado de pergunta às cegas, ou desenha uma? Só a bancada deixa.
 func _em_pergunta(sala) -> bool:
 	for l in 4:
 		if not sala.pergunta(l).is_empty():
@@ -1660,7 +1514,6 @@ func _em_pergunta(sala) -> bool:
 	return false
 
 
-## As linhas da linha do tempo desta sessão, na ordem (as fichas seguintes usam também).
 func _linha_do_tempo() -> Array:
 	var linhas: Array = []
 	if pasta == "":
@@ -1684,8 +1537,6 @@ func _scripts(pasta: String) -> Array:
 	return lista
 
 
-## Toda vibração passa pela tabela de sensações (13): Forja.vibrar só no forja.gd,
-## e nenhum outro dono do motor (o start_joy_vibration do Godot, o ctl.intensidade).
 func _prova_das_sensacoes() -> void:
 	var achados: Array = []
 	for arq in _scripts("res://scripts"):
@@ -1694,7 +1545,6 @@ func _prova_das_sensacoes() -> void:
 			n += 1
 			var codigo: String = linha.split("#")[0]
 			var vibra_fora: bool = (codigo.contains("Forja.vibrar(") or codigo.contains("ctl.vibrar(")) and not arq.ends_with("/forja.gd")
-			# a força solta (F10) é exceção declarada: só o experimento `forca` da bancada a pede
 			var forca_fora: bool = codigo.contains("sentir_forca(") and not arq.ends_with("/forja.gd") and not arq.ends_with("/bancada.gd")
 			if vibra_fora or forca_fora or codigo.contains("start_joy_vibration") or codigo.contains(".intensidade("):
 				achados.append("%s:%d" % [arq.get_file(), n])
@@ -1703,7 +1553,6 @@ func _prova_das_sensacoes() -> void:
 		"erro": [0.7, 0.3, 160], "golpe": [1.0, 0.6, 250], "explosao": [1.0, 1.0, 400], "aviso": [0.6, 0.0, 200]}
 	for nome in piso:
 		_esperar(Forja.SENSACOES.get(nome, []) == piso[nome], "a sensação «%s» é a do piso de 05" % nome)
-	# toda vibração que saiu na sessão é uma sensação da tabela (e as opções de fábrica: escala 1)
 	var permitidos := {}
 	for nome in Forja.SENSACOES:
 		var s: Array = Forja.SENSACOES[nome]
@@ -1725,7 +1574,6 @@ func _prova_das_sensacoes() -> void:
 		"toda conexão registra o firmware e o rumble inteiro ou pela metade")
 
 
-## O motor vence: com o lugar vibrando, a háptica por áudio dele espera.
 func _prova_do_motor_que_vence() -> void:
 	jogo._entrar_na_sala("caminhos", false)
 	await _quadros(2)
@@ -1741,15 +1589,12 @@ func _prova_do_motor_que_vence() -> void:
 		q += 5
 
 
-## O lugar nasce na conexão (F04): a linha do tempo diz que os quatro reservaram P1..P4, na ordem.
 func _prova_da_identidade() -> void:
 	var reservas := _linha_do_tempo().filter(func(e): return e.get("tipo") == "conexao" and e.get("evento") == "reservou")
 	_esperar(reservas.size() >= 4 and reservas.slice(0, 4).map(func(e): return int(e.get("lugar", -1))) == [0, 1, 2, 3],
 		"linha do tempo: os quatro reservaram P1..P4 na conexão, na ordem")
 
 
-## O Modo bancada, pelo registro: a linha do tempo diz o modo, e só na bancada
-## as salas às cegas perguntam.
 func _prova_do_modo() -> void:
 	var linhas := _linha_do_tempo()
 	var modo := linhas.filter(func(e): return e.get("tipo") == "sessao" and e.get("evento") == "modo")
@@ -1761,14 +1606,11 @@ func _prova_do_modo() -> void:
 			_esperar(perguntas.any(func(e): return e.get("sala") == id), "bancada: %s perguntou às cegas" % id)
 	else:
 		_esperar(perguntas.is_empty(), "jogo: nenhuma pergunta sobre o controle (%d)" % perguntas.size())
-	# a linha do tempo tem o tipo `minigame`: cada sala começou e terminou com vencedor
 	var mg := linhas.filter(func(e): return e.get("tipo") == "minigame")
 	for id in ["centelha", "viga", "molde", "impacto", "galeria", "canto", "caminhos", "voz", "prova"]:
 		var c := mg.filter(func(e): return Catalogo.apelido(str(e.get("slot"))) == id and e.get("evento") == "comecou").size()
 		var t := mg.filter(func(e): return Catalogo.apelido(str(e.get("slot"))) == id and e.get("evento") == "terminou" and int(e.get("vencedor", -1)) >= 0).size()
 		_esperar(c >= 1 and t >= 1, "linha do tempo: %s começou e terminou com vencedor" % id)
-		# vencer é fazer ponto: a sala em que ninguém soma (A Voz sem a pergunta,
-		# com o treino engolindo o chamado e o mudo) acaba sempre em zero a zero
 		var somou := mg.any(func(e):
 			var pts = JSON.parse_string(str(e.get("pontos", "[]")))
 			return Catalogo.apelido(str(e.get("slot"))) == id and e.get("evento") == "terminou" and pts is Array \
@@ -1776,9 +1618,7 @@ func _prova_do_modo() -> void:
 		_esperar(somou, "linha do tempo: em %s alguém fez ponto" % id)
 
 
-## O aviso não espera ninguém para sempre: sem ✕ de ninguém, começa em 8 s.
 func _prova_do_aviso_sozinho() -> void:
-	# um robô que simplesmente não aperta: nenhum lugar fica pronto no aviso
 	Forja.robo_confirma = false
 	jogo._entrar_na_sala("centelha", false)
 	await _quadros(2)
@@ -1797,14 +1637,9 @@ func _prova_do_aviso_sozinho() -> void:
 		q += 5
 
 
-## O que nunca aparece na tela do jogador (06, a voz do texto; as regras de ouro).
 const PROIBIDAS := "(?i)\\b(olhe|relatórios?|veredito|módulo|vid|hidraw|uinput|mac|mesa|vibração|giroscópio|acelerômetro|háptica|barra de luz|luzinhas?|alto-falante|gatilhos? adaptativos?|não medido)\\b|saiu d[oa] s(eu|ua)|\\b[0-9a-f]{4}:[0-9a-f]{4}\\b|só a entrada|\\bleds?\\b"
 
 
-## Tudo o que o jogo desenhou até aqui (as telas, as salas e as placas do salão)
-## não fala do controle como prova. A bancada mostra o que o jogador não vê.
-## O nome de um ajuste nas Opções pode dizer a parte do controle, como em todo
-## jogo de console: a régua da F02 vale para as telas do jogo, não para o ajuste.
 const PERMITIDAS_NAS_OPCOES := ["Vibração"]
 
 
@@ -1820,20 +1655,19 @@ func _prova_das_frases() -> void:
 	_esperar(achadas.is_empty(), "jogo: nenhuma frase fala do controle como prova (%s)" % [achadas])
 
 
-## A primeira letra de uma frase de tela é maiúscula; número no começo vale (F07).
 static func _comeca_com_maiuscula(s: String) -> bool:
 	for i in s.length():
 		var c := s.substr(i, 1)
 		if c >= "0" and c <= "9":
 			return true
-		if c.to_upper() != c.to_lower():  # é letra
+		if c.to_upper() != c.to_lower():
 			return c == c.to_upper()
-	return true  # só símbolos
+	return true
 
 
 func _prova_das_maiusculas() -> void:
 	if Forja.bancada:
-		return  # o texto do núcleo (os vereditos) fica como está
+		return
 	var achadas: Array = []
 	for s in Desenho._coletados:
 		if not _comeca_com_maiuscula(str(s)):
@@ -1842,8 +1676,6 @@ func _prova_das_maiusculas() -> void:
 	_esperar(Desenho._coletados.has("Botão"), "as dicas de botão dizem \"Botão\"")
 
 
-## O registro v2 (F06): o relógio de parede, o lugar em toda linha, o seq em toda saída,
-## o transporte na conexão e as listas do GDScript como listas JSON.
 func _prova_do_registro_v2() -> void:
 	var linhas := _linha_do_tempo()
 	_esperar(not linhas.is_empty() and linhas[0].get("formato") == "hefesto-tech-demo/linha-do-tempo/2"
@@ -1857,12 +1689,11 @@ func _prova_do_registro_v2() -> void:
 	for e in linhas:
 		var t := float(e.get("t", -1.0))
 		if e.get("tipo") == "sessao" and e.get("evento") == "relogio":
-			t_antes = t  # a troca para o tempo do jogo (--acelerado, a WE02) começa a conta dele
+			t_antes = t
 		t_ok = t_ok and t >= t_antes
 		t_antes = t
 		if int(e.get("jogador", 0)) > 0:
 			lugar_ok = lugar_ok and int(e.get("lugar", -1)) == int(e.get("jogador")) - 1
-		# o seq é um contador só por lugar: a saída e o som mandado ao controle (H07) saem numa ordem
 		if e.get("tipo") == "saida" or e.get("tipo") == "som_controle":
 			saidas += 1 if e.get("tipo") == "saida" else 0
 			var chave := int(e.get("lugar", -1))
@@ -1871,8 +1702,6 @@ func _prova_do_registro_v2() -> void:
 			seq[chave] = n
 	var processo := Time.get_ticks_msec() / 1000.0
 	if Forja.acelerada():
-		# na sessão acelerada, o t da linha é o tempo do jogo (a WE02), somado pelo módulo num float
-		# (nativo/nucleo/forja.h, o `t`): depois de 1465 s ele já passava 0,5 s do `_agora` do Forja
 		processo = Forja.agora_us() / 1000000.0 * 1.005
 	_esperar(t_ok, "o t nunca anda para trás")
 	_esperar(t_antes <= processo + 0.5, "o t é o relógio de parede (%.1f s na linha, %.1f s de processo)" % [t_antes, processo])
@@ -1886,10 +1715,8 @@ func _prova_do_registro_v2() -> void:
 	var fim := linhas.filter(func(e): return e.get("tipo") == "minigame" and e.get("evento") == "terminou")
 	_esperar(not fim.is_empty() and fim.all(func(e): return e.get("pontos") is Array),
 		"os pontos do minigame são um array JSON de verdade")
-	# nota e toque (o Ritmo) trazem o t_musica deles como campo; a cabeça só o ganha de Forja.t_musica
 	_esperar(not linhas.any(func(e): return e.has("t_musica") and not e.get("tipo") in ["nota", "toque", "momento"]),
 		"sem música informada, nenhuma linha tem t_musica na cabeça")
-	# a sonda: listas de inteiros, de números e de textos, um NaN, e a posição da música
 	Forja.t_musica(12.5)
 	Forja.evento("sonda", 2, {"inteiros": [1, 2, 3], "reais": [0.5, 1.5], "textos": ["a", "b"], "misto": [1, "a"], "nao_numero": NAN})
 	Forja.t_musica(-1.0)
@@ -1905,8 +1732,6 @@ func _prova_do_registro_v2() -> void:
 		_esperar(is_equal_approx(float(a.get("t_musica", -1.0)), 12.5) and int(a.get("lugar", -1)) == 1,
 			"com a música informada a linha leva t_musica, e o lugar vem com o jogador")
 		_esperar(not (sondas[1] as Dictionary).has("t_musica"), "sem a música (-1) a linha volta a não ter t_musica")
-	# a cabeça vence: um campo com o nome de uma chave da cabeça não entra de novo (JSON com chave
-	# repetida quebra leitor estrito, e o Ritmo e a reserva mandam lugar como campo)
 	Forja.t_musica(3.0)
 	Forja.evento("sonda", 3, {"lugar": 9, "jogador": 9, "t_musica": 99.0, "tipo": "outro", "dupla": true})
 	Forja.t_musica(-1.0)
@@ -1926,11 +1751,6 @@ func _prova_do_registro_v2() -> void:
 		"o campo repetido cede à cabeça: lugar 2, jogador 3 e t_musica 3")
 
 
-## A paridade (F08): `Forja.robo` só aparece no gancho do robô. Nenhum script do
-## jogo sabe que é um robô fora de `forja.gd`, de uma linha `if Forja.robo:` (o
-## gancho, que chama o robô da sala ou da tela) e das funções `_robo*`/`robo*`.
-## O resto é atalho: a prova passaria por um caminho que ninguém joga.
-## O único aceito de fora é `Opcoes.gravar(Forja.robo)` (não sujar o opcoes.cfg).
 const ROBO_PERMITIDO_FORA := {"main.gd": ["Opcoes.gravar(Forja.robo)"]}
 
 
@@ -1944,13 +1764,10 @@ func _prova_da_paridade() -> void:
 		var f := FileAccess.open(caminho, FileAccess.READ)
 		achados.append_array(atalhos_do_robo(f.get_as_text(), caminho.get_file()))
 	_esperar(achados.is_empty(), "paridade: nenhum atalho do robô no código do jogo (%s)" % [achados])
-	# a régua morde: um atalho plantado de propósito reprova, o gancho passa
 	var plantado := "func _quadro_aviso() -> void:\n\tif Forja.apertou(0, 0) or (Forja.robo and t_fase > 1.4):\n\t\tpass\n"
 	_esperar(atalhos_do_robo(plantado, "plantado.gd").size() == 1, "paridade: a régua reprova um atalho plantado")
 	var gancho := "func jogar(dt):\n\tif Forja.robo:\n\t\t_robo(dt)\nfunc _robo_do_aviso():\n\tif not Forja.robo:\n\t\treturn\n"
 	_esperar(atalhos_do_robo(gancho, "gancho.gd").is_empty(), "paridade: a régua aceita o gancho e as funções do robô")
-	# o atalho escondido DENTRO do gancho também reprova: o corpo do `if Forja.robo:`
-	# só chama o robô (o fechamento sozinho da bancada era assim)
 	var escondido := "func _process(dt):\n\tif Forja.robo:\n\t\t_te += dt\n\t\tif _te > 2.0:\n\t\t\tget_tree().quit()\n"
 	_esperar(atalhos_do_robo(escondido, "escondido.gd").size() == 2, "paridade: a régua reprova o atalho dentro do gancho (%s)" % [atalhos_do_robo(escondido, "escondido.gd")])
 	var gancho_com_laco := "func jogar(dt):\n\tif Forja.robo:\n\t\tfor p in jogadores:\n\t\t\tvar l: int = p.lugar\n\t\t\tif _conectado(l):\n\t\t\t\t_robo(l, dt)\n\t_jogar(dt)\n"
@@ -1971,14 +1788,13 @@ func _scripts_do_jogo(pasta_res: String) -> Array:
 	return achados
 
 
-## As linhas de um script que usam `Forja.robo` fora do que a paridade aceita.
 static func atalhos_do_robo(texto: String, arquivo: String) -> Array:
 	var r := RegEx.create_from_string("Forja\\.robo(?![\\w])")
 	var funcao := RegEx.create_from_string("^\\s*(?:static\\s+)?func\\s+(\\w+)")
 	var atual := ""
 	var achados: Array = []
 	var n := 0
-	var gancho := -1  ## a indentação do `if Forja.robo:` aberto; -1: fora de um gancho
+	var gancho := -1
 	for linha in texto.split("\n"):
 		n += 1
 		var m := funcao.search(linha)
@@ -1989,7 +1805,7 @@ static func atalhos_do_robo(texto: String, arquivo: String) -> Array:
 			continue
 		var recuo := _recuo(linha)
 		if recuo == 0 and m == null:
-			atual = ""  # uma linha da classe, fora de qualquer função
+			atual = ""
 		if gancho >= 0 and recuo <= gancho:
 			gancho = -1
 		if gancho >= 0 and not atual.begins_with("_robo") and not atual.begins_with("robo") \
@@ -2009,10 +1825,6 @@ static func atalhos_do_robo(texto: String, arquivo: String) -> Array:
 	return achados
 
 
-## O que cabe no corpo do gancho `if Forja.robo:`: percorrer os lugares e chamar
-## o robô (`_robo*`, `robo*`, `Forja.robo_*`), guardar o que o robô sentiu
-## (`_robo...`), ler numa variável local e decidir. Mudar o jogo ali (somar um
-## relógio, fechar a sala, emitir um sinal) é atalho.
 static func _linha_do_gancho(codigo: String) -> bool:
 	for inicio in ["for ", "if ", "elif ", "else:", "while ", "var ", "return", "continue", "break", "pass"]:
 		if codigo.begins_with(inicio):
@@ -2034,7 +1846,6 @@ static func _recuo(linha: String) -> int:
 	return n
 
 
-## A linha sem o comentário `#` (que não esteja dentro de um texto entre aspas).
 static func _sem_comentario(linha: String) -> String:
 	var aspas := ""
 	for i in linha.length():
@@ -2049,8 +1860,6 @@ static func _sem_comentario(linha: String) -> String:
 	return linha
 
 
-## Os jingles (H06): qual toca no resultado, e cada um tem som (com o módulo,
-## a síntese e as gravações da Kenney). Pura: não abre sala.
 func _prova_dos_jingles() -> void:
 	var todos := [0, 1, 2, 3]
 	_esperar(Som.jingle_do_resultado([10, 5, 3, 0], todos, false, false) == "JIN_VITORIA", "jingle: um vencedor, a vitória")
@@ -2064,8 +1873,6 @@ func _prova_dos_jingles() -> void:
 			_esperar(Som.jingle(nome) > 0.0 and Som.ultimo_jingle == nome, "jingle: %s tem som" % nome)
 
 
-## A música que reage (H07): o erro abafa e abre, o perfeito abaixa e volta.
-## Os tweens andam no tempo do jogo: a espera é em quadros.
 func _prova_da_musica_que_reage() -> void:
 	Musica.reagir("erro")
 	_esperar(Musica._passa_baixa.cutoff_hz < 1000.0, "música: o erro abafa (%.0f Hz)" % Musica._passa_baixa.cutoff_hz)
@@ -2081,10 +1888,6 @@ func _prova_da_musica_que_reage() -> void:
 	_esperar(is_equal_approx(AudioServer.get_bus_volume_db(Musica._bus), 0.0), "música: e desce de novo")
 
 
-## Todo som de assets/sons é PCM de 16 bits (compress/mode=0 no .import): o
-## alto-falante do controle recebe `w.data` como PCM16 (Som.no_controle), e um
-## arquivo comprimido sai ali como ruído. O medidor do falante não distingue
-## PCM de dado comprimido; esta conta é a que distingue (G02).
 func _prova_dos_sons_em_pcm() -> void:
 	var dir := DirAccess.open("res://assets/sons")
 	_esperar(dir != null, "sons: a pasta assets/sons abre")
@@ -2102,7 +1905,6 @@ func _prova_dos_sons_em_pcm() -> void:
 	_esperar(vistos > 0, "sons: a pasta tem sons para conferir (%d)" % vistos)
 
 
-## As contas dos seis itens, sem sala (como as da partida), com e sem liga (G03).
 func _prova_das_contas_dos_itens() -> void:
 	var antes: Array = Itens.escolhido.duplicate()
 	var liga_antes: Array = Itens.em_liga.duplicate()
@@ -2144,8 +1946,6 @@ func _prova_das_contas_dos_itens() -> void:
 	Itens.novo_minigame()
 
 
-## A peça se distingue (arte/04): as faixas de L, o croma, a distância até os
-## néons e a área do acento.
 func _prova_da_peca() -> void:
 	for p in jogo.jogadores:
 		var m: Dictionary = Pintura.medianas(p.modelo)
@@ -2165,7 +1965,6 @@ func _prova_da_peca() -> void:
 		var area: float = 2.0 * float(mat.get_shader_parameter("friso_alto")) * p._medidas.largura_torso \
 			+ 2.0 * float(mat.get_shader_parameter("costura_larg")) * p._medidas.altura_perna
 		_esperar(area <= 0.0801 * (p._medidas.frente_cima + p._medidas.frente_baixo), "P%d: o acento em até 8 %% da frente" % (p.lugar + 1))
-		# o aro: o valor que o material leva; sem valor escrito, vale o padrão do shader
 		var aro = mat.get_shader_parameter("aro")
 		_esperar(is_equal_approx(float(aro), 0.25) if aro != null else mat.shader.code.contains("uniform float aro = 0.25;"),
 			"P%d: o aro a 0,25" % (p.lugar + 1))
@@ -2178,7 +1977,6 @@ func _prova_da_peca() -> void:
 		_esperar(is_equal_approx(float(cont.get_shader_parameter("energia")), 1.6), "P%d: o contorno a 1,6 na montagem" % (p.lugar + 1))
 
 
-## O checklist que se confere sem olho: nada liso, nada metálico.
 func _confere_a_arte(raiz: Node, onde: String) -> void:
 	var lisas: Array = []
 	var metalicos: Array = []
@@ -2190,7 +1988,7 @@ func _confere_a_arte(raiz: Node, onde: String) -> void:
 				or (m is CylinderMesh and (m as CylinderMesh).radial_segments > 8):
 			lisas.append(str(raiz.get_path_to(mi)))
 		var mat := mi.material_override
-		if mat is StandardMaterial3D and (mat as StandardMaterial3D).metallic > 0.2001:   # 0,2 em float de 32 bits passa de 0,2
+		if mat is StandardMaterial3D and (mat as StandardMaterial3D).metallic > 0.2001:
 			metalicos.append(str(raiz.get_path_to(mi)))
 	for n in raiz.find_children("*", "CSGCylinder3D", true, false):
 		if (n as CSGCylinder3D).sides > 8:
@@ -2202,36 +2000,33 @@ func _confere_a_arte(raiz: Node, onde: String) -> void:
 	_esperar(metalicos.is_empty(), "%s: nada metálico acima de 0,2 %s" % [onde, metalicos])
 
 
-# ----------------------------------------------------------- o teclado do nome --
-
-## As contas do teclado (G09), sem tela nem controle.
 func _prova_do_teclado() -> void:
 	var t := TecladoDoNome.new()
 	_esperar(t.formatar("DONA BRASA") == "Dona Brasa", "teclado: maiúscula em cada palavra")
 	_esperar(t.formatar("ÁGUA VIVA") == "Água Viva", "teclado: a maiúscula com acento")
 	_esperar("ÁGUA".to_lower() == "água", "teclado: «ÁGUA».to_lower() dá «água»")
 	t.texto = "AGUA"
-	t.cursor = Vector2i(0, 4)   # a tecla ´
+	t.cursor = Vector2i(0, 4)
 	t.escolher()
 	_esperar(t.formatar(t.texto) == "Aguá", "teclado: o agudo acentua a última letra")
 	t.texto = "Z"
-	t.cursor = Vector2i(1, 4)   # a tecla ~
+	t.cursor = Vector2i(1, 4)
 	_esperar(t.escolher() == "" and t.texto == "Z", "teclado: til em letra que não aceita não faz nada")
 	t.texto = "ABCDEF GHIJK"
 	t.cursor = Vector2i(0, 0)
 	_esperar(t.escolher() == "" and t.texto.length() == 12, "teclado: no máximo 12 caracteres")
 	t.texto = ""
-	t.cursor = Vector2i(6, 3)   # o espaço
+	t.cursor = Vector2i(6, 3)
 	t.escolher()
 	_esperar(t.texto == "", "teclado: o espaço não começa o nome")
 	t.texto = "Dona "
 	t.escolher()
 	_esperar(t.texto == "Dona ", "teclado: nunca dois espaços seguidos")
-	t.cursor = Vector2i(1, 0)   # B
+	t.cursor = Vector2i(1, 0)
 	t.escolher()
 	_esperar(t.texto == "Dona B", "teclado: a letra depois do espaço sai maiúscula (%s)" % t.texto)
 	t.texto = "Ana"
-	t.cursor = Vector2i(4, 4)   # Pronto
+	t.cursor = Vector2i(4, 4)
 	t.outros = ["Ana"]
 	_esperar(t.no_pronto() and t.escolher() == "" and not t.pode_gravar(), "teclado: o nome igual ao de outro lugar não fecha")
 	t.outros = ["Bia"]
@@ -2240,13 +2035,11 @@ func _prova_do_teclado() -> void:
 	_esperar(t.escolher() == "", "teclado: com uma letra só, o Pronto está apagado")
 	t.texto = "Dona Brasa"
 	_esperar(t.escolher() == "pronto" and TecladoDoNome.nome_final("DONA BRASA ") == "Dona Brasa", "teclado: o espaço do fim sai ao gravar")
-	# as bordas: não dá a volta; o Pronto é uma tecla de três colunas
 	t.cursor = Vector2i(0, 0)
 	_esperar(not t.mover(Vector2i(-1, 0)) and not t.mover(Vector2i(0, -1)), "teclado: nas bordas o cursor para")
 	t.cursor = Vector2i(6, 4)
 	_esperar(not t.mover(Vector2i(1, 0)) and not t.mover(Vector2i(0, 1)) and t.mover(Vector2i(-1, 0)) and t.cursor == Vector2i(3, 4),
 		"teclado: do Pronto, ◀ vai ao ◯ e ▶ e ▼ param (%s)" % t.cursor)
-	# a repetição do direcional segurado: 0,40 s e depois a cada 0,15 s, em ms de parede
 	t.cursor = Vector2i(0, 0)
 	var andou := 0
 	for ms in range(0, 1000, 10):
@@ -2259,7 +2052,6 @@ func _prova_do_teclado() -> void:
 	_esperar(TecladoDoNome.largura_da_grade() == 400.0, "teclado: a grade cabe na coluna de 432 px")
 	_esperar(TecladoDoNome.altura_da_grade() == 284.0 and TecladoDoNome.CAMPO.position.y == 660.0 and TecladoDoNome.GRADE_Y + 284.0 == 1000.0,
 		"teclado: a faixa vai de y 660 a 1000")
-	# o pior caso de largura, 12 «W», no tamanho de texto de 1,0× e de 1,15×: a letra cabe na tecla, o nome no campo
 	var escala_antes := Tema.escala_texto
 	for escala in [1.0, 1.15]:
 		Tema.escala_texto = escala
@@ -2274,13 +2066,11 @@ func _prova_do_teclado() -> void:
 	Tema.escala_texto = escala_antes
 
 
-## Os quatro escrevem ao mesmo tempo, cada um na sua coluna (G09).
-var _janela_do_teclado := Vector2i.ZERO   ## [de, até) nas linhas da linha do tempo: a fase em que só o P1 apertou
+var _janela_do_teclado := Vector2i.ZERO
 
 
 func _prova_do_teclado_na_mesa() -> void:
 	var l0: TelaLobby = jogo.lobby
-	# a repetição do direcional anda no relógio do jogo aqui: com a máquina carregada, dois quadros podiam passar de 0,40 s
 	l0.relogio_do_teclado = func() -> int: return int(Engine.get_process_frames() * 1000 / 60)
 	var original: String = jogo.jogadores[0].nome
 	await _aperta(0, Forja.BAIXO)
@@ -2292,14 +2082,12 @@ func _prova_do_teclado_na_mesa() -> void:
 		"teclado: R1 na linha Nome abre o teclado do P1, e só o dele")
 	var t: TecladoDoNome = l0.teclados[0]
 	_esperar(t.texto == original, "teclado: abre com o nome de agora no campo (%s)" % t.texto)
-	# ◯ apaga letra a letra; com o campo vazio, fecha e o nome volta ao de antes
 	for i in original.length():
 		await _aperta(0, Forja.CIRCULO)
 	_esperar(l0.teclados[0] != null and t.texto == "", "teclado: ◯ apaga a última letra, uma a uma")
 	await _aperta(0, Forja.CIRCULO)
 	_esperar(l0.teclados[0] == null and jogo.jogadores[0].nome == original,
 		"teclado: ◯ com o campo vazio fecha e o nome volta ao de antes")
-	# escreve «Ed» com o direcional: do Pronto, ▲ quatro vezes e ✕ põe o E; ◀ e ✕ põe o D
 	await _aperta(0, Forja.R1)
 	t = l0.teclados[0]
 	for i in original.length():
@@ -2312,7 +2100,6 @@ func _prova_do_teclado_na_mesa() -> void:
 	await _aperta(0, Forja.CRUZ)
 	_esperar(t.texto == "Ed", "teclado: só a primeira letra da palavra é maiúscula (%s)" % t.texto)
 	_esperar(l0.teclados[1] == null and jogo.jogadores[1].nome != "Ed", "teclado: o P2 não ouviu o teclado do P1")
-	# o único na mesa: o nome do P2 forçado igual ao do campo do P1 não fecha
 	var nome_p2: String = jogo.jogadores[1].nome
 	jogo.jogadores[1].nome = "Ed"
 	await _quadros(2)
@@ -2326,7 +2113,6 @@ func _prova_do_teclado_na_mesa() -> void:
 	_esperar(l0.teclados[0] == null and jogo.jogadores[0].nome == "Ed", "teclado: ✕ no Pronto grava o nome e fecha (%s)" % jogo.jogadores[0].nome)
 	_janela_do_teclado.y = _linha_do_tempo().size()
 	_esperar(l0.nome_escrito[0], "teclado: o nome digitado conta como escrito")
-	# △ sorteia do que ninguém usa e leva o cursor ao Pronto
 	await _aperta(0, Forja.R1)
 	t = l0.teclados[0]
 	await _aperta(0, Forja.TRIANGULO)
@@ -2339,15 +2125,13 @@ func _prova_do_teclado_na_mesa() -> void:
 			break
 		await _aperta(0, Forja.CIRCULO)
 	_esperar(l0.teclados[0] == null, "teclado: ◯ até o campo esvaziar fecha o teclado")
-	jogo.jogadores[0].nome = original   # o robô refaz o nome do P1 pelo teclado, depois
+	jogo.jogadores[0].nome = original
 	l0.nome_escrito[0] = false
 	l0.t_nome_ms[0] = 0
 	l0.linha[0] = TelaLobby.BONECO
-	l0._robo_teclado[0] = 0   # o robô escreve o nome do P1 do começo
+	l0._robo_teclado[0] = 0
 
 
-## O nome e a sensação, na linha do tempo: o P1 escreveu e o toque saiu só na mão dele;
-## o evento do cavaleiro diz o nome e o tempo no teclado.
 func _prova_do_nome_na_linha_do_tempo() -> void:
 	var linhas := _linha_do_tempo()
 	var toques := [0, 0, 0, 0]
@@ -2360,7 +2144,7 @@ func _prova_do_nome_na_linha_do_tempo() -> void:
 	var nomes := {}
 	var escritos := {}
 	for e in linhas:
-		if e.get("tipo") == "cavaleiro" and not escritos.has(int(e.get("lugar", -1))):   # o primeiro de cada lugar: a montagem da noite
+		if e.get("tipo") == "cavaleiro" and not escritos.has(int(e.get("lugar", -1))):
 			nomes[int(e.get("lugar", -1))] = str(e.get("nome", ""))
 			escritos[int(e.get("lugar", -1))] = e
 	var distintos := {}
@@ -2377,7 +2161,6 @@ func _prova_do_nome_na_linha_do_tempo() -> void:
 		"teclado: o momento «nome_escrito» é do lugar que escreveu (%d)" % momentos.size())
 
 
-## O caminho de cada peça da Kenney e a escala por pasta (G10).
 func _prova_do_kit_da_kenney() -> void:
 	_esperar(Kit.caminho("floor") == "res://assets/kenney/mini-dungeon/floor.glb", "kit: sem pasta, o mini-dungeon")
 	_esperar(Kit.caminho("castle-kit/tower-base") == "res://assets/kenney/castle-kit/tower-base.glb", "kit: a pasta antes da barra")
@@ -2403,9 +2186,6 @@ func _prova_do_kit_da_kenney() -> void:
 	_esperar(soltas == 0, "kit: nenhuma peça solta em assets/kenney (%d)" % soltas)
 
 
-## G14: a cor e a letra da Fita. A tabela dos jogadores é uma só (o jogo, a
-## lightbar), as tintas das seções vêm do tema, as duas fontes do app saíram e o
-## boneco não leva o tom do dono (o dono é o contorno e o aro, G15).
 func _prova_da_cor_e_da_letra() -> void:
 	_esperar(Forja.COR_DO_LUGAR == Tema.JOGADOR, "tema: a cor do lugar é a do 02")
 	for l in 4:
@@ -2425,15 +2205,12 @@ func _prova_da_cor_e_da_letra() -> void:
 				corpos += 1
 				var m = mi.get_surface_override_material(s)
 				var base = mi.mesh.surface_get_material(s)
-				# a roupa da G08 é um material de shader que não tinge (o dono só no acento, no contorno e no aro);
-				# o resto leva a cópia do material do kit, com a mesma cor
 				_esperar(m == null or (m is ShaderMaterial and not (m as ShaderMaterial).shader.code.contains("tingir"))
 					or (m is StandardMaterial3D and base is StandardMaterial3D and m.albedo_color == base.albedo_color),
 					"boneco P%d: o corpo sem o tom do dono" % (p.lugar + 1))
 	_esperar(corpos > 0, "boneco: a prova achou o corpo (%d superfícies)" % corpos)
 
 
-## F09b: a letra mínima e a margem segura moram no tema, e o HUD parte delas.
 func _prova_da_letra_e_da_margem() -> void:
 	var antes := Tema.escala_texto
 	Tema.escala_texto = 1.0
@@ -2445,7 +2222,6 @@ func _prova_da_letra_e_da_margem() -> void:
 	Tema.escala_texto = antes
 	_esperar(is_equal_approx(Tema.AREA_SEGURA, 0.05), "tema: a área segura é de 5%")
 	_esperar(Tema.MARGEM_X >= 1920 * Tema.AREA_SEGURA and Tema.MARGEM_Y >= 1080 * Tema.AREA_SEGURA, "tema: as margens cobrem a área segura")
-	# o quadro da sala no HUD acaba antes do primeiro chip de lugar
 	var x_chips := 1920.0 - Tema.MARGEM_X - (HudJogo.LARG_CHIP * 4 + 16.0 * 3)
 	for par in [["O Impacto", "Sinta o golpe e levante o escudo do lado."], ["A Centelha", "Aperte o botão da runa antes do anel fechar."],
 			["Os Caminhos", "Ande no escuro e sinta o caminho."]]:
@@ -2454,7 +2230,6 @@ func _prova_da_letra_e_da_margem() -> void:
 		_esperar(r.end.x <= x_chips - 24.0 + 0.5, "HUD: o quadro de «%s» acaba antes dos chips (%.0f)" % [par[0], r.end.x])
 		_esperar(r.position.x + 28.0 >= Tema.MARGEM_X, "HUD: o texto do quadro de «%s» começa na margem" % par[0])
 		_esperar(r.end.y > 150.0 and r.end.y < 260.0, "HUD: o quadro de «%s» tem altura de quadro (%.0f)" % [par[0], r.end.y])
-	# a ação de toda sala cabe inteira no quadro, também com o texto grande das Opções
 	var antes_q := Tema.escala_texto
 	for esc in [1.0, 1.15]:
 		Tema.escala_texto = esc
@@ -2466,12 +2241,10 @@ func _prova_da_letra_e_da_margem() -> void:
 			_esperar((qs["rect"] as Rect2).end.x <= x_chips - 24.0 + 0.5 and (qs["rect"] as Rect2).end.y < 300.0,
 				"HUD: o quadro de «%s» fica antes dos chips (%.2f×)" % [id, esc])
 	Tema.escala_texto = antes_q
-	# a linha de status cabe no chip: não passa para o texto do chip do lado
 	for linha in ["Brasa · vida 100 · 99 balas", "Maré · vida 100 · 99 balas", "Brasa · derrubado", "Rodada 12 de 12 · 9999 ✓", "Brasa · vida 100 · 99 balas · recarregando a arma agora"]:
 		var dita := HudJogo.linha_do_status(linha)
 		_esperar(Desenho.largura(dita, Tema.archivo(500), Tema.T_SELO) <= HudJogo.LARG_CHIP - 40.0 + 0.5,
 			"HUD: a linha «%s» cabe no chip" % linha)
-	# as dicas e as perguntas na raia não saem da margem, nem com a fila apertada
 	var painel := PainelSala.new()
 	painel.size = Vector2(1920, 1080)
 	for folga in [PainelSala.FOLGA_PILULA, PainelSala.FOLGA_PERGUNTA]:
@@ -2485,16 +2258,12 @@ func _prova_da_letra_e_da_margem() -> void:
 	painel.free()
 
 
-## Cada canal de `a` a menos de 1/255 de `b` (a conta OKLab pode errar um passo num canal).
 func _cor_quase(a: Color, b_hex: String) -> bool:
 	var b := Color(b_hex)
 	return absf(a.r - b.r) <= 1.0 / 255.0 + 0.0001 and absf(a.g - b.g) <= 1.0 / 255.0 + 0.0001 and absf(a.b - b.b) <= 1.0 / 255.0 + 0.0001
 
 
-## G15: a luz de cada seção, o ambiente do jogo, o brilho com dono, o contorno e o anel dos bonecos, a luz de
-## dono e o pós da fita.
 func _prova_da_luz() -> void:
-	# a luz das cinco tintas bate com a tabela do 01
 	var tabela := [
 		[1, "210502", "602016", "ffc99c"], [2, "050d26", "1f346a", "e5d3c6"], [3, "011311", "11413b", "e5d7ad"],
 		[4, "170e00", "493400", "f8d096"], [5, "18081c", "4a2854", "f8ccba"]]
@@ -2511,7 +2280,6 @@ func _prova_da_luz() -> void:
 	var salao_luz := Tema.luz_da_secao(-1)
 	_esperar(salao_luz.nevoa == Tema.VIOLETA_FUNDO and salao_luz.preenchimento == Tema.AMBIENTE_SALAO and salao_luz.chave == Tema.TUNGSTENIO,
 		"luz: o salão é violeta, ambiente do salão e tungstênio")
-	# o ambiente do jogo
 	_esperar(jogo.env.ssao_enabled == false and is_equal_approx(jogo.env.glow_hdr_threshold, 0.82), "luz: sem SSAO, limiar do glow 0,82")
 	jogo._entrar_na_sala("viga", false)
 	await _quadros(3)
@@ -2525,7 +2293,6 @@ func _prova_da_luz() -> void:
 	_esperar(jogo.sala._chaves.size() > 0 and tochas_na_chave == jogo.sala._chaves.size(), "luz: as tochas da viga na chave da seção (%d)" % tochas_na_chave)
 	var sol := jogo.get_node("Sol") as DirectionalLight3D
 	_esperar(sol.light_color == luz_viga.preenchimento, "luz: o sol da cena no preenchimento da seção")
-	# o brilho com dono: o teto de cada um
 	var mm := Tema.emissivo(StandardMaterial3D.new(), 9.0, "mundo")
 	_esperar(is_equal_approx(mm.emission_energy_multiplier, 1.2) and mm.emission == Tema.VIOLETA, "brilho: o mundo para em 1,2 e brilha violeta")
 	var mf := Tema.emissivo(StandardMaterial3D.new(), 9.0, "forja")
@@ -2538,10 +2305,9 @@ func _prova_da_luz() -> void:
 	_esperar(nm.get_shader_parameter("cor") == Tema.JOGADOR[1] and is_equal_approx(nm.get_shader_parameter("energia"), 3.0), "brilho: o néon de um lugar tem a cor dele, no teto")
 	var cm := Tema.contorno(Tema.JOGADOR[0], 0.012, 2.4, 0)
 	_esperar(cm.get_shader_parameter("normal_suave") == true and is_equal_approx(cm.get_shader_parameter("largura"), 0.012), "brilho: o contorno com a normal suave")
-	# o boneco: o anel, o contorno e a luz de dono
 	for p in jogo.jogadores:
 		var l: int = p.lugar
-		var anel: MeshInstance3D = p.aro.get_child(0)   # o anel de 8 lados (Kit.anel_do_dono); as lâmpadas vêm depois
+		var anel: MeshInstance3D = p.aro.get_child(0)
 		_esperar(anel.material_override is ShaderMaterial and anel.material_override.get_shader_parameter("cor") == Tema.JOGADOR[l]
 			and is_equal_approx(anel.material_override.get_shader_parameter("energia"), 1.5), "boneco P%d: o anel no chão é néon do lugar a 1,5" % (l + 1))
 		var com_contorno := 0
@@ -2549,7 +2315,7 @@ func _prova_da_luz() -> void:
 		var quais := []
 		for mi in p.modelo.find_children("*", "MeshInstance3D", true, false):
 			if mi.material_override != null:
-				continue  # o que a sala pendura no boneco (a vara, o martelo) tem o material da sala
+				continue
 			for s in mi.mesh.get_surface_count():
 				var m = mi.get_surface_override_material(s)
 				if m and m.next_pass is ShaderMaterial and m.next_pass.get_shader_parameter("cor") == Tema.JOGADOR[l] \
@@ -2573,7 +2339,6 @@ func _prova_da_luz() -> void:
 	_esperar(p0.luz_de_dono.visible, "boneco: a luz de dono acende com o controle livre")
 	p0.controlavel = false
 	_esperar(not p0.luz_de_dono.visible, "boneco: a luz de dono apaga sem o controle")
-	# o pós da fita
 	_esperar(PosFita.get_child(0).layer == 5 and PosFita.get_child(1).layer == 20, "pós: as duas passadas, na camada 5 e na 20")
 	PosFita.gastar(1)
 	_esperar(is_equal_approx(PosFita.valor("grao"), 0.018) and is_equal_approx(PosFita.valor("vinheta"), 0.38), "pós: a faixa 1 no começo do desgaste")
@@ -2608,7 +2373,6 @@ func _prova_da_luz() -> void:
 		PosFita.rasgo_curto()
 	_esperar(PosFita._rasgos.size() == 3, "pós: no máximo 3 rasgos por segundo (%d)" % PosFita._rasgos.size())
 	await _quadros(14)
-	# a sala gasta a fita pela posição na partida: faixa 1 fora dela, passo + 1 nela
 	jogo._entrar_na_sala("centelha", false)
 	await _quadros(3)
 	_esperar(is_equal_approx(PosFita.valor("grao"), 0.018), "pós: fora da partida, a sala entra na faixa 1")
@@ -2620,9 +2384,6 @@ func _prova_da_luz() -> void:
 	_esperar(is_equal_approx(PosFita.valor("grao"), 0.018 + 0.002 * 8.0), "pós: a nona sala da partida entra na faixa 9 (grão %.3f)" % PosFita.valor("grao"))
 
 
-# ------------------------------------------------------------------ G16: o virar da fita e o conforto --
-
-## As opções novas (G16): o arquivo antigo, as ajudas do Movimento, as Reações, a leitura dos scripts e a lista que desliza.
 func _prova_do_conforto() -> void:
 	var g_gatilho: Array = Opcoes.gatilho.duplicate()
 	var g_vibracao: Array = Opcoes.vibracao.duplicate()
@@ -2658,7 +2419,6 @@ func _prova_do_conforto() -> void:
 	_esperar(not gravado.has_section_key("sessao", "tremor") and gravado.has_section_key("sessao", "movimento") and gravado.has_section_key("sessao", "reacoes"),
 		"opções: o arquivo novo guarda Movimento e Reações e não o tremor")
 	DirAccess.remove_absolute(ProjectSettings.globalize_path(antigo))
-	# o Movimento
 	Opcoes.movimento = 0
 	_esperar(Opcoes.parada(2) == 2 and is_equal_approx(Opcoes.esmagar(1.3), 1.2) and is_equal_approx(Opcoes.esmagar(0.7), 0.8) and Opcoes.confete(22) == 22,
 		"movimento: Inteiro, a parada de 2 quadros, squash até 20 %, o confete inteiro")
@@ -2666,14 +2426,12 @@ func _prova_do_conforto() -> void:
 	_esperar(Opcoes.parada(2) == 0 and is_equal_approx(Opcoes.esmagar(1.3), 1.05) and is_equal_approx(Opcoes.esmagar(0.7), 0.95),
 		"movimento: sem parada, squash até 5 %")
 	_esperar(Opcoes.confete(22) == 6 and Opcoes.confete(1) == 1 and Opcoes.confete(0) == 0, "movimento: o confete a um quarto, arredondado para cima")
-	# as Reações
 	Opcoes.reacoes = 0
 	_esperar(Opcoes.reacao_do_jogador() and Opcoes.reacao_do_jogo(), "reações: todas")
 	Opcoes.reacoes = 1
 	_esperar(not Opcoes.reacao_do_jogador() and Opcoes.reacao_do_jogo(), "reações: só do jogo")
 	Opcoes.reacoes = 2
 	_esperar(not Opcoes.reacao_do_jogador() and not Opcoes.reacao_do_jogo(), "reações: nenhuma")
-	# a partida
 	var p := Partida.new()
 	p.salas = ["prova", "a", "b", "c", "d"]
 	p.passo = 3
@@ -2683,7 +2441,6 @@ func _prova_do_conforto() -> void:
 	p.salas = ["a", "b", "c"]
 	p.passo = 2
 	_esperar(p.metade() == 2 and p.lado() == "B", "partida: a 3ª faixa de 3 é lado B")
-	# a leitura dos scripts
 	var tremor_velho: Array = []
 	var parada_sem_ajuda: Array = []
 	var nome_velho := "Opcoes." + "tremor"
@@ -2701,7 +2458,6 @@ func _prova_do_conforto() -> void:
 		and fonte.contains('estado == "sala" and sala and not Opcoes.reduzido()'), "movimento: o confete, o push-in do título e o tremor da câmera leem o Reduzido")
 	_esperar(tremor_velho.is_empty(), "movimento: nenhum script lê o tremor antigo (%s)" % [tremor_velho])
 	_esperar(parada_sem_ajuda.is_empty(), "movimento: toda parada de quadros passa por Opcoes.parada (%s)" % [parada_sem_ajuda])
-	# a lista que desliza
 	var tela := TelaOpcoes.new()
 	var tela_cheia_pai := Control.new()
 	tela_cheia_pai.size = Vector2(1920, 1080)
@@ -2728,7 +2484,6 @@ func _prova_do_conforto() -> void:
 	tela.navegar(-1)
 	_esperar(tela._linhas[tela.linha][0] == "idioma" and tela._rolar_alvo == maxf(0.0, tela._conteudo() - tela._alto_da_lista()),
 		"opções: de cima para baixo pela borda, o Idioma fica no fim da lista (%.0f)" % tela._rolar_alvo)
-	# o Reduzido salta; o Inteiro anda
 	tela.linha = 0
 	tela._rolar = 0.0
 	tela._rolar_alvo = 0.0
@@ -2743,7 +2498,6 @@ func _prova_do_conforto() -> void:
 	for k in 10:
 		tela.navegar(1)
 	_esperar(tela._rolar < tela._rolar_alvo, "opções: no Inteiro a lista desliza até lá")
-	# as linhas novas trocam e voltam
 	var antes_dos_toques := _linha_do_tempo().size()
 	tela.linha = 5
 	tela.trocar(1)
@@ -2758,7 +2512,6 @@ func _prova_do_conforto() -> void:
 		func(e): return e.get("tipo") == "sensacao" and e.get("nome") == "toque" and int(e.get("jogador", 0)) == tela.quem + 1)
 	_esperar(toques_das_linhas.size() == 3, "opções: ◀ ▶ em Movimento e Reações dão o toque em quem mexeu (%d)" % toques_das_linhas.size())
 	tela_cheia_pai.free()
-	# devolve tudo como achou
 	Opcoes.gatilho = g_gatilho
 	Opcoes.vibracao = g_vibracao
 	Opcoes.tempo_ms = g_tempo
@@ -2772,7 +2525,6 @@ func _prova_do_conforto() -> void:
 	Opcoes.idioma = g_resto[5]
 
 
-## O cassete (G16): a pose em cada tempo do virar, no Inteiro e no Reduzido. Pura.
 func _prova_do_virar_pura() -> void:
 	_esperar(TelaVirar.TOTAL_MS == 4000.0 and TelaVirar.CLUNK_MS == 1380.0, "virar: 4000 ms no total e o clunk em 1380")
 	var p0 := TelaVirar.pose(0.0, false)
@@ -2797,8 +2549,6 @@ func _prova_do_virar_pura() -> void:
 	_esperar(TelaVirar.carreteis("A") == Vector2(0.30, 0.95) and TelaVirar.carreteis("B") == Vector2(0.95, 0.30), "virar: os carretéis trocam de lado com a face")
 
 
-## Uma noite de 5 faixas (centelha, viga, impacto, galeria, prova): a fita vira depois da 3ª, 4000 ms, e para no
-## intervalo até um ✕; o momento, as sensações e a luz do lado B. O ✕ cedo demais não vale.
 func _prova_da_noite_da_fita() -> void:
 	var antes := _linha_do_tempo().size()
 	jogo._comecar_a_partida(5, false, false)
@@ -2829,7 +2579,6 @@ func _prova_da_noite_da_fita() -> void:
 			await _quadros(2)
 			q += 2
 		_esperar(jogo.overlay == "placar" and p.historico.size() == i + 1, "noite: o placar da faixa %d" % (i + 1))
-	# o ✕ do robô no placar da 3ª: a fita vira no próximo compasso; o placar fica até lá
 	var q := 0
 	while jogo.estado != "virar" and q < 900:
 		await _quadros(1)
@@ -2837,7 +2586,6 @@ func _prova_da_noite_da_fita() -> void:
 	_esperar(jogo.estado == "virar" and jogo.tela_virar.visible and jogo.tela_virar.modo == "virar", "noite: depois do placar da 3ª, a fita vira (%d quadros de espera)" % q)
 	for l in 4:
 		_esperar(not jogo.jogadores[l].controlavel, "noite: no virar, o P%d está no pedestal" % (l + 1))
-	# o virar corre sozinho: 4000 ms, sem botão
 	await _aperta(1, Forja.CRUZ)
 	_esperar(jogo.estado == "virar", "noite: o ✕ não pula o virar")
 	var quadros_do_virar := 0
@@ -2848,13 +2596,11 @@ func _prova_da_noite_da_fita() -> void:
 		q += 1
 	_esperar(jogo.estado == "intervalo" and p.virou and p.lado() == "B", "noite: o virar acaba no intervalo, no lado B")
 	_esperar(absf(quadros_do_virar - 240.0) <= 12.0, "noite: o virar dura 4000 ms (%d quadros restantes depois do ✕)" % quadros_do_virar)
-	# o intervalo: o salão na luz do lado B
 	var luz_b := Tema.luz_da_secao(-1, true)
 	_esperar(is_equal_approx(jogo.env.fog_density, luz_b.densidade) and not is_equal_approx(luz_b.densidade, Tema.luz_da_secao(-1, false).densidade),
 		"noite: o intervalo é o salão na luz do lado B (névoa %.4f)" % jogo.env.fog_density)
 	_esperar(jogo.salao.pedestais_no.visible and jogo.tela_virar.modo == "intervalo" and jogo.tela_virar.rotulo == "Partida · sala 4 de 5",
 		"noite: o intervalo mostra os pedestais e «%s»" % jogo.tela_virar.rotulo)
-	# o ✕ cedo demais não vale; depois de 500 ms, sim
 	await _aperta(0, Forja.CRUZ)
 	_esperar(jogo.estado == "intervalo" and not jogo._trocando, "noite: o ✕ nos primeiros 500 ms do intervalo não vale")
 	await _quadros(40)
@@ -2867,7 +2613,6 @@ func _prova_da_noite_da_fita() -> void:
 	await _quadros(3)
 	_esperar(is_equal_approx(jogo.env.fog_density, Tema.luz_da_secao(jogo.sala.numero(), true).densidade), "noite: a 4ª faixa acende no lado B")
 	_esperar(is_equal_approx(PosFita.valor("grao"), 0.018 + 0.002 * 3.0) or PosFita.valor("grao") > 0.018, "noite: a 4ª faixa gasta a fita (grão %.3f)" % PosFita.valor("grao"))
-	# a linha do tempo conta a história
 	var linhas := _linha_do_tempo().slice(antes)
 	var virou := linhas.filter(func(e): return e.get("tipo") == "sala" and e.get("o") == "virou")
 	var intervalos := linhas.filter(func(e): return e.get("tipo") == "sala" and e.get("o") == "intervalo")
@@ -2884,19 +2629,16 @@ func _prova_da_noite_da_fita() -> void:
 	var toques := depois.filter(func(e): return e.get("tipo") == "sensacao" and e.get("nome") == "toque")
 	_esperar(toques.size() >= 1 and toques.all(func(e): return int(e.get("jogador", 0)) == 1),
 		"noite: o toque do ✕ do intervalo só no P1, quem apertou (%s)" % [toques])
-	# fecha a noite sem jogar as faixas que sobram
 	jogo._ir_para_o_salao(false)
 	await _quadros(5)
 
 
-## As contas da câmera e da lente, com uma câmera de verdade (35 mm, 16:9) (G05).
 func _prova_das_contas_da_camera() -> void:
 	_esperar(absf(Lente.fov(35.0) - 37.85) < 0.01, "a lente de 35 mm é 37,8° (%.2f)" % Lente.fov(35.0))
 	_esperar(absf(Lente.fov(28.0) - 46.4) < 0.1 and absf(Lente.fov(50.0) - 27.0) < 0.1, "28 mm é 46,4° e 50 mm é 27,0°")
 	_esperar(absf(Lente.fov(Lente.PADRAO) - 40.0) < 0.01, "o padrão continua 40°")
 	_esperar(absf(Lente.recuo(35.0) - 1.0616) < 0.001 and absf(Lente.recuo(50.0) - 1.5165) < 0.001 and absf(Lente.recuo(28.0) - 0.8493) < 0.001,
 		"a fixa recua 6,16 % a 35 mm, 51,65 % a 50 mm e 85 % a 28 mm")
-	# a lente de cada modo e os limites de 24 a 100 mm
 	var s := Sala.new()
 	var por_modo := {}
 	for modo in ["fixa", "dupla", "grupo", "corrida"]:
@@ -2909,7 +2651,6 @@ func _prova_das_contas_da_camera() -> void:
 	var alta := s.lente()
 	s.camera_lente = 85.0
 	_esperar(baixa == 24.0 and alta == 100.0 and s.lente() == 85.0, "a lente da ficha vale, entre 24 e 100 mm (%.0f, %.0f, %.0f)" % [baixa, alta, s.lente()])
-	# o tremor: três degraus, em batidas, e o maior não é trocado por um menor
 	var bat := 60.0 / (Ritmo.bpm if Ritmo.bpm > 0.0 else 120.0)
 	var degraus := []
 	for amp in [Sala.TREMOR_GOLPE, Sala.TREMOR_ESTRONDO, Sala.TREMOR_EXPLOSAO, Sala.TREMOR_CATASTROFE, 0.03, 0.06, 1.0]:
@@ -2918,7 +2659,6 @@ func _prova_das_contas_da_camera() -> void:
 		degraus.append([roundi(s.abalo * 1000.0), roundi(s._abalo_dura / bat)])
 	_esperar(degraus == [[20, 1], [50, 2], [50, 2], [80, 4], [30, 2], [60, 4], [80, 4]],
 		"tremer: golpe 1 batida, estrondo 2, catástrofe 4, e o teto de 0,08 m (mm e batidas: %s)" % [degraus])
-	# a batida é 60 / bpm: a 60 BPM o golpe dura 1 s
 	var bpm_antes: float = Ritmo.bpm
 	Ritmo.bpm = 60.0
 	s.abalo = 0.0
@@ -2931,12 +2671,10 @@ func _prova_das_contas_da_camera() -> void:
 	_esperar(is_equal_approx(s.abalo, 0.08) and is_equal_approx(s._abalo_dura / bat, 4.0), "um tremor menor não substitui o vivo")
 	s.tremer(0.0)
 	_esperar(is_equal_approx(s.abalo, 0.08), "amplitude zero não zera o tremor vivo")
-	# o desconto é linear, pelo dt somado
 	s._process(bat * 2.0)
 	_esperar(absf(s.abalo - 0.04) < 0.0005, "o abalo cai em linha reta: a meia duração, a metade (%.4f)" % s.abalo)
 	s._process(bat * 2.5)
 	_esperar(s.abalo == 0.0, "o abalo acaba em zero, não abaixo")
-	# os alvos da sala de base: só os visíveis, e a borda da corrida com nós de verdade
 	add_child(s)
 	for i in 3:
 		var n := Node3D.new()
@@ -2948,7 +2686,7 @@ func _prova_das_contas_da_camera() -> void:
 	s.jogadores[1].visible = true
 	s.camera_frente = Vector3(0, 0, -1)
 	s.camera_alcance = 5.0
-	s.jogadores[2].global_position = Vector3(2, 0, -12)  # o líder: a corrida vai para −z
+	s.jogadores[2].global_position = Vector3(2, 0, -12)
 	s.jogadores[1].global_position = Vector3(1, 0, -10)
 	s.puxar_os_de_tras()
 	var zs_puxados := s.jogadores.map(func(n): return snappedf(n.global_position.z, 0.01))
@@ -2972,13 +2710,11 @@ func _prova_das_contas_da_camera() -> void:
 		if cam.is_position_in_frustum(c) and cam.is_position_in_frustum(c + Vector3(0, 1.6, 0)):
 			dentro += 1
 	_esperar(dentro == 4, "câmera grupo: os quatro cantos da arena na tela (%d)" % dentro)
-	# a margem de 15 %: o canto mais apertado fica a pelo menos 15 % de folga da borda
 	var folga := INF
 	for c in cantos:
 		for h in [0.0, Enquadramento.ALTURA_DO_BONECO]:
 			var tela := cam.unproject_position(c + Vector3(0, h, 0))
 			folga = minf(folga, minf(minf(tela.x, tam.x - tela.x) / tam.x, minf(tela.y, tam.y - tela.y) / tam.y))
-	# 15 %% de margem: o ponto mais apertado fica a (1 − 1/1,15) / 2 = 6,5 %% da borda
 	_esperar(folga > 0.055 and folga < 0.075, "câmera grupo: sobra a margem de 15 %%, justa (%.3f da tela)" % folga)
 	var perto := Enquadramento.grupo([Vector3.ZERO, Vector3(0.5, 0, 0)], dir, Vector2(12.0, 40.0), tv, th)
 	_esperar(is_equal_approx((perto[0] - perto[1]).length(), 12.0), "câmera grupo: dois juntos, a distância mínima")
@@ -2996,7 +2732,6 @@ func _prova_das_contas_da_camera() -> void:
 	cam.queue_free()
 
 
-## A Prova no modo grupo, com o robô jogando: ninguém sai da tela; o tremor por degrau, sem roll (G05).
 func _prova_da_camera_na_prova() -> void:
 	var sala = await _comeca_a_sala("prova")
 	if sala == null:
@@ -3023,7 +2758,6 @@ func _prova_da_camera_na_prova() -> void:
 				if not jogo.camera.is_position_in_frustum(p.global_position + Vector3(0, h, 0)):
 					fora += 1
 	_esperar(fora == 0, "A Prova: em 300 quadros, nenhum pé nem cabeça fora da tela (%d)" % fora)
-	# os três degraus: a duração em batidas (no relógio da sala), sem roll
 	var batida := 60.0 / (Ritmo.bpm if Ritmo.bpm > 0.0 else 120.0)
 	for caso in [[Sala.TREMOR_GOLPE, 1.0], [Sala.TREMOR_ESTRONDO, 2.0], [Sala.TREMOR_CATASTROFE, 4.0]]:
 		sala.abalo = 0.0
@@ -3042,13 +2776,12 @@ func _prova_da_camera_na_prova() -> void:
 	sala.abalo = 0.0
 	sala.tremer(1.0)
 	_esperar(sala.abalo <= Sala.TREMOR_CATASTROFE, "nada treme mais que 0,08 m")
-	# o grupo no main usa as tangentes da câmera de verdade: a pose do main é a da conta
 	var dist_antes: Vector2 = sala.camera_distancia
-	sala.camera_distancia = Vector2(3.0, 60.0)  # sem o piso de 17 m, a conta é que manda
+	sala.camera_distancia = Vector2(3.0, 60.0)
 	var cantos_da_arena := [Vector3(-10, 0, -6), Vector3(10, 0, -6), Vector3(-10, 0, 6), Vector3(10, 0, 6)]
-	for l in 4:  # os quatro nos cantos, na hora (a Prova os recoloca no quadro seguinte)
+	for l in 4:
 		jogo.jogadores[l].global_position = cantos_da_arena[l]
-	var tela_16_9 := Vector2(0.34, 0.34 * 16.0 / 9.0)  # a tela de verdade desta passada pode ser quadrada
+	var tela_16_9 := Vector2(0.34, 0.34 * 16.0 / 9.0)
 	var esperada: Array = Enquadramento.grupo(sala.alvos_da_camera(), (sala.camera_pos - sala.camera_olhar).normalized(), sala.camera_distancia, tela_16_9.x, tela_16_9.y)
 	var do_main: Array = jogo._pose_da_sala(tela_16_9)
 	var do_main_real: Array = jogo._pose_da_camera()
@@ -3062,7 +2795,6 @@ func _prova_da_camera_na_prova() -> void:
 	_esperar(do_main_c[0].distance_to(esperada_c[0]) < 0.001 and do_main_c[1].distance_to(esperada_c[1]) < 0.001, "a corrida: a pose do main é a do Enquadramento.corrida")
 	sala.camera_modo = "grupo"
 	sala.camera_distancia = dist_antes
-	# o balanço, conta por conta: no plano da câmera, na amplitude do evento, sem girar
 	var movimento_antes: int = Opcoes.movimento
 	Opcoes.movimento = 0
 	sala.abalo = 0.0
@@ -3078,7 +2810,6 @@ func _prova_da_camera_na_prova() -> void:
 		var delta: Vector3 = jogo.camera.global_position - base
 		_esperar(delta.distance_to(esperado) < 0.0005, "o balanço de abalo %.2f e tremor %.1f é de %.3f m no plano da câmera (%.4f)" % [caso[0], caso[1], caso[2], delta.distance_to(esperado)])
 		_esperar(jogo.camera.global_basis.is_equal_approx(giro), "o balanço não gira a câmera")
-	# o movimento reduzido: nem o abalo nem o tremor antigo
 	Opcoes.movimento = 1
 	sala.abalo = Sala.TREMOR_CATASTROFE
 	sala.tremor = 0.7
@@ -3088,7 +2819,6 @@ func _prova_da_camera_na_prova() -> void:
 	Opcoes.movimento = movimento_antes
 	sala.abalo = 0.0
 	sala.tremor = 0.0
-	# a fixa recua, a dupla empurra, o pódio recua: a pose sai da direção da sala
 	var modo_antes: String = sala.camera_modo
 	var olhar: Vector3 = sala.camera_olhar
 	var pos: Vector3 = sala.camera_pos
@@ -3111,7 +2841,6 @@ func _prova_da_camera_na_prova() -> void:
 	jogo.estado = estado_antes
 	var olhar_p := Vector3(-4.6, 0.9, 4.4)
 	_esperar(pp[1] == olhar_p and pp[0].distance_to(olhar_p + (Vector3(-4.6, 4.0, 19.5) - olhar_p) * 1.0616) < 0.001, "pódio: o olhar fica e a posição recua para 35 mm")
-	# os alvos: só quem está visível, e A Prova só quem está na partida
 	var jogando_antes: Array = sala.jogando.duplicate()
 	_esperar(sala.alvos_da_camera().size() == 4, "A Prova: os quatro são alvo (%d)" % sala.alvos_da_camera().size())
 	sala.jogando[1] = false
@@ -3124,10 +2853,9 @@ func _prova_da_camera_na_prova() -> void:
 	jogo.jogadores[2].visible = false
 	_esperar(sala.alvos_da_camera().size() == 3, "A Prova: o boneco escondido não é alvo (%d)" % sala.alvos_da_camera().size())
 	jogo.jogadores[2].visible = true
-	# a corrida: a borda empurra (a Prova recoloca os bonecos a cada quadro: a conta se confere na hora)
 	sala.camera_modo = "corrida"
 	var alcance_antes: float = sala.camera_alcance
-	sala.camera_alcance = 4.0  # a arena tem 13,8 m: com 14 ninguém ficaria para trás
+	sala.camera_alcance = 4.0
 	var zs := [-6.0, -5.0, 6.0, -3.0]
 	for l in 4:
 		var b: Vector3 = jogo.jogadores[l].global_position
@@ -3145,10 +2873,6 @@ func _prova_da_camera_na_prova() -> void:
 	await _quadros(5)
 
 
-## Cala todo tocador antes do quit (a WQ01): o som que ainda toca na saída fica
-## preso no servidor de áudio, e o motor acusa «resources still in use at exit».
-## O stop só marca o fim; quem solta o som é o mixer (no tempo de parede) e o
-## quadro seguinte, então espera os dois.
 func _calar_o_som_antes_de_sair() -> void:
 	var pilha: Array[Node] = [get_tree().root]
 	while not pilha.is_empty():
@@ -3161,8 +2885,6 @@ func _calar_o_som_antes_de_sair() -> void:
 		await get_tree().process_frame
 
 
-## A régua do kit (a WE02), pura: o julgamento esperado tem pelo menos 70% das
-## notas e é maior que cada um dos outros (o empate reprova).
 static func _julgamento_basta(contagem: Array, esperado: int) -> bool:
 	var total := 0
 	for n in contagem:

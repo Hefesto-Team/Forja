@@ -42,7 +42,7 @@ janela nem ponto.
 
 `Lente.fov(mm) = rad_to_deg(2 · atan(12 / mm))`: o FOV vertical de um sensor
 de 24 mm, em `KEEP_HEIGHT`. Numa tela mais estreita que 16:9, o
-`KEEP_WIDTH` converte o mesmo FOV como hoje (`main.gd:968-972`).
+`KEEP_WIDTH` converte o mesmo FOV como hoje (`main.gd:882-886`).
 
 | momento | estado do main | lente | FOV vertical | de quem |
 | --- | --- | --- | --- | --- |
@@ -145,21 +145,21 @@ Prova (F09) mostra o grupo inteiro nas partidas de 4, 2 e 1.
 
 ## O estado de hoje
 
-- `godot/scripts/salas/sala.gd:12-16`: `camera_pos := Vector3(0, 13, 13)`,
+- `godot/scripts/salas/sala.gd:8-12`: `camera_pos := Vector3(0, 13, 13)`,
   `camera_olhar := Vector3.ZERO`, `tremor := 0.0`. Cada sala põe a sua pose
-  (`prova.gd:89-90`: `Vector3(0, 17.5, 13.2)`, `Vector3(0, 0, 0.9)`).
-- `godot/scripts/main.gd:925-958`, `_pose_da_camera()`: título, lobby, pódio
+  (`prova.gd:64-65`: `Vector3(0, 17.5, 13.2)`, `Vector3(0, 0, 0.9)`).
+- `godot/scripts/main.gd:844-874`, `_pose_da_camera()`: título, lobby, pódio
   (`[Vector3(-4.6, 4.0, 19.5), Vector3(-4.6, 0.9, 4.4)]`), a sala
   (`[sala.camera_pos, sala.camera_olhar]`) e o salão (a caixa de quem
   está visível, distância de 11,5 a 18).
-- `main.gd:963-975`: `FOV_16_9 := 40.0` e `_enquadrar()` (o `KEEP_WIDTH` em
+- `main.gd:879-889`: `FOV_16_9 := 40.0` e `_enquadrar()` (o `KEEP_WIDTH` em
   tela estreita).
-- `main.gd:978-989`, `_mover_camera(dt)`: o `lerp` com `k = dt · 4,0` (1,2 no
+- `main.gd:890-900`, `_mover_camera(dt)`: o `lerp` com `k = dt · 4,0` (1,2 no
   título); o tremor soma `Vector3(sin(_t·71), sin(_t·53+1,3), 0) · 0,12 · tremor`
   em coordenadas do mundo, e um roll de `sin(_t·47) · 0,012 · tremor` rad, só
   com `Opcoes.tremor`.
-- O tremor é escrito e apagado por cada sala: `prova.gd:370` (`tremor = 0.7`)
-  e `prova.gd:624` (desconta 1,5 por segundo); `voz.gd:505`
+- O tremor é escrito e apagado por cada sala: `prova.gd:324` (`tremor = 0.7`)
+  e `prova.gd:570` (desconta 1,5 por segundo); `voz.gd:462`
   (`tremor = flash * 1.4` a cada quadro).
 - A Prova é a única sala em que os quatro andam numa arena
   (`ARENA_X := 11.3`, `ARENA_Z := 6.9`, 22,6 × 13,8 m); a câmera fixa a vê

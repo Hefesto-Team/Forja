@@ -23,7 +23,7 @@ susto com a nota do mudo em `S0 + 3` e o rugido em `S0 + 4`.
 
 1. **O mudo é do hardware e o jogo não lê o estado.** No `hid-playstation.c`, cada aperto do botão alterna
    `mic_muted` e manda `mute_button_led` e `power_save_control |= MIC_MUTE`. Não há LED micmute no sysfs. O módulo
-   nunca liga `FORJA_FX_POWER_SAVE` (`include/forja_dualsense.h:128,157`). **Um número ímpar de apertos deixa o
+   nunca liga `FORJA_FX_POWER_SAVE` (`include/forja_dualsense.h:105,157`). **Um número ímpar de apertos deixa o
    microfone mudo no hardware depois do minigame:** o susto pede um aperto; a P2 começa «mudo no sistema».
 2. **A paridade é rastreável.** O kernel começa desmutado na conexão, e o jogo vê o `BOTAO_MICROFONE`. Contar os
    apertos desde a conexão dá o estado.

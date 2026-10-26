@@ -1,4 +1,3 @@
-/* A máscara de endereço. Ver mascara.h. */
 #include "mascara.h"
 
 #include <stdio.h>
@@ -14,7 +13,6 @@ static int eh_palavra(char c) {
   return (c >= '0' && c <= '9') || (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z');
 }
 
-/* aa?bb?cc?dd?ee?ff com o mesmo separador; devolve 1 e zera dd e ee. */
 static int tenta_com_separador(char *p, const char *inicio) {
   if (p > inicio && eh_palavra(p[-1]))
     return 0;
@@ -37,7 +35,6 @@ static int tenta_com_separador(char *p, const char *inicio) {
   return 1;
 }
 
-/* doze hex seguidos, com fronteira dos dois lados e ao menos uma letra. */
 static int tenta_corrido(char *p, const char *inicio) {
   if (p > inicio && eh_palavra(p[-1]))
     return 0;

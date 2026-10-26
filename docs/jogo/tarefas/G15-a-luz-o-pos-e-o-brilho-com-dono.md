@@ -16,20 +16,20 @@ o pós da fita e um dono para cada brilho; esta ficha leva os três ao jogo.
 
 ## O estado de hoje
 
-- `godot/scripts/main.gd:92` `_ambiente()`, igual em toda seção: fundo `Tema.CASA`; ambiente `#6d64a0` a 0,42;
+- `godot/scripts/main.gd:80` `_ambiente()`, igual em toda seção: fundo `Tema.CASA`; ambiente `#6d64a0` a 0,42;
   filmic, exposição 1,05; glow 0,7, bloom 0,08, `glow_hdr_threshold` 0,9; **SSAO ligado** (raio 1,2, intensidade
   1,6); névoa `#241f33` a 0,012; saturação 1,08.
-- `godot/scripts/salas/sala.gd:60` `luzes()`: tochas `#ffb070` a 1,8 (alcance 9) e um enchimento `#b9b0ff` a 0,55.
-  `sala_jogo.gd:158` `atmosfera()`: um preenchimento na `cor_ar` e dois tubos na `cor_neon` a **3,0**.
-- 17 `emission_enabled` em `godot/scripts/`, sem dono: `main.gd:449` (o bloco do pódio, 0,6), `mundo/efeitos.gd:95`
-  (o anel, 2,0), `mundo/kit.gd:40` (`Kit.material(cor, brilho)`), `mundo/salao.gd` 108 (friso `ROSA` 0,9), 230 (a
+- `godot/scripts/salas/sala.gd:48` `luzes()`: tochas `#ffb070` a 1,8 (alcance 9) e um enchimento `#b9b0ff` a 0,55.
+  `sala_jogo.gd:102` `atmosfera()`: um preenchimento na `cor_ar` e dois tubos na `cor_neon` a **3,0**.
+- 17 `emission_enabled` em `godot/scripts/`, sem dono: `main.gd:417` (o bloco do pódio, 0,6), `mundo/efeitos.gd:89`
+  (o anel, 2,0), `mundo/kit.gd:35` (`Kit.material(cor, brilho)`), `mundo/salao.gd` 108 (friso `ROSA` 0,9), 230 (a
   chama `LARANJA` 3,0), 276 (a borda `ROXO` 1,6), 353 (as brasas 2,0), 387 (o aro de cada lugar 1,2),
-  `player.gd:83` (o anel no chão, 1,4), `salas/sala_jogo.gd:179` (os tubos 3,0), `salas/impacto.gd:496` e 500 (a
+  `player.gd:59` (o anel no chão, 1,4), `salas/sala_jogo.gd:120` (os tubos 3,0), `salas/impacto.gd:460` e 500 (a
   borda do aviso, `VERMELHO`, de 1,0 a 2,2), `salas/voz.gd` 134 (os olhos `#ff3a1a`), 186 (a borda do lugar), 198
   (a chama 2,5), `salas/canto.gd` 130 (o sino, `AMARELO`) e 196 (a borda do lugar). Mais linhas animam a energia:
-  `canto.gd:473`, 499, 503; `voz.gd:538` e 507 (os olhos, 0,2 + 3,2·olhos + 4,0·flash, até 7,4); `impacto.gd:285` e
-  296 (o olho da sentinela, 4,0 e 1,2) e 498 (a borda do aviso); `molde.gd:347` (o metal, 0,3 + 2,2·quente, até 2,5,
-  num material de `Kit.material`); `prova.gd:721` (o disco da equipe, 1,0 + 2,5·dano, até 3,5, criado na linha 190
+  `canto.gd:436`, 499, 503; `voz.gd:495` e 507 (os olhos, 0,2 + 3,2·olhos + 4,0·flash, até 7,4); `impacto.gd:254` e
+  296 (o olho da sentinela, 4,0 e 1,2) e 498 (a borda do aviso); `molde.gd:306` (o metal, 0,3 + 2,2·quente, até 2,5,
+  num material de `Kit.material`); `prova.gd:665` (o disco da equipe, 1,0 + 2,5·dano, até 3,5, criado na linha 190
   com `LUZ_EQUIPE`). E `Kit.material(cor, brilho)` com brilho > 0 se chama em `centelha.gd`, `galeria.gd`,
   `viga.gd`, `canto.gd`, `caminhos.gd`, `molde.gd`, `impacto.gd`, `voz.gd` e `prova.gd`. Meça de novo antes de mudar.
 - O portão de arte, depois da G14, só tem achados 3D (99 pela regra da G14).
@@ -49,7 +49,7 @@ o pós da fita e um dono para cada brilho; esta ficha leva os três ao jogo.
   `tinta_da_secao(numero)` (G14): névoa L 0,17 e croma a 30 %; preenchimento L 0,34 e croma a 55 %, o mesmo matiz;
   a chave **não se calcula**: é a constante `CHAVE_SECAO` = `[#ffc99c, #e5d3c6, #e5d7ad, #f8d096, #f8ccba]`
   (vermelhão, cobalto, petróleo, mostarda, ameixa, na ordem de `SECAO`; os hex da tabela do 01 e de
-  `godot/estudos/direcao/quadros/13_luz.gd:19` a 23). `TUNGSTENIO.lerp(tinta, 0.2)` dá `#f4bb90` no vermelhão, não
+  `godot/estudos/direcao/quadros/13_luz.gd:13` a 23). `TUNGSTENIO.lerp(tinta, 0.2)` dá `#f4bb90` no vermelhão, não
   `#ffc99c`. As cinco entram em `tema.gd` e em `scripts/portoes/arte.json` (`tokens`, nome → hex) como
   `CHAVE_SECAO_0` a `CHAVE_SECAO_4`. `densidade` 0,012, ×1,3 no lado B (0,0156); `energia_chave` 1,8, ×0,85 no
   lado B (1,53).
@@ -81,26 +81,26 @@ o pós da fita e um dono para cada brilho; esta ficha leva os três ao jogo.
 
 | onde | vira |
 | --- | --- |
-| `player.gd:83`, o anel no chão | `Tema.neon(JOGADOR[l], 1.5, l)` |
+| `player.gd:59`, o anel no chão | `Tema.neon(JOGADOR[l], 1.5, l)` |
 | `player.gd`, o contorno do boneco (novo) | `Tema.contorno(JOGADOR[l], 0.012, 2.4, l)` no `next_pass` de toda superfície das malhas do modelo; 1,6 na montagem (`ForjaPlayer.contornar(energia)`, que a G13 chama depois de montar) |
 | `player.gd`, a luz de dono (nova) | `OmniLight3D` na cor do lugar, energia 0,9, alcance 3,4 m, sem sombra, a 0,6 m do chão, só com `controlavel` |
-| `mundo/salao.gd:387`, o aro de cada lugar | `Tema.neon(JOGADOR[i], 1.5, i)` |
-| `main.gd:449`, o bloco do pódio | `Tema.emissivo(mat, 0.6, l)` |
-| `mundo/efeitos.gd:95`, o anel de efeito | `Tema.neon(cor, 2.0, dono)`; `Efeitos.anel` ganha o parâmetro `dono` |
-| `salas/sala_jogo.gd:179`, os tubos | `Tema.neon(VIOLETA, 1.0, "mundo")`; 1,1 no tempo 1 de cada compasso, de volta a 1,0 em 1 colcheia |
-| `mundo/salao.gd:108`, o friso | `Tema.neon(VIOLETA, 0.9, "mundo")` |
-| `mundo/salao.gd:276`, a borda da forja | `Tema.neon(VIOLETA, 1.1, "mundo")` |
-| `mundo/salao.gd:230`, a chama | `Tema.neon(TUNGSTENIO, 1.8, "forja")` |
-| `mundo/salao.gd:353`, as brasas | `Tema.emissivo(mat, 2.0, "forja")` |
-| `salas/impacto.gd:496`/500, a borda do aviso | `Tema.emissivo(mb, e, "forja")`, com `e` de 1,0 a 2,2 como hoje |
-| `salas/voz.gd:134`, os olhos | `Tema.emissivo(mat_olho, e, "forja")` |
-| `salas/voz.gd:198`, a chama | `Tema.emissivo(mat_chama, 1.8, "forja")` |
-| `salas/voz.gd:186` e 538, `canto.gd:196` e 503, a borda do lugar | `Tema.emissivo(mb, e, l)` |
-| `salas/canto.gd:130`, 473 e 499, o sino e a tela | `Tema.emissivo(mat, e, "forja")` |
-| `salas/voz.gd:507`, os olhos animados | `Tema.emissivo(mo, (0.2 + 3.2 * olhos + 4.0 * flash) * 2.4 / 7.4, "forja")` |
-| `salas/impacto.gd:285` e 296, o olho da sentinela | `Tema.emissivo(mo, 2.4, "forja")` e `Tema.emissivo(mo, 1.2 * 2.4 / 4.0, "forja")` |
-| `salas/molde.gd:347`, o metal quente | `Tema.emissivo(metal, (0.3 + 2.2 * quente) * 2.4 / 2.5, "forja")`; a cor do metal fica a de hoje |
-| `salas/prova.gd:190` e 721, o disco da equipe | `Kit.material(LUZ_EQUIPE[e.equipe], 1.0, 0.6, "forja")`; `Tema.emissivo(md, (1.0 + 2.5 * float(e.dano)) * 2.4 / 3.5, "forja")` |
+| `mundo/salao.gd:361`, o aro de cada lugar | `Tema.neon(JOGADOR[i], 1.5, i)` |
+| `main.gd:417`, o bloco do pódio | `Tema.emissivo(mat, 0.6, l)` |
+| `mundo/efeitos.gd:89`, o anel de efeito | `Tema.neon(cor, 2.0, dono)`; `Efeitos.anel` ganha o parâmetro `dono` |
+| `salas/sala_jogo.gd:120`, os tubos | `Tema.neon(VIOLETA, 1.0, "mundo")`; 1,1 no tempo 1 de cada compasso, de volta a 1,0 em 1 colcheia |
+| `mundo/salao.gd:96`, o friso | `Tema.neon(VIOLETA, 0.9, "mundo")` |
+| `mundo/salao.gd:255`, a borda da forja | `Tema.neon(VIOLETA, 1.1, "mundo")` |
+| `mundo/salao.gd:210`, a chama | `Tema.neon(TUNGSTENIO, 1.8, "forja")` |
+| `mundo/salao.gd:327`, as brasas | `Tema.emissivo(mat, 2.0, "forja")` |
+| `salas/impacto.gd:460`/500, a borda do aviso | `Tema.emissivo(mb, e, "forja")`, com `e` de 1,0 a 2,2 como hoje |
+| `salas/voz.gd:107`, os olhos | `Tema.emissivo(mat_olho, e, "forja")` |
+| `salas/voz.gd:167`, a chama | `Tema.emissivo(mat_chama, 1.8, "forja")` |
+| `salas/voz.gd:157` e 538, `canto.gd:172` e 503, a borda do lugar | `Tema.emissivo(mb, e, l)` |
+| `salas/canto.gd:108`, 473 e 499, o sino e a tela | `Tema.emissivo(mat, e, "forja")` |
+| `salas/voz.gd:464`, os olhos animados | `Tema.emissivo(mo, (0.2 + 3.2 * olhos + 4.0 * flash) * 2.4 / 7.4, "forja")` |
+| `salas/impacto.gd:254` e 296, o olho da sentinela | `Tema.emissivo(mo, 2.4, "forja")` e `Tema.emissivo(mo, 1.2 * 2.4 / 4.0, "forja")` |
+| `salas/molde.gd:306`, o metal quente | `Tema.emissivo(metal, (0.3 + 2.2 * quente) * 2.4 / 2.5, "forja")`; a cor do metal fica a de hoje |
+| `salas/prova.gd:155` e 721, o disco da equipe | `Kit.material(LUZ_EQUIPE[e.equipe], 1.0, 0.6, "forja")`; `Tema.emissivo(md, (1.0 + 2.5 * float(e.dano)) * 2.4 / 3.5, "forja")` |
 
 **Quem chama `Kit.material` com brilho > 0** passa o dono por esta regra, sem decidir caso a caso:
 

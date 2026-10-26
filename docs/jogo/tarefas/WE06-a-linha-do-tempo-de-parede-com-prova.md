@@ -13,7 +13,7 @@ no relógio de parede, que é a do jogo de verdade. A conferência «o t é o re
 `_prova_do_registro_v2` passou a comparar com o tempo do jogo.
 
 A medida trouxe um segundo achado. Na sessão acelerada, o `t` da linha é o `t` do módulo
-(`nativo/nucleo/forja.h:24`), um `float` somado a cada quadro em `forja_quadro` (`nativo/nucleo/forja.c:213`). Depois
+(`nativo/nucleo/forja.h:16`), um `float` somado a cada quadro em `forja_quadro` (`nativo/nucleo/forja.c:204`). Depois
 de 1465 s de jogo, ele já estava 0,5 s à frente do `_agora` do `Forja`, que é um `double`. Por isso a rodada limpa do
 gauntlet reprovou com «o t é o relógio de parede (1465.5 s na linha, 1465.0 s de processo)». A WE02 deu à conferência
 0,5% de folga na sessão acelerada.

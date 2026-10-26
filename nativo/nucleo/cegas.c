@@ -1,4 +1,3 @@
-/* As provas às cegas. Ver cegas.h. */
 #include "cegas.h"
 
 #include "texto_buf.h"
@@ -35,10 +34,6 @@ static Veredito vazio(NivelEvidencia nivel) {
   return v;
 }
 
-/* ---------- o Cerco ---------- */
-
-/* Escolhe, com peso pelo que ainda resta, um índice de `resta[0..n)` que não
- * seja `evitar` (quando há outro); -1 se não resta nada. */
 static int sortear_resto(Sorteio *s, const int *resta, int n, int evitar) {
   int soma = 0, soma_sem = 0;
   for (int i = 0; i < n; i++) {
@@ -61,9 +56,6 @@ static int sortear_resto(Sorteio *s, const int *resta, int n, int evitar) {
 }
 
 int cegas_plano_tiros(Sorteio *s, const int *slots, int n, int por_lado, Tiro *out, int max) {
-  /* um de cada vez, escolhendo o próximo alvo com peso pelo que falta a cada
-   * um — assim ninguém fica com a rabeira de golpes seguidos no fim — e nunca
-   * o mesmo alvo duas vezes seguidas quando há outro */
   int resta[8] = {0}, lados[8][2];
   if (n > 8)
     n = 8;
@@ -109,7 +101,7 @@ Veredito cega_motor_veredito(const Cega *c, Lado lado, bool sdl_aceitou, bool re
     snprintf(v.obs, sizeof(v.obs), "não medido: ninguém levantou o escudo nesta sala");
     return v;
   }
-  int precisa = total >= 5 ? (total * 4 + 4) / 5 : total; /* 80%, e tudo quando são poucos */
+  int precisa = total >= 5 ? (total * 4 + 4) / 5 : total;
   v.nivel = NIVEL_OBEDECEU;
   if (c->certos >= precisa) {
     v.resultado = RES_PASSOU;
@@ -188,8 +180,6 @@ Veredito cega_cor_veredito(const Cega *c, bool sdl_aceitou) {
   }
   return v;
 }
-
-/* ---------- a Galeria ---------- */
 
 const char *cegas_nome_arma(Arma a) {
   switch (a) {
@@ -276,7 +266,6 @@ Veredito cega_arma_veredito(Arma arma, const Cega *c, const Cega *nenhuma, bool 
     v.nivel = NIVEL_SAIU;
     snprintf(v.obs, sizeof(v.obs), "não medido: inconclusivo — refaça a sala com calma");
   }
-  /* o gatilho que não solta aparece nas rodadas sem arma */
   if (nenhuma && nenhuma->errados >= 2 && nenhuma->errados > nenhuma->certos) {
     int preso = mais_dito(nenhuma);
     char nota[140];
@@ -315,8 +304,6 @@ Veredito cega_leds_veredito(const Cega *c, bool sdl_aceitou) {
   }
   return v;
 }
-
-/* ---------- as salas de som ---------- */
 
 int cegas_plano_fontes(Sorteio *s, const int *fontes, const int *vezes, int n, int *out, int max) {
   int resta[16] = {0};
@@ -384,7 +371,6 @@ Veredito cega_haptica_veredito(const Cega *chao, const Cega *le, const Cega *ld,
   int n_chao = cega_total(chao), lados = cega_total(le) + cega_total(ld);
   int nada_chao = chao->respondeu_como[CAMINHO_NADA];
   int nada_esq = le->respondeu_como[CAMINHO_NADA_LADO], nada_dir = ld->respondeu_como[CAMINHO_NADA_LADO];
-  /* trocado é dizer o lado oposto; "não senti" não é trocar */
   int trocados = le->respondeu_como[1] + ld->respondeu_como[0], certos_lado = le->certos + ld->certos;
   snprintf(v.medido, sizeof(v.medido),
            "chão: %d de %d certos, %d \"não senti\", %d sem resposta; tropeço: esquerda %d de %d, direita %d de %d",
@@ -430,14 +416,12 @@ Veredito cega_led_mic_veredito(const Cega *c, bool sdl_aceitou) {
     snprintf(v.obs, sizeof(v.obs), "não medido: este controle não aceita o LED do microfone pelo SDL");
   } else {
     char *p = strstr(v.medido, " cor");
-    if (p) /* "3 cores certas" vira "3 respostas certas" */
+    if (p)
       snprintf(v.medido, sizeof(v.medido), "%d resposta%s certa%s, %d errada%s, %d sem resposta", c->certos,
                c->certos == 1 ? "" : "s", c->certos == 1 ? "" : "s", c->errados, c->errados == 1 ? "" : "s", c->perdidos);
   }
   return v;
 }
-
-/* ---------- A Prova ---------- */
 
 Veredito cega_tudo_junto_veredito(const MedCarga *m, const Cega *leds, const Cega *cor, bool mexeu) {
   Veredito v = vazio(NIVEL_SAIU);

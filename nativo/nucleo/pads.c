@@ -1,4 +1,3 @@
-/* Os controles e os quatro lugares. Ver pads.h. */
 #include "pads.h"
 
 #include "forja.h"
@@ -9,22 +8,16 @@
 #include <stdio.h>
 #include <string.h>
 
-/* A cor de lightbar de cada lugar, a que o controle recebe ao entrar. */
 const SDL_Color LUZ_DO_LUGAR[MAX_JOGADORES] = {
-    {41, 230, 255, 255}, /* P1 ciano (Tema.JOGADOR) */
-    {255, 62, 165, 255}, /* P2 magenta */
-    {212, 255, 74, 255}, /* P3 limão */
-    {238, 154, 30, 255}, /* P4 âmbar */
+    {41, 230, 255, 255},
+    {255, 62, 165, 255},
+    {212, 255, 74, 255},
+    {238, 154, 30, 255},
 };
 
 static float limitar(float v, float a, float b) { return v < a ? a : (v > b ? b : v); }
 
-/* Os apertos de dois controles que chegam juntos (menos que isto) são o mesmo
- * dedo visto por dois caminhos: um espelho. */
 #define JANELA_ESPELHO_NS (60ull * 1000000ull)
-
-/* Os botões marcados neste quadro — um aperto e uma soltura no mesmo quadro
- * não se perdem. */
 
 Uint64 pad_agora_ns(const Forja *a, const Pad *p) {
   return p && p->simulado && a ? a->relogio_sim_ns : SDL_GetTicksNS();
@@ -73,8 +66,6 @@ void pads_encerrar(Forja *a) {
     p->usado = false;
   }
 }
-
-/* ---------- consultas ---------- */
 
 Pad *pads_do_slot(Forja *a, int slot) {
   if (slot < 0 || slot >= MAX_JOGADORES || !a->pads.slot[slot].ocupado)
@@ -126,8 +117,6 @@ const char *pad_transporte(const Pad *p) {
 
 int pad_lugar(const Pad *p) { return !p ? -1 : p->slot >= 0 ? p->slot : p->reserva; }
 
-/* ---------- anotação ---------- */
-
 void pad_anotar(Forja *a, Pad *p, bool ok, const char *formato, ...) {
   char corpo[160];
   va_list ap;
@@ -146,7 +135,6 @@ void pad_anotar(Forja *a, Pad *p, bool ok, const char *formato, ...) {
             ok ? "" : "  [o SDL recusou]");
 }
 
-/* O evento de saída na linha do tempo: quem, o quê, e se o SDL aceitou. */
 static void ev_saida(Forja *a, const Pad *p, const char *o, bool ok, Evento *ev) {
   int l = pad_lugar(p);
   ev_iniciar(ev, &a->lt, "saida", l >= 0 ? l + 1 : 0);
@@ -157,15 +145,10 @@ static void ev_saida(Forja *a, const Pad *p, const char *o, bool ok, Evento *ev)
     ev_str(ev, "controle", p->nome);
 }
 
-/* ---------- conexão ---------- */
-
 static void assinatura(const Pad *p, char *out, size_t tam) {
   snprintf(out, tam, "%s|%d|%s", p->vidpid, (int)p->origem.tipo, p->nome);
 }
 
-/* ---------- a reserva (F04) ---------- */
-
-/* O primeiro lugar que ninguém ocupa nem reservou, ou -1. */
 static int lugar_livre(const Forja *a) {
   for (int s = 0; s < MAX_JOGADORES; s++)
     if (!a->pads.slot[s].ocupado && a->pads.slot[s].reservado_por < 0)
@@ -180,8 +163,6 @@ static void soltar_reserva(Forja *a, Pad *p) {
   }
 }
 
-/* Dá o lugar `s` ao pad `idx` como reserva: o player index, a luz e as luzinhas
- * do lugar chegam ao controle na hora, antes de qualquer botão. */
 static void dar_reserva(Forja *a, int idx, int s, const char *evento) {
   Pad *p = &a->pads.pad[idx];
   p->reserva = s;
@@ -190,14 +171,12 @@ static void dar_reserva(Forja *a, int idx, int s, const char *evento) {
   pad_leds_do_slot(a, p);
   Evento ev;
   ev_iniciar(&ev, &a->lt, "conexao", s + 1);
-  ev_str(&ev, "evento", evento); /* o lugar vai na cabeça (jogador - 1) */
+  ev_str(&ev, "evento", evento);
   ev_str(&ev, "nome", p->nome);
   ev_fim(&ev, &a->lt);
   reg_linha(&a->reg, "%s %s %s", pads_rotulo_slot(s), SDL_strcmp(evento, "trocou") == 0 ? "passou a ser de" : "reservou", p->nome);
 }
 
-/* O primeiro lugar livre vira a reserva do pad; sem lugar, o controle espera
- * com o player index -1 (as luzinhas apagadas). */
 static bool reservar(Forja *a, int idx) {
   Pad *p = &a->pads.pad[idx];
   int s = lugar_livre(a);
@@ -239,8 +218,6 @@ static void ler_bateria(Pad *p) {
 }
 
 static void abrir_cru(Forja *a, Pad *p) {
-  /* Só o DualSense (nativo ou virtual) que se declara USB: o report 0x01 de
-   * 64 bytes. O 0x31 do rádio tem outros offsets, e este jogo não o fala. */
   if (p->simulado || !p->caminho[0] || !origem_eh_dualsense(p->origem.tipo))
     return;
   if (p->origem.conexao == CONEXAO_BT)
@@ -262,8 +239,6 @@ static void conectou(Forja *a, SDL_JoystickID id) {
     }
   if (livre < 0)
     return;
-  /* a sessão com --simular não abre o controle de verdade: abrir já acende a
-   * luz e as lâmpadas dele */
   if (!origem_aceitar_na_sessao(a->so_virtuais, SDL_IsJoystickVirtual(id))) {
     const char *nome = SDL_GetGamepadNameForID(id);
     char limpo[128];
@@ -288,7 +263,6 @@ static void conectou(Forja *a, SDL_JoystickID id) {
   forja_sombra_zerar(&p->sombra);
   SDL_Joystick *js = SDL_GetGamepadJoystick(gp);
   p->simulado = js && SDL_IsJoystickVirtual(id);
-  /* o nome do aparelho (o do joystick), e não o do mapeamento do SDL */
   const char *nome = js ? SDL_GetJoystickName(js) : NULL;
   if (!nome || !nome[0])
     nome = SDL_GetGamepadName(gp);
@@ -379,7 +353,6 @@ static void conectou(Forja *a, SDL_JoystickID id) {
                        "DualSense no cabo, ou um DualSense virtual USB.",
               p->nome);
 
-  /* A volta: um slot desconectado com a mesma assinatura, e só um, retoma. */
   char sig[200];
   assinatura(p, sig, sizeof(sig));
   int candidato = -1, candidatos = 0;
@@ -403,8 +376,6 @@ static void conectou(Forja *a, SDL_JoystickID id) {
     reg_linha(&a->reg, "%s voltou ao lugar (reconexão %d)", pads_rotulo_slot(candidato), sl->reconexoes);
     forja_avisar(a, "%s voltou ao lugar", pads_rotulo_slot(candidato));
   }
-  /* quem chega pela primeira vez recebe o primeiro lugar livre já na conexão
-   * (depois da volta: quem caiu reencontra o seu) */
   if (p->slot < 0)
     reservar(a, livre);
 }
@@ -519,7 +490,6 @@ void pads_atualizar(Forja *a, float dt) {
     if (!p->usado)
       continue;
     if (p->simulado && p->rumble_ate_t > 0 && a->t >= p->rumble_ate_t) {
-      /* o controle simulado: quem para o motor é o jogo, no relógio dele */
       SDL_RumbleGamepad(p->gp, 0, 0, 0);
       p->rumble_ate_t = 0;
       p->rumble_ate_ms = 0;
@@ -538,7 +508,6 @@ void pads_atualizar(Forja *a, float dt) {
       while (lidos < 64 && (n = SDL_hid_read(p->hid, buf, sizeof(buf))) > 0) {
         lidos++;
         if (buf[0] == 0x31) {
-          /* chegou report do rádio: não é o que este jogo lê */
           reg_linha(&a->reg, "%s: report 0x31 no cru — fechado (este jogo não fala o 0x31)", p->nome);
           SDL_hid_close(p->hid);
           p->hid = NULL;
@@ -554,7 +523,6 @@ void pads_atualizar(Forja *a, float dt) {
       }
     }
   }
-  /* o relatório acompanha a taxa medida e a bateria de quem está na mesa */
   for (int s = 0; s < MAX_JOGADORES; s++) {
     Pad *p = pads_do_slot(a, s);
     if (!p)
@@ -577,7 +545,6 @@ void pads_atualizar(Forja *a, float dt) {
       snprintf(c->bateria, sizeof(c->bateria), "%d%%%s", p->bateria, estado);
     }
   }
-  /* um lugar vagou: quem esperava sem lugar (o quinto controle) recebe */
   for (int i = 0; i < MAX_PADS && lugar_livre(a) >= 0; i++) {
     Pad *p = &a->pads.pad[i];
     if (p->usado && p->slot < 0 && p->reserva < 0 && p->espelho_de < 0)
@@ -591,17 +558,12 @@ void pads_fim_do_quadro(Forja *a) {
   SDL_memset(g_soltou, 0, sizeof(g_soltou));
 }
 
-/* ---------- a mesa ---------- */
-
 int pads_entrar(Forja *a, int idx) {
   if (idx < 0 || idx >= MAX_PADS || !a->pads.pad[idx].usado)
     return -1;
   Pad *p = &a->pads.pad[idx];
   if (p->slot >= 0)
     return p->slot;
-  /* o espelho: o mesmo aperto chegou por outro controle da mesa agora há pouco
-   * (um controle de mentira do simulador nunca é espelho de nada — e, no modo
-   * acelerado, os apertos do robô ficam a milissegundos uns dos outros) */
   for (int s = 0; s < MAX_JOGADORES && !p->simulado; s++) {
     Pad *o = pads_do_slot(a, s);
     if (!o || o == p)
@@ -613,7 +575,6 @@ int pads_entrar(Forja *a, int idx) {
       reg_linha(&a->reg, "%s parece espelho de %s (o mesmo ✕ em %.1f ms): fica de fora", p->nome,
                 pads_rotulo_slot(s), d / 1e6);
       forja_avisar(a, "Esse controle parece espelho de %s — ficou de fora", pads_rotulo_slot(s));
-      /* os dois caminhos do mesmo aparelho dizem o mesmo lugar */
       soltar_reserva(a, p);
       SDL_SetGamepadPlayerIndex(p->gp, s);
       pad_luz(a, p, LUZ_DO_LUGAR[s]);
@@ -623,15 +584,11 @@ int pads_entrar(Forja *a, int idx) {
   char sig[200];
   assinatura(p, sig, sizeof(sig));
   int alvo = -1;
-  /* primeiro, um lugar de quem caiu com a mesma assinatura */
   for (int s = 0; s < MAX_JOGADORES && alvo < 0; s++)
     if (a->pads.slot[s].ocupado && a->pads.slot[s].pad < 0 && strcmp(a->pads.slot[s].assinatura, sig) == 0)
       alvo = s;
-  /* depois, o lugar que a conexão deu a ele (o ✕ só confirma) */
   if (alvo < 0 && p->reserva >= 0 && !a->pads.slot[p->reserva].ocupado)
     alvo = p->reserva;
-  /* por fim, um lugar que ninguém ocupa nem reservou. Um controle estranho
-   * nunca herda o lugar de quem caiu: esse só volta pela assinatura. */
   for (int s = 0; s < MAX_JOGADORES && alvo < 0; s++)
     if (!a->pads.slot[s].ocupado && a->pads.slot[s].reservado_por < 0)
       alvo = s;
@@ -683,7 +640,6 @@ void pads_sair(Forja *a, int slot) {
   sl->pad = -1;
   sl->reservado_por = -1;
   if (p) {
-    /* o controle continua com o número e a cor: o lugar vira a reserva dele */
     p->slot = -1;
     p->reserva = slot;
     sl->reservado_por = indice_do_pad(p);
@@ -729,8 +685,6 @@ void pads_silencio_todos(Forja *a) {
     pads_silencio(a, s);
 }
 
-/* ---------- saídas ---------- */
-
 static Uint8 escala_rumble(const Pad *p, Uint16 v) {
   Uint8 b = (Uint8)(v >> 8);
   return p->rumble_escala_cheia ? b : (Uint8)(b >> 1);
@@ -742,11 +696,6 @@ bool pad_rumble(Forja *a, Pad *p, float forte, float fraco, int ms) {
   float k = limitar(a->intensidade, 0, 1);
   Uint16 baixo = (Uint16)(limitar(forte, 0, 1) * k * 65535.0f);
   Uint16 alto = (Uint16)(limitar(fraco, 0, 1) * k * 65535.0f);
-  /* Num controle simulado, a duração corre no relógio do jogo (a->t), como a
-   * taxa do giroscópio: a prova roda mais rápido que o tempo real e a captura
-   * mais devagar, e um golpe de 260 ms do relógio de parede caberia inteiro
-   * entre dois quadros de um runner lento — o robô não sentiria. O SDL fica
-   * sem prazo, e pads_atualizar para o motor na hora. */
   Uint32 dur = (Uint32)(ms > 0 ? ms : 0);
   bool ok = SDL_RumbleGamepad(p->gp, baixo, alto, p->simulado ? 0 : dur);
   p->rumble_baixo = baixo;

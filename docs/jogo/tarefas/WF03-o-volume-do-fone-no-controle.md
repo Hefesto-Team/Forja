@@ -19,24 +19,24 @@ pendência sem ficha; esta é a ficha.
 
 ## O estado de hoje (medido em 09/10/2026, `85f24c3`)
 
-- `nativo/som/som_controle.c:416-435`, o `acompanhar_fone` (chamado a cada quadro pelo `somc_atualizar`, `:527`),
-  lendo o bit 0 do byte 53 (`nativo/nucleo/pads.c:541`):
+- `nativo/som/som_controle.c:385-404`, o `acompanhar_fone` (chamado a cada quadro pelo `somc_atualizar`, `:527`),
+  lendo o bit 0 do byte 53 (`nativo/nucleo/pads.c:511`):
   ```c
   pad_alto_falante(a, p, FORJA_VOL_FALANTE_PADRAO, fone ? FORJA_ROTA_FONE : FORJA_ROTA_FALANTE, FORJA_PREAMP_PADRAO);
   ```
-- `src/forja_dualsense.c:198-203`, o bloco que vai ao controle:
+- `src/forja_dualsense.c:194-199`, o bloco que vai ao controle:
   ```c
   s->vol_alto_falante = volume;
   s->audio = (uint8_t)(FORJA_AUDIO_BASE | ((rota & 0x03) << 4));
   s->audio2 = (uint8_t)(preamp & 0x07);
   forja_fx_da_sombra(fx, s, FORJA_FX_SPEAKER_VOL | FORJA_FX_AUDIO_CONTROL, FORJA_FX_PREAMP);
   ```
-  O `FORJA_FX_HEADPHONE_VOL` (`include/forja_dualsense.h:31`) nunca é aceso por esse caminho, e o `vol_fone` da
+  O `FORJA_FX_HEADPHONE_VOL` (`include/forja_dualsense.h:23`) nunca é aceso por esse caminho, e o `vol_fone` da
   sombra (`:138`) nunca é escrito (`grep -rn vol_fone src nativo include` acha só a declaração e a cópia de
-  `src/forja_dualsense.c:160`).
-- A opção «Volume do controle» chega ao som pelo ganho do mixer (`godot/scripts/forja.gd:887`), e por isso vale no
+  `src/forja_dualsense.c:157`).
+- A opção «Volume do controle» chega ao som pelo ganho do mixer (`godot/scripts/forja.gd:744`), e por isso vale no
   fone também: o que falta é só o volume do aparelho.
-- A prova de hoje, `nativo/testes/prova_efeitos.c:56-61`, confere só a rota do alto-falante.
+- A prova de hoje, `nativo/testes/prova_efeitos.c:52-57`, confere só a rota do alto-falante.
 - Os documentos: `docs/jogo/pesquisa/dualsense.md:33`, `:164` e `:166`, e a linha da tabela de pendências (`:512`);
   `docs/jogo/05-haptica-e-controle.md:128-130`.
 
@@ -68,7 +68,7 @@ fixo. Nenhuma tela muda.
   `ForjaDs5Effect`); a prova lê pelo campo, não por um índice solto, para não errar por um.
 - **O volume da Sony vai de 0 a 0x7F** no fone; o `0x50` é o de referência da pesquisa. Ouvir com ela antes de
   fechar: se ficar alto, baixar e registrar o porquê.
-- **O núcleo do Linux** também escreve volume e pré-amp quando o fone sai (`forja_som.cpp:95-102`):
+- **O núcleo do Linux** também escreve volume e pré-amp quando o fone sai (`forja_som.cpp:82-87`):
   esta ficha não muda o caminho do alto-falante.
 
 ## Não fazer

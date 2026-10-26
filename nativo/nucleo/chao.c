@@ -1,4 +1,3 @@
-/* Os chãos dos Caminhos. Ver chao.h. */
 #include "chao.h"
 
 #include <stdbool.h>
@@ -28,8 +27,6 @@ int chao_pelo_envelope(const float *env, int n) {
     }
   if (max < 0.05f)
     return -1;
-  /* os picos: sobe além de 60% do máximo, e só conta de novo depois de cair
-   * abaixo de 30% */
   int picos = 0, inicio = -1, ataque_de = -1;
   bool embaixo = true;
   for (int i = 0; i < n; i++) {
@@ -49,7 +46,6 @@ int chao_pelo_envelope(const float *env, int n) {
     return CHAO_CASCALHO;
   if (picos == 2)
     return CHAO_AGUA;
-  /* um pico: o metal chega de uma vez e demora a sumir; a grama sobe e desce */
   int ataque = inicio - ataque_de, cauda = 0;
   for (int i = i_max + 1; i < n && env[i] / max >= 0.3f; i++)
     cauda++;

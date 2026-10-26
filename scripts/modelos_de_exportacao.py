@@ -53,8 +53,6 @@ class PacoteRemoto(io.RawIOBase):
         n = min(len(destino), self.tamanho - self.pos)
         if n <= 0:
             return 0
-        # o link do github.com redireciona para um endereço assinado que vence
-        # em minutos: cada pedido sai do link original (o Range vai junto)
         pedido = urllib.request.Request(self.url, headers={"Range": f"bytes={self.pos}-{self.pos + n - 1}"})
         with urllib.request.urlopen(pedido, timeout=300) as r:
             if r.status != 206:
@@ -82,7 +80,7 @@ def main() -> int:
     pacote = zipfile.ZipFile(abrir_pacote(url))
     for pedido in pedidos:
         nome, _, esperado = pedido.partition("=")
-        dados = pacote.read("templates/" + nome)  # o zip confere o CRC
+        dados = pacote.read("templates/" + nome)
         tem = hashlib.sha256(dados).hexdigest()
         if esperado and tem != esperado:
             print(f"sha256 de {nome} não confere: {tem} (esperado {esperado})", file=sys.stderr)

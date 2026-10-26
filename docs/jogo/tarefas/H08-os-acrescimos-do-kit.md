@@ -73,17 +73,17 @@ fim por tempo `duracao > 0.0 and t_jogo >= duracao` no `_process`, o
 
 **O código real que esta ficha muda:**
 
-- **O fim conta no tempo do jogo.** `godot/scripts/salas/sala_jogo.gd:220`
+- **O fim conta no tempo do jogo.** `godot/scripts/salas/sala_jogo.gd:157`
   (a F03 troca `t_fase` por `t_jogo`): `if todos or (duracao > 0.0 and t_fase >= duracao):`.
   O `t_jogo` soma `dt`: com `--fixed-fps 60` sem janela, anda ~16 vezes mais
   depressa que a música.
-- **Um nome já ocupado.** `sala_jogo.gd:452` já tem
+- **Um nome já ocupado.** `sala_jogo.gd:371` já tem
   `func progresso() -> String` (a linha "onda 1 de 3" do painel,
-  `ui/painel_sala.gd:333`), sobrescrita em `impacto.gd:527`, `canto.gd:518`,
-  `prova.gd:747`, `voz.gd:555` e em fichas (L3). O `progresso() -> float` do
+  `ui/painel_sala.gd:290`), sobrescrita em `impacto.gd:488`, `canto.gd:480`,
+  `prova.gd:691`, `voz.gd:510` e em fichas (L3). O `progresso() -> float` do
   13 não pode existir no kit (assinatura diferente da mãe é erro de análise):
   aqui ele se chama **`andamento() -> float`**, e o 13 muda no passo 12.
-- **A partida fala por apelido.** `godot/scripts/partida.gd:22-25`:
+- **A partida fala por apelido.** `godot/scripts/partida.gd:6-9`:
 
   ```gdscript
   const NA_ORDEM := {
@@ -94,20 +94,20 @@ fim por tempo `duracao > 0.0 and t_jogo >= duracao` no `_process`, o
 
   `roteiro()` (`:46`) devolve apelidos, `nova()` (`:65`) os guarda em
   `salas`, `registrar()` (`:108`) tira o nome de `NOMES.get(id, id)` e
-  `ui/placar.gd:212` escreve `"a seguir: %s" % Partida.NOMES.get(seguinte, seguinte)`.
+  `ui/placar.gd:194` escreve `"a seguir: %s" % Partida.NOMES.get(seguinte, seguinte)`.
   O Canto não está em partida nenhuma (as fichas N trocam `"viga"` por
   `"canto"` à mão para a prova visual).
-- **O salão abre pelo apelido.** `godot/scripts/mundo/salao.gd:15-24`,
-  `PORTOES` por `id` (`"centelha"`…); `main.gd:674` `_entrar_na_sala(perto)`;
-  `main.gd:214` `Musica.tocar(sala_id if qual == "sala" else "salao")` (com um
-  slot, `Musica.tocar` não acha a faixa e toca a do salão, `musica.gd:66-67`);
-  `main.gd:281` `salao.saida_do_portao(sala_id, p.lugar)`.
+- **O salão abre pelo apelido.** `godot/scripts/mundo/salao.gd:7-16`,
+  `PORTOES` por `id` (`"centelha"`…); `main.gd:621` `_entrar_na_sala(perto)`;
+  `main.gd:194` `Musica.tocar(sala_id if qual == "sala" else "salao")` (com um
+  slot, `Musica.tocar` não acha a faixa e toca a do salão, `musica.gd:55-56`);
+  `main.gd:258` `salao.saida_do_portao(sala_id, p.lugar)`.
 - **Os glifos são dois.** `godot/scripts/ui/glifo.gd` desenha em vetor os
   botões das dicas (`"cruz"`, `"circulo"`, `"quadrado"`, `"triangulo"`,
   `"cima"`, `"baixo"`, `"esquerda"`, `"direita"`, `"options"`, `"create"`,
   `"touchpad"`, `"microfone"`, `"l1"`, `"r1"`, `"l2"`, `"r2"`,
   `"analogico_l"`, `"analogico_r"`) — **não** tem `cross` nem `giroscopio`. O
-  ícone do aviso é outro: `Desenho.glifo(nome)` (`ui/desenho.gd:24`) carrega
+  ícone do aviso é outro: `Desenho.glifo(nome)` (`ui/desenho.gd:19`) carrega
   `res://assets/glifos/<nome>.png`, e a F02 confere com ele. Os nomes que
   existem lá: `acelerometro`, `alto-falante`, `bateria`, `circle`, `cross`,
   `dpad_down`, `dpad_left`, `dpad_right`, `dpad_up`, `giroscopio`, `l1`,
@@ -117,20 +117,20 @@ fim por tempo `duracao > 0.0 and t_jogo >= duracao` no `_process`, o
   parte do controle (`"botoes"` 4×, `"gatilho_adaptativo"` 7×,
   `"alto_falante"` 6×, `"vibracao"` 5×, `"haptica"` 5×, `"microfone"` 5×,
   `"gatilhos"` 1×) que **não** são glifos: o kit traduz (`ICONE_DA_PARTE`).
-- **A barra de luz.** `godot/scripts/forja.gd:452`:
+- **A barra de luz.** `godot/scripts/forja.gd:382`:
   `func luz(l, cor): return ctl.luz(l, cor) if modulo else false` — sem piso,
-  sem piscar. O Impacto de hoje desce a 12% (`impacto.gd:180-182`), A Prova a
-  6% (`prova.gd:255-264`).
-- **O som que o robô ouve.** `forja.gd:801`: `som_virtual(l)` devolve
+  sem piscar. O Impacto de hoje desce a 12% (`impacto.gd:158-158`), A Prova a
+  6% (`prova.gd:214-221`).
+- **O som que o robô ouve.** `forja.gd:678`: `som_virtual(l)` devolve
   `{falante, esq, dir}` (os níveis da placa virtual); não diz **qual** som.
-  `forja.gd:777`: `som_falante(l, som, ganho)` devolve o número da voz do
+  `forja.gd:662`: `som_falante(l, som, ganho)` devolve o número da voz do
   mixer, ou -1.
 - **A música não cala.** `godot/scripts/ritmo.gd` (H01) não tem `calar`;
-  `Musica.VOLUME_DB := -9.0` (`musica.gd:25`).
+  `Musica.VOLUME_DB := -9.0` (`musica.gd:17`).
 - **A prova do jogo** (`godot/testes/prova_do_jogo.gd`) joga as nove salas do
   percurso inteiras pelo número de quadros (`_termina_a_sala`, `:305-340`,
   até 12 000 quadros) — que, com o fim em tempo de música, não cabem num
-  minigame de 90 s. `tests/prova_do_jogo.sh:58-59` não recebe o minigame da
+  minigame de 90 s. `tests/prova_do_jogo.sh:42-43` não recebe o minigame da
   ficha. As fichas L1, M1, N1… copiam um `_joga_o_minigame(id, limite_s := 60.0, a_cada_quadro)`
   (`L1-o-cerco.md:601`) que espera 60 s de parede — pouco para 90 s de música.
 - **Talvez já existam** (confira no passo 1): `Minigame.BATIDA_DA_PRIMEIRA_NOTA`
@@ -162,7 +162,7 @@ Na tabela `SENSACOES` (F05), depois de `"golpe_dir"`:
 ```
 
 A barra de luz: troque `func luz(...)` e `func luz_do_lugar(...)`
-(`forja.gd:452-458`) por este bloco inteiro:
+(`forja.gd:382-388`) por este bloco inteiro:
 
 ```gdscript
 # ---------------------------------------------------------------- a barra de luz (H08) --
@@ -989,7 +989,7 @@ static func titulo(slot: String) -> String:
   ```
 
 - `registrar()` (`:108`): `"nome": nome(id)` no lugar de `NOMES.get(id, id)`;
-- `ui/placar.gd:212`: `"a seguir: %s" % Partida.nome(seguinte)`.
+- `ui/placar.gd:194`: `"a seguir: %s" % Partida.nome(seguinte)`.
 
 ### `godot/scripts/main.gd`
 
@@ -1364,7 +1364,7 @@ Reprovou: conserte antes de seguir. A prova fica uns 3 min mais longa
 - **O sorteio é da noite, não da partida.** A semente do sorteio é
   `Forja.semente` (a mesma para o portão e para a partida); a da partida
   (`Forja.semente + _partidas`) só embaralha as seções.
-- **`hash()` de texto é o mesmo em toda máquina** (o `sala_jogo.gd:82` já
+- **`hash()` de texto é o mesmo em toda máquina** (o `sala_jogo.gd:39` já
   usa para a variante); não troque por `randi()` solto.
 - **`.uid`**: o `minigame_de_tempo.gd.uid` entra no commit.
 

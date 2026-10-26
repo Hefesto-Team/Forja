@@ -7,7 +7,7 @@
 Todo gatilho Weapon sai na força mínima. O empacotador põe a força no byte errado: o firmware lê zero no lugar dela,
 que é a força 1 de 8. A pistola da Galeria (a medição às cegas da arma), a Prova, a Bancada, o martelo da I1 e a
 trava da M5 sentem o mesmo clique fraco, qualquer que seja o número pedido. E a opção «gatilho fraco» das opções, que
-corta a força do Weapon pela metade (`godot/scripts/opcoes.gd:117-118`), não muda nada no controle. A pesquisa marca
+corta a força do Weapon pela metade (`godot/scripts/opcoes.gd:97-98`), não muda nada no controle. A pesquisa marca
 o Weapon como «usa · nada falta» (`docs/jogo/pesquisa/dualsense.md:25`).
 
 ## Ler antes
@@ -18,7 +18,7 @@ o Weapon como «usa · nada falta» (`docs/jogo/pesquisa/dualsense.md:25`).
 
 ## O estado de hoje
 
-`src/forja_dualsense.c:49-73`, o Weapon escrito com o molde do Feedback (3 bits por zona, deslocados 3 × zona):
+`src/forja_dualsense.c:46-70`, o Weapon escrito com o molde do Feedback (3 bits por zona, deslocados 3 × zona):
 
 ```c
     uint16_t active = (uint16_t)((1u << start) | (1u << end));
@@ -42,8 +42,8 @@ As duas referências põem força − 1 direto no byte 3, um campo só, e zeram 
 - boykopovar/AnyPS5 (GPL-2.0, só leitura), `core/libs/prx/libScePad/src/PadState.cpp:207-215`: as zonas nos bytes
   1-2 e `effect[3] = força − 1`.
 
-Quem pede o Weapon: `godot/scripts/salas/galeria.gd:190`, `salas/prova.gd:235`, `salas/bancada.gd:42` (todos
-`2, 6, 8`). As provas só conferem o byte do modo: `nativo/testes/prova_efeitos.c:21-26` («Weapon 0x25 no
+Quem pede o Weapon: `godot/scripts/salas/galeria.gd:165`, `salas/prova.gd:195`, `salas/bancada.gd:29` (todos
+`2, 6, 8`). As provas só conferem o byte do modo: `nativo/testes/prova_efeitos.c:17-22` («Weapon 0x25 no
 common[10]») e `src/forja_selftest.c:60-62`.
 
 ## O alvo
@@ -57,7 +57,7 @@ tela não mudam.
 1. Escrever a prova primeiro (abaixo) e vê-la reprovar.
 2. No `case FORJA_TRIGGER_WEAPON`: `out[0] = FORJA_HID_TRIGGER_WEAPON`, `out[1]` e `out[2]` com as zonas,
    `out[3] = force3(str)`, sem `pack_zones` e sem deslocar.
-3. Conferir que a Galeria e a M1 não calibraram nada às cegas em cima da força errada (`nativo/nucleo/cegas.c:212`):
+3. Conferir que a Galeria e a M1 não calibraram nada às cegas em cima da força errada (`nativo/nucleo/cegas.c:202`):
    se houver número de referência medido com o Weapon fraco, anotar para remedir na bancada.
 
 ## Armadilhas

@@ -1,4 +1,3 @@
-/* O som de cada controle. Ver som_controle.h. */
 #include "som_controle.h"
 
 #include "forja.h"
@@ -13,11 +12,8 @@ static SDL_AudioDeviceID g_ids[SOM_MAX_NOS];
 static bool g_preparado;
 static bool g_audio_tentou, g_audio_ok;
 static char g_sem_audio[200];
-static int g_voz_falante[MAX_JOGADORES]; /* a última voz de cada alto-falante: um som por vez */
+static int g_voz_falante[MAX_JOGADORES];
 
-/* Cada som mandado a um controle, na linha do tempo (o registro v2): o
- * lugar, a ordem (o `seq` das saídas, o mesmo contador do pads.c), o papel,
- * o som, o ganho e se havia placa para ele. */
 static void registrar_som(Forja *a, int slot, const char *papel, const char *nome, float ganho, bool placa) {
   if (slot < 0 || slot >= MAX_JOGADORES)
     return;
@@ -37,9 +33,6 @@ static float aproximar(float atual, float alvo, float taxa, float dt) {
   return alvo + (atual - alvo) * expf(-taxa * dt);
 }
 
-/* O som do SDL abre na primeira sala de som, não no começo: quem só joga as
- * salas de entrada não pede nada ao servidor de som. Sem ele (a prova do CI
- * não tem servidor), os controles simulados seguem com a placa virtual. */
 static void abrir_audio(void) {
   if (g_audio_tentou)
     return;
@@ -49,8 +42,6 @@ static void abrir_audio(void) {
     SDL_snprintf(g_sem_audio, sizeof(g_sem_audio), "sem som do sistema (%s): só os controles simulados têm som",
                  SDL_GetError());
 }
-
-/* ---------- as saídas ---------- */
 
 static void SDLCALL alimentar(void *u, SDL_AudioStream *fluxo, int adicional, int total) {
   (void)total;
@@ -91,7 +82,6 @@ static int preparar_saida(SaidaCtl *s, int canais) {
   return s->tmp ? 0 : -1;
 }
 
-/* A saída de um nó da lista: reaproveita se outro papel já a abriu. */
 static int abrir_no(int no) {
   if (no < 0)
     return -1;
@@ -135,8 +125,6 @@ static int abrir_virtual(int slot) {
   s->dono = slot;
   return i;
 }
-
-/* ---------- a lista e a escolha ---------- */
 
 static void listar(void) {
   g_sc.n = 0;
@@ -187,7 +175,6 @@ static void ligar_saidas(Forja *a, int s) {
   }
   Pad *pad = pads_do_slot(a, s);
   if (pad && pad->simulado) {
-    /* o controle de mentira: uma placa virtual de quatro canais, como a do cabo */
     int v = abrir_virtual(s);
     j->saida[PAPEL_ALTO_FALANTE] = j->saida[PAPEL_HAPTICA] = v;
     j->canal_a[PAPEL_ALTO_FALANTE] = 1;
@@ -231,8 +218,6 @@ static void escolher(Forja *a) {
   }
   for (int p = 0; p < PAPEL_TOTAL; p++) {
     bool usado[SOM_MAX_NOS] = {false};
-    /* o nó que é, pelo aparelho, de um controle que não está na mesa também
-     * não vai para ninguém pelo nome */
     for (int i = 0; i < g_sc.n; i++) {
       if (!g_sc.nos[i].usb[0])
         continue;
@@ -242,8 +227,6 @@ static void escolher(Forja *a) {
           usado[i] = true;
       }
     }
-    /* três passadas: pelo aparelho para todos, depois pelo número, depois
-     * pelo nome — ninguém leva pelo nome o que é de outro pelo aparelho */
     for (int passada = 0; passada < 3; passada++)
       for (int s = 0; s < MAX_JOGADORES; s++) {
         if (!tem[s] || g_sc.j[s].no[p] >= 0 || pads_do_slot(a, s)->simulado)
@@ -268,8 +251,6 @@ static void escolher(Forja *a) {
       ligar_saidas(a, s);
     }
 }
-
-/* ---------- a vida ---------- */
 
 static void zerar(void) {
   SDL_memset(&g_sc, 0, sizeof(g_sc));
@@ -322,7 +303,6 @@ void somc_trocar(Forja *a, int slot, PapelSom papel, int direcao) {
   Pad *pad = pads_do_slot(a, slot);
   if (!pad || pad->simulado)
     return;
-  /* os candidatos, e o "nenhum" no fim da roda */
   int atual = j->no[papel];
   for (int passo = 0; passo < g_sc.n + 1; passo++) {
     atual += direcao;
@@ -337,13 +317,10 @@ void somc_trocar(Forja *a, int slot, PapelSom papel, int direcao) {
   j->como[papel] = atual >= 0 ? ACHOU_PESSOA : ACHOU_NADA;
   if (papel == PAPEL_ALTO_FALANTE && atual >= 0 && g_sc.nos[atual].tipo == NO_DUALSENSE_SAIDA &&
       g_sc.nos[atual].canais >= 4) {
-    /* a placa do controle traz os atuadores junto */
     j->no[PAPEL_HAPTICA] = atual;
     j->como[PAPEL_HAPTICA] = ACHOU_PESSOA;
   }
-  /* a saída mudou: a voz de antes era de outro mixer */
   g_voz_falante[slot] = 0;
-  /* as saídas que ninguém mais usa fecham quando a sala sai; aqui só religa */
   ligar_saidas(a, slot);
   somc_relatorio(a);
   reg_linha(&a->reg, "%s apontou o %s: %s", pads_rotulo_slot(slot),
@@ -386,8 +363,6 @@ ComoAchou somc_como(Forja *a, int slot, PapelSom papel) {
                                                                                  : ACHOU_NADA;
 }
 
-/* ---------- tocar ---------- */
-
 int somc_falante(Forja *a, int slot, const Som *s, float ganho, const char *nome) {
   bool tem = somc_tem(a, slot, PAPEL_ALTO_FALANTE);
   registrar_som(a, slot, "alto_falante", nome, ganho, tem);
@@ -399,20 +374,14 @@ int somc_falante(Forja *a, int slot, const Som *s, float ganho, const char *nome
   g[j->canal_a[PAPEL_ALTO_FALANTE]] = ganho;
   if (j->canal_b[PAPEL_ALTO_FALANTE] >= 0)
     g[j->canal_b[PAPEL_ALTO_FALANTE]] = ganho;
-  /* com o fone no jack, o som do controle vai para as duas orelhas */
   if (j->fone && !sd->virtual_ && j->no[PAPEL_ALTO_FALANTE] >= 0 &&
       g_sc.nos[j->no[PAPEL_ALTO_FALANTE]].tipo == NO_DUALSENSE_SAIDA)
     g[0] = g[1] = ganho;
-  /* nunca dois sons ao mesmo tempo no mesmo alto-falante (docs/jogo/05) */
   mixer_parar(&sd->mixer, g_voz_falante[slot], true);
   g_voz_falante[slot] = mixer_tocar(&sd->mixer, s, g, false);
   return g_voz_falante[slot];
 }
 
-/* O jack do fone: plugou, o som do controle muda para o fone (as duas
- * orelhas, e a rota do estéreo no fone); tirou, volta ao alto-falante. Só
- * quando o alto-falante é a placa do próprio controle, que é onde a rota do
- * bloco de efeitos manda. */
 static void acompanhar_fone(Forja *a, int slot) {
   SomJogador *j = &g_sc.j[slot];
   Pad *p = pads_do_slot(a, slot);
@@ -467,8 +436,6 @@ void somc_parar_tudo(Forja *a, int slot) {
       mixer_parar_tudo(&g_sc.saidas[j->saida[p]].mixer);
 }
 
-/* ---------- a cada quadro ---------- */
-
 static void medir_virtual(Forja *a, SaidaCtl *s, float dt) {
   int quadros = (int)(dt * MIX_TAXA);
   if (quadros > s->tmp_quadros)
@@ -482,7 +449,6 @@ static void medir_virtual(Forja *a, SaidaCtl *s, float dt) {
       float v = s->tmp[i * s->canais + c];
       rms[c] += v * v;
     }
-  /* os defeitos de som entre o jogo e o "plástico" de mentira */
   unsigned def = simulador_defeitos_agora();
   if (def & DEFEITO_HAPTICA_TROCADA) {
     float t = rms[2];
@@ -495,7 +461,6 @@ static void medir_virtual(Forja *a, SaidaCtl *s, float dt) {
     rms[1] = 0;
   SaidaCtl *alvo = s;
   if ((def & DEFEITO_SOM_VIZINHO) && simulador_ativo()) {
-    /* o som deste controle sai no controle seguinte da mesa */
     for (int d = 1; d < MAX_JOGADORES; d++) {
       int vizinho = (s->dono + d) % MAX_JOGADORES;
       if (!pads_do_slot(a, vizinho))
@@ -564,7 +529,6 @@ void somc_atualizar(Forja *a, float dt) {
           pico = v;
       }
       nivel = (float)sqrt(soma / amostras);
-      /* o nível para a tela: -54 dB..0 dB em 0..1, que é como o ouvido lê */
       nivel = nivel > 0.002f ? limitar((20 * log10f(nivel) + 54) / 54, 0, 1) : 0;
       pico = pico > 0.002f ? limitar((20 * log10f(pico) + 54) / 54, 0, 1) : 0;
     }
@@ -640,8 +604,6 @@ void somc_relatorio(Forja *a) {
   forja_relatorio_mudou(a);
 }
 
-/* ---------- a escuta da bancada ---------- */
-
 bool somc_escutar(Forja *a, int slot, float segundos) {
   if (slot < 0 || slot >= MAX_JOGADORES || !g_preparado)
     return false;
@@ -654,7 +616,7 @@ bool somc_escutar(Forja *a, int slot, float segundos) {
   j->escuta_n = 0;
   if (!j->escuta)
     return false;
-  SDL_ClearAudioStream(j->mic); /* a primeira amostra gravada é de depois de agora */
+  SDL_ClearAudioStream(j->mic);
   return true;
 }
 

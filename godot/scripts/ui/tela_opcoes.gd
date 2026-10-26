@@ -1,40 +1,30 @@
 class_name TelaOpcoes
 extends Control
-## As opções: as de quem abriu (o gatilho e a vibração do lugar dele) e as da
-## sessão (volumes, movimento, flashes, reações, tela, texto, idioma). ▲▼ escolhe a linha, ◀▶ troca
-## o valor e o controle já sente (a vibração dá um toque na força escolhida);
-## ○ volta, e o que mudou fica guardado.
 
 signal mudou(chave: String)
 
-var quem := 0  ## o lugar que abriu
+var quem := 0
 var linha := 0
-var _linhas: Array = []  # [chave, rótulo, seção]
-var _rolar := 0.0  ## o quanto a lista já subiu, em px
-var _rolar_alvo := 0.0  ## onde ela para (sempre no alto de uma linha, ou no fim)
-var _lista: Control  ## o desenho da lista, recortado no retângulo dela
+var _linhas: Array = []
+var _rolar := 0.0
+var _rolar_alvo := 0.0
+var _lista: Control
 
-## O metrônomo da linha Tempo: um tique na TV a cada batida; ✕ no tique deixa
-## um ponto na régua embaixo da linha — no centro, o tempo do lugar está certo.
 const METRONOMO_BPM := 100.0
-const REGUA_MS := 200.0  ## a régua vai de −REGUA_MS a +REGUA_MS
-const REGUA_RESERVA := 48.0  ## o espaço sempre guardado embaixo da linha Tempo (a lista não pula ao navegar)
-const CAIXA := 66.0  ## a altura da caixa de cada linha
-const ALTO_DA_LINHA := 72.0  ## a linha com 66 px (CAIXA): focável de 64 ou mais (o estudo 02, item 6)
-const ALTO_DO_TITULO := 40.0  ## o título de cada seção (Gatilhos... / Sessão)
-const QUADRO_MAX := 1000.0  ## o quadro nunca passa disto (40 px de margem em 1080): o que não cabe, desliza
-const CABECA := 124.0  ## do alto do quadro ao começo da lista
-const RODAPE := 70.0  ## do fim da lista ao fim do quadro (a faixa das dicas)
-## Uma batida achada mais tarde que isto (a linha Tempo acabou de ser escolhida,
-## um quadro preso) passa calada: o tique nunca soa fora da batida.
+const REGUA_MS := 200.0
+const REGUA_RESERVA := 48.0
+const CAIXA := 66.0
+const ALTO_DA_LINHA := 72.0
+const ALTO_DO_TITULO := 40.0
+const QUADRO_MAX := 1000.0
+const CABECA := 124.0
+const RODAPE := 70.0
 const TIQUE_TARDE_US := 50000
 var _metronomo_us := 0
 var _batida_tocada := -1
-## O instante em que o último tique chega ao ouvido: o som sai no próximo mix,
-## mais a latência de saída, como o zero do Ritmo. O ✕ se mede contra ele.
 var _ouvido_us := 0
 var _latencia := 0.0
-var _toques: Array = []  ## os últimos 8 desvios, em ms, já corrigidos pelo tempo do lugar
+var _toques: Array = []
 
 
 func _ready() -> void:
@@ -66,7 +56,7 @@ func abrir(lugar: int) -> void:
 	_rolar = 0.0
 	_rolar_alvo = 0.0
 	_toques = []
-	_latencia = AudioServer.get_output_latency()  # cara: uma vez ao abrir, nunca por quadro
+	_latencia = AudioServer.get_output_latency()
 	_metronomo_us = Time.get_ticks_usec()
 	_ouvido_us = _metronomo_us + _ate_o_ouvido_us()
 	_batida_tocada = -1
@@ -86,7 +76,6 @@ func trocar(dx: int) -> void:
 			Opcoes.gatilho[quem] = wrapi(int(Opcoes.gatilho[quem]) + dx, 0, Opcoes.GATILHO.size())
 		"vibracao":
 			Opcoes.vibracao[quem] = clampi(int(Opcoes.vibracao[quem]) + dx * Opcoes.PASSO, 0, 100)
-			# mostrar, não contar: o controle sente a força nova
 			Forja.sentir(quem, "golpe")
 		"tempo":
 			var ms := clampi(int(Opcoes.tempo_ms[quem]) + dx * Opcoes.TEMPO_PASSO, Opcoes.TEMPO_MIN, Opcoes.TEMPO_MAX)
@@ -128,7 +117,6 @@ func valor(chave: String) -> String:
 	return ""
 
 
-## A fração do valor, para a barra (os que são porcentagem); -1 sem barra.
 func _fracao(chave: String) -> float:
 	match chave:
 		"vibracao": return Opcoes.vibracao[quem] / 100.0
@@ -142,12 +130,10 @@ func _periodo_us() -> int:
 	return int(60.0 / METRONOMO_BPM * 1000000.0)
 
 
-## Do tique tocado agora até ele chegar ao ouvido, em µs.
 func _ate_o_ouvido_us() -> int:
 	return int((AudioServer.get_time_to_next_mix() + _latencia) * 1000000.0)
 
 
-## true quando uma batida nova do metrônomo começou agora e o tique deve soar.
 func _tique(agora_us: int) -> bool:
 	var desde := agora_us - _metronomo_us
 	var batida := floori(float(desde) / float(_periodo_us()))
@@ -157,7 +143,6 @@ func _tique(agora_us: int) -> bool:
 	return posmod(desde, _periodo_us()) < TIQUE_TARDE_US
 
 
-## ✕ na linha Tempo: onde o toque caiu em relação à batida ouvida mais perto.
 func tocou() -> void:
 	if _linhas.is_empty() or _linhas[linha][0] != "tempo":
 		return
@@ -173,7 +158,6 @@ func tocou() -> void:
 func _process(dt: float) -> void:
 	if visible:
 		_rolar = move_toward(_rolar, _rolar_alvo, 2400.0 * dt)
-		# o tique da linha Tempo: o relógio do sistema, não o Ritmo (que está pausado aqui)
 		var agora := Time.get_ticks_usec()
 		if not _linhas.is_empty() and _linhas[linha][0] == "tempo" and _tique(agora):
 			_ouvido_us = agora + _ate_o_ouvido_us()
@@ -181,8 +165,6 @@ func _process(dt: float) -> void:
 		queue_redraw()
 
 
-## Os blocos da lista, de cima para baixo: o título da seção (na primeira linha dela), a linha e, na Tempo, o lugar
-## da régua. `topo` conta do começo da lista, sem a rolagem.
 func _blocos() -> Array:
 	var blocos: Array = []
 	var y := 0.0
@@ -203,7 +185,6 @@ func _conteudo() -> float:
 	return h
 
 
-## O alto do quadro: o que a lista pede, até QUADRO_MAX.
 func _alto_do_quadro() -> float:
 	return minf(QUADRO_MAX, CABECA + _conteudo() + RODAPE)
 
@@ -212,8 +193,6 @@ func _alto_da_lista() -> float:
 	return _alto_do_quadro() - CABECA - RODAPE
 
 
-## Onde a lista para para a linha escolhida ficar inteira à vista, com uma linha de folga de cada lado: o alto de uma
-## linha (ou o fim da lista), o mais perto de onde ela já está.
 func _alvo_da_rolagem() -> float:
 	var vp := _alto_da_lista()
 	var fim := maxf(0.0, _conteudo() - vp)
@@ -236,7 +215,6 @@ func _alvo_da_rolagem() -> float:
 	return melhor if melhor >= 0.0 else clampf(lo, 0.0, fim)
 
 
-## A caixa do quadro, no meio da tela.
 func _quadro() -> Rect2:
 	var larg := 980.0
 	var alt := _alto_do_quadro()
@@ -248,7 +226,6 @@ func _draw() -> void:
 	var r := _quadro()
 	Desenho.moldura(self, r, Tema.CASCO, Tema.GRAFITE, 2, Tema.RAIO_QUADRO)
 	Desenho.texto(self, r.position + Vector2(48, 84), "Opções", Tema.bungee(), Tema.T_TITULO, Tema.ETIQUETA)
-	# a lista desliza dentro do retângulo dela: o glifo marca o lado cortado
 	var fim := maxf(0.0, _conteudo() - _alto_da_lista())
 	if _rolar > 0.5:
 		Glifo.desenhar(self, "cima", Rect2(Vector2(r.end.x - 80, r.position.y + 52), Vector2(32, 32)), Tema.MUDO)
@@ -266,13 +243,11 @@ func _draw() -> void:
 	Desenho.dicas_a_direita(self, Vector2(r.end.x - 48, r.end.y - 26), dicas, Tema.T_SELO)
 
 
-## As linhas, no retângulo da lista (a origem é o canto dele). Parada, só se desenha o que cabe inteiro; deslizando,
-## o recorte esconde o que passa da borda.
 func _desenhar_lista() -> void:
 	var larg := 980.0
 	var vp := _alto_da_lista()
 	var parada := absf(_rolar - _rolar_alvo) < 0.5
-	var cor_dono := Tema.tom_para_a_borda(Forja.cor_do_lugar(quem))  ## o foco tem dono: quem abriu as Opções
+	var cor_dono := Tema.tom_para_a_borda(Forja.cor_do_lugar(quem))
 	var blocos := _blocos()
 	for i in _linhas.size():
 		var item: Array = _linhas[i]
@@ -310,8 +285,6 @@ func _desenhar_lista() -> void:
 				_desenhar_regua(b)
 
 
-## A régua da linha Tempo: 440 × 8 px no meio do quadro, com o traço do tempo
-## no centro (pisca quando o tique chega ao ouvido) e um ponto por toque. Nada de número.
 func _desenhar_regua(caixa: Rect2) -> void:
 	var cx := caixa.position.x + caixa.size.x * 0.5
 	var y := caixa.end.y + 22.0

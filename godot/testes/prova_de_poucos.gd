@@ -1,11 +1,4 @@
 extends Node
-## A prova de poucos: toda sala jogável com 1, 2 ou 3 controles. Abre o jogo
-## com N DualSense simulados (--simular=N) e o robô joga cada sala do começo ao
-## fim: a sala tem de acabar sozinha, sem erro, com um veredito para cada lugar
-## presente e nenhum para o lugar vazio — e o aviso diz o que muda.
-##
-##   godot --headless --fixed-fps 60 --path godot res://testes/prova_de_poucos.tscn \
-##     -- --simular=2 --robo --semente=7 --relatorios=<pasta vazia>
 
 const SALAS := ["centelha", "viga", "molde", "impacto", "galeria", "canto", "caminhos", "voz", "prova"]
 
@@ -26,10 +19,7 @@ func _quadros(n: int) -> void:
 		await get_tree().process_frame
 
 
-## OPCOES_DE_TESTE=1: a vibração do P2 em 0% e o gatilho do P3 desligado
-## (as opções do lugar), e as contas do gatilho fraco.
 var com_opcoes := false
-## CABO=1: no meio de cada sala, o cabo do P2 sai por 3 s e volta.
 var com_cabo := false
 
 
@@ -71,7 +61,6 @@ func _joga(id: String, n: int) -> void:
 	if not sala is SalaJogo or (sala.id != id and Catalogo.apelido(sala.id) != id):
 		_esperar(false, "%s: a sala abriu" % id)
 		return
-	# só as salas que mudam dizem; A Prova sempre muda com menos de quatro
 	if id == "prova":
 		_esperar(sala.com_poucos() != "" if n < 4 else sala.com_poucos() == "",
 			"%s com %d: o selo diz o que muda (%s)" % [id, n, sala.com_poucos()])
@@ -90,7 +79,6 @@ func _joga(id: String, n: int) -> void:
 		for v in sala.vereditos.get(l, []):
 			if com_cabo:
 				if l == 1:
-					# o cabo que cai não é defeito: passou ou não medido, nunca falhou
 					_esperar(int(v.get("resultado", -1)) != Forja.FALHOU, "%s: o P2, que perdeu o cabo, %s → %s (%s)" % [
 						id, str(v.get("feature", "")), str(v.get("rotulo", "")), str(v.get("obs", ""))])
 				else:
@@ -107,7 +95,6 @@ func _joga(id: String, n: int) -> void:
 				elif l != 1 and l != 2:
 					_esperar(int(v.get("resultado", -1)) == Forja.PASSOU, "%s: P%d %s, com as opções de fábrica, passou" % [
 						id, l + 1, str(v.get("feature", ""))])
-			# faltar gente nunca é defeito: sem vizinho, o isolamento fica «não medido»
 			_esperar(int(v.get("resultado", -1)) != Forja.FALHOU, "%s com %d: P%d %s não falhou (%s)" % [
 				id, n, l + 1, str(v.get("feature", "")), str(v.get("obs", v.get("medido", "")))])
 	q = 0
@@ -130,8 +117,6 @@ func _prova_das_contas_das_opcoes() -> void:
 	Opcoes.vibracao[0] = 100
 
 
-## O cabo do P2 sai no meio do jogo e volta: a sala segue, o lugar espera, e o
-## controle volta ao mesmo lugar, com o mesmo player index.
 func _tira_e_poe_o_cabo(sala, id: String) -> void:
 	var q := 0
 	while is_instance_valid(sala) and (sala.fase != "jogo" or sala.t_fase < 2.0) and q < 3000:
@@ -155,10 +140,6 @@ func _tira_e_poe_o_cabo(sala, id: String) -> void:
 	_esperar(int(p.get("player_index", -9)) == 1, "%s: com o mesmo player index (1)" % id)
 
 
-## A sala que pediu o ✕ e saiu antes dele não deixa o ✕ cair na tela seguinte
-## (a WQ02): o robô do aviso pede o ✕ com a sala de dono, a sala é liberada
-## antes de 1,4 s (a volta ao salão faz o queue_free), e nenhum lugar recebe ✕
-## nos 5 s seguintes.
 func _prova_do_x_que_nao_cai(n: int) -> void:
 	jogo._entrar_na_sala("centelha", false)
 	var q := 0
@@ -183,10 +164,6 @@ func _prova_do_x_que_nao_cai(n: int) -> void:
 		liberada, str(viu.map(func(l: int) -> String: return "P%d" % (l + 1)))])
 
 
-## Cala todo tocador antes do quit (a WQ01): o som que ainda toca na saída fica
-## preso no servidor de áudio, e o motor acusa «resources still in use at exit».
-## O stop só marca o fim; quem solta o som é o mixer (no tempo de parede) e o
-## quadro seguinte, então espera os dois.
 func _calar_o_som_antes_de_sair() -> void:
 	var pilha: Array[Node] = [get_tree().root]
 	while not pilha.is_empty():

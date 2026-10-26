@@ -43,11 +43,11 @@ outras quatro o usam:
 | função / constante | o que é |
 | --- | --- |
 | `montar(sala)` | `Kit.arena(sala, 5, 3)`; `sala.atmosfera(Color("#c28bff"), Tema.CIANO, false, 50)`; `sala.luzes([(-9, 2,6, −5), (9, 2,6, −5), (0, 3,0, 5)])` |
-| `faixa(sala, l)` | a faixa no chão na cor do lugar, do boneco até o muro dos alvos (`galeria.gd:93-94`) |
+| `faixa(sala, l)` | a faixa no chão na cor do lugar, do boneco até o muro dos alvos (`galeria.gd:76-77`) |
 | `alvo(pai) -> Node3D` | o alvo de três discos de 8 lados (branco, vermelho, branco), de frente para o jogador |
-| `arma(pai, qual) -> Node3D` e `arma_na_mao(p, qual) -> Node3D` | as armas em blocos (`galeria.gd:152-181` e `:545-559`): `PISTOLA`, `METRALHADORA`, `ARCO` |
-| `no_muro(l, m: Vector2) -> Vector3` | o ponto do muro dos alvos para a mira de 0 a 1 (`galeria.gd:399-400`) |
-| `rastro(sala, de, ate)` | o risco do tiro (`galeria.gd:404-421`) |
+| `arma(pai, qual) -> Node3D` e `arma_na_mao(p, qual) -> Node3D` | as armas em blocos (`galeria.gd:129-156` e `:545-559`): `PISTOLA`, `METRALHADORA`, `ARCO` |
+| `no_muro(l, m: Vector2) -> Vector3` | o ponto do muro dos alvos para a mira de 0 a 1 (`galeria.gd:369-370`) |
+| `rastro(sala, de, ate)` | o risco do tiro (`galeria.gd:374-389`) |
 | `Z_ALVOS` −6,4, `MIRA_LARG` 2,8, `MIRA_Y0` 0,8, `MIRA_Y1` 2,7 | o muro |
 | `R2_CLIQUE` 0,62, `R2_APERTA` 0,5, `R2_SOLTA` 0,2 | o curso do R2: o clique da Weapon, o apertar e o soltar |
 | `EQUIPE := [Color("#e8a33c"), Color("#2fb3b3")]` | as equipes do [13](../13-arquitetura.md#as-decisões-comuns-dos-minigames--h08): **A Brasa** (âmbar) e **A Maré** (turquesa), longe das cores dos lugares; no chão e na armadura, nunca na barra de luz. Com 3 jogadores, **o Aprendiz** completa a equipe (a regra de [Q](Q-a-prova.md#o-cenário-comum)) |

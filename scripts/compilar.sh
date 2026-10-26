@@ -1,23 +1,4 @@
 #!/usr/bin/env bash
-# Build reproduzível do módulo nativo do FORJA (a GDExtension do jogo 3D).
-#
-#   scripts/compilar.sh linux      o módulo Linux    -> godot/bin/libforja.linux.x86_64.so
-#   scripts/compilar.sh windows    o módulo Windows  -> godot/bin/libforja.windows.x86_64.dll
-#   scripts/compilar.sh testes     só a lógica, sem SDL e sem Godot, e as provas
-#   scripts/compilar.sh tudo       os três
-#   scripts/compilar.sh deps       só baixa e confere o SDL3 e o godot-cpp
-#   scripts/compilar.sh soma       só imprime a soma da fonte do módulo (a que vai no .fonte)
-#
-# Ao lado de cada módulo fica godot/bin/<módulo>.fonte, com a soma da fonte de
-# que ele saiu: a caixa das provas (tests/caixa.sh) confere essa soma e recusa
-# o módulo de outra fonte.
-#
-# Reproduzível quer dizer: o SDL3 entra por versão E por sha256, o godot-cpp
-# por tag E por commit (nunca "o que a distro tiver"), e os caminhos desta
-# máquina saem do binário (-ffile-prefix-map).
-#
-# O SDL3 é o 3.4.14 — a mesma série que a Steam distribui no runtime, e a que o
-# Hefesto usa como régua. O godot-cpp vem do master, num commit fixo (ADR-009).
 set -euo pipefail
 
 RAIZ="$(cd "$(dirname "$0")/.." && pwd)"
@@ -27,30 +8,19 @@ SDL_VERSAO="3.4.14"
 SDL_SHA256="30d4aa2b3037718142b32dffd4e72f917ebb6cc5227150e7bb9c45efb2153aeb"
 SDL_URL="https://github.com/libsdl-org/SDL/releases/download/release-${SDL_VERSAO}/SDL3-${SDL_VERSAO}.tar.gz"
 
-# A godot-cpp não tem versão 4.7: a última com tag é a godot-4.5-stable. Para
-# o jogo rodar na 4.7, o módulo compila contra o ramo «master» — mas **fixado
-# num commit**, que é o que mantém a compilação reproduzível. Subir de commit é
-# decisão, com commit próprio e as provas verdes (ADR-009).
 GODOT_CPP_TAG="master"
 GODOT_CPP_COMMIT="507ed9d840c01a3c5b2a39af8bb4000bfac30bf5"
 GODOT_CPP_URL="https://github.com/godotengine/godot-cpp.git"
-# O master traz a API de várias versões (extension_api-4-3 … 4-7) e exige dizer
-# qual. A nossa é a da engine que o jogo roda (scripts/engine.sh).
 GODOT_CPP_API="${GODOT_CPP_API:-4.7}"
 
 CACHE="${FORJA_CACHE:-$RAIZ/.cache}"
 JOBS="${JOBS:-$(getconf _NPROCESSORS_ONLN 2>/dev/null || echo 2)}"
 TIPO="${FORJA_BUILD_TIPO:-Release}"
 
-# Tira da string de debug e das macros __FILE__ o caminho desta máquina.
 MAPA="-ffile-prefix-map=$RAIZ=. -ffile-prefix-map=$CACHE=.cache"
 
 diga() { printf '==> %s\n' "$*"; }
 
-# A soma da fonte do módulo: o conteúdo dos arquivos de nativo/, src/, include/
-# e cmake/ (os versionados e os novos que o .gitignore não ignora), mais este
-# script, que fixa o SDL e o godot-cpp. Lidos da árvore de trabalho. Fora do
-# git, todos os arquivos das mesmas pastas. Imprime só a soma.
 soma_da_fonte() {
   (
     cd "$RAIZ"
@@ -64,7 +34,6 @@ soma_da_fonte() {
   )
 }
 
-# $1 = o módulo em godot/bin: grava ao lado dele o .fonte com a soma
 gravar_a_fonte() {
   soma_da_fonte > "$RAIZ/godot/bin/$1.fonte"
   diga "a fonte do módulo: godot/bin/$1.fonte"
@@ -91,7 +60,6 @@ baixar_sdl() {
   fi
 }
 
-# $1 = linux | windows
 compilar_sdl() {
   local alvo="$1"
   local prefixo="$CACHE/sdl-${SDL_VERSAO}-${alvo}"
@@ -105,7 +73,6 @@ compilar_sdl() {
   fi
   diga "SDL ${SDL_VERSAO} estático para ${alvo}"
   rm -rf "$build"
-  # PIC: o SDL vai para dentro de uma biblioteca compartilhada (a GDExtension)
   cmake -S "$fonte" -B "$build" -G Ninja \
     -DCMAKE_BUILD_TYPE=Release \
     -DCMAKE_INSTALL_PREFIX="$prefixo" \
@@ -120,14 +87,11 @@ compilar_sdl() {
   touch "$prefixo/.pronto"
 }
 
-# O godot-cpp na tag fixada, e só se o commit conferir. GODOT_CPP_DIR aponta
-# para uma árvore que já existe (conferida do mesmo jeito).
 preparar_godot_cpp() {
   local dir="${GODOT_CPP_DIR:-$CACHE/godot-cpp-${GODOT_CPP_COMMIT:0:10}}"
   if [[ ! -d "$dir/.git" ]]; then
     diga "baixando godot-cpp ${GODOT_CPP_TAG} (${GODOT_CPP_COMMIT:0:10})" >&2
     rm -rf "$dir"
-    # o commit, não o topo do ramo: o master anda, e a compilação não pode andar junto
     git init -q "$dir" >&2
     git -C "$dir" remote add origin "$GODOT_CPP_URL" >&2
     git -C "$dir" fetch -q --depth 1 origin "$GODOT_CPP_COMMIT" >&2
@@ -142,7 +106,6 @@ preparar_godot_cpp() {
   printf '%s' "$dir"
 }
 
-# $1 = linux | windows | testes
 compilar() {
   local alvo="$1"
   local build="$RAIZ/build/$alvo"

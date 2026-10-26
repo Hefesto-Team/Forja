@@ -1,19 +1,7 @@
 #!/usr/bin/env bash
-# As telas do jogo, fotografadas e comparadas (o Sprint E): a tela virtual
-# (Xvfb) e o OpenGL por software; o roteiro do godot/testes/captura_jogo.gd.
-#
-#   bash tests/telas.sh visual <pasta>                     a prova visual (tests/prova_visual.sh):
-#                                                          quatro partidas inteiras, a prancha e as checagens
-#   bash tests/telas.sh fotos <pasta>                      (divulgação) o título, os créditos, o lobby,
-#                                                          as opções, A Centelha e a partida
-#   bash tests/telas.sh comparar <antes> <depois> <saída>  a diferença de cada tela e as
-#                                                          pranchas de daltonismo
-#
-# A comparação só relata: o 3D por software muda um pouco de máquina para
-# máquina. LIMITE=<%> faz reprovar acima dele.
 set -u
 RAIZ="$(cd "$(dirname "$0")/.." && pwd)"
-source "$RAIZ/scripts/engine.sh"   # a versão da engine mora lá (ADR-009)
+source "$RAIZ/scripts/engine.sh"
 GODOT="$FORJA_GODOT"
 [ -x "$GODOT" ] || { echo "sem Godot: rode ./run-local.sh uma vez, ou GODOT=<binário>"; exit 2; }
 
@@ -23,11 +11,10 @@ fotos() {
   mkdir -p "$pasta"
   local rel
   rel="$(mktemp -d)"
-  # a caixa (tests/caixa.sh): o jogo não acha o controle ligado na máquina
   source "$RAIZ/tests/caixa.sh"
   caixa_montar "$rel/caixa"
   caixa "$GODOT" --headless --path "$RAIZ/godot" --import --quit > /dev/null 2>&1
-  roteiro() { # $1 = ROTEIRO, depois as variáveis e os argumentos
+  roteiro() {
     local r="$1"
     shift
     env SAIDA="$pasta" ROTEIRO="$r" RAPIDO=1 "$@" timeout 900 xvfb-run -a -s "-screen 0 1920x1080x24" \

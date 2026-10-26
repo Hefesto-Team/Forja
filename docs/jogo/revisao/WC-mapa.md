@@ -12,7 +12,7 @@ Para quem chega: os autoloads e o `main`, o que cada um faz e por onde se conver
 | `Musica` | `godot/scripts/musica.gd` | — | as faixas e os jingles. |
 | `Ritmo` | `godot/scripts/ritmo.gd` | −90, `PROCESS_MODE_ALWAYS` | o relógio da música (`t_musica`): a placa de som quando há faixa, o `Time.get_ticks_usec` quando não há; a batida, as janelas e o `julgar`. Quem chama: `minigames/minigame.gd` e `ui/tela_opcoes.gd` (`definir_desvio`). |
 
-O módulo lê o controle no `_process` dele (−100): o `forja_quadro` (`nativo/nucleo/forja.c:211`) bombeia os eventos
+O módulo lê o controle no `_process` dele (−100): o `forja_quadro` (`nativo/nucleo/forja.c:202`) bombeia os eventos
 do SDL, e só então o `Ritmo` mede o tempo do quadro (−90) e as salas leem o aperto (0).
 
 ## As classes estáticas e puras
@@ -61,4 +61,4 @@ atalhos de abertura (`--sala=`, `--tela=`, `--partida=`, `--prova-de-fogo`) mora
 - O `Forja` carrega antes do `Ritmo`: o `ler_das_opcoes` já lê as opções carregadas.
 - O `_seguir_a_partida` com o `_trocando` não registra a sala duas vezes, e o `terminou` é ligado uma vez por sala.
 - O `sala_da_bancada` é limpo no resultado.
-- A pasta padrão do relatório é conferida antes de abrir (`forja.gd:209`) e cai para `user://relatorios`.
+- A pasta padrão do relatório é conferida antes de abrir (`forja.gd:159`) e cai para `user://relatorios`.

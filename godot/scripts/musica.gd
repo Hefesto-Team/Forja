@@ -1,13 +1,5 @@
 extends Node
-## A música da TV (autoload «Musica»): synthwave sintetizado pelo módulo — a
-## mesma síntese dos sons (som/sintese.c, `sint_trilha`), nenhum arquivo de
-## áudio de fora. Uma faixa para o salão (e o título, o lobby, o pódio) e uma
-## por sala, cada uma com a sua tônica, o seu andamento e a sua energia.
-##
-## A música se cala onde a sala pede silêncio: A Voz (o microfone ouve a sala)
-## e O Canto (a pergunta é de onde veio o som). Troca com um fade curto.
 
-## id -> [tônica MIDI, bpm, energia]; sem entrada: silêncio
 const FAIXAS := {
 	"salao": [57, 92, 0],
 	"titulo": [60, 115, 1],
@@ -22,22 +14,19 @@ const FAIXAS := {
 	"bancada": [],
 	"voz": [],
 	"canto": [],
-	"MUS_TELA_CONSTRUCAO": [57, 120, 1],   # a construção do cavaleiro, a 120 BPM (a batida de 500 ms)
+	"MUS_TELA_CONSTRUCAO": [57, 120, 1],
 }
-const VOLUME_DB := -9.0  ## a música fica por baixo dos efeitos
+const VOLUME_DB := -9.0
 const FADE_S := 0.8
 
-## O slot de uma faixa (MUS_Sxx_Jyy) enquanto as faixas geradas não chegam
-## (H05): a trilha sintetizada da seção. S01 é A Centelha ... S09 é A Prova
-## (a ordem das seções de docs/jogo/03).
 const SALA_DA_SECAO := ["", "centelha", "viga", "molde", "impacto", "galeria", "canto", "caminhos", "voz", "prova"]
-const TAXA := 48000  ## a taxa da síntese (SINT_TAXA, nativo/som/sintese.h)
+const TAXA := 48000
 
 var atual := ""
 var _tocadores: Array[AudioStreamPlayer] = []
 var _ativo := 0
 var _streams := {}
-var _tw: Tween = null  ## o fade em curso (um só: o novo mata o velho)
+var _tw: Tween = null
 
 
 func _ready() -> void:
@@ -72,9 +61,6 @@ func _stream(id: String) -> AudioStreamWAV:
 	return wav
 
 
-## Toca a faixa do lugar (o id da sala, a tela, ou "salao"); o mesmo não reinicia.
-## A tela sem faixa própria (o título, o lobby, os créditos, o Relâmpago) e o id
-## desconhecido tocam a do salão: a gerada, quando existe, senão a sintetizada.
 func tocar(id: String) -> void:
 	var slot: String = TELAS.get(id, "")
 	if (slot == "" or mapa_gerado(slot).is_empty()) and not FAIXAS.has(id):
@@ -101,8 +87,6 @@ func tocar(id: String) -> void:
 	_tw.tween_property(novo, "volume_db", VOLUME_DB, FADE_S)
 
 
-## Toca a faixa do slot do zero, sem fade de entrada (o Ritmo parte dela);
-## devolve o tocador, ou null quando a faixa é silêncio (e aí a música cala).
 func tocar_do_zero(slot: String) -> AudioStreamPlayer:
 	var id := _id_da_faixa(slot)
 	var s: AudioStream = null
@@ -126,9 +110,6 @@ func tocar_do_zero(slot: String) -> AudioStreamPlayer:
 	return novo
 
 
-## O mapa de batidas do slot: {bpm, primeiro_tempo, sintetizada}. Da trilha
-## sintetizada, o andamento de verdade da síntese; sem faixa, 120. (A H05 lê
-## o MUS_*.batidas.json quando a faixa gerada existe.)
 func mapa(slot: String) -> Dictionary:
 	var gerado := mapa_gerado(slot)
 	if not gerado.is_empty():
@@ -139,7 +120,6 @@ func mapa(slot: String) -> Dictionary:
 	return {"bpm": 120.0, "primeiro_tempo": 0.0, "sintetizada": false}
 
 
-## A duração do laço da faixa do tocador, em s (0: sem laço ou sem faixa).
 static func laco_s(tocador: AudioStreamPlayer) -> float:
 	if tocador != null and tocador.stream is AudioStreamOggVorbis:
 		var o := tocador.stream as AudioStreamOggVorbis
@@ -152,8 +132,6 @@ static func laco_s(tocador: AudioStreamPlayer) -> float:
 	return float(w.loop_end - w.loop_begin) / float(w.mix_rate)
 
 
-## O andamento que a síntese toca de verdade: o tempo vira um número inteiro
-## de amostras (sintese.c, `por_tempo = (int)(tempo * SINT_TAXA)`).
 static func bpm_sintetizado(bpm: float) -> float:
 	var por_tempo := int(60.0 / maxf(bpm, 60.0) * TAXA)
 	return 60.0 * TAXA / por_tempo
@@ -173,22 +151,15 @@ func calar() -> void:
 	tocar("voz")
 
 
-# ---------------------------------------------------------------- as faixas geradas (H05) --
-
 const PASTA := "res://assets/ost"
-## As telas e o Relâmpago (docs/jogo/04#as-telas-e-os-jingles): o id que o
-## jogo pede à Musica -> o slot da faixa gerada.
 const TELAS := {
 	"titulo": "MUS_TELA_TITULO", "lobby": "MUS_TELA_CONSTRUCAO", "salao": "MUS_TELA_SALAO",
 	"podio": "MUS_TELA_PODIO", "creditos": "MUS_TELA_CREDITOS", "relampago": "MUS_RELAMPAGO",
 }
 
-var _mapas := {}  ## slot -> o mapa conferido da faixa gerada ({} = não há)
+var _mapas := {}
 
 
-## O caminho da faixa gerada de um slot, exista ou não:
-## MUS_S01_J01 -> res://assets/ost/S01/MUS_S01_J01.ogg; JIN_* em jingles/;
-## as telas e o Relâmpago em telas/.
 static func caminho(slot: String) -> String:
 	if slot.begins_with("MUS_S") and slot.length() >= 8:
 		return "%s/%s/%s.ogg" % [PASTA, slot.substr(4, 3), slot]
@@ -197,8 +168,6 @@ static func caminho(slot: String) -> String:
 	return "%s/telas/%s.ogg" % [PASTA, slot]
 
 
-## Um MUS_*.batidas.json já lido: {bpm, primeiro_tempo, compassos, secoes,
-## conferido, sintetizada: false}; {} se o texto não é um mapa. Pura.
 static func ler_mapa(texto: String) -> Dictionary:
 	var leitor := JSON.new()
 	if leitor.parse(texto) != OK or not leitor.data is Dictionary:
@@ -211,8 +180,6 @@ static func ler_mapa(texto: String) -> Dictionary:
 		"tom": String(d.get("tom", "")), "titulo": String(d.get("titulo", ""))}
 
 
-## O mapa da faixa gerada do slot, se ela existe e o mapa foi conferido à
-## mão; {} se não (e aí toca a sintetizada).
 func mapa_gerado(slot: String) -> Dictionary:
 	if _mapas.has(slot):
 		return _mapas[slot]
@@ -231,8 +198,6 @@ func mapa_gerado(slot: String) -> Dictionary:
 	return m
 
 
-## Um jingle (JIN_*) tocado uma vez, por cima da música, no mesmo bus das faixas.
-## Sem o OGG gerado (a H05 o traz), nada: o jogo não inventa uma nota no lugar.
 func jingle(slot: String) -> void:
 	if not ResourceLoader.exists(caminho(slot)):
 		return
@@ -249,8 +214,6 @@ func jingle(slot: String) -> void:
 	p.play()
 
 
-## A faixa gerada, com o laço do tipo dela: a tela (e o Relâmpago) volta ao
-## zero (o Ritmo conta as voltas a partir do 0); a de minigame não volta.
 func _ogg(slot: String) -> AudioStreamOggVorbis:
 	var s: AudioStreamOggVorbis = load(caminho(slot))
 	s.loop = not slot.begins_with("MUS_S")
@@ -258,8 +221,6 @@ func _ogg(slot: String) -> AudioStreamOggVorbis:
 	return s
 
 
-## A música para em seco (o apito): a zero em 20 ms — nunca de uma vez (as
-## rampas do 04) —, e o próximo tocar() começa de novo.
 func parar_seco() -> void:
 	if _tw:
 		_tw.kill()
@@ -271,8 +232,6 @@ func parar_seco() -> void:
 	atual = ""
 
 
-# ---------------------------------------------------------------- a música que reage (H07) --
-
 const BUS := "Musica"
 const ABERTO_HZ := 20000.0
 var _bus := -1
@@ -280,8 +239,6 @@ var _passa_baixa: AudioEffectLowPassFilter = null
 var _tw_reacao: Tween = null
 
 
-## O barramento da música, com o passa-baixa aberto (chamado no _ready, antes
-## dos tocadores). A música manda no Master, onde está o volume da TV.
 func _criar_o_barramento() -> void:
 	_bus = AudioServer.get_bus_index(BUS)
 	if _bus < 0:
@@ -296,9 +253,6 @@ func _criar_o_barramento() -> void:
 		_passa_baixa = AudioServer.get_bus_effect(_bus, 0) as AudioEffectLowPassFilter
 
 
-## A música reage ao jogo (docs/jogo/04#a-música-que-reage): "erro" abafa por
-## 300 ms; "perfeito" abaixa 2 dB por 80 ms (o golpe aparece por cima);
-## "combo" (oito perfeitos seguidos) sobe 1,5 dB por 2 s.
 func reagir(evento: String) -> void:
 	if _tw_reacao:
 		_tw_reacao.kill()

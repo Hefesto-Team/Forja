@@ -1,8 +1,5 @@
 #include "forja_dualsense.h"
 
-/* Official Sony/Nielk1 packing: 10 zones, 3-bit force = (strength-1)&7.
- * Simple leftover modes 0x01/0x02/0x06 are NOT used. */
-
 static void pack_zones(uint8_t out[11], uint8_t mode, uint16_t active,
                        uint32_t forces, uint8_t freq) {
   memset(out, 0, 11);
@@ -185,7 +182,6 @@ void forja_fx_gatilhos(ForjaDs5Effect *fx, ForjaSombra *s, ForjaTrigger l2, Forj
 }
 
 void forja_fx_led_mic(ForjaDs5Effect *fx, ForjaSombra *s, uint8_t modo) {
-  /* A faixa é 0..3 e o firmware VALIDA: o 4 já apaga (canônica §8.1). */
   s->led_mic = modo > 3 ? 0 : modo;
   forja_fx_da_sombra(fx, s, 0, FORJA_FX_MIC_LED);
 }

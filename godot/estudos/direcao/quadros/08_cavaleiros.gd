@@ -1,7 +1,4 @@
 extends Node3D
-## Quadro 08 — Os quatro cavaleiros: a prancha de frente e de 3/4, com o
-## martelo na mão, o anel de oito lados e as lâmpadas do lugar. Câmera
-## ortográfica, como a prancha de modelo de um estúdio.
 
 const Fita := preload("res://estudos/direcao/fita.gd")
 const Hud := preload("res://estudos/direcao/hud.gd")
@@ -13,7 +10,6 @@ var e
 const COLUNAS := [-3.9, -1.3, 1.3, 3.9]
 const FRENTE_Z := 1.8
 const TRAS_Z := -2.4
-## O gesto de cada um na fileira de 3/4: o humor mora no boneco.
 const GESTO := [["holding-right", 0.1], ["attack-melee-right", 0.14], ["emote-yes", 0.3], ["interact-right", 0.35]]
 
 
@@ -25,7 +21,6 @@ func montar(estudo) -> void:
 	cam.position = Vector3(0, 5.0, 9.5)
 	cam.look_at(Vector3(0, 0.9, -0.4))
 	Mundo.ambiente(self, {"ambiente": Color("#2a2738"), "ambiente_energia": 0.32, "nevoa": false, "glow_intensidade": 0.6})
-	# o chão: uma tábua de estúdio, do Mini Dungeon recolorido
 	for i in range(-3, 4):
 		for j in range(-2, 2):
 			Mundo.peca(self, "mini-dungeon/floor", Vector3(i * 2.0, 0, j * 2.0 + 0.4))

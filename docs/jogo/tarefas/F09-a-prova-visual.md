@@ -20,7 +20,7 @@ checagens automáticas sobre todos os quadros — não só sobre fotos escolhida
   controles simulados e fotografa momentos escolhidos por roteiro
   (`ROTEIRO=salas|bancada|partida`, `FOTOS=`, `SALAS=`), com `RAPIDO=1`
   encolhendo a janela entre as fotos e `SEM_TREMOR=1` tirando o tremor.
-- `godot/scripts/main.gd:156-200` (`_abrir_pelos_args`): `--sala=`,
+- `godot/scripts/main.gd:140-180` (`_abrir_pelos_args`): `--sala=`,
   `--tela=`, `--partida=` e `--prova-de-fogo` chamam `_todos_entram()`
   (todos entram por código) e pulam o título e o lobby.
 - `scripts/trailer.sh` grava com `--write-movie` o mesmo roteiro de

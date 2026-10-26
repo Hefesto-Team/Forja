@@ -1,30 +1,15 @@
 extends SceneTree
-## O corte do cavaleiro (04, o corte): cada personagem do Mini Characters vira
-## três malhas, cabeça, tronco superior e tronco inferior, pelo osso de cada
-## triângulo. Na body-mesh nenhum triângulo é misto (o osso do primeiro peso
-## de cada vértice é o mesmo nos três), então o corte não abre buraco.
-##
-## Como biblioteca: Cortar.partes("female-b") devolve as três malhas, a pele
-## e a caixa de cada parte.
-## Como script, imprime a contagem de triângulos de cada parte:
-##
-##   godot --headless --path godot -s res://estudos/direcao/cavaleiro/cortar.gd
 
 const RAIZ := "res://estudos/direcao/kenney/mini-characters/character-%s.glb"
-## As raças que vêm de malha da Kenney (04, as raças): o orc do Mini Dungeon,
-## na pasta dele (o papel `personagem` no recolorir).
 const FORA := {"orc": "res://estudos/direcao/kenney/mini-dungeon-personagens/character-orc.glb"}
 const PERSONAGENS := ["female-a", "female-b", "female-c", "female-d", "female-e", "female-f",
 	"male-a", "male-b", "male-c", "male-d", "male-e", "male-f"]
-## Os ossos de cada parte do corpo (o índice no esqueleto de 7 ossos).
 const OSSOS := {"superior": [3, 4, 5], "inferior": [1, 2]}
 const NOME_DO_OSSO := ["root", "leg-left", "leg-right", "torso", "arm-left", "arm-right", "head"]
 
 static var _cache := {}
 
 
-## As três malhas de um personagem: {"cabeca", "superior", "inferior"} são
-## ArrayMesh; "pele" é o Skin da body-mesh; "contagem" é {osso: triângulos}.
 static func partes(personagem: String) -> Dictionary:
 	if _cache.has(personagem):
 		return _cache[personagem]
@@ -50,7 +35,6 @@ static func partes(personagem: String) -> Dictionary:
 	var out := {"pele": corpo.skin, "pele_cabeca": cabeca.skin, "contagem": contagem, "misturados": misturados,
 		"tri_cabeca": cabeca.mesh.surface_get_array_index_len(0) / 3}
 	out["cabeca"] = cabeca.mesh
-	# a caixa de cada parte na pose de descanso (só os vértices que a parte usa)
 	out["caixa"] = {"cabeca": cabeca.mesh.get_aabb()}
 	var vs: PackedVector3Array = arr[Mesh.ARRAY_VERTEX]
 	for parte in por_parte:

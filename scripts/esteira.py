@@ -70,7 +70,7 @@ CRASE = re.compile(r"`([^`\s]+)`")
 PREFIXOS = ("godot/", "scripts/", "tests/", "docs/", "nativo/", "src/", "include/", "cmake/", "tools/",
             "udev/", "oficina/", "experimental/", "third_party/", ".github/")
 ESTADOS = ["a fazer", "enriquecida", "pronta", "em voo", "conferida", "jogada", "feito", "espera o André"]
-SINONIMOS = {"fazendo": "em voo"}   # o nome antigo de quem trabalha à mão, aceito na leitura
+SINONIMOS = {"fazendo": "em voo"}
 NO_AR = {"em voo", "conferida", "jogada"}
 
 
@@ -187,7 +187,7 @@ def marcar(raiz: Path, ficha: str, estado: str) -> int:
               f"(docs/jogo/o-time/a-esteira.md#os-estados-de-uma-ficha)", file=sys.stderr)
         return 2
     velho = next((s for s in SINONIMOS if estado.strip().lower().startswith(s)), None)
-    if velho:   # o sinônimo vale só na leitura das linhas antigas; a linha nova leva o nome da lista
+    if velho:
         print(f"esteira: «{velho}» é o nome antigo; marque «{SINONIMOS[velho]}» com o nome", file=sys.stderr)
         return 2
     caminho = raiz / QUADRO

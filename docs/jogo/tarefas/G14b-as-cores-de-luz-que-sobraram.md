@@ -10,8 +10,8 @@ Sobram cerca de 29 linhas que a regra de palavras 3D do portão de arte não cob
 
 ## O estado de hoje
 
-- Luz do controle nas perguntas: `CORES` em `salas/impacto.gd:32` e `salas/prova.gd:55` (âmbar, ciano, violeta, branco),
-  `NEUTRO` em `impacto.gd:39`, a chama `Color(1, 0, 0)` em `impacto.gd:512` e `prova.gd:258`, `LUZ_EQUIPE` em `prova.gd:63`.
+- Luz do controle nas perguntas: `CORES` em `salas/impacto.gd:17` e `salas/prova.gd:31` (âmbar, ciano, violeta, branco),
+  `NEUTRO` em `impacto.gd:24`, a chama `Color(1, 0, 0)` em `impacto.gd:475` e `prova.gd:215`, `LUZ_EQUIPE` em `prova.gd:38`.
 - Cenário e luz de sala: `atmosfera(Color(...))` em `caminhos`, `canto`, `centelha`, `galeria`, `impacto`, `molde`,
   `prova`, `viga`, `voz`; `sino` em `canto`; `Kit.chapado` em `viga:238`; `cor_metal` em `molde:342`; `faiscas` e
   `_tingir` em `prova`.

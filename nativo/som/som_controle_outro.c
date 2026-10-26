@@ -1,5 +1,3 @@
-/* O som de cada controle, onde não há como achar pelo aparelho: só pelo nome
- * (a lista do SDL) e pela pessoa que aponta. */
 #include "som_controle.h"
 
 #if !defined(__linux__) && !defined(_WIN32)

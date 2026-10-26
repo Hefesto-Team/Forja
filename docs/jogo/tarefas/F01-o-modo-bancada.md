@@ -17,9 +17,9 @@ dessas camadas.
 
 ## O estado de hoje
 
-**Os argumentos.** `godot/scripts/forja.gd:144-160` (`_ler_args`) lê
+**Os argumentos.** `godot/scripts/forja.gd:102-116` (`_ler_args`) lê
 `--experimento` e `--sala`, mas não conhece `--bancada`. `--prova-de-fogo` é
-lido em `main.gd:167`, e `main.gd:168` tem uma variável local com o nome que
+lido em `main.gd:151`, e `main.gd:152` tem uma variável local com o nome que
 vai confundir:
 
 ```gdscript
@@ -28,28 +28,28 @@ var bancada := Forja.experimento != ""
 ```
 
 **O diagnóstico e o livro** abrem sempre:
-- `main.gd:715-726` `_atalhos_de_overlay()`: Create abre `"diagnostico"`.
-- `main.gd:729-763` `_abrir_overlay(qual, lugar)`: abre qualquer overlay.
-- `main.gd:361-363`: no fim da Prova de Fogo, abre o `"livro"` sozinho.
-- `ui/pausa.gd:17-28` `abrir()` sempre põe `["livro", "O livro da sessão"]` e,
+- `main.gd:657-668` `_atalhos_de_overlay()`: Create abre `"diagnostico"`.
+- `main.gd:670-701` `_abrir_overlay(qual, lugar)`: abre qualquer overlay.
+- `main.gd:330-332`: no fim da Prova de Fogo, abre o `"livro"` sozinho.
+- `ui/pausa.gd:16-27` `abrir()` sempre põe `["livro", "O livro da sessão"]` e,
   com `com_diagnostico`, `["diagnostico", "Diagnóstico"]`.
-- `ui/hud.gd:87`: `var pares := [["create", "diagnóstico"], ["options", "pausa"]] if create_livre else [["options", "pausa"]]`.
+- `ui/hud.gd:69`: `var pares := [["create", "diagnóstico"], ["options", "pausa"]] if create_livre else [["options", "pausa"]]`.
 
 **A tabela de veredito:** `ui/painel_sala.gd:356-415` (`_fim()`) desenha
 ✓ PASSOU / ✗ FALHOU / — NÃO MEDIDO por feature e por lugar.
 
 **As perguntas às cegas** são estados da própria sala, e o painel as desenha
-por `sala.pergunta(l)` (`painel_sala.gd:151-168`, `_dicas()`). Onde cada sala
+por `sala.pergunta(l)` (`painel_sala.gd:129-144`, `_dicas()`). Onde cada sala
 entra na pergunta:
 
 | sala | a entrada na pergunta | o que vem depois |
 | --- | --- | --- |
-| Galeria | `galeria.gd:222` `_nova_rodada`: `e.passo = IDENTIFICAR` (que arma é?); `galeria.gd:266` e `:327` chamam `_perguntar_municao(l)` (quantas luzinhas?) | `_responder_arma` (`:424`) abre o baú → `REVELANDO` → `ATIRAR`; `MUNICAO_RESP` → `_proxima_rodada` |
-| Impacto | `impacto.gd:388-397`, no estado `PAUSA`: `_iniciar_pergunta()` no fim de cada onda e `elif _precisa_mais_cor(): _iniciar_pergunta()` (de que cor está a luz?) | `RESPOSTA` → `PAUSA` |
-| Canto | `canto.gd:406-408`: `estado = PERGUNTA` (o canto saiu do seu controle?) | `_fechar_pergunta()` (`:314`) → `REVELA` → `REPETE` |
-| Caminhos | `caminhos.gd:360-363`: `e.estado = PERGUNTA` (que chão é esse?) | `_fechar_pergunta(l, e)` (`:283`) veste o ladrilho → `REVELA` |
-| Voz | `voz.gd:421-423`: `SUSSURRO` → `_comecar_luz()` (como está a luz do microfone?) | `LUZ` → `ESPERA` → `SUSTO` |
-| Prova | `prova.gd:653-654`: fim da `PARTIDA` → `_perguntar_leds()`; `:656-657` → `_perguntar_cor()` | `COR` → `PLACAR` (`:658-664`) |
+| Galeria | `galeria.gd:195` `_nova_rodada`: `e.passo = IDENTIFICAR` (que arma é?); `galeria.gd:239` e `:327` chamam `_perguntar_municao(l)` (quantas luzinhas?) | `_responder_arma` (`:424`) abre o baú → `REVELANDO` → `ATIRAR`; `MUNICAO_RESP` → `_proxima_rodada` |
+| Impacto | `impacto.gd:356-365`, no estado `PAUSA`: `_iniciar_pergunta()` no fim de cada onda e `elif _precisa_mais_cor(): _iniciar_pergunta()` (de que cor está a luz?) | `RESPOSTA` → `PAUSA` |
+| Canto | `canto.gd:373-375`: `estado = PERGUNTA` (o canto saiu do seu controle?) | `_fechar_pergunta()` (`:314`) → `REVELA` → `REPETE` |
+| Caminhos | `caminhos.gd:320-323`: `e.estado = PERGUNTA` (que chão é esse?) | `_fechar_pergunta(l, e)` (`:283`) veste o ladrilho → `REVELA` |
+| Voz | `voz.gd:382-384`: `SUSSURRO` → `_comecar_luz()` (como está a luz do microfone?) | `LUZ` → `ESPERA` → `SUSTO` |
+| Prova | `prova.gd:599-600`: fim da `PARTIDA` → `_perguntar_leds()`; `:656-657` → `_perguntar_cor()` | `COR` → `PLACAR` (`:658-664`) |
 
 O escudo do Impacto (L1/R1) e o tropeço dos Caminhos (L1/R1) **não** são
 pergunta: são reflexo com consequência no mundo, e ficam nos dois modos.
@@ -59,12 +59,12 @@ devolve `RES_NAO_MEDIDO` quando o `Cega` está vazio
 (`cega_arma_veredito`: "nenhuma rodada desta arma respondida";
 `cega_tudo_junto_veredito`: "a prova final ficou sem resposta"). Nada muda em C.
 
-**A prova.** `tests/prova_do_jogo.sh:54-66` roda a mesma cena duas vezes
+**A prova.** `tests/prova_do_jogo.sh:38-50` roda a mesma cena duas vezes
 (servidor de som "forma-a" e "antes"), as duas com
 `-- --simular=4 --robo --semente=7 --relatorios=...`. `godot/testes/prova_do_jogo.gd`
 espera PASSOU em toda feature de toda sala (`_termina_a_sala`, `:305-335`),
 abre o diagnóstico com Create (`:107-110`) e o livro (`:272-275`). O
-`scripts/gauntlet.sh:35-36` e o `tests/prova_de_poucos.sh:34-35` rodam sem
+`scripts/gauntlet.sh:20-20` e o `tests/prova_de_poucos.sh:21-22` rodam sem
 argumento de modo e dependem dos vereditos das perguntas.
 
 ## O alvo
@@ -108,10 +108,10 @@ if Forja.bancada:
      `var create_livre := Forja.bancada and not (sala is SalaJogo and ...)`.
    - `_abrir_overlay`, a chamada da pausa (`:753`):
      `pausa.abrir(lugar, estado == "sala", _diagnostico_livre(), Forja.bancada)`.
-3. **`godot/scripts/ui/pausa.gd:17`**: `abrir(lugar: int, na_sala: bool, com_diagnostico := true, bancada := true)`;
+3. **`godot/scripts/ui/pausa.gd:16`**: `abrir(lugar: int, na_sala: bool, com_diagnostico := true, bancada := true)`;
    `["diagnostico", "Diagnóstico"]` entra só com `com_diagnostico and bancada`, e
    `["livro", "O livro da sessão"]` só com `bancada`.
-4. **`godot/scripts/ui/hud.gd:87`**: `if create_livre and Forja.bancada` no lugar de `if create_livre`.
+4. **`godot/scripts/ui/hud.gd:69`**: `if create_livre and Forja.bancada` no lugar de `if create_livre`.
 5. **`godot/scripts/ui/painel_sala.gd`**:
    - `_dicas()` (`:157-168`): o bloco das perguntas fica dentro de `if Forja.bancada:`.
    - `_fim()` (`:356`): com `Forja.bancada`, a tabela de hoje. Sem a bancada,
@@ -165,7 +165,7 @@ if Forja.bancada:
    (`local nome=$1 esperado=$2; shift 2`, e `"$@"` no fim da linha do Godot).
    A rodada `forma-a` roda **sem** `--bancada` (o jogo); a rodada `antes`
    roda **com** `--bancada` (a camada de validação). Continua em duas rodadas.
-8. **`scripts/gauntlet.sh:36`** e **`tests/prova_de_poucos.sh:35`**: acrescentar
+8. **`scripts/gauntlet.sh:20`** e **`tests/prova_de_poucos.sh:22`**: acrescentar
    `--bancada` à linha do Godot. Os dois conferem vereditos das perguntas; são
    provas da bancada.
 9. **`godot/testes/prova_do_jogo.gd`**: as checagens de "Provas", abaixo.
@@ -177,7 +177,7 @@ if Forja.bancada:
 
 - **Nada de `Forja.robo` novo.** O robô de cada sala continua respondendo às
   perguntas pelo controle simulado (`Forja.robo_apertar`), dentro do `_robo`
-  dela. A F01 não mexe nos atalhos do robô (`sala_jogo.gd:237` e `:385`): isso é a F08.
+  dela. A F01 não mexe nos atalhos do robô (`sala_jogo.gd:173` e `:385`): isso é a F08.
 - **A Galeria sem pergunta** tem de andar sozinha: sem a bancada, conferir que
   `REVELANDO` → `ATIRAR` (`:282-297`) e que a sala acaba (`acabou[l]` em
   `_proxima_rodada`). O desempate (`:477-483`) só acrescenta rodada com
@@ -190,10 +190,10 @@ if Forja.bancada:
 - **A Prova sem pergunta**: o `tudo_junto` sai "não medido" (sem resposta), a
   não ser que a carga falhe (parada da entrada, saída recusada): aí FALHOU,
   nos dois modos. Está certo.
-- **A Prova de Fogo pelo salão** (△ na bigorna, `main.gd:699-702`) não liga a
+- **A Prova de Fogo pelo salão** (△ na bigorna, `main.gd:643-644`) não liga a
   bancada: só o argumento `--prova-de-fogo` liga. No fim dela, o livro só abre
   com a bancada (o `_abrir_overlay` recusa).
-- **As fotos.** `godot/testes/captura_jogo.gd:79-85` (o roteiro das telas)
+- **As fotos.** `godot/testes/captura_jogo.gd:57-63` (o roteiro das telas)
   fotografa o diagnóstico e o livro. Sem `--bancada` essas duas fotos não
   saem; o `tests/telas.sh` não usa esse roteiro, então nada quebra. Anote no
   cabeçalho do `captura_jogo.gd`: "o diagnóstico e o livro, só com `-- --bancada`".

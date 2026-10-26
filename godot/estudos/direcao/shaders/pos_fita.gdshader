@@ -1,6 +1,3 @@
-// O pós da fita, por cima do 3D (e, no erro, por cima de tudo): a varredura
-// leve de tubo, a vinheta, o grão; e, só na Dissonância, a cor que desliza
-// (aberração), as faixas que rasgam (a fita enroscada) e o desbotar.
 shader_type canvas_item;
 
 uniform sampler2D tela : hint_screen_texture, filter_linear;
@@ -20,7 +17,6 @@ float hash(vec2 p) {
 
 void fragment() {
 	vec2 uv = SCREEN_UV;
-	// a fita enroscada: faixas horizontais que escorregam, e uma onda lenta
 	float banda = floor(uv.y * 36.0);
 	float h = hash(vec2(banda, semente));
 	float desl = (h > 0.78 ? (h - 0.78) * 0.55 * sign(hash(vec2(semente, banda)) - 0.5) : 0.0);

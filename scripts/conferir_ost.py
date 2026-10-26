@@ -23,7 +23,7 @@ import tempfile
 RAIZ = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 OST = os.path.join(RAIZ, "godot", "assets", "ost")
 TAXA = 48000
-MINIMO_MINIGAME_S = 120.0  # 90 s de minigame, a entrada e folga: a faixa de minigame não volta ao zero
+MINIMO_MINIGAME_S = 120.0
 SECOES = ["S%02d" % s for s in range(1, 10)]
 TELAS = {"MUS_TELA_TITULO", "MUS_TELA_CONSTRUCAO", "MUS_TELA_SALAO", "MUS_TELA_PODIO",
          "MUS_TELA_CREDITOS", "MUS_RELAMPAGO"}
@@ -172,8 +172,6 @@ def relatar(pasta):
     return 1 if problemas else 0
 
 
-# ------------------------------------------------------------------ a prova --
-
 def ogg_falso(taxa, canais, segundos, cabeca=b"\x01vorbis"):
     """Um OGG de mentira: a página do cabeçalho e a página final (o granule)."""
     def pagina(tipo, granule, corpo):
@@ -186,36 +184,36 @@ def ogg_falso(taxa, canais, segundos, cabeca=b"\x01vorbis"):
 def prova():
     mapa_ok = {"bpm": 122.0, "primeiro_tempo_s": 0.372, "compassos": 64, "secoes": [], "conferido": True}
     arquivos = {
-        "S01/MUS_S01_J01.ogg": ogg_falso(48000, 2, 150.0),          # a faixa certa
+        "S01/MUS_S01_J01.ogg": ogg_falso(48000, 2, 150.0),
         "S01/MUS_S01_J01.ogg.import": b"[remap]\n",
         "S01/MUS_S01_J01.batidas.json": dict(mapa_ok, slot="MUS_S01_J01"),
-        "S01/MUS_S01_J02.ogg": ogg_falso(48000, 2, 150.0),          # sem mapa
+        "S01/MUS_S01_J02.ogg": ogg_falso(48000, 2, 150.0),
         "S01/MUS_S01_J02.ogg.import": b"",
-        "S01/MUS_S01_J03.ogg": ogg_falso(48000, 2, 150.0),          # mapa não conferido
+        "S01/MUS_S01_J03.ogg": ogg_falso(48000, 2, 150.0),
         "S01/MUS_S01_J03.ogg.import": b"",
         "S01/MUS_S01_J03.batidas.json": dict(mapa_ok, slot="MUS_S01_J03", conferido=False),
-        "S01/MUS_S02_J07.ogg": ogg_falso(48000, 2, 150.0),          # na pasta errada
-        "S02/MUS_S02_J06.batidas.json": dict(mapa_ok, slot="MUS_S02_J06"),  # mapa sem faixa
-        "S03/MUS_S03_J11.ogg": b"ID3\x04" + b"\x00" * 64,           # MP3 com nome de OGG
-        "S04/MUS_S04_J16.mp3": b"ID3\x04",                          # MP3
-        "S05/MUS_S05_J21.ogg": ogg_falso(48000, 2, 60.0),           # curta
+        "S01/MUS_S02_J07.ogg": ogg_falso(48000, 2, 150.0),
+        "S02/MUS_S02_J06.batidas.json": dict(mapa_ok, slot="MUS_S02_J06"),
+        "S03/MUS_S03_J11.ogg": b"ID3\x04" + b"\x00" * 64,
+        "S04/MUS_S04_J16.mp3": b"ID3\x04",
+        "S05/MUS_S05_J21.ogg": ogg_falso(48000, 2, 60.0),
         "S05/MUS_S05_J21.ogg.import": b"",
         "S05/MUS_S05_J21.batidas.json": dict(mapa_ok, slot="MUS_S05_J21"),
-        "S06/MUS_S06_J26.ogg": ogg_falso(48000, 2, 150.0),          # sem .import
+        "S06/MUS_S06_J26.ogg": ogg_falso(48000, 2, 150.0),
         "S06/MUS_S06_J26.batidas.json": dict(mapa_ok, slot="MUS_S06_J26"),
-        "S07/MUS_S07_J31.ogg": ogg_falso(48000, 2, 150.0, b"OpusHead"),  # Opus
-        "telas/MUS_TELA_SALAO.ogg": ogg_falso(44100, 2, 90.0),      # 44,1 kHz
+        "S07/MUS_S07_J31.ogg": ogg_falso(48000, 2, 150.0, b"OpusHead"),
+        "telas/MUS_TELA_SALAO.ogg": ogg_falso(44100, 2, 90.0),
         "telas/MUS_TELA_SALAO.ogg.import": b"",
         "telas/MUS_TELA_SALAO.batidas.json": dict(mapa_ok, slot="MUS_TELA_SALAO"),
-        "telas/MUS_TELA_PODIO.ogg": ogg_falso(48000, 1, 90.0),      # mono
+        "telas/MUS_TELA_PODIO.ogg": ogg_falso(48000, 1, 90.0),
         "telas/MUS_TELA_PODIO.ogg.import": b"",
         "telas/MUS_TELA_PODIO.batidas.json": dict(mapa_ok, slot="MUS_TELA_PODIO"),
-        "telas/MUS_TELA_TITULO.ogg": ogg_falso(48000, 2, 30.0),     # tela curta: vale (volta ao zero)
+        "telas/MUS_TELA_TITULO.ogg": ogg_falso(48000, 2, 30.0),
         "telas/MUS_TELA_TITULO.ogg.import": b"",
         "telas/MUS_TELA_TITULO.batidas.json": dict(mapa_ok, slot="MUS_TELA_TITULO"),
-        "jingles/JIN_APITO.ogg": ogg_falso(48000, 2, 1.0),          # jingle certo, sem mapa
+        "jingles/JIN_APITO.ogg": ogg_falso(48000, 2, 1.0),
         "jingles/JIN_APITO.ogg.import": b"",
-        "jingles/JIN_FESTA.ogg": ogg_falso(48000, 2, 3.0),          # jingle que não existe
+        "jingles/JIN_FESTA.ogg": ogg_falso(48000, 2, 3.0),
         "jingles/JIN_FESTA.ogg.import": b"",
     }
     esperado = {

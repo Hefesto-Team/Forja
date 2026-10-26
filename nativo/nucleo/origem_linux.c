@@ -1,8 +1,3 @@
-/* A coleta dos fatos de origem no sysfs (Linux). Ver origem.h.
- *
- * Lê só o que precisa: HID_ID, HID_NAME e HID_PHYS do uevent do hidraw, ou
- * name/phys/id do evdev. A linha HID_UNIQ nunca é lida — é o endereço do
- * aparelho, e o contrato o proíbe. */
 #if defined(__linux__)
 #define _XOPEN_SOURCE 700
 #endif
@@ -43,9 +38,6 @@ static unsigned ler_hex(const char *caminho) {
   return (unsigned)strtoul(linha, NULL, 16);
 }
 
-/* O realpath num buffer menor que PATH_MAX: o realpath pede um de PATH_MAX (e
- * o _FORTIFY_SOURCE aborta quando não é), então ele devolve o dele e a cópia
- * cabe no nosso. */
 static void caminho_real(const char *de, char *out, size_t tam) {
   char *r = realpath(de, NULL);
   if (r && strlen(r) < tam)
@@ -77,7 +69,7 @@ int origem_usb_de(const char *caminho, char *out, size_t tam) {
       return -1;
     *barra = '\0';
     if (strlen(atual) <= n_raiz)
-      return -1; /* acima da raiz do sysfs não há aparelho */
+      return -1;
   }
 }
 
@@ -109,7 +101,6 @@ static int fatos_hidraw(const char *nome, OrigemFatos *f) {
     } else if (strncmp(linha, "HID_PHYS=", 9) == 0) {
       mascara_mac_copia(linha + 9, f->phys, sizeof(f->phys));
     }
-    /* HID_UNIQ: de propósito, nenhum ramo. */
   }
   fclose(arq);
   caminho_real(dispositivo, f->caminho_real, sizeof(f->caminho_real));

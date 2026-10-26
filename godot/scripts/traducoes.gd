@@ -1,18 +1,10 @@
 class_name Traducoes
 extends RefCounted
-## As telas em inglês (o Sprint E). O português é a língua do jogo e a chave:
-## cada texto que o Desenho e o Glifo desenham passa por `traduzir`, que acha
-## a frase exata na tabela ou, com números no meio, um dos padrões. O que não
-## tem tradução sai como está.
-##
-## O porquê de cada veredito (o que foi medido) e o relatório vêm do núcleo em
-## C e ficam em português.
 
 static var idioma := "pt_BR"
-static var _padroes: Array = []  # [RegEx, substituição]
+static var _padroes: Array = []
 
 const EN := {
-	# o título, os créditos, o lobby
 	"Quatro DualSense no mesmo sofá.": "Four DualSense on the same couch.",
 	"Nenhum controle encontrado.": "No controller found.",
 	"Conecte um DualSense por USB ou Bluetooth.": "Connect a DualSense over USB or Bluetooth.",
@@ -42,12 +34,10 @@ const EN := {
 	"Religue o mesmo para voltar.": "Plug the same one back in to return.",
 	"Liberar o lugar": "Free the seat",
 	"Segure para trocar": "Hold to switch",
-	# o HUD e o salão
 	"Diagnóstico": "Diagnostics",
 	"Pausa": "Pause",
 	"Em breve": "Soon",
 	"Seção 9 · □ a partida · △ a Prova de Fogo": "Section 9 · □ match · △ Trial by Fire",
-	# as salas: o nome e o verbo
 	"A Centelha": "The Spark",
 	"A Viga": "The Beam",
 	"O Molde": "The Mold",
@@ -67,7 +57,6 @@ const EN := {
 	"Ande no escuro e sinta o caminho.": "Walk in the dark and feel the path.",
 	"Chame o guardião e fique mudo.": "Call the guardian and stay quiet.",
 	"Brasa contra Maré.": "Ember against Tide.",
-	# as features
 	"Botões": "Buttons",
 	"Analógicos": "Sticks",
 	"Gatilhos analógicos": "Analog triggers",
@@ -89,7 +78,6 @@ const EN := {
 	"Mudo do microfone": "Microphone mute",
 	"LED do microfone": "Microphone LED",
 	"Tudo junto": "Everything at once",
-	# o aviso, o jogo e o veredito
 	"✕ Quando pronto": "✕ When ready",
 	"Aguardando": "Waiting",
 	"✓ Pronto": "✓ Ready",
@@ -104,7 +92,6 @@ const EN := {
 	"O livro da sessão": "The session book",
 	"O placar": "The scoreboard",
 	"Prova às cegas: o diagnóstico volta no fim da sala": "Blind test: diagnostics return at the end of the room",
-	# A Centelha, A Viga, O Molde
 	"Clique quando brilhar": "Click when it glows",
 	"Gire para mirar": "Turn to aim",
 	"Incline contra o vento": "Lean against the wind",
@@ -116,7 +103,6 @@ const EN := {
 	"Trace o sigma, em ordem": "Trace the sigma, in order",
 	"Dois dedos: afaste": "Two fingers: spread",
 	"Agora junte os dedos": "Now pinch",
-	# O Impacto, A Galeria
 	"Que cor está a sua luz?": "What color is your light?",
 	"Âmbar": "Amber",
 	"Ciano": "Cyan",
@@ -137,7 +123,6 @@ const EN := {
 	"Martelada!": "Hammer blow!",
 	"Esquerda": "Left",
 	"Direita": "Right",
-	# a partida, o placar, o pódio
 	"A partida": "The match",
 	"Salas": "Rooms",
 	"Ordem": "Order",
@@ -153,7 +138,6 @@ const EN := {
 	"Da noite": "Tonight",
 	"Salas vencidas": "Rooms won",
 	"Outra partida": "Another match",
-	# as opções
 	"Sessão": "Session",
 	"Gatilhos": "Triggers",
 	"Vibração": "Rumble",
@@ -183,7 +167,6 @@ const EN := {
 	"Grande": "Large",
 	"Tempo": "Timing",
 	"Tocar no tempo": "Tap on the beat",
-	# O Canto, Os Caminhos, A Voz, A Prova
 	"Alto-falante": "Speaker",
 	"O canto saiu do seu controle?": "Did the song come from your controller?",
 	"Ouça o canto": "Listen to the song",
@@ -246,7 +229,6 @@ const EN := {
 	"As salas, de trás para a frente": "The rooms, last to first",
 	"O sorteio": "The draw",
 	"Virada!": "Comeback!",
-	# a pausa
 	"Continuar": "Continue",
 	"Empate!": "Tie!",
 	"Vocês venceram!": "You won!",
@@ -254,7 +236,6 @@ const EN := {
 	"Voltar ao lobby": "Back to the lobby",
 	"Sair do jogo": "Quit the game",
 	"Escolher": "Choose",
-	# o que as dicas das salas dizem fora do caminho comum
 	"Chave": "Key",
 	"Trace o zeta, em ordem": "Trace the zeta, in order",
 	"Trace o mi, em ordem": "Trace the mu, in order",
@@ -268,10 +249,8 @@ const EN := {
 	"Chegou": "Arrived",
 	"Repetir": "Repeat",
 	"Lugar": "Seat",
-	# o botão, em toda dica: "Botão ✕ (Iniciar)"
 	"Botão": "Button",
 	"Fechar": "Close",
-	# as frases montadas que ainda não tinham tradução (o tropeço, os poucos, a pedra, o chamado)
 	"A pedra era da esquerda": "The stone was on the left",
 	"A pedra era da direita": "The stone was on the right",
 	"Você contra 2 bonecos": "You against 2 dummies",
@@ -288,15 +267,12 @@ const EN := {
 	"Quatro estalos": "Four clicks",
 	"Um golpe que ressoa": "A ringing blow",
 	"Duas ondas": "Two waves",
-	# o kit do minigame (H04)
 	"O Martelo de Hefesto": "Hephaestus's Hammer",
 	"Bata!": "Strike!",
-	# o título da fita (G01)
 	"Nenhum controle encontrado": "No controller found",
 	"Jogar no teclado": "Play on the keyboard",
 	"Gravar": "Record",
 	"Nove salas, quatro cavaleiros": "Nine rooms, four knights",
-	# a construção do cavaleiro (G02)
 	"Boneco": "Figure",
 	"Arma": "Weapon",
 	"Arma ou amuleto": "Weapon or charm",
@@ -322,12 +298,10 @@ const EN := {
 	"Sortear": "Shuffle",
 	"Forjado": "Forged",
 	"Guardado": "Saved",
-	# o teclado do nome (G09): o nome da pessoa não passa pela tabela
 	"Escrever": "Write",
 	"Apagar": "Erase",
 }
 
-## Os textos com número: [padrão, substituição] (a substituição usa $1, $2…).
 const EN_PADROES := [
 	["^(.+) na forja$", "$1 in the forge"],
 	["^Recorde da noite: P(\\d)$", "Record of the night: P$1"],
@@ -391,7 +365,6 @@ const EN_PADROES := [
 	["^Isso: era do P(\\d)$", "Right: it was P$1's"],
 	["^O chamado · P(\\d)$", "The call · P$1"],
 	["^Quieto: é a vez do P(\\d)$", "Quiet: it's P$1's turn"],
-	# os rodapés das perguntas às cegas (Modo bancada): o mais certo antes do mais largo
 	["^Sem resposta — era seu$", "No answer — it was yours"],
 	["^Sem resposta — era da TV$", "No answer — it was the TV"],
 	["^Sem resposta — era do P(\\d)$", "No answer — it was P$1's"],
@@ -407,15 +380,11 @@ const EN_PADROES := [
 ]
 
 
-## O texto na língua escolhida.
 static func traduzir(s: String) -> String:
 	if idioma == "pt_BR" or s == "":
 		return s
 	if EN.has(s):
 		return EN[s]
-	# A tabela se escreve com maiúscula; a mesma frase no meio de outra ("era
-	# pistola", o grupo de um padrão) acha a entrada pela forma maiúscula e
-	# volta com a inicial minúscula.
 	var inicial := s.substr(0, 1)
 	if inicial != inicial.to_upper():
 		var grande := inicial.to_upper() + s.substr(1)

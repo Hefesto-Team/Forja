@@ -15,7 +15,7 @@ pessoa mexeu) some no meio, e cada rodada custa o mesmo tanto de leitura para qu
 
 ## O estado de hoje (medido em 09/10/2026, `85f24c3`)
 
-- `scripts/portoes/rodar.sh:35-50`, o `roda`:
+- `scripts/portoes/rodar.sh:12-27`, o `roda`:
   ```bash
   echo "==> $nome"
   "$@" 2>&1 | tee "$LOG"

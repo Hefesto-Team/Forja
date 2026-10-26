@@ -19,7 +19,7 @@ Tudo o que entra na tela segue o kit Kenney Mini Dungeon
 3. **Proporção chibi.** Cabeça grande, corpo curto — como os bonecos. Um
    monstro pode ser enorme, mas com a mesma proporção.
 4. **Monstro é peça do kit mais um detalhe que brilha.** O modelo é a
-   sentinela do Impacto (`godot/scripts/salas/impacto.gd:124-133`): a
+   sentinela do Impacto (`godot/scripts/salas/impacto.gd:106-114`): a
    `column` do kit com um olho emissivo. Chefes e criaturas são montados de
    peças do kit, caixas e um brilho.
 5. **O brilho tem dono.** Emissivo só em olho, runa, borda de raia, néon e
@@ -28,7 +28,7 @@ Tudo o que entra na tela segue o kit Kenney Mini Dungeon
    lugares (`COR_DO_LUGAR` em `godot/scripts/forja.gd`) a não ser para
    marcar aquele jogador.
 7. **Luz da casa.** Tocha `#ffb070`, enchimento lilás `#b9b0ff`, névoa
-   `#241f33` (`godot/scripts/salas/sala.gd`, `godot/scripts/main.gd:91-113`).
+   `#241f33` (`godot/scripts/salas/sala.gd`, `godot/scripts/main.gd:80-99`).
    Um minigame de terror escurece tudo isso, não troca.
 8. **Escala 2.0.** As peças do kit entram com a escala `K = 2.0` de
    `godot/scripts/mundo/kit.gd`; o boneco tem cerca de 1,5 m.
@@ -50,11 +50,11 @@ Todo objeto novo passa pelos oito, antes do commit:
 
 | o quê | onde | por quê destoa | o que vira |
 | --- | --- | --- | --- |
-| o guardião d'A Voz | `godot/scripts/salas/voz.gd:107-164` | um elipsoide liso de bronze metálico e reflexivo, com sobrancelha e dentes de caixa colados na curva; uma cara solta de 3,4 m sem corpo, realista-grotesca ao lado de bonecos chibi | uma cabeça de pedra em blocos, montada com peças do kit (paredes, colunas, suportes), com os olhos emissivos e a boca que abre em degraus; a mesma animação de pálpebra e susto |
-| os alvos e as runas redondas | `godot/scripts/salas/galeria.gd:141`, `godot/scripts/salas/centelha.gd:115` | discos e toros lisos | discos de 8 lados e runas em placas |
-| o "ouro" do Molde | `godot/scripts/salas/molde.gd:420` | material metálico brilhante | ouro fosco, cor da paleta |
+| o guardião d'A Voz | `godot/scripts/salas/voz.gd:85-136` | um elipsoide liso de bronze metálico e reflexivo, com sobrancelha e dentes de caixa colados na curva; uma cara solta de 3,4 m sem corpo, realista-grotesca ao lado de bonecos chibi | uma cabeça de pedra em blocos, montada com peças do kit (paredes, colunas, suportes), com os olhos emissivos e a boca que abre em degraus; a mesma animação de pálpebra e susto |
+| os alvos e as runas redondas | `godot/scripts/salas/galeria.gd:119`, `godot/scripts/salas/centelha.gd:115` | discos e toros lisos | discos de 8 lados e runas em placas |
+| o "ouro" do Molde | `godot/scripts/salas/molde.gd:376` | material metálico brilhante | ouro fosco, cor da paleta |
 | as bordas de raia em toro | caminhos, canto, centelha, galeria, impacto, voz | toro liso emissivo | anel de 8 lados; continua emissivo (é borda, tem trabalho) |
-| a lava com shader | `godot/scripts/salas/viga.gd:160` | — | **fica**: é chão e ambiente, e o shader já é chapado |
+| a lava com shader | `godot/scripts/salas/viga.gd:128` | — | **fica**: é chão e ambiente, e o shader já é chapado |
 
 ## Os personagens
 

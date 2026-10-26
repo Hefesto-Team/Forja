@@ -54,7 +54,6 @@ def vetor(peca):
     return [int(peca[s]) for s in ST]
 
 
-# ---- as conferências ------------------------------------------------------
 for p in PARTES:
     lista = POR_PARTE[p]
     confere(len(lista) == 12, f"{p}: {len(lista)} peças, devia ter 12")
@@ -87,7 +86,6 @@ for x in NOMES:
             f"nomes.csv: {x['nome']} fora do tamanho")
 
 
-# ---- as contas ------------------------------------------------------------
 def stats(trio):
     bruto = [BASE] * 4
     for peca in trio:

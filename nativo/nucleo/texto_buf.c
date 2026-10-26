@@ -1,4 +1,3 @@
-/* Um texto que cresce. Ver texto_buf.h. */
 #include "texto_buf.h"
 
 #include <math.h>
@@ -101,7 +100,6 @@ void tb_json_num(TextoBuf *b, double v, int casas) {
   }
   char tmp[64];
   snprintf(tmp, sizeof(tmp), "%.*f", casas, v);
-  /* O printf segue o locale do processo; o JSON quer ponto. */
   for (char *c = tmp; *c; c++)
     if (*c == ',')
       *c = '.';
@@ -116,7 +114,6 @@ const char *num_pt(char *buf, size_t tam, double v, int casas) {
     return buf;
   }
   snprintf(buf, tam, "%.*f", casas, v);
-  /* seja qual for o locale do processo, o texto para gente leva vírgula */
   for (char *c = buf; *c; c++)
     if (*c == '.')
       *c = ',';

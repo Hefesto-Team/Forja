@@ -19,7 +19,7 @@ palmo do rosto.
 
 ## O estado de hoje (medido em 09/10/2026, `85f24c3`)
 
-- `godot/scripts/salas/impacto.gd:368-379`, o pisca do golpe (o `e.pisca = 0.34` sai de `:267`):
+- `godot/scripts/salas/impacto.gd:337-347`, o pisca do golpe (o `e.pisca = 0.34` sai de `:267`):
   ```gdscript
   var vermelho: bool = e.pisca > 0.22 or (e.pisca > 0.0 and e.pisca < 0.12)
   if e.pisca <= 0.0:
@@ -27,7 +27,7 @@ palmo do rosto.
   elif vermelho != e.vermelho:
   	_luz(l, Color(1, 0, 0) if vermelho else Color(0.16, 0, 0))
   ```
-- `godot/scripts/salas/prova.gd:241-265`, a luz do lugar: o vermelho do golpe (`e.luz_pisca`, posto a 0,16 em
+- `godot/scripts/salas/prova.gd:201-222`, a luz do lugar: o vermelho do golpe (`e.luz_pisca`, posto a 0,16 em
   `:347`) e o pulso de quem está por um fio:
   ```gdscript
   elif int(e.vida) <= 1:
@@ -35,8 +35,8 @@ palmo do rosto.
   	estado = 20 + fase_p
   	k = 0.6 if fase_p == 1 else 0.35
   ```
-- Quem já lê a opção: `godot/scripts/salas/voz.gd:304` e `godot/scripts/salas/sala_jogo.gd:200`. A opção mora em
-  `godot/scripts/opcoes.gd:42`.
+- Quem já lê a opção: `godot/scripts/salas/voz.gd:266` e `godot/scripts/salas/sala_jogo.gd:137`. A opção mora em
+  `godot/scripts/opcoes.gd:26`.
 - O precedente nas fichas prontas: a [L2](L2-fuga-do-tita.md) (linha 440) pulsa a luz 2,4 vezes por segundo e, sem
   flashes, a deixa parada em 0,7.
 
@@ -62,7 +62,7 @@ fixo pelo mesmo tempo do pisca de hoje e voltam à cor da vida; o pulso de quem 
 
 ## Armadilhas
 
-- **O texto da Impacto** diz «a luz do controle pisca vermelho no golpe» (`impacto.gd:63`). Esta ficha não muda o
+- **O texto da Impacto** diz «a luz do controle pisca vermelho no golpe» (`impacto.gd:48`). Esta ficha não muda o
   texto: com flashes, ele segue verdadeiro.
 - **A regra «nada pisca em vermelho saturado»** da bíblia vale também com flashes ligados, e o golpe da Impacto pisca
   vermelho puro. Isso é **decisão aberta, a validar por ela**: mudar a cor do golpe com flashes ligados muda o jogo e

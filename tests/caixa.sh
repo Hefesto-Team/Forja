@@ -1,43 +1,12 @@
 #!/usr/bin/env bash
-# A caixa das provas, num lugar só: toda prova que abre o Godot (ou o jogo
-# exportado) passa por aqui. Numa prova o jogo não pode achar o DualSense
-# ligado na máquina: se acha, o controle de verdade ganha um lugar, e a prova
-# toca o alto-falante, a háptica e os gatilhos dele. O --headless não protege:
-# ele cala a TV, não o módulo.
-#
-# A caixa é:
-#   - o bwrap, com um /dev novo e o /run/udev, o /sys/class/input e o
-#     /sys/class/hidraw vazios: o jogo não enxerga hidraw nem input;
-#   - o pactl e o pw-cat de mentira, na frente do PATH: o jogo não acha o
-#     alto-falante do controle de verdade pelo nome (o `pactl list sinks`
-#     imprime o arquivo $SERVIDOR_DE_MENTIRA quando ele existe, e nada quando
-#     não);
-#   - o FORJA_SYSFS numa pasta vazia.
-#
-# Uso, numa prova (com RAIZ definido):
-#   source "$RAIZ/tests/caixa.sh"
-#   caixa_montar "$TMP"                  sai 2 sem o bwrap (fora do CI); monta a pasta da caixa em $TMP
-#                                        sai 2 também com o módulo de outra fonte (caixa_fonte, a WQ03)
-#   caixa "$GODOT" ...                   o comando dentro do bwrap
-#   timeout 600 caixa "$GODOT" ...       o `caixa` é um executável no PATH: vale depois do timeout e do xvfb-run
-#   CAIXA_LIGAR="/dev/dri ..."           aparelhos que entram na caixa (a placa de vídeo, na prova visual NA_TELA)
-#
-# Sem o bwrap, só o CI roda direto (a variável CI, que o runner e o ci-local
-# definem: lá não há controle nem bwrap). Fora dele a prova não roda, e não
-# há variável de escape.
-#
-# O portão scripts/portoes/caixa.py reprova a chamada do Godot em tests/ e
-# scripts/ que abra cena ou jogo fora do `caixa`.
 
-## caixa_montar <pasta>: confere o bwrap, monta o pactl, o pw-cat e o `caixa`
-## em <pasta>/bin (na frente do PATH) e o sysfs vazio em <pasta>/sys-vazio.
 caixa_montar() {
   local pasta="$1"
   if ! command -v bwrap > /dev/null && [ -z "${CI:-}" ]; then
     echo "sem bwrap: a prova não roda fora da caixa (o controle ligado na máquina ficaria à vista do jogo)" >&2
     exit 2
   fi
-  caixa_fonte libforja.linux.x86_64.so   # o módulo que o jogo carrega saiu da fonte de agora (a WQ03)
+  caixa_fonte libforja.linux.x86_64.so
   mkdir -p "$pasta/bin" "$pasta/sys-vazio"
   cat > "$pasta/bin/pactl" <<'PACTL'
 #!/usr/bin/env bash
@@ -69,12 +38,6 @@ CAIXA
   [ "$(command -v caixa)" = "$pasta/bin/caixa" ] || { echo "GUARDA: caixa não é a desta prova"; exit 1; }
 }
 
-## caixa_julgar <registro>: o erro do motor reprova (a WQ01). Conta as linhas
-## que começam por «ERROR:» ou «SCRIPT ERROR:» e não casam com nenhuma
-## expressão de tests/erros_esperados.txt, imprime cada uma como «FAIL erro do
-## motor: …» com as duas linhas seguintes (o «at:»), e devolve 1 se houver
-## alguma. O «WARNING:» não reprova, nem a palavra «erro» que o registro do
-## jogo escreve em português.
 caixa_julgar() {
   local registro="$1"
   local esperados="${CAIXA_ESPERADOS:-$(dirname "${BASH_SOURCE[0]}")/erros_esperados.txt}"
@@ -101,14 +64,6 @@ caixa_julgar() {
   ' "$registro"
 }
 
-## caixa_pasta <nome>: a pasta temporária da prova (a WQ04), em CAIXA_PASTA, com
-## o trap da saída. No verde (a prova sai 0), apaga a pasta. No vermelho, copia
-## a pasta para .cache/provas/<nome>-<AAAAMMDD-HHMMSS>/, guarda só as cinco
-## mais novas da prova, mostra as últimas 20 linhas do maior registro e, por
-## último, «o registro: <caminho>». Uso, logo depois do source:
-##   caixa_pasta prova-do-jogo; TMP="$CAIXA_PASTA"
-## CAIXA_SEM_GUARDAR="wine ..." diz as subpastas que pesam e não são registro:
-## no vermelho elas não são copiadas.
 _CAIXA_RAIZ="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 caixa_pasta() {
   CAIXA_NOME="$1"
@@ -122,7 +77,6 @@ _caixa_fim() {
     rm -rf "$CAIXA_PASTA"
     return 0
   fi
-  # o que não é registro e pesa (o prefixo do Wine da prova da exportação) não vai para o .cache
   local x
   for x in ${CAIXA_SEM_GUARDAR:-}; do rm -rf "${CAIXA_PASTA:?}/$x"; done
   local base="$_CAIXA_RAIZ/.cache/provas"
@@ -130,7 +84,6 @@ _caixa_fim() {
   local n=2
   while [ -e "$destino" ]; do destino="${destino%-v*}-v$n"; n=$((n + 1)); done
   mkdir -p "$base" && cp -a "$CAIXA_PASTA" "$destino" && rm -rf "$CAIXA_PASTA"
-  # só as cinco mais novas desta prova (o nome leva a data, e a ordem do nome é a do tempo)
   find "$base" -mindepth 1 -maxdepth 1 -type d -name "$CAIXA_NOME-[0-9]*" -printf '%f\n' | LC_ALL=C sort -r |
     tail -n +6 | while IFS= read -r velha; do rm -rf "${base:?}/$velha"; done
   local maior
@@ -142,12 +95,6 @@ _caixa_fim() {
   echo "o registro: $destino"
 }
 
-## caixa_fonte <módulo>: o módulo de godot/bin saiu da fonte de agora? (a WQ03)
-## O scripts/compilar.sh grava ao lado de cada módulo o <módulo>.fonte, com a
-## soma da fonte de que ele saiu; aqui ela é comparada com a soma da fonte de
-## agora (`scripts/compilar.sh soma`, a mesma função). Sem o módulo, sem o
-## .fonte ou com a soma diferente, sai 2 e diz o que rodar. Não compila nada,
-## e não há variável de escape.
 caixa_fonte() {
   local modulo="$1" alvo=linux
   case "$modulo" in *.dll) alvo=windows ;; esac

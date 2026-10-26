@@ -1,8 +1,5 @@
 class_name TelaCreditos
 extends Control
-## Os créditos: a bigorna e o nome de quem fez, e só. Os avisos de licença (os
-## modelos, as fontes, o SDL, o Godot) vão junto com o jogo, em
-## assets/LEIA-ME.md e nos textos ao lado de cada coisa. ○ volta.
 
 var _t := 0.0
 
@@ -27,7 +24,6 @@ func _draw() -> void:
 	var a := clampf(_t / 0.8, 0.0, 1.0)
 	var lado := 220.0
 	var c := size * 0.5
-	# o sol do synthwave atrás da bigorna: faixas que somem para baixo
 	for i in 9:
 		var y := c.y - 150.0 + i * 22.0
 		var meia := sqrt(maxf(0.0, 200.0 * 200.0 - pow(y - (c.y - 60.0), 2.0)))

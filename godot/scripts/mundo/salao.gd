@@ -1,16 +1,8 @@
 class_name Salao
 extends Node3D
-## O salão da forja: o lugar de onde se sai para cada sala. Paredes de pedra do
-## kit Mini Dungeon (Kenney, CC0) com oito portões — um por sala, na ordem do
-## percurso, no sentido do relógio —, a bigorna de A Prova no meio e os quatro
-## pedestais do lobby na frente.
-##
-## O kit é pequeno (o bloco de parede tem 1×1,1); tudo sai na escala K.
 
 const K := 2.0
 
-## As salas, na ordem do percurso. `lado`: a parede do portão; `aberta`: a sala
-## já existe neste marco (as outras ficam de portão fechado).
 const PORTOES := [
 	{"id": "centelha", "nome": "A Centelha", "lado": "oeste", "t": 3.0, "aberta": true},
 	{"id": "viga", "nome": "A Viga", "lado": "oeste", "t": -3.0, "aberta": true},
@@ -22,34 +14,33 @@ const PORTOES := [
 	{"id": "canto", "nome": "O Canto", "lado": "leste", "t": 3.0, "aberta": true},
 ]
 
-## A luz do portão: acesa quando a seção foi vencida na noite, apagada a de quadro (arte/02).
 const FOCO_ACESO := 3.2
 const FOCO_APAGADO := 0.55
-const VITRINE_MAX := 18   ## os troféus que a vitrine mostra: os 18 últimos
+const VITRINE_MAX := 18
 
 const X_OESTE := -12.0
 const X_LESTE := 12.0
 const Z_NORTE := -9.0
 const Z_SUL := 9.0
 
-var portoes := {}  ## id -> {no, porta, anim, frente, placa, luzes, aberto}
+var portoes := {}
 var pedestais: Array[Vector3] = []
-var pedestais_no: Node3D  ## os quatro pedestais do lobby (somem no título)
-var luzes_das_bigornas: Array[OmniLight3D] = []  ## a luz quente da bigorna de cada lugar
+var pedestais_no: Node3D
+var luzes_das_bigornas: Array[OmniLight3D] = []
 var _tw_bigorna := [null, null, null, null]
 var vitrine_no: Node3D
 var trofeus_no: Node3D
-var _cores_dos_trofeus: Array[Color] = []   ## o albedo do copo (ou do cubo) de cada troféu da vitrine
+var _cores_dos_trofeus: Array[Color] = []
 var _amb: AudioStreamPlayer3D
 var _mat_do_tubo: ShaderMaterial
 var bigorna: Node3D
 var _cenas := {}
 var _tochas: Array[OmniLight3D] = []
-var _energia_chave := 1.8  ## a energia da chave da seção que o salão está vivendo (as tochas tremem em volta dela)
+var _energia_chave := 1.8
 var _t := 0.0
-var luz_da_forja: OmniLight3D  ## a luz de _bigorna(), fora de _tochas
-var pulso := -1.0  ## 0..1: o título e a introdução mandam; -1: tremula como as tochas
-var apagado := 0.0  ## 0..1: a Dissonância apaga tochas e forja
+var luz_da_forja: OmniLight3D
+var pulso := -1.0
+var apagado := 0.0
 
 
 func _ready() -> void:
@@ -62,13 +53,11 @@ func _ready() -> void:
 	_enfeites()
 	_vitrine()
 	mostrar_colecao()
-	# o fogo do salão: um laço de 8 s preso à bigorna (só toca com o salão à mostra)
 	_amb = Som.laco("amb_salao", self, bigorna.position, 0.0)
 
 
 func _process(dt: float) -> void:
 	_t += dt
-	# as tochas tremem, cada uma no seu passo
 	for i in _tochas.size():
 		var l := _tochas[i]
 		l.light_energy = (_energia_chave + 0.25 * sin(_t * 7.3 + i * 1.7) + 0.15 * sin(_t * 13.1 + i * 0.9)) * (1.0 - apagado)
@@ -76,7 +65,6 @@ func _process(dt: float) -> void:
 		luz_da_forja.light_energy = ((0.5 + 3.0 * pulso) if pulso >= 0.0 else (_energia_chave + 0.25 * sin(_t * 7.3))) * (1.0 - apagado)
 
 
-## Põe a luz da seção (`Tema.luz_da_secao`) nas tochas dos portões e na luz da forja: a cor da chave, a energia dela.
 func acender(luz: Dictionary) -> void:
 	_energia_chave = luz.energia_chave
 	for l in _tochas:
@@ -121,9 +109,7 @@ func _chao() -> void:
 			var pos := Vector3(i * K, 0, j * K)
 			var detalhe := sorteio.randf() < 0.07
 			peca("floor-detail" if detalhe else "floor", pos, sorteio.randi_range(0, 3) * PI * 0.5)
-	# o chão sólido
 	_caixa_solida(Vector3(0, -0.5, 0), Vector3(40, 1, 40))
-	# a passarela: dos pedestais do lobby até o tablado da bigorna
 	var passarela := CSGBox3D.new()
 	passarela.size = Vector3(2.6, 0.03, 7.4)
 	passarela.position = Vector3(0, 0.015, 5.3)
@@ -148,20 +134,16 @@ func _eh_abertura(lado: String, t: float) -> bool:
 
 
 func _paredes() -> void:
-	# norte: de ponta a ponta
 	for i in range(-6, 7):
 		var x := i * K
 		if not _eh_abertura("norte", x):
 			peca("wall", Vector3(x, 0, Z_NORTE))
-	# oeste e leste
 	for j in range(-4, 5):
 		var z := j * K
 		if not _eh_abertura("oeste", z):
 			peca("wall", Vector3(X_OESTE, 0, z))
 		if not _eh_abertura("leste", z):
 			peca("wall", Vector3(X_LESTE, 0, z))
-	# sul: sem parede à vista (é o lado da câmera, como num diorama); só o sólido
-	# os sólidos das paredes
 	_caixa_solida(Vector3(0, 1.1, Z_NORTE), Vector3(26, 2.2, 2))
 	_caixa_solida(Vector3(X_OESTE, 1.1, 0), Vector3(2, 2.2, 20))
 	_caixa_solida(Vector3(X_LESTE, 1.1, 0), Vector3(2, 2.2, 20))
@@ -171,7 +153,7 @@ func _paredes() -> void:
 func _portao(p: Dictionary) -> void:
 	var pos := Vector3.ZERO
 	var rot := 0.0
-	var frente := Vector3.ZERO  # para dentro do salão
+	var frente := Vector3.ZERO
 	match p.lado:
 		"norte":
 			pos = Vector3(p.t, 0, Z_NORTE)
@@ -189,8 +171,6 @@ func _portao(p: Dictionary) -> void:
 	var portao := peca("gate", pos + frente * 0.2, rot, K)
 	var anim: AnimationPlayer = portao.find_child("AnimationPlayer", true, false)
 
-	# a placa vira a etiqueta do cassete, em 3D: o papel, a tarja na tinta da seção, o nome
-	# na caneta, a linha impressa e uma marca por minigame da seção (arte/02)
 	var placa := Node3D.new()
 	placa.position = pos + frente * 1.15 + Vector3(0, 2.75, 0)
 	placa.rotation.y = rot
@@ -240,7 +220,6 @@ func _portao(p: Dictionary) -> void:
 	var tubo := Kit.caixa(placa, Vector3(3.1, 0.06, 0.06), Vector3(0, 0.57, 0.01), _material_do_tubo())
 	tubo.visible = false
 
-	# as tochas dos dois lados do portão
 	var luzes: Array[OmniLight3D] = []
 	var lado := frente.cross(Vector3.UP)
 	for s in [-1.0, 1.0]:
@@ -291,8 +270,6 @@ func _tocha(pos: Vector3, acesa: bool) -> OmniLight3D:
 	return luz
 
 
-## A bigorna do logo do Hefesto, em pedra e nas cores dele: tampo claro com o
-## chifre, cintura roxa, base azul-ardósia. É o centro de A Prova.
 func _bigorna() -> void:
 	bigorna = Node3D.new()
 	bigorna.position = Vector3(0, 0, -1.0)
@@ -302,7 +279,6 @@ func _bigorna() -> void:
 		m.albedo_color = cor
 		m.roughness = rugoso
 		return m
-	# o tablado redondo
 	var tablado := CSGCylinder3D.new()
 	tablado.radius = 3.0
 	tablado.height = 0.3
@@ -318,7 +294,6 @@ func _bigorna() -> void:
 	borda.position.y = 0.3
 	borda.material = Tema.neon(Tema.VIOLETA, 1.1, "mundo")
 	bigorna.add_child(borda)
-	# a base, a cintura, o tampo e o chifre
 	var base := CSGBox3D.new()
 	base.size = Vector3(1.5, 0.45, 1.0)
 	base.position.y = 0.3 + 0.225
@@ -343,7 +318,6 @@ func _bigorna() -> void:
 	chifre.position = Vector3(1.28, 1.39, 0)
 	chifre.material = pedra.call(Tema.OXIDO_BRILHO, 0.35)
 	bigorna.add_child(chifre)
-	# o fogo da forja: brasa rosa e laranja embaixo da bigorna
 	var forja := OmniLight3D.new()
 	forja.position = Vector3(0, 0.9, 0.9)
 	forja.light_color = Tema.TUNGSTENIO
@@ -422,7 +396,6 @@ func _pedestais() -> void:
 		aro.material = Tema.neon(Tema.JOGADOR[i], 1.5, i)
 		aro.name = "Aro%d" % i
 		pedestais_no.add_child(aro)
-		# a bigorna do lugar e a luz quente dela: baixa, não tinge o cavaleiro
 		var bigorna_do_lugar := Kit.bigorna(pedestais_no, pos + Vector3(0.62, 0.32, -0.5), 0.3)
 		bigorna_do_lugar.rotation.y = -0.5
 		var luz := OmniLight3D.new()
@@ -435,10 +408,6 @@ func _pedestais() -> void:
 		luzes_das_bigornas.append(luz)
 
 
-## A bigorna do lugar acende em `energia` e cai a 0,8 em 0,3 s (SAI, a curva do
-## arte/05: cúbica, rápida no começo, assenta no fim) se o lugar está ocupado, a
-## 0 se não. `a_mais` soma ao repouso: a forja que avança deixa a bigorna mais
-## acesa a cada martelada, e a construção não fica parada na tela.
 func acender_bigorna(l: int, energia: float, a_mais := 0.0) -> void:
 	l = clampi(l, 0, 3)
 	if l >= luzes_das_bigornas.size():
@@ -457,13 +426,10 @@ func acender_bigorna(l: int, energia: float, a_mais := 0.0) -> void:
 
 
 func _enfeites() -> void:
-	# colunas entre os portões do norte
 	for x in [-8.0, -4.0, 0.0, 4.0, 8.0]:
 		peca("column", Vector3(x, 0, Z_NORTE + 1.4), 0.0, K * 1.1)
-	# estandartes nas paredes do norte, acima das colunas
 	for x in [-10.0, 10.0]:
 		peca("banner", Vector3(x, 0.4, Z_NORTE + 1.0 + 1.06), PI, K)
-	# barris, caixotes, pedras nos cantos
 	peca("barrel", Vector3(-10.2, 0, -7.2), 0.3)
 	peca("barrel", Vector3(-9.3, 0, -7.6), 1.2)
 	peca("barrel", Vector3(10.1, 0, -7.3), 0.7)
@@ -472,14 +438,12 @@ func _enfeites() -> void:
 	peca("chest", Vector3(-10.0, 0.1, 0.0), PI * 0.5, K)
 	peca("table", Vector3(8.6, 0, 6.6), 0.2, K)
 	peca("pot", Vector3(7.7, 0, 7.3), 0.0, K * 0.9)
-	# o suporte de armas ao lado do baú
 	var escudo := peca("shield-round", Vector3(-11.0, 1.4, 1.4), PI * 0.5, K)
 	escudo.rotation.x = 0.0
 	peca("weapon-sword", Vector3(-11.0, 1.1, 2.0), PI * 0.5, K)
 	peca("weapon-spear", Vector3(-11.1, 0.0, 2.5), PI * 0.5, K)
 
 
-## O portão mais perto de `pos` (dentro do alcance), ou "".
 func portao_perto(pos: Vector3, alcance := 2.4) -> String:
 	var melhor := ""
 	var dist := alcance
@@ -504,7 +468,6 @@ func abrir_portao(id: String, abrir: bool) -> void:
 		g.anim.play("open" if abrir else "close")
 
 
-## Onde o jogador para, de frente para o portão, ao voltar da sala.
 func saida_do_portao(id: String, lugar: int) -> Vector3:
 	var g: Dictionary = portoes.get(id, {})
 	if g.is_empty():
@@ -518,16 +481,12 @@ func centro_do_portao(id: String) -> Vector3:
 	return g.get("pos", Vector3.ZERO)
 
 
-# ----------------------------------------------------------------- a coleção --
-
 func _material_do_tubo() -> ShaderMaterial:
 	if _mat_do_tubo == null:
-		# o dono do tubo é a forja (teto 2,4 do arte/07); 1,3 de energia, para o glow pegar sem estourar
 		_mat_do_tubo = Tema.neon(Tema.TUNGSTENIO, 1.3, "forja")
 	return _mat_do_tubo
 
 
-## O estado de uma etiqueta: o papel, a tarja, o texto impresso, as marcas, a luz e o tubo.
 func _etiqueta(id: String, acesa: bool, lado_b := false) -> void:
 	var g: Dictionary = portoes[id]
 	var dados: Dictionary = g.dados
@@ -539,7 +498,6 @@ func _etiqueta(id: String, acesa: bool, lado_b := false) -> void:
 	for i in tarjas.size():
 		var t := tarjas[i] as MeshInstance3D
 		(t.material_override as StandardMaterial3D).albedo_color = tinta if acesa else tinta.darkened(0.15)
-		# o lado B: duas caixas finas de 0,058 com 0,033 de vão no lugar da inteira
 		t.visible = i == 0 and not lado_b
 	if lado_b:
 		_tarja_dupla(g, tinta if acesa else tinta.darkened(0.15))
@@ -576,7 +534,6 @@ func _tarja_dupla(g: Dictionary, cor: Color) -> void:
 		t.visible = true
 
 
-## Acende etiquetas, marcas e tubos pela Colecao, refaz a vitrine; `lado_b` põe a tarja dupla.
 func mostrar_colecao(lado_b := false) -> void:
 	for p in PORTOES:
 		_etiqueta(str(p.id), Colecao.secao_acesa(str(p.id)), lado_b)
@@ -591,18 +548,15 @@ func trofeus_na_vitrine() -> int:
 	return trofeus_no.get_child_count() if trofeus_no else 0
 
 
-## O albedo do copo da taça i (ou do cubo de um coop): a cor de quem venceu.
 func cor_do_trofeu(i: int) -> Color:
 	return _cores_dos_trofeus[i] if i >= 0 and i < _cores_dos_trofeus.size() else Color()
 
 
-## O som de fundo do salão só corre com o salão à mostra.
 func pausar_ambiente(pausado: bool) -> void:
 	if _amb:
 		_amb.stream_paused = pausado
 
 
-## A vitrine da parede leste, entre os dois portões: dois montantes e três prateleiras.
 func _vitrine() -> void:
 	vitrine_no = Node3D.new()
 	vitrine_no.name = "Vitrine"
@@ -647,7 +601,7 @@ func _refazer_a_vitrine() -> void:
 					var mc := Kit.material(Tema.JOGADOR[q], 0.0, 0.6)
 					Kit.caixa(t, Vector3(0.07, 0.07, 0.07), Vector3(-0.105 + q * 0.07, 0.035, 0), mc)
 					cubos.append(mc.albedo_color)
-				_cores_dos_trofeus.append(cubos[0])   # o coop não tem dono: a prova lê o primeiro cubo
+				_cores_dos_trofeus.append(cubos[0])
 			_:
 				var m := Kit.material(cor, 0.0, 0.6)
 				Kit.caixa(t, Vector3(0.16, 0.04, 0.16), Vector3(0, 0.02, 0), m)

@@ -26,12 +26,12 @@ qual.
 Conferido no código em **03/10/2026**: todas as referências de linha abaixo
 batem. A ficha pode ser executada como está.
 
-**O formato:** `nativo/nucleo/linha_tempo.h:11`,
+**O formato:** `nativo/nucleo/linha_tempo.h:8`,
 `#define LINHA_TEMPO_FORMATO "hefesto-tech-demo/linha-do-tempo/1"`, escrito na
-primeira linha da sessão (`nativo/nucleo/forja.c:192-203`, o evento `sessao`
+primeira linha da sessão (`nativo/nucleo/forja.c:183-194`, o evento `sessao`
 com `formato`, `sessao`, `semente`, `versao`, `sdl`, `plataforma`, `simulado`).
 
-**A cabeça de cada linha:** `linha_tempo.c:20-30`:
+**A cabeça de cada linha:** `linha_tempo.c:19-29`:
 
 ```c
 void ev_iniciar(Evento *e, const LinhaTempo *lt, const char *tipo, int jogador) {
@@ -49,13 +49,13 @@ void ev_iniciar(Evento *e, const LinhaTempo *lt, const char *tipo, int jogador) 
 
 Não há `lugar` nem `t_musica`. `jogador` 0 (a mesa) não é escrito.
 
-**O relógio:** `forja.c:177-179` chama `relogio_do_jogo(&f->t)` **sempre**, então
-o `t` é a soma dos `dt` do jogo — o contrário do que `relogio.h:1-5` diz ("no
+**O relógio:** `forja.c:168-170` chama `relogio_do_jogo(&f->t)` **sempre**, então
+o `t` é a soma dos `dt` do jogo — o contrário do que `relogio.h:1-1` diz ("no
 jogo normal é o relógio de parede; com `--acelerado`… o tempo do jogo"). Não
 existe o argumento `--acelerado`. O mesmo relógio carimba o registro de texto
-(`registro.c:31`) e o relatório (`forja_agora`).
+(`registro.c:30`) e o relatório (`forja_agora`).
 
-**As saídas:** todas passam por `ev_saida()` (`pads.c:137-143`):
+**As saídas:** todas passam por `ev_saida()` (`pads.c:126-132`):
 
 ```c
 static void ev_saida(Forja *a, const Pad *p, const char *o, bool ok, Evento *ev) {
@@ -74,28 +74,28 @@ Chamada por `pad_rumble` (`vibracao`), `pad_luz` (`lightbar`), `pad_gatilho` e
 reservado (sem `slot`) sai com `jogador` 0; `pad_lugar(p)` (F04) dá o lugar
 dele.
 
-**A conexão:** o evento de `conectou()` (`pads.c:283-294`) tem `nome`,
+**A conexão:** o evento de `conectou()` (`pads.c:258-268`) tem `nome`,
 `vid_pid`, `origem`, `conexao` (o rótulo da origem) e, depois da F05,
 `firmware` e `rumble_escala_cheia`. Não tem `transporte`. O SDL relata o
-transporte em `p->conexao_sdl` (`pads.c:177`, `SDL_GetGamepadConnectionState`).
+transporte em `p->conexao_sdl` (`pads.c:160`, `SDL_GetGamepadConnectionState`).
 
 **Os campos vindos do GDScript:** `ForjaControles::evento()`
-(`nativo/godot/forja_controles.cpp:481-507`) só conhece `BOOL`, `INT`, `FLOAT`;
+(`nativo/godot/forja_controles.cpp:464-488`) só conhece `BOOL`, `INT`, `FLOAT`;
 qualquer outra coisa vira texto (`default:` → `ev_str(String(v))`), então um
 `Array` (`"pontos"` da F03, `"escala_vibracao"` da F05) sai como
 `"[10, 40, 30, 20]"`, entre aspas.
 
-**O transporte, meio caminho andado:** `pads.c:239-241` **já** converte o
+**O transporte, meio caminho andado:** `pads.c:218-220` **já** converte o
 `conexao_sdl` do SDL em cabo (1) e rádio (2), dentro do `OrigemFatos` da
 origem. O passo 4 reaproveita esse mesmo teste em vez de escrever outro.
 
 **O dicionário do pad** não se monta em `ForjaControles::pads()`, e sim em
-`info_do_pad()` (`nativo/godot/forja_controles.cpp:57`), que hoje devolve 23
+`info_do_pad()` (`nativo/godot/forja_controles.cpp:55`), que hoje devolve 23
 chaves. Cuidado com o falso amigo: as chaves `conexao` e `conexao_curta` que
 já existem são a **origem** (como o jogo descobriu o controle), não o
 transporte que o SDL relata. São coisas diferentes e as duas ficam.
 
-**Os leitores:** `tests/prova_da_exportacao.sh:52-59` (Python) lê só
+**Os leitores:** `tests/prova_da_exportacao.sh:27-34` (Python) lê só
 `evento`/`o` das linhas; `experimental/rodar.sh` só aponta a pasta. Ninguém
 confere o `formato`.
 
@@ -149,11 +149,11 @@ func t_musica(s: float) -> void        # ctl.t_musica: a H01 chama a cada quadro
    Novas `void ev_nums(Evento *e, const char *chave, const double *v, int n)` e
    `void ev_strs(Evento *e, const char *chave, const char *const *v, int n)`
    (o molde de `ev_ints`, `:48-53`; a string com `tb_json_str`).
-2. **O relógio** (`nativo/nucleo/forja.c:179`): apagar `relogio_do_jogo(&f->t);`.
+2. **O relógio** (`nativo/nucleo/forja.c:170`): apagar `relogio_do_jogo(&f->t);`.
    No evento `sessao` (`:192-203`): `ev_str(&ev, "relogio", "parede");`.
-   Reescrever o comentário de `relogio.h:1-5` para dizer a verdade: parede
+   Reescrever o comentário de `relogio.h:1-1` para dizer a verdade: parede
    sempre; o tempo do jogo só com `--acelerado`.
-3. **O seq** (`nativo/nucleo/forja.h:24-49`, no `struct Forja`):
+3. **O seq** (`nativo/nucleo/forja.h:16-39`, no `struct Forja`):
    `long seq_saida[MAX_JOGADORES + 1]; /* por lugar; o último, dos pads sem lugar */`.
    Em `pads.c` `ev_saida()`:
    ```c
@@ -177,7 +177,7 @@ func t_musica(s: float) -> void        # ctl.t_musica: a H01 chama a cada quadro
    ```
    E o mesmo no `reg_linha` de `:295` (`" · transporte %s"`). Se a F05 não pôs
    `firmware` aqui, ponha agora (`"0x%04x"`).
-   E `info_do_pad()` (`nativo/godot/forja_controles.cpp:57`) ganha as chaves
+   E `info_do_pad()` (`nativo/godot/forja_controles.cpp:55`) ganha as chaves
    `"transporte"` (a mesma palavra) e `"firmware"` (`"0x%04x"`) — ao lado das
    que já existem, sem tocar em `conexao`/`conexao_curta`, que são a origem —
    para o jogo ler com
@@ -211,8 +211,8 @@ func t_musica(s: float) -> void        # ctl.t_musica: a H01 chama a cada quadro
 ## Armadilhas
 
 - **Quem depende do `t` ser o tempo do jogo?** O motor simulado para pelo
-  `a->t` (`pads.c:437-443`) e a taxa do giroscópio simulado usa
-  `a->relogio_sim_ns` (`pads.c:29-31`): nenhum dos dois usa o `relogio_agora`.
+  `a->t` (`pads.c:408-414`) e a taxa do giroscópio simulado usa
+  `a->relogio_sim_ns` (`pads.c:22-24`): nenhum dos dois usa o `relogio_agora`.
   Mudar o relógio não muda o robô. Confira com `bash tests/prova_do_jogo.sh`.
 - **A prova roda com `--fixed-fps 60`**, mais rápido que o tempo real: o `t` de
   parede fica menor que o tempo do jogo. É isso que a checagem usa. Numa
@@ -220,11 +220,11 @@ func t_musica(s: float) -> void        # ctl.t_musica: a H01 chama a cada quadro
 - **`jogador` 0** continua fora da linha (os leitores de hoje contam com isso);
   o `lugar` só aparece junto do `jogador`.
 - **O `seq` nunca zera**: ele mora no `struct Forja`, não no `Pad` (o `Pad` é
-  zerado a cada reconexão, `pads.c:208` e `:354`).
+  zerado a cada reconexão, `pads.c:187` e `:354`).
 - **A F04 é pré-requisito** (o `pad_lugar`). Sem ela, use `p->slot` e anote.
 - **Nada de endereço de aparelho** na linha nova: o `ev_fim` já passa
-  `mascara_mac` (`linha_tempo.c:58`), e a prova do relatório
-  (`prova_do_jogo.gd:391-396`) confere os arquivos.
+  `mascara_mac` (`linha_tempo.c:54`), e a prova do relatório
+  (`prova_do_jogo.gd:356-361`) confere os arquivos.
 - **A engine é a 4.7.2** e o módulo compila contra o **master** da godot-cpp,
   num commit fixo ([ADR 009](../../adr/009-a-godot-4-7-e-o-godot-cpp-do-master.md)).
   Não recompile com um Godot aberto: ele segura o `.so`.

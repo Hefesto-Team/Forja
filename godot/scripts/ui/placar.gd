@@ -1,9 +1,5 @@
 class_name Placar
 extends Control
-## O placar da partida. Entre as salas: a colocação de cada um na sala que
-## acabou, os pontos da noite que ela deu e o total, do primeiro ao último, e
-## a sala seguinte. No fim: o pódio, com quem venceu a noite numa frase.
-## Sempre com o número do lugar e a palavra — nunca só a cor.
 
 var partida: Partida = null
 var no_podio := false
@@ -17,9 +13,6 @@ func _ready() -> void:
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 
 
-## A linha do tempo do placar entre as salas (s): o quadro entra; o "+N"
-## estoura e o total sobe contando; as linhas trocam de lugar; o líder ganha
-## o selo (e a virada, o aviso). ✕ antes do fim pula para o fim.
 const T_CONTA := 0.5
 const T_CONTA_FIM := 1.6
 const T_TROCA := 1.8
@@ -27,7 +20,7 @@ const T_TROCA_FIM := 2.3
 const T_LIDER := 2.4
 const T_PRONTO := 2.6
 
-var _antes: Array = []  ## o pódio antes da sala que acabou
+var _antes: Array = []
 var _depois: Array = []
 var _virada := false
 var _soou := {}
@@ -40,13 +33,11 @@ func abrir(p: Partida, podio: bool) -> void:
 	_soou = {}
 	_depois = p.podio(p.presentes())
 	_antes = _podio_antes(p)
-	# a virada: um líder sozinho, e não é o de antes
 	_virada = false
 	if p.historico.size() > 1 and _antes.size() > 1 and _depois.size() > 1:
 		_virada = int(_depois[1].degrau) > 1 and int(_antes[0].lugar) != int(_depois[0].lugar)
 
 
-## O pódio como estava antes da última sala (os totais menos o que ela deu).
 static func _podio_antes(p: Partida) -> Array:
 	var ult: Dictionary = p.historico[p.historico.size() - 1]
 	var tot := []
@@ -66,12 +57,10 @@ static func _podio_antes(p: Partida) -> Array:
 	return lista
 
 
-## Pronto para o ✕ (o botão que fechou o veredito não passa direto por aqui).
 func pronto() -> bool:
 	return _t > (0.8 if no_podio else T_PRONTO)
 
 
-## ✕ antes do fim: a animação pula para o fim.
 func pular() -> void:
 	if not no_podio and _t < T_PRONTO:
 		_t = T_PRONTO
@@ -101,8 +90,6 @@ func _sons() -> void:
 			Som.tocar("confirma")
 
 
-## A frase do pódio: "P2 venceu a noite" — e, se foi no desempate, o que
-## decidiu. Alguém sempre ganha.
 static func frase_do_vencedor(lista: Array) -> String:
 	if lista.is_empty():
 		return ""
@@ -132,12 +119,10 @@ func _draw() -> void:
 	var alt := 300.0 + linha * lista.size()
 	var r := Rect2(Vector2((size.x - larg) * 0.5, (size.y - alt) * 0.5), Vector2(larg, alt))
 	if no_podio:
-		# o pódio fica à esquerda: os bonecos nos pedestais aparecem à direita
 		r.position = Vector2(Tema.MARGEM_X, (size.y - alt) * 0.5)
 		larg = 860.0
 		r.size.x = larg
 	else:
-		# o quadro entra subindo
 		r.position.y += 60.0 * (1.0 - _suave(_t / 0.35))
 	Desenho.moldura(self, r, Color(Tema.CASCO, 0.97), Tema.GRAFITE, 2, Tema.RAIO_QUADRO)
 	var x := r.position.x + 48
@@ -153,7 +138,6 @@ func _draw() -> void:
 			var pulso := 1.0 + 0.06 * sin(_t * 8.0)
 			var tv := int(Tema.T_SUBTITULO * pulso)
 			Desenho.texto(self, Vector2(r.end.x - 48 - Desenho.largura("Virada!", fv, tv), r.position.y + 90), "Virada!", fv, tv, Tema.ETIQUETA)
-	# o cabeçalho das colunas
 	var y0 := r.position.y + 206
 	var c_total := r.end.x - 48 - 150
 	var c_sala := c_total - 300
@@ -163,7 +147,6 @@ func _draw() -> void:
 		Desenho.texto(self, Vector2(c_sala, y0), "Nesta sala", Tema.archivo(600), Tema.T_SELO, Tema.MUDO)
 	Desenho.texto(self, Vector2(c_total, y0), "Da noite", Tema.archivo(600), Tema.T_SELO, Tema.MUDO)
 	y0 += 22
-	# a posição de cada lugar antes e depois (as linhas deslizam entre as duas)
 	var pos_antes := {}
 	for i in _antes.size():
 		pos_antes[int(_antes[i].lugar)] = i
@@ -193,7 +176,6 @@ func _draw() -> void:
 			var ganho := int(ultima.ganhos[l])
 			if col > 0:
 				Desenho.texto(self, Vector2(c_sala, cy), ORDINAL[clampi(col, 0, 4)], Tema.archivo(600), Tema.T_CORPO, Tema.ETIQUETA)
-				# o "+N" estoura quando a conta começa
 				if _t >= T_CONTA:
 					var estouro := 1.0 + 0.5 * maxf(0.0, 1.0 - (_t - T_CONTA) / 0.25)
 					var tg := int(Tema.T_CORPO * estouro)
@@ -216,7 +198,6 @@ func _draw() -> void:
 		Desenho.dicas_a_direita(self, Vector2(r.end.x - 48, r.end.y + 60), [["cruz", texto]], Tema.T_ROTULO)
 
 
-## "depois d'A Galeria", "depois d'O Impacto", "depois dos Caminhos".
 static func _contracao(nome: String) -> String:
 	if nome.begins_with("Os "):
 		return "os " + nome.substr(3)

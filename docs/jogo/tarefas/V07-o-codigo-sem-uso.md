@@ -15,12 +15,12 @@ Quatro funções do jogo não têm quem chame (duas só a prova chama): quem lê
 
 ## O estado de hoje
 
-- `godot/scripts/forja.gd:376` `quem_apertou(botao)`: nenhuma chamada em `godot/`.
-- `godot/scripts/alto_falante_do_controle.gd:121` `devolver_a_saida()`: nenhuma chamada.
-- `godot/scripts/alto_falante_do_controle.gd:111` `tomar_a_saida()` e `:126` `linha_da_hud()`: só
-  `godot/testes/prova_do_jogo.gd:512` e `:524` chamam. A `linha_da_hud` devolve frase com minúscula
+- `godot/scripts/forja.gd:312` `quem_apertou(botao)`: nenhuma chamada em `godot/`.
+- `godot/scripts/alto_falante_do_controle.gd:91` `devolver_a_saida()`: nenhuma chamada.
+- `godot/scripts/alto_falante_do_controle.gd:84` `tomar_a_saida()` e `:126` `linha_da_hud()`: só
+  `godot/testes/prova_do_jogo.gd:471` e `:524` chamam. A `linha_da_hud` devolve frase com minúscula
   («procurando o alto-falante do controle…», «alto-falante: %s»), fora da tabela de traduções.
-- `godot/scripts/player.gd:127` `descricao_do_visual()` também não tem chamada, mas a
+- `godot/scripts/player.gd:103` `descricao_do_visual()` também não tem chamada, mas a
   [G02](G02-a-construcao-do-cavaleiro.md) a usa: fica.
 
 ## Arquivos que mudam
@@ -39,7 +39,7 @@ Quatro funções do jogo não têm quem chame (duas só a prova chama): quem lê
 
 ## Armadilha
 
-A `_prova_o_alto_falante_do_sistema` (`prova_do_jogo.gd:518-528`) é a que confere o `procurar()` contra o `pactl` de
+A `_prova_o_alto_falante_do_sistema` (`prova_do_jogo.gd:477-486`) é a que confere o `procurar()` contra o `pactl` de
 mentira do `tests/prova_do_jogo.sh` (a variável `ESPERADO`). Se a `linha_da_hud` sair, a prova não sai junto: passa
 a conferir `af.nome_que_o_jogo_mostra` (ou `af.motivo`, quando `ESPERADO` é a recusa) em vez da linha, e o
 `ESPERADO` da rodada `forma-a` em `tests/prova_do_jogo.sh:93` perde o «alto-falante: » do começo.

@@ -1,6 +1,3 @@
-/* A linha do tempo da sessão (ADR-003): uma linha JSON por evento — o que saiu,
- * o que chegou, o que o jogo fez, o que a mesa confirmou. É o que uma
- * automação compara com o que o Hefesto repassou. Formato versionado. */
 #ifndef DEMO_LINHA_TEMPO_H
 #define DEMO_LINHA_TEMPO_H
 
@@ -18,21 +15,13 @@ typedef struct LinhaTempo {
 
 typedef struct Evento {
   TextoBuf b;
-  unsigned cabeca; /* o que a cabeça já escreveu além de t e tipo: 1 jogador e lugar, 2 t_musica */
+  unsigned cabeca;
 } Evento;
 
 void lt_abrir(LinhaTempo *lt, const char *caminho, Uint64 inicio_ns);
 void lt_fechar(LinhaTempo *lt);
-/* A posição da música, em segundos, que a próxima linha carrega em `t_musica`
- * (quem toca a música informa a cada quadro); negativo = sem música, e a
- * linha não tem o campo. */
 void lt_t_musica(double s);
 
-/* Um evento: tipo ("saida", "entrada", "sala", "jogo", "confirmacao",
- * "conexao") e jogador (1..4, 0 = a mesa). Toda linha com jogador leva também
- * o `lugar` (jogador - 1). Campos, e fim. Um campo com o nome de uma chave que
- * a cabeça já escreveu (t, tipo, jogador, lugar, t_musica) não entra: a cabeça
- * vence, e a linha nunca tem chave repetida. */
 void ev_iniciar(Evento *e, const LinhaTempo *lt, const char *tipo, int jogador);
 void ev_str(Evento *e, const char *chave, const char *valor);
 void ev_num(Evento *e, const char *chave, double valor);

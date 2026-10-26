@@ -20,8 +20,8 @@ toca a trilha sintetizada de hoje, e nada quebra.
 ## O estado de hoje
 
 - `godot/scripts/musica.gd` (depois da H01): `FAIXAS` por sala
-  (`musica.gd:11-24`), a trilha sintetizada pelo módulo (`_stream(id)`,
-  `musica.gd:43-61`, devolve `AudioStreamWAV`), `tocar(id)` com fade,
+  (`musica.gd:3-16`), a trilha sintetizada pelo módulo (`_stream(id)`,
+  `musica.gd:32-50`, devolve `AudioStreamWAV`), `tocar(id)` com fade,
   `tocar_do_zero(slot)`, `mapa(slot)` (o andamento de verdade da síntese),
   `laco_s(tocador)` (só WAV) e `_id_da_faixa(slot)` (o `MUS_Sxx_Jyy` vira a
   sintetizada da seção).
@@ -56,10 +56,10 @@ toca a trilha sintetizada de hoje, e nada quebra.
 - `godot/export_presets.cfg`: `export_filter="all_resources"` (`:16` e
   `:47`) leva os OGG importados sozinhos; `include_filter=""` (`:17` e `:48`)
   **não** leva um `.json` (que não é recurso importado).
-- `godot/scripts/main.gd:214`: `Musica.tocar(sala_id if qual == "sala" else "salao")`
+- `godot/scripts/main.gd:194`: `Musica.tocar(sala_id if qual == "sala" else "salao")`
   — o título e o lobby tocam a faixa do salão. O pódio pede `"podio"`
-  (`main.gd:466`).
-- `tests/prova_do_jogo.sh:51`: o `godot --import` antes da prova; é ele
+  (`main.gd:434`).
+- `tests/prova_do_jogo.sh:35`: o `godot --import` antes da prova; é ele
   quem cria o `.ogg.import` de uma faixa nova.
 - O `SPRINTS.md` já diz "tudo dentro do git, em `godot/assets/ost/`".
 - A H06 (os jingles) já procura por `Musica.caminho(nome)` (desta ficha),
@@ -767,7 +767,7 @@ se os dois discordarem, vale o `ffprobe`, e o script está errado.
 5. **`godot/scripts/musica.gd`**: o bloco de "O alvo", as três ligações
    (`mapa`, `tocar_do_zero`, `laco_s`) e o `tocar(id)` novo. O `_stream()`
    continua devolvendo a sintetizada (`AudioStreamWAV`).
-6. **`godot/scripts/main.gd:214`**: `Musica.tocar(sala_id if qual == "sala" else qual)`
+6. **`godot/scripts/main.gd:194`**: `Musica.tocar(sala_id if qual == "sala" else qual)`
    (o título, o lobby e o salão com a faixa de cada um; sem ela, a do
    salão, como hoje).
 7. **`godot/project.godot`**: a seção nova

@@ -19,7 +19,7 @@ RT_ICON, RT_GROUP_ICON, RT_VERSION = 3, 14, 16
 EMPRESA = "Hefesto Team"
 PRODUTO = "Forja"
 DIREITOS = "Hefesto Team, MIT"
-IDIOMA, PAGINA = 0x0416, 1200  # português do Brasil, Unicode
+IDIOMA, PAGINA = 0x0416, 1200
 
 
 def alinhar(n: int, a: int) -> int:
@@ -118,7 +118,7 @@ def soma_de_verificacao(b: bytearray, campo: int) -> int:
     for (w,) in struct.iter_unpack("<H", dados):
         s += w
         s = (s & 0xFFFF) + (s >> 16)
-    s -= sum(struct.unpack_from("<HH", b, campo))  # o campo da soma conta como zero
+    s -= sum(struct.unpack_from("<HH", b, campo))
     s = (s & 0xFFFF) + (s >> 16)
     return ((s & 0xFFFF) + len(b)) & 0xFFFFFFFF
 

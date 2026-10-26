@@ -19,20 +19,20 @@ de seis horas compara.
 
 - `godot/scripts/ritmo.gd` (H01 + H02): `var desvio := [0.0, 0.0, 0.0, 0.0]`,
   e `julgar()` já tira o desvio do toque. Ninguém escreve no `desvio`.
-- `godot/scripts/opcoes.gd:29-30`: as opções por lugar são `gatilho` e
+- `godot/scripts/opcoes.gd:17-17`: as opções por lugar são `gatilho` e
   `vibracao`, guardadas em `user://opcoes.cfg` na seção `P1`..`P4`
-  (`opcoes.gd:63-65`, `opcoes.gd:79-81`). Com o robô, nada se lê nem se grava
-  (`opcoes.gd:58-59`, `opcoes.gd:76-77`).
-- `godot/scripts/ui/tela_opcoes.gd:20-33`: a lista de linhas
+  (`opcoes.gd:47-49`, `opcoes.gd:62-63`). Com o robô, nada se lê nem se grava
+  (`opcoes.gd:42-43`, `opcoes.gd:59-60`).
+- `godot/scripts/ui/tela_opcoes.gd:14-25`: a lista de linhas
   (`["gatilho", "Gatilhos", "P%d"]`, `["vibracao", "Vibração", "P%d"]`, e as da
   sessão); `trocar(dx)` (linha 40), `valor(chave)` (linha 66),
   `_fracao(chave)` (linha 81), `_draw()` (linha 95).
-- `godot/scripts/main.gd:851-860`: na tela de opções, ▲▼ navega, ◀▶ troca e
+- `godot/scripts/main.gd:780-789`: na tela de opções, ▲▼ navega, ◀▶ troca e
   ◯/Options fecha. O ✕ não faz nada ali. As opções gravam ao fechar
-  (`main.gd:791`, `Opcoes.gravar(Forja.robo)`).
+  (`main.gd:724`, `Opcoes.gravar(Forja.robo)`).
 - O transporte do controle já está no módulo: `Forja.pad(Forja.pad_do_lugar(l))`
   tem `conexao_curta` = `"USB"`, `"BT"`, `"Declara USB"`, `"Virtual"` ou
-  `"Simulado"` (maiúscula desde a F07) (`nativo/godot/forja_controles.cpp:42-55`).
+  `"Simulado"` (maiúscula desde a F07) (`nativo/godot/forja_controles.cpp:40-53`).
 - A construção do cavaleiro (G02) ainda pode não existir: é ela que mede o
   desvio com as oito marteladas.
 - **Provado nesta preparação**, numa cópia do projeto com a H01 e a H02: o
@@ -156,7 +156,7 @@ passou de `_batida_tocada`: `Som.tocar("tique", null, -4.0)`.)
      número;
    - com a linha Tempo selecionada, as dicas de baixo ganham
      `["cruz", "tocar no tempo"]` antes de `["circulo", "voltar"]`.
-5. **`godot/scripts/main.gd:851-860`** (o `"opcoes"` do `_quadro_overlay`):
+5. **`godot/scripts/main.gd:780-789`** (o `"opcoes"` do `_quadro_overlay`):
    acrescente `if Forja.apertou(qo, Forja.CRUZ): tela_opcoes.tocou()`.
 6. **`godot/scripts/traducoes.gd`**: `"Tempo": "Timing"` e
    `"tocar no tempo": "tap on the beat"`. Siga a caixa das dicas que já
@@ -176,7 +176,7 @@ passou de `_batida_tocada`: `Som.tocar("tique", null, -4.0)`.)
 Esta ficha não depende da G02 para fechar: sem ela, o desvio vem só das
 opções (passos 2 a 8) e começa em 0. Quando a G02 chegar, ela chama
 `Ritmo.definir_desvio(l, mediana_s, "construcao", 8)` com a mediana das oito
-marteladas e grava as opções (`Opcoes.gravar(...)`, como faz o `main.gd:791`).
+marteladas e grava as opções (`Opcoes.gravar(...)`, como faz o `main.gd:724`).
 Se a G02 já estiver feita quando esta ficha começar, troque o que ela
 escreve no desvio por essa chamada, no mesmo commit.
 
@@ -184,8 +184,8 @@ escreve no desvio por essa chamada, no mesmo commit.
 
 - **A ordem dos autoloads**: o `Ritmo` lê `Opcoes.tempo_ms` no `_ready()`,
   e quem carrega as opções é o `_ready()` do `Forja`, o primeiro autoload
-  (`godot/scripts/forja.gd:120`). O `Ritmo` é o último (H01). Não mude a ordem.
-- **O robô joga com as opções de fábrica** (`opcoes.gd:58-59`): o desvio da
+  (`godot/scripts/forja.gd:78`). O `Ritmo` é o último (H01). Não mude a ordem.
+- **O robô joga com as opções de fábrica** (`opcoes.gd:42-43`): o desvio da
   prova é sempre 0 no começo. A prova que mexe no `tempo_ms` **devolve o
   valor** no fim; se não devolver, o julgamento das provas seguintes muda.
 - **Nenhum caminho de prova**: `definir_desvio` não sabe de robô. O que a

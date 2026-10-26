@@ -19,29 +19,29 @@ reage; e cada som mandado ao controle vai para o registro.
 
 ## O estado de hoje
 
-- **A placa abre e fecha a cada sala.** `godot/scripts/salas/sala_jogo.gd:92-97`
+- **A placa abre e fecha a cada sala.** `godot/scripts/salas/sala_jogo.gd:46-49`
   chama `Forja.som_preparar(...)` na entrada de toda sala, e
-  `sala_jogo.gd:106-107` chama `Forja.som_encerrar()` na saída; o mesmo em
-  `godot/scripts/salas/prova.gd:93` e `:109`, em
-  `godot/scripts/salas/bancada.gd:108` e `:116`, e no pódio
-  (`godot/scripts/main.gd:436` e `:516`). No lobby e no salão, o controle não
-  tem som. `somc_preparar()` (`nativo/som/som_controle.c:280-297`) fecha tudo,
+  `sala_jogo.gd:57-58` chama `Forja.som_encerrar()` na saída; o mesmo em
+  `godot/scripts/salas/prova.gd:68` e `:109`, em
+  `godot/scripts/salas/bancada.gd:89` e `:116`, e no pódio
+  (`godot/scripts/main.gd:404` e `:516`). No lobby e no salão, o controle não
+  tem som. `somc_preparar()` (`nativo/som/som_controle.c:261-278`) fecha tudo,
   lista de novo (no Linux, roda o `pactl`) e reabre.
-- **O alto-falante toca por cima** (`nativo/som/som_controle.c:370-388`,
+- **O alto-falante toca por cima** (`nativo/som/som_controle.c:347-365`,
   `somc_falante`): dois sons no mesmo controle se somam. O 05 diz "nunca dois
   sons ao mesmo tempo no mesmo controle".
 - **O corte**: o mixer tem fade de 40 ms só no `mixer_parar(id, suave)`
-  (`nativo/som/mixer.c:95`); `mixer_parar_tudo` (`mixer.c:74-79`) corta de
-  uma vez; roubar voz (sem voz livre, `mixer.c:31`) corta de uma vez. O 04
+  (`nativo/som/mixer.c:92`); `mixer_parar_tudo` (`mixer.c:72-76`) corta de
+  uma vez; roubar voz (sem voz livre, `mixer.c:30`) corta de uma vez. O 04
   pede 15 a 30 ms.
 - **Os sons do controle** são os sintetizados de `nativo/som/sons_salas.c`
   (`sino`, `pulso`, `nota`, `nota_alta`, `grito`, `tropeco`, `clique`,
   `pronto`, `tom`, `passo:<chão>:<variação>`) e as gravações que o jogo
-  registra (`som_registrar`, `nativo/godot/forja_som.cpp:57-87`). Não há pio,
+  registra (`som_registrar`, `nativo/godot/forja_som.cpp:46-75`). Não há pio,
   nem nota por lugar, nem material.
 - **O registro** não tem o som do controle: só a linha `fone`
-  (`som_controle.c:405`).
-- **A música** toca no barramento principal (`godot/scripts/musica.gd:36-40`),
+  (`som_controle.c:379`).
+- **A música** toca no barramento principal (`godot/scripts/musica.gd:25-29`),
   sem efeito nenhum.
 - `godot/project.godot` não tem `default_bus_layout.tres`: há só o Master.
 - O kit (H04): `Minigame._reagir(l, j)` chama `Forja.sentir(...)` e toca a
@@ -665,7 +665,7 @@ no `_ready()`, depois de `pausa.escolheu.connect(_na_pausa)`:
 	Forja.pads_mudaram.connect(_ao_mudar_os_controles)
 ```
 
-ao fim do `_sincronizar_jogadores()` (`main.gd:228-240`), a chamada
+ao fim do `_sincronizar_jogadores()` (`main.gd:207-219`), a chamada
 `_abrir_o_som()`; e as duas funções:
 
 ```gdscript
@@ -751,18 +751,18 @@ faça o commit e escreva a ficha H07b com os passos 8 a 12 — é o que o
 6. **`godot/scripts/forja.gd`**: `som_pronto()` e `tocar_material()`.
 7. **A placa aberta**: `main.gd` (`_abrir_o_som()`, `_ao_mudar_os_controles()`,
    as duas variáveis, a conexão no `_ready()` e a chamada no
-   `_sincronizar_jogadores()`; no pódio, `main.gd:436` passa a
+   `_sincronizar_jogadores()`; no pódio, `main.gd:404` passa a
    `if not Forja.som_pronto(): Forja.som_preparar(...)`, e sai o
-   `Forja.som_encerrar()` do `_sair_do_podio()`, `main.gd:516`),
+   `Forja.som_encerrar()` do `_sair_do_podio()`, `main.gd:478`),
    `sala_jogo.gd` (a entrada e a saída), `prova.gd` (sai o `sair()` que só
    encerrava, linha 92-94; na linha 109, `if not Forja.som_pronto():`),
-   `bancada.gd:116` (troque o `som_encerrar()` por
+   `bancada.gd:97` (troque o `som_encerrar()` por
    `Forja.som_preparar(F.PAPEL_ALTO_FALANTE)`). **Prova:** a do jogo, com as
    checagens do pio e da placa (em "Provas").
 8. **A agenda no kit**: o `_reagir` novo do `minigame.gd` (a nota limpa no
    perfeito, a quebrada no erro, o material no acerto — pela háptica no cabo,
    pelo rumble no rádio, nunca os dois).
-9. **A navegação**: em `main.gd`, `_passo(l, vertical)` (`main.gd:802`) é
+9. **A navegação**: em `main.gd`, `_passo(l, vertical)` (`main.gd:733`) é
    por onde toda interface anda; quando ele devolver `!= 0`, toque
    `Forja.som_falante(l, "clique", 0.5)` — só no controle de quem navegou.
 10. **A música que reage** (`musica.gd`). **Prova:** a do jogo, com

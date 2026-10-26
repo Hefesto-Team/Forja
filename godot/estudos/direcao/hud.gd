@@ -1,12 +1,8 @@
 extends RefCounted
-## O HUD da fita: a interface é objeto. A etiqueta do cassete escrita a
-## caneta, o contador de fita, os carretéis, a faixa de cada jogador com o VU
-## no canto. Tudo desenhado com _draw, em px da tela lógica de 1920×1080.
 
 const Fita := preload("res://estudos/direcao/fita.gd")
 
 
-## Uma camada de interface que se desenha por uma função.
 class Tela extends Control:
 	var desenhar: Callable
 
@@ -28,7 +24,6 @@ static func camada(pai: Node, f: Callable, n := 10) -> Tela:
 	return t
 
 
-# ------------------------------------------------------------- primitivas --
 static func caixa(ci: CanvasItem, r: Rect2, fundo: Color, raio := 10, borda := Color(Fita.FITA, 0.0), largura := 0) -> void:
 	var s := StyleBoxFlat.new()
 	s.bg_color = fundo
@@ -41,8 +36,6 @@ static func caixa(ci: CanvasItem, r: Rect2, fundo: Color, raio := 10, borda := C
 	ci.draw_style_box(s, r)
 
 
-## O texto, com o ponto de partida no canto de cima à esquerda (não na linha
-## de base): fica fácil compor pela caixa.
 static func texto(ci: CanvasItem, f: Font, tam: int, pos: Vector2, s: String, cor: Color,
 		alinha := HORIZONTAL_ALIGNMENT_LEFT, largura := -1.0, contorno := 0, cor_contorno := Color.BLACK) -> void:
 	var base := pos + Vector2(0, f.get_ascent(tam))
@@ -58,8 +51,6 @@ static func largura_do(f: Font, tam: int, s: String) -> float:
 static var _glifos := {}
 
 
-## O glifo do botão (godot/assets/glifos), descomprimido como o Desenho.glifo
-## do jogo faz: comprimido, ele vira um quadrado no renderizador por software.
 static func glifo(ci: CanvasItem, nome: String, r: Rect2, cor := Color.WHITE) -> void:
 	if not _glifos.has(nome):
 		var img: Image = (load("res://assets/glifos/%s.png" % nome) as Texture2D).get_image()
@@ -69,11 +60,9 @@ static func glifo(ci: CanvasItem, nome: String, r: Rect2, cor := Color.WHITE) ->
 	ci.draw_texture_rect(_glifos[nome], r, false, cor)
 
 
-# ------------------------------------------------------------- o cassete --
-## Um carretel: o cubo com seis dentes e a fita enrolada (0 a 1).
 static func carretel(ci: CanvasItem, c: Vector2, raio: float, fita: float, cor_cubo := Fita.ETIQUETA) -> void:
 	var r_fita := lerpf(raio * 0.42, raio, fita)
-	ci.draw_circle(c, r_fita, Fita.OXIDO)  # a fita magnética
+	ci.draw_circle(c, r_fita, Fita.OXIDO)
 	ci.draw_arc(c, r_fita - 1.5, PI * 1.05, PI * 1.45, 18, Fita.OXIDO_BRILHO, 2.0, true)
 	ci.draw_circle(c, raio * 0.42, cor_cubo)
 	ci.draw_circle(c, raio * 0.2, Fita.CASCO)
@@ -83,15 +72,12 @@ static func carretel(ci: CanvasItem, c: Vector2, raio: float, fita: float, cor_c
 		ci.draw_line(c + d * raio * 0.2, c + d * raio * 0.33, Fita.CASCO, 3.0, true)
 
 
-## A etiqueta do cassete: papel, a tarja na tinta da seção, o título a
-## caneta e a linha impressa embaixo.
 static func etiqueta(ci: CanvasItem, r: Rect2, titulo: String, impresso: String, tinta_secao: Color,
 		tam_titulo := 56, inclina := 0.0) -> void:
 	ci.draw_set_transform(r.position + r.size * 0.5, inclina, Vector2.ONE)
 	var rr := Rect2(-r.size * 0.5, r.size)
 	caixa(ci, Rect2(rr.position + Vector2(5, 7), rr.size), Fita.SOMBRA, 8)
 	caixa(ci, rr, Fita.ETIQUETA, 8)
-	# a tarja da seção e as linhas pautadas do papel
 	ci.draw_rect(Rect2(rr.position + Vector2(0, 14), Vector2(rr.size.x, 12)), tinta_secao)
 	for i in 2:
 		var y := rr.position.y + rr.size.y - 40 - i * 46
@@ -101,7 +87,6 @@ static func etiqueta(ci: CanvasItem, r: Rect2, titulo: String, impresso: String,
 	ci.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
 
-## O contador de fita: três ou quatro rodas de número numa janela preta.
 static func contador(ci: CanvasItem, pos: Vector2, digitos: String, tam := 60) -> Rect2:
 	var f := Fita.vt()
 	var w_d := largura_do(f, tam, "0") + 10
@@ -111,13 +96,10 @@ static func contador(ci: CanvasItem, pos: Vector2, digitos: String, tam := 60) -
 		var cel := Rect2(pos + Vector2(7 + i * w_d, 6), Vector2(w_d - 4, tam * 0.95))
 		caixa(ci, cel, Fita.CASCO, 3)
 		texto(ci, f, tam, cel.position + Vector2(0, -tam * 0.1), digitos[i], Fita.ETIQUETA, HORIZONTAL_ALIGNMENT_CENTER, cel.size.x)
-		# a dobra da roda: a linha do meio
 		ci.draw_line(Vector2(cel.position.x, cel.get_center().y), Vector2(cel.end.x, cel.get_center().y), Color(Fita.JANELA, 0.55), 2.0)
 	return r
 
 
-## O deck: a janela do cassete (dois carretéis, a fita entre eles) e o
-## contador de fita ao lado, numa placa só.
 static func deck(ci: CanvasItem, r: Rect2, esquerda: float, direita: float, digitos: String) -> void:
 	caixa(ci, Rect2(r.position + Vector2(4, 6), r.size), Fita.SOMBRA, 14)
 	caixa(ci, r, Fita.CASCO, 14, Fita.CASCO_ALTO, 3)
@@ -133,8 +115,6 @@ static func deck(ci: CanvasItem, r: Rect2, esquerda: float, direita: float, digi
 	contador(ci, Vector2(jan.end.x + 16, r.position.y + (r.size.y - tam * 0.95 - 12) * 0.5), digitos, tam)
 
 
-## As lâmpadas do lugar, no padrão do LED de jogador do controle (as cinco
-## posições: 1 | 2 | 3 | 4 acesas).
 static func lampadas(ci: CanvasItem, pos: Vector2, lugar: int, cor: Color, tam := 10.0) -> void:
 	for i in 5:
 		var aceso := (int(Fita.LEDS[lugar]) >> i) & 1 == 1
@@ -142,7 +122,6 @@ static func lampadas(ci: CanvasItem, pos: Vector2, lugar: int, cor: Color, tam :
 		ci.draw_rect(r, cor if aceso else Fita.GRAFITE)
 
 
-## O VU: segmentos acesos na cor do jogador, o de pico em papel.
 static func vu(ci: CanvasItem, r: Rect2, n: int, aceso: int, cor: Color, pico := -1) -> void:
 	var gap := 4.0
 	var w := (r.size.x - gap * (n - 1)) / n
@@ -156,10 +135,6 @@ static func vu(ci: CanvasItem, r: Rect2, n: int, aceso: int, cor: Color, pico :=
 		ci.draw_rect(cel, c)
 
 
-## O cartão de um jogador, preso ao canto dele (P1 no alto à esquerda, P2 no
-## alto à direita, P3 embaixo à esquerda, P4 embaixo à direita; doc 06): a tira
-## do console de mixagem. A cor e o número com as lâmpadas do lugar, o nome do
-## cavaleiro, os pontos no contador e o combo no VU.
 const CARTAO := Vector2(420, 132)
 
 
@@ -183,8 +158,6 @@ static func cartao(ci: CanvasItem, lugar: int, nome: String, pontos: String, com
 	texto(ci, Fita.vt(), 40, Vector2(r.position.x, r.end.y - 50), "×%d" % combo, Color(Fita.ETIQUETA, 0.8), HORIZONTAL_ALIGNMENT_RIGHT, r.size.x - 18)
 
 
-## O julgamento do toque, preso em cima do boneco, na cor dele (some em meio
-## segundo): tinta grossa com o desregistro da impressão por baixo.
 static func julgamento(ci: CanvasItem, centro: Vector2, palavra: String, cor: Color, tam := 46, inclina := -0.06) -> void:
 	var f := Fita.bungee()
 	var w := largura_do(f, tam, palavra)
@@ -194,7 +167,6 @@ static func julgamento(ci: CanvasItem, centro: Vector2, palavra: String, cor: Co
 	ci.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
 
-## O chip de "Pronto" de um lugar.
 static func chip(ci: CanvasItem, r: Rect2, lugar: int, pronto: bool) -> void:
 	var cor: Color = Fita.JOGADOR[lugar]
 	if pronto:

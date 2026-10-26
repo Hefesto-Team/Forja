@@ -1,12 +1,4 @@
 extends SceneTree
-## As telas contra as da versão anterior: para cada foto com o mesmo nome nas
-## duas pastas, a diferença média por pixel (0 a 100%) e uma prancha — antes,
-## depois e a diferença realçada em rosa. Grava diferencas.md com a tabela.
-##
-##   godot --headless -s scripts/comparar_telas.gd -- <antes> <depois> <saída> [limite %]
-##
-## Com o limite, sai com 1 se alguma tela mudou mais que ele (sem limite, só
-## relata: o 3D por software varia um pouco de máquina para máquina).
 
 
 func _init() -> void:

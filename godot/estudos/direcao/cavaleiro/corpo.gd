@@ -1,18 +1,8 @@
 extends RefCounted
-## O corpo do cavaleiro em três peças (04, o corte): a cabeça de um
-## personagem, o superior de outro, o inferior de um terceiro, no mesmo
-## esqueleto de 7 ossos. O esqueleto e as poses de descanso são os mesmos nos
-## 12 (e no orc), então qualquer cabeça encaixa em qualquer tronco.
-##
-## Serve à montagem (Montar) e ao cavaleiro inteiro do Mundo, que é o mesmo
-## personagem nas três peças: assim todo cavaleiro do estudo tem cada peça na
-## faixa dela e o acento à parte.
 
 const Cortar := preload("res://estudos/direcao/cavaleiro/cortar.gd")
 
 
-## Tira a head-mesh e a body-mesh do modelo e põe as três peças no lugar.
-## `pecas` = [cabeça, superior, inferior] pelo personagem ("male-c").
 static func trocar(m: Node3D, pecas: Array) -> Skeleton3D:
 	var esq: Skeleton3D = m.find_child("Skeleton3D", true, false)
 	var molde: MeshInstance3D = m.find_child("body-mesh", true, false)

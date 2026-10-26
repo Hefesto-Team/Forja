@@ -1,20 +1,4 @@
 #!/usr/bin/env bash
-# A prova das ferramentas: as ferramentas que têm prova própria (--prova) e o baixador dos modelos de exportação,
-# que quebravam em silêncio e só se descobria no dia de gerar a trilha ou exportar.
-#
-#   kenney             scripts/kenney.py --prova (sem o pacote, confere só as partes puras)
-#   mapa_de_batidas    scripts/mapa_de_batidas.py --prova
-#   trilha_fichas      scripts/trilha_fichas.py --prova
-#   gerar_trilha       scripts/gerar_trilha.py --prova (o fluxo com o motor de mentira, sem rede e sem placa)
-#   descrever_trilha   scripts/descrever_trilha.py --prova (sem rede e sem placa)
-#   baixador           scripts/modelos_de_exportacao.py com um pacote feito na hora: a soma certa passa, a trocada
-#                      sai diferente de 0 e não deixa arquivo
-#
-# Fica fora: scripts/bancada_tui.py --prova, que cai em «No module named 'textual'» antes de chegar à prova fora
-# da oficina (o textual só existe lá). O scripts/conferir_ost.py já roda pela tests/prova_do_jogo.sh.
-#
-# Não precisa de Godot, e roda em segundos. Sai 0 com tudo verde e 1 quando qualquer uma falha.
-# Uso: bash tests/prova_das_ferramentas.sh [nome ...]   (sem nome, todas; com nomes, só elas, para triar)
 set -u
 RAIZ="$(cd "$(dirname "$0")/.." && pwd)"
 TMP="$(mktemp -d "${TMPDIR:-/tmp}/forja-prova-das-ferramentas-XXXXXX")"
@@ -38,7 +22,6 @@ pedida() {
   return 1
 }
 
-## espera <rc esperado> <o que> <comando...>
 espera() {
   local quer="$1" oque="$2"; shift 2
   CASOS=$((CASOS + 1))
@@ -53,7 +36,6 @@ espera() {
   fi
 }
 
-## confere <o que> <comando...>: passa quando o comando sai 0
 confere() {
   local oque="$1"; shift
   CASOS=$((CASOS + 1))
@@ -65,13 +47,11 @@ confere() {
   fi
 }
 
-## a prova própria de cada ferramenta
 for f in kenney mapa_de_batidas trilha_fichas gerar_trilha descrever_trilha; do
   pedida "$f" || continue
   espera 0 "scripts/$f.py --prova" python3 "scripts/$f.py" --prova
 done
 
-## o baixador dos modelos: um pacote (um zip, como o .tpz) feito na hora, servido por file://
 if pedida baixador; then
   python3 - "$TMP/pacote.tpz" > "$TMP/somas.txt" <<'FIM'
 import hashlib, sys, zipfile

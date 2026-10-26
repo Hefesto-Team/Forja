@@ -1,9 +1,4 @@
 extends Node3D
-## Quadro 16 — A bigorna própria (PRODUCAO, item 8): a malha por código
-## (bigorna.gd), em quatro vistas, e ao lado a workbench-anvil do Survival
-## Kit nas mesmas quatro. De lado, a silhueta mostra o chifre separado do
-## corpo por um vão; na câmera do jogo (35 mm, plongée de 50°), o chifre se
-## vê sem procurar.
 
 const Fita := preload("res://estudos/direcao/fita.gd")
 const Hud := preload("res://estudos/direcao/hud.gd")
@@ -82,8 +77,6 @@ func _cena(vp: SubViewport, propria: bool, vista: int) -> void:
 			cam.position = Vector3(0, 6, 0.001)
 			cam.look_at(Vector3.ZERO, Vector3.FORWARD)
 		3:
-			# o chão da arena, um cavaleiro ao lado para a escala, e a câmera
-			# do jogo: 35 mm, plongée de 50°, de cima e de frente como na Centelha
 			for i in range(-2, 3):
 				for j in range(-2, 2):
 					Mundo.peca(raiz, "mini-dungeon/floor", Vector3(i * 2.0, 0, j * 2.0))
@@ -101,8 +94,6 @@ func _cena(vp: SubViewport, propria: bool, vista: int) -> void:
 			Mundo.pos(vp, 5, {"grao": 0.02})
 
 
-## O contorno de dono numa MeshInstance avulsa (o Mundo.contornar anda pelos
-## filhos).
 func _contorno_da_propria(mi: MeshInstance3D) -> void:
 	var m: Material = Bigorna.material().duplicate()
 	m.next_pass = Fita.contorno(Fita.JOGADOR[0], 0.006, 1.6)

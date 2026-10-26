@@ -9,7 +9,7 @@ Os atalhos de abertura nasceram para a prova e para quem testa à mão, e caem n
 errada. Um `--sala=S04_J61` com o número trocado deixa o jogo no título, com todo mundo já dentro, sem uma linha no
 log; um `--partida=4` vira o percurso de nove salas. As fichas dos 45 minigames mandam provar com
 `--sala=<slot>` (por exemplo `--sala=S04_J16`, na pesquisa da L1): o primeiro erro de digitação vira meia hora
-procurando por que a sala não abriu. O `--robo=` já faz o certo (`godot/scripts/forja.gd:198`, o `push_warning` com
+procurando por que a sala não abriu. O `--robo=` já faz o certo (`godot/scripts/forja.gd:152`, o `push_warning` com
 os temperamentos que valem); os outros não.
 
 ## Ler antes
@@ -20,15 +20,15 @@ os temperamentos que valem); os outros não.
 
 ## O estado de hoje (medido em 09/10/2026)
 
-- `godot/scripts/main.gd:152-196`, o `_abrir_pelos_args`:
+- `godot/scripts/main.gd:136-179`, o `_abrir_pelos_args`:
   - `:156-157` aceita `--tela=` (lobby, salão, diagnóstico, livro). Nenhuma prova, script ou CI usa
     (`git grep -n -e '--tela=' -- tests scripts .github` não acha nada).
   - `:161-162` troca o apelido velho `giro` por `viga`. Ninguém pede `giro`.
   - `:182` só entra na sala se `Catalogo.existe(sala_pedida)`; senão segue para o `match tela`, que não casa, e o
     jogo fica no título com o `_todos_entram()` já feito (`:165-168`).
-  - `:158-159` lê `--partida=N` sem conferir; `godot/scripts/partida.gd:47-50` devolve o percurso inteiro quando
+  - `:158-159` lê `--partida=N` sem conferir; `godot/scripts/partida.gd:26-29` devolve o percurso inteiro quando
     `N` não está no `NA_ORDEM`.
-- `godot/scripts/main.gd:334-335`, o `_entrar_na_sala`, volta calado quando o id não está no catálogo:
+- `godot/scripts/main.gd:307-308`, o `_entrar_na_sala`, volta calado quando o id não está no catálogo:
 
   ```gdscript
   if pronta == null and not Catalogo.existe(id):
@@ -36,7 +36,7 @@ os temperamentos que valem); os outros não.
   ```
 
   Na Prova de Fogo, o `fogo` já subiu (`:385-387`): a sala some e a prova fica parada até o tempo dela acabar.
-- `godot/scripts/main.gd:814-815`, `--tela=diagnostico` sem `--bancada`: o `_abrir_overlay` volta calado (o
+- `godot/scripts/main.gd:745-746`, `--tela=diagnostico` sem `--bancada`: o `_abrir_overlay` volta calado (o
   diagnóstico é da bancada).
 
 ## O alvo
@@ -66,7 +66,7 @@ saem. O `_entrar_na_sala` com id desconhecido faz `push_error` em vez de voltar 
 ## Armadilhas
 
 - O `--sala=` aceita três formas (o apelido da seção, o slot `S01_J01` e o id de hoje): a conferência é a do
-  `Catalogo.existe`, que já resolve as três (`godot/scripts/minigames/catalogo.gd:50-52`). Não escreva outra lista.
+  `Catalogo.existe`, que já resolve as três (`godot/scripts/minigames/catalogo.gd:40-42`). Não escreva outra lista.
 - O `--experimento=` e o `--prova-de-fogo` não mudam aqui.
 - A recusa tem de sair antes do `_todos_entram()`: senão o relatório da sessão registra quatro entradas de uma
   sessão que não aconteceu.

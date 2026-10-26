@@ -1,9 +1,4 @@
 extends Node3D
-## Quadro 13 — A luz das cinco tintas (01; PRODUCAO, item 4): a mesma arena
-## (a Centelha) e a mesma câmera (35 mm, plongée de 50°) nas cinco tintas. A
-## tinta pinta a névoa, o preenchimento e esquenta a chave; não pinta o
-## cavaleiro. A coluna da direita é o lado B: a chave a ×0,85 e a névoa a
-## ×1,3, e a etiqueta com a tarja dupla.
 
 const Fita := preload("res://estudos/direcao/fita.gd")
 const Hud := preload("res://estudos/direcao/hud.gd")
@@ -14,7 +9,6 @@ const Cena := preload("res://estudos/direcao/cena_centelha.gd")
 var espera := 12
 var arquivo := "13_luz"
 var folha: SubViewport
-## A tabela de luz do 01: a tinta, a névoa, o preenchimento e a chave.
 const TINTAS := [
 	{"nome": "vermelhão", "nevoa": Color("#210502"), "preench": Color("#602016"), "chave": Color("#ffc99c"), "a": "S1 A Centelha", "b": "S9 A Prova"},
 	{"nome": "cobalto", "nevoa": Color("#050d26"), "preench": Color("#1f346a"), "chave": Color("#e5d3c6"), "a": "S2 A Viga", "b": "S6 O Canto"},
@@ -55,7 +49,6 @@ func _celula(vp: SubViewport, linha: int, lado_b: bool) -> void:
 		env.fog_light_color = t.nevoa
 		env.fog_density = NEVOA_A * (1.3 if lado_b else 1.0)
 		env.ambient_light_color = t.preench
-	# a chave: os focos de lâmpada da cena viram a chave da tinta
 	for l in raiz.find_children("*", "SpotLight3D", true, false):
 		var s: SpotLight3D = l
 		if s.light_color.is_equal_approx(Fita.TUNGSTENIO):
@@ -91,8 +84,7 @@ func _etiquetas(ci: CanvasItem) -> void:
 				ci.draw_rect(Rect2(r.position + Vector2(0, 19), Vector2(r.size.x, 7)), tinta)
 			Hud.texto(ci, Fita.marcador(), 30, r.position + Vector2(14, 28), String(t.b if lado == 1 else t.a), Fita.TINTA)
 			Hud.texto(ci, Fita.vt(), 24, r.position + Vector2(14, 64), "LADO %s  ·  %s" % ["B" if lado == 1 else "A", t.nome.to_upper()], Fita.TINTA_SUAVE)
-			ci.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)  # a etiqueta torta não entorta o resto
-			# os valores, embaixo
+			ci.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 			var v := "chave %s ×%s · névoa %s ×%s · preench. %s" % [t.chave.to_html(false), "0,85" if lado == 1 else "1", t.nevoa.to_html(false), "1,3" if lado == 1 else "1", t.preench.to_html(false)]
 			ci.draw_rect(Rect2(o + Vector2(0, CEL.y - 40), Vector2(CEL.x, 40)), Color(Fita.FITA, 0.8))
 			Hud.texto(ci, Fita.vt(), 24, o + Vector2(16, CEL.y - 36), v, Fita.ETIQUETA)

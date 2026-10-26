@@ -1,29 +1,16 @@
 class_name HudJogo
 extends Control
-## A HUD do salão e das salas, mínima: o que decide o próximo segundo. Em cima,
-## os lugares (P1..P4, sempre na mesma ordem) com a conexão e a bateria; perto
-## de um portão, a dica presa à cabeça de quem chegou; nas salas, o nome e a ação
-## numa linha. O salão conta a noite (G06): o contador n/9, os chips com os nomes e
-## a dica presa. Os avisos do módulo aparecem no alto e somem sozinhos.
 
-## As seções acesas de 9 (os 8 portões e A Prova); -1 fora do salão (não desenha o contador).
 var vencidas := -1
-## A dica presa à cabeça de quem está perto de um portão ou da bigorna:
-## {lugar, cabeca (a posição no mundo), linhas: [[glifo, frase]], fechado}; vazio sem ninguém perto.
 var dica_presa := {}
-## O mundo para onde a dica olha: a dica segue a cabeça do cavaleiro (o main põe).
 var camera: Camera3D
-## O nome do cavaleiro de cada lugar, para o chip do salão (o main põe).
 var nomes := ["", "", "", ""]
-## A sala em curso: {nome, acao} ou vazio.
 var sala := {}
-## Uma linha por lugar, dita pela sala (vida, pontos, o que falta).
 var status_da_sala := ["", "", "", ""]
-## false numa sala que usa o Create (a runa d'A Centelha): o rodapé não o oferece
 var create_livre := true
 
-var _avisos: Array = []  # [texto, restante]
-var _rets: Array[Rect2] = []   ## o que o salão desenhou neste quadro (a prova confere que cabe na tela)
+var _avisos: Array = []
+var _rets: Array[Rect2] = []
 
 const LARG_CHIP := 340.0
 
@@ -52,12 +39,10 @@ func _process(dt: float) -> void:
 func _draw() -> void:
 	var w := size.x
 	var h := size.y
-	# a tarja de cima, leve
 	for i in 20:
 		draw_rect(Rect2(0, i * 7, w, 7), Color(Tema.FITA, 0.55 * (1.0 - i / 20.0)))
 
 	if sala.is_empty():
-		# o cabeçalho na placa: o céu do salão é claro e «Tech Demo» sozinho passa raso do contraste
 		var lado := 60.0
 		var tam_c := maxi(int(lado * 0.36), Tema.LETRA_MINIMA)
 		var larg_c := lado + 18.0 + maxf(Desenho.largura("Hefesto", Tema.bungee(), tam_c), Desenho.largura("Tech Demo", Tema.archivo(700), tam_c))
@@ -65,7 +50,6 @@ func _draw() -> void:
 			Color(Tema.CASCO, 0.9), Tema.GRAFITE, 2, 12)
 		Desenho.cabecalho(self, Vector2(Tema.MARGEM_X, Tema.MARGEM_Y), lado)
 	else:
-		# o nome e a ação num quadro: a arena é clara e o texto não pode sumir nela
 		var qd := quadro_da_sala(str(sala.get("nome", "")), str(sala.get("acao", "")), w)
 		var q: Rect2 = qd["rect"]
 		Desenho.moldura(self, q, Color(Tema.CASCO, 0.94), Tema.GRAFITE, 2, Tema.RAIO_QUADRO)
@@ -79,12 +63,9 @@ func _draw() -> void:
 	if vencidas >= 0:
 		_salao(w, h)
 
-	# as dicas de baixo
 	var pares := [["create", "Diagnóstico"], ["options", "Pausa"]] if create_livre and Forja.bancada else [["options", "Pausa"]]
 	Desenho.dicas_a_direita(self, Vector2(w - Tema.MARGEM_X, h - Tema.MARGEM_Y), pares, Tema.T_SELO, not sala.is_empty())
 
-	# os avisos
-	# o texto que some sozinho é grande e curto: 46 px, até duas linhas
 	var y := 190.0
 	for a in _avisos:
 		var alfa := clampf(a[1] / 0.4, 0.0, 1.0)
@@ -100,9 +81,7 @@ func _draw() -> void:
 		y += r2.size.y + 12.0
 
 
-## O que o salão põe na tela: o contador, «Salas vencidas», os chips e a dica presa.
 func _salao(w: float, h: float) -> void:
-	# o contador fica logo abaixo dos lugares (a faixa de cima é deles)
 	var topo := 40.0 + 92.0 + 16.0
 	var c := Desenho.contador(self, Vector2(w - Tema.MARGEM_X - 121.0, topo), "%d/9" % vencidas, 64)
 	_rets.append(c)
@@ -111,7 +90,6 @@ func _salao(w: float, h: float) -> void:
 	var lw := Desenho.largura(rotulo, f, 32)
 	Desenho.texto(self, Vector2(c.position.x - 20.0 - lw, c.position.y + 48.0), rotulo, f, 32, Tema.ETIQUETA)
 	_rets.append(Rect2(Vector2(c.position.x - 20.0 - lw, c.position.y + 16.0), Vector2(lw, 40)))
-	# os chips, uma fileira de quatro, só dos lugares ocupados, acima das dicas de baixo
 	var y := h - Tema.MARGEM_Y - 64.0 - 70.0
 	var x0 := (w - (4 * 400.0 + 3 * 16.0)) * 0.5
 	for l in 4:
@@ -125,7 +103,6 @@ func _salao(w: float, h: float) -> void:
 	_dica_presa(w, h)
 
 
-## A placa presa à cabeça de quem está perto de um portão ou da bigorna: o verbo, na cor do dono.
 func _dica_presa(w: float, h: float) -> void:
 	if dica_presa.is_empty() or camera == null:
 		return
@@ -152,8 +129,7 @@ func _dica_presa(w: float, h: float) -> void:
 	draw_rect(Rect2(r.position + Vector2(4, 4), r.size), Tema.SOMBRA)
 	draw_rect(r, Tema.ETIQUETA)
 	draw_rect(Rect2(r.position + Vector2(0, 14), Vector2(r.size.x, 12)), tarja)
-	# a ponta, do lado do cavaleiro
-	var py := r.position.y + 40.0   # a ponta vai de 40 a 72 px do topo
+	var py := r.position.y + 40.0
 	if lado_direito:
 		draw_colored_polygon(PackedVector2Array([Vector2(r.position.x, py), Vector2(r.position.x - 16, py + 16), Vector2(r.position.x, py + 32)]), Tema.ETIQUETA)
 	else:
@@ -163,15 +139,10 @@ func _dica_presa(w: float, h: float) -> void:
 	_rets.append(r)
 
 
-## Os retângulos do salão neste quadro (o contador, o rótulo, os chips, a dica presa).
 func retangulos() -> Array[Rect2]:
 	return _rets
 
 
-## O quadro do nome e da ação da sala: do recuo da margem até antes do primeiro
-## chip de lugar, nunca por cima dele. A ação cabe em até três linhas (com o texto
-## grande, a da Centelha não cabe em duas). Devolve {rect, nome, acao}; o painel
-## da sala desce as faixas dele para baixo do `rect`.
 const LINHAS_DA_ACAO := 3
 
 
@@ -188,13 +159,10 @@ static func quadro_da_sala(nome: String, acao: String, w: float) -> Dictionary:
 	return {"rect": Rect2(Vector2(x, 40), Vector2(larg, 118.0 + ceilf(extra))), "nome": dito_nome, "acao": dita_acao}
 
 
-## A linha de status de um chip, cortada no chip: nunca passa para o chip do lado
-## (dois chips com «Brasa · vida 1 · 1 balas» e «Brasa · derrubado» se tocavam).
 static func linha_do_status(linha: String) -> String:
 	return Desenho.caber(linha, Tema.archivo(500), Tema.T_SELO, LARG_CHIP - 40.0, 1)
 
 
-## Os lugares, da direita para a esquerda a partir de `fim` (P4 mais à direita).
 func _lugares(fim: Vector2) -> void:
 	var larg := LARG_CHIP
 	var alt := 92.0
@@ -222,8 +190,6 @@ func _lugares(fim: Vector2) -> void:
 			Desenho.texto(self, Vector2(r.end.x - 20 - Desenho.largura(s, fm, Tema.T_SELO), r.position.y + 40), s, fm, Tema.T_SELO, Tema.ETIQUETA)
 		var linha: String = status_da_sala[l]
 		if linha != "":
-			# a linha encolhe até caber (cortada, "4 bala" viraria "4 bal")
-			# a letra não encolhe (nada abaixo de 30 px): a linha que não cabe fecha com «…»
 			Desenho.texto(self, r.position + Vector2(20, 76), linha_do_status(linha), Tema.archivo(500), Tema.T_SELO,
 				Tema.ETIQUETA_SOMBRA, HORIZONTAL_ALIGNMENT_LEFT, larg - 40)
 		else:

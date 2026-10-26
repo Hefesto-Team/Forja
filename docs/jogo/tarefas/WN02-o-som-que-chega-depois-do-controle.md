@@ -19,7 +19,7 @@ de controles ou outra sala de som. Nas seções N e P (o canto, a voz) isso é u
 
 ## O estado de hoje
 
-A volta refaz a placa pelo sinal dos controles, `godot/scripts/main.gd:242-253`:
+A volta refaz a placa pelo sinal dos controles, `godot/scripts/main.gd:221-232`:
 
 ```gdscript
 func _ao_mudar_os_controles() -> void:
@@ -31,8 +31,8 @@ func _ao_mudar_os_controles() -> void:
 		_abrir_o_som(true)
 ```
 
-e `_abrir_o_som` chama `Forja.som_preparar(papel)` (`godot/scripts/main.gd:272`). No módulo, `somc_preparar`
-(`nativo/som/som_controle.c:299-307`) encerra tudo, lê a lista **uma vez** e escolhe:
+e `_abrir_o_som` chama `Forja.som_preparar(papel)` (`godot/scripts/main.gd:249`). No módulo, `somc_preparar`
+(`nativo/som/som_controle.c:280-288`) encerra tudo, lê a lista **uma vez** e escolhe:
 
 ```c
 void somc_preparar(Forja *a) {
@@ -43,9 +43,9 @@ void somc_preparar(Forja *a) {
   escolher(a);
 ```
 
-`listar` (`nativo/som/som_controle.c:141-172`) pede `SDL_GetAudioPlaybackDevices` e `SDL_GetAudioRecordingDevices`
+`listar` (`nativo/som/som_controle.c:129-160`) pede `SDL_GetAudioPlaybackDevices` e `SDL_GetAudioRecordingDevices`
 naquele instante. Nenhum código do módulo escuta a chegada de um dispositivo de som: o laço de eventos,
-`nativo/nucleo/forja.c:219-221`, só repassa a `pads_evento`, que só trata os eventos de controle:
+`nativo/nucleo/forja.c:208-210`, só repassa a `pads_evento`, que só trata os eventos de controle:
 
 ```c
   while (SDL_PollEvent(&e))
@@ -53,12 +53,12 @@ naquele instante. Nenhum código do módulo escuta a chegada de um dispositivo d
 ```
 
 (`grep -rn 'AUDIO_DEVICE_ADDED\|AUDIO_DEVICE_REMOVED' nativo` não acha nada.) Se o nó do controle ainda não está na
-lista, a primeira passada de `escolher` (`nativo/som/som_controle.c:218-269`, pelo aparelho) não acha o `usb_pai`
+lista, a primeira passada de `escolher` (`nativo/som/som_controle.c:205-252`, pelo aparelho) não acha o `usb_pai`
 dele, as outras não têm nó sobrando, e o lugar fica com `no[PAPEL_ALTO_FALANTE] = -1`. Depois disso, a placa só se
-refaz numa sala de som (`godot/scripts/salas/sala_jogo.gd:114` e `:128`) ou noutra volta.
+refaz numa sala de som (`godot/scripts/salas/sala_jogo.gd:65` e `:128`) ou noutra volta.
 
-A prova que confere a volta (`godot/testes/prova_do_jogo.gd:495`, «kit: o P3 voltou com o alto-falante») passa
-porque o controle simulado ganha na hora a placa virtual de `abrir_virtual` (`nativo/som/som_controle.c:189-197`):
+A prova que confere a volta (`godot/testes/prova_do_jogo.gd:456`, «kit: o P3 voltou com o alto-falante») passa
+porque o controle simulado ganha na hora a placa virtual de `abrir_virtual` (`nativo/som/som_controle.c:177-184`):
 ela nunca exercita a ordem dos dois caminhos.
 
 **O que não foi medido:** a ordem real na máquina dela, com o controle na mão. É leitura de código; o passo 1 mede.
@@ -89,13 +89,13 @@ decisão (que lugar fica com o nó novo) é uma função pura do núcleo, provad
 ## Armadilhas
 
 - **Relistar muda os índices.** `g_sc.nos` é reconstruída a cada `listar`, e as saídas abertas guardam o índice do
-  nó (`SaidaCtl.no`, comparado em `abrir_no`, `nativo/som/som_controle.c:95-99`). Depois de relistar, remapear as
+  nó (`SaidaCtl.no`, comparado em `abrir_no`, `nativo/som/som_controle.c:85-89`). Depois de relistar, remapear as
   saídas pelo `SDL_AudioDeviceID` (ou pelo nome), senão um lugar passa a tocar no controle de outro.
 - **Não refazer a placa inteira.** Chamar `somc_preparar` no evento corta o pio e o som de todos (a armadilha medida
   da H07). A cura liga só o lugar que falta.
 - **`listar` no Linux roda o `pactl`** (via `somc_plataforma_nos`) para achar o aparelho de cada nó: é um processo
   por chamada. Uma vez por quadro com evento, no máximo.
-- **O nó de quem não está na mesa** não vai para ninguém (`nativo/som/som_controle.c:236-244`): a reescolha mantém
+- **O nó de quem não está na mesa** não vai para ninguém (`nativo/som/som_controle.c:221-229`): a reescolha mantém
   essa regra.
 - **Os arquivos da WS01 e da WS03.** As duas também mexem em `nativo/som/som_controle.c`: não voar junto com elas,
   ou voar no mesmo conjunto.

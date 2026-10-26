@@ -1,7 +1,4 @@
 extends Node3D
-## Quadro 09 — A Kenney na fita: o colormap de cada pacote como veio e como
-## a regra da fita o recolore (recolorir.gd, pelo papel do pacote), e o mesmo
-## objeto antes e depois, na mesma luz.
 
 const Fita := preload("res://estudos/direcao/fita.gd")
 const Hud := preload("res://estudos/direcao/hud.gd")
@@ -71,7 +68,6 @@ func _imagem(caminho: String) -> Image:
 	return img
 
 
-## O retângulo pintado do colormap (a Kenney deixa o resto preto).
 func _usado(img: Image) -> Rect2:
 	var r := Rect2i()
 	var achou := false

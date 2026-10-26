@@ -1,36 +1,16 @@
 class_name SalaMolde
 extends SalaJogo
-## O Molde — desenhar e moldar no touchpad.
-##
-## Os jogos usam o touchpad do DualSense de três jeitos, e a sala pede os três,
-## em sequência, para cada jogador. O molde na bancada é o touchpad dele, na
-## mesma proporção (duas vezes mais largo que alto), virado para a câmera: o
-## dedo aparece no molde onde o jogo o vê.
-##
-##   1. traçar: uma letra grega aparece no molde, ponto por ponto; o dedo passa
-##      por eles na ordem (o gesto de desenhar um símbolo);
-##   2. abrir: dois dedos no touchpad, afastar até o molde abrir e juntar até
-##      ele fechar (o gesto de pinça do mapa);
-##   3. carimbar: o metal esquenta e esfria; o CLIQUE do touchpad carimba
-##      quando ele brilha (o touchpad como botão).
-##
-## O módulo mede quantos dedos chegaram juntos, que pedaço do touchpad os
-## toques cobriram (um recorte ou uma escala errada no caminho aparece aqui),
-## a abertura entre os dedos e se o clique chegou. Sem touchpad (um pad Xbox,
-## por exemplo), a sala não tem o que pedir: o veredito é NÃO MEDIDO, com o
-## porquê.
 
 const F := preload("res://scripts/forja.gd")
 const RAIAS := [-6.3, -2.1, 2.1, 6.3]
-const RAIO_PONTO := 0.07  ## em larguras do touchpad
+const RAIO_PONTO := 0.07
 const CARIMBOS := 3
-const ASPECTO := 2.0  ## o touchpad é cerca de duas vezes mais largo que alto
-const LARGURA := 2.4  ## o molde no mundo, em metros (2:1, como o touchpad)
+const ASPECTO := 2.0
+const LARGURA := 2.4
 const ALTURA := 1.2
-const INCLINACAO := 32.0  ## graus: a borda de longe sobe, para a câmera ver o molde de frente
+const INCLINACAO := 32.0
 const N_RASTRO := 14
 
-## As letras: cada uma leva o dedo aos quatro cantos do touchpad.
 const LETRAS := [
 	{"nome": "zeta", "dica": "Trace o zeta, em ordem",
 		"x": [0.10, 0.90, 0.10, 0.90], "y": [0.14, 0.14, 0.86, 0.86]},
@@ -46,8 +26,8 @@ const LETRAS := [
 
 enum { TRACAR, ABRIR, CARIMBAR, PRONTO }
 
-var j := {}  ## lugar -> o estado do jogador
-var n := {}  ## lugar -> os nós da bancada
+var j := {}
+var n := {}
 
 
 func _init() -> void:
@@ -66,7 +46,6 @@ func _init() -> void:
 
 func montar() -> void:
 	Kit.arena(self, 5, 3)
-	# a oficina: poeira dourada no ar, e o neon roxo
 	atmosfera(Color("#f1c86a"), Tema.VIOLETA, false, 50)
 	luzes([Vector3(-9, 2.5, -4), Vector3(9, 2.5, -4), Vector3(0, 3.0, 4)])
 	for p in jogadores:
@@ -83,13 +62,10 @@ func _novo_jogador(l: int) -> Dictionary:
 		"robo_x": 0.5, "robo_y": 0.5, "robo_s": 0.0, "robo_espera": -1.0, "robo_ponto": 0}
 
 
-## Um ponto do touchpad (x e y de 0 a 1, y para baixo) no molde, a `altura`
-## da face.
 static func _no_molde(x: float, y: float, altura := 0.12) -> Vector3:
 	return Vector3((x - 0.5) * LARGURA, altura, (y - 0.5) * ALTURA)
 
 
-## A distância entre dois toques, em larguras do touchpad (como o núcleo mede).
 static func _distancia(a: Vector2, b: Vector2) -> float:
 	return Vector2((b.x - a.x) * ASPECTO, b.y - a.y).length() / ASPECTO
 
@@ -101,8 +77,6 @@ func _calor(e: Dictionary) -> float:
 func _no_ponto(e: Dictionary) -> bool:
 	return _calor(e) > 0.8
 
-
-# ------------------------------------------------------------------ a bancada --
 
 func _montar_bancada(l: int, p: ForjaPlayer) -> Dictionary:
 	var x: float = RAIAS[l]
@@ -118,11 +92,9 @@ func _montar_bancada(l: int, p: ForjaPlayer) -> Dictionary:
 	fogo.light_energy = 0.8
 	fogo.omni_range = 4.5
 	add_child(fogo)
-	# o ferreiro ao lado da bancada, de perfil para a câmera, com o martelo
 	p.position = Vector3(x - 1.45, 0.05, 0.35)
 	p.rotation.y = PI * 0.5
 	martelo_na_mao(p)
-	# o molde: duas metades de pedra com o metal no fundo
 	var placa := Node3D.new()
 	placa.position = Vector3(cx, 1.12, 0.3)
 	placa.rotation.x = deg_to_rad(INCLINACAO)
@@ -136,7 +108,6 @@ func _montar_bancada(l: int, p: ForjaPlayer) -> Dictionary:
 			Kit.material(Tema.OXIDO_BRILHO, 0.0, 0.85))
 		Kit.caixa(metade, Vector3(LARGURA * 0.5 - 0.02, 0.03, ALTURA), Vector3(lado * LARGURA * 0.25, 0.085, 0), metal)
 		metades.append(metade)
-	# a letra: o sulco entre os pontos e os pontos numerados
 	var sulco := Kit.material(Tema.CASCO, 0.0, 0.9)
 	var sulcos: Array = []
 	var n_pts: int = letra.x.size()
@@ -171,7 +142,6 @@ func _montar_bancada(l: int, p: ForjaPlayer) -> Dictionary:
 	alvo.mesh = tor
 	alvo.material_override = Kit.chapado(Tema.TUNGSTENIO)
 	placa.add_child(alvo)
-	# os dedos, onde o jogo os vê, e o rastro do que desenha
 	var dedos: Array = []
 	for d in 2:
 		var cd := cor if d == 0 else cor.lerp(Tema.ETIQUETA, 0.45)
@@ -185,7 +155,6 @@ func _montar_bancada(l: int, p: ForjaPlayer) -> Dictionary:
 		var r := Kit.esfera(placa, 0.035, Vector3.ZERO, Kit.chapado(Color(Tema.TUNGSTENIO, 0.0)))
 		r.visible = false
 		rastro.append(r)
-	# a régua da abertura (fechar abaixo de 15%, abrir além de 45%), na borda de perto
 	var regua := Node3D.new()
 	regua.position = Vector3(0, 0.1, ALTURA * 0.5 + 0.3)
 	placa.add_child(regua)
@@ -194,7 +163,6 @@ func _montar_bancada(l: int, p: ForjaPlayer) -> Dictionary:
 	for marca in [0.15, 0.45]:
 		Kit.caixa(regua, Vector3(0.03, 0.03, 0.2), Vector3(-1.1 + 2.2 * marca / 0.7, 0.01, 0), Kit.chapado(Tema.ETIQUETA))
 	regua.visible = false
-	# o termômetro do metal, à direita, com a faixa quente em cima
 	var termo := Node3D.new()
 	termo.position = Vector3(LARGURA * 0.5 + 0.36, 0.1, 0)
 	placa.add_child(termo)
@@ -202,7 +170,6 @@ func _montar_bancada(l: int, p: ForjaPlayer) -> Dictionary:
 	Kit.caixa(termo, Vector3(0.16, 0.022, ALTURA * 0.2), Vector3(0, 0.002, -ALTURA * 0.4), Kit.chapado(Color(Tema.TUNGSTENIO, 0.35)))
 	var nivel := Kit.caixa(termo, Vector3(0.09, 0.03, ALTURA), Vector3(0, 0.006, 0), Kit.chapado(Tema.TUNGSTENIO))
 	termo.visible = false
-	# as três lâmpadas dos carimbos, na borda de longe
 	var lampadas: Array = []
 	for k in CARIMBOS:
 		var lp := Kit.esfera(placa, 0.07, Vector3(-0.3 + k * 0.3, 0.12, -ALTURA * 0.5 - 0.06), Kit.material(Tema.OXIDO))
@@ -219,8 +186,6 @@ func _montar_bancada(l: int, p: ForjaPlayer) -> Dictionary:
 		"placa_y": placa.position.y}
 
 
-# ------------------------------------------------------------------ o jogo --
-
 func jogar(dt: float) -> void:
 	for p in jogadores:
 		var l: int = p.lugar
@@ -228,7 +193,6 @@ func jogar(dt: float) -> void:
 		if acabou[l] or not Forja.lugar(l).get("conectado", false):
 			continue
 		if not e.tem_toque:
-			# sem touchpad não há o que pedir: o veredito diz o porquê
 			e.sem_touchpad = true
 			acabou[l] = true
 			continue
@@ -242,7 +206,6 @@ func _jogar(l: int, p: ForjaPlayer, e: Dictionary, dt: float) -> void:
 	e.pancada = move_toward(e.pancada, 0.0, dt * 5.0)
 	var d: Array = [Forja.dedo(l, 0), Forja.dedo(l, 1)]
 	var baixo: Array = [d[0].z > 0.5, d[1].z > 0.5]
-	# o rastro do dedo que desenha
 	var rastro: Array = e.rastro
 	var qual := 0 if baixo[0] else (1 if baixo[1] else -1)
 	if qual >= 0 and e.passo == TRACAR:
@@ -317,8 +280,6 @@ func _novo_passo(l: int, p: ForjaPlayer, e: Dictionary, passo: int) -> void:
 	Som.tocar("confirma", onde, -4.0)
 
 
-# ------------------------------------------------------------------ o que se vê --
-
 func _process(dt: float) -> void:
 	super(dt)
 	for p in jogadores:
@@ -333,11 +294,9 @@ func _mostrar(l: int) -> void:
 	var n_pts: int = letra.x.size()
 	var placa: Node3D = nos.placa
 	placa.position.y = float(nos.placa_y) - 0.05 * float(e.pancada)
-	# as metades afastam quando os dedos abrem
 	var meio := minf(float(e.abertura), 0.6) * 0.55 if passo == ABRIR else 0.0
 	nos.metades[0].position.x = -meio
 	nos.metades[1].position.x = meio
-	# o metal: brasa apagada, e no carimbo esquenta e esfria
 	var quente := _calor(e) if passo == CARIMBAR else (1.0 if passo == PRONTO else 0.25)
 	var metal: StandardMaterial3D = nos.metal
 	var cor_metal := Color("#5a1a08").lerp(Color("#ff7a2a"), quente)
@@ -345,7 +304,6 @@ func _mostrar(l: int) -> void:
 		cor_metal = Color("#ff9a3a").lerp(Color("#ffd479"), 0.6)
 	metal.albedo_color = cor_metal.darkened(0.5)
 	Tema.emissivo(metal, (0.3 + 2.2 * quente) * 2.4 / 2.5, "forja")
-	# a letra: o sulco enche de ouro atrás do dedo; pronta, a peça é de ouro
 	for k in nos.sulcos.size():
 		var s: MeshInstance3D = nos.sulcos[k]
 		var cheio: bool = passo == PRONTO or (passo == TRACAR and k + 1 < int(e.ponto)) or passo in [ABRIR, CARIMBAR]
@@ -366,7 +324,6 @@ func _mostrar(l: int) -> void:
 	if alvo.visible:
 		alvo.position = _no_molde(letra.x[e.ponto], letra.y[e.ponto], 0.13)
 		alvo.scale = Vector3.ONE * (0.92 + 0.1 * sin(t * 6.0))
-	# os dedos
 	var d: Array = [Forja.dedo(l, 0), Forja.dedo(l, 1)]
 	for k in 2:
 		var esf: MeshInstance3D = nos.dedos[k]
@@ -389,7 +346,6 @@ func _mostrar(l: int) -> void:
 			r.position = _no_molde(rastro[k].x, rastro[k].y, 0.13)
 			var mr: StandardMaterial3D = r.material_override
 			mr.albedo_color = Color(Tema.TUNGSTENIO, 1.0 - float(k) / N_RASTRO)
-	# a régua da abertura, o termômetro, as lâmpadas
 	var regua: Node3D = nos.regua
 	regua.visible = passo == ABRIR
 	var enche: MeshInstance3D = nos.enche
@@ -426,8 +382,6 @@ func _ouro(forte: bool) -> StandardMaterial3D:
 	return _mat_ouro[forte]
 
 
-# ------------------------------------------------------------------ a HUD --
-
 func status(lugar: int) -> String:
 	if fase == "jogo" and j.has(lugar) and not acabou[lugar]:
 		var e: Dictionary = j[lugar]
@@ -462,10 +416,6 @@ func dica(lugar: int) -> Dictionary:
 				partes = ["Peça forjada!"]
 	return {"partes": partes, "pos": Vector3(RAIAS[lugar] + 0.45, 0.0, 2.3)}
 
-
-# ------------------------------------------------------------------ o robô --
-# Vê a letra, o molde e o calor: vai até o centro de cada ponto como gente que
-# traça inteiro, abre e fecha a pinça, e clica quando o metal brilha.
 
 func _robo(l: int, e: Dictionary, dt: float) -> void:
 	match int(e.passo):
@@ -506,6 +456,6 @@ func _robo(l: int, e: Dictionary, dt: float) -> void:
 				e.robo_espera -= dt
 				if e.robo_espera <= 0.0:
 					Forja.robo_apertar(l, F.TOUCHPAD, 0.08)
-					e.robo_espera = 10.0  # espera o metal esfriar e voltar
+					e.robo_espera = 10.0
 			elif not _no_ponto(e):
 				e.robo_espera = -1.0

@@ -35,7 +35,7 @@ que contam o estado errado.
   são da H11»).
 - **A bíblia conta um estado velho.** `docs/jogo/arte/03-som.md:343`: «Hoje tudo toca no Master: não existe
   `godot/default_bus_layout.tres`». O arquivo de fato não existe, mas o barramento da música existe desde a H07,
-  criado em código (`godot/scripts/musica.gd:265-276`):
+  criado em código (`godot/scripts/musica.gd:226-235`):
 
   ```gdscript
   func _criar_o_barramento() -> void:
@@ -48,32 +48,32 @@ que contam o estado errado.
   ```
 
   E a N1 atribui o barramento à H11 (`N1-o-canto.md:921`: «Sem o barramento "Musica" (H11), nada»).
-- **Os efeitos não têm barramento.** `godot/scripts/som.gd:60-71` cria 16 tocadores 3D e 4 tocadores 2D sem `bus`:
-  todos caem no Master. O jingle tem um tocador próprio, também no Master (`som.gd:209-211`).
+- **Os efeitos não têm barramento.** `godot/scripts/som.gd:42-53` cria 16 tocadores 3D e 4 tocadores 2D sem `bus`:
+  todos caem no Master. O jingle tem um tocador próprio, também no Master (`som.gd:179-179`).
 - **Os 77 sons estão fora do jogo.** `ls godot/estudos/direcao/som/*.wav` dá 77 (`amb_salao`, `ass_p1..4`, os
   `car_*`, os `fx_*`, `jin_apito`, `jin_entrada_tique`, `jin_entrada_vai`, `jin_virada`, os 16 `jul_*`, os 24
   `pio_p{n}_*`, `reacao_pop` e os `ui_*`); `godot/assets/sons/` tem só as gravações CC0 de hoje.
-- **O julgamento toca a nota velha.** `godot/scripts/minigames/minigame.gd:264-287` (`_reagir`): no erro,
+- **O julgamento toca a nota velha.** `godot/scripts/minigames/minigame.gd:207-229` (`_reagir`): no erro,
   `Forja.som_falante(l, "nota_quebrada:%d" % l, 0.7)` e `Som.tocar("falha", pos, -6.0)`; no acerto,
   `Som.tocar("nota", pos, …, TOM_DO_LUGAR[l])` e, no perfeito, `Forja.som_falante(l, "nota:%d" % l, 0.8)`. A bíblia
   troca isso pelos `jul_<julgamento>_p<n>` na TV e no alto-falante e pelo `fx_tropeco_*` na TV.
-- **O material toca no alto-falante.** `godot/scripts/forja.gd:906-914` (`tocar_material`) manda o material aos
+- **O material toca no alto-falante.** `godot/scripts/forja.gd:757-761` (`tocar_material`) manda o material aos
   atuadores e também `som_falante(l, nome, 0.35 * forca)`; a tabela do casamento (`03-som.md`, «um material») diz
   que o material vai só aos atuadores. No perfeito, a `nota:%d` do mesmo quadro corta esse som de qualquer jeito.
-- **O pio é o da H07.** `godot/scripts/main.gd:275`: `Forja.som_falante(l, "pio:%d" % jogadores[l].modelo_i, 0.8)`,
-  o pio sintetizado de `nativo/som/sons_salas.c:51-56`. A bíblia pede `pio_p{n}_{intervalo}`, o intervalo vindo da
+- **O pio é o da H07.** `godot/scripts/main.gd:252`: `Forja.som_falante(l, "pio:%d" % jogadores[l].modelo_i, 0.8)`,
+  o pio sintetizado de `nativo/som/sons_salas.c:48-52`. A bíblia pede `pio_p{n}_{intervalo}`, o intervalo vindo da
   cabeça escolhida.
-- **O jingle procura no lugar errado para três deles.** `godot/scripts/som.gd:179`: `"JIN_APITO": ["sintese",
-  "apito"]`; `jingle()` (`som.gd:195-215`) procura só `Musica.caminho(nome)`, que é `res://assets/ost/jingles/<nome>.ogg`
-  (`musica.gd:193-194`), e cai na reserva. A bíblia (`03-som.md`, «Os jingles») diz que `jin_apito`, a entrada e a
+- **O jingle procura no lugar errado para três deles.** `godot/scripts/som.gd:153`: `"JIN_APITO": ["sintese",
+  "apito"]`; `jingle()` (`som.gd:166-180`) procura só `Musica.caminho(nome)`, que é `res://assets/ost/jingles/<nome>.ogg`
+  (`musica.gd:164-165`), e cai na reserva. A bíblia (`03-som.md`, «Os jingles») diz que `jin_apito`, a entrada e a
   virada são WAV de `godot/assets/sons/`: um `jin_apito.wav` posto lá nunca tocaria.
 - **A entrada fora da agenda da bíblia.** `minigame.gd:304-310` (`_contar_a_entrada`): `Som.jingle("JIN_ENTRADA")`
   nos tempos 0, 1 e 2 e `Som.tocar("confirma")` no 3. A bíblia pede o `jin_entrada_tique` nos tempos 2, 3 e 4 do
   compasso de contagem, o `jin_entrada_vai` no tempo 1 da faixa, e o `fx_entrada` começando 600 ms antes do tempo 1.
-- **O alto-falante sem prioridade.** `nativo/som/som_controle.c:406-408` (`somc_falante`): todo som novo para o
+- **O alto-falante sem prioridade.** `nativo/som/som_controle.c:380-381` (`somc_falante`): todo som novo para o
   anterior e toca. A bíblia («O que toca onde») pede a ordem vitória e derrota, julgamento, segredo, pio, coleta,
   clique: o menor espera ou é descartado. Hoje, no lobby, quem entra e já mexe no ◀▶ para escolher o boneco corta o
-  próprio pio com o clique (`main.gd:275` e `:902`).
+  próprio pio com o clique (`main.gd:252` e `:902`).
 - **O tom da faixa não existe.** Nenhum `pitch_scale` sai do tom da ficha; a nota do lugar é sempre de Dó.
 
 ## O alvo
@@ -82,7 +82,7 @@ que contam o estado errado.
   Master), o limitador da Voz em −3 dBFS e o do Master em −1 dBFS. O `_criar_o_barramento` da Musica continua achando o
   barramento pelo nome (ele já confere `get_bus_index`) e só põe o passa-baixa se faltar.
 - Todo tocador do `Som` toca no barramento da família do som (a coluna `familia` do mapa, numa tabela família →
-  barramento escrita uma vez, no `som.gd`). O volume da TV segue no Master (`forja.gd:164`).
+  barramento escrita uma vez, no `som.gd`). O volume da TV segue no Master (`forja.gd:118`).
 - Os abaixamentos da tabela «O que abaixa quando» pelos motivos da WS02: `Musica.abaixar("pausa", …)`,
   `("cartao", …)`, `("pista", …)`, `("microfone", …)`, e o Ambiente com a mesma regra (−6 dB no minigame, +3 dB no
   último terço). Nenhuma ficha escreve volume de barramento direto.
@@ -115,18 +115,18 @@ que contam o estado errado.
 4. Os abaixamentos: a pausa, o cartão, o apito (corte seco, que já existe em `parar_seco`), o Ambiente no minigame e no
    último terço, cada um com o motivo dele na WS02.
 5. O julgamento, o tropeço e o tom da faixa no `_reagir` do kit, lendo `nota_no_falante`.
-6. O pio por cabeça no `main.gd:275` (e onde a G01 tiver o `PIO_DO_MODELO`).
+6. O pio por cabeça no `main.gd:252` (e onde a G01 tiver o `PIO_DO_MODELO`).
 7. Os jingles: o `jingle()` procura o WAV dos três; a agenda da entrada no `_contar_a_entrada`.
 8. O alto-falante com prioridade: a categoria por parâmetro de `som_falante` (o padrão é a do clique, a menor), em
    `nativo/som/som_controle.c` e `nativo/godot/forja_som.cpp`; o `tocar_material` deixa de chamar `som_falante`.
-9. Os `ui_*` dentro do minigame (`sala_jogo.gd:286`, `:315`, `:346`), no lugar do `tique` e do `confirma`.
+9. Os `ui_*` dentro do minigame (`sala_jogo.gd:221`, `:315`, `:346`), no lugar do `tique` e do `confirma`.
 
 ## Armadilhas
 
-- A prova de hoje confere «o clique tira o sino» (`godot/testes/prova_do_jogo.gd:174-182`). Com a prioridade, o sino
+- A prova de hoje confere «o clique tira o sino» (`godot/testes/prova_do_jogo.gd:153-160`). Com a prioridade, o sino
   de teste e o clique precisam de categoria: o teste do sino é da bancada (o maior), e a prova passa a conferir a
   regra nova (o clique não corta o sino; um julgamento corta o clique).
-- O `som_registrar` guarda o som até o fim do processo (`nativo/godot/forja_som.cpp:36-39`): o tom da faixa por chave
+- O `som_registrar` guarda o som até o fim do processo (`nativo/godot/forja_som.cpp:28-30`): o tom da faixa por chave
   `<id>@<s>` multiplica os registros por até 12 tons. São arquivos curtos (os `jul_*` têm até 250 ms), mas conferir a
   memória com os quatro lugares e uma noite inteira.
 - O `Musica._criar_o_barramento` hoje cria o barramento quando falta. Com o layout, ele existe desde o começo, e o

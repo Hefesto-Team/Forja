@@ -150,7 +150,7 @@ Quatro DualSense por lugar: a entrada, a vibração, os gatilhos, a luz, o alto-
 
 **Hoje:** o módulo nativo (`nativo/nucleo`, `nativo/som`, `nativo/godot`, `src/forja_dualsense.c`, `include/`;
 CMake em `nativo/CMakeLists.txt`, alvos `forja_ds5`, `forja_nucleo`, `forja_sdl`, `forja`), a classe
-`ForjaControles` (123 métodos e 40 constantes em `nativo/godot/forja_controles.cpp:593`), o
+`ForjaControles` (123 métodos e 40 constantes em `nativo/godot/forja_controles.cpp:569`), o
 `godot/forja.gdextension` e a metade de entrada e saída do autoload `Forja` (`godot/scripts/forja.gd`, 923 linhas).
 
 **A interface pública** (a fachada em GDScript; o nativo por baixo segue como é):
@@ -199,8 +199,8 @@ cada controle**. Ficam no jogo: os argumentos (`--robo`, `--bancada`), o relató
 (a carga), as provas às cegas e a bancada, que são o diagnóstico do Forja e não do controle. O `aplicar_opcoes`
 (`:131`) lê `Opcoes`, `Tema` e `Traducoes`: vira o jogo chamando `ForjaControle.cores = …` e
 `ForjaControle.escala_vibracao(l, x)`. Os avisos saem em português pelo sinal `aviso` com a chave, e quem mostra traduz.
-O `Som` e a `Musica` usam `Forja.ctl.sintetizar_pcm16` (`som.gd:79`, `musica.gd:56`) e `ctl.som_registrar`
-(`som.gd:164`): passam a ser `ForjaControle.sintetizar(receita, parametros) -> PackedByteArray` e
+O `Som` e a `Musica` usam `Forja.ctl.sintetizar_pcm16` (`som.gd:60`, `musica.gd:45`) e `ctl.som_registrar`
+(`som.gd:140`): passam a ser `ForjaControle.sintetizar(receita, parametros) -> PackedByteArray` e
 `ForjaControle.registrar_som(chave, dados, taxa) -> int`.
 
 **O empacotamento do nativo:** `godot/forja.gdextension` vai para `godot/addons/forja_dualsense/forja_dualsense.gdextension`;
@@ -213,9 +213,9 @@ juntos, na mesma ficha.
 Quem joga no lugar das pessoas: aperta, inclina, gira, sacode, toca no touchpad e fala no microfone, sempre pelo
 simulador do controle, e a régua das checagens.
 
-**Hoje:** `Forja.robo_apertar/eixo/girar/sacudir/tocar/falar` (`godot/scripts/forja.gd:881-919`), a bandeira
+**Hoje:** `Forja.robo_apertar/eixo/girar/sacudir/tocar/falar` (`godot/scripts/forja.gd:739-766`), a bandeira
 `Forja.robo`, o `_robo` de cada sala e os ajudantes `_esperar`, `_quadros`, `_aperta` da prova do jogo
-(`godot/testes/prova_do_jogo.gd:30-49`; a [V02](tarefas/V02-a-prova-do-jogo-em-partes.md) os põe em `ForjaChecagem`).
+(`godot/testes/prova_do_jogo.gd:16-35`; a [V02](tarefas/V02-a-prova-do-jogo-em-partes.md) os põe em `ForjaChecagem`).
 
 **A interface pública:**
 

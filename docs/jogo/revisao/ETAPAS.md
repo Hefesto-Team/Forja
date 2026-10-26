@@ -169,13 +169,13 @@ Por quê: cada conjunto deixou o que dependia de vizinho, e isso só fecha depoi
 - As fichas W desta revisão (em `~/.local/state/forja-casa/leva-2/achados/`), que viram a seção «W — A revisão» no
   quadro quando a revisão voltar, agrupadas por arquivo, com no máximo três trilhos de Godot ao mesmo tempo.
 - Os achados anotados que não têm ficha:
-  - `run-local.sh:35` baixa a engine de `$GODOT_URL`, que ninguém define (anotado na F00, `:109`). **Já curado** no
+  - `run-local.sh:25` baixa a engine de `$GODOT_URL`, que ninguém define (anotado na F00, `:109`). **Já curado** no
     ramo `voo/a-varredura` (`811d54c`): o `run-local.sh` e o `exportar.sh` chamam o `forja_baixar_engine`. Entra com
     a V01. A WE05 desta revisão abre ficha para o mesmo defeito: encolhe para o que sobra (o cabeçalho do
     `run-local.sh:2` e o `docs/DESENVOLVER.md:28`, que ainda dizem Godot 4.4).
-  - «Faltam 2 jogadores ficarem prontos» (`tela_lobby.gd:74`, `traducoes.gd:315`) pede outra redação.
+  - «Faltam 2 jogadores ficarem prontos» (`tela_lobby.gd:65`, `traducoes.gd:291`) pede outra redação.
   - O `README.en.md` ficou atrás do `README.md` desde `66fa244`.
-  - O «relógio sem faixa» (`prova_do_jogo.gd:904`) falha às vezes com a máquina carregada. A WE02 dá a causa provável
+  - O «relógio sem faixa» (`prova_do_jogo.gd:821`) falha às vezes com a máquina carregada. A WE02 dá a causa provável
     (o `Ritmo` no relógio de parede, medido por um robô que aperta por quadro) e a cura; vale para os dois.
   - O título longo da tela de resultado: a cura da H04 foi revertida na integração em `46aae4d` (`45d4a72` no ramo
     o-kit) «para depois da fita», porque a F09b e a G14 trocam a mesma linha. Volta depois da costura da a-fita,
@@ -229,8 +229,8 @@ lacuna 8.
 | **A máquina carregada** | provas que reprovam sem defeito (o P2 do o-kit com 6 erros com carga ~13; o relógio sem faixa): a regra «uma prova falha duas vezes seguidas, a ficha volta para enriquecida» (`o-time/a-esteira.md:50`) passa a punir ficha certa. Às 14h16, carga 52 | prova pesada só com carga baixa; o semáforo; medir a carga antes de culpar a ficha; a WE02 (a prova no relógio do quadro) |
 | **O prazo das 17h** | a promessa «a noite inteira jogável» do plano de 08/10 não cabe | a bancada de hoje é a das telas e do kit; os minigames são o Bloco 1 |
 | **Gente que não é a máquina** | F10 B e S esperam o André; a aparência só se aprova na máquina dele (regra de ouro 10, `docs/jogo/README.md`); ela joga só no fim da seção | marcar a noite com o André assim que a R voltar; a F10 B não segura ninguém de jogo (só a V07 e a X04, e por ela a X05 e a X07) |
-| **O sudo no Linux** | o jogo escreve no hidraw pela regra `udev/99-forja-dualsense.rules`, que o pacote leva e manda copiar com sudo (`scripts/exportar.sh:110`); o touchpad que mexe o cursor pede outra regra (ESPERA-ELA). Quem compra pela loja não roda sudo | a lacuna 3 |
-| **O Steam Input** | aberto pela loja, o Steam Input liga por padrão para controles PlayStation e entrega ao jogo um controle genérico: some o gatilho, a luz, o alto-falante (o caso do meio curso no Ratchet de PC). O módulo já reconhece o espelho (`nativo/nucleo/origem.c:202`, `28de:11ff`), mas o jogo não faz nada com isso. Está em `docs/jogo/pesquisa/dualsense.md:516`, sem ficha | ficha no Bloco 6 |
+| **O sudo no Linux** | o jogo escreve no hidraw pela regra `udev/99-forja-dualsense.rules`, que o pacote leva e manda copiar com sudo (`scripts/exportar.sh:87`); o touchpad que mexe o cursor pede outra regra (ESPERA-ELA). Quem compra pela loja não roda sudo | a lacuna 3 |
+| **O Steam Input** | aberto pela loja, o Steam Input liga por padrão para controles PlayStation e entrega ao jogo um controle genérico: some o gatilho, a luz, o alto-falante (o caso do meio curso no Ratchet de PC). O módulo já reconhece o espelho (`nativo/nucleo/origem.c:199`, `28de:11ff`), mas o jogo não faz nada com isso. Está em `docs/jogo/pesquisa/dualsense.md:516`, sem ficha | ficha no Bloco 6 |
 | **O rádio** | o jogo só fala USB `0x02`; o alto-falante, o microfone e a háptica por áudio só chegam no cabo (a própria Sony diz que a resposta tátil no PC pede USB). As seções N (o canto) e P (a voz) perdem o segredo no ouvido e a voz | já coberto nas fichas: na N, sem alto-falante, o som do dono vai para a raia dele na TV a −10 dB (N1 `:901`, e a tabela de cada N); na P, «no rádio» o lugar joga sozinho com a `troca` registrada (P1 `:1177`, P2 a P5). O que falta é a bancada provar com dois no rádio, como as fichas pedem |
 | **A música gerada por programa** | a loja pede declarar conteúdo gerado que o jogador vê ou ouve; o `LICENCAS-DE-TERCEIROS.md:19` diz como a trilha foi feita, mas nada prepara a declaração | escrever a declaração no Bloco 7 |
 | **O commit assinado** | o `main` recusa merge de commit antigo não assinado | costura só por cherry-pick (re-assina) |
@@ -238,7 +238,7 @@ lacuna 8.
 ## 5. As lacunas: o que nenhum documento cobre
 
 1. **O controle de outra marca.** Em sessões na Steam com controle, 59 % são de controle Xbox e 26 % de PlayStation
-   (números da Valve, junho de 2024). O `nativo/nucleo/pads.c:292-328` abre qualquer controle do SDL e só liga os
+   (números da Valve, junho de 2024). O `nativo/nucleo/pads.c:266-302` abre qualquer controle do SDL e só liga os
    efeitos quando o tipo é PS5 (o Edge entra como PS5 e o `origem.c` o conta como DualSense: ele não é lacuna). O
    controle Xbox não tem touchpad, giro, alto-falante, microfone nem gatilho com peso; o DualShock 4 tem touchpad,
    giro e barra de luz, mas não tem gatilho com peso, háptica por áudio nem microfone embutido. As salas antigas já
@@ -251,10 +251,10 @@ lacuna 8.
    `CONTRATO.md:75` promete como o **preferido** quando o jogo roda pela loja (com `SetDualSenseTriggerEffect`, na
    tabela do `:20`) e que não tem código nem ficha; e o bloco de gatilho do cabeçalho tem 24 bytes, contra os 120 da
    API (`dualsense.md:515`). E o que o jogo faz quando recebe o espelho genérico no lugar de um DualSense: o módulo já
-   o reconhece (`origem.c:202`), o jogo ainda não responde.
+   o reconhece (`origem.c:199`), o jogo ainda não responde.
 3. **O sudo de quem compra.** São duas regras udev, não uma: a do hidraw (`udev/99-forja-dualsense.rules`, sem a qual
    o jogo não escreve o `0x02`) e a do touchpad (ESPERA-ELA). O pacote de hoje manda rodar `sudo cp`
-   (`scripts/exportar.sh:110`); quem compra não roda sudo. Falta medir se as regras que o cliente da loja já instala
+   (`scripts/exportar.sh:87`); quem compra não roda sudo. Falta medir se as regras que o cliente da loja já instala
    dão acesso ao hidraw do DualSense (a conferir), o que o jogo faz quando o hidraw está fechado (avisar com uma frase
    do mundo, cair para o que o SDL dá) e a resposta do touchpad que mexe o cursor (pegar o dispositivo pelo próprio
    SDL, avisar, ou ensinar), escrita antes de K1.
@@ -296,7 +296,7 @@ lacuna 8.
     `:1177`), mas só o rádio o liga: ninguém o escolhe. Falta a alternativa, no mesmo espírito do «Jogar no teclado».
 13. **Remapear os botões.** As diretrizes de acessibilidade em jogos põem o remapeamento no nível básico e entre as
     quatro queixas mais comuns (com tamanho de texto, daltonismo e legenda). A Forja tem texto grande, daltonismo,
-    movimento reduzido e o peso do gatilho por lugar (Desligado, Fraco, Forte, `opcoes.gd:12`); não tem remapear,
+    movimento reduzido e o peso do gatilho por lugar (Desligado, Fraco, Forte, `opcoes.gd:4`); não tem remapear,
     nem segurar-ou-alternar para quem aperta seis horas.
 14. **Jogar à distância.** A loja deixa jogo local virar jogo pela internet (o Remote Play Together, até quatro
     pessoas, só quem hospeda precisa ter o jogo). O `09-fora-do-escopo` recusa jogo online com servidor, mas não diz

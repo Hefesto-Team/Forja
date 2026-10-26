@@ -33,10 +33,10 @@ report cru do jack do fone».
   `ATTRS{idVendor}` na cadeia, só `KERNELS=="0003:054C:0DF2.…"`.
 - No SDL 3.4.14 (`src/joystick/hidapi/SDL_hidapijoystick.c:509-515`), o hidraw que não abre só vira um `LogDebug`; o
   driver genérico (`src/joystick/linux/SDL_sysjoystick.c:1637` e `:1690-1698`) só declara rumble.
-- `nativo/nucleo/pads.c:329` (`cap_efeitos` falso) e `:248-251` («report cru indisponível»); nada no módulo testa a
+- `nativo/nucleo/pads.c:303` (`cap_efeitos` falso) e `:248-251` («report cru indisponível»); nada no módulo testa a
   permissão do hidraw.
 - `scripts/instalar.sh`: `sistema` e `conferir` não tocam no udev; o `grep 99-forja scripts` só acha a cópia para o
-  pacote (`scripts/exportar.sh:107-111`), com o texto do «jack do fone».
+  pacote (`scripts/exportar.sh:84-88`), com o texto do «jack do fone».
 
 ## O alvo
 
@@ -57,7 +57,7 @@ permissão no hidraw: os efeitos não chegam» no registro e no relatório. A te
 3. **O módulo.** Em `nativo/nucleo/origem_linux.c`: quando um controle da Sony chega ao SDL por `/dev/input/event*`,
    achar o hidraw irmão no mesmo pai do sysfs e testar `access(W_OK)`. `OrigemFatos` ganha `hidraw_sem_permissao`;
    o registro e o relatório dizem a causa.
-4. **O texto do pacote.** O LEIA-ME do Linux (`exportar.sh:107-111`) passa a dizer o que o `COMO-RODAR.md` diz.
+4. **O texto do pacote.** O LEIA-ME do Linux (`exportar.sh:84-88`) passa a dizer o que o `COMO-RODAR.md` diz.
 
 ## Armadilhas
 
@@ -85,7 +85,7 @@ permissão no hidraw: os efeitos não chegam» no registro e no relatório. A te
   reprova.
 - **Nativa** (`prova_origem.c`): um sysfs de mentira com um evdev `054c:0ce6` e o hidraw irmão apontando para um nó
   sem escrita espera `hidraw_sem_permissao`. Hoje o campo não existe.
-- **De script:** o `conferir` contra um `/sys` de mentira (o molde de `forja_selftest_som.c:197-201`) imprime a falta.
+- **De script:** o `conferir` contra um `/sys` de mentira (o molde de `forja_selftest_som.c:183-187`) imprime a falta.
 
 ## Para o André (local)
 

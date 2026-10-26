@@ -1,4 +1,3 @@
-/* Os sons sintetizados. Ver sintese.h. */
 #include "sintese.h"
 
 #include <math.h>
@@ -30,7 +29,6 @@ static void normalizar(Onda *o, float alvo) {
     o->a[i] *= k;
 }
 
-/* as pontas sem clique: 3 ms de rampa */
 static void rampas(Onda *o, float ini_s, float fim_s) {
   int ni = (int)(ini_s * SINT_TAXA), nf = (int)(fim_s * SINT_TAXA);
   for (int i = 0; i < ni && i < o->n; i++)
@@ -82,7 +80,6 @@ int sint_bigorna(Onda *o, float freq, float dur, float brilho, uint32_t semente)
       float a = amp[k] * (k > 2 ? brilho : 1.0f);
       s += a * expf(-dec * t) * sinf(PI2 * f * t + fase[k]);
     }
-    /* o golpe: 4 ms de ruído que abre o som */
     if (t < 0.004f)
       s += ruido() * (1 - t / 0.004f) * 0.9f * brilho;
     o->a[i] = s;
@@ -102,7 +99,7 @@ int sint_martelada(Onda *o, float freq, uint32_t semente) {
   }
   for (int i = 0; i < o->n; i++) {
     float t = (float)i / SINT_TAXA;
-    float f = 70 + 90 * expf(-t * 30); /* o baque cai de tom */
+    float f = 70 + 90 * expf(-t * 30);
     float baque = sinf(PI2 * f * t) * expf(-t * 14) * 0.9f;
     o->a[i] = baque + b.a[i] * 0.7f;
   }
@@ -145,7 +142,6 @@ int sint_acorde(Onda *o, const float *freqs, int n, float espaco, float dur_nota
   return 0;
 }
 
-/* Faz um laço sem emenda: o fim se funde ao começo em `cruz_s`. */
 static void fechar_laco(Onda *o, float cruz_s) {
   int nc = (int)(cruz_s * SINT_TAXA);
   if (nc * 2 >= o->n)
@@ -166,11 +162,10 @@ int sint_fogo(Onda *o, float dur, uint32_t semente) {
   float lp = 0, lp2 = 0;
   for (int i = 0; i < o->n; i++) {
     float r = ruido();
-    lp += (r - lp) * 0.02f;   /* o rumor grave */
+    lp += (r - lp) * 0.02f;
     lp2 += (lp - lp2) * 0.05f;
     o->a[i] = lp2 * 2.5f;
   }
-  /* os estalos */
   int estalos = (int)(total * 14);
   for (int k = 0; k < estalos; k++) {
     int ini = (int)(((ruido() + 1) * 0.5f) * (o->n - 2000));
@@ -180,7 +175,7 @@ int sint_fogo(Onda *o, float dur, uint32_t semente) {
     for (int i = 0; i < 1600 && ini + i < o->n; i++) {
       float t = (float)i / SINT_TAXA;
       float x = ruido();
-      hp = 0.7f * (hp + x - ant); /* passa-alta: o estalo é seco */
+      hp = 0.7f * (hp + x - ant);
       ant = x;
       o->a[ini + i] += hp * a * expf(-dec * t);
     }
@@ -194,7 +189,6 @@ int sint_drone(Onda *o, float dur) {
   float total = dur + 1.0f;
   if (alocar(o, total))
     return -1;
-  /* ré dórico, grave: ré, lá, ré, fá, com pares desafinados que batem devagar */
   static const float f[] = {73.42f, 110.0f, 146.83f, 174.61f, 220.0f};
   static const float a[] = {0.55f, 0.35f, 0.3f, 0.16f, 0.1f};
   for (int i = 0; i < o->n; i++) {
@@ -203,7 +197,7 @@ int sint_drone(Onda *o, float dur) {
     for (int k = 0; k < 5; k++) {
       float lfo = 0.75f + 0.25f * sinf(PI2 * (0.05f + 0.013f * k) * t + k);
       s += a[k] * lfo * (sinf(PI2 * f[k] * t) + 0.6f * sinf(PI2 * f[k] * 1.0031f * t + 1.3f));
-      s += a[k] * 0.12f * sinf(PI2 * f[k] * 2.0f * t + 0.7f * k); /* um pouco de brilho */
+      s += a[k] * 0.12f * sinf(PI2 * f[k] * 2.0f * t + 0.7f * k);
     }
     o->a[i] = s;
   }
@@ -276,7 +270,7 @@ int sint_passo(Onda *o, int chao, uint32_t semente) {
   g_lcg = semente * 2654435761u + 7;
   float lp = 0;
   switch (chao) {
-  case 0: { /* grama: um baque macio, grave e abafado */
+  case 0: {
     float dur = 0.26f;
     if (alocar(o, dur))
       return -1;
@@ -289,7 +283,7 @@ int sint_passo(Onda *o, int chao, uint32_t semente) {
     normalizar(o, 0.45f);
     break;
   }
-  case 1: { /* cascalho: quatro estalos secos em fila */
+  case 1: {
     float dur = 0.3f;
     if (alocar(o, dur))
       return -1;
@@ -305,7 +299,7 @@ int sint_passo(Onda *o, int chao, uint32_t semente) {
     normalizar(o, 0.8f);
     break;
   }
-  case 2: { /* metal: o golpe seco que fica ressoando */
+  case 2: {
     float dur = 0.55f;
     if (alocar(o, dur))
       return -1;
@@ -317,7 +311,7 @@ int sint_passo(Onda *o, int chao, uint32_t semente) {
     normalizar(o, 0.9f);
     break;
   }
-  default: { /* água: duas ondas lentas, que empurram e voltam */
+  default: {
     float dur = 0.5f;
     if (alocar(o, dur))
       return -1;
@@ -346,14 +340,13 @@ int sint_grito(Onda *o, float dur, uint32_t semente) {
   float fase = 0, bp1 = 0, bp2 = 0;
   for (int i = 0; i < o->n; i++) {
     float t = (float)i / SINT_TAXA, k = t / dur;
-    /* sobe rasgando, e cai: 520 → 940 → 600 Hz, com um tremor de 7 Hz */
     float f = k < 0.25f ? 520 + 420 * (k / 0.25f) : 940 - 340 * ((k - 0.25f) / 0.75f);
     f *= 1.0f + 0.04f * sinf(PI2 * 7 * t);
     fase += f / SINT_TAXA;
     fase -= floorf(fase);
     float serra = 2 * fase - 1;
     float x = serra + 0.35f * ruido();
-    bp1 += (x - bp1) * 0.35f; /* um filtro que deixa passar o meio: a garganta */
+    bp1 += (x - bp1) * 0.35f;
     bp2 += (bp1 - bp2) * 0.35f;
     float env = (k < 0.03f ? k / 0.03f : 1.0f) * (k > 0.8f ? (1 - k) / 0.2f : 1.0f);
     o->a[i] = (bp1 - 0.6f * bp2) * env;
@@ -361,18 +354,6 @@ int sint_grito(Onda *o, float dur, uint32_t semente) {
   normalizar(o, 0.95f);
   return 0;
 }
-
-/* ---------- a trilha: synthwave ----------
- *
- * Oito compassos em laço, na progressão que o gênero consagrou (i, VI, III,
- * VII em menor, dois compassos cada): o pad de serras desafinadas, o baixo em
- * colcheias, o arpejo de onda quadrada em semicolcheias com eco pontuado, e a
- * bateria de máquina — o bumbo que cai de tom, a caixa gorda com a cauda
- * cortada, o chimbal fechado. A energia decide quem toca: 0 é o salão (pad,
- * baixo em mínimas e o arpejo manso), 1 põe a bateria, 2 o bumbo em todo tempo.
- *
- * Tudo é somado com o índice em módulo do tamanho do laço: o que passa do fim
- * (a cauda do pad, o eco) volta no começo, e o laço não tem emenda. */
 
 static float midi_hz(float m) { return 440.0f * powf(2.0f, (m - 69.0f) / 12.0f); }
 
@@ -382,7 +363,6 @@ static float serra(float fase) { return 2.0f * (fase - floorf(fase)) - 1.0f; }
 
 static float quadrada(float fase, float largura) { return (fase - floorf(fase)) < largura ? 1.0f : -1.0f; }
 
-/* uma nota de serra (ou quadrada) com envelope ADR e um passa-baixa de um polo */
 static void nota(Onda *o, int ini, float hz, float dur, float ataque, float queda, float vol, float corte, int forma,
                  float desafina) {
   int n = (int)((dur + queda) * SINT_TAXA);
@@ -417,9 +397,8 @@ static void caixa(Onda *o, int ini, float vol) {
   for (int i = 0; i < n; i++) {
     float t = (float)i / SINT_TAXA;
     float r = ruido();
-    float agudo = r - ant; /* um passa-alta de pobre */
+    float agudo = r - ant;
     ant = r;
-    /* a cauda "gated" dos anos 80: cheia, e cortada de uma vez */
     float env = t < 0.26f ? expf(-t / 0.18f) : expf(-0.26f / 0.18f) * expf(-(t - 0.26f) / 0.01f);
     fase += 190.0f / SINT_TAXA;
     somar(o, ini + i, (0.75f * agudo + 0.35f * sinf(PI2 * fase) * expf(-t / 0.05f)) * env * vol);
@@ -447,7 +426,6 @@ int sint_trilha(Onda *o, float tonica_midi, float bpm, int energia, uint32_t sem
   if (!o->a)
     return -1;
   g_lcg = semente * 2654435761u + 1u;
-  /* i, VI, III, VII: a fundamental de cada acorde e se é menor */
   static const int raiz[4] = {0, -4, 3, -2};
   static const int menor[4] = {1, 0, 0, 0};
   float pad_vol = energia == 0 ? 0.16f : 0.12f;
@@ -456,19 +434,16 @@ int sint_trilha(Onda *o, float tonica_midi, float bpm, int energia, uint32_t sem
     float base = tonica_midi + raiz[c];
     int terca = menor[c] ? 3 : 4;
     int acorde[3] = {0, terca, 7};
-    /* o pad: as três notas do acorde, dois compassos, uma oitava acima */
     for (int k = 0; k < 3; k++)
       nota(o, ini, midi_hz(base + 12 + acorde[k]), 8 * tempo, 0.5f, 1.2f, pad_vol, 1600.0f, 0, 9.0f);
-    /* o baixo: colcheias (mínimas no salão), uma oitava abaixo */
-    int passo_b = energia == 0 ? 4 : 1; /* em colcheias */
+    int passo_b = energia == 0 ? 4 : 1;
     for (int q = 0; q < 16; q += passo_b) {
-      float oitava = (energia > 0 && q % 4 == 3) ? 12.0f : 0.0f; /* o salto de oitava do gênero */
+      float oitava = (energia > 0 && q % 4 == 3) ? 12.0f : 0.0f;
       nota(o, ini + q * por_tempo / 2, midi_hz(base - 12 + oitava), (passo_b * tempo / 2) * 0.8f, 0.004f, 0.08f, 0.30f,
            energia == 0 ? 320.0f : 520.0f, 0, 4.0f);
     }
-    /* o arpejo: semicolcheias subindo e descendo pelo acorde (colcheias no salão) */
     static const int desenho[8] = {0, 1, 2, 3, 2, 1, 0, 1};
-    int passo_a = energia == 0 ? 2 : 1; /* em semicolcheias */
+    int passo_a = energia == 0 ? 2 : 1;
     for (int s = 0; s < 32; s += passo_a) {
       int grau = desenho[(s / passo_a) % 8];
       float m = base + 24 + (grau == 3 ? 12 : acorde[grau]);
@@ -476,7 +451,6 @@ int sint_trilha(Onda *o, float tonica_midi, float bpm, int energia, uint32_t sem
            3200.0f, 1, 0.0f);
     }
   }
-  /* o eco do arpejo e do pad: colcheia pontuada, em laço */
   {
     int atraso = (int)(tempo * 0.75f * SINT_TAXA);
     float *seco = malloc(sizeof(float) * (size_t)o->n);
@@ -490,7 +464,6 @@ int sint_trilha(Onda *o, float tonica_midi, float bpm, int energia, uint32_t sem
       free(seco);
     }
   }
-  /* a bateria, seca por cima do eco */
   if (energia > 0) {
     for (int b = 0; b < compassos * 4; b++) {
       int ini = b * por_tempo;
@@ -503,14 +476,11 @@ int sint_trilha(Onda *o, float tonica_midi, float bpm, int energia, uint32_t sem
         chimbal(o, ini, 0.06f);
     }
   }
-  /* a cola: uma saturação macia, e o pico em 0,8 */
   for (int i = 0; i < o->n; i++)
     o->a[i] = tanhf(o->a[i] * 1.4f);
   normalizar(o, 0.8f);
   return 0;
 }
-
-/* ---------- o pio do cavaleiro ---------- */
 
 int sint_pio(Onda *o, float freq, int forma, uint32_t semente) {
   const float nota = 0.09f, espaco = 0.07f;
@@ -518,13 +488,13 @@ int sint_pio(Onda *o, float freq, int forma, uint32_t semente) {
     return -1;
   g_lcg = semente * 2654435761u + 7u;
   for (int k = 0; k < 2; k++) {
-    float f = k == 0 ? freq : freq * 1.4983f; /* a quinta */
+    float f = k == 0 ? freq : freq * 1.4983f;
     int ini = (int)(k * espaco * SINT_TAXA);
     int n = (int)(nota * SINT_TAXA);
-    float desvio = 1.0f + 0.004f * ruido(); /* cada pio um nada diferente */
+    float desvio = 1.0f + 0.004f * ruido();
     for (int i = 0; i < n && ini + i < o->n; i++) {
       float t = (float)i / SINT_TAXA;
-      float fase = PI2 * f * desvio * t * (1.0f + 0.06f * t / nota); /* sobe um pouco: é um pio */
+      float fase = PI2 * f * desvio * t * (1.0f + 0.06f * t / nota);
       float x = sinf(fase);
       if (forma == 1)
         x = tanhf(3.0f * x) * 0.8f;
@@ -536,8 +506,6 @@ int sint_pio(Onda *o, float freq, int forma, uint32_t semente) {
   normalizar(o, 0.8f);
   return 0;
 }
-
-/* ---------- a háptica por material ---------- */
 
 static const char *NOMES_MATERIAL[MATERIAL_TOTAL] = {"metal", "pedra", "areia", "gelo", "grama", "lama", "madeira"};
 
@@ -554,7 +522,6 @@ int material_por_nome(const char *nome) {
   return -1;
 }
 
-/* Um pulso de seno com ataque e queda exponencial, somado em `ini`. */
 static void pulso_grave(Onda *o, float ini_s, float freq, float dur, float queda, float vol) {
   int ini = (int)(ini_s * SINT_TAXA), n = (int)(dur * SINT_TAXA);
   for (int i = 0; i < n && ini + i < o->n; i++) {
@@ -564,7 +531,6 @@ static void pulso_grave(Onda *o, float ini_s, float freq, float dur, float queda
   }
 }
 
-/* Ruído grave (um passa-baixa de um polo em `corte`), com envelope em sino. */
 static void ruido_grave(Onda *o, float corte, float vol) {
   float k = 1.0f - expf(-PI2 * corte / SINT_TAXA), y = 0;
   for (int i = 0; i < o->n; i++) {
@@ -580,29 +546,29 @@ int sint_material(Onda *o, MaterialHaptico m, uint32_t semente) {
     return -1;
   g_lcg = semente * 2654435761u + 11u;
   switch (m) {
-  case MATERIAL_METAL: /* clique seco, duro: pulso curto de 150 Hz, ataque instantâneo */
+  case MATERIAL_METAL:
     pulso_grave(o, 0, 150.0f, 0.06f, 0.015f, 1.0f);
     break;
-  case MATERIAL_PEDRA: /* batida surda: 80 Hz, 60 ms, decaimento rápido */
+  case MATERIAL_PEDRA:
     pulso_grave(o, 0, 80.0f, 0.06f, 0.02f, 1.0f);
     break;
-  case MATERIAL_AREIA: /* granulado espalhado: ruído abaixo de 200 Hz, baixo */
+  case MATERIAL_AREIA:
     ruido_grave(o, 200.0f, 1.0f);
     break;
-  case MATERIAL_GELO: /* fino e localizado: 180 Hz, 20 ms (um atuador só: quem toca decide) */
+  case MATERIAL_GELO:
     pulso_grave(o, 0, 180.0f, 0.02f, 0.008f, 1.0f);
     break;
-  case MATERIAL_GRAMA: /* macio: ruído grave, envelope longo */
+  case MATERIAL_GRAMA:
     ruido_grave(o, 120.0f, 1.0f);
     break;
-  case MATERIAL_LAMA: /* pesado e lento: 60 Hz com vibrato lento */
+  case MATERIAL_LAMA:
     for (int i = 0; i < o->n; i++) {
       float t = (float)i / SINT_TAXA;
       float env = sinf(3.14159f * t / DUR[m]);
       o->a[i] = env * sinf(PI2 * 60.0f * t + 2.5f * sinf(PI2 * 4.0f * t));
     }
     break;
-  case MATERIAL_MADEIRA: /* oco: 110 Hz, duas batidas curtas */
+  case MATERIAL_MADEIRA:
     pulso_grave(o, 0, 110.0f, 0.03f, 0.012f, 1.0f);
     pulso_grave(o, 0.06f, 110.0f, 0.03f, 0.012f, 0.8f);
     break;

@@ -1,4 +1,3 @@
-/* Máscara de MAC, UTF-8, sorteio, taxa e catálogo. */
 #include "prova.h"
 
 #include "aleatorio.h"
@@ -105,14 +104,12 @@ void provas_sorteio(void) {
 void provas_taxa(void) {
   Taxa t;
   taxa_zerar(&t);
-  /* 250 Hz no host e no relógio do controle, por 3 s */
   for (int i = 0; i < 750; i++)
     taxa_evento(&t, (uint64_t)i * 4000000ull, 1000000000ull + (uint64_t)i * 4000000ull);
   uint64_t agora = 749ull * 4000000ull;
   espera(fabs(taxa_hz_host(&t, agora, 2.0) - 250.0) < 0.5, "250 Hz pelo host");
   espera(fabs(taxa_hz_sensor(&t, agora, 2.0) - 250.0) < 0.5, "250 Hz pelo relógio do controle");
 
-  /* o Edge declara 1000 e entrega 250: a régua mede o que chega */
   Taxa u;
   taxa_zerar(&u);
   espera(taxa_hz_host(&u, 0, 2.0) == 0.0, "sem evento, sem taxa");
@@ -121,7 +118,6 @@ void provas_taxa(void) {
   taxa_evento(&u, 10, 0);
   espera(taxa_hz_sensor(&u, 10, 2.0) == 0.0, "carimbo parado não inventa taxa");
 
-  /* a janela anda: depois de 10 s de silêncio não há taxa */
   espera(taxa_hz_host(&t, agora + 10000000000ull, 2.0) == 0.0, "janela vazia depois do silêncio");
 }
 
@@ -144,7 +140,6 @@ void provas_catalogo(void) {
   espera(catalogo_sala(SALA_PROVA)->familia == FAM_TUDO, "tudo junto é a última família");
   espera(SALA_PROVA == SALA_TOTAL - 1, "a sala de tudo junto vem por último");
   espera(catalogo_feature_por_chave("nao_existe") == -1, "chave desconhecida");
-  /* a folha de teste do Hefesto usa os nomes das salas do FORJA em Godot */
   espera(catalogo_sala_por_chave("voz") == SALA_VOZ, "--sala=voz abre a sala do microfone");
   espera(catalogo_sala_por_chave("impacto") == SALA_IMPACTO, "--sala=impacto abre o dano direcional");
   espera(catalogo_sala_por_chave("giro") == SALA_VIGA, "o nome antigo da Viga ainda abre a Viga");

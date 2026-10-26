@@ -5,8 +5,6 @@ RAIZ="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 PASTA="${FORJA_ACE_STEP:-$RAIZ/oficina/ace-step}"
 REPO="https://github.com/ACE-Step/ACE-Step-1.5.git"
 PORTA="${FORJA_ACE_STEP_PORTA:-8001}"
-# Onde o Hugging Face guarda os pesos; dentro do projeto, para o desinstalar
-# levar tudo embora e o disco de casa não encher sem a gente ver.
 export HF_HOME="${FORJA_HF_HOME:-$RAIZ/oficina/modelos}"
 
 uv_bin() {
@@ -47,20 +45,6 @@ servir() {
   local uv; uv="$(uv_bin)"
   [[ -d "$PASTA" ]] || { echo "não instalado: scripts/ace_step.sh instalar"; exit 1; }
 
-  # A placa tem 8 GB. O próprio ACE-Step já sabe o que fazer com isso: ele
-  # classifica a 4060 como "tier3" (6 a 8 GB) e, sozinho, liga a descarga para
-  # a CPU e a quantização INT8 (acestep/gpu_config.py). Não se mexe nisso — na
-  # primeira tentativa eu desliguei a descarga e a carga do modelo estourou
-  # («CUDA out of memory», 6,84 GiB só para subir).
-  #
-  # O que muda aqui é só uma coisa: o modelo de TEXTO do ACE-Step não
-  # entra. Quem escreve o prompt é o nosso descrever_trilha.py, com o Ollama,
-  # e os dois não cabem juntos. Isso devolve quase 2 GB para a geração.
-  #
-  # (Forçar o decodificador na CPU, com ACESTEP_VAE_ON_CPU=1, faz caber e faz
-  # demorar: medido, um jingle de 10 s passou de meia hora. Fica de reserva.)
-  # O modelo de texto desligado vai pelo .env do próprio ACE-Step (fora do git), que ele lê sozinho e que
-  # não passa por cima do ambiente: nasce do .env.example dele, e a única linha ACESTEP_INIT_ ativa vira false.
   [[ -f "$PASTA/.env" ]] || cp "$PASTA/.env.example" "$PASTA/.env"
   sed -i -E 's/^(ACESTEP_INIT_[A-Z]+)=.*/\1=false/' "$PASTA/.env"
   export ACESTEP_SAVE_MEMORY="${ACESTEP_SAVE_MEMORY:-1}"

@@ -16,14 +16,14 @@ o `scripts/exportar.sh` têm cada um a própria cópia, e sem esta ficha ficaria
 
 ## O estado de hoje
 
-- `run-local.sh:35`, com `set -euo pipefail` (`:11`): `curl -fsSL -o "$tmp/godot.zip" "$GODOT_URL"`. O `engine.sh`
+- `run-local.sh:25`, com `set -euo pipefail` (`:11`): `curl -fsSL -o "$tmp/godot.zip" "$GODOT_URL"`. O `engine.sh`
   define `FORJA_GODOT_URL` (`:14`), e só o `exportar.sh` define `GODOT_URL` (`:28`). Medido em 09/10/2026:
   `bash -uc 'source scripts/engine.sh; echo "$GODOT_URL"'` responde «GODOT_URL: variável não associada», rc 127.
   Numa máquina sem o `tools/`, o primeiro `./run-local.sh` morre antes de baixar.
-- `scripts/exportar.sh:48-60` (`garantir_godot`) tem outra cópia do mesmo download, que funciona e não confere soma.
+- `scripts/exportar.sh:25-37` (`garantir_godot`) tem outra cópia do mesmo download, que funciona e não confere soma.
 - O cabeçalho do `run-local.sh:2` (que sai com o ADR-010) diz «Godot 4.4», e `docs/DESENVOLVER.md:28` diz «baixa o Godot 4.4.1 na primeira
   vez». A versão é a do `engine.sh`: `4.7.2-stable`.
-- O `scripts/instalar.sh:139` e o `scripts/preparar_sessao.sh:47` já usam o `forja_baixar_engine` e não têm o defeito.
+- O `scripts/instalar.sh:132` e o `scripts/preparar_sessao.sh:30` já usam o `forja_baixar_engine` e não têm o defeito.
 
 ## O alvo
 

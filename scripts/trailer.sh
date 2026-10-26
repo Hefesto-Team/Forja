@@ -1,21 +1,12 @@
 #!/usr/bin/env bash
-# O trailer de 60 s: o jogo rodando com quatro DualSense simulados e o robô,
-# gravado quadro a quadro pelo Movie Maker do Godot (--write-movie), numa tela
-# virtual (Xvfb) — sem cortes para esconder tela crua: é o jogo como ele é.
-#
-#   scripts/trailer.sh [saída.avi]     (padrão: dist/trailer.avi, 1280×720)
-#
-# Com um ffmpeg no PATH, sai também um .mp4 ao lado. FORJA_IDIOMA=en grava as
-# telas em inglês.
 set -euo pipefail
 RAIZ="$(cd "$(dirname "$0")/.." && pwd)"
-source "$RAIZ/scripts/engine.sh"   # a versão da engine mora lá (ADR-009)
+source "$RAIZ/scripts/engine.sh"
 GODOT="$FORJA_GODOT"
 SAIDA="$(realpath -m "${1:-$RAIZ/dist/trailer.avi}")"
 mkdir -p "$(dirname "$SAIDA")"
 REL="$(mktemp -d)"
 trap 'rm -rf "$REL"' EXIT
-# a caixa (tests/caixa.sh): o jogo não acha o controle ligado na máquina
 source "$RAIZ/tests/caixa.sh"
 caixa_montar "$REL/caixa"
 caixa "$GODOT" --headless --path "$RAIZ/godot" --import --quit > /dev/null 2>&1

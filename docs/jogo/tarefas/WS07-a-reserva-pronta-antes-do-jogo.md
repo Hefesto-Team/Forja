@@ -21,22 +21,22 @@ A causa: a síntese mora no `_stream`, que só roda quando alguém pede para toc
 
 ## O estado de hoje
 
-- `godot/scripts/musica.gd:52-70`, o `_stream`: sem cache, chama `Forja.ctl.sintetizar_pcm16("trilha", …)` no fio de
+- `godot/scripts/musica.gd:41-59`, o `_stream`: sem cache, chama `Forja.ctl.sintetizar_pcm16("trilha", …)` no fio de
   quem pediu e guarda em `_streams`.
-- Quem pede pela primeira vez: `godot/scripts/minigames/minigame.gd:89-92` (`comecar` → `Ritmo.tocar`) →
-  `godot/scripts/ritmo.gd:75` (`Musica.tocar_do_zero(slot)`) → `musica.gd:104-110` → `_stream(id)`.
-- Na fase de aviso: `godot/scripts/main.gd:210` (`Musica.tocar(sala_id)`), e `musica.gd:75-79` troca o id
+- Quem pede pela primeira vez: `godot/scripts/minigames/minigame.gd:61-64` (`comecar` → `Ritmo.tocar`) →
+  `godot/scripts/ritmo.gd:50` (`Musica.tocar_do_zero(slot)`) → `musica.gd:90-94` → `_stream(id)`.
+- Na fase de aviso: `godot/scripts/main.gd:190` (`Musica.tocar(sala_id)`), e `musica.gd:64-65` troca o id
   desconhecido pelo `"salao"`.
 - Medido fora da árvore (`sint_trilha` compilado com `-O2`, máquina carregada): 75 a 89 ms para 16 a 21 s de trilha, o
   tamanho das nove seções.
-- `nativo/som/sintese.c:10-13`: o ruído usa um estado global (`static uint32_t g_lcg`), semeado a cada síntese
+- `nativo/som/sintese.c:9-12`: o ruído usa um estado global (`static uint32_t g_lcg`), semeado a cada síntese
   (`:68`).
 
 ## O alvo
 
 `Musica.preparar(slot)` faz o `_stream` (ou o `_ogg`) do slot sem tocar, e o minigame chama na entrada da sala
-(`minigame.gd:65`, o `entrar`), quando a cena já está trocando. O `tocar_do_zero` acha a trilha no cache. A fase de
-aviso dura no mínimo 0,9 s (`sala_jogo.gd:291`), então mesmo uma síntese num fio de trabalho estaria pronta antes do
+(`minigame.gd:41`, o `entrar`), quando a cena já está trocando. O `tocar_do_zero` acha a trilha no cache. A fase de
+aviso dura no mínimo 0,9 s (`sala_jogo.gd:226`), então mesmo uma síntese num fio de trabalho estaria pronta antes do
 apito; esta ficha fica no fio principal, na troca de cena, que é o que basta.
 
 ## Passos

@@ -1,9 +1,5 @@
 class_name PainelBancada
 extends Control
-## O painel da bancada: o experimento e a pergunta dele, o que está
-## acontecendo agora e cada resultado, com o lugar (ou "todos", quando a
-## medida é dos quatro juntos) e o selo — medido, falhou ou não medido (o que
-## não deu para medir também é resultado, com o porquê).
 
 var bancada: SalaBancada
 

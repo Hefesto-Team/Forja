@@ -19,9 +19,9 @@ lê dele.
 
 - Não existe relógio de música. `godot/project.godot:13-17` tem três
   autoloads: `Forja`, `Som`, `Musica`.
-- `godot/scripts/musica.gd:11-24`: a tabela `FAIXAS` é por sala
+- `godot/scripts/musica.gd:3-16`: a tabela `FAIXAS` é por sala
   (`"centelha": [60, 108, 2]` = tônica, bpm, energia). `tocar(id)`
-  (`musica.gd:65-82`) troca com um fade de 0,8 s entre dois
+  (`musica.gd:54-68`) troca com um fade de 0,8 s entre dois
   `AudioStreamPlayer`, e o tween não fica guardado em lugar nenhum:
 
   ```gdscript
@@ -33,7 +33,7 @@ lê dele.
   ```
 
 - A trilha é sintetizada pelo módulo, oito compassos em laço
-  (`nativo/som/sintese.c:439-446`). O tempo vira um número inteiro de
+  (`nativo/som/sintese.c:418-425`). O tempo vira um número inteiro de
   amostras, e o andamento escorrega do pedido:
 
   ```c
@@ -44,7 +44,7 @@ lê dele.
   Em três minutos, os 0,0027 bpm dão uns 4,5 ms — quase o limite do "Pronto
   quando". O `Ritmo` tem de usar o andamento **de verdade** da síntese.
 - A entrada dos controles não passa pelo `Input` do Godot: o módulo lê o SDL
-  uma vez por quadro (`godot/scripts/forja.gd:349`, `apertou()` →
+  uma vez por quadro (`godot/scripts/forja.gd:288`, `apertou()` →
   `ctl.apertou`). O `Input.use_accumulated_input` só mexe no teclado e no
   mouse; desliga-se mesmo assim, como o 04 pede.
 - O que foi **medido** nesta preparação (Godot 4.4.1, `--headless`, driver
@@ -374,15 +374,15 @@ Ritmo="*res://scripts/ritmo.gd"
 - **O relógio recua de leve e dá a volta.** O `maxf(_t, ...)` e o
   `posicao_continua` não saem, nem "para simplificar".
 - **O laço da trilha sintetizada** tem 8 compassos (17,8 s a 108 bpm); o
-  `loop_end` do WAV está em amostras (`musica.gd:59`). Se um dia a faixa
+  `loop_end` do WAV está em amostras (`musica.gd:48`). Se um dia a faixa
   começar o laço fora do zero, `laco_s` e `posicao_continua` precisam mudar
   juntos.
 - **Um tween por vez na `Musica`.** Ver o passo 4.
 - **A pausa**: o `Ritmo` tem `process_mode = ALWAYS` porque a `Musica` também
-  tem (`musica.gd:35`); quem para o tempo é `pausar(true)`, que a H04 chama
+  tem (`musica.gd:24`); quem para o tempo é `pausar(true)`, que a H04 chama
   do `congelar()` da sala. Sem isso, as notas passam com o jogo congelado.
 - **`AudioStreamPlayer` fora da árvore não toca** (medido). Os tocadores da
-  `Musica` já estão na árvore (`musica.gd:36-40`); não crie tocador novo no
+  `Musica` já estão na árvore (`musica.gd:25-29`); não crie tocador novo no
   `Ritmo`.
 - **A latência é cara**: `get_output_latency()` só dentro de `tocar()`.
 - **O robô, o lugar desconectado, o treino**: nada disso existe nesta ficha

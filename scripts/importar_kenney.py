@@ -28,7 +28,7 @@ from pathlib import Path
 AQUI = Path(__file__).resolve().parent
 RAIZ = AQUI.parent
 sys.path.insert(0, str(AQUI))
-import kenney  # noqa: E402  (o catálogo e a busca do All-in-1 são de lá; não se copia o código)
+import kenney  # noqa: E402
 
 PERSONAGENS = ("character-",)
 
@@ -37,7 +37,6 @@ def so_personagens(nomes):
     return lambda n: n in nomes
 
 
-## pasta de destino -> (pacote no catálogo, papel, o filtro em palavras, o filtro)
 APROVADOS = {
     "mini-dungeon": ("Mini Dungeon", "cenario", "tudo menos character-*",
                      lambda n: not n.startswith(PERSONAGENS)),
@@ -93,8 +92,6 @@ def lista():
     for pasta, (pacote, papel, filtro, _f) in APROVADOS.items():
         print("  %-26s %-16s %-10s %s" % (pasta, pacote, papel, filtro))
 
-
-# ------------------------------------------------------------------ achar o pacote --
 
 def _exato(catalogo, nome):
     """O pacote do catálogo com este nome (sem acento nem caixa). Devolve (pacote, caminho relativo)."""
@@ -162,8 +159,6 @@ def achar_o_pacote(fonte, nome, temp):
     raise SystemExit("--de %s: não é um zip nem uma pasta" % fonte)
 
 
-# ------------------------------------------------------------------ copiar --
-
 def versao_do_pacote(pasta_do_pacote):
     """O número entre parênteses da linha do nome no License.txt: «Mini Characters (1.0)» dá 1.0."""
     lic = pasta_do_pacote / "License.txt"
@@ -223,8 +218,6 @@ def importar(pasta, fonte, assets):
     print("%-26s %2d peças copiadas, %d recusadas pelo conferidor (%s %s, %s)" % (pasta, copiados, recusados, pacote, versao, papel))
     return (1 if recusados else 0), (pacote, versao, papel, copiados)
 
-
-# ------------------------------------------------------------------ as linhas de licença --
 
 def _trocar_linha(arquivo, chave, linha, apagar_antes=()):
     """A linha que contém `chave` vira `linha`; sem ela, entra depois da última linha da tabela (ou da `apagar_antes`)."""

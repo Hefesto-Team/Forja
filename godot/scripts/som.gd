@@ -1,26 +1,12 @@
 extends Node
-## Os sons da forja (autoload «Som»): sintetizados pelo módulo nativo — a
-## mesma síntese do núcleo (som/sintese.c), nenhum arquivo de áudio de fora —,
-## montados numa AudioStreamWAV na primeira vez e tocados em 3D: cada raia soa
-## do seu lado.
-##
-## Este é o som da TV. O som de cada controle (o alto-falante, a háptica pelos
-## atuadores) sai pelo módulo (Forja.som_falante, Forja.som_haptica).
-##
-## Os efeitos de sabor (o martelo, o golpe, o tiro, o sino, a interface, os
-## jingles) são gravações CC0 da Kenney em assets/sons/, várias versões de
-## cada, tocadas com um tom levemente sorteado; sem gravação, a síntese. Os
-## sons que as salas MEDEM (as notas do Canto, os passos dos Caminhos, o sino
-## e o pulso de teste) seguem sintetizados: a assinatura deles é a régua.
 
-## nome -> [receita, parâmetros]
 const RECEITAS := {
 	"bigorna_aguda": ["bigorna", {"freq": 880.0, "dur": 0.9, "brilho": 0.85, "semente": 3}],
 	"bigorna": ["bigorna", {"freq": 440.0, "dur": 1.2, "brilho": 0.6, "semente": 5}],
 	"sino": ["bigorna", {"freq": 1318.5, "dur": 2.2, "brilho": 0.9, "semente": 9}],
 	"martelo": ["martelada", {"freq": 196.0, "semente": 2}],
 	"tique": ["blip", {"freq": 1760.0, "dur": 0.035}],
-	"apito": ["tom", {"freq": 2093.0, "dur": 0.45, "rampa": 0.02}],  # o do JIN_APITO (H06): 2093 Hz por 450 ms
+	"apito": ["tom", {"freq": 2093.0, "dur": 0.45, "rampa": 0.02}],
 	"falha": ["tom", {"freq": 150.0, "dur": 0.22, "rampa": 0.02}],
 	"confirma": ["acorde", {"freqs": [659.25, 987.77], "espaco": 0.06, "dur_nota": 0.25}],
 	"sucesso": ["acorde", {"freqs": [523.25, 659.25, 783.99, 1046.5], "espaco": 0.08, "dur_nota": 0.45}],
@@ -28,17 +14,13 @@ const RECEITAS := {
 	"vento": ["sopro", {"dur": 1.4, "semente": 8}],
 	"carimbo": ["martelada", {"freq": 294.0, "semente": 7}],
 	"fogo": ["fogo", {"dur": 4.0, "semente": 6}],
-	# os mesmos sons que o módulo toca no controle (som/sons_salas.c): no Canto,
-	# o ritmo da TV tem o timbre do ritmo do controle
 	"nota": ["bigorna", {"freq": 784.0, "dur": 0.42, "brilho": 1.1, "semente": 23}],
 	"nota_alta": ["bigorna", {"freq": 1174.7, "dur": 0.42, "brilho": 1.2, "semente": 29}],
 	"grito": ["grito", {"dur": 0.9, "semente": 31}],
-	# os jingles que ainda não têm arquivo (H06)
 	"derrota": ["acorde", {"freqs": [392.0, 311.13, 261.63], "espaco": 0.22, "dur_nota": 0.7}],
 	"empate": ["acorde", {"freqs": [523.25, 523.25], "espaco": 0.25, "dur_nota": 0.5}],
 }
 
-## O nome que as salas usam -> o nome da gravação em assets/sons/ (<nome>_N.wav).
 const GRAVADOS := {
 	"martelo": "martelo", "tique": "tique", "confirma": "confirma", "falha": "falha",
 	"carimbo": "carimbo", "sucesso": "vitoria_sala", "golpe": "golpe", "escudo": "escudo",
@@ -49,9 +31,9 @@ const GRAVADOS := {
 }
 
 var _streams := {}
-var _gravados := {}  ## nome da gravação -> Array[AudioStreamWAV]
-var _arquivos := {}  ## id do mapa -> o AudioStreamWAV do arquivo (null: não há)
-var _no_controle := {}  ## "nome_k" já registrado no módulo
+var _gravados := {}
+var _arquivos := {}
+var _no_controle := {}
 var _rng := RandomNumberGenerator.new()
 var _players: Array[AudioStreamPlayer3D] = []
 var _players_2d: Array[AudioStreamPlayer] = []
@@ -72,7 +54,6 @@ func _ready() -> void:
 		_players_2d.append(q)
 
 
-## A AudioStreamWAV de um som, montada uma vez.
 func stream(nome: String, laco := false) -> AudioStreamWAV:
 	var chave := nome + ("@laco" if laco else "")
 	if _streams.has(chave):
@@ -95,8 +76,6 @@ func stream(nome: String, laco := false) -> AudioStreamWAV:
 	return wav
 
 
-## Toca um som: em `pos` (3D, do lado da raia) ou sem posição (a tela toda).
-## As versões gravadas de um efeito (vazio: não há gravação).
 func versoes(gravacao: String) -> Array:
 	if _gravados.has(gravacao):
 		return _gravados[gravacao]
@@ -110,8 +89,6 @@ func versoes(gravacao: String) -> Array:
 	return lista
 
 
-## O som de um arquivo pelo id do mapa (assets/sons/<id>.wav), sem tom sorteado: o
-## que tem o nome do id é a versão única e aprovada. null: não há arquivo.
 func arquivo(nome: String) -> AudioStreamWAV:
 	if _arquivos.has(nome):
 		return _arquivos[nome]
@@ -150,7 +127,6 @@ func tocar(nome: String, pos: Variant = null, volume_db := 0.0, tom := 1.0) -> v
 				return
 
 
-## Um som em laço preso num lugar do mundo (o fogo da forja).
 func laco(nome: String, pai: Node3D, pos: Vector3, volume_db := -8.0) -> AudioStreamPlayer3D:
 	var s: AudioStream = _arquivo_em_laco(nome)
 	if s == null:
@@ -165,8 +141,6 @@ func laco(nome: String, pai: Node3D, pos: Vector3, volume_db := -8.0) -> AudioSt
 	return p
 
 
-## O arquivo do id do mapa (assets/sons/<id>.wav) em laço, do primeiro ao último quadro;
-## uma cópia, para o `tocar` do mesmo id não herdar o laço. null: não há arquivo.
 func _arquivo_em_laco(nome: String) -> AudioStreamWAV:
 	var base := arquivo(nome)
 	if base == null:
@@ -179,9 +153,6 @@ func _arquivo_em_laco(nome: String) -> AudioStreamWAV:
 	return w
 
 
-## O mesmo efeito no alto-falante do controle do lugar (o módulo recebe a
-## gravação na primeira vez). Só depois da resposta nas provas às cegas: um
-## som no controle não pode entregar o que a mão tem de descobrir.
 func no_controle(lugar: int, nome: String, ganho := 0.7) -> void:
 	if not Forja.modulo:
 		return
@@ -205,12 +176,6 @@ func no_controle(lugar: int, nome: String, ganho := 0.7) -> void:
 		Forja.som_falante(lugar, chave, ganho)
 
 
-# ---------------------------------------------------------------- os jingles (H06) --
-
-## Os jingles (docs/jogo/04-ritmo-e-audio.md#as-telas-e-os-jingles). O arquivo
-## próprio em assets/ost/jingles/<nome>.ogg quando existir; enquanto não, uma
-## gravação da Kenney de assets/sons/ ou a síntese que faz as vezes.
-## nome -> ["gravado", a gravação] ou ["sintese", a receita]
 const JINGLES := {
 	"JIN_APITO": ["sintese", "apito"],
 	"JIN_VITORIA": ["gravado", "vitoria_sala"],
@@ -222,15 +187,13 @@ const JINGLES := {
 	"JIN_VIRADA": ["gravado", "placar"],
 }
 
-var ultimo_jingle := ""  ## o último que tocou (a prova olha)
+var ultimo_jingle := ""
 var _jingle: AudioStreamPlayer = null
 
 
-## Toca o jingle na TV, num tocador só dele (nunca fica sem voz), e devolve a
-## duração em s (0: não há som para ele).
 func jingle(nome: String) -> float:
 	var s: AudioStream = null
-	var proprio := Musica.caminho(nome)   # res://assets/ost/jingles/<nome>.ogg (H05)
+	var proprio := Musica.caminho(nome)
 	if ResourceLoader.exists(proprio):
 		s = load(proprio)
 	elif JINGLES.has(nome):
@@ -251,8 +214,6 @@ func jingle(nome: String) -> float:
 	return s.get_length()
 
 
-## O jingle do resultado: no coop, todos venceram ou ninguém; senão, o empate
-## em primeiro ou a vitória. Pura, para a prova.
 static func jingle_do_resultado(pontos: Array, presentes: Array, coop: bool, coop_venceu: bool) -> String:
 	if coop:
 		return "JIN_COOP_VITORIA" if coop_venceu else "JIN_DERROTA"
@@ -267,8 +228,6 @@ static func jingle_do_resultado(pontos: Array, presentes: Array, coop: bool, coo
 	return "JIN_EMPATE" if presentes.size() >= 2 and no_topo >= 2 else "JIN_VITORIA"
 
 
-## O pio do cavaleiro do lugar (arte/03): a nota do lugar e o intervalo da
-## cabeça, na TV e no alto-falante do dono.
 func pio(lugar: int, boneco: int) -> void:
 	var i := wrapi(boneco, 0, ForjaPlayer.BONECOS.size())
 	var id := "pio_p%d_%s" % [lugar + 1, ForjaPlayer.BONECOS[i].intervalo]

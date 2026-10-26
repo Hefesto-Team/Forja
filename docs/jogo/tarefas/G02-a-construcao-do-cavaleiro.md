@@ -62,7 +62,7 @@ construção, a 120 BPM (a batida tem 500 ms).
 
 ## A cena
 
-- **Câmera:** a de hoje, sem mudança: `main.gd:932`,
+- **Câmera:** a de hoje, sem mudança: `main.gd:850`,
   `[Vector3(0, 2.9, 14.2), Vector3(0, 0.55, 4.4)]`, 40°. A cerca de 148 px
   por metro na altura dos pedestais, os pedestais (x = −4,2 + 2,8·i, z = 4,4)
   caem em x de tela ≈ 338, 753, 1167, 1582. Os centros das colunas de 432 px
@@ -141,7 +141,7 @@ A sensação nova, em `forja.gd` (a tabela da F05):
 `SENSACOES["metal"] = [0.0, 0.45, 40]`: o pulso curto da troca de peça (o
 03 pede 150 Hz nos atuadores; com o motor, 0/0,45 por 40 ms).
 
-Sem o controle na mão: `Forja.percepcao(l)` (`forja.gd:726`) traz `forte`
+Sem o controle na mão: `Forja.percepcao(l)` (`forja.gd:620`) traz `forte`
 e `fraco` do controle simulado; `Forja.som_virtual(l).falante` mede o
 alto-falante. A prova confere os dois na oitava martelada (Provas): `fraco`
 de 0,79 ou mais só sai do `"perfeito"` (0,5/0,8/100), e o pio passa de 0,05
@@ -201,7 +201,7 @@ confere:**
     `lobby.visual[l]`.
   - `_passo(l, vertical)` (816): a borda do analógico e do d-pad.
   - `_pose_da_camera()` (925), ramo `"lobby"` (932).
-- `godot/scripts/ui/pausa.gd:25`: a pausa já lista «Opções»
+- `godot/scripts/ui/pausa.gd:24`: a pausa já lista «Opções»
   (`["opcoes", "Opções"]`); no lobby a lista é Continuar, Opções, Voltar ao
   lobby, Sair do jogo.
 - `godot/scripts/player.gd`: `MODELOS` (14), `ITENS` (17, os sete antigos:
@@ -215,16 +215,16 @@ confere:**
   evento `calibracao` com o `transporte`.
 - `godot/scripts/opcoes.gd`: `tempo_ms` (38), `de_fabrica` (49), `gravar`
   (90); não há cavaleiro guardado.
-- `godot/scripts/mundo/salao.gd:361-392`, `_pedestais()`: quatro discos em
+- `godot/scripts/mundo/salao.gd:335-366`, `_pedestais()`: quatro discos em
   `Vector3(-4.2 + i * 2.8, 0, 4.4)` com o aro do lugar; não há bigorna por
-  lugar. `Kit.bigorna(pai, pos, escala)` existe (`mundo/kit.gd:138`).
-- `godot/testes/prova_do_jogo.gd:108-123`: os visuais, ◀▶ do P2, ▼ do P3 e
+  lugar. `Kit.bigorna(pai, pos, escala)` existe (`mundo/kit.gd:127`).
+- `godot/testes/prova_do_jogo.gd:93-107`: os visuais, ◀▶ do P2, ▼ do P3 e
   ✕ de pronto nos quatro. As linhas 93-96 apertam ✕ para os quatro
   entrarem; a G01 tira esses apertos e deixa o robô do lobby (✕ a cada
   0,6 s) fazer os quatro entrarem.
-- `godot/scripts/forja.gd:881`, `robo_apertar(l, botao, segundos)`: aperta
+- `godot/scripts/forja.gd:739`, `robo_apertar(l, botao, segundos)`: aperta
   no `pad_do_lugar(l)`; um lugar só reservado (F04) dá -1 e o aperto não sai.
-- `godot/testes/captura_jogo.gd:265-274`, `_roteiro_dos_extras`: △ do P2 no
+- `godot/testes/captura_jogo.gd:232-240`, `_roteiro_dos_extras`: △ do P2 no
   lobby abre as opções.
 
 ## O alvo
@@ -593,7 +593,7 @@ Rodar `bash tests/prova_do_jogo.sh` depois dos passos 3, 6 e 8.
   `Opcoes.guardar()` existe para a tela não saber do robô.
 - **Nada abaixo de 30 px**, nada sem `Traducoes`, nenhum `Label`.
 - **O pedestal escondido:** `pedestais_no.visible` é `qual in ["lobby", "podio"]`
-  (`main.gd:221`); as bigornas vão junto.
+  (`main.gd:200`); as bigornas vão junto.
 - **Os temperamentos e os casos que quebram:** `--robo=bom|medio|ruim`,
   partidas com 1 e 2 jogadores e o `simulador_cabo`. Quem cai guarda a etapa
   e as marteladas, a coluna mostra «Sem controle», e quando volta continua de

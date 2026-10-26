@@ -1,9 +1,4 @@
 extends Node3D
-## Quadro 19 — As raças (PRODUCAO, item 16; 04, as raças): cinco linhas
-## (Humana, Orc, Autômato, Golem, Raposa) por quatro colunas (P1 a P4), cada
-## cavaleiro de frente e a 3/4, com o contorno e o acento do lugar. Embaixo, o
-## teste do 04: as cinco cabeças a 64 px, em cinza (a L do OKLab) e na
-## silhueta em preto chapado. 1920×1440, câmera ortográfica.
 
 const Fita := preload("res://estudos/direcao/fita.gd")
 const Hud := preload("res://estudos/direcao/hud.gd")
@@ -16,15 +11,13 @@ var espera := 10
 var arquivo := "19_racas"
 var folha: SubViewport
 const TAM := Vector2i(1920, 1440)
-const ESCALA := 0.0086          ## metros por píxel
-const X0 := 230.0               ## onde começam as colunas (à esquerda, o nome da raça)
+const ESCALA := 0.0086
+const X0 := 230.0
 const COL := 410.0
-const LINHA_Y := 192.0          ## o topo da primeira linha
+const LINHA_Y := 192.0
 const LINHA_H := 186.0
-const TESTE_Y := 1140.0         ## o topo do teste de 64 px
-const TESTE_DX := 330.0         ## de uma raça à outra no teste
-## As peças de cada cavaleiro: [cabeça (o perfil), superior, inferior], por
-## raça e por lugar. O perfil dá a marca (a cor do cabelo dele).
+const TESTE_Y := 1140.0
+const TESTE_DX := 330.0
 const PECAS := {
 	"humana": [["male-c", "female-f", "male-a"], ["female-b", "male-b", "female-d"], ["male-e", "female-c", "male-d"], ["female-a", "male-d", "female-e"]],
 	"orc": [["male-a", "male-e", "male-b"], ["female-c", "female-a", "male-f"], ["male-f", "male-c", "female-b"], ["female-e", "female-d", "male-c"]],
@@ -32,7 +25,6 @@ const PECAS := {
 	"golem": [["male-b", "male-d", "female-f"], ["female-a", "male-c", "male-d"], ["male-c", "female-b", "female-e"], ["female-b", "male-a", "male-f"]],
 	"raposa": [["female-e", "female-c", "male-e"], ["male-d", "male-f", "female-c"], ["female-c", "female-d", "male-b"], ["male-f", "male-e", "female-d"]],
 }
-## As cabeças do teste de 64 px: uma de cada raça, pelo mesmo perfil.
 const TESTE_PERFIL := "male-b"
 var celulas_64 := []
 
@@ -66,7 +58,6 @@ func montar(_estudo) -> void:
 					"yaw": -PI * 0.25 if vista == 1 else 0.0})
 	Mundo.neon_sem_sombra(raiz)
 	Prancha.pregar(folha, vp, Rect2(Vector2.ZERO, Vector2(TAM)))
-	# o teste: as cinco cabeças a 64 px, cada uma numa célula própria
 	for r in 5:
 		var c := _cabeca_64(Racas.RACAS[r])
 		celulas_64.append(c)
@@ -81,7 +72,6 @@ func montar(_estudo) -> void:
 	Prancha.por_cima(folha, _texto)
 
 
-## A luz da prancha: a chave em tungstênio, o contra em violeta.
 func _luz(raiz: Node3D) -> void:
 	var sol := DirectionalLight3D.new()
 	raiz.add_child(sol)
@@ -95,8 +85,6 @@ func _luz(raiz: Node3D) -> void:
 	contra.light_energy = 0.5
 
 
-## A cabeça sozinha, de frente, sem contorno nem acento, 64 × 64 px, fundo
-## transparente: o que o teste do 04 mede.
 func _cabeca_64(raca: String) -> SubViewport:
 	var vp := SubViewport.new()
 	vp.size = Vector2i(64, 64)
@@ -123,7 +111,6 @@ func _cabeca_64(raca: String) -> SubViewport:
 	cam.current = true
 	cam.projection = Camera3D.PROJECTION_ORTHOGONAL
 	cam.keep_aspect = Camera3D.KEEP_HEIGHT
-	# a cabeça (y de 0,30 a 0,86 nas unidades do personagem, ×K) cabe nos 64 px
 	cam.size = 0.60 * Mundo.K
 	cam.position = Vector3(0, 0.585 * Mundo.K, 10)
 	return vp

@@ -1,8 +1,6 @@
-/* O sorteio: xorshift64*, pequeno e reprodutível. Ver aleatorio.h. */
 #include "aleatorio.h"
 
 void sorteio_semear(Sorteio *s, uint64_t semente) {
-  /* splitmix64 espalha a semente: 1, 2 e 3 viram estados sem parentesco. */
   uint64_t z = semente + 0x9E3779B97F4A7C15ull;
   z = (z ^ (z >> 30)) * 0xBF58476D1CE4E5B9ull;
   z = (z ^ (z >> 27)) * 0x94D049BB133111EBull;

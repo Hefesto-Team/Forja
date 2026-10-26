@@ -1,4 +1,3 @@
-/* O relatório da sessão. Ver relatorio.h. */
 #include "relatorio.h"
 
 #include "mascara.h"
@@ -86,8 +85,6 @@ const char *rel_nivel_rotulo(NivelEvidencia n) {
     return "nenhum";
   }
 }
-
-/* ---------- JSON ---------- */
 
 static void json_som(TextoBuf *b, const char *chave, const RelSom *s, int ultimo) {
   tb_printf(b, "      \"%s\": {\"nome\": ", chave);
@@ -197,8 +194,6 @@ int rel_json(const Relatorio *r, char **saida, size_t *tam) {
     json_controle(&b, &r->controles[i], vistos == n_pres);
   }
   tb_texto(&b, "  ],\n  \"matriz\": [\n");
-  /* A matriz: toda feature, para todo controle presente, com o último
-   * veredito — ou "não medido", com o motivo. */
   int linhas = 0, total_linhas = n_pres * F_TOTAL;
   for (int i = 0; i < REL_MAX_CONTROLES; i++) {
     const RelControle *c = &r->controles[i];
@@ -233,8 +228,6 @@ int rel_json(const Relatorio *r, char **saida, size_t *tam) {
   return 0;
 }
 
-/* ---------- texto ---------- */
-
 static const char *simbolo(Resultado res) {
   switch (res) {
   case RES_PASSOU:
@@ -246,8 +239,6 @@ static const char *simbolo(Resultado res) {
   }
 }
 
-/* Preenche com espaços até `largura` colunas, contando codepoints (os acentos
- * ocupam uma coluna). */
 static void coluna(TextoBuf *b, const char *s, int largura) {
   int cols = 0;
   for (const unsigned char *p = (const unsigned char *)s; *p; p++)

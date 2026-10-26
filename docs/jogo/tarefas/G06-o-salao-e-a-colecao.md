@@ -63,7 +63,7 @@ não muda stat (sistemas, o mantra).
 
 ### A câmera do salão (01: 35 mm, alto, 3/4, deriva de 2 % em 16 compassos)
 
-A pose de hoje (`main.gd:940-957`), com a lente de 35 mm da G05 e o recuo
+A pose de hoje (`main.gd:858-873`), com a lente de 35 mm da G05 e o recuo
 dela (×1,0616): `dist = clampf(12.2 + abertura * 0.53, 12.2, 19.1)`. A
 deriva: um pan lateral de 2 % da distância, ida em 16 compassos e volta em 16,
 `ENTRA_SAI`:
@@ -106,7 +106,7 @@ brilham (07): o papel e a tarja são foscos.
 
 ### A vitrine (parede leste, entre os dois portões)
 
-- Sai `peca("stones", Vector3(10.4, 0, -1.0), …)` de `_enfeites()` (`salao.gd:408`).
+- Sai `peca("stones", Vector3(10.4, 0, -1.0), …)` de `_enfeites()` (`salao.gd:382`).
 - `vitrine_no := Node3D` em `Vector3(10.6, 0, 0.0)`, `rotation.y = -PI * 0.5`.
 - A madeira: `Kit.material(Tema.OXIDO, 0.0, 0.9)`. Dois lados
   `Kit.caixa(vitrine_no, Vector3(0.08, 1.9, 0.5), Vector3(±1.25, 0.95, 0), madeira)`;
@@ -243,25 +243,25 @@ confere:**
 
 ## O estado de hoje
 
-- `godot/scripts/mundo/salao.gd:15-24`, `PORTOES`: 8 portões (`centelha`,
+- `godot/scripts/mundo/salao.gd:7-16`, `PORTOES`: 8 portões (`centelha`,
   `viga`, `molde`, `impacto`, `galeria`, `voz`, `caminhos`, `canto`), com
   `"nome"`, `"sobre"` («Seção 1» a «Seção 8»), `"icone"`, `"lado"`, `"t"`,
   `"aberta"` (todos `true`).
-- `salao.gd:143-211`, `_portao(p)`: a moldura, o portão animado, a placa em
+- `salao.gd:129-191`, `_portao(p)`: a moldura, o portão animado, a placa em
   `pos + frente * 1.15 + (0, 2.75, 0)` com o nome (`Label3D` Archivo 700 de
   96, contorno 18), o ícone (`Sprite3D`) e o `sobre` (`Label3D` 64 em
   y −0,3), as duas tochas (`_tocha`, 213-249); guarda tudo em `portoes[p.id]`.
-- `salao.gd:395-416`, `_enfeites()`: as pedras em `(10.4, 0, -1.0)` na
+- `salao.gd:369-390`, `_enfeites()`: as pedras em `(10.4, 0, -1.0)` na
   parede leste (linha 408). Não há vitrine.
-- `godot/scripts/main.gd:651-685`, `_quadro_salao()`: perto de um portão,
+- `godot/scripts/main.gd:599-631`, `_quadro_salao()`: perto de um portão,
   `hud.placa = {"nome", "sobre", "aberta"}` (676); ✕ num fechado vibra
   0,2/0/60 (685). `_perto_da_bigorna()` (689-710): a placa «A Prova» com
   «Seção 9 · □ a partida · △ a Prova de Fogo».
-- `main.gd:343-376`, `_ao_terminar_a_sala()`: depois das guardas, com
+- `main.gd:316-344`, `_ao_terminar_a_sala()`: depois das guardas, com
   partida, `_placar_da_sala(sj)` (400-413); nada guarda a vitória fora da
   partida.
-- `main.gd:940-957`: a pose do salão (distância 11,5 a 18, a 40°), sem
-  deriva. `main.gd:217`: `Musica.tocar("salao")`.
+- `main.gd:858-873`: a pose do salão (distância 11,5 a 18, a 40°), sem
+  deriva. `main.gd:197`: `Musica.tocar("salao")`.
 - `godot/scripts/player.gd` e `opcoes.gd`: ainda sem `ACABAMENTOS` nem
   `noite()` (a G02 os traz).
 - Cada seção tem hoje **um** minigame. O catálogo das seções
@@ -370,7 +370,7 @@ func cor_do_trofeu(i: int) -> Color         ## a prova lê: o albedo do copo da 
 			Forja.vibrar(r.recorde, 0.3, 0.6, 80)
 ```
 
-  `Forja.aviso` é o sinal de hoje (`forja.gd:30`, `signal aviso(texto)`), que o
+  `Forja.aviso` é o sinal de hoje (`forja.gd:2`, `signal aviso(texto)`), que o
   HUD já ouve: por isso `emit`.
   `SalaJogo.erros_do_grupo() -> int` é novo: devolve 0 por padrão; o kit
   (H04) soma os `julgar(l, 0)` da G04. Até lá, todo coop vencido conta como

@@ -56,7 +56,7 @@ em mais nada.
 | P3 | `JOGADOR[2]` | `#d4ff4a` | limão | `0x15` (três) |
 | P4 | `JOGADOR[3]` | `#ee9a1e` | âmbar | `0x1B` (quatro) |
 
-No jogo, `forja.gd:71` `COR_DO_LUGAR` ainda tem as cores antigas
+No jogo, `forja.gd:41` `COR_DO_LUGAR` ainda tem as cores antigas
 (`Color8(0,72,255)`, `(255,24,8)`, `(0,255,64)`, `(255,8,168)`). A G14 troca
 pelas quatro acima. A cor da lightbar do controle segue a mesma tabela.
 
@@ -223,7 +223,7 @@ embaixo do nome (a "sublinha do dono").
 | `ETIQUETA` | `VIOLETA` | 6,74 |
 
 A placa "Pronto" (fundo na cor do jogador, texto em `FITA`) do estudo
-(`godot/estudos/direcao/hud.gd:201-203`) obedece a esta tabela.
+(`godot/estudos/direcao/hud.gd:173-175`) obedece a esta tabela.
 
 ## As quatro fontes
 
@@ -241,7 +241,7 @@ Os pesos do Archivo Narrow: 500 no texto, 600 no nome e no rótulo, 700 no
 botão e no "Pronto".
 
 Space Grotesk e JetBrains Mono saem do jogo (são do app Hefesto). A G14 tira
-os dois de `tema.gd:54-55`.
+os dois de `tema.gd:39-40`.
 
 ## A escala de tamanhos
 

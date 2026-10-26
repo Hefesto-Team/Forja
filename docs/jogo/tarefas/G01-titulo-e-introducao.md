@@ -187,30 +187,30 @@ confere:**
 
 ## O estado de hoje
 
-- `godot/scripts/main.gd:29` começa em `var estado := "titulo"`.
-- `main.gd:215-229`, `_mostrar()`: `Musica.tocar(sala_id if qual == "sala" else qual)`;
+- `godot/scripts/main.gd:18` começa em `var estado := "titulo"`.
+- `main.gd:195-208`, `_mostrar()`: `Musica.tocar(sala_id if qual == "sala" else qual)`;
   `salao.pedestais_no.visible = qual in ["lobby", "podio"]`.
-- `main.gd:542-566`, `_process()`: o `match estado` chama `_quadro_titulo`,
+- `main.gd:499-520`, `_process()`: o `match estado` chama `_quadro_titulo`,
   `_quadro_lobby`… Não há estado de introdução.
-- `main.gd:575-589`, `_quadro_titulo()`: ✕ ou Options de qualquer controle
+- `main.gd:528-541`, `_quadro_titulo()`: ✕ ou Options de qualquer controle
   vai direto ao lobby com `_trocar(_ir_para_o_lobby)`; △ abre os créditos;
   sem controle, Enter chama `Forja.jogar_no_teclado()`.
-- `main.gd:925-931`, `_pose_da_camera()`: o título gira em volta da bigorna
-  (`_t * 0.08`). `main.gd:956-976`: `_enquadrar()` usa `FOV_16_9 := 40.0`
+- `main.gd:844-849`, `_pose_da_camera()`: o título gira em volta da bigorna
+  (`_t * 0.08`). `main.gd:872-889`: `_enquadrar()` usa `FOV_16_9 := 40.0`
   em todo estado; `_mover_camera` suaviza com `k` 1,2 no título.
 - `godot/scripts/ui/tela_titulo.gd`: «Hefesto», «Tech Demo», a contagem de
   USB/BT e o rodapé com a versão; tudo sai.
-- `godot/scripts/musica.gd:11-24`, `FAIXAS`: não há `"titulo"`;
+- `godot/scripts/musica.gd:3-16`, `FAIXAS`: não há `"titulo"`;
   `TELAS.titulo = "MUS_TELA_TITULO"` já existe (linha 190), e `tocar` cai no
   salão quando a faixa gerada falta.
-- `godot/scripts/mundo/salao.gd:251-313`, `_bigorna()`: a luz da forja vai
+- `godot/scripts/mundo/salao.gd:230-289`, `_bigorna()`: a luz da forja vai
   para `_tochas` (linha 313) e tremula como as tochas em `_process` (50-55).
 - `godot/scripts/som.gd`: `tocar(nome, pos, volume_db, tom)` na linha 109,
   `no_controle(lugar, nome, ganho)` na 153. Não há tocador por id do mapa.
 - O estudo tem os helpers de desenho do cassete em
   `godot/estudos/direcao/hud.gd`: `caixa` (32), `carretel` (74), `contador`
   (105).
-- `godot/testes/prova_do_jogo.gd:83`, `_prova_do_percurso()`: aperta ✕ no
+- `godot/testes/prova_do_jogo.gd:69`, `_prova_do_percurso()`: aperta ✕ no
   título (linha 90) e espera `"lobby"` 40 quadros depois.
 - `godot/testes/captura_jogo.gd` aperta ✕ no título em todos os roteiros
   (`_roteiro_das_telas`, `_roteiro_das_salas`, `_roteiro_da_partida`,

@@ -1,6 +1,3 @@
-/* Write USB DualSense report 0x02 to hidraw devices that look like USB DualSense.
- * Refuses Bluetooth (bus 0005): this game does not speak report 0x31.
- */
 #include "forja_dualsense.h"
 #include "forja_mesa.h"
 
@@ -76,8 +73,6 @@ int main(int argc, char **argv) {
     }
   }
 
-  /* The table comes from forja_mesa: forja-speak and forja-read read the SAME
-   * list, so "player N" is the same DualSense in the three of them. */
   ForjaPad pads[8];
   int n = forja_mesa_pads(pads, 8);
   if (list_only) {

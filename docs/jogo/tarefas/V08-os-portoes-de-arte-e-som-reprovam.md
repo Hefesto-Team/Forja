@@ -22,21 +22,21 @@ Medido em 08/10/2026 com `bash scripts/portoes/rodar.sh` (arte: 193 avisos em 46
   os maiores: `salas/voz.gd` 21, `salas/impacto.gd` 19, `salas/molde.gd` 16, `salas/prova.gd` 15, `salas/viga.gd`,
   `salas/canto.gd` e `salas/caminhos.gd` 12 cada), mais 16 `Color.WHITE`/`Color.BLACK` (os primeiros em
   `mundo/efeitos.gd`). O próprio `tema.gd` tem 20 cores que não estão na paleta da bíblia (a partir da linha 11).
-- **Fonte fora da bíblia:** `godot/project.godot:42` pede `SpaceGrotesk` em `gui/theme/custom_font`; o `tema.gd:54-55`
+- **Fonte fora da bíblia:** `godot/project.godot:42` pede `SpaceGrotesk` em `gui/theme/custom_font`; o `tema.gd:39-40`
   carrega Space Grotesk e JetBrains Mono, e as duas estão em `godot/assets/fontes/`.
 - **Texto abaixo de 30 px:** 12 chamadas, `godot/scripts/ui/diagnostico.gd` 8 (20 e 22 px),
-  `godot/scripts/ui/painel_bancada.gd:57` (o selo em 20) e `:58` (o parágrafo em 22),
-  `godot/scripts/ui/tela_lobby.gd:108` (26) e `:111` (24).
+  `godot/scripts/ui/painel_bancada.gd:53` (o selo em 20) e `:58` (o parágrafo em 22),
+  `godot/scripts/ui/tela_lobby.gd:96` (26) e `:111` (24).
 - **Cor de jogador fora do jogador:** nenhum acesso por índice literal hoje; o portão segue olhando.
 - **Som:** o `docs/jogo/audio/mapa.csv` não existe, então 36 ids tocados ficam sem conferência (a V05 cria o mapa);
-  `godot/scripts/salas/canto.gd:297` e `:299` tocam um id que mora numa variável e o portão não lê.
+  `godot/scripts/salas/canto.gd:267` e `:299` tocam um id que mora numa variável e o portão não lê.
 - **O mapa da direção de arte, medido antes de entrar** (o `docs/jogo/audio/mapa.csv` da árvore da direção, 258 linhas,
   posto numa raiz de rascunho em 08/10/2026): `som.py` dá 164 avisos, e a maior parte é o portão que não lê o mapa
   como ele é escrito, não defeito do som:
   - 37 linhas com `arquivo` = `(módulo)` (o som que o módulo sintetiza no controle) saem como «o arquivo não existe»;
   - os 36 ids tocados não casam com nenhuma linha: o mapa escreve a gravação como `<gravação>_<n>` (as versões que
-    `Som.versoes` carrega, `godot/scripts/som.gd:96-101`), a síntese da TV como `sint_<id>` e a do controle como
-    `mod_<id>`, e o nome tocado passa por `GRAVADOS` (`som.gd:39`) antes de virar gravação (`sucesso` toca
+    `Som.versoes` carrega, `godot/scripts/som.gd:77-80`), a síntese da TV como `sint_<id>` e a do controle como
+    `mod_<id>`, e o nome tocado passa por `GRAVADOS` (`som.gd:22`) antes de virar gravação (`sucesso` toca
     `vitoria_sala`);
   - 36 arquivos passam do teto de −1 dBFS de `som.json`, e a bíblia (`docs/jogo/arte/03-som.md`) deixa o pico da
     Kenney medido no próprio mapa (a coluna `pico_dbfs` chega a −0,9);

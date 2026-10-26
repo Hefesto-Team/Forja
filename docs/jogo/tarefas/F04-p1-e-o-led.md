@@ -17,7 +17,7 @@ cor de equipe. O número tem de valer desde a conexão e nunca se apagar.
 
 ## O estado de hoje
 
-**`nativo/nucleo/pads.c`** (a mesa; `pads.h:89-101` tem `Pad.slot` e `Slot`):
+**`nativo/nucleo/pads.c`** (a mesa; `pads.h:71-83` tem `Pad.slot` e `Slot`):
 
 - `conectou()` (`:193-328`) abre o gamepad, preenche o `Pad` com `p->slot = -1`
   e só dá lugar a quem **volta** (um slot desconectado com a mesma
@@ -51,27 +51,27 @@ mas o `forja.gd` não o expõe.
 entra com ✕ (`:589-594`, `Forja.entrar(int(p.pad))`). `_todos_entram()`
 (`:203-207`) faz o mesmo para os argumentos.
 
-**`godot/scripts/ui/cartao_jogador.gd:33-38`**: o lugar vazio mostra o rótulo em
+**`godot/scripts/ui/cartao_jogador.gd:27-32`**: o lugar vazio mostra o rótulo em
 `Tema.MUDO` e a dica "entrar".
 
 **As salas que apagam a identidade:**
-- `salas/galeria.gd:198-202` `_leds(l, quantos)`: a munição nas luzinhas
+- `salas/galeria.gd:173-177` `_leds(l, quantos)`: a munição nas luzinhas
   (chamado em `:295`, `:316`, `:387-393`, `:463`).
-- `salas/prova.gd:225-227` `_mostrar_municao()`: a munição nas luzinhas; e
+- `salas/prova.gd:188-188` `_mostrar_municao()`: a munição nas luzinhas; e
   `:242-264` `_atualizar_luz()`: `var c: Color = LUZ_EQUIPE[e.equipe]`, com
   `k = 0.04` derrubado e `0.06`/`0.25` por um fio.
-- `salas/impacto.gd:184-186` `_cor_da_vida()`: `k := 0.12 + 0.88 * vida` (quase
+- `salas/impacto.gd:160-162` `_cor_da_vida()`: `k := 0.12 + 0.88 * vida` (quase
   apaga).
-- `salas/voz.gd:289-290` `_susto()`: a barra vermelha por `SUSTO_S` (1,9 s,
+- `salas/voz.gd:252-253` `_susto()`: a barra vermelha por `SUSTO_S` (1,9 s,
   `:33`), e a cor do lugar só volta em `:445-447`.
-- As perguntas de luzinhas e de cor (`galeria.gd:446`, `prova.gd:544-574`,
-  `impacto.gd:302`) já só existem no Modo bancada (F01).
+- As perguntas de luzinhas e de cor (`galeria.gd:414`, `prova.gd:493-521`,
+  `impacto.gd:271`) já só existem no Modo bancada (F01).
 
-**A prova** (`godot/testes/prova_do_jogo.gd:73-88`) aperta ✕ no título e depois
+**A prova** (`godot/testes/prova_do_jogo.gd:59-74`) aperta ✕ no título e depois
 ✕ nos simulados 0, 1, 2 e 3, **nessa ordem**, e só então confere player index,
 luzinhas e cor. A Prova confere `"a luz é a da %s"` com `SalaProva.LUZ_EQUIPE`
 (`:262-266`). O simulador pendura os quatro controles na ordem 0..3, com os
-nomes `"DualSense simulado 1".."4"` (`nativo/nucleo/simulador.c:210-211`), e
+nomes `"DualSense simulado 1".."4"` (`nativo/nucleo/simulador.c:200-201`), e
 `simulador_cabo(sim, ligado)` (`:260`) tira e põe o cabo.
 
 ## O alvo
@@ -173,23 +173,23 @@ func pad_segura(indice: int, botao: int) -> bool
    			Forja.trocar_lugar(i)
    			_quadrado_t[i] = -INF  # só de novo depois de soltar
    ```
-6. **`godot/scripts/ui/cartao_jogador.gd:33-38`**: com `info.get("reservado")`,
+6. **`godot/scripts/ui/cartao_jogador.gd:27-32`**: com `info.get("reservado")`,
    o rótulo na cor do lugar (`cor_id`) e, além da dica de entrar,
    `Glifo.dica(..., "quadrado", "segure para trocar", ...)`.
 7. **As salas** (fora do Modo bancada; com a bancada, como hoje):
-   - `galeria.gd:198` `_leds()`: primeira linha `if not Forja.bancada: return`.
+   - `galeria.gd:173` `_leds()`: primeira linha `if not Forja.bancada: return`.
      E `status()` (`:598-602`), com `int(e.passo) == ATIRAR`:
      `return "%d balas" % (int(e.balas_mg) if int(e.arma) == METRALHADORA else int(e.balas))`.
      Em `dar_vereditos()` (`:497-505`), fora da bancada, o `"sdl_aceitou"` do
      `leds_jogador` é `true` (a sala não pediu as luzinhas): o relatório diz
      "nenhuma pergunta de munição respondida", e não "o SDL recusou".
-   - `prova.gd:225` `_mostrar_municao()`: `if not Forja.bancada: return` (o
+   - `prova.gd:188` `_mostrar_municao()`: `if not Forja.bancada: return` (o
      status já mostra as balas, `:743`). `_atualizar_luz()` (`:242-264`):
      `var c: Color = Forja.cor_do_lugar(e.lugar)`, e os brilhos `fora` 0,3,
      por um fio 0,6/0,35, vida 2 0,7, vida 3 1,0. O vermelho do golpe
      (`luz_pisca`, 0,16 s) fica. `LUZ_EQUIPE` continua no disco, nas balas e
      nas faíscas (`:189`, `:322`, `:353`).
-   - `impacto.gd:185`: `var k := 0.3 + 0.7 * clampf(float(j[l].vida), 0.0, 1.0)`.
+   - `impacto.gd:161`: `var k := 0.3 + 0.7 * clampf(float(j[l].vida), 0.0, 1.0)`.
    - `voz.gd`: no estado `SUSTO` (`:443-449`), `if t_estado >= 0.4` e a luz
      ainda vermelha, `Forja.luz_do_lugar(l)` para cada lugar (uma vez).
 8. **A prova**: as checagens de "Provas".
@@ -199,7 +199,7 @@ func pad_segura(indice: int, botao: int) -> bool
 - **Compilar o módulo com o jogo fechado** (o Godot segura o `.so`). Depois
   de `scripts/compilar.sh linux`, rode também `scripts/compilar.sh testes`.
 - **O SDL dá um player index sozinho** na chegada (o comentário de
-  `simulador.c:236-237`). Por isso a reserva manda o índice logo em seguida, e
+  `simulador.c:225-225`). Por isso a reserva manda o índice logo em seguida, e
   quem fica sem lugar recebe -1.
 - **O 5º controle** fica sem reserva e sem luzinhas; quando um lugar vaga, o
   `pads_atualizar` dá a ele.
@@ -211,7 +211,7 @@ func pad_segura(indice: int, botao: int) -> bool
   voltando pelo bloco da volta de `conectou()` — que roda **antes** da reserva.
   Não inverta a ordem.
 - **O `jogador` da linha do tempo** das saídas de um pad reservado mas não
-  confirmado continua 0 (o `ev_saida` usa `p->slot`, `pads.c:138`). A F06 troca
+  confirmado continua 0 (o `ev_saida` usa `p->slot`, `pads.c:127`). A F06 troca
   por `pad_lugar(p)`; aqui, não.
 - **Nada de `Forja.robo` novo** (13, paridade). A prova aperta e segura pelo
   simulador (`Forja.ctl.simulador_botao`, `simulador_cabo`).

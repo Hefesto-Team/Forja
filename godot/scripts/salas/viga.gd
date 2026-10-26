@@ -1,30 +1,8 @@
 class_name SalaViga
 extends SalaJogo
-## A Viga — equilíbrio e mira por movimento.
-##
-## Três trechos, um atrás do outro, cada um com o uso de sensor de um tipo de
-## jogo:
-##
-##   1. a travessia: o boneco anda sozinho por uma viga sobre a lava e o vento
-##      empurra; você o equilibra INCLINANDO o controle para os lados (a
-##      rolagem) — o equilíbrio dos jogos de plataforma;
-##   2. os sinos: três sinos (quatro, na variante 1) pendurados no fundo; a
-##      mira anda quando você GIRA o controle (guinada e arfagem), como a mira
-##      por giroscópio dos jogos de tiro; R1 ou ✕ arremessa o martelo, L1
-##      centraliza a mira;
-##   3. a pedra: uma MARTELADA — sacudir o controle para baixo, um pico no
-##      acelerômetro — quebra a pedra que guarda o baú.
-##
-## O módulo mede o pico de giro em cada eixo, a taxa declarada contra a medida,
-## se o giro anda para o mesmo lado da gravidade (um eixo invertido no caminho
-## aparece aqui), a gravidade parado (1 g), a inclinação que a gravidade viu e
-## as marteladas. Sem giroscópio, a sala joga com os analógicos e o ✕, e o
-## veredito é NÃO MEDIDO, com o porquê.
 
 const F := preload("res://scripts/forja.gd")
 const RAIAS := [-6.0, -2.0, 2.0, 6.0]
-## o caminho do boneco: da plataforma da largada à do fim, passando pela viga
-## (o poço de lava vai de z = +3 a z = -2)
 const Z_LARGADA := 3.5
 const Z_CHEGADA := -2.5
 const Z_VIGA_INI := 3.2
@@ -32,13 +10,12 @@ const Z_VIGA_FIM := -2.2
 const Z_PEDRA := -3.55
 const Z_BAU := -5.0
 const Z_SINOS := -5.6
-const ROLAGEM_CHEIA := 0.45  ## rad (~26°): a inclinação que vale "tudo"
-const SENSIBILIDADE := 2.2  ## metros da mira por radiano girado
+const ROLAGEM_CHEIA := 0.45
+const SENSIBILIDADE := 2.2
 const N_SINOS := 3
 var n_sinos := N_SINOS
 const G_MARTELADA := 1.8
 const RAIO_ACERTO := 0.32
-## a área da mira em cada raia: meia largura e a faixa de altura
 const MIRA_X := 1.45
 const MIRA_Y0 := 1.2
 const MIRA_Y1 := 2.45
@@ -46,8 +23,8 @@ const TETO := 4.1
 
 enum { VIGA, SINOS, PEDRA, FIM }
 
-var j := {}  ## lugar -> o estado do jogador
-var n := {}  ## lugar -> os nós da raia
+var j := {}
+var n := {}
 var _mat_ouro: StandardMaterial3D
 var _mat_ferro: StandardMaterial3D
 
@@ -84,7 +61,6 @@ func sair() -> void:
 		p.preso = false
 		if p.modelo:
 			p.modelo.rotation = Vector3.ZERO
-		# a vara fica na sala (o que ele levava volta pela base)
 		if n.has(l) and is_instance_valid(n[l].vara):
 			n[l].vara.queue_free()
 	super()
@@ -93,7 +69,6 @@ func sair() -> void:
 func _novo_jogador(l: int) -> Dictionary:
 	var sinos: Array = []
 	for i in n_sinos:
-		# espalhados na largura e alternando alto e baixo: mirar pede guinada E arfagem
 		var fx := 0.1 + 0.8 * (i + 0.2 + 0.6 * rng.randf()) / n_sinos
 		var fy := (0.72 if i % 2 else 0.12) + 0.16 * rng.randf()
 		sinos.append({"x": -MIRA_X + 2.0 * MIRA_X * fx, "y": MIRA_Y1 - (MIRA_Y1 - MIRA_Y0) * fy,
@@ -114,10 +89,6 @@ static func _aproximar(atual: float, alvo: float, taxa: float, dt: float) -> flo
 	return alvo + (atual - alvo) * exp(-taxa * dt)
 
 
-# ------------------------------------------------------------------ o cenário --
-
-## A caverna da forja: as plataformas de pedra nas duas pontas, o poço de lava
-## no meio, as paredes do kit em volta, as brasas subindo.
 func _cenario() -> void:
 	var K := Kit.K
 	for i in range(-5, 6):
@@ -129,13 +100,11 @@ func _cenario() -> void:
 	for z in [-5.0, -3.0, -1.0, 1.0, 3.0, 5.0]:
 		Kit.peca(self, "wall", Vector3(-12.0, 0, z))
 		Kit.peca(self, "wall", Vector3(12.0, 0, z))
-	# os blocos de pedra que seguram as plataformas e as paredes do poço
 	var pedra := Kit.material(Tema.OXIDO_BRILHO, 0.0, 0.95)
 	Kit.caixa(self, Vector3(24, 3.0, 2.0), Vector3(0, -1.5, 4.0), pedra)
 	Kit.caixa(self, Vector3(24, 3.0, 4.0), Vector3(0, -1.5, -4.0), pedra)
 	for lado in [-1.0, 1.0]:
 		Kit.caixa(self, Vector3(2.0, 3.0, 5.0), Vector3(lado * 12.0, -1.5, 0.5), pedra)
-	# a lava: a superfície ondula e brilha
 	var lava := MeshInstance3D.new()
 	var plano := PlaneMesh.new()
 	plano.size = Vector2(24, 5.0)
@@ -154,7 +123,6 @@ func _cenario() -> void:
 		add_child(brilho)
 	Efeitos.brasas(self, Vector3(0, -1.2, 0.5), Vector3(22, 0.2, 4.6), Tema.TUNGSTENIO, 70)
 	luzes([Vector3(-10, 2.8, -5.4), Vector3(10, 2.8, -5.4), Vector3(0, 3.4, 4.8)])
-	# a lava: o preenchimento vermelho e o neon laranja
 	atmosfera(Color("#ff6a3d"), Tema.TUNGSTENIO, false, 30, 22.0, -7.8, 0.3)
 
 
@@ -185,7 +153,6 @@ func _montar_raia(l: int, p: ForjaPlayer) -> Dictionary:
 	var x: float = RAIAS[l]
 	var cor: Color = Forja.cor_do_lugar(l)
 	var e: Dictionary = j[l]
-	# a viga: a tábua, as cintas de ferro, as bandeirolas dos pontos de volta
 	var madeira := Kit.material(Tema.OXIDO_BRILHO, 0.0, 0.85)
 	Kit.caixa(self, Vector3(0.46, 0.22, Z_VIGA_INI - Z_VIGA_FIM), Vector3(x, -0.11, (Z_VIGA_INI + Z_VIGA_FIM) * 0.5), madeira)
 	for k in range(1, 7):
@@ -196,7 +163,6 @@ func _montar_raia(l: int, p: ForjaPlayer) -> Dictionary:
 		Kit.cilindro(self, 0.025, 0.9, Vector3(x + 0.3, 0.45, z), _mat_ferro)
 		var b := Kit.caixa(self, Vector3(0.36, 0.22, 0.03), Vector3(x + 0.48, 0.78, z), Kit.material(Tema.OXIDO))
 		bandeiras.append(b)
-	# os sinos: cada um pendurado por uma corrente, balançando
 	var sinos: Array = []
 	for i in n_sinos:
 		var s: Dictionary = e.sinos[i]
@@ -212,7 +178,6 @@ func _montar_raia(l: int, p: ForjaPlayer) -> Dictionary:
 		Kit.cilindro(sino, 0.28, 0.4, Vector3.ZERO, _mat_ouro, 0.11)
 		Kit.esfera(sino, 0.055, Vector3(0, -0.22, 0), _mat_ferro)
 		sinos.append(pivo)
-	# a mira: um anel na cor do lugar, com as quatro marcas e o ponto
 	var mira := Node3D.new()
 	add_child(mira)
 	var tinta := Kit.chapado(Tema.tom_para_a_borda(cor), true)
@@ -231,7 +196,6 @@ func _montar_raia(l: int, p: ForjaPlayer) -> Dictionary:
 		Kit.caixa(mira, tam, Vector3(d.x * 0.36, d.y * 0.36, 0), tinta)
 	Kit.esfera(mira, 0.035, Vector3.ZERO, Kit.chapado(Tema.ETIQUETA, true))
 	mira.visible = false
-	# a pedra que guarda o baú, com as rachaduras que acendem na primeira martelada
 	var pedra := Kit.peca(self, "rocks", Vector3(x, 0, Z_PEDRA), l * 1.3, 1.6)
 	var racha := Node3D.new()
 	racha.position = Vector3(x, 0.4, Z_PEDRA + 0.8)
@@ -249,19 +213,16 @@ func _montar_raia(l: int, p: ForjaPlayer) -> Dictionary:
 	fogo_pedra.omni_range = 3.0
 	add_child(fogo_pedra)
 	var bau := Kit.peca(self, "chest", Vector3(x, 0, Z_BAU), 0.0, 2.0)
-	# a régua do equilíbrio, em cima do boneco
 	var regua := Node3D.new()
 	add_child(regua)
 	Kit.caixa(regua, Vector3(1.6, 0.09, 0.02), Vector3.ZERO, Kit.chapado(Color(Tema.GRAFITE, 0.92), true))
 	for lado in [-1.0, 1.0]:
 		Kit.caixa(regua, Vector3(0.2, 0.11, 0.02), Vector3(lado * 0.7, 0, 0.001), Kit.chapado(Color(Tema.SECAO[0], 0.85), true))
 	var marca := Kit.caixa(regua, Vector3(0.09, 0.3, 0.02), Vector3(0, 0, 0.002), Kit.chapado(Tema.TUNGSTENIO, true))
-	# os riscos do vento
 	var riscos: Array = []
 	for k in 10:
 		var r := Kit.caixa(self, Vector3(0.55, 0.018, 0.018), Vector3.ZERO, Kit.chapado(Color(Tema.ETIQUETA, 0.0)))
 		riscos.append(r)
-	# o boneco: mãos livres, a vara de equilíbrio na altura das mãos
 	maos_livres(p)
 	p.preso = true
 	p.position = Vector3(x, 0.0, Z_LARGADA)
@@ -277,8 +238,6 @@ func _montar_raia(l: int, p: ForjaPlayer) -> Dictionary:
 		"fogo_pedra": fogo_pedra, "bau": bau, "regua": regua, "marca": marca, "riscos": riscos,
 		"vara": vara}
 
-
-# ------------------------------------------------------------------ o jogo --
 
 func jogar(dt: float) -> void:
 	for p in jogadores:
@@ -298,7 +257,6 @@ func jogar(dt: float) -> void:
 				_pedra(l, p, e, dt)
 
 
-## O vento: uma onda lenta que cresce ao longo da viga, e as rajadas.
 func _vento(e: Dictionary) -> float:
 	var amp := 0.3 + 0.45 * float(e.progresso)
 	var v := amp * sin(t_fase * float(e.freq_vento) * TAU + float(e.fase_vento))
@@ -306,9 +264,6 @@ func _vento(e: Dictionary) -> float:
 	return v + float(e.rajada)
 
 
-## Quanto o jogador inclina: a rolagem do controle (lado direito para baixo é
-## rolagem negativa e inclina o boneco para a direita); sem giroscópio, a
-## gravidade; sem nada, o analógico esquerdo.
 func _controle(l: int, e: Dictionary) -> float:
 	if e.tem_giro:
 		return -Forja.postura(l).x / ROLAGEM_CHEIA
@@ -322,14 +277,12 @@ func _travessia(l: int, p: ForjaPlayer, e: Dictionary, dt: float) -> void:
 	if e.caindo > 0.0:
 		e.caindo += dt
 		if e.caindo > 1.3:
-			# volta na última bandeirola
 			e.caindo = 0.0
 			e.progresso = e.checkpoint
 			e.inclinacao = 0.0
 			e.bambo = 0.0
 			Efeitos.anel(self, _pos_do_boneco(l, e) + Vector3(0, 0.9, 0), Forja.cor_do_lugar(l), 0.6, Vector3.BACK, l)
 		return
-	# as rajadas: um empurrão curto, para um lado sorteado
 	e.rajada_t -= dt
 	if e.rajada_t <= 0.0:
 		var lado := -1.0 if rng.randf() < 0.5 else 1.0
@@ -347,7 +300,6 @@ func _travessia(l: int, p: ForjaPlayer, e: Dictionary, dt: float) -> void:
 			var b: MeshInstance3D = n[l].bandeiras[k - 1]
 			b.material_override = Kit.material(Tema.TUNGSTENIO, 1.2, 0.8, "forja")
 			Som.tocar("tique", b.global_position, -6.0, 1.3)
-	# em cima da viga (não nas plataformas), quem passa do limite cai
 	var na_viga: bool = e.progresso > 0.08 and e.progresso < 0.93
 	e.bambo = e.bambo + dt if mod > 1.0 and na_viga else maxf(0.0, e.bambo - dt)
 	if e.bambo > 0.45:
@@ -367,8 +319,6 @@ func _travessia(l: int, p: ForjaPlayer, e: Dictionary, dt: float) -> void:
 func _sinos(l: int, p: ForjaPlayer, e: Dictionary, dt: float) -> void:
 	var m: Vector2 = e.mira
 	if e.tem_giro:
-		# girar para a esquerda (guinada positiva) leva a mira para a esquerda;
-		# erguer a borda de longe (arfagem positiva) leva a mira para cima
 		var g := Forja.giro(l)
 		m.x -= g.y * SENSIBILIDADE * dt
 		m.y += g.x * SENSIBILIDADE * dt
@@ -398,7 +348,6 @@ func _sinos(l: int, p: ForjaPlayer, e: Dictionary, dt: float) -> void:
 		_novo_trecho(l, p, e, PEDRA)
 
 
-## O martelo voa da mão até a mira; se pegou um sino, ele toca e cai.
 func _arremessar(l: int, p: ForjaPlayer, alvo: Vector3, sino: int) -> void:
 	p.gesto("attack-melee-right", 0.45)
 	var m := Kit.martelo(self, 1.1)
@@ -467,7 +416,6 @@ func _pedra(l: int, p: ForjaPlayer, e: Dictionary, dt: float) -> void:
 		_novo_trecho(l, p, e, FIM)
 
 
-## A pedra se parte em cacos, o baú abre e o ouro brilha.
 func _quebrar(l: int) -> void:
 	var nos: Dictionary = n[l]
 	var x: float = RAIAS[l]
@@ -523,8 +471,6 @@ func _novo_trecho(l: int, p: ForjaPlayer, e: Dictionary, trecho: int) -> void:
 	Som.tocar("confirma", onde, -4.0)
 
 
-# ------------------------------------------------------------------ o que se vê --
-
 func _pos_do_boneco(l: int, e: Dictionary) -> Vector3:
 	var x: float = RAIAS[l]
 	match int(e.trecho):
@@ -559,9 +505,7 @@ func _mostrar(l: int, p: ForjaPlayer, dt: float) -> void:
 		p.animar("walk", 0.55 if absf(incl) < 0.6 else 0.3)
 	else:
 		p.animar("idle")
-	# a vara acompanha o susto
 	nos.vara.rotation.z = -incl * 0.25
-	# a régua do equilíbrio, em cima do boneco
 	var regua: Node3D = nos.regua
 	regua.visible = fase == "jogo" and trecho == VIGA and e.caindo == 0.0
 	regua.position = pos + Vector3(0, 2.35, 0)
@@ -569,7 +513,6 @@ func _mostrar(l: int, p: ForjaPlayer, dt: float) -> void:
 	marca.position.x = clampf(incl / 1.15, -1.0, 1.0) * 0.72
 	var tinta: StandardMaterial3D = marca.material_override
 	tinta.albedo_color = Tema.SECAO[0] if absf(incl) > 1.0 else Tema.TUNGSTENIO
-	# o vento: riscos que correm para o lado dele
 	var v := _vento(e) if fase == "jogo" and trecho == VIGA else 0.0
 	var quantos := int(absf(v) * 12.0)
 	for k in nos.riscos.size():
@@ -582,24 +525,19 @@ func _mostrar(l: int, p: ForjaPlayer, dt: float) -> void:
 		r.position = Vector3(x + dx, 0.35 + fmod(k * 0.53, 1.7), pos.z + (k % 3 - 1) * 0.7)
 		var mr: StandardMaterial3D = r.material_override
 		mr.albedo_color = Color(Tema.ETIQUETA, 0.55 * (1.0 - absf(ciclo - 0.5) * 2.0))
-	# os sinos balançam
 	for i in n_sinos:
 		var pivo: Node3D = nos.sinos[i]
 		var s: Dictionary = e.sinos[i]
 		s.balanco = float(s.balanco) + dt * 2.2
 		if s.vivo:
 			pivo.rotation.z = sin(float(s.balanco)) * 0.12
-	# a mira
 	var mira: Node3D = nos.mira
 	mira.visible = fase == "jogo" and trecho == SINOS and not acabou[l]
 	var m: Vector2 = e.mira
 	mira.position = Vector3(x + m.x, m.y, Z_SINOS + 0.35)
-	# a pedra treme na martelada
 	var pedra: Node3D = nos.pedra
 	pedra.position.x = x + float(e.pancada) * 0.06 * sin(t * 70.0)
 
-
-# ------------------------------------------------------------------ a HUD --
 
 func status(lugar: int) -> String:
 	if fase == "jogo" and j.has(lugar) and not acabou[lugar]:
@@ -630,10 +568,6 @@ func dica(lugar: int) -> Dictionary:
 			partes = ["Atravessou!"]
 	return {"partes": partes, "pos": Vector3(RAIAS[lugar], 0.0, 5.0)}
 
-
-# ------------------------------------------------------------------ o robô --
-# Vê a inclinação do boneco, a mira e os sinos, e mexe o controle simulado como
-# gente: inclina contra a queda, gira até a mira pousar no sino, sacode.
 
 func _robo(l: int, e: Dictionary, dt: float) -> void:
 	var gx := 0.0

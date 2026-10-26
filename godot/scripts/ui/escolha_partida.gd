@@ -1,17 +1,13 @@
 class_name EscolhaPartida
 extends Control
-## A escolha da partida, na bigorna: três linhas, cada uma com o seu valor —
-## quantas salas, em que ordem e em que ritmo. ▲▼ escolhe a linha, ◀▶ troca o
-## valor, ✕ começa, ○ volta. As salas da escolha aparecem ao lado, na ordem em
-## que se jogam.
 
 signal escolheu(n: int, sorteada: bool)
 
 const TAMANHOS := [[3, "3 salas", "Uns 10 min"], [5, "5 salas", "Uns 15 min"], [9, "As 9 salas", "Uns 30 min"]]
 const ORDENS := ["A do percurso", "Sorteada"]
 
-var quem := 0  ## o lugar que abriu
-var linha := 0  ## 0 salas, 1 ordem, 2 nível
+var quem := 0
+var linha := 0
 var tamanho := 1
 var sorteada := false
 var semente := 0
@@ -34,7 +30,6 @@ func navegar(dy: int) -> void:
 	linha = wrapi(linha + dy, 0, 3)
 
 
-## ◀▶ na linha escolhida.
 func trocar(dx: int) -> void:
 	match linha:
 		0: tamanho = wrapi(tamanho + dx, 0, TAMANHOS.size())
@@ -80,10 +75,8 @@ func _draw() -> void:
 			Desenho.texto(self, b.position + Vector2(44 + Desenho.largura(v, Tema.archivo(600), Tema.T_CORPO), 82),
 				str(valores[i][1]), Tema.archivo(500), Tema.T_SELO, Tema.MUDO)
 		if sel:
-			# as setas dizem que ◀▶ troca esta linha
 			Glifo.desenhar(self, "esquerda", Rect2(Vector2(b.end.x - 100, b.position.y + 34), Vector2(36, 36)), Tema.ETIQUETA)
 			Glifo.desenhar(self, "direita", Rect2(Vector2(b.end.x - 56, b.position.y + 34), Vector2(36, 36)), Tema.ETIQUETA)
-	# as salas da escolha, à direita
 	var x2 := r.position.x + 48 + col + 56
 	var salas := Partida.roteiro(int(TAMANHOS[tamanho][0]), sorteada, semente, percurso)
 	var tam := Tema.T_ROTULO if salas.size() > 5 else Tema.T_CORPO

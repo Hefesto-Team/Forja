@@ -22,10 +22,10 @@ import sys
 import wave
 
 TAXA = 48000
-PASSO_S = 0.005  # o envelope: um valor a cada 5 ms
-JANELA_S = 30.0  # o andamento se confere em janelas de 30 s
-COMECO_S = 8.0  # o primeiro tempo se acha nos primeiros 8 s
-ESCORREGA_MS = 10.0  # mais que isto numa janela: a faixa escorrega, e o André decide
+PASSO_S = 0.005
+JANELA_S = 30.0
+COMECO_S = 8.0
+ESCORREGA_MS = 10.0
 
 
 def ler_wav(caminho):
@@ -91,23 +91,18 @@ def mapear(amostras, taxa, bpm):
     env = envelope(amostras, taxa)
     periodo = 60.0 / bpm
     duracao = len(env) * PASSO_S
-    # a fase da grade no começo (se o andamento escorrega, a da faixa inteira
-    # mentiria sobre o começo)
     fase = melhor_fase(env, periodo, 0.0, COMECO_S)
-    # o primeiro tempo é a primeira batida da grade com som de verdade (±20 ms)
     limiar = max(env) * 0.2 if env else 0.0
     primeiro = fase
     while primeiro < min(duracao, COMECO_S):
         k = int(round(primeiro / PASSO_S))
         vizinhos = env[max(0, k - 4):k + 5]
         if vizinhos and max(vizinhos) >= limiar:
-            # o ataque de verdade, perto da grade
             primeiro = (max(0, k - 4) + vizinhos.index(max(vizinhos))) * PASSO_S
             break
         primeiro += periodo
     if primeiro >= min(duracao, COMECO_S):
         primeiro = fase
-    # o andamento escorrega? a fase de cada janela de 30 s contra a do começo
     escorregas = []
     t = 0.0
     while t + JANELA_S <= duracao:
@@ -150,7 +145,6 @@ def prova():
         print(("ok   " if ok else "FAIL ") + "%.0f bpm, primeiro tempo em %.2f s: achou %.3f s, escorrega %s" % (
             bpm, primeiro, m["primeiro_tempo_s"], m["escorrega_ms"]))
         falhas += 0 if ok else 1
-    # a faixa que escorrega: tocada a 122,3 e pedida a 122 (uns 150 ms por minuto)
     m = mapear(cliques(122.3, 0.37, 125.0), TAXA, 122.0)
     ok = abs(m["primeiro_tempo_s"] - 0.37) <= 0.01 and max(abs(e) for e in m["escorrega_ms"]) > ESCORREGA_MS
     print(("ok   " if ok else "FAIL ") + "a faixa que escorrega é apontada: primeiro tempo %.3f s, escorrega %s" % (

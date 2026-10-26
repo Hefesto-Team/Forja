@@ -471,7 +471,7 @@ A pedra é `Tema.GRAFITE` e o abismo é `Tema.JANELA`, sem brilho. Somem os `#0d
 - Por lugar: **sem** `raia(l)` nem `posicionar(l)` (o ringue é livre). `jogador(l).position = _pos[l]`, de frente para
   o centro, `preso = true`; mova pela posição. A marca dos pés e o anel do chão.
 - Com um lugar: os bonecos 4 e 5. O modelo vem de `Kit.caminho("mini-dungeon-personagens/character-orc")`, tingido
-  pelo `_tingir` copiado de `prova.gd:200-210` (um `StandardMaterial3D` por superfície, `albedo_color` e `roughness`
+  pelo `_tingir` copiado de `prova.gd:164-174` (um `StandardMaterial3D` por superfície, `albedo_color` e `roughness`
   0,9). Cada boneco tem a marca dos pés e o anel em `Tema.VIOLETA`, a 1,0.
 
 ## O som

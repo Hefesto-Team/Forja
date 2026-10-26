@@ -32,7 +32,7 @@ saídas por segundo, as recusas sob carga, os quatro controles ao mesmo tempo.
   | 1 | 1º e o Aprendiz | dois Aprendizes |
 
   O **Aprendiz** é um boneco do jogo (o `character-orc.glb` tingido de
-  `#b9a98a`, o `_tingir` de `prova.gd:199-209`), não um jogador: faz a parte
+  `#b9a98a`, o `_tingir` de `prova.gd:163-173`), não um jogador: faz a parte
   dele acertando `ACERTO_APRENDIZ := 0.8` das vezes (sorteado com o `rng` do
   kit), sempre como BOM; não é lugar, não pontua, não entra no registro de
   notas. Não é robô (nada de `Forja.robo` nele).

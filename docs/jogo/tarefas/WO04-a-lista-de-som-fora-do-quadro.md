@@ -24,7 +24,7 @@ trabalho do quadro.
 
 ## O estado de hoje (medido em 09/10/2026, `85f24c3`)
 
-- `nativo/som/som_controle.c:298-305`:
+- `nativo/som/som_controle.c:279-286`:
   ```c
   void somc_preparar(Forja *a) {
     somc_encerrar(a);
@@ -33,16 +33,16 @@ trabalho do quadro.
     listar();
     escolher(a);
   ```
-- O `pactl` por `popen`, `nativo/som/som_controle_linux.c:23-24` (`ler_comando`), chamado na lista (`pactl list
+- O `pactl` por `popen`, `nativo/som/som_controle_linux.c:15-16` (`ler_comando`), chamado na lista (`pactl list
   sinks` e `pactl list sources`: de 10 a 30 ms nesta máquina, sem carga).
-- Quem chama: `godot/scripts/main.gd:260-275` (`_abrir_o_som`, no fim do `_sincronizar_jogadores` de `:224`), com o
+- Quem chama: `godot/scripts/main.gd:237-252` (`_abrir_o_som`, no fim do `_sincronizar_jogadores` de `:224`), com o
   pio de quem entrou logo depois, em `:275`:
   ```gdscript
   Forja.som_preparar(papel)
   ...
   		Forja.som_falante(l, "pio:%d" % jogadores[l].modelo_i, 0.8)
   ```
-  e `main.gd:253` (`_abrir_o_som(true)`, o cabo que volta, no meio de qualquer sala).
+  e `main.gd:232` (`_abrir_o_som(true)`, o cabo que volta, no meio de qualquer sala).
 - A medida: um bench na caixa (SDL de som falso, `pactl` de mentira) percorrendo o lobby: quadros de 155 a 253 ms a
   cada ✕; o `som_preparar` sozinho, com a síntese em cache, de 101 a 111 ms.
 
@@ -72,7 +72,7 @@ pouco depois.
 
 ## Armadilhas
 
-- **O `alimentar` roda no fio do som** (`som_controle.c:55-65`) com o ponteiro da saída: a troca não pode liberar
+- **O `alimentar` roda no fio do som** (`som_controle.c:46-56`) com o ponteiro da saída: a troca não pode liberar
   uma saída que o fio do som ainda lê. Siga a ordem que o `fechar_saida` já usa.
 - **Dois `preparar` seguidos** (dois ✕ no mesmo quadro): o segundo pedido substitui o que está em voo, e só o último
   resultado vale.

@@ -76,7 +76,7 @@ as três linhas da G02 por cinco e põe as peças, os stats e o encaixe.
 
 ### A câmera (50 mm, frontal, à altura do peito)
 
-O plano do estudo (`godot/estudos/direcao/quadros/10_montagem.gd:42-53`),
+O plano do estudo (`godot/estudos/direcao/quadros/10_montagem.gd:28-37`),
 deslocado para o salão (o cavaleiro do estudo está em z 0; o do jogo, em
 z 4,4):
 
@@ -103,8 +103,8 @@ x de mundo `(centro − 960) / 250`: **−2,592, −0,864, 0,864, 2,592**.
 
 - `salao.gd`: `var montagem: Array[Vector3]`, os quatro
   `Vector3(-2.592 + 1.728 * i, 0.06, 4.4)`, e `var montagem_no: Node3D` com
-  os quatro anéis do estudo (`Mundo.anel`, `godot/estudos/direcao/mundo.gd:200`,
-  chamado em `cavaleiro/montar.gd:71-72` pelo `"anel": true`), portado como
+  os quatro anéis do estudo (`Mundo.anel`, `godot/estudos/direcao/mundo.gd:173`,
+  chamado em `cavaleiro/montar.gd:56-57` pelo `"anel": true`), portado como
   está, com `raio` 0,62: um `Node3D` a y 0,03; nele um `MeshInstance3D` com
   `TorusMesh` `inner_radius` 0,57 (raio − 0,05), `outer_radius` 0,65
   (raio + 0,03), `rings` 8, `ring_segments` 4, `scale = Vector3(1, 0.22, 1)`,
@@ -126,8 +126,8 @@ x de mundo `(centro − 960) / 250`: **−2,592, −0,864, 0,864, 2,592**.
 
 ### A luz de cada coluna
 
-Do estudo (`10_montagem.gd:76-81`, `Mundo.foco` em
-`godot/estudos/direcao/mundo.gd:304`), deslocada em z 4,4. Nascem em
+Do estudo (`10_montagem.gd:59-61`, `Mundo.foco` em
+`godot/estudos/direcao/mundo.gd:270`), deslocada em z 4,4. Nascem em
 `montagem_no`:
 
 | luz | de | para | cor | energia | ângulo | alcance | sombra |
@@ -276,9 +276,9 @@ const PECAS := "res://assets/kenney/mini-characters/pecas/%s-%s.res"
 ## Troca a head-mesh e a body-mesh do Mini Characters `m` por três peças
 ## cortadas: [cabeça, superior, inferior], cada uma o nome do personagem.
 ## Cria os MeshInstance3D "head", "body-sup" e "body-inf" no Skeleton3D, com
-## o transform da body-mesh antiga (estudo, corpo.gd:16-40).
+## o transform da body-mesh antiga (estudo, corpo.gd:6-30).
 static func trocar(m: Node3D, pecas: Array) -> Skeleton3D
-## O punho no espaço do esqueleto (estudo, montar.gd:180-211, copiado sem mudar número).
+## O punho no espaço do esqueleto (estudo, montar.gd:148-179, copiado sem mudar número).
 static func mao(esq: Skeleton3D, osso: String) -> Vector3
 ```
 
@@ -515,7 +515,7 @@ cada compasso, a 0,5 de mistura.
   - `godot/estudos/direcao/quadros/10_montagem.gd` (a tela) e
     `20_encaixe.gd` (o encaixe), com as fotos
     `docs/imagens/direcao/10_montagem.jpg` e `20_encaixe.jpg`;
-  - `godot/estudos/direcao/hud.gd:146-157` (o VU).
+  - `godot/estudos/direcao/hud.gd:125-136` (o VU).
 - `docs/jogo/sistemas/conferir.py` confere os CSV e imprime as contas
   (Provas).
 
@@ -534,14 +534,14 @@ cada compasso, a 0,5 de mistura.
 | | «Forjado» | `Tema.vt()` 30, `Tema.ETIQUETA`, à direita, base 140, na batida depois da oitava |
 | | as duas chaves | entre x0 + 130 e x0 + 276, y 112 a 132 (abaixo) |
 | 160 a 600 | o cavaleiro em 3D | nada desenhado |
-| 608 a 652 | a etiqueta | `Desenho.etiqueta(self, Rect2(x0 + 26, 608, w − 52, 44), Tema.JOGADOR[l])`; «nome · arquétipo» em `Tema.marcador()` 30, `Tema.TINTA`, centrado; a tira de 8 px na cor do lugar à esquerda (estudo, `10_montagem.gd:120-125`) |
+| 608 a 652 | a etiqueta | `Desenho.etiqueta(self, Rect2(x0 + 26, 608, w − 52, 44), Tema.JOGADOR[l])`; «nome · arquétipo» em `Tema.marcador()` 30, `Tema.TINTA`, centrado; a tira de 8 px na cor do lugar à esquerda (estudo, `10_montagem.gd:97-101`) |
 | | a build boa | dois traços de caneta 2,5 px em `Tema.TINTA` sob o texto, a 7 e 13 px da base da etiqueta (estudo, 126-133) |
 | 660 + 38·k | as cinco linhas | `Rect2(x0, 660 + 38·k, w, 36)` (de 660 a 848) |
 | | a escolhida | fundo `Tema.CASCO_ALTO`, borda 3 px `Tema.JOGADOR[l]`, raio 6 |
 | | o rótulo | `Tema.archivo(600)` 30 em x0 + 12; `Tema.MUDO` (`Tema.ETIQUETA` na escolhida). Na cabeça, com raça ≠ Humana, o nome da raça |
 | | o valor | «◀» em x0 + 136 e «▶» à direita em x0 + w − 12, `Tema.MUDO`; o nome da peça (`pecas.csv` `nome`) centrado entre x0 + 158 e x0 + w − 34, `Tema.archivo(500)` 30, `Tema.ETIQUETA`. No inferior com cadeira, «Cadeira» |
 | | o emblema | `Glifo.desenhar(self, Cavaleiro.EMBLEMA[principal], Rect2(<antes do nome − 30>, y + 7, 24, 24), Tema.ETIQUETA)`; o do secundário, 16 px, depois do nome, `Tema.MUDO` |
-| | o cadeado | a linha travada: o `_cadeado` do estudo (`10_montagem.gd:179-185`) em (x0 + 134, y + 6) |
+| | o cadeado | a linha travada: o `_cadeado` do estudo (`10_montagem.gd:149-155`) em (x0 + 134, y + 6) |
 | linha + 38 | a fita das 12 | embaixo da linha escolhida de cabeça, superior ou inferior, por 1,5 s depois do último ◀▶: `Rect2(x0, y + 38, w, 52)` sobre as linhas de baixo; a marca atual na cor do lugar; as riscadas (opostos) em `Tema.CASCO` com o risco `Tema.GRAFITE` 4 px; na cabeça, as de outro lugar na cor dele a 35 % com «P#» em `Tema.vt()` 30 (estudo, `_fita_das_cabecas`, 188-215, que vale para as três linhas) |
 | 852 + 26·k | os quatro VUs (de 852 a 956) | o rótulo `Cavaleiro.NOME_ST[k]` em `Tema.vt()` 30, `Tema.MUDO`, em x0 + 12, base y + 23; `Desenho.vu(self, Rect2(x0 + 136, y + 3, w − 190, 20), 5, stats[k], Tema.JOGADOR[l])`; o número em `Tema.vt()` 30, `Tema.ETIQUETA`, em r.end.x + 12, base y + 23 |
 | | as marcas do item | na linha do item: duas marcas de 3 px em `Tema.ETIQUETA` no VU de cada stat que o item pede (o `pede` e o `liga`), acima e abaixo 6 px (estudo, 165-175); a marca da liga acende em `Tema.JOGADOR[l]` com o item em liga |
@@ -563,7 +563,7 @@ esquerda, no meio ou na direita (`Cavaleiro.chaves`) | o emblema da direita
 
 **`Desenho.placa`, `lampadas` e `dica`** são da G11 (assinaturas em
 `G11-a-interface-com-o-ui-pack.md`, tabela de «O alvo»); **`Desenho.vu`** é da
-G04 (igual a `hud.gd:146-157` do estudo). A primeira ficha que chegar cria,
+G04 (igual a `hud.gd:125-136` do estudo). A primeira ficha que chegar cria,
 com essas assinaturas; quem chega depois usa.
 
 ### Os emblemas (`godot/scripts/ui/glifo.gd`, grade de 32, traço `t`)

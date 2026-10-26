@@ -1,10 +1,4 @@
 extends Node3D
-## Quadro 18 — A cortina diagonal (06; PRODUCAO, item 11): seis instantes da
-## entrada de um minigame, cada um uma célula de 960×540 com o mundo, a
-## cortina e o pós da fita (o `rasgo` e a `aberracao` daquele instante).
-## A geometria é a do 06: o polígono (0, 0), (1240, 0), (930, 1080),
-## (0, 1080), a borda a 16,0° da vertical, a tira FITA de 26 px e o fio
-## ETIQUETA de 4 px a 22 px dela. O impacto é no tempo 1, aos 600 ms.
 
 const Fita := preload("res://estudos/direcao/fita.gd")
 const Hud := preload("res://estudos/direcao/hud.gd")
@@ -17,9 +11,7 @@ var folha: SubViewport
 const VERBO := "MARTELE!"
 const BORDA_X0 := -330.0
 const BORDA_X1 := 1240.0
-const INCLINA := 310.0  # 1080 · tan(16,0°)
-## Cada instante: o tempo, a borda (x no alto da tela), a escala do verbo, os
-## ecos, o tremor, o rasgo e a aberração, e a linha que vai embaixo.
+const INCLINA := 310.0
 var INSTANTES := [
 	{"ms": 0, "borda": _borda(0.0), "verbo": 0.0, "rasgo": 0.0, "aberracao": 0.0,
 		"nota": "0 ms · a borda em x = −330 · rasgo 0 · fx_entrada começa"},
@@ -37,7 +29,7 @@ var INSTANTES := [
 
 
 static func _borda(t: float) -> float:
-	return lerpf(BORDA_X0, BORDA_X1, t * t * t)  # ENTRA: cúbica, acelerando
+	return lerpf(BORDA_X0, BORDA_X1, t * t * t)
 
 
 func montar(_estudo) -> void:
@@ -58,7 +50,6 @@ func foto() -> Image:
 	return await Prancha.foto(folha)
 
 
-## O mundo do 03: a bigorna e o martelo no meio do golpe, na luz de lâmpada.
 func _mundo(raiz: Node3D, cam: Camera3D) -> void:
 	cam.fov = 34.0
 	cam.position = Vector3(-1.2, 2.1, 3.6)
@@ -82,12 +73,11 @@ func _mundo(raiz: Node3D, cam: Camera3D) -> void:
 	Mundo.neon_sem_sombra(raiz)
 
 
-## A cortina num instante, em px da tela de 1920×1080.
 func _cortina(ci: CanvasItem, inst: Dictionary) -> void:
 	var tinta: Color = Fita.SECAO[0]
 	var dx: float = inst.borda - BORDA_X1
 	var sai := float(inst.get("sai", 0.0))
-	dx += 2240.0 * sai * sai * sai  # ENTRA: sai pela direita em 1 batida (a borda anda 2240 px)
+	dx += 2240.0 * sai * sai * sai
 	var tremor := Vector2(float(inst.get("tremor", 0.0)), -float(inst.get("tremor", 0.0)) * 0.5)
 	ci.draw_set_transform(tremor, 0.0, Vector2.ONE)
 	var corte := PackedVector2Array([Vector2(dx - 4000, 0), Vector2(BORDA_X1 + dx, 0), Vector2(BORDA_X1 - INCLINA + dx, 1080), Vector2(dx - 4000, 1080)])
@@ -115,7 +105,6 @@ func _cortina(ci: CanvasItem, inst: Dictionary) -> void:
 		Hud.texto(ci, f, tam, Vector2(-w * 0.5, -tam * 0.5), VERBO, Fita.ETIQUETA)
 	ci.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 	if inst.has("jcard"):
-		# o J-card chega da direita a (760, 90), 1064 × 830, com a lombada
 		var t: float = inst.jcard
 		var chega := 1.0 - pow(1.0 - t, 3.0)
 		var r := Rect2(Vector2(lerpf(1960.0, 760.0, chega), 90), Vector2(1064, 830))

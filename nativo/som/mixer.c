@@ -1,4 +1,3 @@
-/* O mixer. Ver mixer.h. */
 #include "mixer.h"
 
 #include <math.h>
@@ -30,7 +29,6 @@ int mixer_tocar(Mixer *m, const Som *som, const float *ganhos, bool laco) {
       break;
     }
   if (livre < 0) {
-    /* sem voz livre: rouba a que está mais adiantada (a que termina antes) */
     int melhor = 0;
     float resto_min = 1e9f;
     for (int i = 0; i < MIX_MAX_VOZES; i++) {
@@ -73,7 +71,6 @@ void mixer_parar(Mixer *m, int id, bool suave) {
   SDL_UnlockMutex(m->trava);
 }
 
-/* Todas as vozes vão a zero pela rampa de saída (nunca de uma vez). */
 void mixer_parar_tudo(Mixer *m) {
   SDL_LockMutex(m->trava);
   for (int i = 0; i < MIX_MAX_VOZES; i++)
@@ -129,7 +126,6 @@ void mixer_misturar(Mixer *m, float *saida, int quadros) {
     for (int c = 0; c < nc; c++) {
       float *o = &saida[q * nc + c];
       float x = *o * m->volume;
-      /* limitador suave: nunca estoura, e quase não colore abaixo de 0,7 */
       if (x > 0.7f)
         x = 0.7f + 0.3f * tanhf((x - 0.7f) / 0.3f);
       else if (x < -0.7f)

@@ -13,7 +13,7 @@ O robô que joga pelo simulador e a régua das checagens são o que deixa provar
 
 ## O estado de hoje
 
-- `godot/scripts/forja.gd:881-919`: `robo_apertar`, `robo_eixo`, `robo_girar`, `robo_sacudir`, `robo_tocar`, `robo_falar`,
+- `godot/scripts/forja.gd:739-766`: `robo_apertar`, `robo_eixo`, `robo_girar`, `robo_sacudir`, `robo_tocar`, `robo_falar`,
   sobre o `ctl.simulador_*`; dez salas chamam (`git grep -l 'Forja.robo_' godot`).
 - A régua (`esperar`, `quadros`, `aperta`) vira `ForjaChecagem` na V02.
 

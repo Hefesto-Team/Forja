@@ -1,8 +1,3 @@
-/* A bancada dos experimentos (experimental/), do lado do módulo: a escuta
- * crua do microfone de cada controle, o report cru USB 0x01, a análise
- * provada sem aparelho (analise.h) e o resultado de cada medida — na linha
- * do tempo (`"tipo": "experimento"`) e no registro, com "medido", "falhou"
- * ou "nao_medido". Nada daqui decide veredito de sala. */
 #include "forja_controles.h"
 
 extern "C" {
@@ -54,7 +49,6 @@ float ForjaControles::exp_mediana(const PackedFloat32Array &v) const {
   return ::exp_mediana(c.data(), (int)c.size());
 }
 
-/* niveis: 16 números, microfone × quem fala (linha a linha). */
 Dictionary ForjaControles::exp_diagonal(const PackedFloat32Array &niveis, int n) const {
   Dictionary d;
   float m[4][4] = {};
@@ -66,8 +60,6 @@ Dictionary ForjaControles::exp_diagonal(const PackedFloat32Array &niveis, int n)
   return d;
 }
 
-/* O report cru USB 0x01 do controle do lugar (64 bytes), ou vazio sem ele (um
- * controle simulado, virtual ou pelo rádio). */
 PackedByteArray ForjaControles::relatorio_cru(int lugar) const {
   PackedByteArray b;
   Pad *p = aberto_ ? pads_do_slot(FORJA, lugar) : nullptr;
@@ -78,7 +70,6 @@ PackedByteArray ForjaControles::relatorio_cru(int lugar) const {
   return b;
 }
 
-/* Um resultado da bancada: a linha do tempo, o registro (mascarado). */
 void ForjaControles::experimento(int lugar, const String &chave, const String &o, int resultado, const String &texto) {
   if (!aberto_)
     return;

@@ -29,8 +29,6 @@ from pathlib import Path
 RAIZ = Path(__file__).resolve().parent.parent
 OFICINA = Path(os.environ.get("FORJA_OFICINA", RAIZ / "oficina")) / "kenney"
 
-## Palavra em português -> o jeito que a Kenney escreve. A Kenney é toda em
-## inglês; sem isto, procurar «martelo» não acha nada.
 TRADUZ = {
     "martelo": "hammer", "bigorna": "anvil", "espada": "sword", "escudo": "shield",
     "castelo": "castle", "tijolo": "brick", "torre": "tower", "porta": "door",
@@ -73,8 +71,6 @@ def arquivos_do_pacote(pacote):
         for a in p.get("files", []):
             yield a
 
-
-# ------------------------------------------------------------------ as vistas --
 
 def categorias(cats, pasta):
     print("O pacote: %s" % pasta)
@@ -163,8 +159,6 @@ def onde(cats, alvo, pasta):
                 return
     raise SystemExit("não achei o pacote %r" % alvo)
 
-
-# ------------------------------------------------------------------ a prova --
 
 def prova():
     falhas = 0

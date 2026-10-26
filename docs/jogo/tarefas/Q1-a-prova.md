@@ -100,7 +100,7 @@ A faixa `MUS_S09_J41` tem 145 BPM: uma batida dura 0,4138 s. `BATIDA_DA_PRIMEIRA
   (o hoqueto dentro da equipe); as duas equipes tocam ao mesmo tempo. Cada nota abre 1 batida antes do alvo.
 - **As armas se revezam de dois em dois compassos:** `(m / 2) % 2 == 0` é o **martelo** (✕ no tempo); senão, a
   **besta**: o aperto é o quadro em que `Forja.eixo(l, Forja.R2)` passa de 0,6 subindo (`r2 > 0.6 and r2_ant <= 0.6`,
-  como em `prova.gd:407`).
+  como em `prova.gd:361`).
 - **O julgamento:** `julgar_toque(l, t_alvo, n)`. O acerto empurra `EMPURRA[j]` para o lado de lá e marca
   `PONTOS[j]` na equipe (`marcar_equipe`). O erro ou a nota que passou (140 ms depois do alvo, `FOLGA_PERDIDA`) cede
   `CEDE` para o próprio lado.
@@ -194,7 +194,7 @@ robô. Uma equipe só de Aprendizes não tem martelada.
 
 ### A bancada (só com `Forja.bancada`)
 
-Depois do apito, a prova final às cegas de hoje, sem mudar a regra: `_perguntar_leds()` (`prova.gd:545`),
+Depois do apito, a prova final às cegas de hoje, sem mudar a regra: `_perguntar_leds()` (`prova.gd:494`),
 `_perguntar_cor()` (`:565`), `_rodada_final()` (`:585`), `_sem_revelar()` (`:684`) e `pergunta(l)` (`:787-827`), com
 o tempo delas pelo `dt`. Duas trocas:
 
@@ -205,7 +205,7 @@ Depois da cor, `Forja.luz_do_lugar(l)` e `Forja.leds_do_lugar(l)`, e todos acaba
 por `tempo` do kit não pode cortá-la (a bancada só acrescenta camadas). Se a H08 cortar, pare e anote no quadro.
 
 `dar_vereditos(l)`: `Forja.carga_parar(l)`, `Forja.carga_placar(l, tocadas, acertadas, marteladas)` e
-`Forja.carga_veredito(l, leds, cor, tocadas > 0 or Cega.total(leds) > 0)`, o de hoje (`prova.gd:691-701`).
+`Forja.carga_veredito(l, leds, cor, tocadas > 0 or Cega.total(leds) > 0)`, o de hoje (`prova.gd:637-647`).
 
 ### O robô
 
@@ -220,7 +220,7 @@ func robo(l: int, dt: float) -> void:
 		return
 	if _acabou_a_partida:
 		if Forja.bancada:
-			_robo_prova_final(l, dt)       # o ramo LEDS/COR do _robo de hoje (prova.gd:843-865)
+			_robo_prova_final(l, dt)       # o ramo LEDS/COR do _robo de hoje (prova.gd:779-801)
 		return
 	if float(Forja.som_virtual(l).get("falante", 0.0)) > 0.05:
 		_robo_ouviu_sino[l] = _m
@@ -401,7 +401,7 @@ func _respondeu(l: int, n: int, resposta: String) -> void:
 
 As outras funções, uma frase cada:
 
-- `_saida(l, ok)`: a de hoje (`prova.gd:216-220`, `Forja.carga_saida` só com o cabo). Toda saída passa por ela.
+- `_saida(l, ok)`: a de hoje (`prova.gd:180-184`, `Forja.carga_saida` só com o cabo). Toda saída passa por ela.
 - `_empurrar(e, d)`: `_frente` anda `d` para o lado de lá da equipe `e`, com o teto de «As regras»; a runa anda em 1
   colcheia por `lerpf`; confere o nocaute (`_fim_batida = minf(_fim_batida, floor(b) + 4)`).
 - `_ceder(e)`: `CEDE` para o próprio lado, com o mesmo teto.

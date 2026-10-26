@@ -16,29 +16,29 @@ controle, manda olhar a luz, fala de relatório, de módulo nativo e de VID:PID.
 ## O estado de hoje
 
 Depois da F01, as perguntas às cegas, a tabela de veredito, o diagnóstico e o
-livro só aparecem com `--bancada`. **Não mexa neles**: `voz.gd:617` e
-`prova.gd:802` ("olhe o controle…") e os títulos das perguntas só existem no
+livro só aparecem com `--bancada`. **Não mexa neles**: `voz.gd:572` e
+`prova.gd:744` ("olhe o controle…") e os títulos das perguntas só existem no
 Modo bancada. O que sobra na tela do jogador:
 
 **O verbo de cada sala** (`acao`, desenhado no aviso e no HUD):
 
 | arquivo:linha | hoje |
 | --- | --- |
-| `salas/voz.gd:59` | `"Chame o guardião, fique mudo, olhe a luz."` |
-| `salas/canto.gd:61` | `"Ouça: o canto saiu da sua mão?"` |
-| `salas/galeria.gd:53` | `"Sinta o gatilho, diga a arma, atire."` |
-| `salas/caminhos.gd:55` | `"Sinta o chão na mão e diga qual é."` |
-| `salas/molde.gd:56` | `"O touchpad é o molde: trace, abra, carimbe."` |
-| `salas/viga.gd:58` | `"Equilibre, mire e martele com o controle."` |
-| `salas/prova.gd:81` | `"Brasa contra Maré, com tudo ligado."` |
+| `salas/voz.gd:42` | `"Chame o guardião, fique mudo, olhe a luz."` |
+| `salas/canto.gd:42` | `"Ouça: o canto saiu da sua mão?"` |
+| `salas/galeria.gd:37` | `"Sinta o gatilho, diga a arma, atire."` |
+| `salas/caminhos.gd:36` | `"Sinta o chão na mão e diga qual é."` |
+| `salas/molde.gd:36` | `"O touchpad é o molde: trace, abra, carimbe."` |
+| `salas/viga.gd:35` | `"Equilibre, mire e martele com o controle."` |
+| `salas/prova.gd:56` | `"Brasa contra Maré, com tudo ligado."` |
 
 **As dicas e os selos da sala:**
-- `salas/canto.gd:531`: `{"partes": ["ouça: de onde vem?"], ...}`
-- `salas/canto.gd:598`: `1: return "3 cantos no seu controle"` (o selo de `com_poucos`)
-- `salas/impacto.gd:609`: `1: return "sozinho: isolamento não medido"`
-- `salas/voz.gd:582`: `["@mic", "mudo no sistema: a sua vez passa"]`
+- `salas/canto.gd:491`: `{"partes": ["ouça: de onde vem?"], ...}`
+- `salas/canto.gd:553`: `1: return "3 cantos no seu controle"` (o selo de `com_poucos`)
+- `salas/impacto.gd:565`: `1: return "sozinho: isolamento não medido"`
+- `salas/voz.gd:537`: `["@mic", "mudo no sistema: a sua vez passa"]`
 
-**O aviso da sala** (`ui/painel_sala.gd:35-110`, `_aviso()`): desenha, por
+**O aviso da sala** (`ui/painel_sala.gd:31-93`, `_aviso()`): desenha, por
 feature de `sala.features`, o glifo e o nome do catálogo
 (`_nome_da_feature(f)`, que vem do C: "Vibração forte", "Barra de luz"…):
 
@@ -52,10 +52,10 @@ Nas salas de som (`papel >= 0`), cada chip de lugar mostra o dispositivo
 achado (`_som_do_lugar`, `:119-139`): "Alto-falante do Controle 1
 (DualSense…)", "acha sozinho", e as dicas `trocar`/`testar` (`:105-110`).
 
-**O salão:** `mundo/salao.gd:16-23`, o `"sobre"` de cada portão é o hardware
+**O salão:** `mundo/salao.gd:8-15`, o `"sobre"` de cada portão é o hardware
 (`"vibração e barra de luz"`, `"háptica por áudio"`…), mostrado na placa 3D
-(`salao.gd:186-187`, por `Traducoes.traduzir`) e no HUD perto do portão
-(`main.gd:670`). A bigorna: `main.gd:689`,
+(`salao.gd:168-169`, por `Traducoes.traduzir`) e no HUD perto do portão
+(`main.gd:617`). A bigorna: `main.gd:633`,
 `"tudo junto, duas equipes · □ a partida · △ a Prova de Fogo"`.
 
 **O título** (`ui/tela_titulo.gd`):
@@ -63,12 +63,12 @@ achado (`_som_do_lugar`, `:119-139`): "Alto-falante do Controle 1
 - `:42`: `"Nenhum controle."`;
 - `:71`: `var rodape := "FORJA %s  ·  relatórios ao lado do jogo" % Forja.versao()`.
 
-**O cartão do lobby** (`ui/cartao_jogador.gd:71-87`): a linha do VID:PID
+**O cartão do lobby** (`ui/cartao_jogador.gd:63-76`): a linha do VID:PID
 (`:71`), a origem com "no rádio, só a entrada" (`:72-76`) e a fileira "Luz" e
-"LEDs" com o que foi mandado (`:79-87`). O comentário de `ui/tela_lobby.gd:3-6`
+"LEDs" com o que foi mandado (`:79-87`). O comentário de `ui/tela_lobby.gd:3-3`
 diz "o cartão mostra o que foi lido e o que foi mandado".
 
-**A coleta das frases já existe:** `ui/desenho.gd:60-79`, `Desenho.t()` anota
+**A coleta das frases já existe:** `ui/desenho.gd:53-67`, `Desenho.t()` anota
 cada texto desenhado quando `FORJA_COLETAR_TEXTOS=<arquivo>`:
 
 ```gdscript
@@ -81,7 +81,7 @@ static func t(s: String) -> String:
 		_coletados[s] = true
 ```
 
-As placas 3D (`salao.gd:170`, `:187`; `caminhos.gd:441`) chamam
+As placas 3D (`salao.gd:152`, `:187`; `caminhos.gd:397`) chamam
 `Traducoes.traduzir` direto e escapam da coleta.
 
 ## O alvo
@@ -111,18 +111,18 @@ A frase nova já nasce com maiúscula; a virada das antigas é a F07.
    			return Traducoes.traduzir(s)
    		var f := FileAccess.open(...)  # o resto como hoje
    ```
-   E trocar `Traducoes.traduzir(...)` por `Desenho.t(...)` em `mundo/salao.gd:170`,
-   `:187` e `salas/caminhos.gd:441`, para as placas 3D entrarem na coleta.
+   E trocar `Traducoes.traduzir(...)` por `Desenho.t(...)` em `mundo/salao.gd:152`,
+   `:187` e `salas/caminhos.gd:397`, para as placas 3D entrarem na coleta.
 2. **Os verbos** (`acao`), trocando a frase e a chave em `traducoes.gd`:
-   - `voz.gd:59` → `"Chame o guardião e fique mudo."`
-   - `canto.gd:61` → `"Ouça o canto e repita o ritmo."`
-   - `galeria.gd:53` → `"Sinta o gatilho e atire."`
-   - `caminhos.gd:55` → `"Ande no escuro e sinta o caminho."`
-   - `molde.gd:56` → `"Trace, abra e carimbe o molde."`
-   - `viga.gd:58` → `"Equilibre, mire e martele."`
-   - `prova.gd:81` → `"Brasa contra Maré."`
-3. **As dicas e os selos:** `canto.gd:531` → `"Ouça o canto"`; `canto.gd:598` →
-   `"3 cantos seus"`; `impacto.gd:609` → `"Só você na arena"`; `voz.gd:582` →
+   - `voz.gd:42` → `"Chame o guardião e fique mudo."`
+   - `canto.gd:42` → `"Ouça o canto e repita o ritmo."`
+   - `galeria.gd:37` → `"Sinta o gatilho e atire."`
+   - `caminhos.gd:36` → `"Ande no escuro e sinta o caminho."`
+   - `molde.gd:36` → `"Trace, abra e carimbe o molde."`
+   - `viga.gd:35` → `"Equilibre, mire e martele."`
+   - `prova.gd:56` → `"Brasa contra Maré."`
+3. **As dicas e os selos:** `canto.gd:491` → `"Ouça o canto"`; `canto.gd:553` →
+   `"3 cantos seus"`; `impacto.gd:565` → `"Só você na arena"`; `voz.gd:537` →
    `["@mic", "A sua vez passa"]`. Uma entrada em `traducoes.gd` para cada.
 4. **O ícone do aviso.** Em `salas/sala_jogo.gd`, perto de `features` (`:23`):
    `var icone := ""  ## o glifo da parte do controle que a sala usa (assets/glifos/); a FICHA.icone do kit, na H04`.
@@ -137,26 +137,26 @@ A frase nova já nasce com maiúscula; a virada das antigas é a F07.
 5. **O som no aviso, só na bancada.** Em `painel_sala.gd` `_aviso()`: o
    `ALTURA_SOM` do chip (`:52`, `:90`), a chamada `_som_do_lugar(...)` (`:101-102`)
    e as dicas `trocar`/`testar` (`:106-109`) passam a valer só com
-   `papel >= 0 and Forja.bancada`. Em `sala_jogo.gd:234-235`,
+   `papel >= 0 and Forja.bancada`. Em `sala_jogo.gd:170-171`,
    `if papel_som >= 0 and Forja.bancada: _afinar_som(l, p)`. O `som_preparar`
-   de `sala_jogo.gd:92-94` fica nos dois modos (o som tem de tocar).
-6. **O salão:** em `mundo/salao.gd:16-23`, `"sobre"` passa a ser a seção, na
+   de `sala_jogo.gd:46-46` fica nos dois modos (o som tem de tocar).
+6. **O salão:** em `mundo/salao.gd:8-15`, `"sobre"` passa a ser a seção, na
    ordem de [03](../03-os-45-minigames.md): centelha `"Seção 1"`, viga
    `"Seção 2"`, molde `"Seção 3"`, impacto `"Seção 4"`, galeria `"Seção 5"`,
    canto `"Seção 6"`, caminhos `"Seção 7"`, voz `"Seção 8"`. A bigorna
-   (`main.gd:689`): `"Seção 9 · □ a partida · △ a Prova de Fogo"` (o formato
+   (`main.gd:633`): `"Seção 9 · □ a partida · △ a Prova de Fogo"` (o formato
    dos botões é da F07). Em `traducoes.gd`, apagar as oito chaves antigas de
    hardware (`:50-57`) e a da bigorna (`:58`), e pôr o padrão `["^Seção (\\d)$", "Section $1"]` e a
    frase da bigorna.
 7. **O título** (`ui/tela_titulo.gd`): sem o módulo (`:38-40`), não desenhar
-   nada nessas duas linhas (o `push_warning` de `forja.gd:119` já registra);
+   nada nessas duas linhas (o `push_warning` de `forja.gd:77` já registra);
    `:42` → `"Nenhum controle encontrado."`; `:71` →
    `var rodape := "FORJA %s" % Forja.versao()`. Tirar de `traducoes.gd` as
    três chaves que somem (`:20`, `:21` e a de `"Nenhum controle."`) e o padrão `^FORJA (\\S+)  ·  relatórios ao lado do jogo$`.
 8. **O cartão do lobby** (`ui/cartao_jogador.gd`): apagar as linhas `:70-76`
    (VID:PID, origem e "no rádio, só a entrada") e `:78-87` (a fileira Luz e
    LEDs). O nome do controle (`:62-69`) e o rodapé ficam. Atualizar o
-   comentário de `tela_lobby.gd:3-6` e o do cartão (`:3-8`).
+   comentário de `tela_lobby.gd:3-3` e o do cartão (`:3-8`).
 9. **A prova**: a checagem de "Provas", abaixo.
 
 ## Armadilhas
@@ -171,7 +171,7 @@ A frase nova já nasce com maiúscula; a virada das antigas é a F07.
   perto de um portão.
 - **O `features` da sala não sai.** A medida (`med_comecar`), o veredito
   (`dar_vereditos`) e as provas usam; só o desenho dele sai.
-- **`_nome_da_feature`** (`painel_sala.gd:142`) continua sendo usado pela
+- **`_nome_da_feature`** (`painel_sala.gd:121`) continua sendo usado pela
   tabela de veredito da bancada (`_fim()`): não apague.
 - **A prova da exportação** e o gauntlet não olham texto: nada a mudar neles.
 - **`.uid`:** nenhum script novo aqui.

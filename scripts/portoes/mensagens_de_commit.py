@@ -23,9 +23,6 @@ import unicodedata
 
 import comum
 
-# As faixas de símbolo: setas, técnico (⏎ ⌘), formas (▶ ◀ ▼ △ □ ○), símbolos
-# diversos e dingbats (✕ ✓ ✗ ★), e os planos de emoji. O travessão, as aspas
-# angulares e o ponto médio são pontuação e passam.
 FAIXAS = [
     (0x2190, 0x21FF), (0x2300, 0x23FF), (0x25A0, 0x25FF), (0x2600, 0x26FF), (0x2700, 0x27BF),
     (0x2B00, 0x2BFF), (0x1F000, 0x1FAFF), (0xFE0F, 0xFE0F), (0x200D, 0x200D),

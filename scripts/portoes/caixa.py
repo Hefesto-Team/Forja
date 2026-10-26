@@ -22,7 +22,6 @@ import sys
 import comum
 
 ESCOPO = ("tests", "scripts")
-# o executável do Godot: a variável, o binário baixado, ou a função `godot` de um script
 GODOT = re.compile(r'"?\$\{?(?:GODOT|FORJA_GODOT|GODOT_BIN)\}?"?(?=\s|$)|Godot_v\S*|(?:^|(?<=[\s;&|(]))godot(?=\s)')
 ABRE = ("res://", ".tscn", "--simular", "--robo")
 NAO_ABRE = re.compile(r"(?:^|\s)(?:--import|--export-\S+|-s|--script)(?=\s|$)")
@@ -49,7 +48,6 @@ def main() -> int:
     a = comum.argumentos("caixa", __doc__.splitlines()[0], com_regras=False)
     relato = comum.Relato("caixa", a.modo or "reprova")
     vistos = 0
-    # a caixa é o lugar que monta o bwrap; a prova dos portões traz o caso ruim de propósito
     ignorar = ("tests/caixa.sh", "tests/prova_dos_portoes.sh")
     for f in comum.arquivos(a.raiz, ESCOPO, {".sh"}, ignorar=ignorar):
         texto = f.read_text(encoding="utf-8", errors="replace")

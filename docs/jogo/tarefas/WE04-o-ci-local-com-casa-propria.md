@@ -16,8 +16,8 @@ pisa no do Hefesto.
 
 ## O estado de hoje
 
-- `scripts/ci-local.sh:63`: `CASA="${HEFESTO_CASA:-$HOME/.local/state/hefesto-casa}"`.
-- `scripts/ci-local.sh:218-221` procura o `act` em `$CASA/bin/act` e no PATH; sem ele, sai 2 («não há act»). O
+- `scripts/ci-local.sh:57`: `CASA="${HEFESTO_CASA:-$HOME/.local/state/hefesto-casa}"`.
+- `scripts/ci-local.sh:192-195` procura o `act` em `$CASA/bin/act` e no PATH; sem ele, sai 2 («não há act»). O
   cabeçalho antigo (que saiu com o ADR-010) dizia que ele é «baixado da release oficial, com o sha256 conferido», mas nenhum script da Forja o
   baixa (`git grep -n 'bin/act'` só acha o próprio `ci-local`). Hoje ele existe só em
   `~/.local/state/hefesto-casa/bin/act`, e o `which act` não acha nada.
@@ -26,7 +26,7 @@ pisa no do Hefesto.
   diz `c2ff3ccd2695`, um commit da Forja.
 - As imagens se chamam `hefesto-ci-local` (`:227`, `:244`). O `EM-TAG` lê `$ARV/pyproject.toml` (`:398`), que a Forja
   não tem. Hoje nenhuma linha da tabela é `EM-TAG`, então esse trecho não roda.
-- `scripts/costura.sh:102-111`: o `roda` trata qualquer saída diferente de zero como «costura: VERMELHO» e sai 1. Com
+- `scripts/costura.sh:100-109`: o `roda` trata qualquer saída diferente de zero como «costura: VERMELHO» e sai 1. Com
   `--pesadas`, o `ci-local.sh --rapido` que sai 2 (não rodou) vira vermelho.
 
 ## O alvo
@@ -37,7 +37,7 @@ pelo próprio script, o recibo diz de que repositório é, e «não rodou» nunc
 ## Passos
 
 1. `CASA="${FORJA_CASA:-$HOME/.local/state/forja-casa}"`, e o recibo passa a ter o nome do repositório na linha.
-2. O `act`: versão fixa e sha256 no script (o mesmo molde do SDL em `scripts/compilar.sh:50-57`). Quando não há
+2. O `act`: versão fixa e sha256 no script (o mesmo molde do SDL em `scripts/compilar.sh:24-27`). Quando não há
    `act` em `$CASA/bin` nem no PATH, o script baixa da release oficial para `$CASA/bin/act`, confere a soma e só
    então segue. Soma que não bate apaga o arquivo e sai 2.
 3. As imagens viram `forja-ci-local`. O trecho do `EM-TAG` sai (a regra dele, no comentário da tabela, já sai com o

@@ -1,4 +1,3 @@
-/* As medidas das salas de entrada. Ver medidas.h. */
 #include "medidas.h"
 
 #include "texto_buf.h"
@@ -9,7 +8,6 @@
 
 #define PI_F 3.14159265f
 
-/* número com vírgula, num de oito buffers rotativos (cabe numa linha de printf) */
 static const char *dec(double v, int casas) {
   static char buf[8][32];
   static int i;
@@ -29,8 +27,6 @@ static void juntar(char *dst, size_t tam, const char *s) {
   if (n + 1 < tam)
     snprintf(dst + n, tam - n, "%s", s);
 }
-
-/* ---------- botões ---------- */
 
 int med_botoes_contar(uint32_t m) {
   int n = 0;
@@ -88,7 +84,6 @@ Veredito med_botoes_veredito(const MedBotoes *m, bool mexeu) {
   snprintf(v.medido, sizeof(v.medido), "%d de %d chegaram; %d na hora da runa", med_botoes_contar(chegaram), total,
            med_botoes_contar(na_hora));
 
-  /* o que faltou, o que a sala nem chegou a pedir, e o que chegou trocado */
   char faltaram[200] = "", nao_pedidos[200] = "", trocados[240] = "";
   bool falhou = false;
   for (int b = 0; b < MED_MAX_BOTOES; b++) {
@@ -102,7 +97,6 @@ Veredito med_botoes_veredito(const MedBotoes *m, bool mexeu) {
       juntar(faltaram, sizeof(faltaram), faltaram[0] ? ", " : "");
       juntar(faltaram, sizeof(faltaram), nome_botao(m, b));
     } else if (!(na_hora & (1u << b)) && m->trocas[b] >= 2 && m->trocado_por[b] >= 0) {
-      /* chegou, mas nunca na hora; e no lugar dele chegava outro: o mapa troca */
       falhou = true;
       char um[80];
       snprintf(um, sizeof(um), "%s%s pedia, chegava %s (%d×)", trocados[0] ? "; " : "", nome_botao(m, b),
@@ -131,8 +125,6 @@ Veredito med_botoes_veredito(const MedBotoes *m, bool mexeu) {
   return v;
 }
 
-/* ---------- analógicos ---------- */
-
 void med_analogico_iniciar(MedAnalogico *m) {
   memset(m, 0, sizeof(*m));
   m->repouso_min = 2;
@@ -146,7 +138,7 @@ void med_analogico_repouso(MedAnalogico *m, float x, float y) {
 }
 
 int med_analogico_setor(float x, float y) {
-  float a = atan2f(y, x); /* y para baixo, como o SDL: sentido horário na tela */
+  float a = atan2f(y, x);
   int s = (int)lroundf(a / (PI_F / 4));
   return ((s % 8) + 8) % 8;
 }
@@ -163,7 +155,6 @@ void med_analogico_amostra(MedAnalogico *m, float x, float y) {
 
 int med_analogico_setores(const MedAnalogico *m) { return med_botoes_contar(m->setores); }
 
-/* 1 passou, 0 falhou, -1 não pedido (a sala acabou antes do círculo dele) */
 static int um_analogico(const MedAnalogico *m, const char *nome, char *medido, size_t tm, char *obs, size_t to) {
   int n = med_analogico_setores(m);
   char um[200];
@@ -214,8 +205,6 @@ Veredito med_analogicos_veredito(const MedAnalogico *e, const MedAnalogico *d, b
   return v;
 }
 
-/* ---------- gatilhos analógicos ---------- */
-
 void med_gatilho_iniciar(MedGatilho *m) {
   memset(m, 0, sizeof(*m));
   m->minimo = 2;
@@ -243,7 +232,6 @@ int med_gatilho_niveis(const MedGatilho *m) {
   return n;
 }
 
-/* 1 passou, 0 falhou, -1 não pedido */
 static int um_gatilho(const MedGatilho *m, const char *nome, char *medido, size_t tm, char *obs, size_t to) {
   int niveis = med_gatilho_niveis(m);
   char um[200];
@@ -297,8 +285,6 @@ Veredito med_gatilhos_veredito(const MedGatilho *l2, const MedGatilho *r2, bool 
   }
   return v;
 }
-
-/* ---------- touchpad ---------- */
 
 void med_toque_iniciar(MedToque *m) {
   memset(m, 0, sizeof(*m));
@@ -400,11 +386,9 @@ Veredito med_toque_clique_veredito(const MedToque *m, bool mexeu) {
   return v;
 }
 
-/* ---------- giroscópio e acelerômetro ---------- */
-
 #define G_PADRAO 9.80665f
-#define GIRO_EIXO_MIN 0.5f /* rad/s: um eixo que não passou disso não foi girado (o ruído parado é ~0,02) */
-#define GIRO_PARADO 0.15f  /* rad/s: abaixo disso o controle está parado */
+#define GIRO_EIXO_MIN 0.5f
+#define GIRO_PARADO 0.15f
 
 void med_sensores_iniciar(MedSensores *m, bool tem_giro, bool tem_acel, double hz_declarado) {
   memset(m, 0, sizeof(*m));
@@ -493,7 +477,6 @@ Veredito med_giro_veredito(const MedSensores *m, bool mexeu) {
   }
   for (int e = 0; e < 3; e++)
     if (m->giro_max[e] < GIRO_EIXO_MIN) {
-      /* guinada e arfagem são da mira: se a sala não chegou aos sinos, não pediu */
       bool pedido = e == 2 || m->pediu_mira;
       v.resultado = mexeu && pedido ? RES_FALHOU : RES_NAO_MEDIDO;
       if (pedido)
@@ -558,8 +541,6 @@ Veredito med_acel_veredito(const MedSensores *m, bool mexeu) {
   return v;
 }
 
-/* ---------- microfone e mudo ---------- */
-
 static float db_da_tela(float nivel) { return nivel * 54.0f - 54.0f; }
 
 void med_mic_iniciar(MedMic *m, bool tem) {
@@ -588,8 +569,6 @@ Veredito med_mic_veredito(const MedMic *m, bool mexeu) {
   if (m->voz - piso >= MED_VOZ_ACIMA) {
     v.resultado = RES_PASSOU;
   } else if (m->voz <= 0.001f) {
-    /* nem o ambiente chegou: o microfone está mudo no sistema. Não é defeito
-     * do controle, e a sala seguiu sem a voz dele */
     snprintf(v.obs, sizeof(v.obs), "não medido: o microfone só mandou silêncio absoluto (mudo no sistema); "
              "tire o mudo e jogue a sala de novo");
   } else if (mexeu) {
@@ -625,7 +604,6 @@ Veredito med_mudo_veredito(const MedMic *m, bool mexeu) {
   if (m->tem && m->viu_mudo) {
     float piso = m->viu_piso ? m->piso : 0;
     bool cortou = m->mudo - piso < MED_VOZ_ACIMA / 2;
-    /* só dá para dizer se o sistema cortou quando o microfone deu voz antes */
     bool vivo = m->voz - piso >= MED_VOZ_ACIMA;
     snprintf(v.medido, sizeof(v.medido), "o botão chegou; mudo, sussurrando, o nível ficou em %s dB", dec(db_da_tela(m->mudo), 0));
     snprintf(v.obs, sizeof(v.obs), "%s",
@@ -637,8 +615,6 @@ Veredito med_mudo_veredito(const MedMic *m, bool mexeu) {
   }
   return v;
 }
-
-/* ---------- A Prova: a carga ---------- */
 
 void med_carga_zerar(MedCarga *m, bool tem_giro) {
   memset(m, 0, sizeof(*m));

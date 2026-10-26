@@ -28,7 +28,7 @@ de 70 % de volta). Esta ficha cura o **jogo**: o instante do aperto, que o módu
 
 ## O estado de hoje (medido em 09/10/2026)
 
-- O julgamento lê a hora do quadro, `godot/scripts/minigames/minigame.gd:227-230`:
+- O julgamento lê a hora do quadro, `godot/scripts/minigames/minigame.gd:175-177`:
 
   ```gdscript
   func julgar_toque(l: int, t_alvo: float, n := -1, perigo := false) -> int:
@@ -37,17 +37,17 @@ de 70 % de volta). Esta ficha cura o **jogo**: o instante do aperto, que o módu
   	var j := Ritmo.julgar(l, t_toque, t_alvo, folga)
   ```
 
-  O `t_musica()` (`godot/scripts/ritmo.gd:105`) é o `_t` medido uma vez por quadro, em prioridade −90
-  (`ritmo.gd:39`).
+  O `t_musica()` (`godot/scripts/ritmo.gd:77`) é o `_t` medido uma vez por quadro, em prioridade −90
+  (`ritmo.gd:20`).
 - O DualSense não passa pela entrada do Godot. O módulo bombeia os eventos do SDL no `_process` dele, em −100
-  (`nativo/nucleo/forja.c:211-222`, o `while (SDL_PollEvent(&e)) pads_evento(f, &e);`). Por isso o
-  `Input.use_accumulated_input = false` de `ritmo.gd:40`, que o 04 pede «para cada toque chegar com o quadro dele»,
+  (`nativo/nucleo/forja.c:202-211`, o `while (SDL_PollEvent(&e)) pads_evento(f, &e);`). Por isso o
+  `Input.use_accumulated_input = false` de `ritmo.gd:21`, que o 04 pede «para cada toque chegar com o quadro dele»,
   não alcança o controle.
-- O instante do aperto já existe e se perde: `nativo/nucleo/pads.c:452` guarda o carimbo do evento do SDL em
-  `p->b_quando[botao]` (`pads.h:55`, «ns do último aperto»), e só a conferência do espelho o lê (`pads.c:600`).
+- O instante do aperto já existe e se perde: `nativo/nucleo/pads.c:423` guarda o carimbo do evento do SDL em
+  `p->b_quando[botao]` (`pads.h:39`, «ns do último aperto»), e só a conferência do espelho o lê (`pads.c:565`).
   Nenhum método do `ForjaControles` o entrega ao jogo.
-- O robô aperta no primeiro quadro depois de alvo + mira (`godot/testes/minigame_de_prova.gd:104-105`); o simulador
-  agenda o aperto (`nativo/nucleo/simulador.c:333`) e o SDL o entrega no bombeamento seguinte. O toque do robô
+- O robô aperta no primeiro quadro depois de alvo + mira (`godot/testes/minigame_de_prova.gd:90-90`); o simulador
+  agenda o aperto (`nativo/nucleo/simulador.c:316`) e o SDL o entrega no bombeamento seguinte. O toque do robô
   carrega o mesmo escorregão do quadro, somado ao quadro em que ele percebeu que passou da mira.
 
 ## O alvo
@@ -98,16 +98,16 @@ Todo toque julgado carrega o instante em que aconteceu.
   ou, na sessão acelerada da WE02, pelo tempo do jogo. Não converta carimbo absoluto de um relógio para o outro:
   trabalhe com a idade (a diferença dentro do mesmo relógio), medida no bombeamento, que acontece no mesmo quadro e
   logo antes da medida do `Ritmo` (−100 contra −90).
-- **O controle simulado tem relógio próprio** (`pad_agora_ns`, `pads.c:29-31`). Na sessão acelerada, ele e o tempo
+- **O controle simulado tem relógio próprio** (`pad_agora_ns`, `pads.c:22-24`). Na sessão acelerada, ele e o tempo
   do jogo da WE02 são a mesma soma dos `dt`: a idade do aperto do robô tem de sair nesse relógio, ou a prova acelerada
   julga com um relógio e mede com outro.
-- **O espelho** (`pads.c:595-606`) compara o `b_quando` de dois controles reais para achar o mesmo dedo visto por
+- **O espelho** (`pads.c:561-568`) compara o `b_quando` de dois controles reais para achar o mesmo dedo visto por
   dois caminhos. O carimbo do simulado não pode cair nessa conta.
-- **A calibração.** O desvio das opções (`tela_opcoes.gd:74`) foi ajustado com o escorregão médio dentro dele (meio
+- **A calibração.** O desvio das opções (`tela_opcoes.gd:64`) foi ajustado com o escorregão médio dentro dele (meio
   quadro). Com a cura, quem calibrou à mão pode ver tudo meio quadro adiantado (uns 8 ms a 60 quadros): dizer isso no «O que foi feito» e não
   mexer no valor gravado de ninguém. A medida automática da [G02](G02-a-construcao-do-cavaleiro.md) (a armadura
   forjada a marteladas) tem de usar o mesmo `t_do_aperto`; se a G02 entrar antes, ela troca para ele aqui.
-- **O robô com temperamento** (`--robo=ruim`) às vezes aperta por um temporizador (`forja.gd:1018-1025`): esse
+- **O robô com temperamento** (`--robo=ruim`) às vezes aperta por um temporizador (`forja.gd:835-841`): esse
   aperto não tem mira, e a idade dele é a do bombeamento.
 
 ## Não fazer

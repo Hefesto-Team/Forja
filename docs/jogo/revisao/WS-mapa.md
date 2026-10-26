@@ -10,7 +10,7 @@ por áudio, o módulo). A música sai só na TV. A regra de cada som está na b�
 | --- | --- | --- |
 | Os sons da TV | `godot/scripts/som.gd` | `RECEITAS` (`:17`, os sintetizados) e `GRAVADOS` (`:42`, os WAV de `assets/sons`, com variações); 16 tocadores 3D e 4 tocadores 2D, todos no barramento mestre; `tocar` (`:112`), `laco` (`:141`), `no_controle` (`:156`, o mesmo som na TV e no alto-falante do lugar) e `jingle` (`:195`) |
 | A música | `godot/scripts/musica.gd` | `FAIXAS` (`:11`, a trilha sintetizada de cada sala e seção) e `SALA_DA_SECAO` (`:31`); `tocar` com cruzamento de 0,8 s (`:76`); `tocar_do_zero` para o minigame (`:104`) e o `mapa` de batidas (`:130`); `TELAS` e as faixas geradas (`:176-243`, a H05); o barramento `Musica` e o `reagir` (`:256-303`, a H07) |
-| O invólucro do módulo | `godot/scripts/forja.gd:834-961` | `som_preparar`, `som_falante`, `som_haptica`, `tocar_material`, `som_pronto` |
+| O invólucro do módulo | `godot/scripts/forja.gd:702-796` | `som_preparar`, `som_falante`, `som_haptica`, `tocar_material`, `som_pronto` |
 | A ponte nativa | `nativo/godot/forja_som.cpp` | os métodos de som do `ForjaControles`; `som_encerrar` (`:105-111`) |
 | A placa de cada controle | `nativo/som/som_controle.c` | listar e escolher os nós de áudio, abrir uma saída por lugar, o fio que alimenta (`:55-65`), `somc_preparar` (`:299`), `somc_falante`, `somc_trocar` (`:318-352`) |
 | O mixer | `nativo/som/mixer.c` | 48 vozes por saída (`MIX_MAX_VOZES`), roubo de voz (`:32-48`), limitador; o fim pela rampa de 20 ms (`nativo/som/rampa.c`) |

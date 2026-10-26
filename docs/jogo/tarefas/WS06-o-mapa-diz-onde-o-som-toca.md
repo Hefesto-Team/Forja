@@ -22,18 +22,18 @@ A causa: as colunas `onde_toca` e `estado` são escritas à mão e nenhum portã
 
 - `onde_toca=tv` em sons que também tocam no alto-falante do controle:
   - `sino_0`..`sino_4` (`docs/jogo/audio/mapa.csv:51-55`): `Som.no_controle(l, "sino_viga", 0.6)` em
-    `godot/scripts/salas/viga.gd:419`;
+    `godot/scripts/salas/viga.gd:368`;
   - `pedra_0`..`pedra_4` (`mapa.csv:39-43`): `Som.no_controle(l, "pedra" if e.golpes >= 2 else "martelo", 0.7)` em
-    `viga.gd:458` (o `martelo_*`, `mapa.csv:29-33`, já diz `tv+controle`);
-  - `vitoria_noite_0` (`mapa.csv:70`): `Som.no_controle(l, "vitoria_noite", 0.8)` em `godot/scripts/main.gd:501`.
+    `viga.gd:407` (o `martelo_*`, `mapa.csv:29-33`, já diz `tv+controle`);
+  - `vitoria_noite_0` (`mapa.csv:70`): `Som.no_controle(l, "vitoria_noite", 0.8)` em `godot/scripts/main.gd:465`.
 - `estado=a fazer` em sons que já tocam:
   - `mod_nota_p1`..`p4` e `mod_nota_quebrada_p1`..`p4` (`mapa.csv:100-107`): `Forja.som_falante(l, "nota:%d" % l, 0.8)`
-    e `"nota_quebrada:%d"` em `godot/scripts/minigames/minigame.gd:279` e `:270`;
-  - `mod_material_*`, as sete (`mapa.csv:120-126`): `Forja.tocar_material`, `godot/scripts/forja.gd:906-914`, chamado em
-    `minigame.gd:276`.
+    e `"nota_quebrada:%d"` em `godot/scripts/minigames/minigame.gd:221` e `:270`;
+  - `mod_material_*`, as sete (`mapa.csv:120-126`): `Forja.tocar_material`, `godot/scripts/forja.gd:757-761`, chamado em
+    `minigame.gd:218`.
 - O `mod_coleta` (`mapa.csv:99`) diz «a fazer» e está **certo**: nenhuma chamada de `"coleta"` em `godot/scripts`.
-- Falta a linha do pio no módulo: `Forja.som_falante(l, "pio:%d" % jogadores[l].modelo_i, 0.8)` (`main.gd:275`), 12
-  pios em `nativo/som/sons_salas.c:51-56` (`sint_pio`, um por boneco) e o nome lido em `:91-93`. As 24 linhas `pio_p*`
+- Falta a linha do pio no módulo: `Forja.som_falante(l, "pio:%d" % jogadores[l].modelo_i, 0.8)` (`main.gd:252`), 12
+  pios em `nativo/som/sons_salas.c:48-52` (`sint_pio`, um por boneco) e o nome lido em `:91-93`. As 24 linhas `pio_p*`
   do mapa são as gravadas da direção, um por lugar e intervalo, `estado=gerado`, e nenhuma é o que toca hoje (a H07
   anotou a divergência, `H07-o-som-em-todo-evento.md:990-992`).
 - `scripts/portoes/som.json`: as chamadas conferidas são `Som.tocar`, `Som.laco`, `Som.no_controle`, `Som.jingle`,
@@ -58,11 +58,11 @@ A causa: as colunas `onde_toca` e `estado` são escritas à mão e nenhum portã
 ## Armadilhas
 
 - O material: o `onde_toca` fica `atuadores`, não `atuadores+controle`. Hoje o `tocar_material` também toca o
-  alto-falante (`forja.gd:912`), mas a bíblia tira o material do alto-falante e quem tira a chamada é a WS01. O portão
+  alto-falante (`forja.gd:759`), mas a bíblia tira o material do alto-falante e quem tira a chamada é a WS01. O portão
   não pode exigir `controle` por causa do `som_falante(l, nome, …)` de dentro do `tocar_material`, porque o nome ali é
   dinâmico (`"material:" + material`) e já cai como chamada sem literal.
 - O `Som.no_controle` toca o mesmo id na TV e no controle: exige `tv+controle`, não só `controle`.
-- O `pedra` vem de um ternário: o portão já lê os dois lados (`prova_dos_portoes.sh:179-180`).
+- O `pedra` vem de um ternário: o portão já lê os dois lados (`prova_dos_portoes.sh:161-162`).
 
 ## Não fazer
 
@@ -72,7 +72,7 @@ A causa: as colunas `onde_toca` e `estado` são escritas à mão e nenhum portã
 ## Pronto quando
 
 `python3 scripts/portoes/som.py --raiz . --modo reprova` passa com o mapa corrigido, e reprova numa árvore de rascunho
-com o `sino_0` de volta a `tv` («toca no controle em viga.gd:419, o mapa diz tv»).
+com o `sino_0` de volta a `tv` («toca no controle em viga.gd:368, o mapa diz tv»).
 
 ## Provas
 
