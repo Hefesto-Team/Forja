@@ -37,6 +37,8 @@ func _ready() -> void:
 			roteiro = _roteiro_do_trailer()
 		"camera_luz":
 			roteiro = _roteiro_da_camera_e_da_luz()
+		"fim_coop":
+			roteiro = _roteiro_do_fim_coop()
 		_:
 			roteiro = _roteiro_das_telas()
 	if pedidas != "":
@@ -94,6 +96,27 @@ func _roteiro_da_camera_e_da_luz() -> Array:
 		["podio_de_mentira"], ["ate", no_podio], ["espera", 90], ["foto", "luz_podio"],
 		["fim"],
 	]
+
+
+func _roteiro_do_fim_coop() -> Array:
+	var fase := func(f: String, t: float) -> Callable:
+		return func() -> bool:
+			return jogo.sala is SalaJogo and jogo.sala.fase == f and jogo.sala.t_fase >= t
+	var r: Array = [["sentar"], ["ao_salao"], ["espera", 30]]
+	var salas: Array = Array(OS.get_environment("SALAS").split(",")) if OS.get_environment("SALAS") != "" else ["voz"]
+	var espalhados: Array = [
+		["posiciona", 0, Vector3(-6.0, 0.05, 2.0), 0.0], ["posiciona", 1, Vector3(-2.0, 0.05, -2.0), 0.0],
+		["posiciona", 2, Vector3(2.0, 0.05, 2.0), 0.0], ["posiciona", 3, Vector3(6.0, 0.05, -2.0), 0.0],
+	]
+	for id in salas:
+		for aberto in [false, true]:
+			r.append_array([["sala", id], ["ate", fase.call("jogo", 3.0)], ["termina"], ["ate", fase.call("fim", 0.1)]])
+			if aberto:
+				r.append_array(espalhados)
+			r.append_array([["ate", fase.call("fim", 1.3)], ["foto", "fim_%s%s" % [id, "_aberto" if aberto else ""]],
+				["ate", fase.call("fim", 2.6)], ["ao_salao"], ["espera", 30]])
+	r.append(["fim"])
+	return r
 
 
 func _roteiro_do_cavaleiro() -> Array:
