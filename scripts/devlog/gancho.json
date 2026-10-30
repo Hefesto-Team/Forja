@@ -1,0 +1,26 @@
+{
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "timeout": 20,
+            "command": "bash -c 'R=$(git rev-parse --show-toplevel 2>/dev/null) || exit 0; [ -f \"$R/scripts/devlog/cobrar.sh\" ] || exit 0; exec bash \"$R/scripts/devlog/cobrar.sh\"'"
+          }
+        ]
+      }
+    ],
+    "SubagentStop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "timeout": 20,
+            "command": "bash -c 'R=$(git rev-parse --show-toplevel 2>/dev/null) || exit 0; [ -f \"$R/scripts/devlog/cobrar.sh\" ] || exit 0; exec bash \"$R/scripts/devlog/cobrar.sh\"'"
+          }
+        ]
+      }
+    ]
+  }
+}
