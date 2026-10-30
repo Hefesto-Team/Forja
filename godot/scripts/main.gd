@@ -835,7 +835,7 @@ func _quadro_titulo(dt: float) -> void:
 	var pulso := _pulso_da_forja(batidas, clampf(_t_titulo / 2.0, 0.0, 1.0))
 	titulo.pulso = pulso
 	salao.pulso = pulso
-	titulo.contador_s = float(Time.get_ticks_msec() - play_ms) / 1000.0 if play_ms >= 0 else 0.0
+	titulo.contador_s = _t_titulo
 	if not Forja.modulo:
 		if titulo.play_desde < 0.0 and Forja.apertou(0, Forja.CRUZ):
 			_dar_play(0)
@@ -885,6 +885,8 @@ func _pulso_da_forja(batidas: float, entrada: float) -> float:
 func _dar_play(l: int) -> void:
 	Som.tocar("fx_play", null, -6.0)
 	Forja.sentir(l, "fita")
+	Forja.piscar(l, Tema.TUNGSTENIO, 0.4)
+	get_tree().create_timer(0.15).timeout.connect(func() -> void: Som.no_controle(l, "fx_play", 0.7))
 	titulo.play_desde = _batidas_do_titulo()
 	play_ms = Time.get_ticks_msec()
 	Forja.registrar("PLAY (P%d)" % (l + 1))

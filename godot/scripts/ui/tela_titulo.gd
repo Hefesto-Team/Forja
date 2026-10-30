@@ -26,10 +26,19 @@ func _descida() -> float:
 	return 720.0 * pow(clampf((batidas - play_desde) / 4.0, 0.0, 1.0), 3.0)
 
 
+func _brasa(centro: Vector2) -> void:
+	for i in 9:
+		var k := float(i) / 8.0
+		draw_set_transform(centro, 0.0, Vector2(1.0, 0.34))
+		draw_circle(Vector2.ZERO, lerpf(760.0, 220.0, k), Color(Tema.OXIDO_BRILHO, (0.05 + 0.04 * pulso) * (0.4 + k)))
+	draw_set_transform_matrix(Transform2D.IDENTITY)
+
+
 func _draw() -> void:
 	var osd := Color(Tema.ETIQUETA, 0.9)
-	Desenho.caixa(self, Rect2(80, 28, 360, 100), Color(Tema.CASCO, 0.82), 14)
-	Desenho.caixa(self, Rect2(1370, 28, 470, 100), Color(Tema.CASCO, 0.82), 14)
+	draw_rect(Rect2(Vector2.ZERO, size), Tema.FITA.darkened(0.55))
+	draw_rect(Rect2(0, 364, size.x, 8), Color(Tema.VIOLETA, 0.85))
+	_brasa(Vector2(960, 930) + Vector2(0, _descida()))
 	draw_colored_polygon(PackedVector2Array([Vector2(100, 70), Vector2(100, 116), Vector2(138, 93)]), osd)
 	_texto(Vector2(156, 62), "PLAY", Tema.vt(), 60, osd)
 	var s := int(contador_s)
@@ -66,7 +75,7 @@ func _draw() -> void:
 		draw_circle(Vector2(r.get_center().x + x, r.end.y - 36), 14, Tema.JANELA)
 
 	var sem_controle := Forja.modulo and Forja.conectados() == 0
-	var dica_do_botao := "Jogar no teclado" if sem_controle else "Gravar"
+	var dica_do_botao := "Jogar no teclado" if sem_controle else "Começar"
 	var largura := Glifo.largura_dica("cruz", dica_do_botao, 44, not sem_controle)
 	var bt := Rect2(Vector2(760, 920) + dy, Vector2(maxf(400.0, largura + 60.0), 82))
 	bt.position.x = 960.0 - bt.size.x * 0.5
