@@ -170,7 +170,7 @@ func _etiqueta(face: String) -> void:
 	draw_texture_rect(Desenho.LOGO, Rect2(e.position + Vector2(48, 100), Vector2(180, 180)), false)
 	Desenho.texto(self, e.position + Vector2(268, 200), "A Forja", Tema.bungee(), 96, Tema.TINTA)
 	draw_line(e.position + Vector2(268, 236), e.position + Vector2(e.size.x - 48, 236), Tema.ETIQUETA_SOMBRA, 3.0)
-	Desenho.texto(self, e.position + Vector2(268, 296), "Quatro DualSense no mesmo sofá.", Tema.archivo(500), Tema.T_SUBTITULO, Tema.TINTA_SUAVE)
+	Desenho.texto(self, e.position + Vector2(268, 300), "Nove salas, quatro cavaleiros", Tema.marcador(), 40, Tema.TINTA)
 
 
 func _desenhar_caneta() -> void:

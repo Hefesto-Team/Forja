@@ -87,8 +87,5 @@ func _draw() -> void:
 	if sem_controle:
 		_texto(Vector2(0, 860) + dy, "Nenhum controle encontrado", Tema.archivo(600), 34, Tema.ETIQUETA,
 			HORIZONTAL_ALIGNMENT_CENTER, size.x)
-	else:
-		var larg_c := Glifo.largura_dica("triangulo", "Créditos", 34, false)
-		var pc := Rect2(Vector2(1180, 925) + dy, Vector2(larg_c + 40.0, 62))
-		Desenho.caixa(self, pc, Color(Tema.ETIQUETA, 0.9), 14)
-		Glifo.dica(self, Vector2(pc.position.x + 20.0, pc.position.y + 43), "triangulo", "Créditos", 34, Tema.TINTA, Tema.TINTA, false)
+	elif play_desde < 0.0:
+		Desenho.dicas_a_direita(self, Vector2(size.x - Tema.MARGEM_X, size.y - Tema.MARGEM_Y), [["triangulo", "Créditos"]], Tema.T_SELO)
