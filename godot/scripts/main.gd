@@ -1525,6 +1525,7 @@ func _ui(l: int, id: String) -> void:
 
 
 var _plano_antes := ""
+const FOLGA_DO_GRUPO_NO_FIM := 1.3
 
 
 func _plano_do_fim() -> String:
@@ -1536,7 +1537,7 @@ func _plano_do_fim() -> String:
 func _lente_da_sala() -> float:
 	match _plano_do_fim():
 		"resultado":
-			return 50.0
+			return 35.0 if sala is SalaJogo and (sala as SalaJogo).vencedor_do_fim() < 0 else 50.0
 		"inserto":
 			return 85.0
 	return sala.lente() if sala else 35.0
@@ -1566,11 +1567,14 @@ func _pose_do_fim(sj: SalaJogo, plano: String) -> Array:
 		for q in juntos:
 			centro += q
 		centro /= juntos.size()
-		var raio := 0.0
-		for q in juntos:
-			raio = maxf(raio, (q - centro).length())
 		alvo = centro + Vector3(0, 1.1, 0)
-		d = maxf(5.2, 2.4 * raio + 1.2)
+		var k_grupo := 0.5
+		if not Opcoes.reduzido():
+			k_grupo = TelaIntro.entra_sai(clampf(sj.t_fase / (SalaJogo.BATIDAS_DO_RESULTADO * sj.batida_do_fim()), 0.0, 1.0))
+		var da_sala: Vector3 = sj.camera_pos - sj.camera_olhar
+		var dir_grupo := da_sala.normalized().rotated(Vector3.UP, deg_to_rad(lerpf(-5.0, 5.0, k_grupo)))
+		var tg := _tangentes()
+		return Enquadramento.grupo(juntos, dir_grupo, Vector2(5.2, da_sala.length() * FOLGA_DO_GRUPO_NO_FIM), tg.x, tg.y)
 	var k := 0.5
 	if not Opcoes.reduzido():
 		k = TelaIntro.entra_sai(clampf(sj.t_fase / (SalaJogo.BATIDAS_DO_RESULTADO * sj.batida_do_fim()), 0.0, 1.0))

@@ -2958,8 +2958,23 @@ func _prova_da_camera_na_prova() -> void:
 	jogo.estado = "podio"
 	var pp: Array = jogo._pose_da_camera()
 	jogo.estado = estado_antes
-	var olhar_p := Vector3(-4.6, 0.9, 4.4)
-	_esperar(pp[1] == olhar_p and pp[0].distance_to(olhar_p + (Vector3(-4.6, 4.0, 19.5) - olhar_p) * 1.0616) < 0.001, "pódio: o olhar fica e a posição recua para 35 mm")
+	var olhar_p := Vector3(-2.9, 0.9, 4.4)
+	_esperar(pp[1] == olhar_p and pp[0].distance_to(olhar_p + (Vector3(-2.9, 3.5, 16.85) - olhar_p) * 1.0616) < 0.001, "pódio: o olhar fica e a posição recua para 35 mm")
+	var espalhados_no_fim := [Vector3(-5.5, 0.05, 2.0), Vector3(-1.8, 0.05, -2.0), Vector3(1.8, 0.05, 2.0), Vector3(5.5, 0.05, -2.0)]
+	for l in 4:
+		jogo.jogadores[l].global_position = espalhados_no_fim[l]
+	var pose_do_grupo: Array = jogo._pose_do_fim(sala, "resultado")
+	var frente_do_grupo: Vector3 = (pose_do_grupo[1] - pose_do_grupo[0]).normalized()
+	var direita_do_grupo: Vector3 = frente_do_grupo.cross(Vector3.UP).normalized()
+	var tg_grupo: Vector2 = jogo._tangentes()
+	var todos_no_quadro := true
+	for q in espalhados_no_fim:
+		var v: Vector3 = q + Vector3(0, 0.8, 0) - pose_do_grupo[0]
+		var ao_longo: float = v.dot(frente_do_grupo)
+		todos_no_quadro = todos_no_quadro and ao_longo > 0.0 and absf(v.dot(direita_do_grupo)) / ao_longo <= tg_grupo.y
+	_esperar(todos_no_quadro, "fim em grupo: os quatro espalhados cabem de frente no quadro")
+	_esperar(pose_do_grupo[0].y >= 0.5 and pose_do_grupo[0].distance_to(pose_do_grupo[1]) <= (sala.camera_pos - sala.camera_olhar).length() * jogo.FOLGA_DO_GRUPO_NO_FIM + 0.01,
+		"fim em grupo: a câmera não desce ao chão nem passa da folga da câmera da sala (%s)" % [pose_do_grupo[0]])
 	var jogando_antes: Array = sala.jogando.duplicate()
 	_esperar(sala.alvos_da_camera().size() == 4, "A Prova: os quatro são alvo (%d)" % sala.alvos_da_camera().size())
 	sala.jogando[1] = false
