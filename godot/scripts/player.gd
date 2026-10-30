@@ -68,6 +68,8 @@ var controlavel := true:
 		controlavel = v
 		if luz_de_dono:
 			luz_de_dono.visible = v
+		if luz_de_cima:
+			luz_de_cima.visible = v
 var preso := false
 var modelo: Node3D
 var modelo_i := 0
@@ -77,6 +79,7 @@ var nome := ""
 var anim: AnimationPlayer
 var aro: Node3D
 var luz_de_dono: OmniLight3D
+var luz_de_cima: OmniLight3D
 var etiqueta: Label3D
 var _anim_atual := ""
 var _mats_corpo: Array[ShaderMaterial] = []
@@ -119,6 +122,15 @@ func montar(l: int) -> void:
 	luz_de_dono.position.y = 0.6
 	luz_de_dono.visible = controlavel
 	add_child(luz_de_dono)
+
+	luz_de_cima = OmniLight3D.new()
+	luz_de_cima.light_color = Color.WHITE.lerp(cor, 0.22)
+	luz_de_cima.light_energy = 1.3
+	luz_de_cima.omni_range = 3.0
+	luz_de_cima.shadow_enabled = false
+	luz_de_cima.position = Vector3(0.0, 2.4, 0.5)
+	luz_de_cima.visible = controlavel
+	add_child(luz_de_cima)
 
 	etiqueta = Label3D.new()
 	etiqueta.text = "P%d" % (l + 1)
@@ -502,6 +514,11 @@ func _vestir(n: Node) -> void:
 			mi.set_surface_override_material(s, m)
 			_contornos.append(ctn)
 			(_mats_corpo if corpo else _mats_cabeca).append(m)
+
+
+func etiqueta_no_mundo(ligada: bool) -> void:
+	etiqueta.modulate.a = 1.0 if ligada else 0.0
+	etiqueta.outline_modulate.a = 0.9 if ligada else 0.0
 
 
 func acender_acento() -> void:

@@ -27,6 +27,8 @@ var portoes := {}
 var pedestais: Array[Vector3] = []
 var pedestais_no: Node3D
 var luzes_das_bigornas: Array[OmniLight3D] = []
+var focos_da_montagem: Array[Node3D] = []
+var _ocultos_na_montagem: Array[Node3D] = []
 var _tw_bigorna := [null, null, null, null]
 var vitrine_no: Node3D
 var trofeus_no: Node3D
@@ -406,6 +408,47 @@ func _pedestais() -> void:
 		luz.light_energy = 0.0
 		pedestais_no.add_child(luz)
 		luzes_das_bigornas.append(luz)
+		var foco := SpotLight3D.new()
+		foco.position = pos + Vector3(0.0, 4.6, 3.4)
+		foco.light_color = Tema.JOGADOR[i].lerp(Color.WHITE, 0.82)
+		foco.light_energy = 7.0
+		foco.spot_range = 12.0
+		foco.spot_angle = 24.0
+		foco.spot_attenuation = 0.6
+		foco.shadow_enabled = false
+		foco.visible = false
+		pedestais_no.add_child(foco)
+		foco.look_at_from_position(foco.position, pos + Vector3(0, 1.3, 0), Vector3.UP)
+		focos_da_montagem.append(foco)
+		var contra := OmniLight3D.new()
+		contra.position = pos + Vector3(0.0, 2.2, -1.6)
+		contra.light_color = Tema.JOGADOR[i]
+		contra.light_energy = 2.2
+		contra.omni_range = 3.6
+		contra.shadow_enabled = false
+		contra.visible = false
+		pedestais_no.add_child(contra)
+		focos_da_montagem.append(contra)
+
+
+func acender_focos(ligado: bool) -> void:
+	for f in focos_da_montagem:
+		f.visible = ligado
+
+
+func modo_montagem(ligado: bool) -> void:
+	acender_focos(ligado)
+	if ligado:
+		_ocultos_na_montagem.clear()
+		for c in get_children():
+			if c is Node3D and c != pedestais_no and (c as Node3D).visible:
+				(c as Node3D).visible = false
+				_ocultos_na_montagem.append(c)
+	else:
+		for c in _ocultos_na_montagem:
+			if is_instance_valid(c):
+				c.visible = true
+		_ocultos_na_montagem.clear()
 
 
 func acender_bigorna(l: int, energia: float, a_mais := 0.0) -> void:

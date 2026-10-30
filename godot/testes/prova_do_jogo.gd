@@ -337,6 +337,14 @@ func _prova_do_percurso() -> void:
 	var c4: Dictionary = Cavaleiro.corpo(jogo.jogadores[3].pecas)
 	_esperar(c4.valido and Cavaleiro.no_corpo(str(ForjaPlayer.ITENS[item4].id), c4.stats) != "fora",
 		"△ sorteia um corpo válido e um item que ele alcança (%s)" % [jogo.jogadores[3].pecas])
+	var cab4: String = str(jogo.jogadores[3].pecas[0])
+	await _aperta(3, Forja.QUADRADO)
+	_esperar(jogo.lobby.travada[3].has(TelaLobby.CABECA) and jogo.lobby.travada[3].size() == 1, "□ trava a linha da Cabeça do P4")
+	for vez in 4:
+		await _aperta(3, Forja.TRIANGULO)
+		_esperar(str(jogo.jogadores[3].pecas[0]) == cab4, "△ não troca a Cabeça travada (%s)" % [jogo.jogadores[3].pecas[0]])
+	await _aperta(3, Forja.QUADRADO)
+	_esperar(jogo.lobby.travada[3].is_empty(), "□ de novo destrava a linha")
 	await _aperta(0, Forja.CIRCULO)
 	_esperar(jogo.lobby.linha[0] == TelaLobby.CABECA and Forja.ocupado(0), "○ numa linha de baixo volta à primeira, sem sair do lugar")
 	await _prova_do_teclado_na_mesa()

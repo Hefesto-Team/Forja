@@ -31,6 +31,8 @@ func _ready() -> void:
 			roteiro = _roteiro_da_partida()
 		"extras":
 			roteiro = _roteiro_dos_extras()
+		"cavaleiro":
+			roteiro = _roteiro_do_cavaleiro()
 		"trailer":
 			roteiro = _roteiro_do_trailer()
 		_:
@@ -78,6 +80,26 @@ func _roteiro_das_telas() -> Array:
 		["sala", "impacto"], ["espera", 150], ["foto", "sala_impacto"],
 		["sala", "voz"], ["espera", 70], ["foto", "sala_voz"],
 		["sala", "prova"], ["espera", 90], ["foto", "sala_prova"],
+		["fim"],
+	]
+
+
+func _roteiro_do_cavaleiro() -> Array:
+	return [
+		["espera", 70],
+		["aperta", 0, Forja.CRUZ], ["espera", 60],
+		["ate", func() -> bool: return jogo.estado == "intro" and jogo.intro.t >= 3.0],
+		["aperta", 0, Forja.CRUZ], ["espera", 40],
+		["aperta", 1, Forja.CRUZ], ["aperta", 2, Forja.CRUZ], ["espera", 40],
+		["aperta", 1, Forja.DIREITA], ["aperta", 2, Forja.BAIXO],
+		["espera", 30],
+		["foto", "cav_montagem"],
+		["aperta", 0, Forja.QUADRADO], ["aperta", 2, Forja.QUADRADO], ["espera", 10],
+		["aperta", 0, Forja.TRIANGULO], ["aperta", 2, Forja.TRIANGULO], ["espera", 45], ["foto", "cav_trava"],
+		["aperta", 0, Forja.CRUZ], ["espera", 30], ["aperta", 0, Forja.CRUZ], ["espera", 30], ["aperta", 0, Forja.CRUZ], ["espera", 30],
+		["foto", "cav_forjar"],
+		["ate_pronto", 0], ["ate_pronto", 1], ["ate_pronto", 2],
+		["espera", 150], ["foto", "cav_salao"],
 		["fim"],
 	]
 
