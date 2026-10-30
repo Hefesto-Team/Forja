@@ -305,7 +305,7 @@ func _deck(r: Rect2) -> void:
 		digitos = "%03d" % ceili(maxf(d, 0.0))
 		esq = 1.0 if d > 0.0 else 0.5
 	elif d > 0.0:
-		var resta := maxf(0.0, d - float(da_sala.t_jogo))
+		var resta: float = da_sala.tempo_que_resta() if da_sala.has_method("tempo_que_resta") else maxf(0.0, d - float(da_sala.t_jogo))
 		digitos = "%03d" % ceili(resta)
 		esq = resta / d
 	else:

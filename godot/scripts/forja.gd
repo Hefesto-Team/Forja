@@ -435,6 +435,8 @@ const SENSACOES := {
 	"aviso":     [0.6, 0.0,  200],
 	"golpe_esq": [1.0, 0.0,  250],
 	"golpe_dir": [0.0, 1.0,  250],
+	"toque_esq": [0.4, 0.0, 80],
+	"toque_dir": [0.0, 0.4, 80],
 	"fita":      [0.0, 0.3,  400],
 	"metal":     [0.0, 0.45,  40],
 	"vitoria":     [1.0, 0.6, 120],
@@ -557,12 +559,17 @@ func leds_jogador(l: int, mascara: int) -> bool:
 
 
 func silencio(l: int) -> void:
+	_cor_pedida[l] = Color.TRANSPARENT
+	_piscar_ate[l] = 0.0
 	_gatilho_pedido[clampi(l, 0, 3)] = [[], []]
 	if modulo:
 		ctl.silencio(l)
 
 
 func silencio_todos() -> void:
+	for l in 4:
+		_cor_pedida[l] = Color.TRANSPARENT
+		_piscar_ate[l] = 0.0
 	_gatilho_pedido = [[[], []], [[], []], [[], []], [[], []]]
 	if modulo:
 		ctl.silencio_todos()
@@ -996,6 +1003,14 @@ func capacidade(l: int, qual: String) -> bool:
 	if p < 0:
 		return false
 	return bool(pad(p).get(qual, false))
+
+
+func acelerada() -> bool:
+	return modulo and simular > 0 and _args.has("acelerado")
+
+
+func agora_us() -> int:
+	return int(round(_agora * 1000000.0))
 
 
 var _gatilho_pedido := [[[], []], [[], []], [[], []], [[], []]]

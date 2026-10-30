@@ -15,6 +15,7 @@ const FICHA := {
 	"material": "metal",
 	"microjogo": {"verbo": "Juntos!", "segundos": 6.0},
 	"treino": false,
+	"como_jogar": [["cross", "Bater no tempo"]],
 }
 const PASSO := 2.0
 const A_FRENTE := 2

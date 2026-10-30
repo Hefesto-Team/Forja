@@ -67,7 +67,7 @@ for passada in ${PASSADAS:-fixa livre}; do
     echo "==> partida $n ($passada): $jogadores jogador(es), robô $robo, $salas salas ${extra:+($extra)}${ambiente:+ ($ambiente)}"
     # shellcheck disable=SC2086
     timeout "${LIMITE_S:-3000}" env $ambiente "${JANELA[@]}" \
-      "${CAIXA[@]}" "$GODOT" "${GODOT_JANELA[@]}" "${QUADROS[@]}" res://testes/prova_visual.tscn \
+      caixa "$GODOT" "${GODOT_JANELA[@]}" "${QUADROS[@]}" res://testes/prova_visual.tscn \
       -- --simular="$jogadores" --robo="$robo" --semente=7 --relatorios="$rel" --saida="$pasta" \
          --salas="$salas" --indice="$n" "${MOVIMENTO[@]}" $extra > "$pasta/partida-$n.log" 2>&1
     rc=$?

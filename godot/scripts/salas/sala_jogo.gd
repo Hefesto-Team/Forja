@@ -371,6 +371,24 @@ func tempo_acabou() -> bool:
 	return duracao > 0.0 and tempo_jogado() >= duracao
 
 
+const AMPLITUDE_REDUZIDA := 0.4
+
+
+func batida_da_sala() -> float:
+	if Ritmo.bpm > 0.0 and Ritmo.t_musica() > 0.0:
+		return Ritmo.batida()
+	return t * 2.0
+
+
+func pulso_da_batida() -> float:
+	var b := batida_da_sala()
+	return pow(1.0 - (b - floorf(b)), 3.0)
+
+
+func amplitude_da_espera() -> float:
+	return AMPLITUDE_REDUZIDA if Opcoes.reduzido() else 1.0
+
+
 func tempo_que_resta() -> float:
 	return maxf(0.0, duracao - tempo_jogado())
 
@@ -404,13 +422,18 @@ func vencedor() -> Array:
 
 func _celebrar() -> void:
 	var jingle := Som.jingle_do_resultado(pontos, _presentes_do_fim(), coop, coop_venceu)
+	for l in quem_comemora():
+		var pc := jogador(int(l))
+		if pc != null and is_instance_valid(pc):
+			pc.gesto("emote-yes", 1.4)
+	var b := quem_brilha()
+	var pb := jogador(b) if b >= 0 else null
+	if pb != null and is_instance_valid(pb):
+		Efeitos.faiscas(self, pb.global_position + Vector3(0, 2.2, 0), Forja.cor_do_lugar(b), 40, 1.3)
 	var w := vencedor_do_fim()
 	var espera := 0.0
 	if w >= 0:
 		var p := jogador(w)
-		if p != null and is_instance_valid(p):
-			p.gesto("emote-yes", 1.4)
-			Efeitos.faiscas(self, p.global_position + Vector3(0, 2.2, 0), Forja.cor_do_lugar(w), 40, 1.3)
 		Som.tocar(["fx_vitoria_p1", "fx_vitoria_p2", "fx_vitoria_p3", "fx_vitoria_p4"][w], p.global_position if p != null and is_instance_valid(p) else null, -9.0)
 		Som.no_controle(w, ["fx_vitoria_p1", "fx_vitoria_p2", "fx_vitoria_p3", "fx_vitoria_p4"][w], 0.85)
 		Forja.batimento_duplo(w)
@@ -542,6 +565,51 @@ func com_poucos() -> String:
 
 func erros_do_grupo() -> int:
 	return 0
+
+
+var esperando_controle := false
+var _tela_reconectar: TelaReconectar = null
+
+
+func lugares_sem_controle() -> Array:
+	var fora: Array = []
+	for p in jogadores:
+		if jogando[p.lugar] and not acabou[p.lugar]:
+			if Forja.lugar(p.lugar).get("conectado", false):
+				return []
+			fora.append(p.lugar)
+	return fora
+
+
+func _esperar_o_controle() -> bool:
+	var fora := lugares_sem_controle()
+	esperar_o_controle(not fora.is_empty(), fora)
+	return esperando_controle
+
+
+func esperar_o_controle(sim: bool, lugares: Array) -> void:
+	if sim and _tela_reconectar != null:
+		_tela_reconectar.lugares = lugares
+	if esperando_controle == sim:
+		return
+	esperando_controle = sim
+	for p in jogadores:
+		if sim:
+			Forja.med_parar(p.lugar)
+		else:
+			Forja.med_retomar(p.lugar)
+	if sim:
+		var camada := CanvasLayer.new()
+		camada.layer = 11
+		_tela_reconectar = TelaReconectar.new()
+		_tela_reconectar.lugares = lugares
+		_tela_reconectar.sala = self
+		camada.add_child(_tela_reconectar)
+		add_child(camada)
+	elif _tela_reconectar != null:
+		_tela_reconectar.visible = false
+		_tela_reconectar.get_parent().queue_free()
+		_tela_reconectar = null
 
 
 const PALAVRA := ["", "Quase", "Afinado", "Ressonância!"]

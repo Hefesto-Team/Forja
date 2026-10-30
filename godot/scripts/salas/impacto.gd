@@ -571,5 +571,17 @@ func com_poucos() -> String:
 	return ""
 
 
+const CARGA_MAX := 0.9
+const CARGA_BATIDA := 0.45
+const CHAO_DA_CARGA := 0.4
+
+
+func _carga_da_espera() -> float:
+	if fase != "jogo" or estado == PERGUNTA or estado == RESPOSTA or estado == ACABOU:
+		return 0.0
+	var carga := clampf(t_estado / maxf(espera, 0.1), 0.0, 1.0) if estado == PAUSA else 0.3
+	return amplitude_da_espera() * (CARGA_MAX * carga + CARGA_BATIDA * pulso_da_batida())
+
+
 func combo(l: int) -> int:
 	return int(j[l].combo) if j.has(l) else 0

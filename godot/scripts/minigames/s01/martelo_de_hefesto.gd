@@ -412,5 +412,38 @@ func robo(l: int, dt: float) -> void:
 			Forja.robo_eixo(l, Forja.R2 if r.alvo == 1 else Forja.L2, e.robo_gatilho, 0.06)
 
 
+const FORJA_ENERGIA := 0.9
+const FORJA_TENSAO := 1.8
+const FORJA_BATIDA := 0.6
+
+
+func _forja_na_espera(l: int, tensao: float) -> void:
+	var luz: OmniLight3D = runas[l].get("forja")
+	if luz == null:
+		return
+	if tensao < 0.0:
+		luz.light_energy = FORJA_ENERGIA
+		return
+	luz.light_energy = FORJA_ENERGIA + amplitude_da_espera() * (FORJA_TENSAO * tensao + FORJA_BATIDA * pulso_da_batida())
+	_calor = maxf(_calor, tensao)
+
+
+const CHAVE_CALOR := 0.8
+const CHAVE_BATIDA := 0.25
+
+var _calor := 0.0
+var _chaves_base := {}
+
+
+func _chaves_na_espera() -> void:
+	if _chaves_base.is_empty():
+		for luz in _chaves_com_energia:
+			_chaves_base[luz] = luz.light_energy
+	var k := 1.0 + amplitude_da_espera() * (CHAVE_CALOR * _calor + CHAVE_BATIDA * pulso_da_batida())
+	for luz in _chaves_base:
+		if is_instance_valid(luz):
+			luz.light_energy = float(_chaves_base[luz]) * k
+
+
 func combo(l: int) -> int:
 	return int(j[l].combo) if j.has(l) else 0
