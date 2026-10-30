@@ -191,8 +191,17 @@ func _roteiro_das_salas() -> Array:
 			["canto_canto", na_sala.call(func(sala) -> bool: return sala.estado == SalaCanto.CANTO and sala.notas_tocadas >= 2)],
 			["canto_revela", na_sala.call(func(sala) -> bool:
 				return sala.estado == SalaCanto.REVELA and sala.fonte != SalaCanto.TV and sala.t_estado > 0.5)],
+			["canto_aposta", na_sala.call(func(sala) -> bool:
+				if sala.estado != SalaCanto.REPETE or sala.fonte == SalaCanto.TV or sala.j[sala.fonte].toques.size() < 1:
+					return false
+				for l in sala.j:
+					if l != sala.fonte and int(sala.j[l].aposta) >= 0:
+						return true
+				return false)],
 			["canto_repete", na_sala.call(func(sala) -> bool:
-				return sala.estado == SalaCanto.REPETE and sala.j[sala.fonte].toques.size() >= 3)],
+				return sala.estado == SalaCanto.REPETE and sala.fonte != SalaCanto.TV and sala.j[sala.fonte].toques.size() >= 3)],
+			["canto_coro", na_sala.call(func(sala) -> bool:
+				return sala.estado == SalaCanto.REPETE and sala.fonte == SalaCanto.TV and sala.j[0].toques.size() >= 1 and sala.j[1].toques.size() >= 1)],
 		],
 		"caminhos": [
 			["caminhos_treino", p1.call(func(_sala, e) -> bool: return e.estado == SalaCaminhos.TREINO and e.treino == 1 and e.t > 0.9)],
