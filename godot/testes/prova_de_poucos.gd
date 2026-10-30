@@ -143,6 +143,42 @@ func _tira_e_poe_o_cabo(sala, id: String) -> void:
 	_esperar(int(p.get("player_index", -9)) == 1, "%s: com o mesmo player index (1)" % id)
 
 
+func _prova_do_x_que_nao_cai(n: int) -> void:
+	jogo._entrar_na_sala("centelha", false)
+	var q := 0
+	while q < 120 and not (jogo.sala is SalaJogo and jogo.sala._robo_confirmou):
+		await _quadros(1)
+		q += 1
+	if not (jogo.sala is SalaJogo and jogo.sala._robo_confirmou):
+		_esperar(false, "o ✕ da sala que saiu: o robô do aviso pediu o ✕")
+		return
+	var sala: Node = jogo.sala
+	await _quadros(18)
+	jogo._ir_para_o_salao(false)
+	await _quadros(1)
+	var liberada := not is_instance_valid(sala)
+	var viu := []
+	for i in 300:
+		await _quadros(1)
+		for l in n:
+			if Forja.segura(l, Forja.CRUZ) and not viu.has(l):
+				viu.append(l)
+	_esperar(liberada and viu.is_empty(), "o ✕ da sala que saiu antes dele não caiu no salão (liberada: %s; ✕ em %s)" % [
+		liberada, str(viu.map(func(l: int) -> String: return "P%d" % (l + 1)))])
+
+
+func _calar_o_som_antes_de_sair() -> void:
+	var pilha: Array[Node] = [get_tree().root]
+	while not pilha.is_empty():
+		var no: Node = pilha.pop_back()
+		if no is AudioStreamPlayer or no is AudioStreamPlayer2D or no is AudioStreamPlayer3D:
+			no.stop()
+		pilha.append_array(no.get_children())
+	for i in 20:
+		OS.delay_msec(10)
+		await get_tree().process_frame
+
+
 var com_cabo_sozinho := false
 
 

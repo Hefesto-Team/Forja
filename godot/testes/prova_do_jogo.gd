@@ -82,6 +82,7 @@ func _ready() -> void:
 	await _prova_da_noite_da_fita()
 	if slot_da_ficha != "":
 		await _prova_da_ficha(slot_da_ficha)
+	await _calar_o_som_antes_de_sair()
 	if falhas > 0:
 		printerr("%d falha(s)" % falhas)
 		get_tree().quit(1)
@@ -2937,6 +2938,31 @@ func _prova_da_camera_na_prova() -> void:
 	_esperar(chamada >= 0, "corrida: o main puxa os de trás a cada quadro, antes de mover a câmera")
 	jogo._ir_para_o_salao(false)
 	await _quadros(5)
+
+
+func _calar_o_som_antes_de_sair() -> void:
+	var pilha: Array[Node] = [get_tree().root]
+	while not pilha.is_empty():
+		var no: Node = pilha.pop_back()
+		if no is AudioStreamPlayer or no is AudioStreamPlayer2D or no is AudioStreamPlayer3D:
+			no.stop()
+		pilha.append_array(no.get_children())
+	for i in 20:
+		OS.delay_msec(10)
+		await get_tree().process_frame
+
+
+static func _julgamento_basta(contagem: Array, esperado: int) -> bool:
+	var total := 0
+	for n in contagem:
+		total += int(n)
+	var certos := int(contagem[esperado])
+	if total == 0 or certos * 10 < total * 7:
+		return false
+	for i in contagem.size():
+		if i != esperado and int(contagem[i]) >= certos:
+			return false
+	return true
 
 
 func _prova_das_decisoes() -> void:

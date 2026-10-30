@@ -50,13 +50,13 @@ esperar haptica-nomeada 4 "medido: «placa virtual do controle simulado», simul
 rodar haptica-nomeada haptica-trocada --defeitos=haptica-trocada
 esperar haptica-trocada 4 "falhou: .*lado certo 0 de 4"
 
-SENSACOES="$(sed -n '/^const SENSACOES := {/,/^}/p' "$RAIZ/godot/scripts/forja.gd" | grep -oE '^[[:space:]]*"[a-z_]+":[[:space:]]*\[[^]]*\]')"
-N_SENSACOES="$(printf '%s\n' "$SENSACOES" | grep -c .)"
-N_ASSIMETRICAS="$(printf '%s\n' "$SENSACOES" | sed -E 's/.*\[([^,]*),([^,]*),.*/\1 \2/' | LC_ALL=C awk '($1 + 0) != ($2 + 0)' | grep -c .)"
+SENSACOES=$(awk '/^const SENSACOES/{d=1;next} d&&/^}/{exit} d&&/^\t"/' "$RAIZ/godot/scripts/forja.gd")
+N_SENS=$(printf '%s\n' "$SENSACOES" | grep -c .)
+N_ASSIM=$(printf '%s\n' "$SENSACOES" | sed 's/.*\[\([^]]*\)\].*/\1/' | LC_ALL=C awk -F, '$1+0 != $2+0' | grep -c .)
 rodar haptico haptico
-esperar haptico $((N_SENSACOES * 4)) "medido: "
+esperar haptico $((4 * N_SENS)) "medido: "
 rodar haptico motores-trocados --defeitos=motores-trocados
-esperar motores-trocados $((N_ASSIMETRICAS * 4)) "falhou: "
+esperar motores-trocados $((4 * N_ASSIM)) "falhou: "
 
 printf '0 0.5 80\n1 1.0 80\n2 0.25 80\nparar 0\nfim\n' > "$TMP/forca.cmd"
 rodar forca forca --comando="$TMP/forca.cmd"
