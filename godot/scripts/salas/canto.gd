@@ -584,7 +584,7 @@ func _mostrar(l: int, dt: float) -> void:
 	var mb: StandardMaterial3D = nos.mat_borda
 	Tema.emissivo(mb, lerpf(Tema.brilho_de(mb), maxf(1.6 if dono else 0.15, 3.0 * pulso), rapido), l)
 	var part: Node3D = nos.partitura
-	part.visible = fase == "jogo" and estado == REPETE and fonte == l
+	part.visible = fase == "jogo" and estado == REPETE and (fonte == l or fonte == TV)
 	if part.visible:
 		var total := float(ritmo[NOTAS - 1]) + 0.3
 		for k in NOTAS:

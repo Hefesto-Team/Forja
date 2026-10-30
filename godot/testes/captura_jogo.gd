@@ -166,7 +166,7 @@ func _roteiro_das_salas() -> Array:
 			["canto_repete", na_sala.call(func(sala) -> bool:
 				return sala.estado == SalaCanto.REPETE and sala.fonte != SalaCanto.TV and sala.j[sala.fonte].toques.size() >= 3)],
 			["canto_coro", na_sala.call(func(sala) -> bool:
-				return sala.estado == SalaCanto.REPETE and sala.fonte == SalaCanto.TV and sala.j[0].toques.size() >= 2)],
+				return sala.estado == SalaCanto.REPETE and sala.fonte == SalaCanto.TV and sala.j[0].toques.size() >= 1 and sala.j[1].toques.size() >= 1)],
 		],
 		"caminhos": [
 			["caminhos_treino", p1.call(func(_sala, e) -> bool: return e.estado == SalaCaminhos.TREINO and e.treino == 1 and e.t > 0.9)],
