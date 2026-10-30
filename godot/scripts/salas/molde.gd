@@ -108,7 +108,7 @@ func _montar_bancada(l: int, p: ForjaPlayer) -> Dictionary:
 			Kit.material(Tema.OXIDO_BRILHO, 0.0, 0.85))
 		Kit.caixa(metade, Vector3(LARGURA * 0.5 - 0.02, 0.03, ALTURA), Vector3(lado * LARGURA * 0.25, 0.085, 0), metal)
 		metades.append(metade)
-	var sulco := Kit.material(Tema.CASCO, 0.0, 0.9)
+	var sulco := Kit.chapado(Color(Tema.ETIQUETA_SOMBRA, 0.55))
 	var sulcos: Array = []
 	var n_pts: int = letra.x.size()
 	for k in n_pts - 1:
@@ -120,7 +120,7 @@ func _montar_bancada(l: int, p: ForjaPlayer) -> Dictionary:
 	var pontos: Array = []
 	for k in n_pts:
 		var c := _no_molde(letra.x[k], letra.y[k], 0.11)
-		var disco := Kit.cilindro(placa, 0.07, 0.03, c, Kit.material(Tema.CASCO))
+		var disco := Kit.cilindro(placa, 0.07, 0.03, c, Kit.chapado(Tema.ETIQUETA_SOMBRA))
 		var rotulo := Label3D.new()
 		rotulo.text = str(k + 1)
 		rotulo.font = Tema.archivo(700)
@@ -226,6 +226,7 @@ func _jogar(l: int, p: ForjaPlayer, e: Dictionary, dt: float) -> void:
 					var onde: Vector3 = n[l].placa.to_global(_no_molde(alvo.x, alvo.y, 0.14))
 					Efeitos.faiscas(self, onde, Tema.TUNGSTENIO, 14, 0.6)
 					Som.tocar("tique", onde, -4.0, 1.0 + 0.08 * int(e.ponto))
+					Forja.sentir(l, "toque")
 					e.ponto += 1
 					p.gesto("interact-right", 0.4)
 			if e.ponto >= n_pts:
@@ -237,6 +238,7 @@ func _jogar(l: int, p: ForjaPlayer, e: Dictionary, dt: float) -> void:
 			if not e.aberto and e.abertura >= 0.45:
 				e.aberto = true
 				Som.tocar("sopro", p.global_position + Vector3(1.5, 1.2, 0), -2.0)
+				Forja.sentir(l, "acerto")
 				p.gesto("interact-right", 0.4)
 			elif e.aberto and baixo[0] and baixo[1] and e.abertura <= 0.15:
 				marcar(l, 250)
@@ -254,9 +256,12 @@ func _jogar(l: int, p: ForjaPlayer, e: Dictionary, dt: float) -> void:
 					Som.tocar("carimbo", centro, 0.0)
 					Som.no_controle(l, "carimbo", 0.6)
 					Forja.sentir(l, "perfeito")
+					Forja.piscar(l, Color.WHITE, 0.3)
 				else:
 					e.fora += 1
 					Som.tocar("bigorna", centro, -12.0)
+					Forja.sentir(l, "erro")
+					Forja.piscar(l, Forja.cor_do_lugar(l).darkened(0.7), 0.3)
 			if e.carimbos >= CARIMBOS:
 				_novo_passo(l, p, e, PRONTO)
 
@@ -273,6 +278,9 @@ func _novo_passo(l: int, p: ForjaPlayer, e: Dictionary, passo: int) -> void:
 		PRONTO:
 			acabou[l] = true
 			Som.tocar("sucesso", onde)
+			Som.no_controle(l, "sucesso", 0.7)
+			Forja.sentir(l, "vitoria")
+			Forja.piscar(l, Color.WHITE, 0.5)
 			p.gesto("emote-yes", 1.6)
 			var centro: Vector3 = n[l].placa.to_global(_no_molde(0.5, 0.5, 0.2))
 			Efeitos.faiscas(self, centro, Tema.TUNGSTENIO, 48, 1.3)
@@ -298,12 +306,13 @@ func _mostrar(l: int) -> void:
 	nos.metades[0].position.x = -meio
 	nos.metades[1].position.x = meio
 	var quente := _calor(e) if passo == CARIMBAR else (1.0 if passo == PRONTO else 0.25)
+	var brilho := 0.08 + 0.42 * quente * quente if passo == CARIMBAR else (0.3 if passo == PRONTO else 0.08)
 	var metal: StandardMaterial3D = nos.metal
 	var cor_metal := Tema.METAL_FRIO.lerp(Tema.METAL_QUENTE, quente)
 	if passo == CARIMBAR and _no_ponto(e):
 		cor_metal = Tema.METAL_NO_PONTO.lerp(Tema.OURO, 0.6)
-	metal.albedo_color = cor_metal.darkened(0.5)
-	Tema.emissivo(metal, (0.3 + 2.2 * quente) * 2.4 / 2.5, "forja")
+	metal.albedo_color = cor_metal.darkened(0.5 if passo >= CARIMBAR else 0.25)
+	Tema.emissivo(metal, brilho, "forja")
 	for k in nos.sulcos.size():
 		var s: MeshInstance3D = nos.sulcos[k]
 		var cheio: bool = passo == PRONTO or (passo == TRACAR and k + 1 < int(e.ponto)) or passo in [ABRIR, CARIMBAR]
@@ -368,7 +377,7 @@ func _mostrar(l: int) -> void:
 			lp.set_meta("aceso", true)
 			lp.material_override = Kit.material(Tema.TUNGSTENIO, 2.4, 0.8, "forja")
 	var ouro: OmniLight3D = nos.ouro
-	ouro.light_energy = 1.6 if passo == PRONTO else 0.0
+	ouro.light_energy = 0.7 if passo == PRONTO else 0.0
 
 
 var _mat_ouro := {}
@@ -409,7 +418,7 @@ func dica(lugar: int) -> Dictionary:
 			TRACAR:
 				partes = ["@touchpad", str(LETRAS[e.letra].dica)]
 			ABRIR:
-				partes = ["Agora junte os dedos"] if e.aberto else ["Dois dedos: afaste"]
+				partes = ["@touchpad", "Agora junte os dedos" if e.aberto else "Dois dedos: afaste"]
 			CARIMBAR:
 				partes = ["@touchpad", "Clique quando brilhar"]
 			PRONTO:

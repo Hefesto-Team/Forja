@@ -5,6 +5,7 @@ const F := preload("res://scripts/forja.gd")
 const RAIAS := [-6.0, -2.0, 2.0, 6.0]
 const Z_JOGADOR := 1.4
 const POR_LADO := 5
+const GOLPES_NO_PALCO := 12
 const ONDAS := 3
 const JANELA := 1.3
 const MOSTRA := 0.5
@@ -32,6 +33,7 @@ var plano: Array = []
 var i_plano := 0
 var fim_onda := [0, 0, 0]
 var onda := 0
+var ondas := ONDAS
 var atual := Vector2i(-1, 0)
 var resposta := -1
 var respondido := false
@@ -175,9 +177,14 @@ func iniciar_jogo() -> void:
 	for p in jogadores:
 		if jogando[p.lugar]:
 			lugares.append(p.lugar)
-	plano = Forja.cega_plano_tiros(lugares, POR_LADO, rng.randi())
-	for k in ONDAS:
-		fim_onda[k] = plano.size() * (k + 1) / ONDAS
+	var por_lado := POR_LADO
+	ondas = ONDAS
+	if not Forja.bancada:
+		por_lado = mini(POR_LADO, ceili(float(GOLPES_NO_PALCO) / maxf(2.0, 2.0 * lugares.size())))
+		ondas = 1
+	plano = Forja.cega_plano_tiros(lugares, por_lado, rng.randi())
+	for k in ondas:
+		fim_onda[k] = plano.size() * (k + 1) / ondas
 	for l in lugares:
 		_luz_da_vida(l)
 	estado = PAUSA
@@ -357,7 +364,7 @@ func jogar(dt: float) -> void:
 		PAUSA:
 			if t_estado < espera:
 				return
-			if onda < ONDAS and i_plano >= fim_onda[onda]:
+			if onda < ondas and i_plano >= fim_onda[onda]:
 				onda += 1
 				if Forja.bancada:
 					_iniciar_pergunta()
@@ -491,7 +498,9 @@ func status(lugar: int) -> String:
 func progresso() -> String:
 	if fase != "jogo" or plano.is_empty():
 		return ""
-	return "Onda %d de %d · golpe %d de %d" % [mini(onda + 1, ONDAS), ONDAS, mini(i_plano, plano.size()), plano.size()]
+	if ondas == 1:
+		return "Golpe %d de %d" % [mini(i_plano, plano.size()), plano.size()]
+	return "Onda %d de %d · golpe %d de %d" % [mini(onda + 1, ondas), ondas, mini(i_plano, plano.size()), plano.size()]
 
 
 func dica(lugar: int) -> Dictionary:

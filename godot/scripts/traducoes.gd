@@ -412,6 +412,7 @@ const EN_PADROES := [
 	["^(\\d+) · junte$", "$1 · pinch"],
 	["^(\\d+) · abra$", "$1 · spread"],
 	["^Onda (\\d+) de (\\d+) · golpe (\\d+) de (\\d+)$", "Wave $1 of $2 · blow $3 of $4"],
+	["^Golpe (\\d+) de (\\d+)$", "Blow $1 of $2"],
 	["^Rodada (\\d+) de (\\d+) · (\\d+) ✓$", "Round $1 of $2 · $3 ✓"],
 	["^Vida (\\d+)% · (\\d+) ✓$", "Life $1% · $2 ✓"],
 	["^(Brasa|Maré) · vida (\\d+) · (\\d+) balas$", "$1 · life $2 · $3 bullets"],

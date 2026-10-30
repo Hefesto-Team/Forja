@@ -93,6 +93,19 @@ func _montar_raia(l: int, p: ForjaPlayer) -> Dictionary:
 	var vitrine := Node3D.new()
 	vitrine.position = Vector3(x, 1.45, Z_BAU)
 	add_child(vitrine)
+	var rotulo := Label3D.new()
+	rotulo.font = Tema.archivo(700)
+	rotulo.font_size = 72
+	rotulo.pixel_size = 0.005
+	rotulo.line_spacing = -6.0
+	rotulo.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	rotulo.no_depth_test = true
+	rotulo.modulate = Tema.TUNGSTENIO
+	rotulo.outline_size = 18
+	rotulo.outline_modulate = Color(Tema.FITA, 0.95)
+	rotulo.position = Vector3(x, 2.65, Z_BAU)
+	rotulo.visible = false
+	add_child(rotulo)
 	var alvos: Array = []
 	for k in n_alvos:
 		alvos.append(_alvo_no())
@@ -115,7 +128,7 @@ func _montar_raia(l: int, p: ForjaPlayer) -> Dictionary:
 	p.rotation.y = PI
 	p.preso = true
 	maos_livres(p)
-	return {"bau": bau, "interroga": interroga, "vitrine": vitrine, "alvos": alvos, "mira": mira,
+	return {"bau": bau, "interroga": interroga, "rotulo": rotulo, "vitrine": vitrine, "alvos": alvos, "mira": mira,
 		"arma_mao": null, "aberto": false, "mat_raia": mat_raia}
 
 
@@ -356,6 +369,8 @@ func _atirar(l: int, p: ForjaPlayer, e: Dictionary) -> void:
 			acertou = true
 			e.acertos += 1
 			marcar(l, 50)
+			Forja.sentir(l, "acerto")
+			Forja.piscar(l, Color.WHITE, 0.12)
 			Efeitos.faiscas(self, _no_muro(l, Vector2(a.x, a.y)), Tema.TUNGSTENIO, 18, 0.8)
 			Som.tocar("alvo", _no_muro(l, Vector2(a.x, a.y)), -4.0)
 			break
@@ -558,6 +573,11 @@ func _mostrar(l: int, p: ForjaPlayer) -> void:
 	var interroga: Label3D = nos.interroga
 	interroga.visible = passo == IDENTIFICAR or fase == "aviso"
 	interroga.position.y = 1.75 + 0.06 * sin(t * 3.0 + l)
+	var rotulo: Label3D = nos.rotulo
+	rotulo.visible = passo == REVELANDO or passo == ATIRAR
+	if rotulo.visible:
+		rotulo.text = "%s\n%s" % [Desenho.maiusc(NOME_ARMA[e.arma]), SENTE[e.arma]]
+		rotulo.position.y = 2.65 + 0.05 * sin(t * 2.4 + l)
 	var vitrine: Node3D = nos.vitrine
 	vitrine.position.y = 1.5 + 0.05 * sin(t * 2.4 + l)
 	var mira: Node3D = nos.mira
