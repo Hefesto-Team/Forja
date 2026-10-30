@@ -189,7 +189,7 @@ que está escrito em dois lugares. São base: vão de **a fazer** direto para **
 | [V07](V07-o-codigo-sem-uso.md) | O código sem uso | P | F05, F10 | a fazer |
 | [V08](V08-os-portoes-de-arte-e-som-reprovam.md) | Os portões de arte e som reprovam | M | a bíblia aprovada (o ESPERA-ELA), a G14, V05, o mapa do áudio com os arquivos | a fazer |
 | [V09](V09-o-codigo-sem-comentario.md) | O código sem comentário | G | — | feito |
-| [V10](V10-o-devlog-com-antes-e-depois.md) | O devlog com antes e depois | M | — | em voo (devlog) |
+| [V10](V10-o-devlog-com-antes-e-depois.md) | O devlog com antes e depois | M | — | feito |
 
 ## X — Os módulos
 
