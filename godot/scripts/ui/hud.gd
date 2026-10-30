@@ -121,6 +121,7 @@ func _balao_da_dica(w: float, h: float) -> Array:
 	if x + larg > w - Tema.MARGEM_X:
 		x = c.x - 60.0 - larg
 		lado_direito = false
+	x = clampf(x, float(Tema.MARGEM_X), maxf(float(Tema.MARGEM_X), w - Tema.MARGEM_X - larg))
 	var y := clampf(c.y - 60.0, Tema.MARGEM_Y, h - Tema.MARGEM_Y - alt)
 	return [Rect2(Vector2(x, y), Vector2(larg, alt)), lado_direito]
 
