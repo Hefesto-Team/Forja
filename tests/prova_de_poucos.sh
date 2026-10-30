@@ -15,7 +15,7 @@ rodar() {
   shift
   mkdir -p "$TMP/rel-$nome"
   timeout 600 caixa "$GODOT" --headless --fixed-fps 60 --path "$RAIZ/godot" res://testes/prova_de_poucos.tscn \
-    -- --robo --semente=7 --relatorios="$TMP/rel-$nome" --bancada "$@" > "$TMP/$nome.log" 2>&1
+    -- --robo --semente=7 --relatorios="$TMP/rel-$nome" --bancada --acelerado "$@" > "$TMP/$nome.log" 2>&1
   local rc=$?
   grep -E "FAIL|SCRIPT ERROR|prova de poucos ok" "$TMP/$nome.log"
   local juizo=0

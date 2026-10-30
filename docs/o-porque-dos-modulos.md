@@ -134,6 +134,8 @@ Cada seção é uma pasta ou um arquivo; o ponto é o símbolo, nunca a linha. O
 
 ## godot/testes
 
+- `prova_de_poucos.sh`: roda com `--acelerado`. Os prazos são em quadros e o kit acaba pelo `Ritmo`; no relógio de parede, com `--fixed-fps`, a Centelha não chega aos 90 s em 20000 quadros.
+- `prova_de_poucos.gd`: o ✕ do aviso só vem depois da entrada do kit (1,6 s e até dois compassos), então a conta dos 120 quadros começa no aviso.
 - `prova_de_poucos.gd`: todo player para antes do `quit`, senão «resources still in use at exit». O `stop` só marca o fim: espera o mixer e o próximo quadro.
 - `prova_do_jogo.gd`: todo som de `assets/sons` é PCM16 (`compress/mode=0`). O alto-falante do controle lê o `data` como PCM16, e o comprimido sai ruído.
 - `prova_do_jogo.gd`: na sessão acelerada, o `t` em float do `forja.h` passa de 0,5 s de erro depois de 1465 s; daí a folga de 0,5%.

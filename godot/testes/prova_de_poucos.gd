@@ -63,7 +63,7 @@ func _joga(id: String, n: int) -> void:
 		_esperar(false, "%s: a sala abriu" % id)
 		return
 	if id == "prova":
-		_esperar(sala.com_poucos() != "" if n < 4 else sala.com_poucos() == "",
+		_esperar(sala.com_poucos() != "" if n < 4 else sala.com_poucos() == "2 contra 2",
 			"%s com %d: o selo diz o que muda (%s)" % [id, n, sala.com_poucos()])
 	var q := 0
 	if com_cabo:
@@ -146,6 +146,10 @@ func _tira_e_poe_o_cabo(sala, id: String) -> void:
 func _prova_do_x_que_nao_cai(n: int) -> void:
 	jogo._entrar_na_sala("centelha", false)
 	var q := 0
+	while q < 1200 and not (jogo.sala is SalaJogo and jogo.sala.fase != "entrada"):
+		await _quadros(1)
+		q += 1
+	q = 0
 	while q < 120 and not (jogo.sala is SalaJogo and jogo.sala._robo_confirmou):
 		await _quadros(1)
 		q += 1
