@@ -92,6 +92,7 @@ func _exit_tree() -> void:
 
 
 var env: Environment
+const ESCALA_NA_MONTAGEM := 1.9
 
 
 func _ambiente() -> void:
@@ -124,8 +125,11 @@ func acender(numero: int, lado_b := false) -> void:
 	env.ambient_light_energy = 0.42
 	env.fog_light_color = luz.nevoa
 	env.fog_density = luz.densidade
+	env.glow_enabled = true
+	env.fog_enabled = true
 	var sol := get_node_or_null("Sol") as DirectionalLight3D
 	if sol:
+		sol.visible = true
 		sol.light_color = luz.preenchimento
 	if sala and numero > 0:
 		sala.acender(luz)
@@ -275,12 +279,18 @@ func _mostrar(qual: String) -> void:
 	if qual == "salao" and not Forja.som_pronto():
 		Forja.som_preparar(Forja.PAPEL_ALTO_FALANTE)
 	salao.pedestais_no.visible = qual in ["lobby", "podio", "intro", "intervalo"]
+	salao.modo_montagem(qual == "lobby")
+	salao.acender_focos(qual in ["lobby", "podio"])
 	_focar_o_titulo(qual == "titulo")
 	for p in jogadores:
 		p.contornar(ForjaPlayer.CONTORNO_MONTAGEM if qual == "lobby" else ForjaPlayer.CONTORNO_JOGO)
 	if qual != "sala":
 		acender(0 if qual == "podio" else -1, qual == "intervalo")
 		PosFita.gastar(partida.passo + 1 if partida and qual in ["virar", "intervalo"] else 1)
+	_palco_da_montagem(qual == "lobby")
+	for p in jogadores:
+		p.scale = Vector3.ONE * (ESCALA_NA_MONTAGEM if qual == "lobby" else 1.0)
+		p.etiqueta_no_mundo(qual != "lobby")
 	if qual == "lobby" or qual == "intervalo":
 		for l in 4:
 			var p := jogadores[l]
@@ -289,6 +299,19 @@ func _mostrar(qual: String) -> void:
 			p.rotation.y = 0.0
 		_sincronizar_jogadores()
 		lobby.abrir()
+
+
+func _palco_da_montagem(ligado: bool) -> void:
+	var sol := get_node_or_null("Sol") as DirectionalLight3D
+	if sol:
+		sol.visible = not ligado
+	env.glow_enabled = not ligado
+	env.fog_enabled = not ligado
+	if not ligado:
+		return
+	env.background_color = Tema.PRETO_DA_MONTAGEM
+	env.ambient_light_energy = 0.1
+	env.fog_density = 0.0
 
 
 func _sincronizar_jogadores() -> void:
@@ -1349,6 +1372,8 @@ func _pose_da_camera() -> Array:
 		"intro":
 			return intro.pose_da_camera()
 		"lobby", "intervalo":
+			if estado == "lobby":
+				return [Vector3(0, 2.0, 14.2), Vector3(0, 0.5, 4.4)]
 			return [Vector3(0, 2.9, 14.2), Vector3(0, 0.55, 4.4)]
 		"podio":
 			var olhar_do_podio := Vector3(-4.6, 0.9, 4.4)

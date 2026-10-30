@@ -18,6 +18,7 @@ const FORJADO := 2
 const GUARDADO := 3
 const MARTELADAS := 8
 const ROBO_ATRASO_S := 0.033
+const MAX_TRAVAS := 3
 const NOMES := ["Basalto", "Granito", "Bronze", "Tenaz", "Rebite", "Ferrugem",
 	"Obsidiana", "Ônix", "Titânio", "Cobalto", "Quartzo", "Cinzel",
 	"Brasa", "Carvão", "Latão", "Estanho", "Níquel", "Âmbar",
@@ -57,6 +58,7 @@ var _robo_toques := [0, 0, 0, 0]
 var visor: Visor = null
 var ultimo_encaixe := [{}, {}, {}, {}]
 var ligou := [0, 0, 0, 0]
+var travada := [{}, {}, {}, {}]
 
 
 func _ready() -> void:
@@ -89,6 +91,7 @@ func abrir() -> void:
 		golpes[l] = []
 		desvio[l] = 0.0
 		_sorteios[l] = 0
+		travada[l] = {}
 		_robo_espera[l] = 0.0
 		_robo_batida[l] = 0
 		_robo_erro[l] = 0.0
@@ -111,6 +114,7 @@ func entrou(l: int) -> void:
 	golpes[l] = []
 	prontos[l] = false
 	linha[l] = 0
+	travada[l] = {}
 	teclados[l] = null
 	nome_escrito[l] = false
 	t_nome_ms[l] = 0
@@ -187,6 +191,8 @@ func quadro(dt: float, dx: Array, dy: Array) -> void:
 					_comecar_a_forja(l)
 				elif Forja.apertou(l, Forja.TRIANGULO):
 					_sortear(l)
+				elif Forja.apertou(l, Forja.QUADRADO):
+					_travar(l)
 				elif Forja.apertou(l, Forja.R1) and linha[l] == NOME:
 					_abrir_o_teclado(l)
 				elif dy[l] != 0:
@@ -378,6 +384,26 @@ func _trocar(l: int, passo: int) -> void:
 			Forja.sentir(l, "metal")
 
 
+func _travar(l: int) -> void:
+	var k: int = linha[l]
+	if k == NOME:
+		return
+	var t: Dictionary = travada[l]
+	if t.has(k):
+		t.erase(k)
+		Som.tocar("tique", null, -8.0)
+		Som.no_controle(l, "tique", 0.6)
+		Forja.sentir(l, "toque")
+		return
+	if t.size() >= MAX_TRAVAS:
+		Som.no_controle(l, "tique", 0.4)
+		return
+	t[k] = true
+	Som.tocar("ui_peca", null, -14.0, 0.8)
+	Som.no_controle(l, "ui_peca", 0.7)
+	Forja.sentir(l, "metal")
+
+
 func _sortear(l: int) -> void:
 	var p: ForjaPlayer = jogadores[l]
 	var rng := RandomNumberGenerator.new()
@@ -386,7 +412,10 @@ func _sortear(l: int) -> void:
 	_encaixe[l] = {}
 	var sorteado := _corpo_sorteado(l, rng)
 	var alcanca := Cavaleiro.alcancaveis(Cavaleiro.corpo(sorteado).stats)
-	p.vestir_pecas(sorteado, _indice_do_item(str(alcanca[rng.randi_range(0, alcanca.size() - 1)])))
+	if alcanca.is_empty():
+		alcanca = [str(ForjaPlayer.ITENS[p.item_i].id)]
+	var i_item: int = p.item_i if travada[l].has(ITEM) else _indice_do_item(str(alcanca[rng.randi_range(0, alcanca.size() - 1)]))
+	p.vestir_pecas(sorteado, i_item)
 	corpo[l] = Cavaleiro.corpo(p.pecas)
 	p.nome = _nome_livre(l, 1, rng.randi_range(0, NOMES.size() - 1) - 1)
 	p.gesto("interact-right", 0.5)
@@ -575,7 +604,7 @@ func _draw() -> void:
 				[["cruz", "Escolher"], ["circulo", "Apagar"], ["triangulo", "Sortear"], ["r1", "Pronto"]])
 		else:
 			Desenho.dicas_a_esquerda(self, Vector2(196, 1000),
-				[["cruz", "Forjar"], ["triangulo", "Sortear"], ["esquerda", "Trocar"], ["r1", "Escrever"], ["circulo", "Voltar"]])
+				[["cruz", "Forjar"], ["triangulo", "Sortear"], ["quadrado", "Travar"], ["esquerda", "Trocar"], ["r1", "Escrever"], ["circulo", "Voltar"]])
 
 
 func _ocupados(l: int) -> Dictionary:
@@ -766,10 +795,18 @@ func _corpo_sorteado(l: int, rng: RandomNumberGenerator) -> Array:
 	var cabecas_dos_outros: Array = []
 	for c in _ocupados(l).values():
 		cabecas_dos_outros.append(str(c.get("cabeca", "")))
+	var atuais: Array = jogadores[l].pecas
 	for vez in 400:
 		var t := [P[rng.randi_range(0, 11)], P[rng.randi_range(0, 11)], P[rng.randi_range(0, 11)]]
-		if Cavaleiro.corpo(t).valido and not (t[0] in cabecas_dos_outros):
-			return t
+		for k in 3:
+			if travada[l].has(k):
+				t[k] = atuais[k]
+		var co := Cavaleiro.corpo(t)
+		if not co.valido or (t[0] in cabecas_dos_outros):
+			continue
+		if travada[l].has(ITEM) and Cavaleiro.no_corpo(str(ForjaPlayer.ITENS[jogadores[l].item_i].id), co.stats) == "fora":
+			continue
+		return t
 	return jogadores[l].pecas.duplicate()
 
 

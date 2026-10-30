@@ -107,6 +107,19 @@ queda por 4 quadros de opacidade.
 2. Quatro DualSense: a roleta de 10 trocas em 10 s, o △ e o □; o `ui_peca` e o pulso saem do controle certo.
 3. Uma pessoa que nunca viu monta o primeiro cavaleiro: o tempo até o ✕ e a frase dela, no diário.
 
+## O que foi feito (apresentação de 30/10)
+
+- A cena: o palco é preto liso (chão e fundo sem sombreamento, as tochas apagadas), com um `SpotLight3D` e um contra-luz
+  na cor do jogador por coluna (`Salao.focos_da_montagem`, `modo_montagem`). O cavaleiro sobe a 1,9 vezes no lobby
+  (`Main.ESCALA_NA_MONTAGEM`), a câmera baixa a 2,0 m e o cavaleiro aparece inteiro acima da coluna. O «P1» flutuante
+  some no lobby (`ForjaPlayer.etiqueta_no_mundo`).
+- Os focos também acendem no pódio.
+- O □ trava a linha (Cabeça, Superior, Inferior, Arma), no máximo três; o △ sorteia só o que não está travado; o
+  cadeado aparece na linha e a barra de baixo diz «Travar». Prova: `prova_do_jogo.gd`, bloco do P4.
+- O slot vazio do P4 desce para dentro da coluna.
+- Ficam de fora: a câmera FRUSTUM de 50 mm, o plano dos prontos, a roleta de 6 trocas, os sons `ui_sorteio` e
+  `ui_trava`, os emblemas, a fita das 12, a cadeira e a raça (não há dado de raça nas 36 peças).
+
 ## Ao terminar
 
 No [quadro](README.md), G13b **feito** com o commit. Commit sugerido (sem trailer):

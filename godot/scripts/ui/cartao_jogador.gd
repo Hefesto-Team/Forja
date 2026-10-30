@@ -55,11 +55,11 @@ func _draw() -> void:
 		var reservado: bool = info.get("reservado", false)
 		Desenho.moldura(self, placa, Color(Tema.CASCO, 0.92), Tema.GRAFITE, 2, Tema.RAIO_CARTAO)
 		Desenho.texto(self, Vector2(X0 + 18, 104), rotulo, Tema.archivo(700), Tema.T_CORPO, cor_id if reservado else Tema.MUDO)
-		var placa_dica := Rect2(X0 + 60, 352, LARGURA - 120, 100 if reservado else 56)
+		var placa_dica := Rect2(X0 + 24, 700, LARGURA - 48, 100 if reservado else 56)
 		Desenho.moldura(self, placa_dica, Color(Tema.CASCO, 0.82), Tema.GRAFITE, 2, 8)
-		Glifo.dica(self, Vector2(X0 + 100, 392), "cruz", "Entrar", Tema.T_ROTULO, Tema.ETIQUETA, Tema.ETIQUETA)
+		Glifo.dica(self, Vector2(X0 + 104, 740), "cruz", "Entrar", Tema.T_ROTULO, Tema.ETIQUETA, Tema.ETIQUETA)
 		if reservado:
-			Glifo.dica(self, Vector2(X0 + 80, 436), "quadrado", "Segure para trocar", Tema.T_ROTULO, Tema.ETIQUETA_SOMBRA, Tema.ETIQUETA_SOMBRA, false)
+			Glifo.dica(self, Vector2(X0 + 72, 784), "quadrado", "Segure para trocar", Tema.T_ROTULO, Tema.ETIQUETA_SOMBRA, Tema.ETIQUETA_SOMBRA, false)
 		return
 
 	var etapa: int = t.etapa[lugar]
@@ -116,6 +116,13 @@ func _etiqueta(t: TelaLobby, jogador) -> void:
 		f, Tema.T_ROTULO, Tema.TINTA, HORIZONTAL_ALIGNMENT_CENTER, et.size.x - 24)
 
 
+func _cadeado(r: Rect2, cor: Color) -> void:
+	var corpo := Rect2(r.position.x, r.position.y + r.size.y * 0.42, r.size.x, r.size.y * 0.58)
+	draw_rect(corpo, cor)
+	draw_arc(Vector2(r.position.x + r.size.x * 0.5, r.position.y + r.size.y * 0.42), r.size.x * 0.32, PI, TAU, 12, cor, 3.0)
+	draw_rect(Rect2(r.position.x + r.size.x * 0.43, r.position.y + r.size.y * 0.62, r.size.x * 0.14, r.size.y * 0.22), Tema.CASCO)
+
+
 func _vus(_t: TelaLobby) -> void:
 	var f := Tema.vt()
 	var tam := Tema.t(Tema.T_MONO)
@@ -141,6 +148,8 @@ func _linha(t: TelaLobby, jogador, k: int, r: Rect2, etapa: int, cor_luz: Color)
 		Desenho.moldura(self, r, Color(Tema.CASCO, 0.78), Tema.GRAFITE, 2, 6)
 	Desenho.texto(self, Vector2(X0 + 12, r.position.y + 28), TelaLobby.ROTULO_CURTO[k], Tema.archivo(600), Tema.T_ROTULO,
 		Tema.ETIQUETA if escolhida else Tema.MUDO)
+	if t.travada[lugar].has(k):
+		_cadeado(Rect2(X0 + 112, r.position.y + 8, 18, 22), Tema.tom_para_a_borda(cor_luz))
 	var area := Rect2(X0 + 136, r.position.y, LARGURA - 136 - 12, r.size.y)
 	Glifo.desenhar(self, "esquerda", Rect2(area.position.x, r.position.y + 3, 30, 30), Tema.MUDO)
 	Glifo.desenhar(self, "direita", Rect2(area.end.x - 30, r.position.y + 3, 30, 30), Tema.MUDO)

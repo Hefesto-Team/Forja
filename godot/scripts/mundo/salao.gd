@@ -27,6 +27,8 @@ var portoes := {}
 var pedestais: Array[Vector3] = []
 var pedestais_no: Node3D
 var luzes_das_bigornas: Array[OmniLight3D] = []
+var focos_da_montagem: Array[Node3D] = []
+var _palco_no: Node3D
 var _tw_bigorna := [null, null, null, null]
 var vitrine_no: Node3D
 var trofeus_no: Node3D
@@ -412,6 +414,59 @@ func _pedestais() -> void:
 		luz.light_energy = 0.0
 		pedestais_no.add_child(luz)
 		luzes_das_bigornas.append(luz)
+		var foco := SpotLight3D.new()
+		foco.position = pos + Vector3(0.0, 4.6, 3.4)
+		foco.light_color = Tema.JOGADOR[i].lerp(Color.WHITE, 0.82)
+		foco.light_energy = 7.0
+		foco.spot_range = 12.0
+		foco.spot_angle = 24.0
+		foco.spot_attenuation = 0.6
+		foco.shadow_enabled = false
+		foco.visible = false
+		pedestais_no.add_child(foco)
+		foco.look_at_from_position(foco.position, pos + Vector3(0, 1.3, 0), Vector3.UP)
+		focos_da_montagem.append(foco)
+		var contra := OmniLight3D.new()
+		contra.position = pos + Vector3(0.0, 2.2, -1.6)
+		contra.light_color = Tema.JOGADOR[i]
+		contra.light_energy = 2.2
+		contra.omni_range = 3.6
+		contra.shadow_enabled = false
+		contra.visible = false
+		pedestais_no.add_child(contra)
+		focos_da_montagem.append(contra)
+
+
+func acender_focos(ligado: bool) -> void:
+	for f in focos_da_montagem:
+		f.visible = ligado
+
+
+func modo_montagem(ligado: bool) -> void:
+	acender_focos(ligado)
+	if _palco_no == null:
+		_palco_no = Node3D.new()
+		_palco_no.name = "PalcoDaMontagem"
+		add_child(_palco_no)
+		var preto := StandardMaterial3D.new()
+		preto.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+		preto.albedo_color = Tema.PRETO_DA_MONTAGEM
+		var chao := MeshInstance3D.new()
+		var plano := BoxMesh.new()
+		plano.size = Vector3(80, 0.02, 40)
+		chao.mesh = plano
+		chao.position = Vector3(0, 0.06, 4.4)
+		chao.material_override = preto
+		_palco_no.add_child(chao)
+		var fundo := MeshInstance3D.new()
+		var parede := BoxMesh.new()
+		parede.size = Vector3(80, 40, 0.1)
+		fundo.mesh = parede
+		fundo.position = Vector3(0, 20, 3.0)
+		fundo.material_override = preto
+		_palco_no.add_child(fundo)
+	_palco_no.visible = ligado
+	apagado = 1.0 if ligado else 0.0
 
 
 func acender_bigorna(l: int, energia: float, a_mais := 0.0) -> void:

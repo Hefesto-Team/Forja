@@ -2,6 +2,7 @@ class_name Tema
 extends RefCounted
 
 const FITA := Color("#0d0a16")
+const PRETO_DA_MONTAGEM := Color("#040309")
 const CASCO := Color("#17121f")
 const CASCO_ALTO := Color("#241c30")
 const GRAFITE := Color("#3a3346")
