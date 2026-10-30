@@ -35,6 +35,8 @@ func _ready() -> void:
 			roteiro = _roteiro_do_cavaleiro()
 		"trailer":
 			roteiro = _roteiro_do_trailer()
+		"camera_luz":
+			roteiro = _roteiro_da_camera_e_da_luz()
 		_:
 			roteiro = _roteiro_das_telas()
 	if pedidas != "":
@@ -80,6 +82,16 @@ func _roteiro_das_telas() -> Array:
 		["sala", "impacto"], ["espera", 150], ["foto", "sala_impacto"],
 		["sala", "voz"], ["espera", 70], ["foto", "sala_voz"],
 		["sala", "prova"], ["espera", 90], ["foto", "sala_prova"],
+		["fim"],
+	]
+
+
+func _roteiro_da_camera_e_da_luz() -> Array:
+	var no_podio := func() -> bool:
+		return jogo.estado == "podio" and not jogo._trocando and jogo.placar._t > 2.0
+	return [
+		["sentar"], ["ao_salao"], ["espera", 150], ["foto", "luz_salao"],
+		["podio_de_mentira"], ["ate", no_podio], ["espera", 90], ["foto", "luz_podio"],
 		["fim"],
 	]
 
@@ -375,6 +387,8 @@ func _rodar() -> void:
 				jogo._sincronizar_jogadores()
 				for i in 30:
 					await get_tree().process_frame
+			"ao_salao":
+				jogo._ir_para_o_salao(false)
 			"sala":
 				jogo._entrar_na_sala(p[1], false)
 			"termina":
