@@ -35,6 +35,7 @@ var flash := 0.0
 var j := {}
 var n := {}
 var g := {}
+var _faixa: Control = null
 
 
 func _init() -> void:
@@ -72,6 +73,7 @@ func montar() -> void:
 		vela.omni_range = 4.0
 		add_child(vela)
 	g = _montar_guardiao()
+	_montar_faixa()
 	for p in jogadores:
 		var l: int = p.lugar
 		j[l] = _novo_jogador()
@@ -348,6 +350,7 @@ func jogar(dt: float) -> void:
 			var e: Dictionary = j[vez]
 			if not e.chamou and float(e.acima_t) >= 0.5:
 				e.chamou = true
+				Forja.sentir(vez, "golpe")
 				Som.tocar("bigorna", GUARDIAO, -4.0)
 				marcar(vez, 150)
 				t_estado = maxf(t_estado, CHAMADO_MAX - 0.8)
@@ -372,6 +375,7 @@ func jogar(dt: float) -> void:
 					e.mexeu = true
 					if Forja.led_mic(l, 1):
 						e.luz_ok = true
+					Forja.sentir(l, "toque")
 					Som.tocar("tique", p.global_position + Vector3(0, 1, 0), -4.0)
 					marcar(l, 100)
 				if not e.apertou_mudo:
@@ -475,6 +479,59 @@ func _process(dt: float) -> void:
 	pivo.position = GUARDIAO + Vector3(0, 0, 0.35 * grito)
 	for p in jogadores:
 		_mostrar(p.lugar, dt)
+	if _faixa:
+		_faixa.queue_redraw()
+
+
+func _montar_faixa() -> void:
+	var camada := CanvasLayer.new()
+	camada.layer = 6
+	add_child(camada)
+	_faixa = Control.new()
+	_faixa.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_faixa.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_faixa.draw.connect(_desenhar_faixa)
+	camada.add_child(_faixa)
+
+
+func _desenhar_faixa() -> void:
+	if fase != "jogo" or _faixa == null:
+		return
+	var k := _faixa.size.x / 1920.0
+	_faixa.draw_set_transform(Vector2.ZERO, 0.0, Vector2(k, k))
+	var c := Vector2(960.0, 470.0)
+	var verbo := ""
+	var apoio := ""
+	var cor := Tema.ETIQUETA
+	var escala := 1.0
+	var graus := -1.5
+	match estado:
+		SILENCIO:
+			verbo = "SILÊNCIO"
+			apoio = "O guardião dorme"
+		CHAMADO:
+			if vez >= 0:
+				verbo = "CHAME O GUARDIÃO"
+				apoio = ("P%d, fale alto · os outros, quietos" if jogadores.size() > 1 else "P%d, fale alto") % (vez + 1)
+				cor = Forja.cor_do_lugar(vez).lightened(0.3)
+				escala = 1.0 + 0.12 * clampf(float(j[vez].chama), 0.0, 1.0)
+		MUDO:
+			verbo = "FIQUE MUDO"
+			apoio = "Aperte o botão do microfone"
+		SUSSURRO:
+			verbo = "SHHH…"
+			apoio = "Mudos, só um sussurro"
+		SUSTO:
+			if t_estado < 0.9:
+				verbo = "AAAH!"
+				cor = Tema.ALARME
+				escala = 1.0 + 0.3 * flash
+				graus = -3.0
+	if verbo != "":
+		Desenho.carimbo(_faixa, c, verbo, cor, Tema.T_DISPLAY, graus, escala, 1.0, false)
+	if apoio != "":
+		Desenho.carimbo(_faixa, c + Vector2(0, 84), apoio, Tema.ETIQUETA, Tema.T_AVISO, 0.0, 1.0, 1.0, false)
+	_faixa.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
 
 func _mostrar(l: int, dt: float) -> void:

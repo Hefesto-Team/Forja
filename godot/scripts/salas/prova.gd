@@ -35,6 +35,7 @@ const CORES := [
 ]
 const COR_PARECIDA := [-1, 1]
 const NOME_EQUIPE := ["Brasa", "Maré"]
+const FRASES_DAS_EQUIPES := ["A Brasa venceu!", "A Maré venceu!"]
 const LUZ_EQUIPE := Tema.EQUIPE
 const BOTAO := [F.CRUZ, F.CIRCULO, F.QUADRADO, F.TRIANGULO]
 const GLIFO := ["cross", "circle", "square", "triangle"]
@@ -49,19 +50,23 @@ var lut_do_lugar := {}
 var tiros: Array = []
 var placar := [0, 0]
 var fin := {}
+var _faixa: Control = null
+var _contagem_dita := 0
+var _some_no_fim: Array = []
 
 
 func _init() -> void:
 	usa_gatilho = true
 	id = "prova"
 	nome = "A Prova"
-	acao = "Brasa contra Maré."
+	acao = "Derrube o outro time."
 	icone = "stick_l"
 	gesto_do_aviso = "holding-right-shoot"
 	objetivo = "Noventa segundos de partida com tudo ligado: o analógico esquerdo anda, o direito e o giroscópio miram (L2 afina, e o gatilho resiste), R2 atira com a parede e o clique da arma. A munição está nas cinco luzinhas; vazia, o gatilho solta e o clique sai no controle — □ recarrega. ✕ corre. O tiro da esquerda treme o motor da esquerda; a luz é a da sua equipe e apaga com a vida. Quando o sino tocar no seu controle, o clique do touchpad solta a martelada. No fim, diga as luzinhas e a cor do controle, sem olhar a tela."
 	features = ["tudo_junto"]
 	cega = true
 	botoes_pedidos = F.mascara([F.CRUZ, F.CIRCULO, F.QUADRADO, F.TRIANGULO, F.TOUCHPAD])
+	com_treino = false
 	duracao = 0.0
 	camera_pos = Vector3(0, 17.5, 13.2)
 	camera_olhar = Vector3(0, 0, 0.9)
@@ -79,17 +84,23 @@ func alvos_da_camera() -> Array:
 
 func montar() -> void:
 	pilares = PILARES_CATAVENTO if variante == 1 else PILARES
+	var antes := get_child_count()
 	Kit.arena(self, 6, 4)
+	for i in range(antes, get_child_count()):
+		var n := get_child(i)
+		if n is Node3D and (n as Node3D).position.z > 9.0:
+			_some_no_fim.append(n)
 	atmosfera(Tema.AR["prova"], Tema.TUNGSTENIO, true, 40, 24.0, -9.8)
 	Efeitos.poeira(self, Vector3(0, 1.8, 0), Vector3(24, 3.5, 9), Tema.VIOLETA, 30)
 	luzes([Vector3(-10, 3.0, -6), Vector3(10, 3.0, -6), Vector3(-10, 3.0, 6), Vector3(10, 3.0, 6)])
 	_montar_chao()
 	for c in pilares:
-		Kit.peca(self, "column", c, 0.0, 2.2)
+		_some_no_fim.append(Kit.peca(self, "column", c, 0.0, 2.2))
 		Kit.cilindro(self, CASCALHO, 0.03, c + Vector3(0, 0.03, 0), Kit.material(COR_CHAO[1], 0.0, 0.95))
 	if not Forja.som_pronto():
 		Forja.som_preparar(F.PAPEL_ALTO_FALANTE)
 	_montar_lutadores()
+	_montar_faixa()
 
 
 func _montar_chao() -> void:
@@ -284,6 +295,8 @@ func _comecar_partida() -> void:
 	t_etapa = 0.0
 	for e in lut:
 		_voltar(e)
+		if e.lugar >= 0:
+			_saida(e.lugar, Forja.sentir(e.lugar, "golpe"))
 	Som.tocar("bigorna", null, -2.0)
 
 
@@ -590,6 +603,13 @@ func jogar(dt: float) -> void:
 		f.revela = maxf(0.0, float(f.get("revela", 0.0)) - dt)
 	match etapa:
 		CONTAGEM:
+			var resta := ceili(CONTAGEM_S - t_etapa)
+			if resta != _contagem_dita and resta > 0:
+				_contagem_dita = resta
+				Som.tocar("tique", null, -6.0)
+				for e in lut:
+					if e.lugar >= 0:
+						_saida(e.lugar, Forja.sentir(e.lugar, "toque"))
 			if t_etapa >= CONTAGEM_S:
 				_comecar_partida()
 		PARTIDA:
@@ -665,6 +685,13 @@ func _process(dt: float) -> void:
 	for e in lut:
 		_mostrar(e, dt)
 	_contagem_na_batida()
+	if _faixa:
+		_faixa.queue_redraw()
+	if fase == "fim" and not _some_no_fim.is_empty():
+		for n in _some_no_fim:
+			if is_instance_valid(n):
+				n.visible = false
+		_some_no_fim.clear()
 
 
 func _mostrar(e: Dictionary, dt: float) -> void:
@@ -675,7 +702,8 @@ func _mostrar(e: Dictionary, dt: float) -> void:
 	var pos: Vector3 = e.pos
 	no.position = Vector3(pos.x, 0.05, pos.z)
 	var mira := float(e.mira)
-	no.rotation.y = atan2(cos(mira), sin(mira))
+	if fase != "fim":
+		no.rotation.y = atan2(cos(mira), sin(mira))
 	var disco: MeshInstance3D = e.disco
 	disco.position = Vector3(pos.x, 0.06, pos.z)
 	var md: StandardMaterial3D = e.mat_disco
@@ -861,7 +889,114 @@ func com_poucos() -> String:
 		1: return "Você contra 2 bonecos"
 		2: return "1 contra 1"
 		3: return "2 contra 1 + boneco"
-	return ""
+	return "2 contra 2"
+
+
+func _equipe_vencedora() -> int:
+	if int(placar[0]) == int(placar[1]):
+		return -1
+	return 0 if int(placar[0]) > int(placar[1]) else 1
+
+
+func _lugares_da_equipe(eq: int) -> Array:
+	var lista: Array = []
+	for e in lut:
+		if e.lugar >= 0 and int(e.equipe) == eq:
+			lista.append(e.lugar)
+	return lista
+
+
+func vencedor() -> Array:
+	var lugares: Array = super()
+	var eq := _equipe_vencedora()
+	if eq >= 0:
+		var seus := _lugares_da_equipe(eq)
+		lugares.sort_custom(func(a: int, b: int) -> bool:
+			var da: bool = a in seus
+			var db: bool = b in seus
+			if da != db:
+				return da
+			return int(pontos[a]) > int(pontos[b]) or (int(pontos[a]) == int(pontos[b]) and a < b))
+	return lugares
+
+
+func frase_do_resultado() -> String:
+	var eq := _equipe_vencedora()
+	return "Empate!" if eq < 0 else FRASES_DAS_EQUIPES[eq]
+
+
+func quem_comemora() -> Array:
+	var eq := _equipe_vencedora()
+	return _lugares_da_equipe(eq) if eq >= 0 else []
+
+
+func quem_brilha() -> int:
+	var seus := quem_comemora()
+	var melhor := -1
+	for l in seus:
+		if melhor < 0 or int(acertos[l]) > int(acertos[melhor]):
+			melhor = int(l)
+	return melhor if melhor >= 0 else super()
+
+
+func campos_do_fim() -> Dictionary:
+	var c := super()
+	c["equipe"] = _equipe_vencedora()
+	c["placar"] = placar.duplicate()
+	return c
+
+
+func _montar_faixa() -> void:
+	var camada := CanvasLayer.new()
+	camada.layer = 6
+	add_child(camada)
+	_faixa = Control.new()
+	_faixa.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_faixa.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_faixa.draw.connect(_desenhar_faixa)
+	camada.add_child(_faixa)
+
+
+func _quem_da_equipe(eq: int) -> Array:
+	var nomes: Array = []
+	for e in lut:
+		if int(e.equipe) == eq:
+			nomes.append(["P%d" % (int(e.lugar) + 1), Forja.cor_do_lugar(e.lugar)] if e.lugar >= 0 else ["BONECO", Tema.BONECO_DE_TREINO])
+	return nomes
+
+
+func _desenhar_faixa() -> void:
+	if fase != "jogo" or _faixa == null:
+		return
+	var k := _faixa.size.x / 1920.0
+	var meio := Vector2(_faixa.size.x * 0.5, _faixa.size.y * 0.36)
+	_faixa.draw_set_transform(Vector2.ZERO, 0.0, Vector2(k, k))
+	var c := meio / k
+	var cor_a: Color = LUZ_EQUIPE[0].lightened(0.25)
+	var cor_b: Color = LUZ_EQUIPE[1].lightened(0.35)
+	if etapa == CONTAGEM:
+		var sai := clampf((CONTAGEM_S - t_etapa) / 0.35, 0.0, 1.0)
+		Desenho.carimbo(_faixa, c + Vector2(-400, 0), "BRASA", cor_a, Tema.T_DISPLAY, -2.0, 1.0, sai, false)
+		Desenho.carimbo(_faixa, c, "×", Tema.ETIQUETA, Tema.T_DISPLAY, 0.0, 1.0, sai, false)
+		Desenho.carimbo(_faixa, c + Vector2(400, 0), "MARÉ", cor_b, Tema.T_DISPLAY, 2.0, 1.0, sai, false)
+		for lado in 2:
+			var quem := _quem_da_equipe(lado)
+			var x0 := c.x + (-400.0 if lado == 0 else 400.0) - 70.0 * (quem.size() - 1)
+			for i in quem.size():
+				Desenho.carimbo(_faixa, Vector2(x0 + 140.0 * i, c.y + 100.0), str(quem[i][0]), quem[i][1], Tema.T_ETIQUETA, 0.0, 1.0, sai, false)
+		Desenho.carimbo(_faixa, c + Vector2(0, 200), "ATIRE E DERRUBE O OUTRO TIME", Tema.ETIQUETA, Tema.T_CARIMBO, 0.0, 1.0, sai, false)
+		var resta := ceili(CONTAGEM_S - t_etapa)
+		var pulso := 1.0 + 0.4 * (1.0 - fmod(t_etapa, 1.0))
+		Desenho.carimbo(_faixa, c + Vector2(0, 360), str(resta), Tema.ETIQUETA, Tema.T_VERBO, 0.0, pulso, sai, false)
+	elif etapa == PARTIDA and t_etapa < 0.9:
+		var esc := lerpf(1.5, 1.0, clampf(t_etapa / 0.15, 0.0, 1.0))
+		Desenho.carimbo(_faixa, c + Vector2(0, 160), "JÁ!", Tema.ETIQUETA, Tema.T_VERBO, -2.0, esc, 1.0 - clampf((t_etapa - 0.5) / 0.4, 0.0, 1.0), false)
+	elif etapa == PLACAR:
+		var eq := _equipe_vencedora()
+		var cor: Color = cor_a if eq == 0 else (cor_b if eq == 1 else Tema.ETIQUETA)
+		Desenho.carimbo(_faixa, c + Vector2(0, 100), "Empate!" if eq < 0 else FRASES_DAS_EQUIPES[eq], cor, Tema.T_DISPLAY, -2.0, 1.0, 1.0, false)
+		Desenho.carimbo(_faixa, c + Vector2(0, 250), "%d × %d" % [placar[0], placar[1]], Tema.ETIQUETA, Tema.T_VERBO, 0.0, 1.0, 1.0, false)
+	_faixa.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
 
 const RESPIRO_TEMPOS := 3.0
