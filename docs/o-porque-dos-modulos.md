@@ -134,7 +134,6 @@ Cada seção é uma pasta ou um arquivo; o ponto é o símbolo, nunca a linha. O
 
 ## godot/testes
 
-- `prova_de_poucos.sh`: roda com `--acelerado`. Os prazos são em quadros e o kit acaba pelo `Ritmo`; no relógio de parede, com `--fixed-fps`, a Centelha não chega aos 90 s em 20000 quadros.
 - `prova_de_poucos.gd`: o ✕ do aviso só vem depois da entrada do kit (1,6 s e até dois compassos), então a conta dos 120 quadros começa no aviso.
 - `prova_de_poucos.gd`: todo player para antes do `quit`, senão «resources still in use at exit». O `stop` só marca o fim: espera o mixer e o próximo quadro.
 - `prova_do_jogo.gd`: todo som de `assets/sons` é PCM16 (`compress/mode=0`). O alto-falante do controle lê o `data` como PCM16, e o comprimido sai ruído.
@@ -279,3 +278,4 @@ Cada seção é uma pasta ou um arquivo; o ponto é o símbolo, nunca a linha. O
 - `caixa.sh`, `caixa_julgar`: linha de WARNING não reprova a prova.
 - `prova_visual.sh`: o X11 é forçado; com a sessão Wayland no ambiente, a janela não vai para a tela.
 - `prova_do_som.sh`: o «jogador N» é a ordem do diretório, não a de criação.
+- `prova_de_poucos.sh`: roda com `--acelerado`. Os prazos são em quadros e o kit acaba pelo `Ritmo`; no relógio de parede, com `--fixed-fps`, a Centelha não chega aos 90 s em 20000 quadros.
