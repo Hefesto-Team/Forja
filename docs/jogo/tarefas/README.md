@@ -38,17 +38,17 @@ Os estados, e o que cada um quer dizer, estão em
 | [G01](G01-titulo-e-introducao.md) | O título e a introdução | M | F00, F04, F07, F08, F09 | feito |
 | [G02](G02-a-construcao-do-cavaleiro.md) | A construção do cavaleiro | G | F00, F04, F05, F06, F07, F08, G01, F09 | feito |
 | [G03](G03-o-item-com-mecanica.md) | O item com mecânica | M | F00, F05, F06, G02, F09 | feito |
-| [G04](G04-o-hud-de-cada-jogador.md) | O HUD de cada jogador | G | F00, F02, F07, F09, G02, G03 | pronta |
+| [G04](G04-o-hud-de-cada-jogador.md) | O HUD de cada jogador | G | F00, F02, F07, F09, G02, G03 | feito |
 | [G05](G05-a-camera-dos-quatro.md) | A câmera dos quatro | M | F00, F09 | feito |
 | [G05b](G05b-o-que-a-g05-deixou-por-dependencia.md) | O que a G05 deixou por dependência | P | G01, G06, G13, F09 | a fazer |
 | [G06](G06-o-salao-e-a-colecao.md) | O salão e a coleção | M | F00, G02, F09 | feito |
-| [G07](G07-a-narrativa-leve.md) | A narrativa leve | P | F00, F07, G03, G04, G06, F09 | pronta |
+| [G07](G07-a-narrativa-leve.md) | A narrativa leve | P | F00, F07, G03, G04, G06, F09 | feito |
 | [G08](G08-a-arte-bonecos-e-coerencia.md) | A arte: bonecos e coerência | G | F00, G01, G02, F09 | feito |
 | [G09](G09-o-teclado-do-nome.md) | O teclado de tela para o nome | M | F00, F07, F08, F09, G02 | feito |
 | [G10](G10-a-biblioteca-kenney.md) | A biblioteca Kenney | G | F00, G08 (a parte A e o `scripts/conferir_bonecos.py`) | feito |
-| [G11](G11-a-interface-com-o-ui-pack.md) | A interface com o UI Pack e os prompts | M | F00, F07, F09, G04, G10 | pronta |
-| [G12](G12-a-apresentacao-do-minigame.md) | A apresentação do minigame | M | H04, H06, G08, G11, F07, F09 | pronta |
-| [G13](G13-o-cavaleiro-montavel.md) | O cavaleiro montável | G | F00, F07, F09, G02, G10, G14 | pronta |
+| [G11](G11-a-interface-com-o-ui-pack.md) | A interface com o UI Pack e os prompts | M | F00, F07, F09, G04, G10 | feito |
+| [G12](G12-a-apresentacao-do-minigame.md) | A apresentação do minigame | M | H04, H06, G08, G11, F07, F09 | feito |
+| [G13](G13-o-cavaleiro-montavel.md) | O cavaleiro montável | G | F00, F07, F09, G02, G10, G14 | feito |
 | [G14](G14-a-cor-e-a-letra-da-fita.md) | A cor e a letra da Fita | M | F00, F09 | feito |
 | [G15](G15-a-luz-o-pos-e-o-brilho-com-dono.md) | A luz, o pós e o brilho com dono | G | F00, F09, G14 | feito |
 | [G16](G16-o-virar-da-fita-e-o-conforto.md) | O virar da fita, o movimento e as reações nas Opções | M | F00, F07, F09, G14 | feito |
@@ -67,7 +67,7 @@ Os estados, e o que cada um quer dizer, estão em
 | [H06](H06-os-jingles.md) | Os jingles | P | F00, F03, H01, H04, H05 | feito |
 | [H07](H07-o-som-em-todo-evento.md) | O som em todo evento | G | F00, F05, F06, H04 | feito |
 | [H07b](H07b-um-pio-so-e-o-som-aberto.md) | Um pio só, e o alto-falante do controle aberto | P | H07, G01, G02 | a fazer |
-| [H08](H08-os-acrescimos-do-kit.md) | Os acréscimos do kit | G | H04, H01, H02, F03, F05, G03 | a fazer |
+| [H08](H08-os-acrescimos-do-kit.md) | Os acréscimos do kit | G | H04, H01, H02, F03, F05, G03 | feito |
 | [H09](H09-o-gerador-da-trilha.md) | O gerador da trilha | M | F00, H05 | feito |
 | [H10](H10-a-bancada-da-trilha.md) | A bancada da trilha | M | H05, H09 | feito |
 
@@ -241,8 +241,8 @@ São base: vão de **a fazer** direto para **em voo**, um trilho por grupo, na o
 | ficha | título | tamanho | depende de | estado |
 | --- | --- | --- | --- | --- |
 | [WU01](WU01-o-modulo-no-piso-do-godot.md) | O módulo Linux no piso do Godot | M | — | a fazer |
-| [WU03](WU03-a-regra-do-udev-que-cobre-e-avisa.md) | A regra do udev que cobre todo DualSense, e a falta dita | M | — | a fazer |
-| [WU08](WU08-o-pacote-ensina-o-que-falta.md) | O pacote ensina o que falta | P | WU03 | a fazer |
+| [WU03](WU03-a-regra-do-udev-que-cobre-e-avisa.md) | A regra do udev que cobre todo DualSense, e a falta dita | M | — | feito |
+| [WU08](WU08-o-pacote-ensina-o-que-falta.md) | O pacote ensina o que falta | P | WU03 | feito |
 | [WE04](WE04-o-ci-local-com-casa-propria.md) | O CI local com casa própria | M | — | a fazer |
 | [WE05](WE05-o-godot-baixado-num-lugar-so.md) | O Godot baixado num lugar só, também em casa | P | V01 (feita) | a fazer |
 | [WE03](WE03-o-gauntlet-no-ci.md) | O gauntlet no CI | M | WE01 | a fazer |
