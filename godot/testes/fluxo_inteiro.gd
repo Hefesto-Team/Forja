@@ -24,8 +24,9 @@ func _roteiro_inteiro() -> Array:
 	for l in range(1, quem):
 		r.append_array([["aperta", l, Forja.CRUZ], ["espera", 12]])
 	r.append(["foto", "2_montagem"])
-	for l in quem:
-		r.append(["ate_pronto", l])
+	if not Forja.robo:
+		for l in quem:
+			r.append(["ate_pronto", l])
 	r.append_array([
 		["exige", no_salao, "o salão", 6000], ["espera", 90], ["foto", "3_salao"],
 		["ao_portao", 0, id], ["espera", 30],
