@@ -20,6 +20,9 @@ func _roteiro_do_fluxo() -> Array:
 	]
 	for l in range(1, quem):
 		r.append_array([["aperta", l, Forja.CRUZ], ["espera", 12]])
+	var gira: Array = [Forja.DIREITA, Forja.BAIXO, Forja.ESQUERDA]
+	for l in range(1, quem):
+		r.append(["aperta", l, gira[l - 1]])
 	r.append_array([["espera", 30], ["aperta", 0, Forja.CRUZ], ["espera", 30], ["aperta", 0, Forja.CRUZ], ["espera", 30],
 		["aperta", 0, Forja.CRUZ], ["espera", 30]])
 	for l in quem:
