@@ -33,12 +33,20 @@ func _roteiro_inteiro() -> Array:
 		["exige", func() -> bool: return jogo._portao_perto == id, "o portão de " + id, 300], ["foto", "4_portao"],
 		["aperta", 0, Forja.CRUZ],
 		["exige", na_sala.call("aviso", 0.3), "a sala", 1500], ["foto", "5_sala"],
+	])
+	if not Forja.robo:
+		r.append_array([["exige", na_sala.call("aviso", 1.0), "o ✕ do aviso", 90], ["aperta", 0, Forja.CRUZ],
+			["exige", na_sala.call("jogo", 0.0), "o jogo pelo ✕", 30]])
+	r.append_array([
 		["exige", na_sala.call("jogo", 3.0), "o jogo", 3000], ["foto", "6_jogo"],
 		["exige", func() -> bool: return na_sala.call("fim", 0.0).call() and jogo.resultado.visible and jogo.resultado._t > 1.0,
 			"o resultado", 30000],
 		["foto", "7_resultado"],
-		["exige", func() -> bool: return jogo.estado != "sala" or jogo.sala.t_fase >= jogo.sala.fim_da_cena() + 0.9, "o ✕ do resultado", 3000],
+		["exige", func() -> bool:
+			return na_sala.call("fim", 0.0).call() and jogo.sala.t_fase >= jogo.sala.fim_da_cena() + SalaJogo.X_DO_RESULTADO_S,
+			"o ✕ do resultado", 3000],
 		["aperta", 0, Forja.CRUZ],
+		["exige", func() -> bool: return jogo._trocando or jogo.estado != "sala", "o ✕ fechar o resultado", 30],
 		["exige", no_salao, "a volta ao salão", 1500], ["espera", 60], ["foto", "8_salao_de_volta"],
 		["exige", func() -> bool: return true, "o fim com %d jogador(es)" % quem, 1],
 		["fim"],

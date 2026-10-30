@@ -6,6 +6,7 @@ var t_fase := 0.0
 var duracao := 90.0
 var t_jogo := 0.0
 const AVISO_MAX := 8.0
+const X_DO_RESULTADO_S := 0.8
 var colocacao: Array = []
 var coop := false
 var coop_venceu := false
@@ -492,7 +493,7 @@ func _quadro_fim() -> void:
 	if t_fase >= fim_da_cena() + TelaResultado.AVANCA_S:
 		terminou.emit()
 		return
-	if t_fase < fim_da_cena() + 0.8:
+	if t_fase < fim_da_cena() + X_DO_RESULTADO_S:
 		return
 	for p in jogadores:
 		if Forja.apertou(p.lugar, Forja.CRUZ):
