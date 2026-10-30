@@ -73,7 +73,7 @@ func montar() -> void:
 	_aviso_tv = Label3D.new()
 	_aviso_tv.font = Tema.archivo(900)
 	_aviso_tv.font_size = 190
-	_aviso_tv.pixel_size = 0.0075
+	_aviso_tv.pixel_size = 0.0062
 	_aviso_tv.billboard = BaseMaterial3D.BILLBOARD_ENABLED
 	_aviso_tv.outline_size = 26
 	_aviso_tv.outline_modulate = Color(Tema.FITA, 0.9)

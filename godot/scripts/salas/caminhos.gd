@@ -5,9 +5,9 @@ const F := preload("res://scripts/forja.gd")
 const RAIAS := [-6.0, -2.0, 2.0, 6.0]
 const Z_JOGADOR := 1.6
 const LADRILHO := 1.5
-const RODADAS := 8
+const RODADAS := 4
 const PASSOS := 3
-const TROPECOS := 4
+const TROPECOS := 2
 const PRIMEIRO_S := 0.35
 const PASSO_S := 0.9
 const TREINO_S := 2.1
@@ -159,7 +159,7 @@ func _montar_raia(l: int, p: ForjaPlayer) -> Dictionary:
 	add_child(lanterna)
 	var placa := Label3D.new()
 	placa.font = Tema.archivo(700)
-	placa.font_size = 60
+	placa.font_size = 96
 	placa.pixel_size = 0.005
 	placa.billboard = BaseMaterial3D.BILLBOARD_ENABLED
 	placa.no_depth_test = true
@@ -188,10 +188,10 @@ func iniciar_jogo() -> void:
 		if not jogando[l]:
 			continue
 		var e: Dictionary = j[l]
-		e.plano = Array(Forja.cega_plano_fontes([0, 1, 2, 3], [2, 2, 2, 2], rng.randi()))
+		e.plano = Array(Forja.cega_plano_fontes([0, 1, 2, 3], [1, 1, 1, 1], rng.randi()))
 		e.estereo = Forja.som_estereo(l, F.PAPEL_HAPTICA)
 		if e.estereo:
-			var trechos := Array(Forja.cega_plano_fontes([1, 2, 3, 4, 5, 6, 7], [1, 1, 1, 1, 1, 1, 1], rng.randi()))
+			var trechos := Array(Forja.cega_plano_fontes([1, 2, 3], [1, 1, 1], rng.randi()))
 			var lados := Array(Forja.cega_plano_fontes([0, 1], [TROPECOS / 2, TROPECOS / 2], rng.randi()))
 			for k in mini(TROPECOS, mini(trechos.size(), lados.size())):
 				e.trop_lado[trechos[k]] = lados[k]
@@ -210,6 +210,7 @@ func _conectado(l: int) -> bool:
 func _tocar_passo(l: int, chao: int, variacao: int) -> void:
 	var som := "passo:%d:%d" % [chao, variacao % 3]
 	Forja.som_haptica(l, som, som)
+	Forja.piscar(l, Color.WHITE if Forja.bancada else COR_CHAO[chao].lightened(0.45), 0.25)
 	j[l].andando = 0.45
 
 
@@ -403,10 +404,12 @@ func _mostrar(p: ForjaPlayer, dt: float) -> void:
 	if p.modelo:
 		p.modelo.rotation.z = sin(t * 26.0) * 0.16 * float(e.cambaleio)
 	var placa: Label3D = nos.placa
-	placa.visible = fase == "jogo" and int(e.estado) == TREINO
+	var revela: bool = int(e.estado) == REVELA and e.rodada < RODADAS
+	placa.visible = fase == "jogo" and (int(e.estado) == TREINO or revela)
 	if placa.visible:
-		placa.text = Desenho.t(Desenho.maiusc(NOME_CHAO[int(e.treino)]))
-		placa.modulate = COR_CHAO[int(e.treino)].lightened(0.35)
+		var chao_da_placa: int = int(e.plano[int(e.rodada)]) if revela else int(e.treino)
+		placa.text = Desenho.t(Desenho.maiusc(NOME_CHAO[chao_da_placa]))
+		placa.modulate = COR_CHAO[chao_da_placa].lightened(0.35)
 	var aviso: Label3D = nos.aviso
 	aviso.visible = e.trop_aberto
 	aviso.scale = Vector3.ONE * (1.0 + 0.1 * sin(t * 16.0))
@@ -444,7 +447,10 @@ func dica(lugar: int) -> Dictionary:
 		TREINO:
 			return {"partes": ["Treino: sinta %s" % SENTE[mini(int(e.treino), 3)]], "pos": pos}
 		ANDA:
-			return {"partes": ["Ande e sinta o chão"], "pos": pos}
+			return {"partes": ["Sinta o chão na mão"], "pos": pos}
+		REVELA:
+			var c: int = e.plano[int(e.rodada)]
+			return {"partes": ["Era %s: %s" % [NOME_CHAO[c], SENTE[c]]], "pos": pos}
 		FIM:
 			return {"partes": ["Chegou"], "pos": pos}
 	return {}
