@@ -1377,7 +1377,7 @@ func _pose_da_camera() -> Array:
 	c.z = clampf(c.z, -4.0, 5.0)
 	if not Opcoes.reduzido():
 		c.x += dist * 0.02 * (_deriva_do_salao() - 0.5)
-	return [c + Vector3(0, dist * 0.92, dist * 0.7), c + Vector3(0, 0.6, -3.2)]
+	return [c + Vector3(0, dist * 0.6, dist * 0.92), c + Vector3(0, 1.0, -4.2)]
 
 
 func _deriva_do_salao() -> float:
