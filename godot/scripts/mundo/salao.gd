@@ -107,7 +107,7 @@ func _chao() -> void:
 	var piso := StandardMaterial3D.new()
 	piso.albedo_color = Color("#15101f")
 	piso.roughness = 0.55
-	piso.metallic = 0.25
+	piso.metallic = 0.15
 	for i in range(-5, 6):
 		for j in range(-4, 5):
 			var pos := Vector3(i * K, 0, j * K)
