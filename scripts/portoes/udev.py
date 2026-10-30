@@ -1,19 +1,8 @@
 #!/usr/bin/env python3
 """O portão da regra do udev: o hidraw do DualSense só para quem está na máquina, no cabo, no rádio e no uhid.
 
-A regra que o pacote leva (udev/*-forja-dualsense.rules) segue o padrão das regras do sistema:
-  - nenhuma linha abre o nó para todos (MODE="0666", ou qualquer modo que dê escrita a «outros») nem
-    entrega o nó a um grupo (GROUP=, que Fedora e Arch não têm do mesmo jeito);
-  - toda linha de hidraw leva TAG+="uaccess" (a ACL vai para a sessão ativa);
-  - para o DualSense (054C:0CE6) e o DualSense Edge (054C:0DF2), uma linha pelo pai USB
-    (ATTRS{idVendor}/ATTRS{idProduct}, o cabo) e uma pelo nome do aparelho HID (KERNELS=="*054C:0CE6*",
-    o rádio e o nó virtual por uhid, que não tem pai USB);
-  - as linhas do cabo e do rádio só contam quando são do hidraw e dão o uaccess, e com a caixa das letras
-    do sysfs (o udev compara com caixa: «054c» no pai USB, «054C:0CE6» no nome do aparelho HID);
-  - o número do arquivo vem antes do 73 (o 73-seat-late.rules aplica o uaccess: marca que chega depois
-    dele não vale).
-
-Modo: reprova (é portão da base).
+Reprova MODE que abre para todos, GROUP=, hidraw sem TAG+="uaccess", a falta da linha do cabo (pai USB, «054c»)
+ou da do rádio e do uhid (KERNELS=="*054C:0CE6*"), e o arquivo numerado depois do 73-seat-late.
 
 Uso: python3 scripts/portoes/udev.py [--raiz DIR] [--modo aviso|reprova]
 """

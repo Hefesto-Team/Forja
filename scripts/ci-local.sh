@@ -1,6 +1,28 @@
 #!/usr/bin/env bash
 set -uo pipefail
 
+uso() {
+  cat <<'EOF'
+ci-local.sh: o CI do GitHub da Forja, rodado em casa pelo próprio YAML (.github/workflows/), no act.
+
+  bash scripts/ci-local.sh --rapido           o que roda em minutos
+  bash scripts/ci-local.sh --completo         tudo o que roda em casa
+  bash scripts/ci-local.sh --job NOME[,NOME]  só estes, para triar (o PULA-NO-RAPIDO não vale)
+  bash scripts/ci-local.sh --listar           o que roda, o que fica fora e por quê
+  bash scripts/ci-local.sh --conferir         diz o que rodaria e sai 1 se rodaria alguma coisa
+  bash scripts/ci-local.sh --portoes          os portões, a prova deles e a da esteira, na árvore, sem act nem docker
+
+  com --job:  --sem-passo 'job|nome do passo'  tira um passo da cópia do YAML (repetível)
+              --perna RÓTULO                    só esta perna da matriz de runners
+
+O log de cada job vai para $FORJA_CASA/ci-local/<data>/<job>.log (padrão: ~/.local/state/forja-casa);
+o resumo é a última linha.
+
+rc: 0 tudo verde · 1 algum vermelho (ou, no --conferir, algo a rodar) · 2 não rodou
+    (sem act, sem docker, rede, tabela fora do YAML, argumento ruim).
+EOF
+}
+
 TABELA="$(cat <<'FIM_DA_TABELA'
 # O que esta casa decide sobre cada job dos workflows (forja.yml e rotulos.yml). Medido em 06/10/2026 com o
 # act 0.2.89:
