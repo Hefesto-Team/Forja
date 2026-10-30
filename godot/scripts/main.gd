@@ -245,6 +245,8 @@ func _mostrar(qual: String) -> void:
 	var antes := estado
 	var era_lobby := antes == "lobby"
 	estado = qual
+	if antes == "titulo" and qual != "titulo":
+		_placas_do_salao(true)
 	if era_lobby and qual != "lobby":
 		Ritmo.parar()
 		for l in 4:
@@ -253,6 +255,7 @@ func _mostrar(qual: String) -> void:
 		_t_titulo = 0.0
 		titulo.play_desde = -1.0
 		_tocar_o_titulo()
+		_placas_do_salao(false)
 	elif qual == "lobby":
 		_toca_titulo = null
 		var m := Musica.mapa("MUS_TELA_CONSTRUCAO")
@@ -890,6 +893,13 @@ func _dar_play(l: int) -> void:
 	titulo.play_desde = _batidas_do_titulo()
 	play_ms = Time.get_ticks_msec()
 	Forja.registrar("PLAY (P%d)" % (l + 1))
+
+
+func _placas_do_salao(visivel: bool) -> void:
+	for id in salao.portoes:
+		var placa = salao.portoes[id].get("placa")
+		if placa is Node3D:
+			placa.visible = visivel
 
 
 func _ir_para_a_intro() -> void:
