@@ -161,8 +161,8 @@ func _draw() -> void:
 			Tema.ETIQUETA)
 		var quem := str(nomes[l]) if str(nomes[l]) != "" else "P%d" % (l + 1)
 		if no_podio:
-			Desenho.nome(self, Vector2(b.position.x + 110, cy), Desenho.nome_que_cabe(quem, Tema.bungee(), Tema.T_CORPO, 200.0),
-				Tema.bungee(), Tema.T_CORPO, cor_id)
+			Desenho.nome(self, Vector2(b.position.x + 110, cy), Desenho.nome_que_cabe(quem, Tema.archivo(700), Tema.T_CORPO, 200.0),
+				Tema.archivo(700), Tema.T_CORPO, cor_id)
 		else:
 			Desenho.texto(self, Vector2(b.position.x + 110, cy), "P%d" % (l + 1), Tema.bungee(), Tema.T_CORPO, cor_id)
 			Desenho.nome(self, Vector2(b.position.x + 200, cy), Desenho.nome_que_cabe(quem, Tema.archivo(600), Tema.T_CORPO, 230.0),
