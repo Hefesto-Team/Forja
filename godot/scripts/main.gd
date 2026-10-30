@@ -1608,6 +1608,11 @@ func _cortou_o_fim(pose: Array) -> bool:
 		var p: ForjaPlayer = sj.jogador(quem) if quem >= 0 else null
 		if p != null and is_instance_valid(p):
 			p.olhar_para(pose[0])
+		elif plano == "resultado":
+			for l in 4:
+				var q := sj.jogador(l)
+				if sj.jogando[l] and q != null and is_instance_valid(q):
+					q.olhar_para(pose[0])
 	return true
 
 
