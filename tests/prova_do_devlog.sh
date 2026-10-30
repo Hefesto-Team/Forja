@@ -120,6 +120,11 @@ confere "pares: JPEG de no máximo 1280 px" bash -c "[ \"\$(identify -format '%w
 confere "pares: sem metadados" bash -c "! identify -verbose '$E/depois/muda.jpg' | grep -qE 'exif:|Software'"
 confere "pares: o cabeçalho guarda so_antes, so_depois e iguais" bash -c "grep -q '^so_antes: velha\$' '$E/entrada.md' && grep -q '^so_depois: nova\$' '$E/entrada.md' && grep -q '^iguais: 1\$' '$E/entrada.md'"
 espera 2 "pares: pasta que não é entrada sai 2" em "$R" bash scripts/devlog/pares.sh "$TMP/png-a" "$TMP/png-d" "$TMP"
+mkdir -p "$TMP/apertar/antes" "$TMP/apertar/depois"
+convert -size 1280x720 plasma:fractal -quality 90 "$TMP/apertar/depois/p.jpg"
+espera 0 "pares: --apertar encolhe a entrada acima do teto" env DEVLOG_TETO=60000 bash "$RAIZ/scripts/devlog/pares.sh" --apertar "$TMP/apertar"
+confere "pares: --apertar deixou a foto menor que 1280 px" bash -c "[ \"\$(identify -format '%w' '$TMP/apertar/depois/p.jpg')\" -lt 1280 ]"
+espera 1 "pares: --apertar sai 1 quando nem encolhendo cabe" env DEVLOG_TETO=100 bash "$RAIZ/scripts/devlog/pares.sh" --apertar "$TMP/apertar"
 
 resumo_bom() {
   printf -- '---\n' > "$TMP/novo.md"

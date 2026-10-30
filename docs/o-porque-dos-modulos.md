@@ -256,7 +256,7 @@ Cada seção é uma pasta ou um arquivo; o ponto é o símbolo, nunca a linha. O
 ## scripts/devlog/ e scripts/vez.sh
 
 - `pares.sh`: o PNG de 1920x1080 do jogo pesa ~2 MB (medido em 30/10/2026). Uma entrada de 40 pares passaria de 150 MB em PNG
-  e cada entrada ficaria no histórico para sempre; em JPEG de 1280 px e qualidade 78 a foto pesa ~60 KB, e a entrada cabe nos 6 MB do portão.
+  e cada entrada ficaria no histórico para sempre; em JPEG de 1280 px e qualidade 78 a foto pesa ~70 KB; se a entrada passa de 5,5 MiB o `pares.sh` a aperta (qualidade 70, 62, depois 1120, 1024 e 896 px) até caber nos 6 MB do portão.
 - `pares.sh`: o par com RMSE normalizado abaixo de 0,01 sai dos dois lados: duas fotos iguais não contam nada e dobram o peso.
 - `pares.sh`: a comparação é nos PNG de origem, antes do JPEG; comparar JPEG contra JPEG acusaria diferença no ruído da compressão.
 - `fotos.sh`: o `XDG_DATA_HOME` é de cada execução, e cada roteiro tem o seu; duas provas no mesmo `user://` brigam pelo mesmo arquivo.

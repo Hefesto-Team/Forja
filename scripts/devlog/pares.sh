@@ -8,9 +8,28 @@ Uso: scripts/devlog/pares.sh <png-antes> <png-depois> <pasta-da-entrada>
 O par cuja diferença (compare -metric RMSE, normalizada) é menor que 0,01 é igual e sai dos dois lados.
 A tela que só existe de um lado fica só nele. Cada foto vira JPEG de até 1280 px, qualidade 78, sem metadados.
 Grava no cabeçalho da entrada: so_antes, so_depois e iguais.
+Se a entrada passa de 5,5 MiB, recomprime os JPEG em qualidade menor (70, 62, 1120 px q62, 1024 px q58, 896 px q54) até caber.
+Uso: scripts/devlog/pares.sh --apertar <pasta-da-entrada>   (só a recompressão, numa entrada que já existe)
 FIM
 }
-case "${1:-}" in -h | --ajuda) uso; exit 0 ;; esac
+TETO="${DEVLOG_TETO:-$((11 * 512 * 1024))}"
+bytes() { find "$1/antes" "$1/depois" -type f -name '*.jpg' -printf '%s\n' 2> /dev/null | awk '{s += $1} END {print s + 0}'; }
+apertar() {
+  local pasta="$1" passo f q larg
+  for passo in 70:1280 62:1280 62:1120 58:1024 54:896; do
+    [ "$(bytes "$pasta")" -le "$TETO" ] && return 0
+    q="${passo%%:*}"
+    larg="${passo##*:}"
+    for f in "$pasta"/antes/*.jpg "$pasta"/depois/*.jpg; do
+      [ -f "$f" ] && convert "$f" -resize "${larg}x>" -strip -sampling-factor 4:2:0 -quality "$q" "$f"
+    done
+  done
+  [ "$(bytes "$pasta")" -le "$TETO" ]
+}
+case "${1:-}" in
+  -h | --ajuda) uso; exit 0 ;;
+  --apertar) [ $# -eq 2 ] || { uso >&2; exit 2; }; apertar "$2" || { echo "pares: nem em 896 px q54 a entrada cabe em 5,5 MiB" >&2; exit 1; }; exit 0 ;;
+esac
 [ $# -eq 3 ] || { uso >&2; exit 2; }
 AQUI="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ANTES="$1"
@@ -61,6 +80,7 @@ while IFS= read -r n; do
   fi
 done < <({ nomes "$ANTES"; nomes "$DEPOIS"; } | LC_ALL=C sort -u)
 
+apertar "$SAIDA" || { echo "pares: nem em 896 px q54 a entrada cabe em 5,5 MiB; fotografe menos roteiros" >&2; exit 1; }
 juntar() { local IFS=,; echo "$*"; }
 python3 "$AQUI/cabecalho.py" gravar "$SAIDA/entrada.md" "so_antes=$(juntar "${so_antes[@]+"${so_antes[@]}"}")" \
   "so_depois=$(juntar "${so_depois[@]+"${so_depois[@]}"}")" "iguais=$iguais"
