@@ -28,7 +28,7 @@ var pedestais: Array[Vector3] = []
 var pedestais_no: Node3D
 var luzes_das_bigornas: Array[OmniLight3D] = []
 var focos_da_montagem: Array[Node3D] = []
-var _ocultos_na_montagem: Array[Node3D] = []
+var _palco_no: Node3D
 var _tw_bigorna := [null, null, null, null]
 var vitrine_no: Node3D
 var trofeus_no: Node3D
@@ -438,17 +438,29 @@ func acender_focos(ligado: bool) -> void:
 
 func modo_montagem(ligado: bool) -> void:
 	acender_focos(ligado)
-	if ligado:
-		_ocultos_na_montagem.clear()
-		for c in get_children():
-			if c is Node3D and c != pedestais_no and (c as Node3D).visible:
-				(c as Node3D).visible = false
-				_ocultos_na_montagem.append(c)
-	else:
-		for c in _ocultos_na_montagem:
-			if is_instance_valid(c):
-				c.visible = true
-		_ocultos_na_montagem.clear()
+	if _palco_no == null:
+		_palco_no = Node3D.new()
+		_palco_no.name = "PalcoDaMontagem"
+		add_child(_palco_no)
+		var preto := StandardMaterial3D.new()
+		preto.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+		preto.albedo_color = Tema.PRETO_DA_MONTAGEM
+		var chao := MeshInstance3D.new()
+		var plano := BoxMesh.new()
+		plano.size = Vector3(80, 0.02, 40)
+		chao.mesh = plano
+		chao.position = Vector3(0, 0.06, 4.4)
+		chao.material_override = preto
+		_palco_no.add_child(chao)
+		var fundo := MeshInstance3D.new()
+		var parede := BoxMesh.new()
+		parede.size = Vector3(80, 40, 0.1)
+		fundo.mesh = parede
+		fundo.position = Vector3(0, 20, 3.0)
+		fundo.material_override = preto
+		_palco_no.add_child(fundo)
+	_palco_no.visible = ligado
+	apagado = 1.0 if ligado else 0.0
 
 
 func acender_bigorna(l: int, energia: float, a_mais := 0.0) -> void:
