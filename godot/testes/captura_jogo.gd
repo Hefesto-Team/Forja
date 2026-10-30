@@ -143,11 +143,12 @@ func _roteiro_das_salas() -> Array:
 			["caminhos_revela", p1.call(func(_sala, e) -> bool: return e.estado == SalaCaminhos.REVELA and e.rodada >= 3 and e.t > 0.3)],
 		],
 		"prova": [
+			["prova_contagem", na_sala.call(func(sala) -> bool: return sala.etapa == SalaProva.CONTAGEM and sala.t_etapa > 1.3)],
+			["prova_ja", na_sala.call(func(sala) -> bool: return sala.etapa == SalaProva.PARTIDA and sala.t_etapa > 0.2)],
 			["prova_partida", na_sala.call(func(sala) -> bool: return sala.etapa == SalaProva.PARTIDA and sala.t_etapa > 24.0)],
 			["prova_tiroteio", na_sala.call(func(sala) -> bool:
 				return sala.etapa == SalaProva.PARTIDA and sala.t_etapa > 55.0 and sala.tiros.size() >= 3)],
-			["prova_luzinhas", na_sala.call(func(sala) -> bool: return sala.etapa == SalaProva.LEDS and sala.t_etapa > 2.4)],
-			["prova_cor", na_sala.call(func(sala) -> bool: return sala.etapa == SalaProva.COR and sala.t_etapa > 2.4)],
+			["prova_placar", na_sala.call(func(sala) -> bool: return sala.etapa == SalaProva.PLACAR and sala.t_etapa > 0.8)],
 		],
 		"voz": [
 			["voz_chamado", na_sala.call(func(sala) -> bool:
@@ -158,7 +159,6 @@ func _roteiro_das_salas() -> Array:
 					if sala.j[l].apertou_mudo:
 						n += 1
 				return sala.estado == SalaVoz.MUDO and n >= 2)],
-			["voz_luz", na_sala.call(func(sala) -> bool: return sala.estado == SalaVoz.LUZ and sala.j[0].fase == SalaVoz.REVELA_LUZ)],
 			["voz_antes_do_susto", na_sala.call(func(sala) -> bool:
 				return sala.estado == SalaVoz.ESPERA and sala.t_estado > SalaVoz.ESPERA_S - 0.5)],
 			["voz_clarao", na_sala.call(func(sala) -> bool: return sala.estado == SalaVoz.SUSTO and sala.t_estado > 0.02)],
