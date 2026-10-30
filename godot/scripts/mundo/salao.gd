@@ -104,11 +104,17 @@ func _caixa_solida(centro: Vector3, tamanho: Vector3) -> void:
 func _chao() -> void:
 	var sorteio := RandomNumberGenerator.new()
 	sorteio.seed = 7
+	var piso := StandardMaterial3D.new()
+	piso.albedo_color = Color("#15101f")
+	piso.roughness = 0.55
+	piso.metallic = 0.15
 	for i in range(-5, 6):
 		for j in range(-4, 5):
 			var pos := Vector3(i * K, 0, j * K)
 			var detalhe := sorteio.randf() < 0.07
-			peca("floor-detail" if detalhe else "floor", pos, sorteio.randi_range(0, 3) * PI * 0.5)
+			var ladrilho := peca("floor-detail" if detalhe else "floor", pos, sorteio.randi_range(0, 3) * PI * 0.5)
+			for m in ladrilho.find_children("*", "MeshInstance3D", true, false):
+				(m as MeshInstance3D).material_override = piso
 	_caixa_solida(Vector3(0, -0.5, 0), Vector3(40, 1, 40))
 	var passarela := CSGBox3D.new()
 	passarela.size = Vector3(2.6, 0.03, 7.4)

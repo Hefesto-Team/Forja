@@ -703,6 +703,7 @@ func _ir_para_o_podio() -> void:
 	Musica.tocar("podio")
 	hud.sala = {}
 	hud.dica_presa = {}
+	placar.nomes = hud.nomes.duplicate()
 	placar.abrir(partida, true)
 	placar.visible = true
 	var frase := Placar.frase_do_vencedor(lista)
@@ -1101,6 +1102,7 @@ func _perto_da_bigorna() -> void:
 func _quadro_sala() -> void:
 	if sala is SalaJogo and (sala as SalaJogo).fase == "fim" and not resultado.visible and overlay == "" and _plano_do_fim() == "":
 		var sj := sala as SalaJogo
+		resultado.nomes = hud.nomes.duplicate()
 		resultado.abrir(sj.colocacao, sj.pontos, sj.coop, sj.coop_venceu, sj.nome, sj.frase_do_resultado())
 		resultado.sala_da_bancada = sj if Forja.bancada else null
 	_atalhos_de_overlay()
@@ -1153,6 +1155,7 @@ func _abrir_overlay(qual: String, lugar: int) -> void:
 	if qual == "partida":
 		escolha.abrir(lugar, Forja.semente + _partidas, ORDEM_DO_FOGO)
 	if qual == "placar":
+		placar.nomes = hud.nomes.duplicate()
 		placar.abrir(partida, false)
 	if qual == "opcoes":
 		tela_opcoes.abrir(lugar)
@@ -1374,7 +1377,7 @@ func _pose_da_camera() -> Array:
 	c.z = clampf(c.z, -4.0, 5.0)
 	if not Opcoes.reduzido():
 		c.x += dist * 0.02 * (_deriva_do_salao() - 0.5)
-	return [c + Vector3(0, dist * 0.92, dist * 0.7), c + Vector3(0, 0.6, -3.2)]
+	return [c + Vector3(0, dist * 0.6, dist * 0.92), c + Vector3(0, 1.0, -4.2)]
 
 
 func _deriva_do_salao() -> float:

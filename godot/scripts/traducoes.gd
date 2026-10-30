@@ -437,6 +437,7 @@ const EN_PADROES := [
 	["^Prova de Fogo · sala (\\d+) de (\\d+)$", "Trial by Fire · room $1 of $2"],
 	["^P(\\d) venceu a noite$", "P$1 won the night"],
 	["^P(\\d) venceu!$", "P$1 wins!"],
+	["^(.+) venceu!$", "$1 wins!"],
 	["^P(\\d) e P(\\d) empatam!$", "P$1 and P$2 tie!"],
 	["^(.+) · desempate: (.+)$", "$1 · tiebreak: $2"],
 	["^(.+) dividem a noite$", "$1 share the night"],
