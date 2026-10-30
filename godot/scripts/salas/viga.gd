@@ -300,6 +300,8 @@ func _travessia(l: int, p: ForjaPlayer, e: Dictionary, dt: float) -> void:
 			var b: MeshInstance3D = n[l].bandeiras[k - 1]
 			b.material_override = Kit.material(Tema.TUNGSTENIO, 1.2, 0.8, "forja")
 			Som.tocar("tique", b.global_position, -6.0, 1.3)
+			Forja.piscar(l, Tema.TUNGSTENIO, 0.25)
+			Forja.sentir(l, "acerto")
 	var na_viga: bool = e.progresso > 0.08 and e.progresso < 0.93
 	e.bambo = e.bambo + dt if mod > 1.0 and na_viga else maxf(0.0, e.bambo - dt)
 	if e.bambo > 0.45:
@@ -308,6 +310,7 @@ func _travessia(l: int, p: ForjaPlayer, e: Dictionary, dt: float) -> void:
 		Som.tocar("falha", p.global_position, -4.0)
 		p.gesto("fall", 1.3)
 		Forja.sentir(l, "golpe")
+		Forja.piscar(l, Forja.cor_do_lugar(l).darkened(0.7), 0.5)
 		var onde := _pos_do_boneco(l, e)
 		Efeitos.faiscas(self, Vector3(onde.x + e.inclinacao * 0.8, -1.3, onde.z), Tema.TUNGSTENIO, 30, 0.9)
 	if e.progresso >= 1.0:
@@ -370,6 +373,7 @@ func _arremessar(l: int, p: ForjaPlayer, alvo: Vector3, sino: int) -> void:
 			Efeitos.faiscas(self, alvo, Tema.TUNGSTENIO, 30, 1.0)
 			Efeitos.anel(self, alvo, Tema.TUNGSTENIO, 0.5, Vector3.BACK, "forja")
 			Forja.sentir(l, "acerto")
+			Forja.piscar(l, Color.WHITE, 0.15)
 			var cai := pivo.create_tween()
 			cai.tween_property(pivo, "rotation:z", 0.9 * (1.0 if sino % 2 else -1.0), 0.18)
 			cai.tween_property(pivo, "scale", Vector3.ONE * 0.01, 0.35).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_IN)
@@ -407,6 +411,7 @@ func _pedra(l: int, p: ForjaPlayer, e: Dictionary, dt: float) -> void:
 	Som.tocar("martelo", ponto, 0.0)
 	Som.no_controle(l, "pedra" if e.golpes >= 2 else "martelo", 0.7)
 	Forja.sentir(l, "perfeito")
+	Forja.piscar(l, Color.WHITE if e.golpes < 2 else Tema.TUNGSTENIO, 0.2 if e.golpes < 2 else 0.5)
 	var nos: Dictionary = n[l]
 	nos.racha.visible = true
 	nos.fogo_pedra.light_energy = 1.4
@@ -466,6 +471,7 @@ func _novo_trecho(l: int, p: ForjaPlayer, e: Dictionary, trecho: int) -> void:
 		FIM:
 			acabou[l] = true
 			Som.tocar("sucesso", onde)
+			Forja.piscar(l, Tema.VIOLETA, 0.6)
 			p.gesto("emote-yes", 1.6)
 			return
 	Som.tocar("confirma", onde, -4.0)
