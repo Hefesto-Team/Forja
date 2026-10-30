@@ -6,6 +6,7 @@ static var _padroes: Array = []
 
 const EN := {
 	"Quatro DualSense no mesmo sofá.": "Four DualSense on the same couch.",
+	"Feito à mão por": "Handmade by",
 	"Nenhum controle encontrado.": "No controller found.",
 	"Conecte um DualSense por USB ou Bluetooth.": "Connect a DualSense over USB or Bluetooth.",
 	"Jogar no teclado · Enter": "Play on the keyboard · Enter",
@@ -273,7 +274,6 @@ const EN := {
 	"Bata!": "Strike!",
 	"Nenhum controle encontrado": "No controller found",
 	"Jogar no teclado": "Play on the keyboard",
-	"Gravar": "Record",
 	"Nove salas, quatro cavaleiros": "Nine rooms, four knights",
 	"Boneco": "Figure",
 	"Arma": "Weapon",
