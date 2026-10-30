@@ -5,6 +5,7 @@ signal virou(l: int, onde: Vector2)
 
 var partida: Partida = null
 var no_podio := false
+var nomes: Array = ["", "", "", ""]
 var _t := 0.0
 
 const ORDINAL := ["", "1º", "2º", "3º", "4º"]
@@ -128,6 +129,8 @@ func _draw() -> void:
 		Desenho.texto(self, Vector2(x, r.position.y + 84), "O placar", Tema.bungee(), Tema.T_TITULO, Tema.ETIQUETA)
 		var depois := "Depois d%s · sala %d de %d" % [_contracao(str(ultima.nome)), partida.historico.size(), partida.salas.size()]
 		Desenho.texto(self, Vector2(x, r.position.y + 140), depois, Tema.archivo(500), Tema.T_ROTULO, Tema.ETIQUETA)
+	if no_podio and not lista.is_empty():
+		_manchete(int(lista[0].lugar))
 	var y0 := r.position.y + 206
 	var c_total := r.end.x - 48 - 150
 	var c_sala := c_total - 300
@@ -156,9 +159,16 @@ func _draw() -> void:
 		var degrau := int(e.degrau) if k_troca >= 1.0 else i_antes + 1
 		Desenho.texto(self, Vector2(b.position.x + 24, cy), ORDINAL[clampi(degrau, 0, 4)], Tema.bungee(), Tema.T_CORPO,
 			Tema.ETIQUETA)
-		Desenho.texto(self, Vector2(b.position.x + 110, cy), "P%d" % (l + 1), Tema.bungee(), Tema.T_CORPO, cor_id)
+		var quem := str(nomes[l]) if str(nomes[l]) != "" else "P%d" % (l + 1)
+		if no_podio:
+			Desenho.nome(self, Vector2(b.position.x + 110, cy), Desenho.nome_que_cabe(quem, Tema.bungee(), Tema.T_CORPO, 200.0),
+				Tema.bungee(), Tema.T_CORPO, cor_id)
+		else:
+			Desenho.texto(self, Vector2(b.position.x + 110, cy), "P%d" % (l + 1), Tema.bungee(), Tema.T_CORPO, cor_id)
+			Desenho.nome(self, Vector2(b.position.x + 200, cy), Desenho.nome_que_cabe(quem, Tema.archivo(600), Tema.T_CORPO, 230.0),
+				Tema.archivo(600), Tema.T_CORPO, Tema.ETIQUETA)
 		if primeiro and not no_podio:
-			Desenho.selo(self, Vector2(b.position.x + 180, cy - 30), "Lidera", Tema.ETIQUETA)
+			Desenho.selo(self, Vector2(b.position.x + 450, cy - 30), "Lidera", Tema.ETIQUETA)
 		if no_podio:
 			Desenho.texto(self, Vector2(c_sala, cy), "%d" % int(e.vitorias), Tema.vt(), Tema.T_MONO, Tema.ETIQUETA_SOMBRA)
 		else:
@@ -186,6 +196,16 @@ func _draw() -> void:
 		var seguinte := partida.sala_atual()
 		var texto := "A seguir: %s" % Partida.nome(seguinte) if seguinte != "" else "O pódio"
 		Desenho.dicas_a_direita(self, Vector2(r.end.x - 48, r.end.y + 60), [["cruz", texto]], Tema.T_ROTULO)
+
+
+func _manchete(l: int) -> void:
+	var quem := str(nomes[l]) if str(nomes[l]) != "" else "P%d" % (l + 1)
+	var f := Tema.bungee()
+	var k := _suave(_t / 0.6)
+	var tam := int(Tema.T_DISPLAY * (0.8 + 0.2 * k))
+	var cor := Tema.tom_para_a_borda(Forja.cor_do_lugar(l))
+	var dito := Desenho.nome_que_cabe(quem.to_upper() + "!", f, tam, size.x - 2.0 * Tema.MARGEM_X)
+	Desenho.nome(self, Vector2(0, 172), dito, f, tam, Color(cor, k), HORIZONTAL_ALIGNMENT_CENTER, size.x)
 
 
 static func _contracao(nome: String) -> String:

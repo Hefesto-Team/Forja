@@ -11,6 +11,7 @@ var coop_venceu := false
 var titulo := ""
 var frase := ""
 var sala_da_bancada: SalaJogo = null
+var nomes: Array = ["", "", "", ""]
 
 var _t := 0.0
 
@@ -79,7 +80,8 @@ func _frase() -> Array:
 	if n >= 3:
 		return ["Empate!", Tema.ETIQUETA]
 	var l: int = colocacao[0]
-	return ["P%d venceu!" % (l + 1), Tema.tom_para_a_borda(Forja.cor_do_lugar(l))]
+	var quem := str(nomes[l]) if l < nomes.size() and str(nomes[l]) != "" else "P%d" % (l + 1)
+	return ["%s venceu!" % quem, Tema.tom_para_a_borda(Forja.cor_do_lugar(l))]
 
 
 func _draw() -> void:
@@ -88,7 +90,7 @@ func _draw() -> void:
 	var compacto := sala_da_bancada != null
 	var alt_primeira := 60.0 if compacto else 84.0
 	var alt_linha := 48.0 if compacto else 64.0
-	var alt := 190.0 + 40.0
+	var alt := 190.0 + 40.0 + 56.0
 	if n > 0:
 		alt += alt_primeira + alt_linha * (n - 1)
 	var alt_tabela := 0.0
@@ -98,7 +100,8 @@ func _draw() -> void:
 	var topo := maxf(170.0 if compacto else 24.0, (size.y - total) * 0.5)
 	var r := Rect2(Vector2((size.x - LARG) * 0.5, topo), Vector2(LARG, alt))
 	Desenho.moldura(self, r, Color(Tema.CASCO, 0.97), Tema.GRAFITE, 2, Tema.RAIO_QUADRO)
-	Desenho.texto(self, r.position + Vector2(48, 84), titulo, Tema.bungee(), Tema.T_TITULO, Tema.ETIQUETA)
+	Desenho.texto(self, r.position + Vector2(48, 84), Desenho.caber(titulo, Tema.bungee(), Tema.T_TITULO, LARG - 96.0, 1),
+		Tema.bungee(), Tema.T_TITULO, Tema.ETIQUETA)
 	var dita := _frase()
 	if str(dita[0]) != "":
 		Desenho.texto(self, r.position + Vector2(48, 148), str(dita[0]), Tema.archivo(700), Tema.T_CORPO + 8, dita[1],
@@ -116,7 +119,7 @@ func _draw() -> void:
 		Desenho.texto(self, Vector2(r.position.x + 300, base), "%d" % int(pontos[l]), Tema.vt(), tam_nome, Tema.ETIQUETA)
 		y += h
 	if _t >= 0.8:
-		Desenho.dicas_a_direita(self, Vector2(r.end.x - 48, r.position.y + 84), [["cruz", "Continuar"]], Tema.T_ROTULO)
+		Desenho.dicas_a_direita(self, Vector2(r.end.x - 48, r.end.y - 22), [["cruz", "Continuar"]], Tema.T_ROTULO)
 	if compacto:
 		_tabela(Rect2(Vector2((size.x - maxf(LARG, _largura_da_tabela())) * 0.5, r.end.y + 24.0),
 			Vector2(maxf(LARG, _largura_da_tabela()), alt_tabela)))
