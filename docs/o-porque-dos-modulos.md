@@ -262,7 +262,8 @@ Cada seção é uma pasta ou um arquivo; o ponto é o símbolo, nunca a linha. O
 - `fotos.sh`: o `XDG_DATA_HOME` é de cada execução, e cada roteiro tem o seu; duas provas no mesmo `user://` brigam pelo mesmo arquivo.
 - `fotos.sh`: o `base` é sempre um SHA que existe; a árvore de antes pode ser de antes da reescrita do histórico.
 - `fotos.sh`: o módulo nativo tem de casar com a fonte da árvore (`caixa_fonte`); copia-se o de uma árvore irmã com a mesma soma, e só sem ele se compila.
-- `fotos.sh`: a tela de mentira é aberta com tentativa: duas aberturas do `xvfb-run -a` ao mesmo tempo podem pegar o mesmo número de display.
+- `fotos.sh`: cada roteiro tenta três vezes: duas aberturas do `xvfb-run -a` ao mesmo tempo podem pegar o mesmo display, e sob carga o roteiro estoura o tempo. As fotos ficam por SHA em `.cache/devlog/png/`, e a nova chamada só refaz o que falhou.
+- `fotos.sh`: o roteiro que falha num lado sai dos dois; senão a foto que faltou passaria por tela nova ou cortada. O que estoura o tempo duas vezes no mesmo ponto fica com as fotos que tirou: é a árvore velha que não chega ao fim, não a carga.
 - `ligar_gancho.py`: o repositório não versiona a pasta de configuração do agente (o portão sem rastro reprova arquivo e nome), então o gancho mora num modelo (`gancho.json`) que se funde na árvore.
 - `cobrar.sh`: com `stop_hook_active` o gancho já cobrou uma vez e sai 0; sem isso o agente que não pode fotografar ficaria num laço.
 - `cobrar.sh`: a mudança visual sem commit também cobra, porque a entrada mira o HEAD.

@@ -263,7 +263,8 @@ scripts/devlog/fotos.sh docs/devlog/AAAA-MM-DD-<slug>   # fotografa a base e o t
   (`--roteiros telas,extras,cavaleiro,partida,salas,centelha,...` para escolher à mão).
 - **O que o `fotos.sh` faz:** monta as duas árvores em `.cache/devlog/arvores/<sha>`, garante o módulo nativo de cada
   uma, fotografa por `xvfb` (`--simular=4 --semente=7`, 1920x1080) e guarda JPEG de até 1280 px em `antes/` e `depois/`.
-  O par quase igual (RMSE normalizado abaixo de 0,01) sai dos dois lados.
+  O par quase igual (RMSE normalizado abaixo de 0,01) sai dos dois lados. O roteiro que falha num lado sai dos dois e o
+  `fotos.sh` sai 1: rode de novo, que as fotos já tiradas (`.cache/devlog/png/<sha>`) se reaproveitam.
 - **A fila:** todo Godot pesado passa por `scripts/vez.sh` (`VEZ_N` vagas, padrão 4): as provas e as fotos fazem fila
   em vez de brigar pela máquina.
 - **O cobrador:** `scripts/devlog/cobrar.sh` sai 2 quando o ramo muda arquivo visual e falta a entrada com foto do

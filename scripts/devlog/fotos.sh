@@ -12,6 +12,10 @@ Uso: scripts/devlog/fotos.sh <pasta-da-entrada> [--roteiros a,b,c]
                centelha, viga, molde, impacto, galeria, canto, caminhos, voz, prova.
                Padrão: os que tocam os arquivos mudados entre base e topo; sem palpite, todos.
 Todo Godot pesado passa pelo scripts/vez.sh (VEZ_N vagas). Nunca abre janela na tela.
+Cada roteiro tenta até 3 vezes, com FOTOS_TEMPO segundos cada (padrão 1500). As fotos de cada roteiro ficam em
+.cache/devlog/png/<sha>/<roteiro> e a nova chamada as reaproveita. O roteiro que falha num lado fica fora dos dois
+(sai 1 e pede a nova chamada); o que não existe numa árvore fica só no outro lado; o que estoura o tempo duas vezes
+sem passar do mesmo ponto fica com as fotos que tirou.
 FIM
 }
 AQUI="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -177,76 +181,119 @@ com_robo() {
   return 1
 }
 
+FOTOS="$RAIZ/.cache/devlog/png"
+TEMPO="${FOTOS_TEMPO:-1500}"
+
+existe() {
+  local captura="$ARVORES/$1/godot/testes/captura_jogo.gd" r="$2"
+  [ -f "$captura" ] || return 1
+  case "$r" in
+    telas) return 0 ;;
+    extras | cavaleiro | partida) grep -q "\"$r\":" "$captura" ;;
+    *) grep -qE "^[[:space:]]*\"$r\": *\[" "$captura" ;;
+  esac
+}
+
+roteiro_de() {
+  local sha="$1" r="$2" arv="$ARVORES/$1" out="$FOTOS/$1/$2" rel tentativa rc robo n tentou melhor=-1
+  if [ -f "$out/feito" ]; then
+    echo "  ${sha:0:7} $r: $(ls "$out"/*.png 2> /dev/null | wc -l) foto(s), já tiradas"
+    return 0
+  fi
+  if ! existe "$sha" "$r"; then
+    rm -rf "$out"; mkdir -p "$out"; : > "$out/feito"
+    echo "  ${sha:0:7} $r: o roteiro não existe nesta árvore"
+    return 0
+  fi
+  robo=""
+  com_robo "$r" && robo="--robo"
+  rm -rf "$out" "$out".t* "$out.melhor"
+  for tentativa in 1 2 3; do
+    tentou="$out.t$tentativa"
+    rel="$TRABALHO/rel-${sha:0:7}-$r-$tentativa"
+    mkdir -p "$tentou" "$rel"
+    env SAIDA="$tentou" RAPIDO=1 $(variaveis "$r") XDG_DATA_HOME="$TRABALHO/dados-${sha:0:7}-$r-$tentativa" "$VEZ" \
+      timeout "$TEMPO" xvfb-run -a -s "-screen 0 1920x1080x24" \
+      caixa "$GODOT" --rendering-driver opengl3 --audio-driver Dummy --fixed-fps 60 --path "$arv/godot" --resolution 1920x1080 \
+      res://testes/captura_jogo.tscn -- --simular=4 --semente=7 --relatorios="$rel" $robo > "$TRABALHO/${sha:0:7}-$r-$tentativa.log" 2>&1
+    rc=$?
+    n="$(find "$tentou" -maxdepth 1 -name '*.png' | wc -l)"
+    if [ "$rc" -eq 0 ] && [ "$n" -gt 0 ]; then
+      mv "$tentou" "$out" && rm -rf "$out".t* "$out.melhor" && : > "$out/feito"
+      echo "  ${sha:0:7} $r: $n foto(s)"
+      return 0
+    fi
+    if [ "$rc" -eq 124 ] && [ "$n" -gt 0 ]; then
+      if [ "$n" -le "$melhor" ]; then
+        mv "$out.melhor" "$out" && rm -rf "$out".t* && : > "$out/feito"
+        echo "  ${sha:0:7} $r: $melhor foto(s), parcial: estourou o tempo duas vezes sem passar do mesmo ponto"
+        return 0
+      fi
+      melhor="$n"
+      rm -rf "$out.melhor"
+      mv "$tentou" "$out.melhor"
+    fi
+    echo "  ${sha:0:7} $r: a tentativa $tentativa falhou (rc=$rc, $n foto(s))"
+    sleep $((tentativa * 5))
+  done
+  return 1
+}
+
 lado_de() {
-  local sha="$1" lado="$2" arv="$ARVORES/$1" r
-  local caixa_dir="$TRABALHO/$lado/caixa"
-  mkdir -p "$TRABALHO/$lado"
+  local sha="$1" r
   (
-    source "$arv/tests/caixa.sh"
-    caixa_montar "$caixa_dir"
-    pids=()
+    source "$ARVORES/$sha/tests/caixa.sh"
+    caixa_montar "$TRABALHO/caixa-${sha:0:7}"
     for r in "${ROTEIROS[@]}"; do
-      (
-        out="$TRABALHO/$lado/png-$r"
-        rel="$TRABALHO/$lado/rel-$r"
-        mkdir -p "$out" "$rel"
-        robo=""
-        com_robo "$r" && robo="--robo"
-        for tentativa in 1 2 3; do
-          env SAIDA="$out" RAPIDO=1 $(variaveis "$r") XDG_DATA_HOME="$TRABALHO/$lado/dados-$r" "$VEZ" \
-            timeout 1500 xvfb-run -a -s "-screen 0 1920x1080x24" \
-            caixa "$GODOT" --rendering-driver opengl3 --audio-driver Dummy --fixed-fps 60 --path "$arv/godot" --resolution 1920x1080 \
-            res://testes/captura_jogo.tscn -- --simular=4 --semente=7 --relatorios="$rel" $robo > "$out/roteiro.log" 2>&1
-          ls "$out"/*.png > /dev/null 2>&1 && break
-          grep -qiE "xvfb|display" "$out/roteiro.log" || break
-          sleep $((tentativa * 2))
-        done
-        echo "  $lado $r: $(ls "$out"/*.png 2> /dev/null | wc -l) foto(s)"
-      ) &
-      pids+=($!)
+      roteiro_de "$sha" "$r" &
       sleep 1.5
     done
     wait
   )
 }
 
-echo "fotos: fotografando (${#ROTEIROS[@]} roteiro(s) por lado, pelo vez.sh)"
-lado_de "$BASE" antes &
-p_antes=$!
-if [ "$TOPO" = "$BASE" ]; then
-  p_depois=""
-else
-  lado_de "$TOPO" depois &
-  p_depois=$!
-fi
-wait "$p_antes"
-[ -z "$p_depois" ] || wait "$p_depois"
+echo "fotos: fotografando (${#ROTEIROS[@]} roteiro(s) por lado, pelo vez.sh; o que já foi tirado se reaproveita)"
+for sha in "${LADOS[@]}"; do
+  lado_de "$sha" &
+done
+wait
+
+FALHOS=()
+VALEM=()
+for r in "${ROTEIROS[@]}"; do
+  ok=1
+  for sha in "${LADOS[@]}"; do
+    [ -f "$FOTOS/$sha/$r/feito" ] || ok=0
+  done
+  if [ "$ok" -eq 1 ]; then VALEM+=("$r"); else FALHOS+=("$r"); fi
+done
 
 juntar() {
-  local lado="$1" origem="$2" destino="$3" r f
-  mkdir -p "$destino"
-  for r in "${ROTEIROS[@]}"; do
-    for f in "$TRABALHO/$origem/png-$r"/*.png; do
+  local destino_a="$TRABALHO/png-antes" destino_d="$TRABALHO/png-depois" r f n
+  mkdir -p "$destino_a" "$destino_d"
+  for r in "${VALEM[@]}"; do
+    for f in "$FOTOS/$BASE/$r"/*.png "$FOTOS/$TOPO/$r"/*.png; do
       [ -f "$f" ] || continue
-      [ -e "$destino/$(basename "$f")" ] || cp "$f" "$destino/"
+      n="$(basename "$f")"
+      [ -e "$destino_a/$n" ] || [ -e "$destino_d/$n" ] && continue
+      [ -f "$FOTOS/$BASE/$r/$n" ] && cp "$FOTOS/$BASE/$r/$n" "$destino_a/"
+      [ -f "$FOTOS/$TOPO/$r/$n" ] && cp "$FOTOS/$TOPO/$r/$n" "$destino_d/"
     done
   done
 }
-juntar antes antes "$TRABALHO/png-antes"
-if [ "$TOPO" = "$BASE" ]; then
-  juntar depois antes "$TRABALHO/png-depois"
-else
-  juntar depois depois "$TRABALHO/png-depois"
-fi
+juntar
 n_a="$(ls "$TRABALHO/png-antes" 2> /dev/null | wc -l)"
 n_d="$(ls "$TRABALHO/png-depois" 2> /dev/null | wc -l)"
+if [ "${#FALHOS[@]}" -gt 0 ]; then
+  echo "fotos: o(s) roteiro(s) ${FALHOS[*]} falhou(aram) num lado e ficou(aram) fora dos dois; rode de novo o mesmo comando (o que já foi tirado se reaproveita)" >&2
+  echo "o registro: $TRABALHO" >&2
+fi
 if [ "$n_d" -eq 0 ]; then
   echo "fotos: nenhuma foto do depois" >&2
-  grep -hE "SCRIPT ERROR|não chegou|ERROR" "$TRABALHO"/depois/png-*/roteiro.log 2> /dev/null | head -n 8 >&2
-  echo "o registro: $TRABALHO" >&2
   exit 1
 fi
 echo "fotos: $n_a do antes e $n_d do depois"
 bash "$AQUI/pares.sh" "$TRABALHO/png-antes" "$TRABALHO/png-depois" "$ENTRADA" || exit 1
+[ "${#FALHOS[@]}" -eq 0 ] || exit 1
 rm -rf "$TRABALHO"
 du -sh "$ENTRADA" | sed 's/^/peso: /'
