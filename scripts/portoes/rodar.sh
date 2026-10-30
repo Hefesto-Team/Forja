@@ -67,6 +67,7 @@ roda base "mensagens de commit" python3 "$AQUI/mensagens_de_commit.py" --raiz "$
 roda base "ficha pronta" python3 "$AQUI/ficha_pronta.py" --raiz "$RAIZ"
 roda base "teste mudo" python3 "$AQUI/teste_mudo.py" --raiz "$RAIZ"
 roda base "caixa" python3 "$AQUI/caixa.py" --raiz "$RAIZ"
+roda base "devlog" python3 "$AQUI/devlog.py" --raiz "$RAIZ"
 roda texto "código sem comentário" python3 "$AQUI/codigo_sem_comentario.py" --raiz "$RAIZ" --catraca
 roda texto "texto enxuto" python3 "$AQUI/texto_enxuto.py" --raiz "$RAIZ" --catraca
 roda base "regra do udev" python3 "$AQUI/udev.py" --raiz "$RAIZ"
