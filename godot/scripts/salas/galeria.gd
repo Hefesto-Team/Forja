@@ -370,11 +370,11 @@ func _atirar(l: int, p: ForjaPlayer, e: Dictionary) -> void:
 			e.acertos += 1
 			marcar(l, 50)
 			Forja.sentir(l, "acerto")
+			Forja.piscar(l, Color.WHITE, 0.12)
 			Efeitos.faiscas(self, _no_muro(l, Vector2(a.x, a.y)), Tema.TUNGSTENIO, 18, 0.8)
 			Som.tocar("alvo", _no_muro(l, Vector2(a.x, a.y)), -4.0)
 			break
 	p.gesto("holding-right-shoot", 0.2)
-	Forja.piscar(l, Tema.OURO if acertou else Tema.TUNGSTENIO, 0.12)
 	_rastro(l, p, _no_muro(l, m))
 	Som.tocar("bigorna_aguda" if acertou else "tique", _no_muro(l, m), -6.0 if acertou else -12.0)
 	if e.arma != METRALHADORA:

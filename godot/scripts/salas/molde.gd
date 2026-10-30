@@ -239,7 +239,6 @@ func _jogar(l: int, p: ForjaPlayer, e: Dictionary, dt: float) -> void:
 				e.aberto = true
 				Som.tocar("sopro", p.global_position + Vector3(1.5, 1.2, 0), -2.0)
 				Forja.sentir(l, "acerto")
-				Forja.piscar(l, Tema.OURO, 0.2)
 				p.gesto("interact-right", 0.4)
 			elif e.aberto and baixo[0] and baixo[1] and e.abertura <= 0.15:
 				marcar(l, 250)
@@ -257,11 +256,12 @@ func _jogar(l: int, p: ForjaPlayer, e: Dictionary, dt: float) -> void:
 					Som.tocar("carimbo", centro, 0.0)
 					Som.no_controle(l, "carimbo", 0.6)
 					Forja.sentir(l, "perfeito")
-					Forja.piscar(l, Tema.OURO, 0.3)
+					Forja.piscar(l, Color.WHITE, 0.3)
 				else:
 					e.fora += 1
 					Som.tocar("bigorna", centro, -12.0)
 					Forja.sentir(l, "erro")
+					Forja.piscar(l, Forja.cor_do_lugar(l).darkened(0.7), 0.3)
 			if e.carimbos >= CARIMBOS:
 				_novo_passo(l, p, e, PRONTO)
 
@@ -280,7 +280,7 @@ func _novo_passo(l: int, p: ForjaPlayer, e: Dictionary, passo: int) -> void:
 			Som.tocar("sucesso", onde)
 			Som.no_controle(l, "sucesso", 0.7)
 			Forja.sentir(l, "vitoria")
-			Forja.luz(l, Tema.OURO)
+			Forja.piscar(l, Color.WHITE, 0.5)
 			p.gesto("emote-yes", 1.6)
 			var centro: Vector3 = n[l].placa.to_global(_no_molde(0.5, 0.5, 0.2))
 			Efeitos.faiscas(self, centro, Tema.TUNGSTENIO, 48, 1.3)
@@ -306,7 +306,7 @@ func _mostrar(l: int) -> void:
 	nos.metades[0].position.x = -meio
 	nos.metades[1].position.x = meio
 	var quente := _calor(e) if passo == CARIMBAR else (1.0 if passo == PRONTO else 0.25)
-	var brilho := 0.1 + 0.9 * quente * quente if passo >= CARIMBAR else 0.1
+	var brilho := 0.08 + 0.42 * quente * quente if passo == CARIMBAR else (0.3 if passo == PRONTO else 0.08)
 	var metal: StandardMaterial3D = nos.metal
 	var cor_metal := Tema.METAL_FRIO.lerp(Tema.METAL_QUENTE, quente)
 	if passo == CARIMBAR and _no_ponto(e):
