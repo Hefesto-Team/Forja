@@ -286,6 +286,8 @@ func _jogar(l: int, p: ForjaPlayer, dt: float) -> void:
 		_jogar_botao(l, e, r)
 		return
 	Forja.med_pedido(l, -1)
+	if not conectado(l):
+		return
 	Forja.med_pedir(l, ("analogico_r" if r.alvo == 1 else "analogico_l") if r.tipo == "analogico" else ("gatilho_r2" if r.alvo == 1 else "gatilho_l2"))
 	e.t += dt
 	match str(r.tipo):
@@ -338,6 +340,8 @@ func _jogar_botao(l: int, e: Dictionary, r: Dictionary) -> void:
 			break
 		notas_perdidas(l)
 	if alvo_da(l, e.n) < 0.0:
+		if not conectado(l):
+			e.fila.append(r.duplicate())
 		_proxima(l)
 
 
