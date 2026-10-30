@@ -6,22 +6,23 @@ const BOTOES := [Forja.CRUZ, Forja.CIRCULO, Forja.QUADRADO, Forja.TRIANGULO, For
 const FICHA := {
 	"slot": "S01_J01",
 	"titulo": "O Martelo de Hefesto",
-	"verbo": "Bata!",
+	"verbo": "Martele!",
 	"genero": "tct",
 	"icone": "botoes",
 	"entradas": BOTOES,
 	"camera": "fixa",
 	"faixa": "MUS_S01_J01",
-	"duracao": 100.0,
+	"duracao": 90.0,
 	"fim": "tempo",
 	"sensacoes": ["acerto", "erro"],
 	"material": "metal",
-	"microjogo": {"verbo": "Bata!", "segundos": 6.0},
+	"microjogo": {"verbo": "Martele!", "segundos": 6.0},
+	"nota_no_falante": false,
 	"features": ["botoes", "analogicos", "gatilhos_analogicos"],
 	"botoes_medidos": BOTOES,
 	"gesto": "attack-melee-right",
-	"como_jogar": [["cross", "Apertar o botão da runa"], ["stick_l", "Girar até a borda"],
-		["l2", "Segurar o fole no dourado"]],
+	"como_jogar": [["cross", "Bata no tempo da runa"], ["stick_l", "Gire até a borda"],
+		["r2", "Segure o fole no dourado"]],
 }
 
 const GLIFO := {
@@ -29,8 +30,12 @@ const GLIFO := {
 	Forja.L1: "l1", Forja.R1: "r1", Forja.L3: "stick_l", Forja.R3: "stick_r", Forja.CIMA: "dpad_up",
 	Forja.BAIXO: "dpad_down", Forja.ESQUERDA: "dpad_left", Forja.DIREITA: "dpad_right", Forja.CREATE: "share",
 }
-const JANELA_INICIAL := 2.8
-const JANELA_MINIMA := 1.5
+const PASSO := 2.0
+const AVISO_B := 2.0
+const ANEL_ABERTO := 1.7
+const ANEL_FECHADO := 0.74
+const PONTOS := [0, 60, 80, 100]
+const MIRA := [0.0, 0.015, 0.03, -0.01]
 const JANELA_ANALOGICO := 7.0
 const JANELA_GATILHO := 8.0
 const MAX_TENTATIVAS := 3
@@ -38,6 +43,7 @@ const BORDA := 0.85
 
 var j := {}
 var runas := {}
+var contagem := [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]
 
 
 func montar() -> void:
@@ -61,43 +67,48 @@ func montar() -> void:
 		runas[l] = _montar_runa(l)
 		runas[l]["forja"] = forja
 		j[l] = _novo_jogador()
-		Forja.gatilhos_off(l)
 
 
 static func _bigorna(l: int) -> Vector3:
 	return Vector3(RAIAS[l] + 0.45, 0.0, 0.3)
 
 
-func _novo_jogador() -> Dictionary:
-	var ordem := BOTOES.duplicate()
+func _fila_da_volta(volta: int) -> Array:
+	var ordem: Array = BOTOES.duplicate() if volta == 0 else [Forja.CRUZ, Forja.CIRCULO, Forja.QUADRADO, Forja.TRIANGULO, Forja.L1, Forja.R1]
 	for i in range(ordem.size() - 1, 0, -1):
 		var k := rng.randi_range(0, i)
 		var tmp = ordem[i]
 		ordem[i] = ordem[k]
 		ordem[k] = tmp
-	var extras := [
-		{"tipo": "analogico", "alvo": 0}, {"tipo": "gatilho", "alvo": 0},
-		{"tipo": "analogico", "alvo": 1}, {"tipo": "gatilho", "alvo": 1},
-	]
-	if rng.randi_range(0, 1) == 1:
-		extras[0].alvo = 1
-		extras[2].alvo = 0
+	var lado := rng.randi_range(0, 1)
+	var extras: Array = []
+	var posicoes: Array = []
+	if volta == 0:
+		extras = [{"tipo": "analogico", "alvo": lado}, {"tipo": "gatilho", "alvo": lado},
+			{"tipo": "analogico", "alvo": 1 - lado}, {"tipo": "gatilho", "alvo": 1 - lado}]
+		posicoes = [3, 6, 9, 12]
+	else:
+		extras = [{"tipo": "analogico", "alvo": lado}, {"tipo": "gatilho", "alvo": 1}]
+		posicoes = [3, 6]
 	var fila: Array = []
-	var posicoes := [3, 6, 9, 12]
 	var e := 0
 	for b in ordem:
-		while e < 4 and posicoes[e] == fila.size():
+		while e < extras.size() and posicoes[e] == fila.size():
 			fila.append(extras[e].duplicate())
 			e += 1
 		fila.append({"tipo": "botao", "alvo": b})
-	while e < 4:
+	while e < extras.size():
 		fila.append(extras[e].duplicate())
 		e += 1
 	for r in fila:
 		r["tentativas"] = 0
-	return {"fila": fila, "atual": 0, "t": 0.0, "janela": JANELA_INICIAL * ritmo_nivel, "setores": 0, "estagio": 0,
+	return fila
+
+
+func _novo_jogador() -> Dictionary:
+	return {"fila": _fila_da_volta(0), "volta": 0, "atual": 0, "t": 0.0, "n": 0, "b": 0.0, "setores": 0, "estagio": 0,
 		"segurou": 0.0, "combo": 0, "tremor": 0.0, "pop": 0.0,
-		"robo_reacao": -1.0, "robo_passo": 0, "robo_ang": 0.0, "robo_gatilho": 0.0}
+		"robo_reacao": -1.0, "robo_passo": 0, "robo_ang": 0.0, "robo_gatilho": 0.0, "robo_n": -1, "robo_mira": 0.0}
 
 
 func _montar_runa(l: int) -> Dictionary:
@@ -179,7 +190,7 @@ func _mostrar_runa(l: int) -> void:
 	var n: Dictionary = runas[l]
 	var e: Dictionary = j[l]
 	var r = _runa_atual(l)
-	n.raiz.visible = r != null and fase == "jogo"
+	n.raiz.visible = r != null and fase == "jogo" and not acabou[l]
 	if r == null:
 		_forja_na_espera(l, -1.0)
 		return
@@ -194,14 +205,22 @@ func _mostrar_runa(l: int) -> void:
 			nome_glifo = "r2" if r.alvo == 1 else "l2"
 	glifo.texture = Desenho.glifo(nome_glifo)
 	var brilho: float = 1.0 + 0.6 * float(e.pop)
-	glifo.modulate = Tema.ETIQUETA.lerp(Tema.ETIQUETA, e.pop)
 	glifo.scale = Vector3.ONE * brilho
 	glifo.position.x = sin(t * 60.0) * 0.08 * e.tremor
-	var janela: float = e.janela if r.tipo == "botao" else (JANELA_ANALOGICO if r.tipo == "analogico" else JANELA_GATILHO)
-	var resto := clampf(1.0 - e.t / janela, 0.0, 1.0)
+	var resto := 1.0
 	var anel: MeshInstance3D = n.anel
-	anel.scale = Vector3.ONE * lerpf(0.35, 1.0, resto) * (1.0 + 0.1 * amplitude_da_espera() * pulso_da_batida())
-	_forja_na_espera(l, 1.0 - resto)
+	if r.tipo == "botao":
+		var alvo := alvo_da(l, e.n)
+		resto = clampf((alvo - Ritmo.t_musica()) / (AVISO_B * 60.0 / Ritmo.bpm), 0.0, 1.0) if alvo >= 0.0 else 0.0
+		anel.scale = Vector3.ONE * lerpf(ANEL_FECHADO, ANEL_ABERTO, resto) * (1.0 + 0.08 * amplitude_da_espera() * pulso_da_batida())
+		glifo.modulate = Tema.ETIQUETA if resto < 1.0 else Tema.ETIQUETA * Color(1, 1, 1, 0.55)
+		_forja_na_espera(l, 1.0 - resto if resto < 1.0 else 0.0)
+	else:
+		var janela: float = JANELA_ANALOGICO if r.tipo == "analogico" else JANELA_GATILHO
+		resto = clampf(1.0 - e.t / janela, 0.0, 1.0)
+		anel.scale = Vector3.ONE * lerpf(ANEL_FECHADO, 1.0, resto)
+		glifo.modulate = Tema.ETIQUETA
+		_forja_na_espera(l, 1.0 - resto)
 	anel.visible = true
 	for s in 8:
 		var m: MeshInstance3D = n.marcas[s]
@@ -211,16 +230,12 @@ func _mostrar_runa(l: int) -> void:
 	var fole: Node3D = n.fole
 	fole.visible = r.tipo == "gatilho"
 	if r.tipo == "gatilho":
-		var v := Forja.eixo(_lugar_da(l), Forja.R2 if r.alvo == 1 else Forja.L2)
+		var v := Forja.eixo(l, Forja.R2 if r.alvo == 1 else Forja.L2)
 		var nivel: MeshInstance3D = n.nivel
 		nivel.scale = Vector3(1, maxf(0.02, v * 1.4), 1)
 		nivel.position.y = v * 1.4 * 0.5
 		n.faixa.visible = e.estagio == 0
 		n.topo.visible = e.estagio == 1
-
-
-func _lugar_da(l: int) -> int:
-	return l
 
 
 func jogar(dt: float) -> void:
@@ -236,32 +251,36 @@ func jogar(dt: float) -> void:
 	_chaves_na_espera()
 
 
+func iniciar_jogo() -> void:
+	for p in jogadores:
+		_armar(p.lugar, 0.0)
+
+
+func _armar(l: int, desde: float) -> void:
+	var e: Dictionary = j[l]
+	var r = _runa_atual(l)
+	if r == null:
+		return
+	if r.tipo == "botao":
+		e.b = proxima_batida(l, desde, PASSO, 0.5 * l)
+		e.n += 1
+		nova_nota(l, e.n, Ritmo.t_da_batida(e.b))
+	elif r.tipo == "gatilho" and r.alvo == 1:
+		Forja.gatilho(l, 1, Forja.GATILHO_RESISTENCIA, 3, 4)
+
+
 func _jogar(l: int, p: ForjaPlayer, dt: float) -> void:
 	var e: Dictionary = j[l]
 	var r = _runa_atual(l)
-	var pedido: int = r.alvo if r != null and r.tipo == "botao" else -1
-	Forja.med_pedido(l, pedido)
-	if r != null and r.tipo == "analogico":
-		Forja.med_pedir(l, "analogico_r" if r.alvo == 1 else "analogico_l")
-	elif r != null and r.tipo == "gatilho":
-		Forja.med_pedir(l, "gatilho_r2" if r.alvo == 1 else "gatilho_l2")
-	for b in BOTOES:
-		if not Forja.apertou(l, b):
-			continue
-		if pedido >= 0 and b == pedido:
-			_acertou(l, p, 100)
-			return
-		if pedido >= 0 and not errou(l):
-			e.combo = 0
-			e.tremor = 0.6
-			julgar(l, 0)
 	if r == null:
 		return
+	if r.tipo == "botao":
+		_jogar_botao(l, e, r)
+		return
+	Forja.med_pedido(l, -1)
+	Forja.med_pedir(l, ("analogico_r" if r.alvo == 1 else "analogico_l") if r.tipo == "analogico" else ("gatilho_r2" if r.alvo == 1 else "gatilho_l2"))
 	e.t += dt
 	match str(r.tipo):
-		"botao":
-			if e.t > e.janela:
-				_perdeu(l, p)
 		"analogico":
 			var x := Forja.eixo(l, Forja.RX if r.alvo == 1 else Forja.LX)
 			var y := Forja.eixo(l, Forja.RY if r.alvo == 1 else Forja.LY)
@@ -270,9 +289,10 @@ func _jogar(l: int, p: ForjaPlayer, dt: float) -> void:
 				e.setores = int(e.setores) | (1 << _setor(x, y))
 				if e.setores != antes:
 					Som.tocar("tique", runas[l].raiz.global_position, -6.0, 1.0 + 0.06 * _contar(e.setores))
+					Forja.sentir(l, "acerto")
 			if e.setores == 0xFF:
 				Forja.evento("entrada", l + 1, {"o": "analogico", "detalhe": ("direito" if r.alvo == 1 else "esquerdo") + ": as oito direções"})
-				_acertou(l, p, 250)
+				_acerto_especial(l, p, 250)
 			elif e.t > JANELA_ANALOGICO:
 				_perdeu(l, p)
 		"gatilho":
@@ -286,11 +306,31 @@ func _jogar(l: int, p: ForjaPlayer, dt: float) -> void:
 					e.segurou = 0.0
 					Forja.med_faixa(l, r.alvo)
 					Som.tocar("sopro", runas[l].raiz.global_position)
+					if r.alvo == 1:
+						Forja.gatilho(l, 1, Forja.GATILHO_ARMA, 2, 6, 8)
 				else:
 					Forja.evento("entrada", l + 1, {"o": "gatilho", "detalhe": ("R2" if r.alvo == 1 else "L2") + ": meio e fundo"})
-					_acertou(l, p, 250)
+					_acerto_especial(l, p, 250)
 			elif e.t > JANELA_GATILHO:
 				_perdeu(l, p)
+
+
+func _jogar_botao(l: int, e: Dictionary, r: Dictionary) -> void:
+	var alvo := alvo_da(l, e.n)
+	if alvo >= 0.0:
+		var dentro := absf(Ritmo.t_musica() - alvo) <= ALCANCE_DO_TOQUE
+		Forja.med_pedido(l, r.alvo if dentro else -1)
+		for b in BOTOES:
+			if not dentro or not Forja.apertou(l, b) or casar_toque(l) != e.n:
+				continue
+			if b == r.alvo:
+				julgar_nota(l, e.n)
+			else:
+				nota_perdida(l, e.n)
+			break
+		notas_perdidas(l)
+	if alvo_da(l, e.n) < 0.0:
+		_proxima(l)
 
 
 static func _setor(x: float, y: float) -> int:
@@ -308,53 +348,85 @@ static func _contar(m: int) -> int:
 	return n
 
 
-func _acertou(l: int, p: ForjaPlayer, base: int) -> void:
-	var e: Dictionary = j[l]
-	var r = _runa_atual(l)
-	var rapidez := clampf(1.0 - e.t / e.janela, 0.0, 1.0) if r != null and r.tipo == "botao" else 0.5
-	e.combo += 1
-	marcar(l, base + int(100.0 * rapidez) + 10 * (int(e.combo) - 1))
-	e.pop = 1.0
-	var bigorna_topo := _bigorna(l) + Vector3(0, 0.8, 0)
-	Efeitos.faiscas(self, bigorna_topo, Tema.TUNGSTENIO, 26, 1.0)
+func _faiscas(l: int, forca: float, cor: Color) -> void:
+	var topo := _bigorna(l) + Vector3(0, 0.8, 0)
+	Efeitos.faiscas(self, topo, cor, int(26.0 * forca), forca)
 	Efeitos.anel(self, runas[l].raiz.global_position, Forja.cor_do_lugar(l), 0.7, Vector3.BACK, l)
-	Som.tocar("bigorna_aguda" if r != null and r.tipo == "botao" else "bigorna", bigorna_topo, -2.0)
-	Som.tocar("martelo", bigorna_topo, -6.0)
-	julgar(l, (3 if rapidez >= 0.66 else (2 if rapidez >= 0.33 else 1)) if r != null and r.tipo == "botao" else 2)
-	p.gesto("attack-melee-right", 0.45)
-	if r != null and r.tipo == "botao" and e.janela > JANELA_MINIMA * ritmo_nivel:
-		e.janela -= 0.08
-	_proxima(l)
-	if e.atual >= e.fila.size():
-		acabou[l] = true
-		Som.tocar("sucesso", bigorna_topo)
-		Efeitos.faiscas(self, bigorna_topo + Vector3(0, 0.4, 0), Tema.VIOLETA, 48, 1.4)
-		p.gesto("emote-yes", 1.5)
+	Som.tocar("bigorna_aguda" if forca <= 1.0 else "bigorna", topo, -2.0)
+	Som.tocar("martelo", topo, -6.0)
 
 
-func _perdeu(l: int, p: ForjaPlayer) -> void:
+func toque(l: int, julgamento: int) -> void:
 	var e: Dictionary = j[l]
-	var r: Dictionary = _runa_atual(l)
-	if errou(l):
-		_proxima(l)
-		if e.atual >= e.fila.size():
-			acabou[l] = true
-		return
+	e.combo += 1
+	contagem[l][julgamento] += 1
+	marcar(l, int(PONTOS[julgamento]) + mini(10 * (int(e.combo) - 1), 100))
+	e.pop = 1.0
+	_faiscas(l, 1.0 if julgamento < Ritmo.PERFEITO else 1.4, Tema.TUNGSTENIO)
+	julgar(l, julgamento, "", _tempo_forte[l])
+	var p := jogador(l)
+	if p:
+		p.gesto("attack-melee-right", 0.45)
+	if julgamento < Ritmo.PERFEITO:
+		Forja.piscar(l, Forja.cor_do_lugar(l).lightened(0.4), PISCA_PERFEITO_S)
+
+
+func falha(l: int) -> void:
+	var r = _runa_atual(l)
+	if r != null:
+		_queda(l, r)
+
+
+func _queda(l: int, r: Dictionary) -> void:
+	var e: Dictionary = j[l]
 	e.combo = 0
 	e.tremor = 1.0
+	contagem[l][0] += 1
 	julgar(l, 0)
-	p.gesto("emote-no", 0.6)
+	var p := jogador(l)
+	if p:
+		p.gesto("emote-no", 0.6)
+	Efeitos.faiscas(self, _bigorna(l) + Vector3(0, 0.8, 0), Tema.GRAFITE, 10, 0.5)
 	r.tentativas = int(r.tentativas) + 1
 	if r.tentativas < MAX_TENTATIVAS:
 		e.fila.append(r.duplicate())
-	_proxima(l)
-	if e.atual >= e.fila.size():
-		acabou[l] = true
 
 
-func _proxima(l: int) -> void:
+func _acerto_especial(l: int, p: ForjaPlayer, base: int) -> void:
 	var e: Dictionary = j[l]
+	e.combo += 1
+	contagem[l][Ritmo.OTIMO] += 1
+	marcar(l, base + mini(10 * (int(e.combo) - 1), 100))
+	e.pop = 1.0
+	_faiscas(l, 1.6, Tema.TUNGSTENIO)
+	julgar(l, Ritmo.OTIMO)
+	Forja.piscar(l, Color.WHITE, PISCA_PERFEITO_S)
+	p.gesto("attack-melee-right", 0.45)
+	_proxima(l, 1.5)
+
+
+func _perdeu(l: int, _p: ForjaPlayer) -> void:
+	var e: Dictionary = j[l]
+	var r = _runa_atual(l)
+	if r == null:
+		return
+	if r.tipo == "botao":
+		_notas[l].erase(e.n)
+	if not errou(l):
+		_queda(l, r)
+	_proxima(l, 1.5)
+
+
+func _proxima(l: int, folga := 0.8) -> void:
+	var e: Dictionary = j[l]
+	var r = _runa_atual(l)
+	if r != null and r.tipo == "gatilho" and r.alvo == 1:
+		Forja.gatilho(l, 1, Forja.GATILHO_OFF)
+	var desde := maxf(float(e.b), Ritmo.batida() + folga) if r != null and r.tipo == "botao" else Ritmo.batida() + folga
 	e.atual += 1
+	if e.atual >= e.fila.size():
+		e.volta += 1
+		e.fila.append_array(_fila_da_volta(e.volta))
 	e.t = 0.0
 	e.setores = 0
 	e.estagio = 0
@@ -362,13 +434,13 @@ func _proxima(l: int) -> void:
 	e.robo_passo = 0
 	e.robo_reacao = -1.0
 	Forja.med_pedido(l, -1)
+	_armar(l, desde)
 
 
-func status(lugar: int) -> String:
-	if fase == "jogo" and j.has(lugar) and not acabou[lugar]:
-		var e: Dictionary = j[lugar]
-		return "Runa %d de %d · %d" % [mini(int(e.atual) + 1, e.fila.size()), e.fila.size(), pontos[lugar]]
-	return super(lugar)
+func terminar() -> void:
+	for p in jogadores:
+		Forja.gatilho(p.lugar, 1, Forja.GATILHO_OFF)
+	super()
 
 
 func robo(l: int, dt: float) -> void:
@@ -378,37 +450,33 @@ func robo(l: int, dt: float) -> void:
 	var r = _runa_atual(l)
 	if r == null:
 		return
+	if r.tipo == "botao":
+		var alvo := alvo_da(l, e.n)
+		if alvo < 0.0 or e.robo_n == e.n:
+			return
+		if e.robo_passo != e.n:
+			e.robo_passo = e.n
+			e.robo_mira = (float(MIRA[l]) + float(Ritmo.desvio[l])) if Forja.robo_acerta() else 0.25
+		if Ritmo.t_musica() + dt >= alvo + float(e.robo_mira):
+			Forja.robo_apertar(l, r.alvo, 0.05)
+			e.robo_n = e.n
+		return
 	if e.robo_reacao < 0.0:
 		e.robo_reacao = 0.35 + 0.55 * rng.randf()
 		if not Forja.robo_acerta():
 			e.robo_reacao += JANELA_GATILHO + 1.0
 	match str(r.tipo):
-		"botao":
-			if e.robo_passo == 0 and e.t >= e.robo_reacao:
-				if rng.randf() < 0.06:
-					var errado: int = BOTOES[(l + int(e.atual) + 1) % BOTOES.size()]
-					if errado == r.alvo:
-						errado = BOTOES[(l + int(e.atual) + 2) % BOTOES.size()]
-					Forja.robo_apertar(l, errado, 0.08)
-					e.robo_reacao = e.t + 0.35
-					e.robo_passo = 1
-				else:
-					Forja.robo_apertar(l, r.alvo, 0.09)
-					e.robo_passo = 2
-			elif e.robo_passo == 1 and e.t >= e.robo_reacao:
-				Forja.robo_apertar(l, r.alvo, 0.09)
-				e.robo_passo = 2
 		"analogico":
 			if e.t >= e.robo_reacao:
 				e.robo_ang += dt * TAU / 1.4
 				Forja.robo_eixo(l, Forja.RX if r.alvo == 1 else Forja.LX, cos(e.robo_ang), 0.06)
 				Forja.robo_eixo(l, Forja.RY if r.alvo == 1 else Forja.LY, sin(e.robo_ang), 0.06)
 		"gatilho":
-			var alvo := 0.0 if e.t < e.robo_reacao else (0.48 if e.estagio == 0 else 1.0)
+			var alvo_g := 0.0 if e.t < e.robo_reacao else (0.48 if e.estagio == 0 else 1.0)
 			var lido := Forja.eixo(l, Forja.R2 if r.alvo == 1 else Forja.L2)
 			if e.estagio == 0 and e.t > e.robo_reacao + 1.2 and lido < 0.2 and fmod(e.t, 1.6) < 0.5:
-				alvo = 1.0
-			e.robo_gatilho = move_toward(e.robo_gatilho, alvo, dt * 4.0)
+				alvo_g = 1.0
+			e.robo_gatilho = move_toward(e.robo_gatilho, alvo_g, dt * 4.0)
 			Forja.robo_eixo(l, Forja.R2 if r.alvo == 1 else Forja.L2, e.robo_gatilho, 0.06)
 
 
