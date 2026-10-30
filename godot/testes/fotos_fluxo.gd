@@ -12,7 +12,7 @@ func _roteiro_do_fluxo() -> Array:
 			return jogo.sala is SalaJogo and jogo.sala.fase == f and jogo.sala.t_fase >= t
 	var no_salao := func() -> bool:
 		return jogo.estado == "salao" and not jogo._trocando
-	var quem := int(OS.get_environment("JOGADORES")) if OS.get_environment("JOGADORES") != "" else 4
+	var quem := clampi(int(OS.get_environment("JOGADORES")), 1, Forja.simular) if OS.get_environment("JOGADORES") != "" else Forja.simular
 	var id := OS.get_environment("SALA") if OS.get_environment("SALA") != "" else "centelha"
 	var r: Array = [
 		["espera", 70], ["aperta", 0, Forja.CRUZ], ["espera", 60],
@@ -34,7 +34,7 @@ func _roteiro_do_fluxo() -> Array:
 		["posiciona", 2, Vector3(-9.0, 0.05, 3.0), PI], ["posiciona", 3, Vector3(8.0, 0.05, 1.0), PI], ["espera", 60],
 		["foto", "salao_largo"],
 		["sala_cortina", id], ["ate", sala_em.call("aviso", 0.3)], ["foto", id + "_entrada_0"],
-		["ate", sala_em.call("aviso", 1.8)], ["foto", id + "_entrada"],
+		["ate", sala_em.call("aviso", 1.2)], ["foto", id + "_entrada"],
 		["ate", sala_em.call("jogo", 0.8)], ["foto", id + "_jogo_0"],
 		["ate", sala_em.call("jogo", 4.0)], ["foto", id + "_jogo"],
 		["aperta", 0, Forja.OPTIONS], ["espera", 20], ["foto", id + "_pausa"], ["aperta", 0, Forja.OPTIONS], ["espera", 10],
