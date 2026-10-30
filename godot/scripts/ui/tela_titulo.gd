@@ -27,10 +27,10 @@ func _descida() -> float:
 
 
 func _brasa(centro: Vector2) -> void:
-	for i in 9:
-		var k := float(i) / 8.0
+	for i in 24:
+		var k := float(i) / 23.0
 		draw_set_transform(centro, 0.0, Vector2(1.0, 0.34))
-		draw_circle(Vector2.ZERO, lerpf(760.0, 220.0, k), Color(Tema.OXIDO_BRILHO, (0.05 + 0.04 * pulso) * (0.4 + k)))
+		draw_circle(Vector2.ZERO, lerpf(760.0, 220.0, k), Color(Tema.OXIDO_BRILHO, (0.022 + 0.016 * pulso) * (0.4 + k)))
 	draw_set_transform_matrix(Transform2D.IDENTITY)
 
 
