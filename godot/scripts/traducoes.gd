@@ -412,6 +412,7 @@ const EN := {
 const EN_PADROES := [
 	["^(.+) na forja$", "$1 in the forge"],
 	["^P(\\d), fale alto · os outros, quietos$", "P$1, speak up · the others stay quiet"],
+	["^P(\\d), fale alto$", "P$1, speak up"],
 	["^Recorde da noite: P(\\d)$", "Record of the night: P$1"],
 	["^S(\\d) · 1 FAIXA$", "S$1 · 1 TRACK"],
 	["^S(\\d) · (\\d+) FAIXAS$", "S$1 · $2 TRACKS"],

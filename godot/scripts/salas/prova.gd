@@ -52,6 +52,7 @@ var placar := [0, 0]
 var fin := {}
 var _faixa: Control = null
 var _contagem_dita := 0
+var _some_no_fim: Array = []
 
 
 func _init() -> void:
@@ -83,13 +84,18 @@ func alvos_da_camera() -> Array:
 
 func montar() -> void:
 	pilares = PILARES_CATAVENTO if variante == 1 else PILARES
+	var antes := get_child_count()
 	Kit.arena(self, 6, 4)
+	for i in range(antes, get_child_count()):
+		var n := get_child(i)
+		if n is Node3D and (n as Node3D).position.z > 9.0:
+			_some_no_fim.append(n)
 	atmosfera(Tema.AR["prova"], Tema.TUNGSTENIO, true, 40, 24.0, -9.8)
 	Efeitos.poeira(self, Vector3(0, 1.8, 0), Vector3(24, 3.5, 9), Tema.VIOLETA, 30)
 	luzes([Vector3(-10, 3.0, -6), Vector3(10, 3.0, -6), Vector3(-10, 3.0, 6), Vector3(10, 3.0, 6)])
 	_montar_chao()
 	for c in pilares:
-		Kit.peca(self, "column", c, 0.0, 2.2)
+		_some_no_fim.append(Kit.peca(self, "column", c, 0.0, 2.2))
 		Kit.cilindro(self, CASCALHO, 0.03, c + Vector3(0, 0.03, 0), Kit.material(COR_CHAO[1], 0.0, 0.95))
 	if not Forja.som_pronto():
 		Forja.som_preparar(F.PAPEL_ALTO_FALANTE)
@@ -681,6 +687,11 @@ func _process(dt: float) -> void:
 	_contagem_na_batida()
 	if _faixa:
 		_faixa.queue_redraw()
+	if fase == "fim" and not _some_no_fim.is_empty():
+		for n in _some_no_fim:
+			if is_instance_valid(n):
+				n.visible = false
+		_some_no_fim.clear()
 
 
 func _mostrar(e: Dictionary, dt: float) -> void:
@@ -691,7 +702,8 @@ func _mostrar(e: Dictionary, dt: float) -> void:
 	var pos: Vector3 = e.pos
 	no.position = Vector3(pos.x, 0.05, pos.z)
 	var mira := float(e.mira)
-	no.rotation.y = atan2(cos(mira), sin(mira))
+	if fase != "fim":
+		no.rotation.y = atan2(cos(mira), sin(mira))
 	var disco: MeshInstance3D = e.disco
 	disco.position = Vector3(pos.x, 0.06, pos.z)
 	var md: StandardMaterial3D = e.mat_disco

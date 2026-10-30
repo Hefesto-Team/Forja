@@ -499,7 +499,7 @@ func _desenhar_faixa() -> void:
 		return
 	var k := _faixa.size.x / 1920.0
 	_faixa.draw_set_transform(Vector2.ZERO, 0.0, Vector2(k, k))
-	var c := Vector2(960.0, 488.0)
+	var c := Vector2(960.0, 470.0)
 	var verbo := ""
 	var apoio := ""
 	var cor := Tema.ETIQUETA
@@ -512,7 +512,7 @@ func _desenhar_faixa() -> void:
 		CHAMADO:
 			if vez >= 0:
 				verbo = "CHAME O GUARDIÃO"
-				apoio = "P%d, fale alto · os outros, quietos" % (vez + 1)
+				apoio = ("P%d, fale alto · os outros, quietos" if jogadores.size() > 1 else "P%d, fale alto") % (vez + 1)
 				cor = Forja.cor_do_lugar(vez).lightened(0.3)
 				escala = 1.0 + 0.12 * clampf(float(j[vez].chama), 0.0, 1.0)
 		MUDO:
@@ -530,7 +530,7 @@ func _desenhar_faixa() -> void:
 	if verbo != "":
 		Desenho.carimbo(_faixa, c, verbo, cor, Tema.T_DISPLAY, graus, escala, 1.0, false)
 	if apoio != "":
-		Desenho.carimbo(_faixa, c + Vector2(0, 92), apoio, Tema.ETIQUETA, Tema.T_AVISO, 0.0, 1.0, 1.0, false)
+		Desenho.carimbo(_faixa, c + Vector2(0, 80), apoio, Tema.ETIQUETA, Tema.T_AVISO, 0.0, 1.0, 1.0, false)
 	_faixa.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
 
