@@ -36,8 +36,9 @@ func _brasa(centro: Vector2) -> void:
 
 func _draw() -> void:
 	var osd := Color(Tema.ETIQUETA, 0.9)
-	draw_rect(Rect2(Vector2.ZERO, size), Tema.FITA.darkened(0.55))
-	draw_rect(Rect2(0, 364, size.x, 8), Color(Tema.VIOLETA, 0.85))
+	var u := 0.0 if play_desde < 0.0 else clampf((batidas - play_desde) / 4.0, 0.0, 1.0)
+	draw_rect(Rect2(Vector2.ZERO, size), Color(Tema.FITA.darkened(0.55), 1.0 - u))
+	draw_rect(Rect2(0, 364, size.x, 8), Color(Tema.VIOLETA, 0.85 * (1.0 - u)))
 	_brasa(Vector2(960, 930) + Vector2(0, _descida()))
 	draw_colored_polygon(PackedVector2Array([Vector2(100, 70), Vector2(100, 116), Vector2(138, 93)]), osd)
 	_texto(Vector2(156, 62), "PLAY", Tema.vt(), 60, osd)
