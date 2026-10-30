@@ -137,6 +137,7 @@ static func material() -> StandardMaterial3D:
 	var m := StandardMaterial3D.new()
 	m.albedo_texture = load("res://assets/kenney/survival-kit/Textures/colormap.png")
 	m.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
+	m.albedo_color = Color(0.62, 0.56, 0.52)
 	m.metallic = 0.2
 	m.roughness = 0.55
 	return m

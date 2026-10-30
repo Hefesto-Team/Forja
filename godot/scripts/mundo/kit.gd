@@ -196,5 +196,6 @@ static func bigorna(pai: Node, pos: Vector3, escala := 0.55) -> Node3D:
 	var corpo := MeshInstance3D.new()
 	corpo.mesh = MalhaBigorna.malha()
 	corpo.scale = Vector3.ONE * 4.2
+	corpo.position.x = 0.38
 	b.add_child(corpo)
 	return b
