@@ -463,7 +463,7 @@ func _entrar_na_sala(id: String, com_cortina := true, pronta: Sala = null) -> vo
 		hud.combo_max = [0, 0, 0, 0]
 		var n := Musica.SALA_DA_SECAO.find(Catalogo.apelido(str(sala.id)))
 		var lado_da_fita := partida.lado() if partida else "A"
-		hud.trocar_etiqueta(str(sala.nome), "LADO %s · FAIXA %02d" % [lado_da_fita, partida.passo + 1 if partida else maxi(n, 1)],
+		hud.trocar_etiqueta(str(Catalogo.secao(str(sala.id)).get("nome", sala.nome)), "LADO %s · FAIXA %02d" % [lado_da_fita, partida.passo + 1 if partida else maxi(n, 1)],
 			Tema.tinta_da_secao(maxi(n, 0)), HudJogo.inclinacao_da_faixa(partida.semente if partida else 0, n), lado_da_fita == "B")
 		sala.julgou.connect(visor.julgamento)
 		sala.carimbou.connect(func(l: int, id_do_carimbo: String) -> void: visor.bater(l, id_do_carimbo))
@@ -1570,7 +1570,9 @@ func _pose_do_fim(sj: SalaJogo, plano: String) -> Array:
 		k = TelaIntro.entra_sai(clampf(sj.t_fase / (SalaJogo.BATIDAS_DO_RESULTADO * sj.batida_do_fim()), 0.0, 1.0))
 	var dir := _horizontal_para_a_camera(sj, alvo).rotated(Vector3.UP, deg_to_rad(lerpf(-7.5, 7.5, k)))
 	var baixo := deg_to_rad(8.0)
-	return [alvo + dir * d * cos(baixo) - Vector3(0, d * sin(baixo), 0), alvo]
+	var pos := alvo + dir * d * cos(baixo) - Vector3(0, d * sin(baixo), 0)
+	pos.y = maxf(pos.y, alvo.y - 0.75)
+	return [pos, alvo]
 
 
 func _horizontal_para_a_camera(sj: SalaJogo, alvo: Vector3) -> Vector3:
