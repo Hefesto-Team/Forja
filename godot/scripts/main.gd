@@ -437,7 +437,7 @@ func _entrar_na_sala(id: String, com_cortina := true, pronta: Sala = null) -> vo
 		hud.combo_max = [0, 0, 0, 0]
 		var n := Musica.SALA_DA_SECAO.find(Catalogo.apelido(str(sala.id)))
 		var lado_da_fita := partida.lado() if partida else "A"
-		hud.trocar_etiqueta(str(sala.nome), "LADO %s · FAIXA %02d" % [lado_da_fita, partida.passo + 1 if partida else maxi(n, 1)],
+		hud.trocar_etiqueta(str(Catalogo.secao(str(sala.id)).get("nome", sala.nome)), "LADO %s · FAIXA %02d" % [lado_da_fita, partida.passo + 1 if partida else maxi(n, 1)],
 			Tema.tinta_da_secao(maxi(n, 0)), HudJogo.inclinacao_da_faixa(partida.semente if partida else 0, n), lado_da_fita == "B")
 		sala.julgou.connect(visor.julgamento)
 		sala.carimbou.connect(func(l: int, id_do_carimbo: String) -> void: visor.bater(l, id_do_carimbo))

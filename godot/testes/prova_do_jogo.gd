@@ -3335,7 +3335,7 @@ func _confere_o_hud(onde: String) -> void:
 func _prova_do_julgamento(centelha) -> void:
 	_confere_o_hud("n'A Centelha")
 	_esperar(jogo.hud.retangulos().size() >= 6, "Centelha: os quatro cartões, a etiqueta e o deck (%d caixas)" % jogo.hud.retangulos().size())
-	_esperar(jogo.hud.etiqueta.get("titulo", "") == centelha.nome and str(jogo.hud.etiqueta.get("impresso", "")).begins_with("LADO "),
+	_esperar(jogo.hud.etiqueta.get("titulo", "") == Catalogo.secao(str(centelha.id)).nome and str(jogo.hud.etiqueta.get("impresso", "")).begins_with("LADO "),
 		"Centelha: a etiqueta da faixa diz a sala e o lado (%s)" % [jogo.hud.etiqueta])
 	_esperar(Som.arquivo("jul_ressonancia_p4") != null and Som.arquivo("car_em_chamas") != null, "o jul_* e o car_* estão em assets/sons")
 	centelha.julgar(3, 3)
