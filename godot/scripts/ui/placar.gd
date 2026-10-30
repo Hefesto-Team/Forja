@@ -133,9 +133,9 @@ func _draw() -> void:
 		_manchete(int(lista[0].lugar))
 	var y0 := r.position.y + 206
 	var c_total := r.end.x - 48 - 150
-	var c_sala := c_total - (200 if no_podio else 300)
+	var c_sala := c_total - (130 if no_podio else 300)
 	if no_podio:
-		Desenho.texto(self, Vector2(c_sala, y0), "Salas vencidas", Tema.archivo(600), Tema.T_SELO, Tema.MUDO)
+		Desenho.texto(self, Vector2(c_sala, y0), "Salas", Tema.archivo(600), Tema.T_SELO, Tema.MUDO)
 	else:
 		Desenho.texto(self, Vector2(c_sala, y0), "Nesta sala", Tema.archivo(600), Tema.T_SELO, Tema.MUDO)
 	Desenho.texto(self, Vector2(c_total, y0), "Da noite", Tema.archivo(600), Tema.T_SELO, Tema.MUDO)
@@ -229,7 +229,7 @@ func _retangulo() -> Rect2:
 	var r := Rect2(Vector2((size.x - larg) * 0.5, (size.y - alt) * 0.5), Vector2(larg, alt))
 	if no_podio:
 		r.position = Vector2(Tema.MARGEM_X, (size.y - alt) * 0.5)
-		r.size.x = 860.0
+		r.size.x = 700.0
 	else:
 		r.position.y += 60.0 * (1.0 - _suave(_t / 0.35))
 	return r
