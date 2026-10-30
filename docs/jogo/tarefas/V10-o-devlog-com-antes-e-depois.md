@@ -51,9 +51,11 @@ projeto, para os três devs, e se abre com um comando só.
    quando existe entrada com `topo` igual ao `HEAD` (ou ancestral dele só com commits não visuais depois) e com pelo
    menos um par ou uma foto de depois. Senão, sai 2 e diz, numa linha cada, os dois comandos que faltam. Arquivo
    visual: `godot/**` menos `godot/testes/**`, `*.import` e `*.uid`.
-6. **O hook do agente**: `.claude/settings.json` com `Stop` e `SubagentStop` chamando o cobrador. Lê o JSON da
-   entrada padrão; com `stop_hook_active: true` sai 0 (sem laço). Fora de um repositório git, ou no ramo `main`,
-   sai 0. O `.claude/` está no ignore global de uma das máquinas: o arquivo entra com `git add -f`.
+6. **O gancho do agente**: o modelo `scripts/devlog/gancho.json` (`Stop` e `SubagentStop` chamando o cobrador) e o
+   `scripts/devlog/ligar_gancho.py`, que o funde na configuração do agente da árvore. O cobrador lê o JSON da entrada
+   padrão; com `stop_hook_active: true` sai 0 (sem laço). Fora de um repositório git, ou no ramo `main`, sai 0. O
+   repositório não versiona a pasta de configuração do agente (o portão sem rastro reprova o arquivo e o nome):
+   versiona-se o modelo, e cada árvore liga o seu.
 7. **O portão** `scripts/portoes/devlog.py`, no grupo `base` do `rodar.sh`, modo reprova: toda entrada tem o
    cabeçalho inteiro e o resumo de até 8 linhas; toda foto é JPEG de até 1280 px; a entrada pesa até 6 MB; todo par
    tem o mesmo nome dos dois lados.
