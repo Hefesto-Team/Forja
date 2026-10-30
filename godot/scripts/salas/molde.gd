@@ -306,7 +306,7 @@ func _mostrar(l: int) -> void:
 	nos.metades[0].position.x = -meio
 	nos.metades[1].position.x = meio
 	var quente := _calor(e) if passo == CARIMBAR else (1.0 if passo == PRONTO else 0.25)
-	var brilho := 0.1 + 2.2 * quente * quente if passo >= CARIMBAR else 0.1
+	var brilho := 0.1 + 0.9 * quente * quente if passo >= CARIMBAR else 0.1
 	var metal: StandardMaterial3D = nos.metal
 	var cor_metal := Tema.METAL_FRIO.lerp(Tema.METAL_QUENTE, quente)
 	if passo == CARIMBAR and _no_ponto(e):
@@ -377,7 +377,7 @@ func _mostrar(l: int) -> void:
 			lp.set_meta("aceso", true)
 			lp.material_override = Kit.material(Tema.TUNGSTENIO, 2.4, 0.8, "forja")
 	var ouro: OmniLight3D = nos.ouro
-	ouro.light_energy = 1.6 if passo == PRONTO else 0.0
+	ouro.light_energy = 0.7 if passo == PRONTO else 0.0
 
 
 var _mat_ouro := {}
