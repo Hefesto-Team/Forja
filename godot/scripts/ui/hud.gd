@@ -102,13 +102,13 @@ func _salao(w: float, h: float) -> void:
 	_dica_presa(w, h)
 
 
-func _dica_presa(w: float, h: float) -> void:
+func _balao_da_dica(w: float, h: float) -> Array:
 	if dica_presa.is_empty() or camera == null:
-		return
+		return []
 	var l := int(dica_presa.get("lugar", -1))
 	var linhas: Array = dica_presa.get("linhas", [])
 	if l < 0 or l > 3 or linhas.is_empty():
-		return
+		return []
 	var cabeca: Vector3 = dica_presa.get("cabeca", Vector3.ZERO)
 	var c := camera.unproject_position(cabeca)
 	var mais := 0.0
@@ -122,7 +122,17 @@ func _dica_presa(w: float, h: float) -> void:
 		x = c.x - 60.0 - larg
 		lado_direito = false
 	var y := clampf(c.y - 60.0, Tema.MARGEM_Y, h - Tema.MARGEM_Y - alt)
-	var r := Rect2(Vector2(x, y), Vector2(larg, alt))
+	return [Rect2(Vector2(x, y), Vector2(larg, alt)), lado_direito]
+
+
+func _dica_presa(w: float, h: float) -> void:
+	var balao := _balao_da_dica(w, h)
+	if balao.is_empty():
+		return
+	var l := int(dica_presa.get("lugar", -1))
+	var linhas: Array = dica_presa.get("linhas", [])
+	var r: Rect2 = balao[0]
+	var lado_direito: bool = balao[1]
 	var fechado: bool = dica_presa.get("fechado", false)
 	var tarja: Color = Tema.ETIQUETA_SOMBRA if fechado else Tema.JOGADOR[l]
 	draw_rect(Rect2(r.position + Vector2(4, 4), r.size), Tema.SOMBRA)
@@ -215,13 +225,32 @@ func _caixas() -> Dictionary:
 		d["deck"] = DECK
 	var y := TOPO_DOS_AVISOS
 	var f := Tema.archivo(500)
+	var pilha: Array = []
+	var total := 0.0
 	for i in _avisos.size():
 		var s := Desenho.caber(_avisos[i][0], f, Tema.T_AVISO, LARG_AVISO, 2)
 		var tw := minf(Desenho.largura(s, f, Tema.T_AVISO), LARG_AVISO)
 		var th := Desenho.altura_paragrafo(s, f, Tema.T_AVISO, LARG_AVISO)
 		var r := Rect2(Vector2((w - tw) * 0.5 - 32, y), Vector2(tw + 64, th + 28))
-		d["aviso%d" % i] = r
+		pilha.append(r)
 		y += r.size.y + 12.0
+		total = y - TOPO_DOS_AVISOS
+	var balao := _balao_da_dica(w, size.y)
+	if not balao.is_empty() and not pilha.is_empty():
+		var rb: Rect2 = balao[0]
+		var envolvente: Rect2 = pilha[0]
+		for r in pilha:
+			envolvente = envolvente.merge(r)
+		if envolvente.grow(8.0).intersects(rb):
+			var desce := rb.end.y + 12.0 - TOPO_DOS_AVISOS
+			if rb.end.y + 12.0 + total > size.y - Tema.MARGEM_Y - 160.0:
+				desce = rb.position.y - 12.0 - total - TOPO_DOS_AVISOS
+			for k in pilha.size():
+				var rr: Rect2 = pilha[k]
+				rr.position.y += desce
+				pilha[k] = rr
+	for i in pilha.size():
+		d["aviso%d" % i] = pilha[i]
 	return d
 
 
