@@ -180,7 +180,7 @@ func iniciar_jogo() -> void:
 	var por_lado := POR_LADO
 	ondas = ONDAS
 	if not Forja.bancada:
-		por_lado = mini(8, ceili(float(GOLPES_NO_PALCO) / maxf(1.0, float(lugares.size()))))
+		por_lado = mini(POR_LADO, ceili(float(GOLPES_NO_PALCO) / maxf(2.0, 2.0 * lugares.size())))
 		ondas = 1
 	plano = Forja.cega_plano_tiros(lugares, por_lado, rng.randi())
 	for k in ondas:
