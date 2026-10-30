@@ -34,16 +34,19 @@ var sino_tv: Node3D
 var brilho_tv: OmniLight3D
 var _mat_tv: StandardMaterial3D
 var _notas_no_ar: Array = []
+var _aviso_tv: Label3D
+var _aviso_t := 99.0
 
 
 func _init() -> void:
 	id = "canto"
 	nome = "O Canto"
-	acao = "Ouça o canto e repita o ritmo."
+	acao = "Ouça de qual controle sai o canto; o dono repete."
 	icone = "alto-falante"
 	objetivo = "A bigorna canta um ritmo: às vezes no alto-falante de UM controle, às vezes na TV. Todo mundo ouve — a pergunta é outra: o canto saiu da SUA mão? ✕ foi no meu, ○ não foi. Depois, o dono do canto repete o ritmo com ✕. Confira o seu alto-falante aqui embaixo: △ toca um sino nele, ◀ ▶ troca."
 	features = ["alto_falante"]
 	cega = true
+	com_treino = Forja.bancada
 	papel_som = F.PAPEL_ALTO_FALANTE
 	botoes_pedidos = F.mascara([F.CRUZ, F.CIRCULO])
 	duracao = 0.0
@@ -68,6 +71,17 @@ func montar() -> void:
 		add_child(tocha)
 		na_chave(tocha)
 	_montar_torre()
+	_aviso_tv = Label3D.new()
+	_aviso_tv.font = Tema.archivo(900)
+	_aviso_tv.font_size = 190
+	_aviso_tv.pixel_size = 0.0062
+	_aviso_tv.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	_aviso_tv.outline_size = 26
+	_aviso_tv.outline_modulate = Color(Tema.FITA, 0.9)
+	_aviso_tv.no_depth_test = true
+	_aviso_tv.position = Vector3(0.0, 1.9, -1.0)
+	_aviso_tv.visible = false
+	add_child(_aviso_tv)
 	for p in jogadores:
 		var l: int = p.lugar
 		j[l] = _novo_jogador()
@@ -220,7 +234,7 @@ func iniciar_jogo() -> void:
 	for p in jogadores:
 		if jogando[p.lugar]:
 			n_jog += 1
-	var cada := 3 if n_jog <= 1 else 2
+	var cada := 3 if n_jog <= 1 else (2 if n_jog == 2 or Forja.bancada else 1)
 	for p in jogadores:
 		if not jogando[p.lugar]:
 			continue
@@ -230,7 +244,7 @@ func iniciar_jogo() -> void:
 		fontes.append(p.lugar)
 		vezes.append(cada)
 	fontes.append(TV)
-	vezes.append(3 if n_jog <= 1 else 2)
+	vezes.append(3 if n_jog <= 1 else (2 if n_jog == 2 or Forja.bancada else 1))
 	plano = Forja.cega_plano_fontes(fontes, vezes, rng.randi())
 	rodada = 0
 	estado = PREPARO
@@ -268,6 +282,8 @@ func _tocar_nota(k: int) -> void:
 		Som.tocar(qual, SINO_TV, -2.0)
 	else:
 		Forja.som_falante(fonte, qual, 0.9)
+		if not Forja.bancada:
+			Forja.sentir(fonte, "toque")
 	var nota := Label3D.new()
 	nota.text = "♪" if k % 2 == 0 else "♫"
 	nota.font = Tema.archivo(700)
@@ -319,12 +335,23 @@ func _fechar_pergunta() -> void:
 func _revelar() -> void:
 	estado = REVELA
 	t_estado = 0.0
+	_anunciar()
 	if fonte == TV:
 		Som.tocar("bigorna_aguda", SINO_TV, -8.0)
 	else:
+		Forja.sentir(fonte, "acerto")
+		Forja.piscar(fonte, Forja.cor_do_lugar(fonte).lightened(0.4), 0.4)
 		var dono := jogador(fonte)
 		if dono:
 			Efeitos.faiscas(self, dono.global_position + Vector3(0, 2.2, 0), Tema.TUNGSTENIO, 20, 0.8)
+
+
+func _anunciar() -> void:
+	var quem := "TV" if fonte == TV else "P%d" % (fonte + 1)
+	_aviso_tv.text = "FOI DA TV!" if fonte == TV else "FOI DO %s!" % quem
+	_aviso_tv.modulate = Tema.TUNGSTENIO if fonte == TV else Forja.cor_do_lugar(fonte).lightened(0.35)
+	_aviso_tv.visible = true
+	_aviso_t = 0.0
 
 
 func _fechar_repeticao() -> void:
@@ -339,7 +366,9 @@ func _fechar_repeticao() -> void:
 	e.acertos_ritmo = int(e.acertos_ritmo) + bons
 	marcar(fonte, 100 * bons)
 	Forja.evento("jogo", fonte + 1, {"sala": id, "o": "ritmo", "acertos": bons})
+	Forja.sentir(fonte, "perfeito" if bons == NOTAS - 1 else "erro")
 	if bons == NOTAS - 1:
+		Forja.piscar(fonte, Color.WHITE, 0.5)
 		Som.tocar("sucesso", null, -6.0)
 		var dono := jogador(fonte)
 		if dono:
@@ -416,6 +445,8 @@ func jogar(dt: float) -> void:
 			var toques: Array = e.toques
 			if toques.size() < NOTAS and Forja.apertou(fonte, F.CRUZ):
 				toques.append(t_estado)
+				Forja.sentir(fonte, "toque")
+				Forja.piscar(fonte, Color.WHITE, 0.12)
 				Forja.som_falante(fonte, "nota_alta" if (toques.size() - 1) % 2 == 1 else "nota", 0.6)
 			if toques.size() >= NOTAS or t_estado >= REPETE_MAX or not _conectado(fonte):
 				_fechar_repeticao()
@@ -446,6 +477,13 @@ func _process(dt: float) -> void:
 		if idade > 1.2:
 			nota.queue_free()
 			_notas_no_ar.remove_at(k)
+	_aviso_t += dt
+	var mostra := fase == "jogo" and (estado == REVELA or estado == REPETE) and _aviso_t < 2.6
+	_aviso_tv.visible = mostra
+	if mostra:
+		var k := clampf(_aviso_t * 7.0, 0.0, 1.0)
+		_aviso_tv.scale = Vector3.ONE * (0.6 + 0.4 * k + 0.06 * sin(_aviso_t * 9.0))
+		_aviso_tv.modulate.a = clampf(2.6 - _aviso_t, 0.0, 1.0)
 	for p in jogadores:
 		_mostrar(p.lugar, dt)
 
@@ -462,7 +500,7 @@ func _mostrar(l: int, dt: float) -> void:
 	var ms: StandardMaterial3D = nos.mat_sino
 	Tema.emissivo(ms, lerpf(Tema.brilho_de(ms), 1.4 if dono else 0.0, minf(1.0, dt * 6.0)), "forja")
 	var luz: OmniLight3D = nos.luz
-	luz.light_energy = lerpf(luz.light_energy, 2.2 if dono else 0.0, minf(1.0, dt * 6.0))
+	luz.light_energy = lerpf(luz.light_energy, 2.2 if dono else 0.6, minf(1.0, dt * 6.0))
 	var mb: StandardMaterial3D = nos.mat_borda
 	Tema.emissivo(mb, lerpf(Tema.brilho_de(mb), 1.6 if dono else 0.15, minf(1.0, dt * 6.0)), l)
 	var part: Node3D = nos.partitura
@@ -500,7 +538,9 @@ func dica(lugar: int) -> Dictionary:
 	if estado == REPETE and fonte == lugar:
 		return {"partes": ["@cross", "Repita o ritmo"], "pos": pos}
 	if estado == CANTO:
-		return {"partes": ["Ouça o canto"], "pos": pos}
+		return {"partes": ["Ouça: de qual controle?"], "pos": pos}
+	if estado == REVELA and fonte == lugar:
+		return {"partes": ["Foi o seu!"], "pos": pos}
 	return {}
 
 
