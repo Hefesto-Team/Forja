@@ -20,7 +20,7 @@ func _process(dt: float) -> void:
 
 
 func _draw() -> void:
-	draw_rect(Rect2(Vector2.ZERO, size), Color(Tema.FITA, 0.97))
+	draw_rect(Rect2(Vector2.ZERO, size), Tema.FITA.darkened(0.55))
 	var a := clampf(_t / 0.8, 0.0, 1.0)
 	var osd := Color(Tema.ETIQUETA, 0.9 * a)
 	draw_rect(Rect2(100, 70, 38, 38), osd)
