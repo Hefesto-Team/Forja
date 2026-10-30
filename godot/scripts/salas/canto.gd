@@ -42,8 +42,12 @@ func _init() -> void:
 	id = "canto"
 	nome = "O Canto"
 	acao = "Ouça de qual controle sai o canto; o dono repete."
+	if not Forja.bancada:
+		acao = "Ouça, sinta e olhe de quem é o canto; o dono repete, os outros apostam."
 	icone = "alto-falante"
 	objetivo = "A bigorna canta um ritmo: às vezes no alto-falante de UM controle, às vezes na TV. Todo mundo ouve — a pergunta é outra: o canto saiu da SUA mão? ✕ foi no meu, ○ não foi. Depois, o dono do canto repete o ritmo com ✕. Confira o seu alto-falante aqui embaixo: △ toca um sino nele, ◀ ▶ troca."
+	if not Forja.bancada:
+		objetivo = "A bigorna canta um ritmo: às vezes no alto-falante de UM controle, às vezes na TV. Em sala barulhenta, o controle também vibra e pisca no ritmo, e a nota sobe na tela da raia. O dono repete o ritmo com ✕. Quem não é o dono aposta antes do segundo toque: ✕ vai acertar, ○ vai errar. Se o canto foi da TV, os quatro repetem. Confira o seu alto-falante aqui embaixo: △ toca um sino nele, ◀ ▶ troca."
 	features = ["alto_falante"]
 	cega = true
 	com_treino = Forja.bancada
@@ -92,7 +96,7 @@ func montar() -> void:
 func _novo_jogador() -> Dictionary:
 	return {"meus": Cega.nova(), "fantasmas": 0, "chances": 0, "resposta": -1, "toques": [], "acertos_ritmo": 0,
 		"certos": 0, "robo_nivel": 0.0, "robo_vale": 1.0, "robo_desde": 1.0, "robo_ouviu": false, "robo_onsets": [],
-		"robo_espera": -1.0, "robo_toque": 0}
+		"robo_espera": -1.0, "robo_toque": 0, "pulso": 0.0, "aposta": -1, "apostas_certas": 0, "robo_aposta": -1.0}
 
 
 static func sino(pai: Node3D, pos: Vector3, escala: float, cor: Color) -> Dictionary:
@@ -273,29 +277,43 @@ func _comecar_canto() -> void:
 		e.robo_onsets = []
 		e.robo_espera = -1.0
 		e.robo_toque = 0
+		e.aposta = -1
+		e.robo_aposta = -1.0
 	Forja.evento("jogo", 0 if fonte == TV else fonte + 1, {"sala": id, "o": "canto", "fonte": "tv" if fonte == TV else "P%d" % (fonte + 1)})
 
 
 func _tocar_nota(k: int) -> void:
 	var qual := "nota_alta" if k % 2 == 1 else "nota"
+	var origem := SINO_TV
+	var cor := Tema.ETIQUETA
 	if fonte == TV:
 		Som.tocar(qual, SINO_TV, -2.0)
+		if Forja.robo:
+			for l in j:
+				j[l].robo_onsets.append(relogio)
 	else:
 		Forja.som_falante(fonte, qual, 0.9)
 		if not Forja.bancada:
-			Forja.sentir(fonte, "toque")
+			Forja.sentir(fonte, "perfeito" if k % 2 == 0 else "acerto", 90)
+			Forja.piscar(fonte, Color.WHITE, 0.1)
+			j[fonte].pulso = 1.0
+			origem = Vector3(RAIAS[fonte], 3.4, Z_JOGADOR - 0.9)
+			cor = Forja.cor_do_lugar(fonte).lightened(0.35)
 	var nota := Label3D.new()
 	nota.text = "♪" if k % 2 == 0 else "♫"
 	nota.font = Tema.archivo(700)
 	nota.font_size = 150
 	nota.pixel_size = 0.005
 	nota.billboard = BaseMaterial3D.BILLBOARD_ENABLED
-	nota.modulate = Tema.ETIQUETA
+	nota.modulate = cor
 	nota.outline_size = 14
 	nota.outline_modulate = Color(Tema.FITA, 0.8)
-	nota.position = SINO_TV + Vector3(0, -0.6, 0.9)
+	nota.position = origem + Vector3(0, -0.6, 0.9)
+	if origem != SINO_TV:
+		nota.font_size = 220
+	nota.no_depth_test = origem != SINO_TV
 	add_child(nota)
-	_notas_no_ar.append([nota, 0.0, -1.0 if k % 2 == 0 else 1.0])
+	_notas_no_ar.append([nota, 0.0, -1.0 if k % 2 == 0 else 1.0, origem])
 
 
 func _fechar_pergunta() -> void:
@@ -354,26 +372,80 @@ func _anunciar() -> void:
 	_aviso_t = 0.0
 
 
-func _fechar_repeticao() -> void:
-	var e: Dictionary = j[fonte]
-	var toques: Array = e.toques
+func _repetidores() -> Array:
+	var r: Array = []
+	for p in jogadores:
+		var l: int = p.lugar
+		if jogando[l] and _conectado(l) and (fonte == TV or fonte == l):
+			r.append(l)
+	return r
+
+
+func _bons(toques: Array) -> int:
 	var bons := 0
 	for k in range(1, mini(toques.size(), NOTAS)):
 		var quer := float(ritmo[k]) - float(ritmo[k - 1])
 		var fez := float(toques[k]) - float(toques[k - 1])
 		if absf(quer - fez) < FOLGA_RITMO:
 			bons += 1
-	e.acertos_ritmo = int(e.acertos_ritmo) + bons
-	marcar(fonte, 100 * bons)
-	Forja.evento("jogo", fonte + 1, {"sala": id, "o": "ritmo", "acertos": bons})
-	Forja.sentir(fonte, "perfeito" if bons == NOTAS - 1 else "erro")
-	if bons == NOTAS - 1:
-		Forja.piscar(fonte, Color.WHITE, 0.5)
+	return bons
+
+
+func _apostar() -> void:
+	if fonte == TV or not j.has(fonte) or j[fonte].toques.size() >= 2:
+		return
+	for p in jogadores:
+		var l: int = p.lugar
+		if l == fonte or not jogando[l] or not _conectado(l):
+			continue
+		var e: Dictionary = j[l]
+		if e.aposta >= 0:
+			continue
+		if Forja.apertou(l, F.CRUZ):
+			e.aposta = 1
+		elif Forja.apertou(l, F.CIRCULO):
+			e.aposta = 0
+		if e.aposta >= 0:
+			Som.tocar("tique", p.global_position + Vector3(0, 1, 0), -6.0)
+			Forja.sentir(l, "toque")
+			p.gesto("emote-yes" if e.aposta == 1 else "emote-no", 0.7)
+
+
+func _fechar_repeticao(rep: Array) -> void:
+	var perfeito := false
+	var bons_do_dono := 0
+	for l in rep:
+		var e: Dictionary = j[l]
+		var bons := _bons(e.toques)
+		if l == fonte:
+			bons_do_dono = bons
+		e.acertos_ritmo = int(e.acertos_ritmo) + bons
+		marcar(l, 100 * bons)
+		Forja.evento("jogo", l + 1, {"sala": id, "o": "ritmo", "acertos": bons})
+		Forja.sentir(l, "perfeito" if bons == NOTAS - 1 else "erro")
+		if bons == NOTAS - 1:
+			perfeito = true
+			Forja.piscar(l, Color.WHITE, 0.5)
+			var dono := jogador(l)
+			if dono:
+				dono.gesto("emote-yes", 0.8)
+				Efeitos.faiscas(self, dono.global_position + Vector3(0, 2.6, 0), Tema.TUNGSTENIO, 36, 1.2)
+	if perfeito:
 		Som.tocar("sucesso", null, -6.0)
-		var dono := jogador(fonte)
-		if dono:
-			dono.gesto("emote-yes", 0.8)
-			Efeitos.faiscas(self, dono.global_position + Vector3(0, 2.6, 0), Tema.TUNGSTENIO, 36, 1.2)
+	if fonte != TV and not rep.is_empty():
+		var acertou := bons_do_dono >= 2
+		for p in jogadores:
+			var l: int = p.lugar
+			var e: Dictionary = j[l]
+			if l == fonte or not jogando[l] or e.aposta < 0:
+				continue
+			var certo: bool = (int(e.aposta) == 1) == acertou
+			if certo:
+				e.apostas_certas = int(e.apostas_certas) + 1
+				marcar(l, 50)
+				Forja.sentir(l, "acerto")
+				Forja.piscar(l, Forja.cor_do_lugar(l).lightened(0.4), 0.3)
+			Forja.evento("jogo", l + 1, {"sala": id, "o": "aposta", "resultado": "certo" if certo else "errado"})
 	_proxima_rodada()
 
 
@@ -436,20 +508,25 @@ func jogar(dt: float) -> void:
 		REVELA:
 			if t_estado >= REVELA_S:
 				t_estado = 0.0
-				if fonte != TV and _conectado(fonte) and jogando[fonte]:
+				if not _repetidores().is_empty():
 					estado = REPETE
 				else:
 					_proxima_rodada()
 		REPETE:
-			var e: Dictionary = j[fonte]
-			var toques: Array = e.toques
-			if toques.size() < NOTAS and Forja.apertou(fonte, F.CRUZ):
-				toques.append(t_estado)
-				Forja.sentir(fonte, "toque")
-				Forja.piscar(fonte, Color.WHITE, 0.12)
-				Forja.som_falante(fonte, "nota_alta" if (toques.size() - 1) % 2 == 1 else "nota", 0.6)
-			if toques.size() >= NOTAS or t_estado >= REPETE_MAX or not _conectado(fonte):
-				_fechar_repeticao()
+			var rep := _repetidores()
+			var feitos := true
+			for l in rep:
+				var toques: Array = j[l].toques
+				if toques.size() < NOTAS and Forja.apertou(l, F.CRUZ):
+					toques.append(t_estado)
+					Forja.sentir(l, "toque")
+					Forja.piscar(l, Color.WHITE, 0.12)
+					Forja.som_falante(l, "nota_alta" if (toques.size() - 1) % 2 == 1 else "nota", 0.6)
+				if toques.size() < NOTAS:
+					feitos = false
+			_apostar()
+			if feitos or t_estado >= REPETE_MAX:
+				_fechar_repeticao(rep)
 
 
 func dar_vereditos(l: int) -> Array:
@@ -472,7 +549,7 @@ func _process(dt: float) -> void:
 		var nota: Label3D = item[0]
 		item[1] = float(item[1]) + dt
 		var idade: float = item[1]
-		nota.position = SINO_TV + Vector3(float(item[2]) * (0.6 + idade * 0.7), -0.4 + idade * 1.3, 0.9)
+		nota.position = (item[3] as Vector3) + Vector3(float(item[2]) * (0.6 + idade * 0.7), -0.4 + idade * 1.3, 0.9)
 		nota.modulate.a = clampf(1.2 - idade, 0.0, 1.0)
 		if idade > 1.2:
 			nota.queue_free()
@@ -494,15 +571,18 @@ func _mostrar(l: int, dt: float) -> void:
 	var dono: bool = fase == "jogo" and (estado == REVELA or estado == REPETE) and fonte == l
 	var sino_p: Node3D = nos.sino
 	var badalo: Node3D = nos.badalo
-	var amp := 0.3 if dono else 0.0
+	var pulso := float(e.pulso)
+	e.pulso = maxf(0.0, pulso - dt * 4.0)
+	var amp := (0.3 if dono else 0.0) + 0.35 * pulso
 	sino_p.rotation.z = lerpf(sino_p.rotation.z, sin(t * 10.0) * amp, minf(1.0, dt * 8.0))
 	badalo.rotation.z = lerpf(badalo.rotation.z, sin(t * 10.0 - 0.6) * amp * 1.4, minf(1.0, dt * 8.0))
+	var rapido := minf(1.0, dt * 14.0)
 	var ms: StandardMaterial3D = nos.mat_sino
-	Tema.emissivo(ms, lerpf(Tema.brilho_de(ms), 1.4 if dono else 0.0, minf(1.0, dt * 6.0)), "forja")
+	Tema.emissivo(ms, lerpf(Tema.brilho_de(ms), maxf(1.4 if dono else 0.0, 2.0 * pulso), rapido), "forja")
 	var luz: OmniLight3D = nos.luz
-	luz.light_energy = lerpf(luz.light_energy, 2.2 if dono else 0.6, minf(1.0, dt * 6.0))
+	luz.light_energy = lerpf(luz.light_energy, maxf(2.2 if dono else 0.6, 4.0 * pulso), rapido)
 	var mb: StandardMaterial3D = nos.mat_borda
-	Tema.emissivo(mb, lerpf(Tema.brilho_de(mb), 1.6 if dono else 0.15, minf(1.0, dt * 6.0)), l)
+	Tema.emissivo(mb, lerpf(Tema.brilho_de(mb), maxf(1.6 if dono else 0.15, 3.0 * pulso), rapido), l)
 	var part: Node3D = nos.partitura
 	part.visible = fase == "jogo" and estado == REPETE and fonte == l
 	if part.visible:
@@ -535,10 +615,12 @@ func dica(lugar: int) -> Dictionary:
 	if not j.has(lugar) or fase != "jogo":
 		return {}
 	var pos := Vector3(RAIAS[lugar], 0.0, 4.4)
-	if estado == REPETE and fonte == lugar:
+	if estado == REPETE and (fonte == lugar or fonte == TV):
 		return {"partes": ["@cross", "Repita o ritmo"], "pos": pos}
+	if estado == REPETE and jogando[lugar] and _conectado(lugar) and j[fonte].toques.size() < 2:
+		return {"partes": ["@cross", "Vai acertar", "@circle", "Vai errar"], "pos": pos}
 	if estado == CANTO:
-		return {"partes": ["Ouça: de qual controle?"], "pos": pos}
+		return {"partes": ["Ouça, sinta, olhe: de quem?"], "pos": pos}
 	if estado == REVELA and fonte == lugar:
 		return {"partes": ["Foi o seu!"], "pos": pos}
 	return {}
@@ -592,7 +674,14 @@ func _robo(l: int, e: Dictionary, dt: float) -> void:
 		if e.robo_espera <= 0.0:
 			Forja.robo_apertar(l, F.CRUZ if e.robo_ouviu else F.CIRCULO, 0.08)
 			e.robo_espera = 99.0
-	if estado == REPETE and fonte == l and onsets.size() >= 2:
+	if estado == REPETE and fonte != TV and fonte != l and e.aposta < 0:
+		if e.robo_aposta < 0.0:
+			e.robo_aposta = 0.2 + 0.4 * rng.randf()
+		e.robo_aposta = float(e.robo_aposta) - dt
+		if e.robo_aposta <= 0.0:
+			Forja.robo_apertar(l, F.CRUZ, 0.08)
+			e.robo_aposta = 99.0
+	if estado == REPETE and (fonte == l or fonte == TV) and onsets.size() >= 2:
 		var k: int = e.robo_toque
 		if k < onsets.size() and k < NOTAS:
 			var quando := 0.6 + (float(onsets[k]) - float(onsets[0]))
