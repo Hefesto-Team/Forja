@@ -133,7 +133,7 @@ func pose_da_camera() -> Array:
 	if salao and salao.bigorna:
 		b = salao.bigorna.global_position
 	var bigorna := [b + Vector3(3.2, 2.2, 4.2), b + Vector3(0, 1.2, 0)]
-	var pedestais := [Vector3(0, 2.4, 11.0), Vector3(0, 1.0, 4.4)]
+	var pedestais := [Vector3(0, 2.9, 14.2), Vector3(0, 0.55, 4.4)]
 	var k := entra_sai((t - 9.0) / (2.0 * COMPASSO_S))
 	return [bigorna[0].lerp(pedestais[0], k), bigorna[1].lerp(pedestais[1], k)]
 
