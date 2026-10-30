@@ -33,9 +33,9 @@ da bancada, o controle de quem canta também vibra e pisca no ritmo da chamada
 (grave forte, agudo leve), a nota sobe na tela, na raia dele, e o sino da raia
 acende. A bancada continua sem reforço, porque mede o alto-falante.
 Todos têm o que fazer: o dono repete o ritmo (100 por intervalo certo); quem não
-é o dono aposta, antes do segundo toque do dono, ✕ "vai acertar" ou ○ "vai
-errar" (50 se acertar a aposta, e o dono acerta com 2 de 3 intervalos); e, se o
-canto foi da TV, os quatro repetem, cada um com os seus 100 por intervalo.
+é o dono aposta, da revelação até o segundo toque do dono, ✕ "vai acertar"
+ou ○ "vai errar" (50 se acertar a aposta, e o dono acerta com 2 de 3 intervalos); e, se o
+canto foi da TV, todos repetem, cada um com os seus 100 por intervalo.
 
 Os coadjuvantes: a vibração no tempo forte (`Forja.sentir(l, "toque")` no
 começo de cada compasso, em todos), a barra de luz que pulsa com a própria

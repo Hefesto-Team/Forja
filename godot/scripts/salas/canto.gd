@@ -11,6 +11,8 @@ const PERGUNTA_MAX := 5.0
 const REPETE_MAX := 5.0
 const REVELA_S := 1.4
 const FOLGA_RITMO := 0.12
+const APOSTA_ATE_O_TOQUE := 2
+const ACERTO_DO_DONO := 2
 const SINO_TV := Vector3(0.0, 3.9, -4.3)
 const PERFIL := [
 	Vector2(0.0, 1.0), Vector2(0.18, 0.98), Vector2(0.34, 0.89), Vector2(0.43, 0.73), Vector2(0.48, 0.5),
@@ -47,7 +49,7 @@ func _init() -> void:
 	icone = "alto-falante"
 	objetivo = "A bigorna canta um ritmo: às vezes no alto-falante de UM controle, às vezes na TV. Todo mundo ouve — a pergunta é outra: o canto saiu da SUA mão? ✕ foi no meu, ○ não foi. Depois, o dono do canto repete o ritmo com ✕. Confira o seu alto-falante aqui embaixo: △ toca um sino nele, ◀ ▶ troca."
 	if not Forja.bancada:
-		objetivo = "A bigorna canta um ritmo: às vezes no alto-falante de UM controle, às vezes na TV. Em sala barulhenta, o controle também vibra e pisca no ritmo, e a nota sobe na tela da raia. O dono repete o ritmo com ✕. Quem não é o dono aposta antes do segundo toque: ✕ vai acertar, ○ vai errar. Se o canto foi da TV, os quatro repetem. Confira o seu alto-falante aqui embaixo: △ toca um sino nele, ◀ ▶ troca."
+		objetivo = "A bigorna canta um ritmo: às vezes no alto-falante de UM controle, às vezes na TV. Em sala barulhenta, o controle também vibra e pisca no ritmo, e a nota sobe na tela da raia. O dono repete o ritmo com ✕. Quem não é o dono aposta antes do segundo toque: ✕ vai acertar, ○ vai errar. Se o canto foi da TV, todos repetem. Confira o seu alto-falante aqui embaixo: △ toca um sino nele, ◀ ▶ troca."
 	features = ["alto_falante"]
 	cega = true
 	com_treino = Forja.bancada
@@ -389,16 +391,22 @@ func _bons(toques: Array) -> int:
 	return bons
 
 
+func _aposta_aberta(l: int) -> bool:
+	if fonte == TV or l == fonte or not j.has(l) or not j.has(fonte):
+		return false
+	if not (estado == REVELA or estado == REPETE) or int(j[l].aposta) >= 0:
+		return false
+	if not jogando[l] or not _conectado(l) or not pergunta(l).is_empty():
+		return false
+	return j[fonte].toques.size() < APOSTA_ATE_O_TOQUE and _repetidores().has(fonte)
+
+
 func _apostar() -> void:
-	if fonte == TV or not j.has(fonte) or j[fonte].toques.size() >= 2:
-		return
 	for p in jogadores:
 		var l: int = p.lugar
-		if l == fonte or not jogando[l] or not _conectado(l):
+		if not _aposta_aberta(l):
 			continue
 		var e: Dictionary = j[l]
-		if e.aposta >= 0:
-			continue
 		if Forja.apertou(l, F.CRUZ):
 			e.aposta = 1
 		elif Forja.apertou(l, F.CIRCULO):
@@ -431,7 +439,7 @@ func _fechar_repeticao(rep: Array) -> void:
 	if perfeito:
 		Som.tocar("sucesso", null, -6.0)
 	if fonte != TV and not rep.is_empty():
-		var acertou := bons_do_dono >= 2
+		var acertou := bons_do_dono >= ACERTO_DO_DONO
 		for p in jogadores:
 			var l: int = p.lugar
 			var e: Dictionary = j[l]
@@ -504,6 +512,7 @@ func jogar(dt: float) -> void:
 			if todos or t_estado >= PERGUNTA_MAX:
 				_fechar_pergunta()
 		REVELA:
+			_apostar()
 			if t_estado >= REVELA_S:
 				t_estado = 0.0
 				if not _repetidores().is_empty():
@@ -553,12 +562,12 @@ func _process(dt: float) -> void:
 			nota.queue_free()
 			_notas_no_ar.remove_at(k)
 	_aviso_t += dt
-	var mostra := fase == "jogo" and (estado == REVELA or estado == REPETE) and _aviso_t < 2.6
+	var mostra := fase == "jogo" and estado == REVELA
 	_aviso_tv.visible = mostra
 	if mostra:
 		var k := clampf(_aviso_t * 7.0, 0.0, 1.0)
 		_aviso_tv.scale = Vector3.ONE * (0.6 + 0.4 * k + 0.06 * sin(_aviso_t * 9.0))
-		_aviso_tv.modulate.a = clampf(2.6 - _aviso_t, 0.0, 1.0)
+		_aviso_tv.modulate.a = clampf((REVELA_S - _aviso_t) * 4.0, 0.0, 1.0)
 	for p in jogadores:
 		_mostrar(p.lugar, dt)
 
@@ -582,7 +591,7 @@ func _mostrar(l: int, dt: float) -> void:
 	var mb: StandardMaterial3D = nos.mat_borda
 	Tema.emissivo(mb, lerpf(Tema.brilho_de(mb), maxf(1.6 if dono else 0.15, 3.0 * pulso), rapido), l)
 	var part: Node3D = nos.partitura
-	part.visible = fase == "jogo" and estado == REPETE and (fonte == l or fonte == TV)
+	part.visible = fase == "jogo" and estado == REPETE and _repetidores().has(l)
 	if part.visible:
 		var total := float(ritmo[NOTAS - 1]) + 0.3
 		for k in NOTAS:
@@ -613,10 +622,12 @@ func dica(lugar: int) -> Dictionary:
 	if not j.has(lugar) or fase != "jogo":
 		return {}
 	var pos := Vector3(RAIAS[lugar], 0.0, 4.4)
-	if estado == REPETE and (fonte == lugar or fonte == TV):
+	if estado == REPETE and _repetidores().has(lugar):
 		return {"partes": ["@cross", "Repita o ritmo"], "pos": pos}
-	if estado == REPETE and jogando[lugar] and _conectado(lugar) and j[fonte].toques.size() < 2:
+	if _aposta_aberta(lugar):
 		return {"partes": ["@cross", "Vai acertar", "@circle", "Vai errar"], "pos": pos}
+	if (estado == REVELA or estado == REPETE) and int(j[lugar].aposta) >= 0:
+		return {"partes": ["Apostou: vai acertar" if int(j[lugar].aposta) == 1 else "Apostou: vai errar"], "pos": pos}
 	if estado == CANTO:
 		return {"partes": ["Ouça e sinta: de quem?"], "pos": pos}
 	if estado == REVELA and fonte == lugar:
@@ -675,7 +686,7 @@ func _robo(l: int, e: Dictionary, dt: float) -> void:
 		if e.robo_espera <= 0.0:
 			Forja.robo_apertar(l, F.CRUZ if e.robo_ouviu else F.CIRCULO, 0.08)
 			e.robo_espera = 99.0
-	if estado == REPETE and fonte != TV and fonte != l and e.aposta < 0:
+	if _aposta_aberta(l):
 		if e.robo_aposta < 0.0:
 			e.robo_aposta = 0.2 + 0.4 * rng.randf()
 		e.robo_aposta = float(e.robo_aposta) - dt
