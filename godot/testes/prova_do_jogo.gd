@@ -1342,6 +1342,12 @@ func _prova_da_colecao_no_salao() -> void:
 		await _quadros(1)
 		q += 1
 	jogo._ir_para_o_salao(false)
+	var de_frente := true
+	for p in jogo.jogadores:
+		if p.visible:
+			var para_a_camera: Vector3 = jogo._pose_da_camera()[0] - p.global_position
+			de_frente = de_frente and Vector3(sin(p.rotation.y), 0, cos(p.rotation.y)).dot(Vector3(para_a_camera.x, 0, para_a_camera.z).normalized()) > 0.9
+	_esperar(de_frente, "no salão, cada cavaleiro chega de frente para a câmera")
 	await _quadros(3)
 	_esperar(jogo.estado == "salao", "de volta ao salão sem jogar a sala")
 	for l in range(1, jogo.jogadores.size()):

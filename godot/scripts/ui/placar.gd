@@ -111,14 +111,19 @@ static func _suave(k: float) -> float:
 func _draw() -> void:
 	if partida == null or partida.historico.is_empty():
 		return
+	var r := _retangulo()
 	if no_podio:
-		draw_rect(Rect2(Vector2.ZERO, Vector2(size.x, size.y)), Color(Tema.FITA, 0.35))
+		var fim_do_veu := r.end.x
+		var veu := Color(Tema.FITA, 0.35)
+		draw_rect(Rect2(Vector2.ZERO, Vector2(fim_do_veu, size.y)), veu)
+		draw_polygon(PackedVector2Array([Vector2(fim_do_veu, 0), Vector2(fim_do_veu + Tema.MARGEM_X, 0),
+			Vector2(fim_do_veu + Tema.MARGEM_X, size.y), Vector2(fim_do_veu, size.y)]),
+			PackedColorArray([veu, Color(veu, 0.0), Color(veu, 0.0), veu]))
 	else:
 		draw_rect(Rect2(Vector2.ZERO, size), Color(Tema.CASCO, 0.86 * _suave(_t / 0.3)))
 	var lista: Array = _depois if not _depois.is_empty() else partida.podio(partida.presentes())
 	var ultima: Dictionary = partida.historico[partida.historico.size() - 1]
 	var linha := LINHA
-	var r := _retangulo()
 	var larg := r.size.x
 	Desenho.moldura(self, r, Color(Tema.CASCO, 0.97), Tema.GRAFITE, 2, Tema.RAIO_QUADRO)
 	var x := r.position.x + 48

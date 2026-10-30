@@ -405,11 +405,14 @@ func _ir_para_o_salao(com_cortina := true) -> void:
 				continue
 			var volta := salao.saida_do_portao(Catalogo.apelido(sala_id), p.lugar) if sala_id != "" else Vector3(-3.0 + i * 2.0, 0.05, 3.2)
 			p.global_position = volta
-			p.rotation.y = PI
 			p.controlavel = true
 			p.visible = Forja.ocupado(p.lugar)
 			i += 1
 		_mostrar("salao")
+		var de_onde: Vector3 = _pose_da_camera()[0]
+		for p in jogadores:
+			if p.visible:
+				p.olhar_para(de_onde)
 		salao.mostrar_colecao(partida != null and partida.lado() == "B")
 		hud.vencidas = Colecao.secoes_acesas()
 		hud.sala = {}
