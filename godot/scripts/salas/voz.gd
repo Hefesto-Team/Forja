@@ -530,7 +530,7 @@ func _desenhar_faixa() -> void:
 	if verbo != "":
 		Desenho.carimbo(_faixa, c, verbo, cor, Tema.T_DISPLAY, graus, escala, 1.0, false)
 	if apoio != "":
-		Desenho.carimbo(_faixa, c + Vector2(0, 80), apoio, Tema.ETIQUETA, Tema.T_AVISO, 0.0, 1.0, 1.0, false)
+		Desenho.carimbo(_faixa, c + Vector2(0, 84), apoio, Tema.ETIQUETA, Tema.T_AVISO, 0.0, 1.0, 1.0, false)
 	_faixa.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
 
