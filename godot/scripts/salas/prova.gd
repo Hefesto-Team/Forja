@@ -949,7 +949,7 @@ func _quem_da_equipe(eq: int) -> Array:
 	var nomes: Array = []
 	for e in lut:
 		if int(e.equipe) == eq:
-			nomes.append(["P%d" % (int(e.lugar) + 1), Forja.cor_do_lugar(e.lugar)] if e.lugar >= 0 else ["boneco", Tema.BONECO_DE_TREINO])
+			nomes.append(["P%d" % (int(e.lugar) + 1), Forja.cor_do_lugar(e.lugar)] if e.lugar >= 0 else ["BONECO", Tema.BONECO_DE_TREINO])
 	return nomes
 
 

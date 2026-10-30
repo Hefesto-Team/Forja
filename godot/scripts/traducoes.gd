@@ -70,7 +70,7 @@ const EN := {
 	"SHHH…": "SHHH…",
 	"Mudos, só um sussurro": "Muted, just a whisper",
 	"AAAH!": "AAAH!",
-	"boneco": "dummy",
+	"BONECO": "DUMMY",
 	"Botões": "Buttons",
 	"Analógicos": "Sticks",
 	"Gatilhos analógicos": "Analog triggers",
