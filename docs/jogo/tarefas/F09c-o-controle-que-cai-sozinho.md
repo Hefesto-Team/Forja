@@ -88,7 +88,7 @@ esse relógio é o da música e, sem janela, fica em 0, então «a sala seguiu»
 andando. As duas checagens agora leem o `t_jogo`, o relógio da sala em quadros de jogo. A checagem da parada
 confere os dois relógios.
 
-**A mordida.** Numa cópia, tirei a guarda do `_process`. A prova do cabo sozinho reprovou: <MORDIDA>
+**A mordida.** Numa cópia, tirei a guarda do `_process`. A prova do cabo sozinho reprovou (30/10): «galeria sozinho: 10 s sem controle, a sala não terminou (fechada)».
 
 **Escolhas a validar por ela:**
 

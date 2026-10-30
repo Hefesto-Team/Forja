@@ -27,7 +27,7 @@ Os estados, e o que cada um quer dizer, estão em
 | [F08](F08-a-paridade.md) | A paridade entre a prova e o jogo | M | F00, F01, F03 | feito |
 | [F09](F09-a-prova-visual.md) | A prova visual | G | F00, F02 (a coleta de texto), F03 (o fim), F08 (o robô só pelo controle) | feito |
 | [F09b](F09b-os-achados-da-prova-visual.md) | Os achados da primeira prova visual | M | F09 | feito |
-| [F09c](F09c-o-controle-que-cai-sozinho.md) | O controle que cai quando se joga sozinho | P | F09b | a fazer |
+| [F09c](F09c-o-controle-que-cai-sozinho.md) | O controle que cai quando se joga sozinho | P | F09b | feito |
 | [F09d](F09d-a-espera-que-vive.md) | A espera que vive | M | F09b, F09c | a fazer |
 | [F10](F10-o-rumble-seco.md) | O rumble seco | G | F05 (a medição do háptico), F06 (o registro) | espera o André (a parte A feita: o roteiro às cegas) |
 
