@@ -35,6 +35,7 @@ A="$(arvore texto-bom)"; traducoes "$A" "Começar" "Start"
 espera 0 "texto de tela: deixa passar a frase com maiúscula" python3 "$A/scripts/check_texto_de_tela.py"
 
 espera 0 "sem rastro: a prova inteira (ela monta cada defeito e confere que reprova)" bash "$RAIZ/tests/prova_sem_rastro.sh"
+espera 0 "devlog: a prova inteira (vez, entrada, pares, página, cobrador, gancho e o portão do devlog)" bash "$RAIZ/tests/prova_do_devlog.sh"
 
 repo() {
   git -C "$1" init -q -b main
