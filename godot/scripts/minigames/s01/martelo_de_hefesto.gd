@@ -67,6 +67,7 @@ func montar() -> void:
 		runas[l] = _montar_runa(l)
 		runas[l]["forja"] = forja
 		j[l] = _novo_jogador()
+		Forja.gatilhos_off(l)
 
 
 static func _bigorna(l: int) -> Vector3:
@@ -133,6 +134,12 @@ func _montar_runa(l: int) -> Dictionary:
 	var cor: Color = Forja.cor_do_lugar(l)
 	anel.material_override = Kit.material(cor, 2.2, 0.8, l)
 	raiz.add_child(anel)
+	var mira := MeshInstance3D.new()
+	mira.mesh = t
+	mira.rotation.x = PI * 0.5
+	mira.scale = Vector3.ONE * ANEL_FECHADO
+	mira.material_override = Kit.material(Tema.ETIQUETA, 0.7, 0.8, l)
+	raiz.add_child(mira)
 	var marcas: Array = []
 	for s in 8:
 		var m := MeshInstance3D.new()
@@ -178,7 +185,7 @@ func _montar_runa(l: int) -> Dictionary:
 	nivel.material_override = Kit.material(Tema.VIOLETA, 1.0)
 	fole.add_child(nivel)
 	return {"raiz": raiz, "glifo": glifo, "anel": anel, "marcas": marcas, "fole": fole, "nivel": nivel,
-		"faixa": faixa, "topo": topo}
+		"faixa": faixa, "topo": topo, "mira": mira}
 
 
 func _runa_atual(l: int) -> Variant:
@@ -222,6 +229,7 @@ func _mostrar_runa(l: int) -> void:
 		glifo.modulate = Tema.ETIQUETA
 		_forja_na_espera(l, 1.0 - resto)
 	anel.visible = true
+	n.mira.visible = r.tipo == "botao"
 	for s in 8:
 		var m: MeshInstance3D = n.marcas[s]
 		m.visible = r.tipo == "analogico"
