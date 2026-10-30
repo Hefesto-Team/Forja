@@ -40,4 +40,4 @@ func _roteiro_do_fluxo() -> Array:
 		["aperta", 0, Forja.OPTIONS], ["espera", 20], ["foto", id + "_pausa"], ["aperta", 0, Forja.OPTIONS], ["espera", 10],
 		["termina"], ["ate", func() -> bool: return jogo.resultado.visible and jogo.resultado._t > 1.0], ["foto", id + "_fim"],
 		["fim"]])
-	return r
+	return r.filter(func(p: Array) -> bool: return not (p[0] == "posiciona" and int(p[1]) >= quem))
