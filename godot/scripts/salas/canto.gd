@@ -43,7 +43,7 @@ func _init() -> void:
 	nome = "O Canto"
 	acao = "Ouça de qual controle sai o canto; o dono repete."
 	if not Forja.bancada:
-		acao = "Ouça, sinta e olhe de quem é o canto; o dono repete, os outros apostam."
+		acao = "De quem é o canto? O dono repete."
 	icone = "alto-falante"
 	objetivo = "A bigorna canta um ritmo: às vezes no alto-falante de UM controle, às vezes na TV. Todo mundo ouve — a pergunta é outra: o canto saiu da SUA mão? ✕ foi no meu, ○ não foi. Depois, o dono do canto repete o ritmo com ✕. Confira o seu alto-falante aqui embaixo: △ toca um sino nele, ◀ ▶ troca."
 	if not Forja.bancada:
@@ -96,7 +96,7 @@ func montar() -> void:
 func _novo_jogador() -> Dictionary:
 	return {"meus": Cega.nova(), "fantasmas": 0, "chances": 0, "resposta": -1, "toques": [], "acertos_ritmo": 0,
 		"certos": 0, "robo_nivel": 0.0, "robo_vale": 1.0, "robo_desde": 1.0, "robo_ouviu": false, "robo_onsets": [],
-		"robo_espera": -1.0, "robo_toque": 0, "pulso": 0.0, "aposta": -1, "apostas_certas": 0, "robo_aposta": -1.0}
+		"robo_espera": -1.0, "robo_toque": 0, "pulso": 0.0, "aposta": -1, "apostas_certas": 0, "robo_aposta": -1.0, "robo_tv": 0}
 
 
 static func sino(pai: Node3D, pos: Vector3, escala: float, cor: Color) -> Dictionary:
@@ -279,6 +279,7 @@ func _comecar_canto() -> void:
 		e.robo_toque = 0
 		e.aposta = -1
 		e.robo_aposta = -1.0
+		e.robo_tv = 0
 	Forja.evento("jogo", 0 if fonte == TV else fonte + 1, {"sala": id, "o": "canto", "fonte": "tv" if fonte == TV else "P%d" % (fonte + 1)})
 
 
@@ -288,9 +289,6 @@ func _tocar_nota(k: int) -> void:
 	var cor := Tema.ETIQUETA
 	if fonte == TV:
 		Som.tocar(qual, SINO_TV, -2.0)
-		if Forja.robo:
-			for l in j:
-				j[l].robo_onsets.append(relogio)
 	else:
 		Forja.som_falante(fonte, qual, 0.9)
 		if not Forja.bancada:
@@ -620,7 +618,7 @@ func dica(lugar: int) -> Dictionary:
 	if estado == REPETE and jogando[lugar] and _conectado(lugar) and j[fonte].toques.size() < 2:
 		return {"partes": ["@cross", "Vai acertar", "@circle", "Vai errar"], "pos": pos}
 	if estado == CANTO:
-		return {"partes": ["Ouça, sinta, olhe: de quem?"], "pos": pos}
+		return {"partes": ["Ouça e sinta: de quem?"], "pos": pos}
 	if estado == REVELA and fonte == lugar:
 		return {"partes": ["Foi o seu!"], "pos": pos}
 	return {}
@@ -663,6 +661,9 @@ func _robo(l: int, e: Dictionary, dt: float) -> void:
 	else:
 		e.robo_vale = minf(float(e.robo_vale), nivel)
 	var onsets: Array = e.robo_onsets
+	if fonte == TV and estado == CANTO and notas_tocadas > int(e.robo_tv):
+		e.robo_tv = notas_tocadas
+		onsets.append(relogio)
 	if ataque and (estado == CANTO or (estado == PERGUNTA and t_estado < 0.4)):
 		e.robo_ouviu = true
 		if onsets.size() < NOTAS + 2:
