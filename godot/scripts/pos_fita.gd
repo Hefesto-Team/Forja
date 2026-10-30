@@ -101,8 +101,12 @@ func rasgo_curto() -> void:
 	while not _rasgos.is_empty() and agora - _rasgos[0] >= 1000:
 		_rasgos.pop_front()
 	if _rasgos.size() >= RASGOS_POR_SEGUNDO:
+		if _rasgo_q < 0:
+			ajustar("rasgo", 0.0)
 		return
 	_rasgos.append(agora)
+	if _tweens.has("rasgo"):
+		ajustar("rasgo", 0.0)
 	_rasgo_q = 0
 	_quadro_do_rasgo()
 
