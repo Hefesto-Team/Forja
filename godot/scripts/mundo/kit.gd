@@ -193,28 +193,8 @@ static func bigorna(pai: Node, pos: Vector3, escala := 0.55) -> Node3D:
 	b.position = pos
 	b.scale = Vector3.ONE * escala
 	pai.add_child(b)
-	var base := CSGBox3D.new()
-	base.size = Vector3(1.5, 0.45, 1.0)
-	base.position.y = 0.225
-	base.material = material(Tema.OXIDO_BRILHO)
-	b.add_child(base)
-	var cintura := CSGBox3D.new()
-	cintura.size = Vector3(0.8, 0.45, 0.62)
-	cintura.position.y = 0.675
-	cintura.material = material(Tema.VIOLETA, 0.0, 0.5)
-	b.add_child(cintura)
-	var tampo := CSGBox3D.new()
-	tampo.size = Vector3(1.9, 0.38, 0.8)
-	tampo.position = Vector3(-0.1, 1.09, 0)
-	tampo.material = material(Tema.OXIDO_BRILHO, 0.0, 0.35)
-	b.add_child(tampo)
-	var chifre := CSGCylinder3D.new()
-	chifre.cone = true
-	chifre.radius = 0.19
-	chifre.height = 0.9
-	chifre.sides = 8
-	chifre.rotation.z = -PI * 0.5
-	chifre.position = Vector3(1.28, 1.09, 0)
-	chifre.material = material(Tema.OXIDO_BRILHO, 0.0, 0.35)
-	b.add_child(chifre)
+	var corpo := MeshInstance3D.new()
+	corpo.mesh = MalhaBigorna.malha()
+	corpo.scale = Vector3.ONE * 4.2
+	b.add_child(corpo)
 	return b

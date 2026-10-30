@@ -294,30 +294,7 @@ func _bigorna() -> void:
 	borda.position.y = 0.3
 	borda.material = Tema.neon(Tema.VIOLETA, 1.1, "mundo")
 	bigorna.add_child(borda)
-	var base := CSGBox3D.new()
-	base.size = Vector3(1.5, 0.45, 1.0)
-	base.position.y = 0.3 + 0.225
-	base.material = pedra.call(Tema.OXIDO_BRILHO)
-	bigorna.add_child(base)
-	var cintura := CSGBox3D.new()
-	cintura.size = Vector3(0.8, 0.45, 0.62)
-	cintura.position.y = 0.75 + 0.225
-	cintura.material = pedra.call(Tema.VIOLETA, 0.5)
-	bigorna.add_child(cintura)
-	var tampo := CSGBox3D.new()
-	tampo.size = Vector3(1.9, 0.38, 0.8)
-	tampo.position = Vector3(-0.1, 1.2 + 0.19, 0)
-	tampo.material = pedra.call(Tema.OXIDO_BRILHO, 0.35)
-	bigorna.add_child(tampo)
-	var chifre := CSGCylinder3D.new()
-	chifre.cone = true
-	chifre.radius = 0.19
-	chifre.height = 0.9
-	chifre.sides = 8
-	chifre.rotation.z = -PI * 0.5
-	chifre.position = Vector3(1.28, 1.39, 0)
-	chifre.material = pedra.call(Tema.OXIDO_BRILHO, 0.35)
-	bigorna.add_child(chifre)
+	Kit.bigorna(bigorna, Vector3(0, 0.3, 0), 1.0)
 	var forja := OmniLight3D.new()
 	forja.position = Vector3(0, 0.9, 0.9)
 	forja.light_color = Tema.TUNGSTENIO
