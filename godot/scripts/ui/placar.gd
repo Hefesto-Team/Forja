@@ -133,7 +133,7 @@ func _draw() -> void:
 		_manchete(int(lista[0].lugar))
 	var y0 := r.position.y + 206
 	var c_total := r.end.x - 48 - 150
-	var c_sala := c_total - 300
+	var c_sala := c_total - (200 if no_podio else 300)
 	if no_podio:
 		Desenho.texto(self, Vector2(c_sala, y0), "Salas vencidas", Tema.archivo(600), Tema.T_SELO, Tema.MUDO)
 	else:
@@ -161,7 +161,8 @@ func _draw() -> void:
 			Tema.ETIQUETA)
 		var quem := str(nomes[l]) if str(nomes[l]) != "" else "P%d" % (l + 1)
 		if no_podio:
-			Desenho.nome(self, Vector2(b.position.x + 110, cy), Desenho.nome_que_cabe(quem, Tema.archivo(700), Tema.T_CORPO, 200.0),
+			Desenho.nome(self, Vector2(b.position.x + 110, cy), Desenho.nome_que_cabe(quem, Tema.archivo(700), Tema.T_CORPO,
+				c_sala - b.position.x - 134.0),
 				Tema.archivo(700), Tema.T_CORPO, cor_id)
 		else:
 			Desenho.texto(self, Vector2(b.position.x + 110, cy), "P%d" % (l + 1), Tema.bungee(), Tema.T_CORPO, cor_id)

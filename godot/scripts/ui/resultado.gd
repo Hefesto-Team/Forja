@@ -116,7 +116,11 @@ func _draw() -> void:
 		var base := y + h * 0.5 + tam_nome * 0.36
 		Desenho.texto(self, Vector2(r.position.x + 48, base), "%dº" % int(cols[l]), Tema.vt(), tam_nome, Tema.ETIQUETA_SOMBRA)
 		Desenho.texto(self, Vector2(r.position.x + 170, base), "P%d" % (l + 1), Tema.bungee(), tam_nome, cor_id)
-		Desenho.texto(self, Vector2(r.position.x + 300, base), "%d" % int(pontos[l]), Tema.vt(), tam_nome, Tema.ETIQUETA)
+		var quem := str(nomes[l]) if l < nomes.size() else ""
+		if quem != "":
+			Desenho.nome(self, Vector2(r.position.x + 290, base), Desenho.nome_que_cabe(quem, Tema.archivo(600), tam_nome, 380.0),
+				Tema.archivo(600), tam_nome, Tema.ETIQUETA)
+		Desenho.texto(self, Vector2(r.position.x + 700, base), "%d" % int(pontos[l]), Tema.vt(), tam_nome, Tema.ETIQUETA)
 		y += h
 	if _t >= 0.8:
 		Desenho.dicas_a_direita(self, Vector2(r.end.x - 48, r.end.y - 22), [["cruz", "Continuar"]], Tema.T_ROTULO)
