@@ -247,6 +247,31 @@ tools/Godot_v4.4.1-stable_linux.x86_64 --headless -s scripts/medir_clarao.gd -- 
   pasta/voz_antes_do_susto.png pasta/voz_clarao.png 20
 ```
 
+## O devlog
+
+O controle narrativo do projeto: cada entrega que muda o que se vê deixa uma entrada, com um resumo de até 8 linhas e as
+fotos de antes e depois, tiradas pelo próprio jogo. Mora em `docs/devlog/AAAA-MM-DD-<slug>/` e se abre com um comando.
+
+```sh
+scripts/devlog/entrada.sh <slug> "<título>"      # cria a entrada: cabeçalho (base, topo, ramo, fichas) e o resumo
+scripts/devlog/fotos.sh docs/devlog/AAAA-MM-DD-<slug>   # fotografa a base e o topo, pelos mesmos roteiros
+./devlog.sh                                      # monta .cache/devlog/index.html e abre (--sem-abrir só imprime o caminho)
+```
+
+- **Quando:** toda entrega que muda `godot/` fora de `godot/testes/` (cena, tela, cor, câmera, arte). O resumo é de quem
+  entrega; as fotos saem do `fotos.sh`, que lê a base e o topo do cabeçalho e escolhe os roteiros pelos arquivos mudados
+  (`--roteiros telas,extras,cavaleiro,partida,salas,centelha,...` para escolher à mão).
+- **O que o `fotos.sh` faz:** monta as duas árvores em `.cache/devlog/arvores/<sha>`, garante o módulo nativo de cada
+  uma, fotografa por `xvfb` (`--simular=4 --semente=7`, 1920x1080) e guarda JPEG de até 1280 px em `antes/` e `depois/`.
+  O par quase igual (RMSE normalizado abaixo de 0,01) sai dos dois lados.
+- **A fila:** todo Godot pesado passa por `scripts/vez.sh` (`VEZ_N` vagas, padrão 4): as provas e as fotos fazem fila
+  em vez de brigar pela máquina.
+- **O cobrador:** `scripts/devlog/cobrar.sh` sai 2 quando o ramo muda arquivo visual e falta a entrada com foto do
+  depois. O agente o roda ao parar por um gancho: `python3 scripts/devlog/ligar_gancho.py` liga em cada árvore (a pasta
+  de configuração do agente não é versionada).
+- **O portão:** `scripts/portoes/devlog.py` reprova entrada sem cabeçalho, resumo longo, foto fora de JPEG de 1280 px,
+  entrada acima de 6 MB e par sem irmão. O porquê dos limites: [o porquê dos módulos](o-porque-dos-modulos.md#scriptsdevlog-e-scriptsvezsh).
+
 ## A trilha
 
 As faixas saem de dois modelos abertos rodando na própria máquina: o

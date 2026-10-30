@@ -66,6 +66,13 @@ A costura, em detalhe (`bash scripts/costura.sh --ajuda` dá as opções e os c�
 - **O commit:** em português, sem trailer e sem símbolos na mensagem.
 - **As regras:** cada papel recebe o [regras.md](regras.md), inteiro, pelo link, não colado.
 
+## A entrega que muda o que se vê
+
+Toda entrega que muda `godot/` fora de `godot/testes/` fecha com a entrada do [devlog](../../DESENVOLVER.md#o-devlog):
+`scripts/devlog/entrada.sh` com o resumo de até 8 linhas e `scripts/devlog/fotos.sh` com as fotos de antes e depois. O
+`scripts/devlog/cobrar.sh` confere (sai 2 sem a entrada), o gancho do agente o chama ao parar, e o portão `devlog`
+confere a forma. O Godot das fotos passa pelo `scripts/vez.sh`, a fila da máquina.
+
 ## Quando a esteira para
 
 - Uma prova falha duas vezes seguidas na mesma ficha: a ficha volta para **enriquecida**, com o motivo, e a esteira

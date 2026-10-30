@@ -253,6 +253,21 @@ Cada seção é uma pasta ou um arquivo; o ponto é o símbolo, nunca a linha. O
 - `trilha_fila.sh`: a faixa interrompida volta à fila.
 - `run.sh`, `ao_sair`: a placa se solta ao sair da bancada; soltar a cada ferramenta derrubaria o servidor no meio do uso.
 
+## scripts/devlog/ e scripts/vez.sh
+
+- `pares.sh`: o PNG de 1920x1080 do jogo pesa ~2 MB (medido em 30/10/2026). Uma entrada de 40 pares passaria de 150 MB em PNG
+  e cada entrada ficaria no histórico para sempre; em JPEG de 1280 px e qualidade 78 a foto pesa ~60 KB, e a entrada cabe nos 6 MB do portão.
+- `pares.sh`: o par com RMSE normalizado abaixo de 0,01 sai dos dois lados: duas fotos iguais não contam nada e dobram o peso.
+- `pares.sh`: a comparação é nos PNG de origem, antes do JPEG; comparar JPEG contra JPEG acusaria diferença no ruído da compressão.
+- `fotos.sh`: o `XDG_DATA_HOME` é de cada execução, e cada roteiro tem o seu; duas provas no mesmo `user://` brigam pelo mesmo arquivo.
+- `fotos.sh`: o `base` é sempre um SHA que existe; a árvore de antes pode ser de antes da reescrita do histórico.
+- `fotos.sh`: o módulo nativo tem de casar com a fonte da árvore (`caixa_fonte`); copia-se o de uma árvore irmã com a mesma soma, e só sem ele se compila.
+- `fotos.sh`: a tela de mentira é aberta com tentativa: duas aberturas do `xvfb-run -a` ao mesmo tempo podem pegar o mesmo número de display.
+- `ligar_gancho.py`: o repositório não versiona a pasta de configuração do agente (o portão sem rastro reprova arquivo e nome), então o gancho mora num modelo (`gancho.json`) que se funde na árvore.
+- `cobrar.sh`: com `stop_hook_active` o gancho já cobrou uma vez e sai 0; sem isso o agente que não pode fotografar ficaria num laço.
+- `cobrar.sh`: a mudança visual sem commit também cobra, porque a entrada mira o HEAD.
+- `vez.sh`: a trava solta quando o comando acaba, mesmo morto por sinal (é o `flock` do descritor, não um arquivo apagado à mão).
+
 ## scripts/ci-local.sh
 
 - É o motor do `ci-local.sh` do Hefesto, copiado em 06/10/2026; cada repositório carrega o seu. Difere a `TABELA` e a imagem (`BASE`, a `catthehacker` pura, sem o Dockerfile do Hefesto).
