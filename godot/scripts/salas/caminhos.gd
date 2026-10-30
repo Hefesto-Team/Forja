@@ -154,8 +154,8 @@ func _montar_raia(l: int, p: ForjaPlayer) -> Dictionary:
 	var lanterna := OmniLight3D.new()
 	lanterna.position = Vector3(x, 2.6, Z_JOGADOR + 0.6)
 	lanterna.light_color = Forja.cor_do_lugar(l).lerp(Tema.ETIQUETA, 0.55)
-	lanterna.light_energy = 1.3
-	lanterna.omni_range = 2.8
+	lanterna.light_energy = 1.5
+	lanterna.omni_range = 4.0
 	add_child(lanterna)
 	var placa := Label3D.new()
 	placa.font = Tema.archivo(700)

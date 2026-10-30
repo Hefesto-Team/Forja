@@ -41,11 +41,12 @@ var _aviso_t := 99.0
 func _init() -> void:
 	id = "canto"
 	nome = "O Canto"
-	acao = "Ouça de qual controle sai o canto. Ele repete."
+	acao = "Ouça de qual controle sai o canto; o dono repete."
 	icone = "alto-falante"
 	objetivo = "A bigorna canta um ritmo: às vezes no alto-falante de UM controle, às vezes na TV. Todo mundo ouve — a pergunta é outra: o canto saiu da SUA mão? ✕ foi no meu, ○ não foi. Depois, o dono do canto repete o ritmo com ✕. Confira o seu alto-falante aqui embaixo: △ toca um sino nele, ◀ ▶ troca."
 	features = ["alto_falante"]
 	cega = true
+	com_treino = Forja.bancada
 	papel_som = F.PAPEL_ALTO_FALANTE
 	botoes_pedidos = F.mascara([F.CRUZ, F.CIRCULO])
 	duracao = 0.0
@@ -281,8 +282,8 @@ func _tocar_nota(k: int) -> void:
 		Som.tocar(qual, SINO_TV, -2.0)
 	else:
 		Forja.som_falante(fonte, qual, 0.9)
-		Forja.sentir(fonte, "toque")
-		Forja.piscar(fonte, Color.WHITE, 0.14)
+		if not Forja.bancada:
+			Forja.sentir(fonte, "toque")
 	var nota := Label3D.new()
 	nota.text = "♪" if k % 2 == 0 else "♫"
 	nota.font = Tema.archivo(700)
@@ -499,7 +500,7 @@ func _mostrar(l: int, dt: float) -> void:
 	var ms: StandardMaterial3D = nos.mat_sino
 	Tema.emissivo(ms, lerpf(Tema.brilho_de(ms), 1.4 if dono else 0.0, minf(1.0, dt * 6.0)), "forja")
 	var luz: OmniLight3D = nos.luz
-	luz.light_energy = lerpf(luz.light_energy, 2.2 if dono else 0.0, minf(1.0, dt * 6.0))
+	luz.light_energy = lerpf(luz.light_energy, 2.2 if dono else 0.6, minf(1.0, dt * 6.0))
 	var mb: StandardMaterial3D = nos.mat_borda
 	Tema.emissivo(mb, lerpf(Tema.brilho_de(mb), 1.6 if dono else 0.15, minf(1.0, dt * 6.0)), l)
 	var part: Node3D = nos.partitura
