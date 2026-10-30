@@ -39,7 +39,7 @@ func _roteiro_lado_a2() -> Array:
 				["ate", na_sala.call(func(s) -> bool: return s.estado == SalaImpacto.GOLPE and s.t_estado > 0.25)], ["foto", "impacto_golpe"],
 				["ate", na_sala.call(func(s) -> bool: return s.estado == SalaImpacto.VOANDO and s.t_estado > 0.22 and s.resposta == s.atual.y)],
 				["foto", "impacto_escudo"],
-				["ate", na_sala.call(func(s) -> bool: return s.i_plano >= 14)], ["foto", "impacto_meio"],
+				["ate", na_sala.call(func(s) -> bool: return s.i_plano >= 6)], ["foto", "impacto_meio"],
 				["ate", fase.call("fim", 1.4)], ["foto", "impacto_fim"],
 			]
 		"galeria":
