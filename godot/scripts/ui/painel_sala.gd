@@ -138,9 +138,7 @@ func _dicas() -> void:
 			continue
 		var partes: Array = d.get("partes", [])
 		if sala.aprendeu(l):
-			partes = partes.filter(func(s): return str(s).begins_with("@"))
-			if partes.is_empty():
-				continue
+			continue
 		var larg := 0.0
 		for parte in partes:
 			var s := str(parte)
@@ -159,6 +157,8 @@ func _dicas() -> void:
 				var c := HudJogo.cartao(k, size)
 				if rp.intersects(c):
 					rp.position.y = c.end.y + 8.0 if k < 2 else c.position.y - rp.size.y - 8.0
+			if rp.intersects(HudJogo.DECK):
+				rp.position.y = HudJogo.DECK.end.y + 8.0
 			it[2] = rp
 	var valendo := _rect_valendo()
 	if valendo.size.x > 0.0:
