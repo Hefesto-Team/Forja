@@ -9,6 +9,17 @@
 ^ERROR: minigame [^ ]+: a FICHA não tem «faixa»$
 # De propósito: a mesma prova troca o gênero da FICHA por um que não existe.
 ^ERROR: minigame [^ ]+: «genero_que_nao_existe» não vale em genero$
+# De propósito: a prova das decisões (_prova_das_decisoes, a H08) entorta a FICHA do minigame de tempo.
+^ERROR: minigame T00_J01: a duração passa de [0-9]+ s$
+^ERROR: minigame T00_J01: fim «tempo» sem duração \(0\.0 só vale para o fim do próprio jogo\)$
+^ERROR: minigame T00_J01: o ícone «nenhum_glifo» não é um glifo de assets/glifos/ \(o molde lista\)$
+^ERROR: minigame T00_J01: «papel_som» não é um Forja\.PAPEL_\*$
+# De propósito: a prova da entrada (_prova_da_entrada, a G12) entorta a «como_jogar» e o verbo.
+^ERROR: minigame : a FICHA não tem «como_jogar»$
+^ERROR: minigame : a «como_jogar» tem de 1 a 3 linhas$
+^ERROR: minigame : o glifo «glifo_que_nao_existe» da «como_jogar» não existe$
+^ERROR: minigame : a frase «Uma frase comprida demais para o J-card» da «como_jogar» passa de 28 letras$
+^ERROR: minigame : verbo longo demais \(«Inclinem juntos!» não cabe na cortina nem a 160 px\)$
 
 # De propósito: a prova da luz (godot/testes/prova_do_jogo.gd, _prova_da_luz,
 # a G15) pede brilho de 9,0 a cada dono e o néon de um lugar noutra cor, para

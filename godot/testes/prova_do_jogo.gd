@@ -3108,10 +3108,11 @@ func _joga_o_minigame(id: String, limite_s := 60.0, a_cada_quadro := Callable())
 	jogo._entrar_na_sala(id, false)
 	await _quadros(2)
 	var mg = jogo.sala
-	_esperar(mg is Minigame and mg.fase == "aviso", "%s: abriu pelo catálogo" % id)
+	_esperar(mg is Minigame and mg.fase in ["entrada", "aviso"], "%s: abriu pelo catálogo" % id)
 	if not mg is Minigame:
 		return null
 	var q := 0
+	await _passar_a_entrada(mg)
 	while is_instance_valid(mg) and mg.fase == "aviso" and q < 900:
 		await _quadros(1)
 		q += 1
@@ -3172,12 +3173,13 @@ func _prova_do_tempo_de_musica() -> void:
 	var mg: Minigame = load("res://testes/minigame_de_tempo.gd").new()
 	jogo._entrar_na_sala(mg.id, false, mg)
 	await _quadros(2)
-	_esperar(jogo.sala == mg and mg.fase == "aviso" and mg.icone == "cross" and mg.coop, "tempo de música: abriu, coop, com o glifo da parte (%s)" % mg.icone)
+	_esperar(jogo.sala == mg and mg.fase in ["entrada", "aviso"] and mg.icone == "cross" and mg.coop, "tempo de música: abriu, coop, com o glifo da parte (%s)" % mg.icone)
 	var q := 0
+	await _passar_a_entrada(mg)
 	while is_instance_valid(mg) and mg.fase == "aviso" and q < 900:
 		await _quadros(1)
 		q += 1
-	var inicio := Time.get_ticks_usec()
+	var inicio := _relogio_us()
 	var quadros := 0
 	var abaixo_do_piso := 0
 	var viu_branco := false
@@ -3198,19 +3200,19 @@ func _prova_do_tempo_de_musica() -> void:
 	var calada_ao_cair := false
 	var fila_ao_voltar := ""
 	var erros_fora := 0
-	while is_instance_valid(mg) and mg.fase == "jogo" and Time.get_ticks_usec() - inicio < 150000000:
+	while is_instance_valid(mg) and mg.fase == "jogo" and _relogio_us() - inicio < 150000000:
 		quadros += 1
 		var mexeu := false
-		if cabo == 0 and Time.get_ticks_usec() - inicio > 30000000:
+		if cabo == 0 and _relogio_us() - inicio > 30000000:
 			cabo = 1
 			mexeu = true
 			erros_ao_cair = int(Ritmo._erros_seguidos[2])
-			fora_desde = Time.get_ticks_usec()
+			fora_desde = _relogio_us()
 			passaram_em = Ritmo.t_musica() + 1.0
 			for n in mg.notas_em_aberto(2):
 				passaram_em = maxf(passaram_em, mg.alvo_da(2, n) + float(Ritmo.desvio[2]) + Minigame.FOLGA_PERDIDA + 0.3)
 			Forja.ctl.simulador_cabo(2, false)
-		elif cabo == 1 and Time.get_ticks_usec() - fora_desde > 4000000 and Ritmo.t_musica() > passaram_em:
+		elif cabo == 1 and _relogio_us() - fora_desde > 4000000 and Ritmo.t_musica() > passaram_em:
 			cabo = 2
 			mexeu = true
 			calada_ao_cair = mg.notas_em_aberto(2).is_empty()
@@ -3240,7 +3242,7 @@ func _prova_do_tempo_de_musica() -> void:
 				calada_ok = calada_ok and Ritmo._tocador.volume_db < -60.0
 		elif calou_em >= 0.0 and calada_s == 0.0:
 			calada_s = Ritmo.t_musica() - calou_em
-		if not som_testado and Time.get_ticks_usec() - inicio > 5000000 and Forja.som_tem(0, Forja.PAPEL_ALTO_FALANTE):
+		if not som_testado and _relogio_us() - inicio > 5000000 and Forja.som_tem(0, Forja.PAPEL_ALTO_FALANTE):
 			som_testado = true
 			var antes := int(Forja.som_virtual(0).get("som_seq", 0))
 			Forja.som_falante(0, "sino", 0.3)
@@ -3252,7 +3254,7 @@ func _prova_do_tempo_de_musica() -> void:
 		await _quadros(1)
 	if cabo == 1:
 		Forja.ctl.simulador_cabo(2, true)
-	var parede := (Time.get_ticks_usec() - inicio) / 1e6
+	var parede := (_relogio_us() - inicio) / 1e6
 	print("tempo de música: %d quadros (%.0f s de jogo) em %.1f s de parede" % [quadros, quadros / 60.0, parede])
 	_esperar(is_instance_valid(mg) and mg.fase == "fim", "tempo de música: acabou pelo relógio da faixa")
 	if not is_instance_valid(mg):
@@ -3569,6 +3571,10 @@ func _contar_registro(tipo: String, lugar: int, nome: String) -> int:
 		if e.get("tipo", "") == tipo and e.get("nome", "") == nome and int(e.get("jogador", 0)) == lugar + 1:
 			n += 1
 	return n
+
+
+func _relogio_us() -> int:
+	return Forja.agora_us() if Forja.acelerada() else Time.get_ticks_usec()
 
 
 func _passar_a_entrada(sala) -> void:

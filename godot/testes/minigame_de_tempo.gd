@@ -96,7 +96,7 @@ func falha(l: int) -> void:
 		p.gesto("emote-no", 0.4)
 
 
-func robo(l: int, _dt: float) -> void:
+func robo(l: int, dt: float) -> void:
 	if not Forja.robo:
 		return
 	if MIRA[l] == NUNCA:
@@ -110,7 +110,7 @@ func robo(l: int, _dt: float) -> void:
 	if _robo_nota[l] != n:
 		_robo_nota[l] = n
 		_robo_mira[l] = (MIRA[l] + float(Ritmo.desvio[l])) if Forja.robo_acerta() else 0.25
-	if Ritmo.t_musica() >= alvo_da(l, n) + float(_robo_mira[l]):
+	if Ritmo.t_musica() + dt >= alvo_da(l, n) + float(_robo_mira[l]):
 		Forja.robo_apertar(l, Forja.CRUZ, 0.05)
 		_robo_apertou[l] = n
 
