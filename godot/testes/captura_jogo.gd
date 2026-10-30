@@ -335,6 +335,21 @@ func _rodar() -> void:
 					n += 1
 				if n >= 20000:
 					printerr("o momento não chegou: passo %d" % _passo)
+			"exige":
+				var cond: Callable = p[1]
+				var n := 0
+				while not cond.call() and n < int(p[3]):
+					await get_tree().process_frame
+					n += 1
+				if n >= int(p[3]):
+					printerr("FALHOU: o fluxo parou antes de %s (quadro %d, estado %s)" % [p[2], q, jogo.estado])
+					get_tree().quit(1)
+					return
+				print("chegou: %s (quadro %d)" % [p[2], q])
+			"ao_portao":
+				var g: Dictionary = jogo.salao.portoes[p[2]]
+				var j: Node3D = jogo.jogadores[p[1]]
+				j.global_position = g.pos + g.frente * 1.4 + Vector3(0, 0.05, 0)
 			"aperta":
 				Forja.ctl.simulador_botao(p[1], p[2], true)
 				await get_tree().process_frame
