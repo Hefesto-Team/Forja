@@ -80,6 +80,12 @@ var anim: AnimationPlayer
 var aro: Node3D
 var luz_de_dono: OmniLight3D
 var luz_de_cima: OmniLight3D
+var luz_de_palco: OmniLight3D
+var palco := false:
+	set(v):
+		palco = v
+		if luz_de_palco:
+			luz_de_palco.visible = v
 var etiqueta: Label3D
 var _anim_atual := ""
 var _mats_corpo: Array[ShaderMaterial] = []
@@ -131,6 +137,15 @@ func montar(l: int) -> void:
 	luz_de_cima.position = Vector3(0.0, 2.4, 0.5)
 	luz_de_cima.visible = controlavel
 	add_child(luz_de_cima)
+
+	luz_de_palco = OmniLight3D.new()
+	luz_de_palco.light_color = Color.WHITE.lerp(cor, 0.3)
+	luz_de_palco.light_energy = 2.0
+	luz_de_palco.omni_range = 3.2
+	luz_de_palco.shadow_enabled = false
+	luz_de_palco.position = Vector3(0.0, 1.5, 2.0)
+	luz_de_palco.visible = palco
+	add_child(luz_de_palco)
 
 	etiqueta = Label3D.new()
 	etiqueta.text = "P%d" % (l + 1)
@@ -601,6 +616,7 @@ func olhar_para(alvo: Vector3) -> void:
 
 
 func _physics_process(dt: float) -> void:
+	_acender_o_palco()
 	if cooldown > 0.0:
 		cooldown -= dt
 	if _gesto > 0.0:
@@ -624,6 +640,18 @@ func _physics_process(dt: float) -> void:
 		_animar("sprint" if rapido else "walk", 0.8 + mv.length() * 0.5)
 	else:
 		_animar("idle")
+
+
+func _acender_o_palco() -> void:
+	if not palco or luz_de_palco == null:
+		return
+	var cam := get_viewport().get_camera_3d()
+	if cam == null:
+		return
+	var para := cam.global_position - global_position
+	para.y = 0.0
+	if para.length() > 0.01:
+		luz_de_palco.global_position = global_position + Vector3(0, 1.5, 0) + para.normalized() * 2.0
 
 
 static func indice_do_personagem(personagem: String) -> int:

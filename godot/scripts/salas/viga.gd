@@ -503,7 +503,8 @@ func _mostrar(l: int, p: ForjaPlayer, dt: float) -> void:
 		pos.y -= c * c * 3.2
 		pos.x += incl * c * 0.9
 	p.position = pos
-	p.rotation.y = PI
+	if fase != "fim":
+		p.rotation.y = PI
 	if p.modelo:
 		p.modelo.rotation.z = incl * 0.5 + (incl * float(e.caindo) * 1.2 if e.caindo > 0.0 else 0.0)
 	var andando: bool = fase == "jogo" and trecho == VIGA and e.caindo == 0.0 and not acabou[l]

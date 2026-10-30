@@ -292,6 +292,7 @@ func _mostrar(qual: String) -> void:
 		PosFita.gastar(partida.passo + 1 if partida and qual in ["virar", "intervalo"] else 1)
 	_palco_da_montagem(qual == "lobby")
 	for p in jogadores:
+		p.palco = qual in ["salao", "podio", "intervalo"]
 		p.scale = Vector3.ONE * (ESCALA_NA_MONTAGEM if qual == "lobby" else 1.0)
 		p.etiqueta_no_mundo(qual != "lobby")
 	if qual == "lobby" or qual == "intervalo":
@@ -404,11 +405,14 @@ func _ir_para_o_salao(com_cortina := true) -> void:
 				continue
 			var volta := salao.saida_do_portao(Catalogo.apelido(sala_id), p.lugar) if sala_id != "" else Vector3(-3.0 + i * 2.0, 0.05, 3.2)
 			p.global_position = volta
-			p.rotation.y = PI
 			p.controlavel = true
 			p.visible = Forja.ocupado(p.lugar)
 			i += 1
 		_mostrar("salao")
+		var de_onde: Vector3 = _pose_da_camera()[0]
+		for p in jogadores:
+			if p.visible:
+				p.olhar_para(de_onde)
 		salao.mostrar_colecao(partida != null and partida.lado() == "B")
 		hud.vencidas = Colecao.secoes_acesas()
 		hud.sala = {}
@@ -694,7 +698,7 @@ func _ir_para_o_podio() -> void:
 	for p in jogadores:
 		p.controlavel = false
 		p.preso = true
-		p.global_position = salao.pedestais[p.lugar]
+		p.global_position = _base_do_podio(p.lugar)
 		p.rotation.y = 0.0
 	_blocos_do_podio = Node3D.new()
 	salao.add_child(_blocos_do_podio)
@@ -709,7 +713,7 @@ func _ir_para_o_podio() -> void:
 		mat.albedo_color = Tema.OXIDO_BRILHO.lerp(Forja.cor_do_lugar(l), 0.25)
 		Tema.emissivo(mat, 0.6 if int(e.degrau) == 1 else 0.0, l)
 		bloco.material = mat
-		var base: Vector3 = salao.pedestais[l]
+		var base: Vector3 = _base_do_podio(l)
 		bloco.position = base + Vector3(0, -0.5, 0)
 		bloco.scale = Vector3(1, 0.01, 1)
 		_blocos_do_podio.add_child(bloco)
@@ -736,6 +740,11 @@ func _ir_para_o_podio() -> void:
 	Forja.registrar("Partida: terminou — %s" % frase)
 	Forja.evento("sala", 0, {"evento": "partida", "o": "terminou", "podio": lista.map(func(e): return int(e.lugar) + 1)})
 	Forja.gravar_relatorio()
+
+
+func _base_do_podio(l: int) -> Vector3:
+	var b: Vector3 = salao.pedestais[l]
+	return Vector3(b.x * 0.75, b.y, b.z)
 
 
 func _quadro_podio() -> void:
@@ -1388,8 +1397,8 @@ func _pose_da_camera() -> Array:
 				return [Vector3(0, 2.0, 14.2), Vector3(0, 0.5, 4.4)]
 			return [Vector3(0, 2.9, 14.2), Vector3(0, 0.55, 4.4)]
 		"podio":
-			var olhar_do_podio := Vector3(-4.6, 0.9, 4.4)
-			var pos_do_podio := Vector3(-4.6, 4.0, 19.5)
+			var olhar_do_podio := Vector3(-2.9, 0.9, 4.4)
+			var pos_do_podio := Vector3(-2.9, 3.5, 16.85)
 			return [olhar_do_podio + (pos_do_podio - olhar_do_podio) * Lente.recuo(_lente()), olhar_do_podio]
 		"sala":
 			if sala is SalaJogo and _plano_do_fim() != "":
@@ -1409,7 +1418,7 @@ func _pose_da_camera() -> Array:
 			mx = Vector3(maxf(mx.x, q.x), 0, maxf(mx.z, q.z))
 	var c := soma / n if n > 0 else Vector3(0, 0, 2)
 	var abertura := maxf(mx.x - mn.x, (mx.z - mn.z) * 1.6) if n > 1 else 0.0
-	var dist := clampf(11.5 + abertura * 0.5, 11.5, 18.0)
+	var dist := clampf(8.6 + abertura * 0.5, 8.6, 18.0)
 	c.x = clampf(c.x, -6.0, 6.0)
 	c.z = clampf(c.z, -4.0, 5.0)
 	if not Opcoes.reduzido():
@@ -1519,6 +1528,7 @@ func _ui(l: int, id: String) -> void:
 
 
 var _plano_antes := ""
+const FOLGA_DO_GRUPO_NO_FIM := 1.3
 
 
 func _plano_do_fim() -> String:
@@ -1530,7 +1540,7 @@ func _plano_do_fim() -> String:
 func _lente_da_sala() -> float:
 	match _plano_do_fim():
 		"resultado":
-			return 50.0
+			return 35.0 if sala is SalaJogo and (sala as SalaJogo).vencedor_do_fim() < 0 else 50.0
 		"inserto":
 			return 85.0
 	return sala.lente() if sala else 35.0
@@ -1560,11 +1570,14 @@ func _pose_do_fim(sj: SalaJogo, plano: String) -> Array:
 		for q in juntos:
 			centro += q
 		centro /= juntos.size()
-		var raio := 0.0
-		for q in juntos:
-			raio = maxf(raio, (q - centro).length())
 		alvo = centro + Vector3(0, 1.1, 0)
-		d = maxf(5.2, 2.4 * raio + 1.2)
+		var k_grupo := 0.5
+		if not Opcoes.reduzido():
+			k_grupo = TelaIntro.entra_sai(clampf(sj.t_fase / (SalaJogo.BATIDAS_DO_RESULTADO * sj.batida_do_fim()), 0.0, 1.0))
+		var da_sala: Vector3 = sj.camera_pos - sj.camera_olhar
+		var dir_grupo := da_sala.normalized().rotated(Vector3.UP, deg_to_rad(lerpf(-5.0, 5.0, k_grupo)))
+		var tg := _tangentes()
+		return Enquadramento.grupo(juntos, dir_grupo, Vector2(5.2, da_sala.length() * FOLGA_DO_GRUPO_NO_FIM), tg.x, tg.y)
 	var k := 0.5
 	if not Opcoes.reduzido():
 		k = TelaIntro.entra_sai(clampf(sj.t_fase / (SalaJogo.BATIDAS_DO_RESULTADO * sj.batida_do_fim()), 0.0, 1.0))
@@ -1595,6 +1608,11 @@ func _cortou_o_fim(pose: Array) -> bool:
 		var p: ForjaPlayer = sj.jogador(quem) if quem >= 0 else null
 		if p != null and is_instance_valid(p):
 			p.olhar_para(pose[0])
+		elif plano == "resultado":
+			for l in 4:
+				var q := sj.jogador(l)
+				if sj.jogando[l] and q != null and is_instance_valid(q):
+					q.olhar_para(pose[0])
 	return true
 
 
