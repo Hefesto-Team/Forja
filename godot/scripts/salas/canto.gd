@@ -233,7 +233,7 @@ func iniciar_jogo() -> void:
 	for p in jogadores:
 		if jogando[p.lugar]:
 			n_jog += 1
-	var cada := 3 if n_jog <= 1 else (2 if n_jog == 2 else 1)
+	var cada := 3 if n_jog <= 1 else (2 if n_jog == 2 or Forja.bancada else 1)
 	for p in jogadores:
 		if not jogando[p.lugar]:
 			continue
@@ -243,7 +243,7 @@ func iniciar_jogo() -> void:
 		fontes.append(p.lugar)
 		vezes.append(cada)
 	fontes.append(TV)
-	vezes.append(3 if n_jog <= 1 else (2 if n_jog == 2 else 1))
+	vezes.append(3 if n_jog <= 1 else (2 if n_jog == 2 or Forja.bancada else 1))
 	plano = Forja.cega_plano_fontes(fontes, vezes, rng.randi())
 	rodada = 0
 	estado = PREPARO

@@ -130,7 +130,6 @@ func _roteiro_das_salas() -> Array:
 		],
 		"canto": [
 			["canto_canto", na_sala.call(func(sala) -> bool: return sala.estado == SalaCanto.CANTO and sala.notas_tocadas >= 2)],
-			["canto_pergunta", na_sala.call(func(sala) -> bool: return sala.estado == SalaCanto.PERGUNTA and sala.t_estado > 0.9)],
 			["canto_revela", na_sala.call(func(sala) -> bool:
 				return sala.estado == SalaCanto.REVELA and sala.fonte != SalaCanto.TV and sala.t_estado > 0.5)],
 			["canto_repete", na_sala.call(func(sala) -> bool:
@@ -139,7 +138,6 @@ func _roteiro_das_salas() -> Array:
 		"caminhos": [
 			["caminhos_treino", p1.call(func(_sala, e) -> bool: return e.estado == SalaCaminhos.TREINO and e.treino == 1 and e.t > 0.9)],
 			["caminhos_anda", p1.call(func(_sala, e) -> bool: return e.estado == SalaCaminhos.ANDA and e.rodada >= 1 and e.passos >= 2)],
-			["caminhos_tropeco", p1.call(func(_sala, e) -> bool: return e.trop_aberto and e.trop_t > 0.25)],
 			["caminhos_revela", p1.call(func(_sala, e) -> bool: return e.estado == SalaCaminhos.REVELA and e.rodada >= 3 and e.t > 0.3)],
 		],
 		"prova": [
@@ -166,7 +164,7 @@ func _roteiro_das_salas() -> Array:
 		],
 	}
 	var roteiro_salas: Array = [
-		["ate", no_salao],
+		["ate", no_salao] if OS.get_environment("DIRETO") != "1" else ["sentar"],
 	]
 	var pedidas := OS.get_environment("SALAS")
 	var salas: Array = Array(pedidas.split(",")) if pedidas != "" else ["centelha", "viga", "molde"]
@@ -174,8 +172,11 @@ func _roteiro_das_salas() -> Array:
 		roteiro_salas.append_array([["sala", id], ["ate", fase.call("aviso", 1.7)], ["foto", id + "_aviso"]])
 		for m in momentos.get(id, []):
 			roteiro_salas.append_array([["ate", m[1]], ["foto", m[0]]])
+		if OS.get_environment("PARAR") == "1":
+			continue
 		roteiro_salas.append_array([["ate", fase.call("fim", 1.4)], ["foto", id + "_fim"], ["ate", no_salao]])
-	roteiro_salas.append_array([["foto", "salao_depois"]])
+	if OS.get_environment("PARAR") != "1":
+		roteiro_salas.append_array([["foto", "salao_depois"]])
 	if "prova" in salas:
 		roteiro_salas.append_array([["posiciona", 0, Vector3(0.0, 0.05, 2.1), PI], ["espera", 40], ["foto", "salao_bigorna"]])
 	roteiro_salas.append_array([["fim"]])
@@ -263,7 +264,7 @@ func _janela(cheia: bool) -> void:
 func _process(_dt: float) -> void:
 	q += 1
 	if q % 300 == 0:
-		print("quadro %d em %.0f s (janela %s)" % [q, Time.get_ticks_msec() / 1000.0, get_window().size])
+		print("quadro %d em %.0f s (janela %s) estado %s" % [q, Time.get_ticks_msec() / 1000.0, get_window().size, jogo.estado])
 	if _rodando:
 		return
 	if _espera > 0:
@@ -341,6 +342,15 @@ func _rodar() -> void:
 				Forja.veredito(0, "botoes", Forja.PASSOU, Forja.NIVEL_REAGIU, "apertar ✕ ○ □ △", "os quatro chegaram")
 				Forja.veredito(1, "vibracao_forte", Forja.FALHOU, Forja.NIVEL_OBEDECEU, "motor esquerdo, às cegas", "a pessoa disse direita duas vezes")
 				Forja.veredito(2, "lightbar", Forja.PASSOU, Forja.NIVEL_OBEDECEU, "cor sorteada: verde", "a pessoa disse verde")
+			"sentar":
+				for pad in Forja.pads():
+					if int(pad.lugar) < 0:
+						var lugar := Forja.entrar(int(pad.pad))
+						if lugar >= 0:
+							jogo.lobby.entrou(lugar)
+				jogo._sincronizar_jogadores()
+				for i in 30:
+					await get_tree().process_frame
 			"sala":
 				jogo._entrar_na_sala(p[1], false)
 			"termina":
