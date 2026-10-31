@@ -217,7 +217,7 @@ FIM
 confere "gancho: o modelo é um JSON com Stop e SubagentStop" gancho_ok "$RAIZ/scripts/devlog/gancho.json"
 espera 1 "gancho: desligado numa árvore nova" python3 "$RAIZ/scripts/devlog/ligar_gancho.py" --raiz "$R" --conferir
 printf '{"model": "x", "hooks": {"Stop": [{"hooks": [{"type": "command", "command": "echo meu"}]}]}}\n' > "$TMP/antes.json"
-AG="$(printf '%s' 636c61756465 | xxd -r -p)"
+AG="$(python3 -c 'print(bytes.fromhex("636c61756465").decode())')"
 mkdir -p "$R/.$AG"
 cp "$TMP/antes.json" "$R/.$AG/settings.json"
 espera 0 "gancho: liga sem apagar o que já havia" python3 "$RAIZ/scripts/devlog/ligar_gancho.py" --raiz "$R"
