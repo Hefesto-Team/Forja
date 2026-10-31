@@ -308,14 +308,14 @@ São base: vão de **a fazer** direto para **em voo**, um trilho por grupo, na o
 
 ## Y — Vindas do Hefesto
 
-O que o plano do Hefesto pedia da Forja (13/10/2026) e agora mora aqui. Nada se executa antes da hora: a Y01 espera o
-aceite do André; a Y02 e a Y03 andam na janela da reescrita da história, nessa ordem.
+O que o plano do Hefesto pedia da Forja (13/10/2026) e agora mora aqui. A Y02 e a Y03 nasceram feitas (a reescrita da
+história foi em 07/10/2026 e o GitHub já segue o `repositorio.yml`); a Y01 espera o aceite do André.
 
 | ficha | título | tamanho | depende de | estado |
 | --- | --- | --- | --- | --- |
 | [Y01](Y01-o-jogo-como-banco-de-prova.md) | O Forja como banco de prova: a mão de fora e o registro que o banco lê | G | F01, F06, F08 | a fazer |
-| [Y02](Y02-a-historia-sem-rastro.md) | A história sem rastro: os ramos, a reescrita e o chamado | M | — (a janela do Hefesto) | a fazer |
-| [Y03](Y03-o-repositorio-nasce-vivo.md) | O repositório nasce vivo: a chamada do `aplicar.py` na Forja | P | Y02 | a fazer |
+| [Y02](Y02-a-historia-sem-rastro.md) | A história sem rastro: os ramos, a reescrita e o chamado | M | — | feito |
+| [Y03](Y03-o-repositorio-nasce-vivo.md) | O repositório nasce vivo: a chamada do `aplicar.py` na Forja | P | Y02 | feito |
 
 ## A soma
 
