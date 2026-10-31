@@ -401,7 +401,7 @@ curto_tree() {
   mkdir -p "$1/scripts/portoes" "$1/tests"
   cp "$P/rodar.sh" "$1/scripts/portoes/"
   local quieto='print("quieto: 0 achados")'
-  for g in mensagens_de_commit ficha_pronta teste_mudo caixa arte codigo_sem_comentario texto_enxuto udev; do echo "$quieto" > "$1/scripts/portoes/$g.py"; done
+  for g in mensagens_de_commit ficha_pronta teste_mudo caixa devlog arte codigo_sem_comentario texto_enxuto udev; do echo "$quieto" > "$1/scripts/portoes/$g.py"; done
   echo "$quieto" > "$1/scripts/check_texto_de_tela.py"
   printf '#!/usr/bin/env bash\necho "ok   sem rastro"\n' > "$1/tests/prova_sem_rastro.sh"
   printf 'import sys\nfor i in range(500):\n    print(f"AVISO som: docs/x{i}.md: um aviso velho")\nprint("FAIL som: docs/novo.md: o achado novo")\nprint("som: 501 achados")\nsys.exit(%s)\n' "$2" \
