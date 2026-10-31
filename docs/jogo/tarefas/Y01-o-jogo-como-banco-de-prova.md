@@ -68,7 +68,7 @@ Forja. Esta ficha é esse pedido. Se o Forja aceita é decisão do repositório 
    [08 — A noite de seis horas](../08-a-noite-de-6-horas.md) prevê um cruzamento do que o jogo mandou com «o registro da
    ponte». O repositório não tem tag: o pino do banco é um commit.
 
-### O código do Forja, medido em `795a4a1` e reapontado em 30/10/2026 (`9b8bf3d`)
+### O código do Forja, medido em `795a4a1` e reapontado em 30/10/2026 (`49d308f`)
 
 As linhas abaixo são as de 30/10/2026, depois do corte dos comentários (V09) e da F08. Ainda não existem `--mao` nem
 `--listar-defeitos` no código.
@@ -214,7 +214,7 @@ no repositório do Hefesto, medido lá em `integra/0110` (`d9a74436b`).
 
 1. **Medir de novo** no commit atual do Forja antes de começar (`git log -1`): `forja.gd` (`_ler_args`, ações do robô,
    percepção), `simulador.c`, `forja_medidas.cpp`, `medidas.c`, `relatorio.c`. As linhas de «O código do Forja» são de
-   30/10/2026 (`9b8bf3d`); anotar na ficha o que mudar de linha.
+   30/10/2026 (`49d308f`); anotar na ficha o que mudar de linha.
 2. **Abrir uma conversa curta com o repositório do Hefesto** (só leitura de lá) para fechar o nome dos campos que o `jogo`
    do básico lê: `formato`, `versao`, `mao`, `lugar → mão`, a lista de defeitos. Escrever o combinado no
    [CONTRATO](../../../CONTRATO.md) como «o que o Forja entrega a quem o mede», sem citar o Hefesto.
@@ -264,7 +264,7 @@ no repositório do Hefesto, medido lá em `integra/0110` (`d9a74436b`).
 - Um teste novo do socket, com mordida: tire a leitura do bloco de 47 bytes e veja a percepção reprovar; devolva.
 - Mordida da troca: devolva a resposta atrasada como troca e veja a prova nova reprovar.
 - As réguas do banco que dependem desta ficha são do Hefesto: 12 (cada defeito reproduzido no controle de mentira vira FALHOU
-  na feature dele, e um defeito que passa reprova o job), 6 (relatório `/2` desconhecido ou `versao` fora do pino dá rc=2) e
+  na feature dele, e um defeito que passa reprova o job), 6 (`formato` desconhecido ou `versao` fora do pino dá rc=2) e
   7 (a chave é o P do Hefesto; com o relatório de 01/10 18h14, «Botões» falha no P2). As outras réguas (pad que não é do
   Hefesto recusado, saída ao plástico certo, produto medido por um `sitecustomize` e nunca por `src/`, célula que passou não
   volta, pior e não último, plástico sem `import` do produto, guarda do kernel único, zero com o alvo fora, base só muda com

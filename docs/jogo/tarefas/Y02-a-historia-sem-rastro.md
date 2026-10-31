@@ -66,4 +66,4 @@ exceção.
 
 - `bash tests/prova_sem_rastro.sh` verde, e ela **morde**: o campo de sugestão de modelo numa ficha reprova; o codec do
   som a 48 kHz passa.
-- As quatro medidas da tabela.
+- As medidas da tabela.
