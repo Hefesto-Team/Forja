@@ -3,7 +3,7 @@ titulo: A apresentação
 data: 2026-10-30
 ramo: integra/apresentacao
 base: 55682df
-topo: a874b1a
+topo: 018dca4
 fichas: G04, G07, G11, G12, G13, H08
 so_antes: caminhos_tropeco,galeria_escuro
 so_depois: canto_fim,canto_repete,canto_revela,cav_forjar,cav_montagem,cav_salao,cav_trava,prova_contagem,prova_fim,prova_ja,prova_placar,salao_bigorna,voz_antes_do_susto,voz_clarao,voz_fim,voz_susto

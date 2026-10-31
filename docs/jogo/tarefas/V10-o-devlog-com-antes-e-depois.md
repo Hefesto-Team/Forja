@@ -59,7 +59,7 @@ projeto, para os três devs, e se abre com um comando só.
 7. **O portão** `scripts/portoes/devlog.py`, no grupo `base` do `rodar.sh`, modo reprova: toda entrada tem o
    cabeçalho inteiro e o resumo de até 8 linhas; toda foto é JPEG de até 1280 px; a entrada pesa até 6 MB; todo par
    tem o mesmo nome dos dois lados.
-8. **A primeira entrada**: `docs/devlog/2026-10-30-a-apresentacao/`, base `55682df`, topo `a874b1a`, título
+8. **A primeira entrada**: `docs/devlog/2026-10-30-a-apresentacao/`, base `55682df`, topo `018dca4`, título
    «A apresentação», com as fotos que o `fotos.sh` tirar e o resumo das sete áreas do dia (capa, cavaleiro, salão e
    fluxo, Centelha e Viga, Molde/Impacto/Galeria, Canto/Caminhos, Cega/Voz/Prova).
 9. **O texto**: `docs/DESENVOLVER.md` ganha a seção «O devlog» (os três comandos e quando usar);
