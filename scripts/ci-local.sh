@@ -250,23 +250,20 @@ for j in "${JOBS[@]}"; do
 done
 
 mkdir -p "$SAIDA" "$CASA/ci-local/artefatos"
-TMP="$(mktemp -d /tmp/cil.XXXXXX)"
+TMP="$(mktemp -d "${TMPDIR:-/tmp}/cil.XXXXXX")"
 trap 'rm -rf "$TMP"' EXIT
 
 ARV="$TMP/arvore"
-mkdir -p "$ARV"
+clonar() {
+  local sha ramo
+  sha="$(git -C "$RAIZ" rev-parse HEAD)" && ramo="$(git -C "$RAIZ" symbolic-ref -q --short HEAD || true)" \
+    && git clone -q --no-checkout "$RAIZ" "$ARV" || return 1
+  if [ -n "$ramo" ]; then git -C "$ARV" symbolic-ref HEAD "refs/heads/$ramo"; else git -C "$ARV" update-ref --no-deref HEAD "$sha"; fi
+  git -C "$ARV" reset -q "$sha"
+}
+clonar 2>/dev/null || { echo "ci-local: não clonou $RAIZ; nada rodou" >&2; exit 2; }
 git -C "$RAIZ" checkout-index -a -f --prefix="$ARV/" 2>/dev/null \
   || { echo "ci-local: não exportou o índice de $RAIZ; nada rodou" >&2; exit 2; }
-GITDIR="$(git -C "$RAIZ" rev-parse --absolute-git-dir 2>/dev/null || true)"
-GITCOMUM="$(git -C "$RAIZ" rev-parse --path-format=absolute --git-common-dir 2>/dev/null || true)"
-OPCOES_DOCKER=()
-if [ -n "$GITDIR" ] && [ -d "$GITDIR" ]; then
-  printf 'gitdir: %s\n' "$GITDIR" > "$ARV/.git"
-  OPCOES_DOCKER+=("-v $GITDIR:$GITDIR:ro")
-  if [ -n "$GITCOMUM" ] && [ -d "$GITCOMUM" ] && [ "$GITCOMUM" != "$GITDIR" ]; then OPCOES_DOCKER+=("-v $GITCOMUM:$GITCOMUM:ro"); fi
-fi
-OPCOES=()
-[ "${#OPCOES_DOCKER[@]}" -gt 0 ] && OPCOES=(--container-options "${OPCOES_DOCKER[*]}")
 
 tirar_passo() {
   awk -v job="$2" -v passo="$3" '
@@ -292,12 +289,26 @@ tirar_needs() {
 }
 REF_DO_RELEASE='^( +)ref: \$\{\{ github\.event\.inputs\.tag \|\| github\.ref \}\}[[:space:]]*$'
 tirar_ref() { sed -E "s/$REF_DO_RELEASE/\1lfs: false/" "$1" > "$1.n" && mv "$1.n" "$1"; }
+IMAGEM_DO_CONTEINER='^      image: [^ ]+[[:space:]]*$'
+com_node() {
+  local img nova
+  img="$(sed -nE 's/^      image: ([^ ]+)[[:space:]]*$/\1/p' "$1" | head -1)"
+  nova="forja-ci-local-node:$(printf '%s' "$img" | sha256sum | cut -c1-10)"
+  if ! docker image inspect "$nova" >/dev/null 2>&1; then
+    echo "ci-local: o act não põe o node no contêiner do job, como o runner do GitHub põe; montando $nova sobre $img" >&2
+    printf 'FROM %s AS node\nFROM %s\nCOPY --from=node /opt/acttoolcache/node/24.19.0/x64/bin/node /usr/local/bin/node\n' "$IMAGEM" "$img" \
+      | docker build -q -t "$nova" - >/dev/null 2>&1 \
+      || { echo "ci-local: a imagem $nova não montou (rede?)" >&2; return 1; }
+  fi
+  sed -E "s|^      image: [^ ]+[[:space:]]*$|      image: $nova|" "$1" > "$1.n" && mv "$1.n" "$1"
+}
 yaml_de() {
   local job="$1" f copia="$TMP/$1.yml" mudou=0 p
   f="$(arquivo_do_job "$job")"; [ -n "$f" ] || return 1
   f="$ARV/.github/workflows/$f"
   cp "$f" "$copia"
   if grep -qE "$REF_DO_RELEASE" "$copia"; then tirar_ref "$copia"; mudou=1; fi
+  if grep -qE "$IMAGEM_DO_CONTEINER" "$copia"; then com_node "$copia" || return 1; mudou=1; fi
   if [ "$modo" = rapido ]; then
     while IFS= read -r p; do [ -n "$p" ] && { tirar_passo "$copia" "$job" "$p"; mudou=1; }; done < <(campo PULA-NO-RAPIDO "$job" 3)
   fi
@@ -334,7 +345,7 @@ chamar_act() {
       --concurrent-jobs "$PERNAS" \
       --env RUNNER_TOOL_CACHE=/tmp/hostedtoolcache --env AGENT_TOOLSDIRECTORY=/tmp/hostedtoolcache \
       --env GIT_CONFIG_COUNT=1 --env GIT_CONFIG_KEY_0=safe.directory --env 'GIT_CONFIG_VALUE_0=*' \
-      "${OPCOES[@]}" ${CI_LOCAL_ACT_EXTRA:-} >"$log" 2>&1
+      ${CI_LOCAL_ACT_EXTRA:-} >"$log" 2>&1
   )
   rc=$?
   ( flock 9; cp -an "$cache/." "$CACHE_ACOES/" 2>/dev/null ) 9>"$CACHE_ACOES/.trava"
