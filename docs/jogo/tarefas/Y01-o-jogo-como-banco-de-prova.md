@@ -37,7 +37,8 @@ Forja. Esta ficha é esse pedido. Se o Forja aceita é decisão do repositório 
 
 1. **As doze sessões do Forja** (`dist/forja-linux-x86_64/relatorios/`, de 29/09 12h28 a 01/10 18h24), todas de gente
    (`"simulado": false`): 9 no Forja `9bb19df` e 3 no `9bb19df-dirty` (30/09 01h07 e as duas de 01/10), um build com
-   mudança local sem commit, que nenhum pino reproduz.
+   mudança local sem commit, que nenhum pino reproduz. (O `versao` dos relatórios guarda o hash de antes da reescrita;
+   o commit é hoje o `795a4a1`.)
 
    | | |
    | --- | --- |
@@ -55,50 +56,57 @@ Forja. Esta ficha é esse pedido. Se o Forja aceita é decisão do repositório 
 
    E essa falha não é do Hefesto: a sprint irmã `O-BOTAO-CHEGA-AO-JOGO-COMO-ELE-E-01` («A causa») refez a fila das runas
    pela semente e mediu que o veredito do Forja **chama de troca a resposta atrasada à runa anterior**, e guarda só o nome
-   do último aperto (`nativo/nucleo/medidas.c:59-60`, `:104`). Um portão sobre a mão teria dado, no primeiro dia, um
+   do último aperto (`nativo/nucleo/medidas.c:46-59`, `:100-105`). Um portão sobre a mão teria dado, no primeiro dia, um
    alarme falso. Por isso o pedido «a troca com assinatura» abaixo.
 3. **O Forja roda sob o Freestyle** (diário do daemon, 18h13–18h42): às 18h14min24, sete segundos depois de a sessão abrir,
    o troca-automática de perfil do Hefesto trocou do perfil de outro jogo para o Freestyle. O Forja não tem perfil próprio.
-4. **O Forja remoto** (`gh api repos/Hefesto-Team/Forja`, só leitura): público; o `main` estava em `750c1ec` (30/09 22h28) e
-   depois do último commit de código (`9bb19df`) vieram 22 commits só de documentação (o plano do «jogo completo»,
+4. **O Forja remoto** (`gh api repos/Hefesto-Team/Forja`, só leitura): público; o `main` estava em `eac3326` (30/09 22h28) e
+   depois do último commit de código (`795a4a1`, que era `9bb19df` antes da reescrita) vieram 22 commits só de documentação (o plano do «jogo completo»,
    fichas F00 a S). Três encostam aqui: a F01 (Modo bancada: as perguntas às cegas e o veredito só com `--bancada`, ligado
-   também por `--prova-de-fogo`; sem ele, oito features saem «não medido»), a F06 (registro v2: `formato` `/2`, `seq` por
-   lugar, `transporte` na conexão e o relógio de parede) e a F08 (o robô só age pelo controle simulado, sem atalho). O
+   também por `--prova-de-fogo`; sem ele, oito features saem «não medido»), a F06 (registro v2: `formato` `/2` da linha do tempo,
+   `seq` por lugar, `transporte` na conexão e o relógio de parede) e a F08 (o robô só age pelo controle simulado, sem atalho). O
    [08 — A noite de seis horas](../08-a-noite-de-6-horas.md) prevê um cruzamento do que o jogo mandou com «o registro da
    ponte». O repositório não tem tag: o pino do banco é um commit.
 
-### O código do Forja, medido em `9bb19df`
+### O código do Forja, medido em `795a4a1` e reapontado em 30/10/2026 (`9b8bf3d`)
 
-- **O robô só joga pad simulado.** `--robo` sem `--simular` vira `--simular=4` (`godot/scripts/forja.gd:154-156`). O
-  simulado é um `SDL_AttachVirtualJoystick` dentro do processo do jogo (`nativo/nucleo/simulador.c:239-242`). O
-  `robo_apertar` procura o simulado do pad e, sem ele, não faz nada (`:305-312`, `:333-341`). O que o robô «sente» vem dos
-  callbacks desse joystick (`cb_rumble`, `:122`), e não de um aparelho.
-- **Os 20 defeitos entram entre a mão do robô e o fio do simulado** (`simulador.c:536-560`, e nos callbacks de saída), e o
-  `scripts/gauntlet.sh` exige que cada um seja pego (`docs/adr/003-o-gauntlet.md:29`; `scripts/gauntlet.sh:11`: *«o
-  Hefesto se prova na mão»*).
-- **O CI do Forja esconde os controles de verdade** (`tests/prova_da_exportacao.sh:24-29`: `bwrap` com `tmpfs` sobre
-  `/sys/class/hidraw` e `/sys/class/input`) e acelera o tempo (`--fixed-fps 60`).
-- **A matriz guarda o último veredito** (`nativo/nucleo/relatorio.c:50-55`, `:200-201`); o JSON traz todas as tentativas,
-  na ordem. O `formato` é `hefesto-tech-demo/relatorio/1` (`:167`).
-- **Sem robô, o jogo anda com ✕.** Cada lugar confirma o aviso (`godot/scripts/salas/sala_jogo.gd:236-237`) e o fim da sala
-  (`:380-383`). O treino acaba em `TREINO_MAX` = 15 s mesmo sem acerto (`:71`, `:423`). `--prova-de-fogo` põe todo pad
-  presente na partida (`main.gd:169-172`) e `--sair-no-fim` grava o relatório e fecha no fim dela (`:356-359`). A linha do
-  tempo é gravada enquanto o jogo roda.
+As linhas abaixo são as de 30/10/2026, depois do corte dos comentários (V09) e da F08. Ainda não existem `--mao` nem
+`--listar-defeitos` no código.
+
+- **O robô só joga pad simulado.** `--robo` sem `--simular` vira `--simular=4` (`godot/scripts/forja.gd:146-148`). O
+  simulado é um `SDL_AttachVirtualJoystick` dentro do processo do jogo (`nativo/nucleo/simulador.c:227`). O
+  `robo_apertar` procura o simulado do pad e, sem ele, não faz nada (`:291-326`, `sim_do_pad`). O que o robô «sente» vem
+  dos callbacks desse joystick (`cb_rumble`, `:119`), e não de um aparelho. Desde a F08 o robô tem temperamento
+  (`--robo=bom|medio|ruim`, `forja.gd:149-153`): `robo_apertar` e `robo_confirmar` passam por ele antes do
+  `_robo_apertar_cru` (`:924-939`, `:981`).
+- **Os 20 defeitos entram entre a mão do robô e o fio do simulado** (a lista em `simulador.c:52-62`; os efeitos em
+  `:119-176` e `:507-576`), e o `scripts/gauntlet.sh` exige que cada um seja pego (ele lê a lista do `simulador.c`;
+  `docs/adr/003-o-gauntlet.md:31`: *«Ele prova o JOGO no CI; o Hefesto se prova na mesa.»*).
+- **O CI do Forja esconde os controles de verdade** (`tests/caixa.sh:21-31`: `bwrap` com `tmpfs` sobre
+  `/sys/class/hidraw` e `/sys/class/input`) e acelera o tempo (`--fixed-fps 60`, `tests/prova_da_exportacao.sh:16`).
+- **A matriz guarda o último veredito** (`nativo/nucleo/relatorio.c:49`, `:206`); o JSON traz todas as tentativas, na
+  ordem (`:220`). O `formato` do relatório é `hefesto-tech-demo/relatorio/1` (`:167`); o `/2` da F06 é o da linha do
+  tempo (`nativo/nucleo/linha_tempo.h:8`).
+- **Sem robô, o jogo anda com ✕.** Cada lugar confirma o aviso (`godot/scripts/salas/sala_jogo.gd:235-239`) e o placar e o
+  intervalo (`main.gd:688`, `:799`). O treino acaba em `TREINO_MAX` = 15 s mesmo sem acerto (`sala_jogo.gd:46`, `:535`).
+  `--prova-de-fogo` põe todo pad presente na partida (`main.gd:203-216`, `_todos_entram` em `:238`) e `--sair-no-fim`
+  grava o relatório e fecha no fim dela (`:515`, `:783`). A linha do tempo é gravada enquanto o jogo roda.
 - **As salas são nove, e cada feature tem a sua.** A Prova de Fogo anda por `centelha, viga, molde, impacto, galeria,
-  canto, caminhos, voz, prova` (`godot/scripts/main.gd:27`). A Viga mede o giroscópio e o acelerômetro, o Molde o touchpad,
-  o Impacto a lightbar e os três dos motores, a Galeria os três do gatilho e os LEDs de jogador, a Voz o microfone, o mudo e
-  a luz dele, o Canto o alto-falante e os Caminhos a háptica por áudio (os `veredito(…, "<chave>"` de cada
-  `godot/scripts/salas/*.gd`). Com `--sala` ou `--prova-de-fogo`, todo pad presente entra de uma vez (`main.gd:169-172`): o
-  lugar é a ordem em que o SDL os achou, e não quem apertou ✕.
+  canto, caminhos, voz, prova` (`godot/scripts/main.gd:3`). A Viga mede o giroscópio e o acelerômetro, o Molde o
+  touchpad, o Impacto a lightbar e os três dos motores, a Galeria os três do gatilho e os LEDs de jogador, a Voz o
+  microfone, o mudo e a luz dele, o Canto o alto-falante e os Caminhos a háptica por áudio (os `veredito(…, "<chave>"`
+  de cada `godot/scripts/salas/*.gd`). Com `--sala` ou `--prova-de-fogo`, todo pad presente entra de uma vez: o lugar é
+  a ordem em que o SDL os achou, e não quem apertou ✕.
 - **O relatório já diz se o pad é o do Hefesto:** cada controle traz o `vid_pid`, o `nome_do_sistema` e a
-  `evidencia_da_origem` (`relatorio.c:114-123`), que em 01/10 dizia *«sysfs: HID bus 0003 em /devices/virtual/misc/uhid, sem
-  pai USB · phys «hefesto-vpad»»*, e a taxa medida do giroscópio pelo relógio do controle
-  (`giroscopio_hz_medido_relogio_do_controle`: 248,3 Hz no lugar 1 de 01/10, o Hefesto P2).
-- **O CONTRATO proíbe o Forja de falar com o Hefesto, de ler o `uniq` e de montar o report `0x31`** (`CONTRATO.md:45-50`).
-  O controle de mentira do rádio, que fala `0x31` com CRC, não pode morar no Forja.
-- Os pontos de código que a parte 4 mexe: as ações do robô em `forja.gd:875-909`; a percepção em `forja.gd:720`
-  (`percepcao(l)`) e `:801` (`som_virtual(l)`); a linha do tempo dos apertos em `nativo/godot/forja_medidas.cpp:233-237`
-  (hoje só o primeiro aperto de cada botão fica); `include/forja_dualsense.h` (o decodificador do bloco comum de 47 bytes).
+  `evidencia_da_origem` (`relatorio.c:106-139`), que em 01/10 dizia *«sysfs: HID bus 0003 em /devices/virtual/misc/uhid,
+  sem pai USB · phys «hefesto-vpad»»*, e a taxa medida do giroscópio pelo relógio do controle
+  (`giroscopio_hz_medido_relogio_do_controle`, `:133`: 248,3 Hz no lugar 1 de 01/10, o Hefesto P2).
+- **O CONTRATO proíbe o Forja de falar com o Hefesto, de ler o `uniq` e de montar o report `0x31`** (`CONTRATO.md:41-56`,
+  «O que o jogo recusa»). O controle de mentira do rádio, que fala `0x31` com CRC, não pode morar no Forja.
+- Os pontos de código que a parte 4 mexe: as ações do robô em `forja.gd:924-980`; a percepção em `forja.gd:764`
+  (`percepcao(l)`) e `:853` (`som_virtual(l)`); a linha do tempo dos apertos em `nativo/godot/forja_medidas.cpp:214-221`
+  (hoje só o primeiro aperto de cada botão pedido ganha o `marco`) e a troca em `nativo/nucleo/medidas.c:46-59`;
+  `include/forja_dualsense.h` (o decodificador do bloco comum de 47 bytes).
 
 ### A causa
 
@@ -120,8 +128,8 @@ quem joga; tudo é opção de linha de comando e campo de registro.
 **A. A mão de fora (`--mao=<socket>`), depois da F08** (o robô só age pelo controle). É o mesmo robô, com o corpo trocado.
 
 - As ações que hoje vão ao simulado (`robo_apertar`, `robo_eixo`, `robo_girar`, `robo_sacudir`, `robo_tocar` e `robo_falar`,
-  `forja.gd:875-909`) vão ao socket, em linhas JSON, com o índice da mão.
-- A percepção que hoje vem dos callbacks (`percepcao(l)` e `som_virtual(l)`, `forja.gd:720` e `:801`) volta pelo socket como
+  `forja.gd:924-980`) vão ao socket, em linhas JSON, com o índice da mão.
+- A percepção que hoje vem dos callbacks (`percepcao(l)` e `som_virtual(l)`, `forja.gd:764` e `:853`) volta pelo socket como
   o **bloco comum de 47 bytes** que o controle de mentira recebeu. O Forja o lê com o próprio decodificador
   (`include/forja_dualsense.h`).
 - No começo, o robô descobre qual mão é qual lugar apertando ✕ numa de cada vez, e grava o mapa na linha do tempo.
@@ -138,9 +146,9 @@ não se refaz.
 **D. Os dois pedidos da sprint irmã** (`O-BOTAO-CHEGA-AO-JOGO-COMO-ELE-E-01`, «Para o Hefesto-Team»):
 
 - **a troca com assinatura:** o mesmo botão chegando em toda janela do pedido, e nunca a resposta atrasada à runa anterior
-  (`medidas.c:59-60`, `:104`);
+  (`medidas.c:46-59`, `:100-105`);
 - **todo aperto na linha do tempo, com a runa acesa.** Hoje só o primeiro de cada botão fica
-  (`nativo/godot/forja_medidas.cpp:233-237`).
+  (`nativo/godot/forja_medidas.cpp:214-221`).
 
 Sem o primeiro, a célula «Botões» da mão não entra na base do Hefesto: o alarme falso de 01/10 se repetiria. **Sem o
 segundo, a chave da célula no modo Xbox não existe:** o pad do modo Xbox não leva o Pn no nome, e com `--sala` o lugar é a
@@ -204,9 +212,9 @@ no repositório do Hefesto, medido lá em `integra/0110` (`d9a74436b`).
 
 ## Passos
 
-1. **Medir de novo** no commit atual do Forja (`git log -1`; o `main` andou muito desde `9bb19df`): `forja.gd` (`_ler_args`,
-   ações do robô, percepção), `simulador.c`, `forja_medidas.cpp`, `medidas.c`, `relatorio.c` e a F06/F08 já feitas. Anotar na
-   ficha o que mudou de linha.
+1. **Medir de novo** no commit atual do Forja antes de começar (`git log -1`): `forja.gd` (`_ler_args`, ações do robô,
+   percepção), `simulador.c`, `forja_medidas.cpp`, `medidas.c`, `relatorio.c`. As linhas de «O código do Forja» são de
+   30/10/2026 (`9b8bf3d`); anotar na ficha o que mudar de linha.
 2. **Abrir uma conversa curta com o repositório do Hefesto** (só leitura de lá) para fechar o nome dos campos que o `jogo`
    do básico lê: `formato`, `versao`, `mao`, `lugar → mão`, a lista de defeitos. Escrever o combinado no
    [CONTRATO](../../../CONTRATO.md) como «o que o Forja entrega a quem o mede», sem citar o Hefesto.
