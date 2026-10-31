@@ -444,7 +444,8 @@ for j in "${JOBS[@]}"; do
   [ -n "$j" ] || continue
   [ -z "${COBERTO[$j]:-}" ] || continue
   while [ "$(jobs -rp | wc -l)" -ge "$EM_PARALELO" ]; do wait -n 2>/dev/null || true; done
-  ( rodar_job "$j" "$i"; rc=$?
+  ( while read -r d; do exec {trava}>"$TMP/trava-$d"; flock "$trava"; done < <(plano_do_job "$j" | sort)
+    rodar_job "$j" "$i"; rc=$?
     if [ "$rc" = 0 ]; then echo "ci-local: $j verde ($(cat "$SAIDA/$j.seg")s)" >&2
     elif [ "$rc" = 2 ]; then echo "ci-local: $j NÃO RODOU$([ -f "$SAIDA/$j.motivo" ] && echo " ($(cat "$SAIDA/$j.motivo"))") (log $SAIDA/$j.log)" >&2
     else echo "ci-local: $j VERMELHO rc=$rc (log $SAIDA/$j.log)" >&2; fi ) &
