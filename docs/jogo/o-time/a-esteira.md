@@ -59,7 +59,8 @@ A costura, em detalhe (`bash scripts/costura.sh --ajuda` dá as opções e os c�
 
 O voo que entrou no `main` sai da máquina: depois do push, `bash scripts/apagar_voo.sh voo/<conjunto> --sim` tira a
 worktree e o ramo local; `--velhos --sim` faz o mesmo com todo voo antigo. Só sai o voo com todo commit no
-`origin/main` e a worktree limpa; o ramo vai antes para um bundle em `.git/voo-apagados/`, e o do GitHub fica.
+`origin/main`, pelo patch ou pelo conteúdo (o assunto igual não basta), e com a worktree limpa; o ramo vai antes para
+um bundle em `.git/voo-apagados/`, e o do GitHub fica.
 
 ## Os limites
 

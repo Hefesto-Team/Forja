@@ -390,7 +390,9 @@ echo a > "$AV/a"; gv add a; gv commit -qm "a base"
 gv switch -qc voo/feito; echo b > "$AV/b"; gv add b; gv commit -qm "feat: um"
 gv switch -q main; gv cherry-pick voo/feito
 gv switch -qc voo/costurado; echo c > "$AV/c"; gv add c; gv commit -qm "feat: dois"
-gv switch -q main; echo outro > "$AV/c"; gv add c; gv commit -qm "feat: dois"
+gv switch -q main; echo c > "$AV/c"; echo c2 > "$AV/c2"; gv add c c2; gv commit -qm "feat: dois"
+gv switch -qc voo/xara; echo e > "$AV/e"; gv add e; gv commit -qm "feat: quatro"
+gv switch -q main; echo outro > "$AV/e"; gv add e; gv commit -qm "feat: quatro"
 gv switch -qc voo/aberto; echo d > "$AV/d"; gv add d; gv commit -qm "feat: tres"
 gv switch -q main; gv branch voo/sujo
 gv worktree add -q "$TMP/apagar-feito" voo/feito; gv worktree add -q "$TMP/apagar-sujo" voo/sujo
@@ -401,8 +403,10 @@ espera 0 "apagar_voo: sem --sim, nada sai" bash -c "git -C '$AV' rev-parse -q --
 espera 1 "apagar_voo: --velhos --sim apaga o que está na base e diz o que ficou" apagar --velhos --sim
 espera 0 "apagar_voo: o voo costurado sai, com a worktree, e deixa o bundle" \
   bash -c "! git -C '$AV' rev-parse -q --verify voo/feito && [ ! -d '$TMP/apagar-feito' ] && ls '$AV'/.git/voo-apagados/voo_feito-*.bundle"
-espera 0 "apagar_voo: o voo costurado com outro hash (o mesmo assunto) também sai" \
+espera 0 "apagar_voo: o voo costurado com outro patch e o mesmo conteúdo também sai" \
   bash -c "! git -C '$AV' rev-parse -q --verify voo/costurado"
+espera 0 "apagar_voo: o voo com o mesmo assunto e outro conteúdo fica" \
+  bash -c "git -C '$AV' rev-parse -q --verify voo/xara"
 espera 0 "apagar_voo: o voo aberto e o voo com rascunho ficam" \
   bash -c "git -C '$AV' rev-parse -q --verify voo/aberto && git -C '$AV' rev-parse -q --verify voo/sujo && [ -f '$TMP/apagar-sujo/rascunho' ]"
 espera 2 "apagar_voo: o ramo que não existe sai 2" apagar voo/nenhum

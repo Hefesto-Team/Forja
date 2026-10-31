@@ -12,8 +12,9 @@ O voo que já está no main sai da máquina: a worktree e o ramo local (docs/jog
   --base    onde o voo tem de estar (padrão: origin/main, buscado antes)
   --sim     apaga; sem ele, só diz o que apagaria
 
-Sai só o voo cujo commit inteiro está na base (o git cherry, ou o mesmo assunto quando a costura trocou o hash) e cuja
-worktree está limpa. Antes de apagar, o ramo vai para um bundle em <git-common-dir>/voo-apagados/. O remoto não muda.
+Sai só o voo cujo commit inteiro está na base (pelo git cherry, ou pelo conteúdo: o commit aplicado sobre a base não
+muda nada, como na costura que resolveu um conflito) e cuja worktree está limpa. Antes de apagar, o ramo vai para um
+bundle em <git-common-dir>/voo-apagados/. O remoto não muda.
 
 rc: 0 feito (ou nada a apagar) · 1 algum voo ficou (aberto ou sujo) · 2 argumento, ramo ou base que não existe.
 EOF
@@ -44,9 +45,15 @@ if [ "$VELHOS" = 1 ]; then
 fi
 [ "${#RAMOS[@]}" -gt 0 ] || { [ "$VELHOS" = 1 ] && { echo "apagar_voo: nenhum voo nesta máquina"; exit 0; }; uso >&2; exit 2; }
 
-ASSUNTOS="$(git log --format=%s "$BASE")"
+ARVORE="$(git rev-parse "$BASE^{tree}")"
 AQUI="$(git rev-parse --show-toplevel)"
 FICOU=0
+
+no_conteudo() {
+  local t
+  t="$(git merge-tree --write-tree --merge-base="$1^" "$BASE" "$1" 2>/dev/null)" || return 1
+  [ "$(head -n 1 <<< "$t")" = "$ARVORE" ]
+}
 
 worktree_de() {
   git worktree list --porcelain | awk -v r="refs/heads/$1" '/^worktree /{w=substr($0,10)} $0=="branch " r {print w}'
@@ -56,7 +63,7 @@ for r in "${RAMOS[@]}"; do
   git rev-parse -q --verify "refs/heads/$r" > /dev/null || { echo "apagar_voo: o ramo $r não existe" >&2; exit 2; }
   fora=0
   while read -r c; do
-    grep -qxF -- "$(git log -1 --format=%s "$c")" <<< "$ASSUNTOS" || fora=$((fora + 1))
+    no_conteudo "$c" || fora=$((fora + 1))
   done < <(git cherry "$BASE" "$r" | awk '/^\+/{print $2}')
   w="$(worktree_de "$r")"
   if [ "$fora" -gt 0 ]; then
